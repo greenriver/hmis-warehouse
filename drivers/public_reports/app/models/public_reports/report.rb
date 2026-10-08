@@ -17,6 +17,7 @@ module PublicReports
     include ::WarehouseReports::Publish
 
     MIN_THRESHOLD = 11
+    SUPPRESS_TOTALS_AT_OR_BELOW = 100
 
     belongs_to :user, optional: true
     scope :viewable_by, ->(user) do
@@ -122,9 +123,9 @@ module PublicReports
         "#{percent}%"
       when 'pit_chart', 'inflow_outflow'
         return data if data.zero?
-        return data if data > 100
+        return data if data > self.class::SUPPRESS_TOTALS_AT_OR_BELOW
 
-        100
+        self.class::SUPPRESS_TOTALS_AT_OR_BELOW
       when 'hoh_pit_chart'
         return data if data.zero?
         return data if data > 20

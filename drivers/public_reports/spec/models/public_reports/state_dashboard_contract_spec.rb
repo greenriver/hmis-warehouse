@@ -45,7 +45,7 @@ RSpec.describe PublicReports::StateDashboard, type: :model do
     she = create(
       :she_entry,
       client: client,
-      data_source_id: source_data_source.id,
+      data_source_id: project.data_source_id,
       project_id: project.project_id,
       organization_id: project.organization_id,
       project_type: project.project_type,
@@ -73,12 +73,51 @@ RSpec.describe PublicReports::StateDashboard, type: :model do
     client
   end
 
+  def gender_row(label)
+    labels = data['who']['breakdownGroupings']['gender']['sections'][0]['rows']
+    data['who']['breakdown']["gender__0__#{labels.index(label)}"]
+  end
+
+  def add_exited_entry(client:, destination:)
+    create(
+      :she_entry,
+      client: client,
+      data_source_id: project.data_source_id,
+      project_id: project.project_id,
+      organization_id: project.organization_id,
+      project_type: project.project_type,
+      date: Date.parse('2025-03-01'),
+      first_date_in_program: Date.parse('2025-03-01'),
+      last_date_in_program: Date.parse('2025-06-30'),
+      destination: destination,
+      household_id: "exited-#{client.id}",
+    )
+  end
+
+  # A 'first' row has no exit, so homeless_scope's open_between keeps it in
+  # range and only started_between can exclude it.
+  def add_first_homeless_date(client:, date:)
+    create(
+      :she_first,
+      client: client,
+      data_source_id: project.data_source_id,
+      project_id: project.project_id,
+      organization_id: project.organization_id,
+      project_type: project.project_type,
+      date: date,
+      first_date_in_program: date,
+      last_date_in_program: nil,
+    )
+  end
+
   # A handful of clients, spread across race/gender, all entered in the
   # report's final quarter -- small enough that every donut/breakdown total
   # should come back suppressed, which is exactly the case this spec exists
   # to guard.
+  let(:collection) { Collection.system_collection(:data_sources) }
+
   before do
-    setup_access_control(user, role, Collection.system_collection(:data_sources))
+    setup_access_control(user, role, collection)
 
     [
       { gender: :Woman, race_field: :White },
@@ -169,24 +208,26 @@ RSpec.describe PublicReports::StateDashboard, type: :model do
 
   context 'with a client who exited to a permanent destination during the year' do
     before do
-      client = create_homeless_client(gender: :Man, race_field: :White, age: 30)
-      create(
-        :she_entry,
-        client: client,
-        data_source_id: source_data_source.id,
-        project_id: project.project_id,
-        organization_id: project.organization_id,
-        project_type: project.project_type,
-        date: Date.parse('2025-03-01'),
-        first_date_in_program: Date.parse('2025-03-01'),
-        last_date_in_program: Date.parse('2025-06-30'),
-        destination: HudHelper.util.permanent_destinations.first,
-        household_id: 'exited',
-      )
+      add_exited_entry(client: create_homeless_client(gender: :Man, race_field: :White, age: 30), destination: HudHelper.util.permanent_destinations.first)
     end
 
     it 'counts the exit at the 100 floor and no first-time entries' do
       expect(data['inflow_outflow']['series'].map { |series| series['values'] }).to eq([[0], [100]])
+    end
+
+    context 'plus a temporary-destination exit and first-time entries inside and before the year, with totals unsuppressed' do
+      before do
+        stub_const('PublicReports::StateDashboard::SUPPRESS_TOTALS_AT_OR_BELOW', 0)
+        temporary_exit_client = create_homeless_client(gender: :Man, race_field: :White, age: 30)
+        add_exited_entry(client: temporary_exit_client, destination: HudHelper.util.temporary_destinations.first)
+        add_first_homeless_date(client: temporary_exit_client, date: Date.parse('2025-03-01'))
+        earlier_client = create_homeless_client_and_entry(gender: :Man, race_field: :White, household_id: 'first-before-window')
+        add_first_homeless_date(client: earlier_client, date: Date.parse('2023-05-01'))
+      end
+
+      it 'counts one first-time entry and one permanent-destination exit' do
+        expect(data['inflow_outflow']['series'].map { |series| series['values'] }).to eq([[1], [1]])
+      end
     end
   end
 
@@ -224,6 +265,37 @@ RSpec.describe PublicReports::StateDashboard, type: :model do
 
     it 'counts that client once in the statewide map total' do
       expect(data['map']['statewideTotals'].last.first).to eq(6)
+    end
+
+    it 'counts that client once in the PIT count' do
+      expect(data['pit_chart']['series'].first['values']).to eq([6])
+    end
+  end
+
+  context 'with enrollments the filter must exclude, and totals unsuppressed' do
+    let(:ph_project) { create(:hud_project, data_source_id: source_data_source.id, OrganizationID: organization.OrganizationID, ProjectType: 3) }
+    let(:other_data_source) { create(:grda_warehouse_data_source) }
+    let(:other_organization) { create(:hud_organization, data_source_id: other_data_source.id) }
+    let(:other_project) { create(:hud_project, data_source_id: other_data_source.id, OrganizationID: other_organization.OrganizationID, ProjectType: 1) }
+    # Every data source is auto-added to the system collection in test, so grant only the source data source.
+    let(:collection) { create(:collection).tap { |c| c.set_viewables({ data_sources: [source_data_source.id] }) } }
+
+    before do
+      stub_const('PublicReports::StateDashboard::SUPPRESS_TOTALS_AT_OR_BELOW', 0)
+      create_homeless_client_and_entry(gender: :Man, race_field: :White, household_id: 'permanent-housing', project: ph_project)
+      create_homeless_client_and_entry(gender: :Man, race_field: :White, household_id: 'other-data-source', project: other_project)
+    end
+
+    it 'counts neither the permanent housing enrollment nor the one the owner cannot see' do
+      expect(data['who']['donuts']['all-people']['totals'].last).to eq(5)
+    end
+
+    context 'when the owner can also see the other data source' do
+      let(:collection) { create(:collection).tap { |c| c.set_viewables({ data_sources: [source_data_source.id, other_data_source.id] }) } }
+
+      it 'counts the client from the other data source and still excludes permanent housing' do
+        expect(data['who']['donuts']['all-people']['totals'].last).to eq(6)
+      end
     end
   end
 
@@ -297,7 +369,46 @@ RSpec.describe PublicReports::StateDashboard, type: :model do
       # 3 women from the shared setup plus 8 here.
       expect(woman_row['totals'].last).to eq(11)
     end
-  end
+
+    context 'with three more men, putting the Man row exactly at the threshold' do
+      before do
+        3.times { |i| create_homeless_client_and_entry(gender: :Man, race_field: :White, household_id: "man-at-#{i}") }
+      end
+
+      it 'suppresses a row whose total equals SUPPRESS_TOTALS_AT_OR_BELOW' do
+        row = gender_row('Man')
+
+        # 2 shared + 3 = 5, exactly the stubbed constant.
+        expect([row['totals'].last, row['sheltered']&.last, row['unsheltered'].last]).to eq([nil, nil, nil])
+      end
+    end
+
+    context 'with four more men, two of them unsheltered' do
+      before do
+        2.times { |i| create_homeless_client_and_entry(gender: :Man, race_field: :White, household_id: "man-sheltered-#{i}") }
+        2.times { |i| create_homeless_client_and_entry(gender: :Man, race_field: :White, household_id: "man-unsheltered-#{i}", project: outreach_project) }
+      end
+
+      it 'publishes a row one over the threshold with an unsheltered count exactly at MIN_THRESHOLD' do
+        row = gender_row('Man')
+
+        # total 6, sheltered 2 shared + 2, unsheltered 2 == MIN_THRESHOLD.
+        expect([row['totals'].last, row['sheltered'].last, row['unsheltered'].last]).to eq([6, 4, 2])
+      end
+    end
+
+    context 'with four more men, one of them unsheltered' do
+      before do
+        3.times { |i| create_homeless_client_and_entry(gender: :Man, race_field: :White, household_id: "man-sheltered-#{i}") }
+        create_homeless_client_and_entry(gender: :Man, race_field: :White, household_id: 'man-unsheltered', project: outreach_project)
+      end
+
+      it 'publishes the total but masks both location counts when unsheltered is one under MIN_THRESHOLD' do
+        row = gender_row('Man')
+
+        expect([row['totals'].last, row['sheltered']&.last, row['unsheltered'].last]).to eq([6, nil, nil])
+      end
+    end  end
 
   context 'with real map counts' do
     before do
