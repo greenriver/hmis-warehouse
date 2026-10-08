@@ -54,6 +54,14 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(search_query).to be_present
       expect(search_query.params).to eq({ 'text_search' => 'test person' })
     end
+
+    it 'orders results by best match' do
+      # created partial match first so it has the lower id
+      partial_match = create(:hmis_hud_client, first_name: 'Marcus', last_name: 'Johnston', data_source: data_source)
+      best_match = create(:hmis_hud_client, first_name: 'Marcus', last_name: 'Johnson', data_source: data_source)
+
+      expect(omni_search_ids('Marcus Johnson')).to eq([best_match.id, partial_match.id])
+    end
   end
 
   context 'with access to one project' do

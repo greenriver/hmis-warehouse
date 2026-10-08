@@ -75,9 +75,8 @@ module Types
     def client_omni_search(text_search:)
       persist_client_search_query({ 'text_search' => text_search })
 
-      Hmis::Hud::Client.searchable_to_matching(current_user, text_search).
-        matching_search_term(text_search).
-        sort_by_option(:recently_added)
+      # Clients matching the search term that are searchable to the user, ordered by best match
+      Hmis::Hud::Client.searchable_to_matching(current_user, text_search, sorted: true)
     end
 
     field :client, Types::HmisSchema::Client, 'Client lookup', null: true do
