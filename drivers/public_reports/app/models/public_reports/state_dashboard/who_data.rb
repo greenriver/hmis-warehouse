@@ -105,9 +105,9 @@ class PublicReports::StateDashboard::WhoData
       start_date = @report.beginning_iteration(date)
       end_date = @report.end_iteration(date)
       [
-        breakdowns.adult_only_household_ids(start_date, end_date).values.uniq.count,
-        breakdowns.adult_and_child_household_ids(start_date, end_date).values.uniq.count,
-        breakdowns.child_only_household_ids(start_date, end_date).values.uniq.count,
+        household_count(breakdowns.adult_only_household_ids(start_date, end_date)),
+        household_count(breakdowns.adult_and_child_household_ids(start_date, end_date)),
+        household_count(breakdowns.child_only_household_ids(start_date, end_date)),
       ]
     end
     donut(
@@ -118,6 +118,11 @@ class PublicReports::StateDashboard::WhoData
       counts_by_period: counts_by_period,
       threshold_key: 'household_type',
     )
+  end
+
+  # A head of household with several households counts once; a household with no flagged head counts on its own.
+  private def household_count(hoh_client_id_by_household)
+    hoh_client_id_by_household.map { |household_key, hoh_client_id| hoh_client_id || household_key }.uniq.count
   end
 
   private def race_chart
@@ -145,7 +150,6 @@ class PublicReports::StateDashboard::WhoData
       end
 
       period_scope(date).joins(:client).preload(:client).
-        order(first_date_in_program: :desc). # Use the newest start
         find_each do |enrollment|
           client = enrollment.client
           race_code = client_cache.race_string(destination_id: client.id)

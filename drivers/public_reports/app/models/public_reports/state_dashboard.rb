@@ -66,16 +66,17 @@ module PublicReports
       # 1. Take the contents of html and push it up to S3
       # 2. Populate the published_url field
       # 3. Populate the embed_code field
+      # Uploading inside the transaction keeps the report unpublished if S3 raises.
       self.class.transaction do
         unpublish_similar
-        update(
+        update!(
           html: as_html,
           published_url: generate_publish_url, # NOTE this isn't used in this report
           embed_code: generate_embed_code, # NOTE this isn't used in this report
           state: :published,
         )
+        push_to_s3
       end
-      push_to_s3
     end
 
     # Override default push to s3 to enable multiple files
@@ -253,9 +254,7 @@ module PublicReports
     end
 
     def end_iteration(date)
-      return date.end_of_quarter unless yearly?
-
-      return [date.end_of_year, filter_object.end_date].min
+      [yearly? ? date.end_of_year : date.end_of_quarter, filter_object.end_date].min
     end
 
     private def summary

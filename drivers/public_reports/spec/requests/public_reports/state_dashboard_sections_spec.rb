@@ -35,6 +35,11 @@ RSpec.describe 'PublicReports::WarehouseReports::StateDashboard sections', type:
     r
   end
 
+  # Translation.translate reads the lowest-id row for a key, so a second row would be ignored.
+  def write_glossary(text)
+    Translation.where(key: PublicReports::StateDashboard::Glossary::TRANSLATION_KEY).order(:id).first_or_initialize.update!(text: text)
+  end
+
   before do
     # GrdaWarehouse::Shape classes memoize their state-code lookup on the
     # class object itself, so it survives another spec
@@ -170,7 +175,7 @@ RSpec.describe 'PublicReports::WarehouseReports::StateDashboard sections', type:
   end
 
   it 'links the summary heading to the glossary on summary and raw' do
-    Translation.create!(key: 'Public Report Glossary', text: '**Sheltered**: staying in ES, SH, or TH.')
+    write_glossary('**Sheltered**: staying in ES, SH, or TH.')
 
     [:summary, :raw].each do |section|
       get send("#{section}_public_reports_warehouse_reports_state_dashboard_path", report)
@@ -191,10 +196,9 @@ RSpec.describe 'PublicReports::WarehouseReports::StateDashboard sections', type:
 
   describe 'per-term glossary links' do
     before do
-      Translation.create!(
-        key: 'Public Report Glossary',
-        text: "### ES / SO / SH / TH\nEmergency Shelter, Street Outreach, Safe Haven, Transitional Housing.\n\n" \
-              "### Unsheltered / Unsheltered Rate\nPeople sleeping in a place not meant for habitation.\n",
+      write_glossary(
+        "### ES / SO / SH / TH\nEmergency Shelter, Street Outreach, Safe Haven, Transitional Housing.\n\n" \
+        "### Unsheltered / Unsheltered Rate\nPeople sleeping in a place not meant for habitation.\n",
       )
     end
 
@@ -219,7 +223,7 @@ RSpec.describe 'PublicReports::WarehouseReports::StateDashboard sections', type:
     end
 
     it 'omits a term link when the glossary does not define that term' do
-      Translation.find_by(key: 'Public Report Glossary').update!(text: "### Unsheltered / Unsheltered Rate\nPeople outside.\n")
+      write_glossary("### Unsheltered / Unsheltered Rate\nPeople outside.\n")
       get pit_public_reports_warehouse_reports_state_dashboard_path(report)
       expect(Nokogiri::HTML(response.body).css('.chart-title a.info-icon')).to be_empty
     end

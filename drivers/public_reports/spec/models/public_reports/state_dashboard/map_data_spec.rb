@@ -122,9 +122,9 @@ RSpec.describe PublicReports::StateDashboard::MapData, type: :model do
     end
 
     # One ES project whose ProjectCoC principal site is `city`, with `count` clients each served once in Q4 2025.
-    def enroll_clients(count, city:)
+    def enroll_clients(count, city:, coc_code: 'MA-500')
       project = create(:hud_project, data_source_id: data_source.id, OrganizationID: organization.OrganizationID, ProjectType: 1)
-      create(:hud_project_coc, data_source: data_source, ProjectID: project.ProjectID, City: city)
+      create(:hud_project_coc, data_source: data_source, ProjectID: project.ProjectID, City: city, CoCCode: coc_code)
       count.times do |i|
         client = create(:hud_client, data_source_id: data_source.id)
         she = create(
@@ -180,6 +180,27 @@ RSpec.describe PublicReports::StateDashboard::MapData, type: :model do
       # people but no denominator, so it must be nil rather than 0.
       expect(data[:populations]).to eq([100_000, 0])
       expect(data[:values].last.first).to eq([6.0, nil])
+    end
+
+    it 'counts each CoC from its own ProjectCoC code in CoC mode' do
+      settings.update!(map_type: 'coc', map_overall_population_method: 'state')
+      ['MA-500', 'MA-501', 'MA-502'].each_with_index do |cocnum, i|
+        west = -72.0 + (i * 0.5)
+        GrdaWarehouse::Shape::Coc.create!(
+          st: 'MA', cocnum: cocnum, cocname: cocnum, full_geoid: "CUSTOMCOCUS#{cocnum}",
+          geom: "SRID=4326;MULTIPOLYGON(((#{west} 42.0, #{west + 0.1} 42.0, #{west + 0.1} 42.1, #{west} 42.1, #{west} 42.0)))"
+        )
+        GrdaWarehouse::UsCensusApi::CensusValue.create!(
+          census_variable: total_population_variable, value: 10_000, full_geoid: "CUSTOMCOCUS#{cocnum}", census_level: 'CUSTOM', created_on: Date.current,
+        )
+      end
+      enroll_clients(12, city: 'Boston', coc_code: 'MA-500')
+      enroll_clients(38, city: 'Worcester', coc_code: 'MA-501')
+
+      data = map_data.to_h
+
+      # 12 of 50 is 24% (the 21%-25% band, 25.0); 38 of 50 is 76% (the 26%+ band, 100.0); MA-502 has no one.
+      expect(data[:values].last.first).to eq([25.0, 100.0, 0])
     end
 
     it 'floors small town counts to 11 in census mode so they share one band and leaves a town with no one at 0' do

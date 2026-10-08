@@ -41,7 +41,7 @@ class PublicReports::StateDashboard::Breakdowns
         when 1 then adult_and_child_household_ids(start_date, end_date).keys
         when 2 then child_only_household_ids(start_date, end_date).keys
         end
-        section_scope = base_scope.where(household_id: household_ids)
+        section_scope = base_scope.where(household_key.in(household_ids))
         # NOTE: for adults with children we sum all categories together
         compute_rows(
           rows: rows,
@@ -103,7 +103,7 @@ class PublicReports::StateDashboard::Breakdowns
     }
   end
 
-  # household_id => head of household client_id, for each household type.
+  # household_key => head of household client_id, for each household type.
   def adult_and_child_household_ids(start_date, end_date)
     adult_and_child_households = {}
     households(start_date, end_date).each do |hh_id, household|
@@ -250,7 +250,7 @@ class PublicReports::StateDashboard::Breakdowns
     }
   end
 
-  # household_id => { ages:, hoh_client_id: } for households served in the period.
+  # household_key => { ages:, hoh_client_id: } for households served in the period.
   private def households(start_date, end_date)
     households = {}
     counted_ids = Set.new
@@ -263,7 +263,7 @@ class PublicReports::StateDashboard::Breakdowns
       joins(:service_history_services).
       merge(shs_scope).
       order(shs_t[:date].asc).
-      pluck(cl(she_t[:household_id], she_t[:enrollment_group_id]), shs_t[:age], shs_t[:client_id], she_t[:head_of_household]).
+      pluck(household_key, shs_t[:age], shs_t[:client_id], she_t[:head_of_household]).
       each do |hh_id, age, client_id, hoh|
         key = [hh_id, client_id]
         households[hh_id] ||= { ages: [], hoh_client_id: nil }
@@ -279,4 +279,9 @@ class PublicReports::StateDashboard::Breakdowns
     households
   end
   memoize :households
+
+  # HouseholdID is only unique within a data source, and an enrollment without one is its own household.
+  private def household_key
+    nf('CONCAT', [she_t[:data_source_id], Arel::Nodes.build_quoted(':'), cl(she_t[:household_id], she_t[:enrollment_group_id])])
+  end
 end

@@ -59,6 +59,18 @@ RSpec.describe 'Publishing the state-level reports', type: :model do
     expect(dashboard.reload.attributes.values_at('published_url', 'state')).to eq([dashboard.generate_publish_url, 'published'])
   end
 
+  it 'leaves the report and the one it would replace unchanged when an S3 upload fails' do
+    old = published(PublicReports::StateLevelHomelessness)
+    dashboard = published(PublicReports::StateDashboard)
+    dashboard.update_columns(precalculated_data: precalculated_data, state: 'pre-calculated', published_url: nil)
+    s3.stub_responses(:put_object, 'AccessDenied')
+
+    expect { dashboard.publish! }.to raise_error(Aws::S3::Errors::AccessDenied)
+    expect(
+      [old.reload.attributes.values_at('published_url', 'state'), dashboard.reload.attributes.values_at('published_url', 'state')],
+    ).to eq([['https://example.test/index.html', 'published'], [nil, 'pre-calculated']])
+  end
+
   it 'removes every section object on unpublish' do
     dashboard = published(PublicReports::StateDashboard)
 

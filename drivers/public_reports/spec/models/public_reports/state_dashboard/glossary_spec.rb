@@ -91,7 +91,8 @@ RSpec.describe PublicReports::StateDashboard::Glossary do
   end
 
   it 'reads the glossary from the translation row' do
-    create(:translation, key: described_class::TRANSLATION_KEY, text: "### Term\nDef.\n")
+    # Translation.translate reads the lowest-id row for a key, so a second row would be ignored.
+    Translation.where(key: described_class::TRANSLATION_KEY).order(:id).first_or_initialize.update!(text: "### Term\nDef.\n")
     expect(described_class.from_translation.definition('Term')).to eq('Def.')
   end
 end
