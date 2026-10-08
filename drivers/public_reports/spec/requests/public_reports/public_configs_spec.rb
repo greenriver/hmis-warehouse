@@ -64,4 +64,29 @@ RSpec.describe 'PublicReports::WarehouseReports::PublicConfigs', type: :request 
 
     expect(Nokogiri::HTML(response.body).at_css('input[name="config[homeless_primary_color]"]')&.[]('value')).to eq('#112233')
   end
+
+  context 'for a report-viewing user whose collection lacks the Public Configs definition' do
+    let(:outsider) { create(:acl_user) }
+
+    before do
+      PublicReports::Setting.first_or_create.update!(summary_color: '#123456')
+      setup_access_control(outsider, role, create(:collection))
+      sign_out(user)
+      sign_in(outsider)
+    end
+
+    it 'redirects away from the form that holds the S3 credentials' do
+      get public_reports_warehouse_reports_public_configs_path
+
+      expect(response).to redirect_to(outsider.my_root_path)
+      expect(response.body).not_to include('config[s3_secret]')
+    end
+
+    it 'redirects away from create and leaves the setting unchanged' do
+      post public_reports_warehouse_reports_public_configs_path, params: { config: { summary_color: '#abcdef' } }
+
+      expect(response).to redirect_to(outsider.my_root_path)
+      expect(PublicReports::Setting.first.summary_color).to eq('#123456')
+    end
+  end
 end

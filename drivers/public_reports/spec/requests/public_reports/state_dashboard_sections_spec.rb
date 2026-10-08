@@ -423,4 +423,121 @@ RSpec.describe 'PublicReports::WarehouseReports::StateDashboard sections', type:
       expect(base_defined & themed).to be_empty
     end
   end
+
+  describe 'authorization' do
+    after { Delayed::Job.delete_all }
+
+    context 'for a report-viewing user who does not own the report' do
+      let(:other_user) { create(:acl_user) }
+
+      before do
+        setup_access_control(other_user, role, collection)
+        sign_out(user)
+        sign_in(other_user)
+      end
+
+      it 'does not preview another user\'s report' do
+        get summary_public_reports_warehouse_reports_state_dashboard_path(report)
+
+        expect(response).to have_http_status(:not_found)
+      end
+
+      it 'does not queue publishing of another user\'s report' do
+        expect do
+          patch public_reports_warehouse_reports_state_dashboard_path(report), params: { public_report: { published_url: report.generate_publish_url } }
+        end.not_to change(Delayed::Job, :count)
+
+        expect(response).to have_http_status(:not_found)
+        expect(report.reload.published_url).to be_nil
+      end
+
+      it 'does not destroy another user\'s report' do
+        delete public_reports_warehouse_reports_state_dashboard_path(report)
+
+        expect(response).to have_http_status(:not_found)
+        expect(PublicReports::StateDashboard.exists?(report.id)).to be(true)
+      end
+    end
+
+    context 'for a user whose collection has no State Dashboard report definition' do
+      let(:outsider) { create(:acl_user) }
+
+      before do
+        setup_access_control(outsider, role, create(:collection))
+        sign_out(user)
+        sign_in(outsider)
+      end
+
+      it 'redirects away from the section preview' do
+        get summary_public_reports_warehouse_reports_state_dashboard_path(report)
+
+        expect(response).to redirect_to(outsider.my_root_path)
+      end
+
+      it 'redirects away from publishing without queuing a job' do
+        expect do
+          patch public_reports_warehouse_reports_state_dashboard_path(report), params: { public_report: { published_url: report.generate_publish_url } }
+        end.not_to change(Delayed::Job, :count)
+
+        expect(response).to redirect_to(outsider.my_root_path)
+        expect(report.reload.published_url).to be_nil
+      end
+    end
+  end
+
+  describe 'PATCH update' do
+    let(:s3) do
+      Aws::S3::Client.new(
+        credentials: Aws::Credentials.new('key', 'secret'),
+        region: 'us-east-1',
+        stub_responses: { delete_object: { delete_marker: true } },
+      )
+    end
+
+    before { allow(AwsS3).to receive(:new).and_return(instance_double(AwsS3, client: s3)) }
+    after { Delayed::Job.delete_all }
+
+    it 'stores the folder and redirects to the report' do
+      patch public_reports_warehouse_reports_state_dashboard_path(report), params: { public_report: { version_slug: 'coc-500' } }
+
+      expect(response).to redirect_to(public_reports_warehouse_reports_state_dashboard_path(report))
+      expect(report.reload.version_slug).to eq('coc-500')
+    end
+
+    it 'queues publishing without publishing inline' do
+      expect do
+        patch public_reports_warehouse_reports_state_dashboard_path(report), params: { public_report: { published_url: report.generate_publish_url } }
+      end.to change(Delayed::Job, :count).by(1)
+
+      expect(response).to redirect_to(public_reports_warehouse_reports_state_dashboard_path(report))
+      expect(flash[:notice]).to eq('Report publishing queued, please check the public link in a few minutes.')
+      expect(Delayed::Job.last.handler).to include('method_name: :publish!')
+      expect(report.reload.published_url).to be_nil
+      expect(s3.api_requests).to eq([])
+    end
+
+    context 'with a published report' do
+      before do
+        report.update_columns(version_slug: 'state')
+        report.update_columns(published_url: report.generate_publish_url, embed_code: '<iframe></iframe>', html: '<html></html>', state: 'published')
+      end
+
+      it 'unpublishes when the token matches the publish url' do
+        patch public_reports_warehouse_reports_state_dashboard_path(report), params: { public_report: { unpublish: report.reload.generate_publish_url } }
+
+        expect(response).to redirect_to(public_reports_warehouse_reports_state_dashboard_path(report))
+        expect(flash[:notice]).to eq('Report has been unpublished.')
+        expect(report.reload.attributes.values_at('published_url', 'embed_code', 'html', 'state')).to eq([nil, nil, nil, 'pre-calculated'])
+        expect(s3.api_requests.map { |r| r[:operation_name] }).to eq([:delete_object] * report.sections.size)
+      end
+
+      it 'leaves a published report alone when the unpublish token does not match' do
+        patch public_reports_warehouse_reports_state_dashboard_path(report), params: { public_report: { unpublish: 'https://example.test/not-this-report/index.html' } }
+
+        expect(response).to redirect_to(edit_public_reports_warehouse_reports_state_dashboard_path(report))
+        expect(report.reload.published_url).to eq(report.generate_publish_url)
+        expect(s3.api_requests).to eq([])
+      end
+    end
+  end
 end
