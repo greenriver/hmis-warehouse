@@ -86,6 +86,8 @@ when changing what CAS receives about consent.
   immediately. Called from `ClientFile#set_client_consent`, `Clients::FilesController#destroy`
   (when the active consent file is deleted), and the `GrdaWarehouse::Vispdat::Base`
   `after_commit` that fires when `housing_release_confirmed` changes.
+- `GrdaWarehouse::HmisClient.maintain_client_consent` runs `_perform(client_ids:)` for the
+  destination clients whose ETO consent it changed.
 - `rake grda_warehouse:generate_client_roi_authorizations` (`lib/tasks/grda_warehouse.rake`),
   scheduled daily in `config/schedule.rb`, rebuilds every client;
   `GrdaWarehouse::Tasks::UpdateHousingReleaseStatuses` calls the task for clients whose status

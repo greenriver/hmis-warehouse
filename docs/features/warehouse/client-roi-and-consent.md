@@ -20,10 +20,11 @@ Consent-form `ClientFile`s write these columns on the **destination** client:
   - the VI-SPDAT `housing_release_confirmed` checkbox (`Vispdat::Base`)
 
 `Client#invalidate_consent!` does not rebuild. The files and releases controllers call it before they save the file's `consent_revoked_at`. Under `Consent::Implied`, `revoked_consent?` reads the newest consent file, so a rebuild at that point would not see the revocation and would reset the client to `Implied Consent`.
+- for the clients whose ETO consent changed, from `HmisClient.maintain_client_consent`, through `_perform(client_ids:)`
 - for changed clients, from `UpdateHousingReleaseStatuses`. This goes through the task-wide lock and is skipped while the nightly run holds it.
 - nightly, for every destination client
 
-ETO consent (`HmisClient.maintain_client_consent`) only grants consent. It reaches the table at the next nightly run. It sets no `consent_form_id`, and the nightly run only invalidates expired releases that have one. An expired ETO release therefore keeps its expired `full` row, and the client is hidden on every ROI path (not shown with implied consent) until `revoke_expired_consent` clears the columns and a later rebuild runs.
+ETO consent (`HmisClient.maintain_client_consent`) only grants consent. It rebuilds the clients whose consent it changed, through `_perform(client_ids:)`. It sets no `consent_form_id`, and the nightly run only invalidates expired releases that have one. An expired ETO release therefore keeps its expired `full` row, and the client is hidden on every ROI path (not shown with implied consent) until `revoke_expired_consent` clears the columns and a later rebuild runs.
 
 Each rebuild reads its clients with row locks (`SELECT ... FOR UPDATE`, in id order) held until it commits. A consent column write therefore waits for any rebuild of that client, and a rebuild always reads the latest committed consent.
 
