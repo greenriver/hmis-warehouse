@@ -67,6 +67,45 @@ RSpec.describe WarehouseReports::S3Toolset do
 
       expect(client.api_requests.first[:params][:bucket]).to eq('my-client-test-public')
     end
+
+    context 'when the bucket does not exist' do
+      before do
+        stub_const('ENV', ENV.to_h.merge('S3_PUBLIC_BUCKET' => 'pub-bucket'))
+        client.stub_responses(:head_bucket, 'NotFound')
+      end
+
+      def created_buckets
+        client.api_requests.select { |r| r[:operation_name] == :create_bucket }.map { |r| r[:params][:bucket] }
+      end
+
+      it 'creates it on the local S3 endpoint' do
+        allow(AwsS3).to receive(:local_endpoint?).and_return(true)
+        client.stub_responses(:create_bucket, { location: '/pub-bucket' })
+
+        expect([publisher.ready_public_s3_bucket!, created_buckets]).to eq([true, ['pub-bucket']])
+      end
+
+      it 'fails when S3 reports the bucket at another location' do
+        allow(AwsS3).to receive(:local_endpoint?).and_return(true)
+        client.stub_responses(:create_bucket, { location: '/other-bucket' })
+
+        expect(publisher.ready_public_s3_bucket!).to be(false)
+      end
+
+      it 'creates it and then adds the website config on AWS' do
+        allow(AwsS3).to receive(:local_endpoint?).and_return(false)
+        client.stub_responses(:head_bucket, ['NotFound', {}])
+        client.stub_responses(:create_bucket, { location: '/pub-bucket' })
+        client.stub_responses(:get_bucket_website, ['NoSuchWebsiteConfiguration', { index_document: { suffix: 'index.html' } }])
+        client.stub_responses(:put_bucket_website, {})
+
+        result = publisher.ready_public_s3_bucket!
+        operations = client.api_requests.map { |r| r[:operation_name] }
+
+        expect([result, created_buckets]).to eq([true, ['pub-bucket']])
+        expect(operations.index(:create_bucket)).to be < operations.index(:put_bucket_website)
+      end
+    end
   end
 
   describe 'publishing a single-file report' do

@@ -17,6 +17,16 @@ RSpec.describe PublicReports::StateLevelHomelessness, type: :model do
     ).to eq(['Under 100', '100 or fewer'])
   end
 
+  # filter_object moves the end date to the end of its month, so the boundary is a whole month.
+  it 'accepts a span of exactly twelve months and rejects eleven' do
+    user = create(:acl_user)
+    reports = [['2025-01-01', '2025-12-31'], ['2025-01-01', '2025-11-30']].map do |start, finish|
+      described_class.new(user: user, filter: { filters: { start: Date.parse(start), end: Date.parse(finish), project_type_numbers: [1] } })
+    end
+
+    expect(reports.map(&:valid?)).to eq([true, false])
+  end
+
   it 'snaps need-map rates to the top of their color range and hides small counts' do
     report = described_class.new
     report.settings.update!((0..7).to_h { |i| ["color_#{i}", format('#%06x', 0x111111 * (i + 1))] })

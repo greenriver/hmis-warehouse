@@ -126,6 +126,45 @@ RSpec.describe PublicReports::StateDashboard::Geography, type: :model do
     end
   end
 
+  describe '#population' do
+    let!(:other_state) { GrdaWarehouse::Shape::State.create!(stusps: 'NH', geoid: '33') }
+    let(:total_population_variable) do
+      GrdaWarehouse::UsCensusApi::CensusVariable.create!(
+        year: 2024, dataset: 'acs5', name: 'B01003_001E', label: 'POP::TOTAL', concept: 'Total Population',
+        census_group: 'B01003', census_attributes: 'B01003_001EA', internal_name: 'POP::TOTAL', created_on: Date.current
+      )
+    end
+
+    def census_population(full_geoid, population)
+      GrdaWarehouse::UsCensusApi::CensusValue.create!(
+        census_variable: total_population_variable, value: population, full_geoid: full_geoid, census_level: 'CUSTOM', created_on: Date.current,
+      )
+    end
+
+    def square(west)
+      "SRID=4326;MULTIPOLYGON(((#{west} 42.0, #{west + 0.1} 42.0, #{west + 0.1} 42.1, #{west} 42.1, #{west} 42.0)))"
+    end
+
+    # The other state's row is created first, so a lookup without a state filter finds it first.
+    it 'reads a town population from the installation state when another state has a town of the same name' do
+      [[other_state, 99_000], [state, 10_000]].each do |shape_state, population|
+        GrdaWarehouse::Shape::Town.create!(town: 'TESTVILLE', statefp: shape_state.geoid, full_geoid: "CUSTOMTOWNUS#{shape_state.geoid}", geom: square(-71.5))
+        census_population("CUSTOMTOWNUS#{shape_state.geoid}", population)
+      end
+
+      expect(geography.population(2024, 'TESTVILLE')).to eq(10_000)
+    end
+
+    it 'reads a county population from the installation state when another state has a county of the same name' do
+      [[other_state, 99_000], [state, 10_000]].each do |shape_state, population|
+        GrdaWarehouse::Shape::County.create!(namelsad: 'Washington County', statefp: shape_state.geoid, full_geoid: "CUSTOMCOUNTYUS#{shape_state.geoid}", geom: square(-71.5))
+        census_population("CUSTOMCOUNTYUS#{shape_state.geoid}", population)
+      end
+
+      expect(described_class.new('county').population(2024, 'Washington County')).to eq(10_000)
+    end
+  end
+
   describe '#svg caching' do
     around do |example|
       original_cache = Rails.cache

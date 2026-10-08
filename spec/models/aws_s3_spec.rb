@@ -65,6 +65,12 @@ RSpec.describe AwsS3 do
   end
 
   describe '#exists?' do
+    it 'returns what the bucket check reports' do
+      allow(bucket).to receive(:exists?).and_return(true, false)
+
+      expect([aws_s3.exists?, aws_s3.exists?]).to eq([true, false])
+    end
+
     it 'returns false when the bucket check raises' do
       allow(bucket).to receive(:exists?).and_raise(Aws::S3::Errors::ServiceError.new(nil, 'Forbidden'))
 

@@ -139,11 +139,17 @@ RSpec.describe PublicReports::StateDashboard::Breakdowns, type: :model do
       ).to eq([{ household_key('shared') => adult }, { household_key('shared', other_source) => child }, {}])
     end
 
-    it 'counts an enrollment with no HouseholdID in its household-type row' do
-      create_member(household_id: nil, enrollment_group_id: 'enrollment-1', age: 30, head_of_household: true)
+    it 'treats each enrollment with no HouseholdID as its own household' do
+      adult = create_member(household_id: nil, enrollment_group_id: 'enrollment-adult', age: 30, head_of_household: true)
+      child = create_member(household_id: nil, enrollment_group_id: 'enrollment-child', age: 10, head_of_household: true)
 
-      expect(breakdowns.groupings[:household_type][:sections][0][:rows][1]).to eq('Persons over age 24')
-      expect(breakdowns.rows['household_type__0__1'][:totals].last).to eq(1)
+      expect(
+        [
+          breakdowns.adult_only_household_ids(period_start, period_end),
+          breakdowns.child_only_household_ids(period_start, period_end),
+          breakdowns.adult_and_child_household_ids(period_start, period_end),
+        ],
+      ).to eq([{ household_key('enrollment-adult') => adult }, { household_key('enrollment-child') => child }, {}])
     end
 
     # Two households with no flagged head, plus one head flagged in two households.

@@ -136,11 +136,11 @@ RSpec.describe PublicReports::StateDashboard::MapData, type: :model do
     end
 
     # One ES project whose ProjectCoC principal site is `city`, with `count` clients each served once in Q4 2025.
-    def enroll_clients(count, city:, coc_code: 'MA-500', zip: nil)
+    def enroll_clients(count, city:, coc_code: 'MA-500', zip: nil, veteran: false)
       project = create(:hud_project, data_source_id: data_source.id, OrganizationID: organization.OrganizationID, ProjectType: 1)
       create(:hud_project_coc, data_source: data_source, ProjectID: project.ProjectID, City: city, CoCCode: coc_code, Zip: zip)
       count.times do |i|
-        client = create(:hud_client, data_source_id: data_source.id)
+        client = create(:hud_client, data_source_id: data_source.id, VeteranStatus: veteran ? 1 : 0)
         she = create(
           :she_entry,
           client: client,
@@ -164,6 +164,21 @@ RSpec.describe PublicReports::StateDashboard::MapData, type: :model do
           age: 30,
         )
       end
+    end
+
+    it 'counts each period and each group from its own clients' do
+      settings.update!(map_overall_population_method: 'state')
+      create_town('OTHERTOWN', west: -71.5, population: 10_000)
+      create_town('TESTVILLE', west: -71.0, population: 10_000)
+      enroll_clients(48, city: 'Othertown')
+      enroll_clients(12, city: 'Testville', veteran: true)
+
+      data = map_data.to_h
+
+      # All service is in Q4, so Q1-Q3 are empty in all 5 groups. Veterans are Testville's 12 of 12 (100%, the 26%+ band);
+      # counting everyone it would be Othertown 48 of 60 (100.0) and Testville 12 of 60 (20%).
+      expect(data[:values].first(3)).to eq(Array.new(3) { Array.new(5) { [0, 0] } })
+      expect(data[:values].last[4]).to eq([0, 100.0])
     end
 
     it 'floors a small town count to 11 before taking its share and leaves a town with no one at 0' do

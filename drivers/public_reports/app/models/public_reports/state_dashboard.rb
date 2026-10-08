@@ -205,28 +205,26 @@ module PublicReports
       update(precalculated_data: chart_data)
     end
 
-    private def report_scope
+    # Homeless enrollments of any SHE record type, open during the report, that pass the report filters
+    # and the running user's access.
+    def homeless_scope
+      GrdaWarehouse::ServiceHistoryEnrollment.where(id: apply_report_filters(open_homeless_scope).select(:id))
+    end
+
+    private def open_homeless_scope
+      GrdaWarehouse::ServiceHistoryEnrollment.homeless.open_between(start_date: filter_object.start, end_date: filter_object.end)
+    end
+
+    private def apply_report_filters(scope)
       # for compatibility with FilterScopes
       @filter = filter_object
       @project_types = @filter.project_type_numbers
-      scope = GrdaWarehouse::ServiceHistoryEnrollment.entry
-      # scope = filter_for_range(scope) # all future queries limit this by date further, adding it here just makes it slower
       scope = filter_for_user_access(scope)
       scope = filter_for_cocs(scope)
       scope = filter_for_project_type(scope)
       scope = filter_for_data_sources(scope)
       scope = filter_for_organizations(scope)
-      scope = filter_for_projects(scope)
-      scope
-    end
-
-    # a convenience method to ensure clients all have at least one open homeless enrollment
-    # within the report period, and meet all of the other criteria, but not limited by
-    # SHE record type
-    def homeless_scope
-      GrdaWarehouse::ServiceHistoryEnrollment.homeless.
-        open_between(start_date: filter_object.start, end_date: filter_object.end).
-        where(client_id: report_scope.select(:client_id))
+      filter_for_projects(scope)
     end
 
     def iteration_dates
@@ -366,7 +364,10 @@ module PublicReports
       pit_count_dates.map do |date|
         start_date = date.beginning_of_year
         end_date = [date.end_of_year, filter_object.end_date].min
-        in_count = homeless_scope.first_date.
+        # First-time homelessness is system-wide: the client's first homeless enrollment counts wherever it is,
+        # as long as the client has a homeless enrollment in this report.
+        in_count = open_homeless_scope.first_date.
+          where(client_id: homeless_scope.entry.select(:client_id)).
           started_between(start_date: start_date, end_date: end_date).
           select(:client_id).
           distinct.

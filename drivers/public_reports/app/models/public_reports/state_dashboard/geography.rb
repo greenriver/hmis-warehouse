@@ -110,8 +110,8 @@ class PublicReports::StateDashboard::Geography
 
   private def population_geometries
     return GrdaWarehouse::Shape::ZipCode.where(zcta5ce10: state_zip_shapes.map(&:zcta5ce10)) if by_zip?
-    return GrdaWarehouse::Shape::Town.where(town: state_place_shapes.map(&:name)) if by_place?
-    return GrdaWarehouse::Shape::County.where(namelsad: state_county_shapes.map(&:namelsad)) if by_county?
+    return state_place_shapes if by_place?
+    return state_county_shapes if by_county?
 
     coc_geometries
   end

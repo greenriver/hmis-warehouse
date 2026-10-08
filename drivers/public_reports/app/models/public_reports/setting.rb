@@ -13,9 +13,12 @@ module PublicReports
 
     INK_COLOR = '#1b1b1b'
 
+    # One font family: a bare name (words separated by spaces) or a name wrapped in matching quotes.
+    FONT_FAMILY_NAME = /\s*(?:"[\w\s-]+"|'[\w\s-]+'|[\w-]+(?:\s+[\w-]+)*)\s*/
+
     CSS_FORMATS = {
       color: /\A(#\h{3,8}|[a-z]+|(rgb|hsl)a?\([\d\s.,%\/]+\))\z/i,
-      font_family: /\A[\w\s"',-]+\z/,
+      font_family: /\A#{FONT_FAMILY_NAME}(?:,#{FONT_FAMILY_NAME})*\z/,
       font_url: /\A(https:)?\/\/fonts\.googleapis\.com\/[^\s"'()<>\\]+\z/,
       font_size: /\A\d+(\.\d+)?(px|rem|em|%|pt)\z/,
       font_weight: /\A([1-9]00|normal|bold|lighter|bolder)\z/,

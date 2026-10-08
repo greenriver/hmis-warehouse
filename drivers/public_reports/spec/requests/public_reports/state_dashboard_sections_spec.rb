@@ -449,6 +449,21 @@ RSpec.describe 'PublicReports::WarehouseReports::StateDashboard sections', type:
         sign_in(other_user)
       end
 
+      it 'lists only the user\'s own reports in the history table' do
+        own = PublicReports::StateDashboard.new(
+          user: other_user,
+          filter: { filters: { start: Date.parse('2024-01-01'), end: Date.parse('2025-12-31') } },
+          version_slug: 'mine',
+        )
+        own.save!(validate: false)
+        report.update_column(:version_slug, 'theirs')
+
+        get public_reports_warehouse_reports_state_dashboard_index_path
+
+        rows = Nokogiri::HTML(response.body).css('.warehouse-reports__completed tbody tr')
+        expect(rows.map { |row| row.at_css('td.text-center').text[/\((\w+)\)/, 1] }).to eq(['mine'])
+      end
+
       it 'does not preview another user\'s report' do
         get summary_public_reports_warehouse_reports_state_dashboard_path(report)
 

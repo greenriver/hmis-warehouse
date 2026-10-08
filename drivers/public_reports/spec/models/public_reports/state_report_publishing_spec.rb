@@ -42,6 +42,16 @@ RSpec.describe 'Publishing the state-level reports', type: :model do
     ).to eq([['PublicReports::StateLevelHomelessness', nil], 'https://example.test/index.html'])
   end
 
+  it 'keeps a state-level report published in a different folder' do
+    coc = published(PublicReports::StateLevelHomelessness)
+    coc.update_column(:version_slug, 'coc-500')
+    dashboard = published(PublicReports::StateDashboard)
+
+    dashboard.publish!
+
+    expect(coc.reload.attributes.values_at('published_url', 'state')).to eq(['https://example.test/index.html', 'published'])
+  end
+
   it 'uploads one public-read html object per section at the url each embed points to' do
     dashboard = published(PublicReports::StateDashboard)
     dashboard.update_column(:precalculated_data, precalculated_data)

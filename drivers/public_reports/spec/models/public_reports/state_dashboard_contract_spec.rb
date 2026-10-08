@@ -94,9 +94,9 @@ RSpec.describe PublicReports::StateDashboard, type: :model do
     )
   end
 
-  # A 'first' row has no exit, so homeless_scope's open_between keeps it in
+  # A 'first' row has no exit, so the inflow query's open_between keeps it in
   # range and only started_between can exclude it.
-  def add_first_homeless_date(client:, date:)
+  def add_first_homeless_date(client:, date:, project: self.project)
     create(
       :she_first,
       client: client,
@@ -150,10 +150,13 @@ RSpec.describe PublicReports::StateDashboard, type: :model do
     end
   end
 
+  let(:project_type_numbers) { [1, 2, 8, 4] }
+  let(:coc_codes) { nil }
+
   let(:report) do
     report = described_class.new(
       user: user,
-      filter: { filters: { start: report_start, end: report_end, project_type_numbers: [1, 2, 8, 4] } },
+      filter: { filters: { start: report_start, end: report_end, project_type_numbers: project_type_numbers, coc_codes: coc_codes }.compact },
     )
     report.save!
     report.run_and_save!
@@ -250,6 +253,35 @@ RSpec.describe PublicReports::StateDashboard, type: :model do
 
       expect(key_paths(fixture) - key_paths(data)).to eq([])
     end
+
+    it 'leaves service after the report end date out of the last period' do
+      stub_const('PublicReports::StateDashboard::SUPPRESS_TOTALS_AT_OR_BELOW', 0)
+      client = create_homeless_client(gender: :Man, race_field: :White, age: 30)
+      she = create(
+        :she_entry,
+        client: client,
+        data_source_id: project.data_source_id,
+        project_id: project.project_id,
+        organization_id: project.organization_id,
+        project_type: project.project_type,
+        date: Date.parse('2025-11-20'),
+        first_date_in_program: Date.parse('2025-11-20'),
+        last_date_in_program: Date.parse('2025-12-31'),
+        household_id: 'december-service-only',
+      )
+      create(
+        :service_history_service,
+        service_history_enrollment_id: she.id,
+        client_id: client.id,
+        record_type: 'service',
+        date: Date.parse('2025-12-15'),
+        project_type: project.project_type,
+        age: 30,
+      )
+
+      # The last period is Oct 1 - Nov 30; this client's only service is Dec 15.
+      expect(data['who']['donuts']['all-people']['totals'].last).to eq(5)
+    end
   end
 
   describe 'date span validation' do
@@ -283,11 +315,84 @@ RSpec.describe PublicReports::StateDashboard, type: :model do
     end
   end
 
+  context 'when the report covers shelters only and a client also has an outreach stay, with totals unsuppressed' do
+    let(:project_type_numbers) { [1] }
+
+    before do
+      stub_const('PublicReports::StateDashboard::SUPPRESS_TOTALS_AT_OR_BELOW', 0)
+      client = create_homeless_client_and_entry(gender: :Man, race_field: :White, household_id: 'shelter-stay')
+      add_homeless_entry(client: client, household_id: 'outreach-stay', project: outreach_project, age: 30)
+      create_homeless_client_and_entry(gender: :Man, race_field: :White, household_id: 'outreach-only', project: outreach_project)
+    end
+
+    it 'counts the shelter stay but not the outreach stays' do
+      # 5 fixture clients + the shelter client = 6; counting the outreach stay makes the tile 1 of 6 (17%).
+      expect([data['who']['donuts']['all-people']['totals'].last, data['summary']['tiles'].last['value']]).to eq([6, '0%'])
+    end
+
+    it 'counts a first-time date outside the filter for a client with a shelter stay, and none for an outreach-only client' do
+      shelter_client = GrdaWarehouse::ServiceHistoryEnrollment.entry.find_by!(household_id: 'shelter-stay').client
+      outreach_only_client = GrdaWarehouse::ServiceHistoryEnrollment.entry.find_by!(household_id: 'outreach-only').client
+      add_first_homeless_date(client: shelter_client, date: Date.parse('2025-03-01'), project: outreach_project)
+      add_first_homeless_date(client: outreach_only_client, date: Date.parse('2025-03-01'), project: outreach_project)
+
+      expect(data['inflow_outflow']['series'].map { |series| series['values'] }).to eq([[1], [0]])
+    end
+  end
+
+  context 'when the report is limited to one CoC, with totals unsuppressed' do
+    let(:coc_codes) { ['MA-500'] }
+    let(:other_coc_project) { create(:hud_project, data_source_id: source_data_source.id, OrganizationID: organization.OrganizationID, ProjectType: 1) }
+
+    before do
+      stub_const('PublicReports::StateDashboard::SUPPRESS_TOTALS_AT_OR_BELOW', 0)
+      create(:hud_project_coc, data_source: source_data_source, ProjectID: project.ProjectID, CoCCode: 'MA-500')
+      create(:hud_project_coc, data_source: source_data_source, ProjectID: other_coc_project.ProjectID, CoCCode: 'MA-501')
+      create_homeless_client_and_entry(gender: :Man, race_field: :White, household_id: 'other-coc', project: other_coc_project)
+    end
+
+    it 'counts the clients in that CoC and not the client in another CoC' do
+      expect(data['who']['donuts']['all-people']['totals'].last).to eq(5)
+    end
+  end
+
+  context 'with one sheltered and one unsheltered veteran, and totals unsuppressed' do
+    before do
+      stub_const('PublicReports::StateDashboard::SUPPRESS_TOTALS_AT_OR_BELOW', 0)
+      sheltered = create_homeless_client_and_entry(gender: :Man, race_field: :White, household_id: 'veteran-sheltered')
+      unsheltered = create_homeless_client_and_entry(gender: :Woman, race_field: :White, household_id: 'veteran-unsheltered', project: outreach_project)
+      [sheltered, unsheltered].each { |client| client.update!(VeteranStatus: 1) }
+    end
+
+    it 'counts only the veterans in the veterans donut' do
+      veterans = data['who']['donuts']['veterans']
+
+      expect([veterans['totals'].last, veterans['values'].last]).to eq([2, [50, 50]])
+    end
+  end
+
+  context 'with a two-person household and a head of household with two stays, and totals unsuppressed' do
+    before do
+      stub_const('PublicReports::StateDashboard::SUPPRESS_TOTALS_AT_OR_BELOW', 0)
+      member = create_homeless_client_and_entry(gender: :Woman, race_field: :White, household_id: 'household-0')
+      twice_enrolled = GrdaWarehouse::ServiceHistoryEnrollment.entry.find_by!(household_id: 'household-1').client
+      add_homeless_entry(client: twice_enrolled, household_id: 'second-stay', project: outreach_project, age: 30)
+      GrdaWarehouse::ServiceHistoryEnrollment.update_all(head_of_household: true)
+      GrdaWarehouse::ServiceHistoryEnrollment.where(client_id: member.id).update_all(head_of_household: false)
+    end
+
+    it 'counts each head of household and each person once' do
+      # 5 heads (one with two stays); 6 people; 1 of 6 unsheltered = 17%.
+      expect(data['summary']['tiles'].map { |tile| tile['value'] }).to eq(['5', '6', '17%'])
+    end
+  end
+
   context 'with enrollments the filter must exclude, and totals unsuppressed' do
     let(:ph_project) { create(:hud_project, data_source_id: source_data_source.id, OrganizationID: organization.OrganizationID, ProjectType: 3) }
     let(:other_data_source) { create(:grda_warehouse_data_source) }
     let(:other_organization) { create(:hud_organization, data_source_id: other_data_source.id) }
     let(:other_project) { create(:hud_project, data_source_id: other_data_source.id, OrganizationID: other_organization.OrganizationID, ProjectType: 1) }
+    let(:other_outreach_project) { create(:hud_project, data_source_id: other_data_source.id, OrganizationID: other_organization.OrganizationID, ProjectType: 4) }
     # Every data source is auto-added to the system collection in test, so grant only the source data source.
     let(:collection) { create(:collection).tap { |c| c.set_viewables({ data_sources: [source_data_source.id] }) } }
 
@@ -301,11 +406,26 @@ RSpec.describe PublicReports::StateDashboard, type: :model do
       expect(data['who']['donuts']['all-people']['totals'].last).to eq(5)
     end
 
+    it 'does not count an outreach stay the owner cannot see for a client whose shelter stay is visible' do
+      client = create_homeless_client_and_entry(gender: :Man, race_field: :White, household_id: 'visible-shelter')
+      add_homeless_entry(client: client, household_id: 'hidden-outreach', project: other_outreach_project, age: 30)
+
+      expect([data['who']['donuts']['all-people']['totals'].last, data['summary']['tiles'].last['value']]).to eq([6, '0%'])
+    end
+
     context 'when the owner can also see the other data source' do
       let(:collection) { create(:collection).tap { |c| c.set_viewables({ data_sources: [source_data_source.id, other_data_source.id] }) } }
 
       it 'counts the client from the other data source and still excludes permanent housing' do
         expect(data['who']['donuts']['all-people']['totals'].last).to eq(6)
+      end
+
+      it 'counts that outreach stay once the owner can see its data source' do
+        client = create_homeless_client_and_entry(gender: :Man, race_field: :White, household_id: 'visible-shelter')
+        add_homeless_entry(client: client, household_id: 'visible-outreach', project: other_outreach_project, age: 30)
+
+        # 5 fixture clients + the other-data-source client + this client = 7; 1 of 7 unsheltered = 14%.
+        expect([data['who']['donuts']['all-people']['totals'].last, data['summary']['tiles'].last['value']]).to eq([7, '14%'])
       end
     end
   end

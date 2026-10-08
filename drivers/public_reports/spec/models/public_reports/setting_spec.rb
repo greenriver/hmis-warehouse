@@ -145,6 +145,48 @@ RSpec.describe PublicReports::Setting, type: :model do
     it 'accepts hex colors and blank values' do
       expect(described_class.new(summary_color: '#abc', secondary_color: '', race_color_2: '#AABBCC').valid?).to be(true)
     end
+
+    describe 'hostile values for each CSS format' do
+      let(:hostile_values) do
+        {
+          summary_color: ["#14558f\n}</style><script>", 'rgb(1);}</style><script>alert(1)', 'url(javascript:alert(1))'],
+          font_family_0: ["Arial\n}</style>", 'Georgia"', '"Lato', %q('Lato", Arial)],
+          font_url: [
+            "https://fonts.googleapis.com/css?family=Lato\n}</style>",
+            '//fonts.googleapis.com.evil.example/a.css',
+            'http://fonts.googleapis.com/css?family=Lato',
+            'javascript:alert(1)//fonts.googleapis.com/a.css',
+          ],
+          font_size_0: ["1rem\n}</style>"],
+          font_weight_0: ["400\n}</style>"],
+        }
+      end
+
+      it 'rejects each one on its own field' do
+        accepted = hostile_values.flat_map do |column, values|
+          values.filter_map do |value|
+            setting = described_class.new(column => value)
+            [column, value] unless setting.invalid? && setting.errors.attribute_names == [column]
+          end
+        end
+
+        expect(accepted).to eq([])
+      end
+    end
+
+    it 'accepts font lists of bare names and fully quoted names' do
+      values = [
+        '"Noto Sans", "Helvetica Neue", Arial, sans-serif',
+        '"Lato", Arial',
+        'Georgia, serif',
+        'Lato, sans-serif',
+        'Poppins',
+        "'Open Sans', sans-serif",
+        'Times New Roman, serif',
+      ]
+
+      expect(values.reject { |value| described_class.new(font_family_0: value).valid? }).to eq([])
+    end
   end
 
   describe 'layouts/public_reports/_theme_css partial' do
