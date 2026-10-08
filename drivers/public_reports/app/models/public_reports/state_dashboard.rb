@@ -230,12 +230,12 @@ module PublicReports
     end
 
     def iteration_dates
-      date = filter_object.start_date
-      # force the start to be within the chosen date range
-      date = next_iteration(date) if beginning_iteration(date) < date
+      # The first period is the first one that starts on or after the report start.
+      date = beginning_iteration(filter_object.start_date)
+      date = next_iteration(date) if date < filter_object.start_date
       dates = []
       while date <= filter_object.end_date
-        dates << beginning_iteration(date)
+        dates << date
         date = next_iteration(date)
       end
       dates
