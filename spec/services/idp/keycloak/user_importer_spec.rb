@@ -108,6 +108,42 @@ RSpec.describe Idp::Keycloak::UserImporter, type: :model do
     end
   end
 
+  describe '.deactivate_expired_users!' do
+    around do |example|
+      PaperTrail.enabled = true
+      example.run
+    ensure
+      PaperTrail.enabled = false
+    end
+
+    let!(:stale) { create(:user, active: true, last_activity_at: User.expire_after.ago - 1.day) }
+    let!(:recent) { create(:user, active: true, last_activity_at: User.expire_after.ago + 1.day) }
+    let!(:never_active) { create(:user, active: true, last_activity_at: nil) }
+    let!(:past_expired_at) { create(:user, active: true, last_activity_at: 1.day.ago, expired_at: 1.day.ago) }
+    let!(:already_inactive) { create(:user, active: false, last_activity_at: User.expire_after.ago - 1.day) }
+
+    it 'deactivates users Devise treats as expired and leaves the rest active' do
+      expect(described_class.deactivate_expired_users!).to eq(2)
+
+      expect(stale.reload.active).to be(false)
+      expect(past_expired_at.reload.active).to be(false)
+      expect(recent.reload.active).to be(true)
+      expect(never_active.reload.active).to be(true)
+    end
+
+    it 'records an "Account deactivated" edit-history entry attributed to the System User' do
+      described_class.deactivate_expired_users!
+
+      version = GrPaperTrail::Version.find(stale.versions.last.id)
+      expect(version.whodunnit).to eq(User.system_user.id.to_s)
+      expect(UserEditHistory::UserVersionChangeSummary.new.perform(version, version.changeset)).to eq(['Account deactivated'])
+    end
+
+    it 'adds no version for a user that is already inactive' do
+      expect { described_class.deactivate_expired_users! }.not_to(change { already_inactive.versions.count })
+    end
+  end
+
   describe '#build_import_user_data' do
     let(:user) do
       create(
