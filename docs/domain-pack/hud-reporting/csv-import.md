@@ -387,6 +387,9 @@ framework's daily `MetricSnapshotCollector`, which enqueues `NotifyMetricThresho
   `GrdaWarehouseBase.disable_nestloop` because the planner otherwise picks a nested-loop join
   on the multi-table scope. `analyze_tables` and `analyze_warehouse_tables` exist for the same
   reason. Removing either changes run time by orders of magnitude on large sources.
+- `mark_tree_as_dead` runs inside `GrdaWarehouseBase.retry_on_deadlock`, because writers that
+  span data sources (`Client#force_full_service_history_rebuild`) can deadlock with it. A retry
+  re-runs every slice. `retry_on_deadlock` does not retry inside an open transaction.
 - The four version drivers are near-copies (24 to 33 importer models each). A fix to a staging
   model's `involved_warehouse_scope`, validations, or `after_ingest!` usually needs the same
   edit in each driver that supports that file.

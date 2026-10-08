@@ -132,6 +132,8 @@ Hidden clients are excluded from every warehouse-side client search by name or S
 
 New search code that matches on name or SSN should go through `Client.text_search`, or add `GrdaWarehouse::HiddenClients.not_hidden(column)` to its query. HMIS front-end search has its own restriction handling (see [HMIS Restricted Records](../hmis/hmis-restricted-records.md)) and is not affected.
 
+Pass `user:` to limit results to `Client.searchable_to(user)`. `text_search` checks visibility against its matches only, because building a user's whole searchable set takes seconds for users who can see most clients.
+
 ### OP Analytics and Superset `analytics.client_piis`
 
 The `analytics.client_piis` view redacts name and SSN for the same hidden clients, computed in SQL. DOB is not redacted so that the transformations can calculate age. Row-level security in the `superset-sync` repository governs which clients a given Superset user can query.
