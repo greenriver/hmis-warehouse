@@ -52,6 +52,22 @@ RSpec.describe 'PublicReports raw pages', type: :request do
     expect(page.css('style').map(&:text).join).to include('font-family: "Lato", Arial, sans-serif;')
   end
 
+  it 'falls back to the default fonts when stored font values fail the CSS formats' do
+    PublicReports::Setting.first_or_create.update_columns(
+      font_url: 'https://evil.example/x.css',
+      font_family_0: 'x}</style><script>alert(1)</script>',
+      font_size_0: '2rem;}</style>',
+      font_weight_0: '700;}</style>',
+    )
+    report, = report_with(PublicReports::HomelessCount, 'homeless_count', { count: 1_234, date_range: 'January 1, 2025 - December 31, 2025' })
+    page = page_for(raw_public_reports_warehouse_reports_homeless_count_path(report))
+    css = page.css('style').map(&:text).join
+
+    expect(page.css('script').map(&:text).join).not_to include('alert(1)')
+    expect(page.css('link[rel="stylesheet"]').map { |link| link['href'] }).not_to include('https://evil.example/x.css')
+    expect(css).to include('font-family: Poppins, sans-serif;', 'font-weight: 300;', 'font-size: 1rem;')
+  end
+
   it 'renders the homeless count as a plain count and date range' do
     report, = report_with(PublicReports::HomelessCount, 'homeless_count', { count: 1_234, date_range: 'January 1, 2025 - December 31, 2025' })
     page = page_for(raw_public_reports_warehouse_reports_homeless_count_path(report))

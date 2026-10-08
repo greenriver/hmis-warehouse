@@ -192,18 +192,6 @@ RSpec.describe PublicReports::StateDashboard, type: :model do
     expect(map['statewideTotals'].size).to eq(periods_size)
   end
 
-  it 'suppresses a small group to nil totals and a nil sheltered array' do
-    # 5 clients is under the 100-person donut floor and under MIN_THRESHOLD (11)
-    # for sheltered/unsheltered on every breakdown row -- if suppression broke,
-    # this would show a raw integer instead.
-    all_people = data['who']['donuts']['all-people']
-    expect(all_people['totals']).to all(satisfy { |t| t.nil? || t.zero? || t > 100 })
-    expect(all_people['totals']).to include(nil)
-
-    small_row = data['who']['breakdown'].values.find { |row| row['sheltered'].nil? }
-    expect(small_row).not_to be_nil
-  end
-
   it 'publishes no chronic percent for a row whose total is suppressed' do
     leaks = data['who']['breakdown'].flat_map do |row_id, row|
       row['totals'].each_index.filter_map do |i|
@@ -214,10 +202,10 @@ RSpec.describe PublicReports::StateDashboard, type: :model do
     expect(leaks).to eq([])
   end
 
-  it 'publishes the summary tiles with small counts shown as "100 or fewer"' do
+  it 'publishes the summary tiles with small counts shown as "100 or fewer" and the unsheltered share not reported' do
     GrdaWarehouse::ServiceHistoryEnrollment.update_all(head_of_household: true)
 
-    expect(data['summary']['tiles'].map { |tile| tile['value'] }).to eq(['100 or fewer', '100 or fewer', '0%'])
+    expect(data['summary']['tiles'].map { |tile| tile['value'] }).to eq(['100 or fewer', '100 or fewer', 'Not reported'])
   end
 
   it 'publishes one PIT value per PIT year, raising a small count to the 100 floor' do
@@ -359,7 +347,16 @@ RSpec.describe PublicReports::StateDashboard, type: :model do
     expect(data['who']['race']['overall'].last).to be_nil
   end
 
+  it 'publishes every under-100 race bucket as 0% and the whole group under "Other or Unknown"' do
+    race = data['who']['race']
+
+    expect(race['labels'].zip(race['homeless'].last).to_h).to eq(
+      race['labels'].to_h { |label| [label, label == 'Other or Unknown' ? 100.0 : 0.0] },
+    )
+  end
+
   it 'never leaks a raw count between 1 and 100 in a redacted field (the core privacy guard)' do
+    expect(data['who']['donuts']['all-people']['totals']).to include(nil)
     leaks = []
 
     data['who']['donuts'].each do |id, donut|

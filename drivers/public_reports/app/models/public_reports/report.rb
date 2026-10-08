@@ -111,14 +111,16 @@ module PublicReports
 
         "#{self.class::SUPPRESS_TOTALS_AT_OR_BELOW} or fewer"
       when 'unsheltered_percent'
-        unsheltered_count = data['unsheltered_clients'].to_f || 0.0
-        sheltered_count = data['homeless_clients'] || 0
-        percent = if unsheltered_count.zero? || sheltered_count.zero?
-          0
-        elsif unsheltered_count > self.class::SUPPRESS_TOTALS_AT_OR_BELOW && sheltered_count > self.class::SUPPRESS_TOTALS_AT_OR_BELOW
-          ((unsheltered_count / sheltered_count) * 100).round
+        total = data['homeless_clients'].to_i
+        unsheltered = data['unsheltered_clients'].to_i
+        return '0%' if total.zero?
+        return 'Not reported' if total <= self.class::SUPPRESS_TOTALS_AT_OR_BELOW && [total - unsheltered, unsheltered].any? { |m| m < self.class::MIN_THRESHOLD }
+
+        percent = unsheltered * 100.0 / total
+        percent = if unsheltered > self.class::SUPPRESS_TOTALS_AT_OR_BELOW && total > self.class::SUPPRESS_TOTALS_AT_OR_BELOW
+          percent.round
         else
-          ((unsheltered_count / sheltered_count) * 100).round(-1)
+          percent.round(-1)
         end
         "#{percent}%"
       when 'pit_chart', 'inflow_outflow'
@@ -135,7 +137,7 @@ module PublicReports
         # return percentages for each instead of raw counts
         (sheltered, unsheltered) = data
         total = sheltered + unsheltered
-        return [0, 0] if total.zero? || (total <= self.class::SUPPRESS_TOTALS_AT_OR_BELOW && data.any? { |m| m < 11 })
+        return [0, 0] if total.zero? || (total <= self.class::SUPPRESS_TOTALS_AT_OR_BELOW && data.any? { |m| m < self.class::MIN_THRESHOLD })
 
         sheltered = ((sheltered.to_f / total) * 100).round
         unsheltered = ((unsheltered.to_f / total) * 100).round
@@ -154,7 +156,7 @@ module PublicReports
       when 'donut', 'household_type'
         # return percentages for each instead of raw counts
         total = data.sum
-        return data.map { |_| 0 } if total.zero? || (total <= self.class::SUPPRESS_TOTALS_AT_OR_BELOW && data.any? { |m| m < 11 })
+        return data.map { |_| 0 } if total.zero? || (total <= self.class::SUPPRESS_TOTALS_AT_OR_BELOW && data.any? { |m| m < self.class::MIN_THRESHOLD })
 
         # convert counts to percents
         data.map! do |count|
@@ -189,7 +191,7 @@ module PublicReports
         # Collapse any where the count of the bucket is < 100 into the None
         data['None'] ||= Set.new
         data.each do |k, ids|
-          next unless ids.count < 100
+          next if k == 'None' || ids.count >= 100
 
           data['None'] += ids
           data[k] = Set.new

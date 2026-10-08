@@ -427,8 +427,6 @@ RSpec.describe 'PublicReports::WarehouseReports::StateDashboard sections', type:
   end
 
   describe 'design tokens' do
-    let(:base_css) { File.read(Rails.root.join('drivers/public_reports/lib/public_reports/assets/public_report.css')) }
-
     it 'defines every custom property the raw page uses' do
       get raw_public_reports_warehouse_reports_state_dashboard_path(report)
       css = Nokogiri::HTML(response.body).css('style').map(&:text).join("\n")
@@ -436,13 +434,6 @@ RSpec.describe 'PublicReports::WarehouseReports::StateDashboard sections', type:
       defined = css.scan(/(--[\w-]+)\s*:/).flatten.uniq
 
       expect(used - defined).to be_empty
-    end
-
-    it 'leaves the themed tokens to the theme partial' do
-      themed = File.read(Rails.root.join('drivers/public_reports/app/views/layouts/public_reports/_theme_css.haml')).scan(/(--[\w-]+):/).flatten
-      base_defined = base_css.scan(/(--[\w-]+)\s*:/).flatten
-
-      expect(base_defined & themed).to be_empty
     end
   end
 

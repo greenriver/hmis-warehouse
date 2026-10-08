@@ -115,10 +115,30 @@ RSpec.describe PublicReports::StateDashboard::MapData, type: :model do
       )
     end
 
+    def square(west, south = 42.0, size = 0.1)
+      "SRID=4326;MULTIPOLYGON(((#{west} #{south}, #{west + size} #{south}, #{west + size} #{south + size}, #{west} #{south + size}, #{west} #{south})))"
+    end
+
+    def census_population(full_geoid, population)
+      GrdaWarehouse::UsCensusApi::CensusValue.create!(
+        census_variable: total_population_variable, value: population, full_geoid: full_geoid, census_level: 'CUSTOM', created_on: Date.current,
+      )
+    end
+
+    def create_zip(zcta, west:)
+      GrdaWarehouse::Shape::ZipCode.create!(zcta5ce10: zcta, st_geoid: state.geoid, full_geoid: "CUSTOMZIPUS#{zcta}", geom: square(west, 42.02, 0.05))
+      census_population("CUSTOMZIPUS#{zcta}", 10_000)
+    end
+
+    def create_county(name, west:)
+      GrdaWarehouse::Shape::County.create!(namelsad: name, statefp: state.geoid, full_geoid: "CUSTOMCOUNTYUS#{name}", geom: square(west))
+      census_population("CUSTOMCOUNTYUS#{name}", 10_000)
+    end
+
     # One ES project whose ProjectCoC principal site is `city`, with `count` clients each served once in Q4 2025.
-    def enroll_clients(count, city:, coc_code: 'MA-500')
+    def enroll_clients(count, city:, coc_code: 'MA-500', zip: nil)
       project = create(:hud_project, data_source_id: data_source.id, OrganizationID: organization.OrganizationID, ProjectType: 1)
-      create(:hud_project_coc, data_source: data_source, ProjectID: project.ProjectID, City: city, CoCCode: coc_code)
+      create(:hud_project_coc, data_source: data_source, ProjectID: project.ProjectID, City: city, CoCCode: coc_code, Zip: zip)
       count.times do |i|
         client = create(:hud_client, data_source_id: data_source.id)
         she = create(
@@ -211,6 +231,37 @@ RSpec.describe PublicReports::StateDashboard::MapData, type: :model do
       # unfloored, 9 lands in 7-9 (9.0) and 2 in Any-3 (3.0).
       expect(data[:towns]).to eq(['EMPTYVILLE', 'OTHERTOWN', 'TESTVILLE'])
       expect(data[:values].last.first).to eq([0, 12.0, 12.0])
+    end
+
+    it 'counts each county from the zips calculate_counties assigned to it in county mode' do
+      settings.update!(map_type: 'county', map_overall_population_method: 'state')
+      create_county('Testcounty County', west: -71.5)
+      create_county('Othercounty County', west: -71.0)
+      create_zip('01001', west: -71.48)
+      create_zip('01002', west: -70.98)
+      GrdaWarehouse::Shape::ZipCode.calculate_counties
+      enroll_clients(12, city: 'Anywhere', zip: '01001')
+      enroll_clients(38, city: 'Anywhere', zip: '01002')
+
+      data = map_data.to_h
+
+      # Codes sort by name: Othercounty (38 of 50 = 76%, the 26%+ band, 100.0), Testcounty (12 of 50 = 24%, 25.0).
+      expect(data[:towns]).to eq(['Othercounty County', 'Testcounty County'])
+      expect(data[:values].last.first).to eq([100.0, 25.0])
+    end
+
+    it 'counts each zip from its ProjectCoC zip in zip mode' do
+      settings.update!(map_type: 'zip', map_overall_population_method: 'state')
+      create_zip('01001', west: -71.5)
+      create_zip('01002', west: -71.0)
+      create_zip('01003', west: -70.5)
+      enroll_clients(12, city: 'Anywhere', zip: '01001')
+      enroll_clients(38, city: 'Anywhere', zip: '01002')
+
+      data = map_data.to_h
+
+      expect(data[:towns]).to eq(['01001', '01002', '01003'])
+      expect(data[:values].last.first).to eq([25.0, 100.0, 0])
     end
   end
 end

@@ -53,6 +53,16 @@ RSpec.describe PublicReports::StateDashboard::Geography, type: :model do
       expect(slugs).to eq([[0, 'abington'], [1, 'zedbury']])
     end
 
+    it 'draws each path from its own town polygon' do
+      create_town('ZEDBURY', west: -71.5)
+      create_town('ABINGTON', west: -71.0)
+
+      xs = geography.svg[:paths].to_h { |_index, slug, d| [slug, d.scan(/-?\d+(?:\.\d+)?/).map(&:to_f).each_slice(2).map(&:first)] }
+
+      # ABINGTON lies east of ZEDBURY, so all of its x coordinates are larger.
+      expect(xs.fetch('abington').min).to be > xs.fetch('zedbury').max
+    end
+
     it 'returns an empty map when the state has no shapes' do
       expect(geography.svg).to eq(view_box: '0 0 720 0', paths: [])
     end

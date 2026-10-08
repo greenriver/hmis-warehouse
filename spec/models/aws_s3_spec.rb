@@ -47,6 +47,23 @@ RSpec.describe AwsS3 do
     end
   end
 
+  describe '.local_endpoint?' do
+    def local_endpoint_with(env)
+      stub_const('ENV', ENV.to_h.except('USE_LOCAL_S3_ENDPOINT', 'LOCAL_S3_ENDPOINT').merge(env))
+      AwsS3.local_endpoint?
+    end
+
+    it 'is true only when the flag is "true" and an endpoint is set' do
+      expect(
+        [
+          local_endpoint_with('USE_LOCAL_S3_ENDPOINT' => 'true', 'LOCAL_S3_ENDPOINT' => 'http://minio:9000'),
+          local_endpoint_with('USE_LOCAL_S3_ENDPOINT' => 'true', 'LOCAL_S3_ENDPOINT' => ''),
+          local_endpoint_with('USE_LOCAL_S3_ENDPOINT' => 'false', 'LOCAL_S3_ENDPOINT' => 'http://minio:9000'),
+        ],
+      ).to eq([true, false, false])
+    end
+  end
+
   describe '#exists?' do
     it 'returns false when the bucket check raises' do
       allow(bucket).to receive(:exists?).and_raise(Aws::S3::Errors::ServiceError.new(nil, 'Forbidden'))

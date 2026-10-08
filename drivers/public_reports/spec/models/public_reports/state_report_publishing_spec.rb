@@ -20,6 +20,9 @@ RSpec.describe 'Publishing the state-level reports', type: :model do
   end
 
   before { allow(AwsS3).to receive(:new).and_return(instance_double(AwsS3, client: s3)) }
+  let(:section_keys) do
+    ['pit', 'entering_exiting', 'summary', 'map', 'who', 'race', 'raw'].map { |section| "state-level-homelessness/state/#{section}/index.html" }
+  end
 
   def published(klass)
     report = klass.new(user: user, filter: { filters: { start: Date.parse('2024-01-01'), end: Date.parse('2025-12-31') } }, version_slug: 'state', published_url: 'https://example.test/index.html', state: 'published')
@@ -46,7 +49,7 @@ RSpec.describe 'Publishing the state-level reports', type: :model do
     dashboard.publish!
 
     puts_by_key = s3.api_requests.select { |r| r[:operation_name] == :put_object }.to_h { |r| [r[:params][:key], r[:params]] }
-    expected_keys = dashboard.sections.map { |section| URI(dashboard.generate_publish_url_for(section)).path.delete_prefix('/') }
+    expected_keys = section_keys
     expect(puts_by_key.keys).to match_array(expected_keys)
     expect(puts_by_key.values.map { |p| p.values_at(:bucket, :acl, :content_type) }.uniq).to eq([['test', 'public-read', 'text/html']])
 
@@ -77,8 +80,15 @@ RSpec.describe 'Publishing the state-level reports', type: :model do
     dashboard.unpublish!
 
     deleted = s3.api_requests.select { |r| r[:operation_name] == :delete_object }.map { |r| [r[:params][:bucket], r[:params][:key]] }
-    expect(deleted).to match_array(dashboard.sections.map { |section| ['test', URI(dashboard.generate_publish_url_for(section)).path.delete_prefix('/')] })
+    expect(deleted).to match_array(section_keys.map { |key| ['test', key] })
     expect(dashboard.reload.attributes.values_at('published_url', 'embed_code', 'html', 'state')).to eq([nil, nil, nil, 'pre-calculated'])
+  end
+
+  it 'publishes each section at the url the legacy state-level report used' do
+    legacy = PublicReports::StateLevelHomelessness.new(version_slug: 'state')
+    dashboard = PublicReports::StateDashboard.new(version_slug: 'state')
+
+    expect(dashboard.sections.map { |s| dashboard.generate_publish_url_for(s) }).to eq(legacy.sections.map { |s| legacy.generate_publish_url_for(s) })
   end
 
   it 'warns before publishing over the other state-level class' do

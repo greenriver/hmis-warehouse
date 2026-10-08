@@ -148,14 +148,13 @@ RSpec.describe PublicReports::Setting, type: :model do
   end
 
   describe 'layouts/public_reports/_theme_css partial' do
-    def render_theme(setting)
-      report = PublicReports::StateDashboard.new
-      allow(report).to receive(:settings).and_return(setting)
-      ApplicationController.renderer.render(partial: 'layouts/public_reports/theme_css', assigns: { report: report })
+    def render_theme(attributes)
+      PublicReports::Setting.first_or_create.update_columns(attributes)
+      ApplicationController.renderer.render(partial: 'layouts/public_reports/theme_css', assigns: { report: PublicReports::StateDashboard.new })
     end
 
     it 'renders the theme tokens, the font stack and the full font @import unescaped' do
-      html = render_theme(described_class.new(font_size_0: '18px'))
+      html = render_theme(font_size_0: '18px')
 
       expect(html).to include(
         '--color-primary: #14558f',
@@ -167,7 +166,7 @@ RSpec.describe PublicReports::Setting, type: :model do
     end
 
     it 'never writes a closing style tag from a saved value' do
-      html = render_theme(described_class.new(font_family_0: 'x}</style><script>alert(1)</script>'))
+      html = render_theme(font_family_0: 'x}</style><script>alert(1)</script>')
 
       expect(html.scan('</style>').size).to eq(1)
     end
