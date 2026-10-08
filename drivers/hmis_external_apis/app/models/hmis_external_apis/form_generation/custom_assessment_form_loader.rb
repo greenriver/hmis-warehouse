@@ -15,13 +15,16 @@ require 'json'
 #
 # Always publishes directly — there is no draft step. Meant for the initial,
 # one-time load of freshly generated forms straight into production, where
-# CDEDs need to exist immediately for the dbt migration pipeline. If a
-# published version already exists for an identifier, it is retired and the
-# new one is published in its place (version + 1).
+# CDEDs need to exist immediately for the dbt migration pipeline. If a published
+# version already exists for an identifier and its definition JSON and title
+# are identical to the file, the form is skipped and reported as unchanged
+# (no new version, no CDED generation, any draft is left alone). Otherwise the
+# existing published version is retired and the new one is published in its
+# place (version + 1).
 #
 # If a customer has since created their own draft for an identifier (e.g. to
-# reorder or relabel questions in Form Builder), that draft is deleted before
-# publishing — re-running this tool discards any in-progress Form Builder
+# reorder or relabel questions in Form Builder) and the form changed, that draft
+# is deleted before publishing — re-running this tool discards any in-progress Form Builder
 # edits for the identifiers in dir. Only re-run this after the initial
 # production load if you are fixing a generation bug and are OK discarding
 # any customer edits made since. In dry_run mode nothing is deleted; existing
@@ -90,6 +93,13 @@ module HmisExternalApis
         versions = definitions_for(identifier)
         draft = versions.find(&:draft?)
         previous_published = versions.find(&:published?)
+
+        # Don't re-publish if the definition and title are identical to the previous published version
+        if previous_published &&
+           previous_published.definition == definition_json &&
+           previous_published.title == title
+          return log_result(:unchanged, identifier, title, "published v#{previous_published.version} already matches")
+        end
 
         log_result(:draft_exists, identifier, title, "draft v#{draft.version} exists and would be deleted (its edits would be lost)") if draft && @dry_run
 
@@ -206,7 +216,15 @@ module HmisExternalApis
           puts '  (no files)'
           return
         end
-        @results.each do |result|
+        changed, unchanged = @results.partition { |result| result.action != :unchanged }
+        if unchanged.any?
+          puts "Unchanged, skipped (#{unchanged.size}):"
+          unchanged.each do |result|
+            puts "  #{heading(result.title, result.identifier)}: #{result.detail}"
+          end
+          puts
+        end
+        changed.each do |result|
           puts "  #{heading(result.title, result.identifier)} [#{result.action}]: #{result.detail}"
         end
         return if @errors.empty?

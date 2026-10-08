@@ -28,6 +28,7 @@ sources:
   - app/models/grda_warehouse/import_csv_monitor.rb
   - app/models/grda_warehouse/monitoring/tasks/csv_import_monitor_collector.rb
   - drivers/hmis_csv_twenty_twenty_six/README.md
+  - drivers/hmis_csv_twenty_twenty_six/app/models/hmis_csv_twenty_twenty_six/importer/exit.rb
 related:
   - hud-reporting/csv-export.md
   - hud-reporting/service-history.md
@@ -146,6 +147,7 @@ Every phase runs through `log_timing`, which records `started_at`, `duration`,
 7. `analyze_tables` again.
 8. `precalculate_change_counts`, only when the data source has pause or notify thresholds:
    writes `added`, `removed`, `total_count` per file using `NOT EXISTS` anti-joins.
+   `Exit.csv` `removed` also counts the exits `remove_exits_before_export_range` will delete.
 9. `notify_of_import_status` (no-op without an `ImportLog`).
 10. `pause_import` and return when `should_pause?` or `dry_run`. `should_pause?` is true when
     the loader did not reach `loaded`, or an error threshold is met and
@@ -154,7 +156,8 @@ Every phase runs through `log_timing`, which records `started_at`, `duration`,
 11. `ingest!`: `reset_import_counts`, status `importing`, then `mark_tree_as_dead`,
     `analyze_warehouse_tables`, `add_export_row`, `add_new_data`, `process_existing`
     (`mark_unchanged`, `mark_incoming_older`, `apply_updates` per file), `update_export_ids`,
-    `remove_pending_deletes`, `set_effective_export_end_date`, `after_ingest`.
+    `remove_pending_deletes`, `remove_exits_before_export_range`,
+    `set_effective_export_end_date`, `after_ingest`.
 12. `post_ingest_cleanup!`: configured post-ingest cleanups against warehouse data.
 13. `invalidate_aggregated_enrollments!`: `rebuild_warehouse_data` on each aggregator.
 14. `complete_import`: status `complete`, `data_source.last_imported_at`, links
@@ -203,6 +206,14 @@ A `NULL` warehouse `source_hash` never matches, which forces re-evaluation on th
   clear the flag and null `source_hash`; `Client` clears the flag and nulls `source_hash` for
   clients with in-scope enrollments; everything else is batch soft-deleted (`DateDeleted` set,
   `source_hash` nulled).
+- `remove_exits_before_export_range` (once, not per file): soft-deletes warehouse exits dated
+  before `ExportStartDate` whose enrollment is in staged `Enrollment.csv` and whose `ExitID` is
+  not in staged `Exit.csv`. These exits are outside the involved scope, so the passes above
+  never reach them. It does not touch `processed_as`: `add_new_data` already upserted those
+  enrollments with `processed_as = nil`, which queues the service history rebuild. Skipped unless
+  `ExportPeriodType` is Reporting period, and for `prevent_import_deletions?` or augmentation
+  `Exit` classes. The 2026 `Exit.involved_warehouse_scope` also stops at `ExportEndDate`, so a
+  reporting-period import never deletes a later exit.
 - `set_effective_export_end_date`: latest `DateUpdated` across imported files.
 - `after_ingest`: calls `after_ingest!(data_source:, project_ids:)` on any staging model that
   defines it (the 2026 `Enrollment` populates `project_pk` for HMIS data sources).
@@ -257,8 +268,8 @@ so they accumulate across imports. `aggregate!` marks the incoming staging rows
 `should_import: false`, then walks each client's enrollments in the project ordered by
 `EntryDate`, merging runs where the next `EntryDate` equals the previous `ExitDate`, and writes
 one enrollment (and one exit, from the last stay) per run back into staging with a fresh
-`source_hash`. Open enrollments pass through. Only runs overlapping the export range are
-emitted, which can make the `added` count exceed the file's row count.
+`source_hash`. Open enrollments pass through. Only runs whose first `EntryDate` through last
+`ExitDate` overlaps the export range are emitted, enrollment and exit together, which can make the `added` count exceed the file's row count.
 
 After ingest, `invalidate_aggregated_enrollments!` calls `rebuild_warehouse_data`, which
 invalidates service history for every destination client in the combined projects and runs

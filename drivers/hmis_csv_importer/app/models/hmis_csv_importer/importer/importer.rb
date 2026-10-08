@@ -16,7 +16,7 @@
 # Lifecycle:
 #   pre_process! → validate → aggregate → cleanup → ingest! → post_process
 #
-# Ingestion (ingest!) runs four passes per HUD file:
+# Ingestion (ingest!) runs five passes per HUD file:
 #   0. mark_tree_as_dead   — flag all in-scope warehouse rows as pending deletion
 #   1. add_new_data        — upsert staging rows whose hud_key is absent from the
 #                            in-scope warehouse set (upsert handles keys that exist
@@ -26,6 +26,11 @@
 #      b. mark_incoming_older  — staging DateUpdated < warehouse → clear pending deletion
 #      c. apply_updates        — everything still pending → overwrite warehouse from staging
 #   3. remove_pending_deletes — soft-delete anything still flagged
+#   4. remove_exits_before_export_range — soft-delete exits dated before
+#                            ExportStartDate for enrollments in Enrollment.csv
+#                            whose ExitID is not in Exit.csv (outside the
+#                            involved scope, so passes 0-3 can't reach them);
+#                            reporting-period exports only
 #
 # Terminology:
 #   "involved scope" / "in-scope" — the set of warehouse rows this import is
@@ -303,6 +308,8 @@ module HmisCsvImporter::Importer
         importer_log.summary[file]['removed']     = klass.prevent_import_deletions? ? 0 : removed_count(klass)
         importer_log.summary[file]['total_count'] = existing_data_scope(klass).distinct.count(klass.hud_key)
       end
+      pre_range_exits = exits_before_export_range_scope
+      importer_log.summary['Exit.csv']['removed'] += pre_range_exits.count if pre_range_exits
     end
 
     # Count of incoming hud_keys that do not yet exist in the warehouse.
@@ -692,6 +699,9 @@ module HmisCsvImporter::Importer
       # Sweep all remaining items in a pending delete state
       log_timing :remove_pending_deletes
 
+      # Remove exits before the export range for enrollments this import sent without them
+      log_timing :remove_exits_before_export_range
+
       # Update the effective export end date of the export
       log_timing :set_effective_export_end_date
 
@@ -987,6 +997,44 @@ module HmisCsvImporter::Importer
           note_processed(file_name, delete_count, 'removed')
         end
       end
+    end
+
+    def remove_exits_before_export_range
+      scope = exits_before_export_range_scope
+      return unless scope
+
+      removed = scope.count
+      return if removed.zero?
+
+      batch_soft_delete(importable_files['Exit.csv'], scope)
+      note_processed('Exit.csv', removed, 'removed')
+    end
+
+    # Enrollment.csv is authoritative for the exit of each enrollment it contains,
+    # but exits before ExportStartDate fall outside the involved scope, so passes 0-3 never see them.
+    # Only a reporting-period export guarantees every enrollment it sends is active in the range;
+    # an Updated export sends long-closed enrollments without their unchanged exits.
+    # Reads raw staging: a staged enrollment that failed validation, or whose project isn't in
+    # Project.csv, still counts, because the source still reports it without an exit.
+    # Returns nil when the import may not delete these exits.
+    private def exits_before_export_range_scope
+      klass = importable_files['Exit.csv']
+      return unless klass
+      return if custom_augmentation?(klass) || klass.prevent_import_deletions?
+      return unless export_record.ExportPeriodType.to_i == HudHelper.util(importer_log.version).export_period_type('Reporting period', true)
+
+      incoming_enrollment_ids = importable_files['Enrollment.csv'].
+        where(importer_log_id: importer_log.id).
+        select(:EnrollmentID)
+      warehouse_exits = GrdaWarehouse::Hud::Exit.arel_table
+      incoming_exit = klass.
+        where(importer_log_id: importer_log.id).
+        where(klass.arel_table[:ExitID].eq(warehouse_exits[:ExitID])).
+        select(1)
+      GrdaWarehouse::Hud::Exit.
+        where(data_source_id: data_source.id, EnrollmentID: incoming_enrollment_ids).
+        where(warehouse_exits[:ExitDate].lt(date_range.start)).
+        where(incoming_exit.arel.exists.not)
     end
 
     def involved_project_ids
