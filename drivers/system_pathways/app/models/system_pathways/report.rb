@@ -148,7 +148,7 @@ module SystemPathways
     end
 
     def self.url
-      'hmis_data_quality_tool/warehouse_reports/reports'
+      'system_pathways/warehouse_reports/reports'
     end
 
     def url
