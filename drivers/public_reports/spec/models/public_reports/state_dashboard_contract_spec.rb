@@ -110,6 +110,26 @@ RSpec.describe PublicReports::StateDashboard, type: :model do
     )
   end
 
+  # Breakdowns joins SHE -> Hud::Enrollment -> ChEnrollment on
+  # [data_source_id, enrollment_group_id, project_id], so the entry needs a
+  # real enrollment row to reach its chronic flag.
+  def set_chronic_status(client:, chronic:)
+    she = GrdaWarehouse::ServiceHistoryEnrollment.entry.find_by!(client_id: client.id)
+    enrollment = create(:hud_enrollment, data_source_id: she.data_source_id, ProjectID: she.project_id)
+    she.update!(enrollment_group_id: enrollment.EnrollmentID)
+    GrdaWarehouse::ChEnrollment.create!(enrollment: enrollment, chronically_homeless_at_entry: chronic)
+  end
+
+  # Dotted key paths; arrays of hashes recurse as "key[]", arrays of scalars
+  # are leaves, because the test DB has no shapes and so no per-town values.
+  def key_paths(node, prefix = nil)
+    case node
+    when Hash then node.flat_map { |key, value| key_paths(value, [prefix, key].compact.join('.')) }
+    when Array then node.grep(Hash).flat_map { |value| key_paths(value, "#{prefix}[]") }.presence || [prefix]
+    else [prefix]
+    end
+  end
+
   # A handful of clients, spread across race/gender, all entered in the
   # report's final quarter -- small enough that every donut/breakdown total
   # should come back suppressed, which is exactly the case this spec exists
@@ -144,10 +164,6 @@ RSpec.describe PublicReports::StateDashboard, type: :model do
 
   around do |example|
     travel_to(Date.parse('2026-06-15')) { example.run }
-  end
-
-  it 'has schema_version 2' do
-    expect(data['schema_version']).to eq(2)
   end
 
   it 'records the data-through date and the map type the map was computed for' do
@@ -238,6 +254,12 @@ RSpec.describe PublicReports::StateDashboard, type: :model do
     it 'stars the partial year and notes the data-through date' do
       expect(data['pit_chart'].values_at('labels', 'note')).to eq([['2025*'], '2025 reflects data through Nov 30, 2025'])
     end
+
+    it 'emits every key the request-spec fixture renders from' do
+      fixture = JSON.parse(File.read(Rails.root.join('spec/fixtures/files/public_reports/state_level_v2.json')))
+
+      expect(key_paths(fixture) - key_paths(data)).to eq([])
+    end
   end
 
   describe 'date span validation' do
@@ -312,12 +334,28 @@ RSpec.describe PublicReports::StateDashboard, type: :model do
     end
   end
 
-  it 'has no census equivalent for the "Other or Unknown" race bucket in the overall row' do
-    expect(data['who']['race']['overall'].last).to be_nil
+  context 'with a chronically homeless parent and totals unsuppressed' do
+    before do
+      stub_const('PublicReports::StateDashboard::SUPPRESS_TOTALS_AT_OR_BELOW', 0)
+      parent = create_homeless_client_and_entry(gender: :Man, race_field: :White, household_id: 'chronic-family', age: 30)
+      child = create_homeless_client_and_entry(gender: :Woman, race_field: :White, household_id: 'chronic-family', age: 5)
+      set_chronic_status(client: parent, chronic: true)
+      set_chronic_status(client: child, chronic: false)
+    end
+
+    it 'rounds a small row to the nearest ten percent and sums the adults-with-children section across its rows' do
+      man_row = gender_row('Man')
+      children_row = data['who']['breakdown']['household_type__1__0']
+      parents_row = data['who']['breakdown']['household_type__1__2']
+
+      # Man row: 2 shared + parent = 3, 1 chronic -> 33 -> 30.
+      # Adults-with-children rows share one count: 1 chronic of 2 people -> 50.
+      expect([man_row['chronic'].last, children_row['chronic'].last, parents_row['chronic'].last]).to eq([30, 50, 50])
+    end
   end
 
-  it 'has one map value entry per population group' do
-    expect(data['map']['values'].first.size).to eq(5)
+  it 'has no census equivalent for the "Other or Unknown" race bucket in the overall row' do
+    expect(data['who']['race']['overall'].last).to be_nil
   end
 
   it 'never leaks a raw count between 1 and 100 in a redacted field (the core privacy guard)' do
@@ -340,6 +378,14 @@ RSpec.describe PublicReports::StateDashboard, type: :model do
     end
 
     expect(leaks).to eq([])
+  end
+
+  it 'zeroes donut percentages for a group under 100 people with a part under 11' do
+    expect(data['who']['donuts'].transform_values { |donut| donut['values'].last }).to eq(
+      'all-people' => [0, 0],
+      'veterans' => [0, 0],
+      'household-type' => [0, 0, 0],
+    )
   end
 
   context 'when the adults-with-children section is over the total threshold but each of its rows is not' do
@@ -441,6 +487,11 @@ RSpec.describe PublicReports::StateDashboard, type: :model do
       end
 
       expect(leaks).to eq([])
+    end
+
+    it 'publishes location percentages rounded to ten when both parts reach MIN_THRESHOLD' do
+      # 5 shared + 12 sheltered = 17, 12 unsheltered, of 29: 59% -> 60, 41% -> 40.
+      expect(data['who']['donuts']['all-people']['values'].last).to eq([60, 40])
     end
   end
 

@@ -136,4 +136,19 @@ RSpec.describe PublicReports::Setting, type: :model do
       expect(html.scan('</style>').size).to eq(1)
     end
   end
+
+  describe 'font constants' do
+    it 'keeps the pre-redesign font defaults for the raw_public_report layout' do
+      settings = described_class.new
+
+      expect([settings.font_path, settings.font_family, settings.font_size, settings.font_weight]).to eq(
+        [
+          '//fonts.googleapis.com/css?family=Open+Sans:300,400,400italic,600,700|Open+Sans+Condensed:700|Poppins:400,300,500,700',
+          'Poppins',
+          '1rem',
+          '300',
+        ],
+      )
+    end
+  end
 end
