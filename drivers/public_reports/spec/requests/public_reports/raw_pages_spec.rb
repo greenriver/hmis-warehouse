@@ -43,6 +43,15 @@ RSpec.describe 'PublicReports raw pages', type: :request do
     expect(page.css('script[src*="billboard.min.js"]').size).to eq(1)
   end
 
+  it 'links the saved font stylesheet and uses the saved font family list as written' do
+    PublicReports::Setting.first_or_create.update!(font_url: '//fonts.googleapis.com/css?family=Lato', font_family_0: '"Lato", Arial')
+    report, = report_with(PublicReports::HomelessCount, 'homeless_count', { count: 1_234, date_range: 'January 1, 2025 - December 31, 2025' })
+    page = page_for(raw_public_reports_warehouse_reports_homeless_count_path(report))
+
+    expect(page.at_css('link[href*="fonts.googleapis.com"]')['href']).to eq('//fonts.googleapis.com/css?family=Lato')
+    expect(page.css('style').map(&:text).join).to include('font-family: "Lato", Arial, sans-serif;')
+  end
+
   it 'renders the homeless count as a plain count and date range' do
     report, = report_with(PublicReports::HomelessCount, 'homeless_count', { count: 1_234, date_range: 'January 1, 2025 - December 31, 2025' })
     page = page_for(raw_public_reports_warehouse_reports_homeless_count_path(report))

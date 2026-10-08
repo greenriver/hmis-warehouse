@@ -16,7 +16,7 @@ module PublicReports
     CSS_FORMATS = {
       color: /\A(#\h{3,8}|[a-z]+|(rgb|hsl)a?\([\d\s.,%\/]+\))\z/i,
       font_family: /\A[\w\s"',-]+\z/,
-      font_url: /\Ahttps:\/\/fonts\.googleapis\.com\/[^\s"'()<>\\]+\z/,
+      font_url: /\A(https:)?\/\/fonts\.googleapis\.com\/[^\s"'()<>\\]+\z/,
       font_size: /\A\d+(\.\d+)?(px|rem|em|%|pt)\z/,
       font_weight: /\A([1-9]00|normal|bold|lighter|bolder)\z/,
     }.freeze

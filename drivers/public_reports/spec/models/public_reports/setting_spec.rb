@@ -122,6 +122,15 @@ RSpec.describe PublicReports::Setting, type: :model do
       expect(setting.errors[:font_url]).to eq(['is not a valid CSS value'])
     end
 
+    it 'accepts a protocol-relative Google Fonts URL as the font path but not one on another host' do
+      google = described_class.new(font_url: '//fonts.googleapis.com/css?family=Lato')
+      other = described_class.new(font_url: '//fonts.example.com/a.css')
+      [google, other].each(&:validate)
+
+      expect([google.errors[:font_url], google.font_path]).to eq([[], '//fonts.googleapis.com/css?family=Lato'])
+      expect(other.errors[:font_url]).to eq(['is not a valid CSS value'])
+    end
+
     it 'rejects a Google Fonts URL that carries quotes or parentheses' do
       setting = described_class.new(font_url: 'https://fonts.googleapis.com/css2?x");}body{display:none}')
 
