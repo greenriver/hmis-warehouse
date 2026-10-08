@@ -238,9 +238,20 @@ RSpec.describe Hmis::Hud::Client, type: :model do
       expect(Hmis::Hud::Client.searchable_to_matching(user, 'Bob Ross')).to contain_exactly(client_at_p1, unenrolled_client)
     end
 
-    it 'falls back to a subquery and returns the same clients when the matches exceed the candidate cap' do
+    it 'passes the data source matches as an id list' do
+      expect(Hmis::Hud::Client).to receive(:searchable_to).
+        with(user, client_ids: satisfy { |ids| ids.is_a?(Array) && ids.include?(client_at_p1.id) && ids.exclude?(unenrolled_client_at_ds2.id) }).
+        and_call_original
+      expect(Hmis::Hud::Client.searchable_to_matching(user, 'Bob Ross')).to contain_exactly(client_at_p1, unenrolled_client)
+    end
+
+    it 'returns the same clients when ranking by search score' do
+      expect(Hmis::Hud::Client.searchable_to_matching(user, 'Bob Ross', sorted: true)).to contain_exactly(client_at_p1, unenrolled_client)
+    end
+
+    it 'passes a subquery and returns the same clients when the matches exceed the candidate cap' do
       stub_const('Hmis::Hud::Client::MAX_SEARCH_CANDIDATES', 1)
-      expect(Hmis::Hud::Client).to receive(:searchable_to).with(user).and_call_original
+      expect(Hmis::Hud::Client).to receive(:searchable_to).with(user, client_ids: be_a(ActiveRecord::Relation)).and_call_original
       expect(Hmis::Hud::Client.searchable_to_matching(user, 'Bob Ross')).to contain_exactly(client_at_p1, unenrolled_client)
     end
 
@@ -252,8 +263,8 @@ RSpec.describe Hmis::Hud::Client, type: :model do
   describe '.client_search' do
     let(:user) { user_with_access_to_p1_clients }
 
-    def search(**input)
-      Hmis::Hud::Client.client_search(input: OpenStruct.new(input), user: user)
+    def search(sorted: false, **input)
+      Hmis::Hud::Client.client_search(input: OpenStruct.new(input), user: user, sorted: sorted)
     end
 
     it 'finds a client by id only if the user can search them' do
@@ -266,8 +277,21 @@ RSpec.describe Hmis::Hud::Client, type: :model do
       expect(search(personal_id: client_at_p2.personal_id)).to be_empty
     end
 
+    it 'does not find a client in another data source with the same personal id' do
+      create(:hmis_hud_client, data_source: ds2, PersonalID: client_at_p1.personal_id)
+      expect(search(personal_id: client_at_p1.personal_id)).to contain_exactly(client_at_p1)
+    end
+
     it 'limits a text search to searchable clients' do
       expect(search(text_search: 'Bob Ross')).to contain_exactly(client_at_p1, unenrolled_client)
+    end
+
+    it 'orders a sorted text search by best match, not by id' do
+      # created first so it has the lower id
+      partial_match = create(:hmis_hud_client, data_source: ds1, first_name: 'Marcus', last_name: 'Johnston')
+      best_match = create(:hmis_hud_client, data_source: ds1, first_name: 'Marcus', last_name: 'Johnson')
+
+      expect(search(text_search: 'Marcus Johnson', sorted: true).to_a).to eq([best_match, partial_match])
     end
   end
 
