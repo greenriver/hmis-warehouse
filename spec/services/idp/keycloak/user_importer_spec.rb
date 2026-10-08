@@ -139,6 +139,14 @@ RSpec.describe Idp::Keycloak::UserImporter, type: :model do
       expect(UserEditHistory::UserVersionChangeSummary.new.perform(version, version.changeset)).to eq(['Account deactivated'])
     end
 
+    it 'leaves the System User active even when Devise treats it as expired' do
+      system_user = User.system_user
+      system_user.update_columns(active: true, last_activity_at: User.expire_after.ago - 1.day)
+
+      expect(described_class.deactivate_expired_users!).to eq(2)
+      expect(system_user.reload.active).to be(true)
+    end
+
     it 'adds no version for a user that is already inactive' do
       expect { described_class.deactivate_expired_users! }.not_to(change { already_inactive.versions.count })
     end

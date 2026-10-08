@@ -33,8 +33,9 @@ module Idp
       #
       # @return [Integer] number of users deactivated
       def self.deactivate_expired_users!
-        users = User.inactive.where(active: true).to_a
-        PaperTrail.request(whodunnit: User.system_user.id.to_s) do
+        system_user_id = User.system_user.id
+        users = User.inactive.where(active: true).where.not(id: system_user_id).to_a
+        PaperTrail.request(whodunnit: system_user_id.to_s) do
           # active + updated_at matches the "Account deactivated" edit-history summary
           users.each { |user| user.paper_trail.update_columns(active: false, updated_at: Time.current) }
         end
