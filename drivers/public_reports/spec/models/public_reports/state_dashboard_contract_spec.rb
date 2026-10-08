@@ -167,7 +167,9 @@ RSpec.describe PublicReports::StateDashboard, type: :model do
   end
 
   it 'records the data-through date and the map type the map was computed for' do
-    expect([data['data_through'], data['map']['map_type']]).to eq(['2025-12-31', PublicReports::Setting.first_or_create.map_type])
+    PublicReports::Setting.first_or_create.update!(map_type: 'place')
+
+    expect([data['data_through'], data['map']['map_type']]).to eq(['2025-12-31', 'place'])
   end
 
   it 'sizes every per-period array to match periods' do
@@ -408,8 +410,7 @@ RSpec.describe PublicReports::StateDashboard, type: :model do
     end
 
     it 'still publishes a row whose own total is over the threshold' do
-      gender_rows = data['who']['breakdownGroupings']['gender']['sections'][0]['rows']
-      woman_row = data['who']['breakdown']["gender__0__#{gender_rows.index { |label| label.match?(/wom/i) }}"]
+      woman_row = gender_row('Woman')
 
       # 3 women from the shared setup plus 8 here.
       expect(woman_row['totals'].last).to eq(11)

@@ -107,15 +107,15 @@ module PublicReports
       when 'homeless_households', 'homeless_clients'
         value = data[key]
         return 0 if value.zero?
-        return number_with_delimiter(value) if value > 100
+        return number_with_delimiter(value) if value > self.class::SUPPRESS_TOTALS_AT_OR_BELOW
 
-        '100 or fewer'
+        "#{self.class::SUPPRESS_TOTALS_AT_OR_BELOW} or fewer"
       when 'unsheltered_percent'
         unsheltered_count = data['unsheltered_clients'].to_f || 0.0
         sheltered_count = data['homeless_clients'] || 0
         percent = if unsheltered_count.zero? || sheltered_count.zero?
           0
-        elsif unsheltered_count > 100 && sheltered_count > 100
+        elsif unsheltered_count > self.class::SUPPRESS_TOTALS_AT_OR_BELOW && sheltered_count > self.class::SUPPRESS_TOTALS_AT_OR_BELOW
           ((unsheltered_count / sheltered_count) * 100).round
         else
           ((unsheltered_count / sheltered_count) * 100).round(-1)
