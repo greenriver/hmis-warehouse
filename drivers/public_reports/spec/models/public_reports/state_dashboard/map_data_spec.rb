@@ -181,5 +181,21 @@ RSpec.describe PublicReports::StateDashboard::MapData, type: :model do
       expect(data[:populations]).to eq([100_000, 0])
       expect(data[:values].last.first).to eq([6.0, nil])
     end
+
+    it 'floors small town counts to 11 in census mode so they share one band and leaves a town with no one at 0' do
+      settings.update!(map_overall_population_method: 'geography')
+      create_town('EMPTYVILLE', west: -72.0, population: 10_000)
+      create_town('OTHERTOWN', west: -71.5, population: 10_000)
+      create_town('TESTVILLE', west: -71.0, population: 10_000)
+      enroll_clients(9, city: 'Othertown')
+      enroll_clients(2, city: 'Testville')
+
+      data = map_data.to_h
+
+      # Population 10,000 makes each person 1 per 10,000. Floored to 11, both towns land in the 10-12 band (12.0);
+      # unfloored, 9 lands in 7-9 (9.0) and 2 in Any-3 (3.0).
+      expect(data[:towns]).to eq(['EMPTYVILLE', 'OTHERTOWN', 'TESTVILLE'])
+      expect(data[:values].last.first).to eq([0, 12.0, 12.0])
+    end
   end
 end

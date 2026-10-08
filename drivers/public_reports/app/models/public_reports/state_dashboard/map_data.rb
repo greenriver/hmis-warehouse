@@ -61,7 +61,7 @@ class PublicReports::StateDashboard::MapData
             overall_homeless_population: overall_homeless_population,
             code: code,
           )
-          homeless_count = @report.enforce_min_threshold(homeless_count, 'min_threshold') unless census_rate?
+          homeless_count = @report.enforce_min_threshold(homeless_count, 'min_threshold')
 
           denominator = tooltip_denominator(population_overall, overall_homeless_population)
           rate = denominator&.positive? ? (homeless_count / denominator.to_f) * 100.0 : 0.0
