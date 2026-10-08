@@ -41,11 +41,6 @@ module BostonProjectScorecard
       status == 'pending'
     end
 
-    def authorized?(_user)
-      # TODO: determine if the user is authorized to access the report
-      true
-    end
-
     def locked?(field, _user)
       # TODO: Implement field access rules for users
       case status
