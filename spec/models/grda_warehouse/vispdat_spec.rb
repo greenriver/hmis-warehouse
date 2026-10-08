@@ -552,4 +552,149 @@ RSpec.describe GrdaWarehouse::Vispdat::Individual, type: :model do
       end
     end
   end
+  describe 'housing release confirmation' do
+    let(:client) { create :grda_warehouse_hud_client }
+
+    before do
+      GrdaWarehouse::Config.delete_all
+      create(:config_b)
+      GrdaWarehouse::Config.invalidate_cache
+    end
+    after { GrdaWarehouse::Config.invalidate_cache }
+
+    it 'creates a visible ROI authorization when the release is confirmed' do
+      create :vispdat, client: client, housing_release_confirmed: true
+      expect(GrdaWarehouse::ClientRoiAuthorization.visible_in_cocs([]).where(destination_client_id: client.id)).to exist
+    end
+
+    it 'removes the visible ROI authorization when the release is unconfirmed' do
+      vispdat = create :vispdat, client: client, housing_release_confirmed: true
+      expect(GrdaWarehouse::ClientRoiAuthorization.visible_in_cocs([]).where(destination_client_id: client.id)).to exist
+      vispdat.update!(housing_release_confirmed: false)
+      expect(GrdaWarehouse::ClientRoiAuthorization.visible_in_cocs([]).where(destination_client_id: client.id)).to be_empty
+    end
+
+    def roi_statuses
+      GrdaWarehouse::ClientRoiAuthorization.where(destination_client_id: client.id).pluck(:status)
+    end
+
+    context 'when the client has a confirmed full consent file' do
+      let(:consent_tag) { create :available_file_tag, consent_form: true, name: 'Consent Form', full_release: true }
+      let!(:file) { create :client_file, client: client, tags: [consent_tag], effective_date: 5.days.ago }
+
+      before { file.confirm_consent! }
+
+      it 'keeps the file consent and its full ROI authorization when the release is unconfirmed' do
+        vispdat = create :vispdat, client: client, housing_release_confirmed: true
+        expect(client.reload.consent_form_id).to eq(file.id)
+
+        vispdat.update!(housing_release_confirmed: false)
+
+        client.reload
+        expect(client.consent_form_id).to eq(file.id)
+        expect(client.housing_release_status).to eq(GrdaWarehouse::Hud::Client.full_release_string)
+        expect(roi_statuses).to eq(['full'])
+      end
+    end
+
+    context 'when the client holds an expired confirmed consent file' do
+      let(:consent_tag) { create :available_file_tag, consent_form: true, name: 'Consent Form', full_release: true }
+      let!(:file) { create :client_file, client: client, tags: [consent_tag], effective_date: 1.month.ago, expiration_date: Date.yesterday }
+
+      before do
+        GrdaWarehouse::Config.delete_all
+        create(:config_b, release_duration: 'Use Expiration Date')
+        GrdaWarehouse::Config.invalidate_cache
+        file.confirm_consent!
+      end
+
+      it 'does not restore the expired release when the release is unconfirmed' do
+        vispdat = create :vispdat, client: client, housing_release_confirmed: true
+        expect(client.reload.consent_form_id).to eq(file.id)
+
+        vispdat.update!(housing_release_confirmed: false)
+
+        expect(client.reload.housing_release_status).to be_nil
+        expect(roi_statuses).to be_empty
+      end
+    end
+
+    context 'when the client holds a revoked consent file' do
+      let(:consent_tag) { create :available_file_tag, consent_form: true, name: 'Consent Form', full_release: true }
+      let!(:file) { create :client_file, client: client, tags: [consent_tag], effective_date: 5.days.ago }
+
+      before do
+        file.confirm_consent!
+        # Same order as Clients::FilesController#update
+        client.invalidate_consent!(hr_status: Consent::Default.revoked_consent_string)
+        file.update!(consent_revoked_at: Time.current)
+      end
+
+      it 'does not restore the revoked release when the release is unconfirmed' do
+        vispdat = create :vispdat, client: client, housing_release_confirmed: true
+        expect(roi_statuses).to eq(['full'])
+
+        vispdat.update!(housing_release_confirmed: false)
+
+        client.reload
+        expect(client.consent_form_id).to be_nil
+        expect(client.housing_release_status).to be_nil
+        expect(roi_statuses).to be_empty
+      end
+    end
+
+    context 'when the client has a confirmed partial consent file' do
+      let(:partial_tag) { create :available_file_tag, consent_form: true, name: 'Limited Release', full_release: false }
+      let!(:file) { create :client_file, client: client, tags: [partial_tag], effective_date: 5.days.ago }
+
+      before { file.confirm_consent! }
+
+      it 'returns the client to the partial release when the release is unconfirmed' do
+        vispdat = create :vispdat, client: client, housing_release_confirmed: true
+        expect(roi_statuses).to eq(['full'])
+
+        vispdat.update!(housing_release_confirmed: false)
+
+        client.reload
+        expect(client.consent_form_id).to eq(file.id)
+        expect(client.housing_release_status).to eq(GrdaWarehouse::Hud::Client.partial_release_string)
+        expect(roi_statuses).to eq(['partial'])
+      end
+    end
+
+    context 'under implied consent' do
+      before do
+        GrdaWarehouse::Config.delete_all
+        create(:config_b, roi_model: :implicit)
+        GrdaWarehouse::Config.invalidate_cache
+      end
+
+      it 'falls back to implied consent with a partial ROI authorization when the release is unconfirmed' do
+        vispdat = create :vispdat, client: client, housing_release_confirmed: true
+        expect(roi_statuses).to eq(['full'])
+
+        vispdat.update!(housing_release_confirmed: false)
+
+        expect(client.reload.housing_release_status).to eq(Consent::Implied.no_release_string)
+        expect(roi_statuses).to eq(['partial'])
+      end
+    end
+
+    # A VI-SPDAT release carries no signature or expiration date, so a dated release duration cannot compute expiry
+    ['One Year', 'Two Years', 'Use Expiration Date'].each do |release_duration|
+      context "under a #{release_duration} release duration" do
+        before do
+          GrdaWarehouse::Config.delete_all
+          create(:config_b, release_duration: release_duration)
+          GrdaWarehouse::Config.invalidate_cache
+        end
+
+        it 'clears the release from the client and builds no ROI authorization' do
+          create :vispdat, client: client, housing_release_confirmed: true
+          expect(client.reload.housing_release_status).to be_nil
+          expect(GrdaWarehouse::ClientRoiAuthorization.where(destination_client_id: client.id)).to be_empty
+        end
+      end
+    end
+  end
 end

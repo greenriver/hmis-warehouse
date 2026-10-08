@@ -98,9 +98,10 @@ with the one flag, and two `AccessControl`s. `replace_access` swaps members of o
 `remove_system_collections!` tears them down on delete.
 
 **Arbiter.** `EnrollmentArbiter` combines three sources on the ACL branch: enrollments at
-projects in `Project.viewable_by(user, permission: :can_view_clients)`, enrollments of clients
-with an active confirmed ROI in the user's CoCs at projects viewable under
-`:can_view_client_enrollments_with_roi`, and clients in authoritative data sources
+projects in `Project.viewable_by(user, permission: :can_view_clients)`, enrollments of source
+clients in `obey_consent` data sources whose destination has a
+`ClientRoiAuthorization.visible_in_cocs(user.coc_codes)` row, at projects viewable under
+`:can_view_client_enrollments_with_roi` (`enrollments_from_rois`), and clients in authoritative data sources
 `directly_viewable_by` the user. Search uses `:can_search_own_clients` and
 `:can_search_clients_with_roi` instead. Every public method branches on `using_acls?`.
 
