@@ -130,12 +130,12 @@ RSpec.describe PublicReports::StateDashboard, type: :model do
     end
   end
 
+  let(:collection) { Collection.system_collection(:data_sources) }
+
   # A handful of clients, spread across race/gender, all entered in the
   # report's final quarter -- small enough that every donut/breakdown total
   # should come back suppressed, which is exactly the case this spec exists
   # to guard.
-  let(:collection) { Collection.system_collection(:data_sources) }
-
   before do
     setup_access_control(user, role, collection)
 
@@ -453,7 +453,8 @@ RSpec.describe PublicReports::StateDashboard, type: :model do
 
         expect([row['totals'].last, row['sheltered']&.last, row['unsheltered'].last]).to eq([6, nil, nil])
       end
-    end  end
+    end
+  end
 
   it 'suppresses a small statewide total and counts no one aged 30 as youth' do
     all_homeless, youth = data['map']['statewideTotals'].last.first(2)
