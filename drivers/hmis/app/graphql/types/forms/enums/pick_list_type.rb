@@ -18,6 +18,7 @@ module Types
     value 'OPEN_PROJECTS', 'Open Projects that the user can see'
     value 'PROJECTS_RECEIVING_REFERRALS', 'Open Projects that can receive referrals'
     value 'PROJECTS_RECEIVING_DIRECT_CE_REFERRALS', 'Projects that can receive CE referrals'
+    value 'PROJECTS_SENDING_DIRECT_CE_REFERRALS', 'Projects that can send direct CE referrals'
     value 'UNIT_GROUPS_FOR_PROJECT_DIRECT_CE_REFERRAL', 'Unit groups for the given project that can receive CE referrals'
     value 'ORGANIZATION', 'All Organizations that the User can see'
     value 'OPEN_ORGANIZATION_NAMES', 'Names of organizations with open projects'

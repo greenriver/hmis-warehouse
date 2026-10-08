@@ -72,7 +72,7 @@ module Reporting::Hud
     end
 
     protected def run_report(report, generator, email:)
-      capture_failure(report) do
+      capture_failure(report, generator) do
         # Fail-fast if attempting to retry a report that doesn't support idempotent retry
         # Check started_at to catch all retry scenarios (completed questions, partial runs, mid-question failures)
         if report.started_at.present? && !generator.class.supports_idempotent_retry?
@@ -103,8 +103,18 @@ module Reporting::Hud
       report_completed
     end
 
-    protected def capture_failure(report)
+    protected def capture_failure(report, generator)
       yield
+    rescue JobInterrupted
+      # A resumable generator picks up from its last checkpoint when the requeued job runs.
+      raise if generator.class.supports_idempotent_retry?
+
+      report.update!(
+        state: 'Failed',
+        error_details: "Interrupted by a worker restart. #{generator.class.name} can't resume a partial run; please create a new report.",
+      )
+      # Discard rather than return, so the report isn't marked complete below.
+      raise JobCancelled, report.error_details
     rescue StandardError => e
       # for debugging sql issues in tests, raise immediately since attempting further updates will crash in failed tx
       # and we'd like to get the backtrace from the original exception

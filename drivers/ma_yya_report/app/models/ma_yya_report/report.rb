@@ -32,14 +32,6 @@ module MaYyaReport
       complete
     end
 
-    def start
-      update(started_at: Time.current)
-    end
-
-    def complete
-      update(completed_at: Time.current)
-    end
-
     def title
       'MA YYA Report'
     end
