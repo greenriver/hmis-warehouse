@@ -9,6 +9,8 @@
 module PublicReports::WarehouseReports::PublicReportsControllerConcern
   extend ActiveSupport::Concern
   included do
+    helper PublicReports::AssetsHelper
+
     before_action :set_report, except: [:index, :new, :create]
     before_action :ignore_mini_profiler, only: [:raw, :overall, :housed, :individuals, :adults_with_children, :veterans]
 
@@ -64,7 +66,7 @@ module PublicReports::WarehouseReports::PublicReportsControllerConcern
     end
 
     def raw
-      render(layout: 'raw_public_report')
+      render(layout: @report.raw_layout)
     end
 
     def show

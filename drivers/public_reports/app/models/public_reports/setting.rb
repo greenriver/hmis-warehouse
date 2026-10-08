@@ -11,6 +11,56 @@ module PublicReports
     attr_encrypted :s3_access_key_id, key: ENV['ENCRYPTION_KEY'][0..31]
     attr_encrypted :s3_secret, key: ENV['ENCRYPTION_KEY'][0..31]
 
+    INK_COLOR = '#1b1b1b'
+
+    CSS_FORMATS = {
+      color: /\A(#\h{3,8}|[a-z]+|(rgb|hsl)a?\([\d\s.,%\/]+\))\z/i,
+      font_family: /\A[\w\s"',-]+\z/,
+      font_url: /\Ahttps:\/\/fonts\.googleapis\.com\/[^\s"'()<>\\]+\z/,
+      font_size: /\A\d+(\.\d+)?(px|rem|em|%|pt)\z/,
+      font_weight: /\A([1-9]00|normal|bold|lighter|bolder)\z/,
+    }.freeze
+
+    THEME_DEFAULTS = {
+      font_url: 'https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;600;700&display=swap',
+      font_body: '"Noto Sans", "Helvetica Neue", Arial, sans-serif',
+      font_size: '1rem',
+      font_weight: '400',
+      primary: '#14558f',
+      secondary: '#2d6a46',
+      text: '#262626',
+      border: '#cccccc',
+      surface_tint: '#e7eef4',
+      focus: '#0088ff',
+      not_reporting: '#EDEDED',
+    }.freeze
+
+    # key => [column, CSS_FORMATS key]
+    THEME_COLUMNS = {
+      font_url: [:font_url, :font_url],
+      font_body: [:font_family_0, :font_family],
+      font_heading: [:font_family_1, :font_family],
+      font_size: [:font_size_0, :font_size],
+      font_weight: [:font_weight_0, :font_weight],
+      primary: [:summary_color, :color],
+      secondary: [:secondary_color, :color],
+      heading: [:heading_color, :color],
+      text: [:text_color, :color],
+      border: [:border_color, :color],
+      surface_tint: [:surface_tint_color, :color],
+      focus: [:focus_color, :color],
+      not_reporting: [:map_not_reporting_color, :color],
+    }.freeze
+
+    validate :css_values_are_safe
+
+    def theme
+      theme = THEME_COLUMNS.to_h { |key, (column, format)| [key, safe_css(self[column], format) || THEME_DEFAULTS[key]] }
+      theme[:heading] ||= INK_COLOR
+      theme[:font_heading] ||= theme[:font_body]
+      theme
+    end
+
     def self.available_map_types
       types = {
         coc: 'Continuum of Care',
@@ -62,25 +112,6 @@ module PublicReports
       end
     end
 
-    def color_shades(category = nil)
-      range = (0..9)
-      # Maps get treated differently, but should use the youth color scheme
-      if category == :map_primary_color
-        range = (0..4)
-        category = :youth_primary_color
-      end
-
-      if category.blank? || ! tintable.include?(category.to_sym)
-        range.to_a.map do |i|
-          shade(i)
-        end.compact
-      else
-        range.to_a.map do |i|
-          shade(i, category)
-        end.compact
-      end
-    end
-
     def default_colors
       [
         '#003d79',
@@ -97,11 +128,11 @@ module PublicReports
     end
 
     def color(number = 0, category = nil)
-      return self["color_#{number}"].presence || default_colors[number % default_colors.count] if category.blank? || ! color_categories.include?(category.to_sym)
-
-      self["#{category}_color_#{number}"].presence || default_colors[number % default_colors.count]
+      column = category.blank? || ! color_categories.include?(category.to_sym) ? "color_#{number}" : "#{category}_color_#{number}"
+      safe_css(self[column], :color) || default_colors[number % default_colors.count]
     end
 
+    # Used only by the deprecated StateLevelHomelessness views.
     def shade(number = 0, category = nil)
       hex_color = if category.blank? || ! tintable.include?(category.to_sym) || self[category].blank?
         default_colors[number % default_colors.count]
@@ -111,15 +142,6 @@ module PublicReports
       lighten(hex_color, number * 0.1)
     end
 
-    # Amount is between 0 and 1, closer to 0 darkens more
-    def darken(hex_color, amount = 0.4)
-      rgb = rgb_from_hex(hex_color)
-      rgb[0] = (rgb[0].to_i * amount).round
-      rgb[1] = (rgb[1].to_i * amount).round
-      rgb[2] = (rgb[2].to_i * amount).round
-      format('#%02x%02x%02x', *rgb)
-    end
-
     # Amount is between 0 and 1, closer to 1 lightens more
     def lighten(hex_color, amount = 0.6)
       rgb = rgb_from_hex(hex_color)
@@ -127,21 +149,6 @@ module PublicReports
       rgb[1] = [(rgb[1].to_i + 255 * amount).round, 255].min
       rgb[2] = [(rgb[2].to_i + 255 * amount).round, 255].min
       format('#%02x%02x%02x', *rgb)
-    end
-
-    # Useful for text on a colored background
-    def contrasting_color(hex_color)
-      color = hex_color.gsub('#', '')
-      convert_to_brightness_value(color) > 382.5 ? darken(color) : lighten(color)
-    end
-
-    private def convert_to_brightness_value(hex)
-      rgb_from_hex(hex).sum
-    end
-
-    private def rgb_from_hex(hex)
-      hex = hex.gsub('#', '')
-      hex.scan(/../).map(&:hex)
     end
 
     def tintable
@@ -154,6 +161,11 @@ module PublicReports
         :children_only_primary_color,
         :veterans_primary_color,
       ].freeze
+    end
+
+    private def rgb_from_hex(hex)
+      hex = hex.gsub('#', '')
+      hex.scan(/../).map(&:hex)
     end
 
     def num_colors
@@ -178,35 +190,50 @@ module PublicReports
     end
 
     def font_path
-      font_url.presence || default_font_path
+      safe_css(font_url, :font_url) || default_font_path
+    end
+
+    def font_family
+      safe_css(font_family_0, :font_family) || default_font_family
+    end
+
+    def font_size
+      safe_css(font_size_0, :font_size) || default_font_size
+    end
+
+    def font_weight
+      safe_css(font_weight_0, :font_weight) || default_font_weight
     end
 
     def default_font_path
       '//fonts.googleapis.com/css?family=Open+Sans:300,400,400italic,600,700|Open+Sans+Condensed:700|Poppins:400,300,500,700'
     end
 
-    def font_family
-      font_family_0.presence || default_font_family
-    end
-
     def default_font_family
       'Poppins'
-    end
-
-    def font_size
-      font_size_0.presence || default_font_size
     end
 
     def default_font_size
       '1rem'
     end
 
-    def font_weight
-      font_weight_0.presence || default_font_weight
-    end
-
     def default_font_weight
       '300'
+    end
+
+    private def safe_css(value, format)
+      value.presence if value.to_s.match?(CSS_FORMATS.fetch(format))
+    end
+
+    private def css_values_are_safe
+      columns = THEME_COLUMNS.values + num_colors.map { |i| ["color_#{i}", :color] } +
+        color_categories.product(num_colors_per_category).map { |category, i| ["#{category}_color_#{i}", :color] }
+      columns.each do |column, format|
+        next unless will_save_change_to_attribute?(column)
+
+        value = self[column]
+        errors.add(column, 'is not a valid CSS value') if value.present? && !value.to_s.match?(CSS_FORMATS.fetch(format))
+      end
     end
   end
 end

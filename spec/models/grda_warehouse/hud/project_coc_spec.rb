@@ -70,5 +70,20 @@ RSpec.describe model, type: :model do
         expect(model.unknown_coc.pluck(:id)).to contain_exactly(pc_nil.id, pc_blank.id, pc_whitespace.id)
       end
     end
+
+    describe 'in_county' do
+      before do
+        GrdaWarehouse::Shape::County.create!(namelsad: 'Chittenden County')
+        GrdaWarehouse::Shape::County.create!(namelsad: 'Rutland County')
+        create :shape_zip_code, zcta5ce10: '05401', county_name_lower: 'chittenden county'
+        create :shape_zip_code, zcta5ce10: '05701', county_name_lower: 'rutland county'
+        pc1.update!(Zip: '05401')
+        pc2.update!(Zip: '05701')
+      end
+
+      it 'returns only project CoCs whose zip code lies in the named county' do
+        expect(model.in_county(county: ['Chittenden County']).pluck(:id)).to contain_exactly(pc1.id)
+      end
+    end
   end
 end

@@ -1,0 +1,12 @@
+!!!
+%html{ lang: 'en' }
+  %head
+    %meta{ charset: 'utf-8' }
+    %meta{ name: 'viewport', content: 'width=device-width, initial-scale=1' }
+    %title= @report.instance_title
+    = render 'layouts/public_reports/theme_css'
+    %style= public_report_asset('public_report.css')
+  %body
+    .container
+      = yield
+    %script{ nonce: content_security_policy_nonce }= public_report_asset('public_report.js')
