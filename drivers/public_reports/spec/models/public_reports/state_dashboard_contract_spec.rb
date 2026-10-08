@@ -11,7 +11,7 @@ require 'rails_helper'
 # Contract spec for PublicReports::StateDashboard#chart_data (schema_version 2).
 # This is the guard against a client-privacy redaction regression: everything below
 # MIN_THRESHOLD (11) or the 100-person donut/breakdown floor must come back nil, never
-# a raw small integer. Map counts are random unless MapData#fake_counts? is stubbed to false.
+# a raw small integer. Map counts are real in test; MapData#fake_counts? is development-only.
 RSpec.describe PublicReports::StateDashboard, type: :model do
   before(:all) do
     HmisCsvImporter::Utility.clear!
@@ -276,7 +276,6 @@ RSpec.describe PublicReports::StateDashboard, type: :model do
   context 'when one client is served in both a shelter and an outreach project, with totals unsuppressed' do
     before do
       stub_const('PublicReports::StateDashboard::SUPPRESS_TOTALS_AT_OR_BELOW', 0)
-      allow_any_instance_of(PublicReports::StateDashboard::MapData).to receive(:fake_counts?).and_return(false)
       client = create_homeless_client_and_entry(gender: :Man, race_field: :White, household_id: 'both-1')
       add_homeless_entry(client: client, household_id: 'both-2', project: outreach_project, age: 30)
     end
@@ -456,16 +455,10 @@ RSpec.describe PublicReports::StateDashboard, type: :model do
       end
     end  end
 
-  context 'with real map counts' do
-    before do
-      allow_any_instance_of(PublicReports::StateDashboard::MapData).to receive(:fake_counts?).and_return(false)
-    end
+  it 'suppresses a small statewide total and counts no one aged 30 as youth' do
+    all_homeless, youth = data['map']['statewideTotals'].last.first(2)
 
-    it 'suppresses a small statewide total and counts no one aged 30 as youth' do
-      all_homeless, youth = data['map']['statewideTotals'].last.first(2)
-
-      expect([all_homeless, youth]).to eq([nil, 0])
-    end
+    expect([all_homeless, youth]).to eq([nil, 0])
   end
 
   context 'when a row has at least MIN_THRESHOLD sheltered and unsheltered clients but a total of 100 or less' do

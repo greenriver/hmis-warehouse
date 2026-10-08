@@ -87,15 +87,13 @@ class PublicReports::StateDashboard::Geography
 
     results = coc_geometries.map do |geo|
       geo.population(internal_names: race_var, year: year)
+    rescue GrdaWarehouse::UsCensusApi::Finder::CannotFindData => e
+      Rails.logger.error "population error: #{e.message}. Sum won't be right!"
+      return nil
     end
 
     results.each do |result|
-      if result.error
-        Rails.logger.error "population error: #{result.msg}. Sum won't be right!"
-        return nil
-      elsif result.year != year
-        Rails.logger.warn "Using #{result.year} instead of #{year}"
-      end
+      Rails.logger.warn "Using #{result.year} instead of #{year}" if result.year != year
     end
 
     results.map(&:val).sum
@@ -143,13 +141,14 @@ class PublicReports::StateDashboard::Geography
 
   private def calculate_svg
     scope = shape_class.my_states
+    geom = "COALESCE(#{shape_class.table_name}.simplified_geom, #{shape_class.table_name}.geom)"
 
     # Cast to text: ST_Extent returns Postgres's `box` type, which the PG
     # adapter has no OID mapping for. Left uncast, the adapter's fallback
     # to treating it as a string emits a Ruby warning -- harmless on its
     # own, but this app's Warning.process (custom_deprecation_handler.rb)
     # turns every warning into a hard raise in development.
-    extent = scope.pick(Arel.sql('ST_Extent(ST_Transform(COALESCE(simplified_geom, geom), 3857))::text'))
+    extent = scope.pick(Arel.sql("ST_Extent(ST_Transform(#{geom}, 3857))::text"))
     return { view_box: '0 0 720 0', paths: [] } if extent.nil?
 
     xmin, ymin, xmax, ymax = extent.scan(/[-\d.]+/).map(&:to_f)
@@ -158,7 +157,7 @@ class PublicReports::StateDashboard::Geography
 
     d_by_code = scope.pluck(
       Arel.sql(code_column),
-      Arel.sql("ST_AsSVG(ST_TransScale(ST_Transform(COALESCE(simplified_geom, geom), 3857), #{-xmin}, #{-ymax}, #{scale}, #{scale}), 0, 1)"),
+      Arel.sql("ST_AsSVG(ST_TransScale(ST_Transform(#{geom}, 3857), #{-xmin}, #{-ymax}, #{scale}, #{scale}), 0, 1)"),
     ).to_h
 
     paths = codes.each_with_index.map do |code, index|

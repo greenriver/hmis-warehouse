@@ -131,8 +131,10 @@ class PublicReports::StateDashboard::MapData
     settings.map_overall_geography_census?
   end
 
+  # Development databases rarely have shapes or census data, so sample counts there. Every
+  # other environment, test and staging included, publishes real counts.
   private def fake_counts?
-    !Rails.env.production?
+    Rails.env.development?
   end
 
   # [scope, service_scope] for one group, index-aligned with GROUP_LABELS.

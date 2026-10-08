@@ -64,4 +64,80 @@ RSpec.describe PublicReports::StateDashboard::Geography, type: :model do
       expect(geography.svg).to eq(view_box: '0 0 720 0', paths: [])
     end
   end
+
+  describe '#codes' do
+    it 'excludes towns in a state the installation does not cover' do
+      create_town('TESTVILLE', west: -71.5)
+      other_state = GrdaWarehouse::Shape::State.create!(stusps: 'NH', geoid: '33')
+      GrdaWarehouse::Shape::Town.create!(
+        town: 'NASHUA',
+        statefp: other_state.geoid,
+        geom: 'SRID=4326;MULTIPOLYGON(((-71.5 42.7, -71.4 42.7, -71.4 42.8, -71.5 42.8, -71.5 42.7)))',
+      )
+
+      expect(geography.codes).to eq(['TESTVILLE'])
+      expect(geography.svg[:paths].map { |_index, slug, _d| slug }).to eq(['testville'])
+    end
+
+    it 'uses the CoC number as the code and "name (number)" as the display name' do
+      GrdaWarehouse::Shape::Coc.create!(st: 'MA', cocnum: 'MA-500', cocname: 'Boston')
+      GrdaWarehouse::Shape::Coc.create!(st: 'NH', cocnum: 'NH-500', cocname: 'Manchester')
+      coc_geography = described_class.new('coc')
+
+      expect(coc_geography.codes).to eq(['MA-500'])
+      expect(coc_geography.display_name('MA-500')).to eq('Boston (MA-500)')
+    end
+  end
+
+  describe '#population_by_race' do
+    let(:coc_geography) { described_class.new('coc') }
+    let(:total_population_variable) do
+      GrdaWarehouse::UsCensusApi::CensusVariable.create!(
+        year: 2024, dataset: 'acs5', name: 'B01003_001E', label: 'POP::TOTAL', concept: 'Total Population',
+        census_group: 'B01003', census_attributes: 'B01003_001EA', internal_name: 'POP::TOTAL', created_on: Date.current
+      )
+    end
+
+    def create_coc(cocnum, population: nil)
+      coc = GrdaWarehouse::Shape::Coc.create!(st: 'MA', cocnum: cocnum, cocname: cocnum, full_geoid: "CUSTOMCOCUS#{cocnum}")
+      return if population.nil?
+
+      GrdaWarehouse::UsCensusApi::CensusValue.create!(
+        census_variable: total_population_variable, value: population, full_geoid: coc.full_geoid, census_level: 'CUSTOM', created_on: Date.current,
+      )
+    end
+
+    it 'sums the census population across the state CoCs' do
+      create_coc('MA-500', population: 1_000)
+      create_coc('MA-501', population: 500)
+
+      expect(coc_geography.population_by_race(year: 2024)).to eq(1_500)
+    end
+
+    it 'returns nil when any CoC has no census value for the year' do
+      create_coc('MA-500', population: 1_000)
+      create_coc('MA-501')
+
+      expect(coc_geography.population_by_race(year: 2024)).to be_nil
+    end
+  end
+
+  describe '#svg caching' do
+    around do |example|
+      original_cache = Rails.cache
+      Rails.cache = ActiveSupport::Cache::MemoryStore.new
+      example.run
+    ensure
+      Rails.cache = original_cache
+    end
+
+    it 'does not serve one map type the cached SVG of another' do
+      create_town('TESTVILLE', west: -71.5)
+
+      place_paths = described_class.new('place').svg[:paths].size
+      zip_paths = described_class.new('zip').svg[:paths].size
+
+      expect([place_paths, zip_paths]).to eq([1, 0])
+    end
+  end
 end
