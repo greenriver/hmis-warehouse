@@ -22,7 +22,7 @@ module WarehouseReports
         WarehouseReports::RunHudChronicJob.perform_later(filter_params.merge(current_user_id: current_user.id))
       end
       @jobs = Delayed::Job.jobs_for_class('RunHudChronicJob').order(run_at: :desc)
-      @reports = report_source.ordered.limit(50)
+      @reports = report_scope.ordered.limit(50)
 
       # Set default filter to prior run
       previous_report = @reports.last
@@ -56,7 +56,7 @@ module WarehouseReports
 
     def running
       @jobs = Delayed::Job.jobs_for_class('RunHudChronicJob').order(run_at: :desc)
-      @reports = report_source.ordered.limit(50)
+      @reports = report_scope.ordered.limit(50)
     end
 
     # Present a chart of the counts from the previous three years
@@ -73,6 +73,10 @@ module WarehouseReports
       render json: @counts
     end
 
+    def report_scope
+      report_source.visible_to(current_user)
+    end
+
     def report_source
       GrdaWarehouse::WarehouseReports::HudChronicReport
     end
@@ -84,7 +88,7 @@ module WarehouseReports
     private
 
     def set_report
-      @report = report_source.find params[:id].to_i
+      @report = report_scope.find params[:id].to_i
     end
 
     def sort_clients

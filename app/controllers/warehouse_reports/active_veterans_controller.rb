@@ -59,14 +59,8 @@ module WarehouseReports
       GrdaWarehouse::WarehouseReports::ActiveVeteransReport
     end
 
-    # If you can see all instances of assigned reports, then show all copies of the report,
-    # otherwise just show your own
     def report_scope
-      if can_view_all_reports?
-        report_source
-      else
-        report_source.where(user_id: current_user.id)
-      end
+      report_source.visible_to(current_user)
     end
 
     private
@@ -76,7 +70,7 @@ module WarehouseReports
     end
 
     def set_report
-      @report = report_source.find params[:id].to_i
+      @report = report_scope.find params[:id].to_i
     end
 
     def report_params
