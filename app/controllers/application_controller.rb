@@ -131,6 +131,22 @@ class ApplicationController < ActionController::Base
 
   private
 
+  # Overrides ActionController::RequestForgeryProtection#valid_per_form_csrf_token?, which
+  # verify_authenticity_token reaches via valid_authenticity_token?.
+  #
+  # A per-form token is minted for the form's action, which carries encoded ids. IdProtector
+  # decodes them in PATH_INFO before routing, so also check the path the browser submitted to.
+  def valid_per_form_csrf_token?(token, session = nil)
+    return true if super
+    return false unless per_form_csrf_tokens
+
+    submitted_path = request.original_fullpath.split('?', 2).first.chomp('/')
+    return false if submitted_path == request.path.chomp('/')
+
+    correct_token = per_form_csrf_token(session, submitted_path, request.request_method)
+    ActiveSupport::SecurityUtils.fixed_length_secure_compare(token, correct_token)
+  end
+
   def _basic_auth
     authenticate_or_request_with_http_basic do |user, password|
       user == Rails.application.secrets.basic_auth_user && \

@@ -2,49 +2,72 @@
 
 The opt-in local Docker Compose stack that reproduces the production auth chain.
 
-```
+```text
 User → OAuth2-Proxy → Dex (OIDC broker) → Keycloak → Rails (JWT headers)
 ```
 
-The `openpath` realm is auto-imported on first boot with three clients — `dex-connector` (OIDC auth
-code flow for Dex), `rails-service-account` (client credentials for the Rails admin API) and
-`warehouse-account` (the browser client account self-service deep-links run under) — plus the
-`warehouse-users` and `hmis-users` groups.
+On first boot Keycloak imports the `openpath` realm from `docker/keycloak/realm-import.json`. The
+realm has the `warehouse-users` and `hmis-users` groups and three clients:
+
+| Client | Grant | Used by |
+| --- | --- | --- |
+| `dex-connector` | OIDC authorization code | Dex, to sign users in |
+| `rails-service-account` | Client credentials | Rails, to call the Keycloak Admin API |
+| `warehouse-account` | OIDC authorization code | The browser, for account self-service links (e.g. change email) |
 
 ## Setup
 
-The auth stack lives in `docker/docker-compose.auth.yml` and is **opt-in**: a plain `docker compose up`
-is unchanged (no auth services, normal Devise dev). You enable it by passing the override file.
+The auth stack lives in `docker/docker-compose.auth.yml` and is **opt-in**. A plain
+`docker compose up` does not start it and uses normal Devise login. Run every command below from the
+repo root on your host machine unless it says otherwise.
 
-**1. Hosts entries** (`hmis-warehouse.dev.test` / `hmis.dev.test` / `hmis-backend.dev.test` are
-usually already present; add if not):
+**1. Hosts entries.** Add these to `/etc/hosts` on your host machine if they aren't already there:
 
-```
-127.0.0.1 op-keycloak.dev.test dex.dev.test
-```
-
-**2. Cookie secret + config.** The stack needs one secret. Set `OAUTH2_PROXY_COOKIE_SECRET` in
-`.env.development.local` (copy the line from `sample.env.development.local`), then generate the oauth2-proxy
-alpha-config into the gitignored `dev/auth/`:
-
-```bash
-openssl rand -hex 16   # value for OAUTH2_PROXY_COOKIE_SECRET
-bash docker/auth/generate-dev-auth.sh
+```text
+127.0.0.1 hmis-warehouse.dev.test hmis.dev.test hmis-backend.dev.test op-keycloak.dev.test dex.dev.test
 ```
 
-`generate-dev-auth.sh` is idempotent — re-run it after editing a template under
-`docker/auth/templates/`.
+**2. Environment and proxy config.**
 
-**3. Databases.** On a fresh Postgres volume `keycloak`/`dex` are created automatically. On an
-existing volume, create them once:
+1. Generate a cookie secret:
+
+   ```bash
+   openssl rand -hex 16
+   ```
+
+2. Add these two lines to `.env.development.local`, using the output from the previous command:
+
+   ```bash
+   AUTH_METHOD=jwt
+   OAUTH2_PROXY_COOKIE_SECRET=<output of openssl>
+   ```
+
+   `AUTH_METHOD` defaults to `devise`, which ignores the auth stack.
+
+3. Generate the oauth2-proxy config files into `dev/auth/` (gitignored):
+
+   ```bash
+   bash docker/auth/generate-dev-auth.sh
+   ```
+
+   The script is safe to re-run. Re-run it whenever you edit a file under `docker/auth/templates/`.
+
+**3. Databases.** Keycloak and Dex each need a Postgres database. If you have never run the app on
+this machine, the `db` volume is new and both databases are created automatically; skip this step.
+Otherwise, create them once:
 
 ```bash
 docker compose exec db psql -U postgres -c 'CREATE DATABASE keycloak'
 docker compose exec db psql -U postgres -c 'CREATE DATABASE dex'
 ```
 
-**4. Bring up the stack** with both compose files. Use the repo-root symlink (`docker-compose.yml`)
-so the project directory stays at the repo root and all relative paths resolve correctly:
+If a database already exists the command prints an error and changes nothing.
+
+**4. MailHog.** Start MailHog before continuing; follow [developer mail](../sample_files/mailhog/developer-mail.md).
+The realm sends mail to `mailhog:1025`. Without MailHog, email verification and email changes never
+complete.
+
+**5. Bring up the stack** with both compose files:
 
 ```bash
 export COMPOSE_FILE=docker-compose.yml:docker/docker-compose.auth.yml:docker-compose.override.yml
@@ -52,169 +75,220 @@ docker compose build keycloak
 docker compose up
 ```
 
-Then log into the Keycloak admin console at `https://op-keycloak.dev.test` (`admin` /
-`AdminPassword1!`); the `openpath` realm should be in the selector.
+`export` only applies to the current shell. Run it in every terminal where you use `docker compose`
+for this stack, including the commands later in this doc.
 
-## Service config (Admin API credentials)
+Log into the Keycloak admin console at `https://op-keycloak.dev.test` with `admin` /
+`AdminPassword1!`. The realm dropdown at the top left should list `openpath`.
 
-`Idp::KeycloakService` talks to the Keycloak **Admin REST API** using the OAuth2
-`client_credentials` grant on the **`rails-service-account`** client (a *service account*, not the
-`dex-connector` browser client). That client needs the `realm-management` roles `manage-users`,
-`view-users`, `query-users` and `manage-realm`; `realm-import.json` grants them on first import.
+**6. Service config.** Create the `Idp::ServiceConfig` row that lets Rails manage users in the local
+realm:
 
-The `Idp::ServiceConfig` row is the **single source of truth** at request time. ENV is read **once**,
-at deploy, to seed that row (see *Seeding from ENV* below); there is no request-time ENV fallback, so a
-connector with no active row degrades to an unmanaged `NullService` rather than silently reading ENV.
+```bash
+docker compose exec web rails runner 'Idp::ServiceConfig.bootstrap_from_env'
+```
 
-### DB-managed `Idp::ServiceConfig`
+Run it in `web` exactly as shown. Only the `web`, `shell` and `console` containers load the Keycloak
+credentials from `docker/auth/keycloak-credentials.env`. In any other container the command exits
+without creating the row and without printing an error.
 
-Managed in the admin UI at **`/admin/idp_service_configs`** (New → provider `keycloak`), one row per
-realm. Dev values:
+Go to `/admin/idp_service_configs` and click the row's **Test** button. A green result means Rails
+can reach the Admin API with the service account's secret and roles. If it fails, see
+[Troubleshooting](#troubleshooting).
+
+## Applying `realm-import.json` changes
+
+Keycloak imports `docker/keycloak/realm-import.json` only when the `openpath` realm doesn't exist
+yet. Once the realm exists, edits to the file have no effect until you apply them to the running
+realm yourself.
+
+Apply changes in place; don't delete and recreate the realm. Keycloak holds the only copy of each
+user's password, MFA enrollment and email verification.
+
+First, log `kcadm.sh` in to the master realm:
+
+```bash
+docker compose exec keycloak /opt/keycloak/bin/kcadm.sh config credentials \
+  --server http://localhost:8080 --realm master --user admin --password 'AdminPassword1!'
+```
+
+The login is stored inside the Keycloak container. Run it again if the container is recreated, or if a
+`kcadm.sh` command returns 401.
+
+Then apply each kind of change as follows:
+
+| What you changed in the file | How to apply it |
+| --- | --- |
+| Realm settings: SMTP, password policy, brute-force protection, session timeouts, themes, OTP and WebAuthn policy | [Update with `kcadm.sh`](#realm-settings) |
+| Clients and groups | [Partial import](#clients-and-groups) |
+| Authentication flows and required actions | [Edit in the admin console](#authentication-flows-and-required-actions) |
+
+### Realm settings
+
+```bash
+jq 'del(.browserFlow, .resetCredentialsFlow)' docker/keycloak/realm-import.json |
+  docker compose exec -T keycloak /opt/keycloak/bin/kcadm.sh update realms/openpath -f -
+```
+
+`jq` removes the `browserFlow` and `resetCredentialsFlow` bindings because the update fails completely,
+applying nothing, if either names a flow the realm doesn't have yet. The update does not create
+flows, clients, users or groups; use the sections below for those. Check the result in the admin
+console.
+
+### Clients and groups
+
+In the admin console, go to Realm settings → **Action** (top right) → **Partial import** and choose
+`realm-import.json`. Select *clients* and *groups*, and uncheck *users* so existing accounts are left
+alone. For resources that already exist, choose *Overwrite* to replace them with the file's version or
+*Skip* to keep the live version.
+
+### Authentication flows and required actions
+
+In the admin console, go to Authentication. For each flow you changed, find it by its `alias` under
+`authenticationFlows` in `realm-import.json` and recreate its steps in the same order. Required actions
+are under `requiredActions` in the file and on the **Required actions** tab in the console.
+
+Then bind each top-level flow: Authentication → the flow's ⋮ menu → **Bind flow**. Bind the flow named
+by `browserFlow` as *Browser flow* and the one named by `resetCredentialsFlow` as *Reset credentials
+flow*.
+
+### Recreating the realm (last resort)
+
+Deleting `openpath` and restarting Keycloak re-imports the file exactly and leaves the master realm and
+admin login in place. It also **permanently deletes every user in the realm**, with their passwords and
+MFA. Use it only on a realm with no accounts worth keeping.
+
+```bash
+docker compose exec keycloak /opt/keycloak/bin/kcadm.sh delete realms/openpath
+docker compose restart keycloak
+```
+
+Afterwards, the Warehouse's `user_authentication_sources` rows point at Keycloak user IDs that no
+longer exist. Delete them so each user is re-created in Keycloak and re-linked on their next sign-in:
+
+```bash
+docker compose exec web rails runner "Idp::UserAuthenticationSource.where(connector_id: 'keycloak').destroy_all"
+```
+
+## Troubleshooting
+
+**The service config's Test button fails with 401 or 403.** A 401 means Keycloak rejected the
+`rails-service-account` client secret. A 403 means the service account is missing one of its
+`realm-management` roles (`manage-users`, `view-users`, `query-users`, `manage-realm`). Either way,
+the running realm doesn't match `realm-import.json`: usually the client or its roles were changed
+after the first import, or never imported. Export the running realm and compare its clients with the
+file:
+
+```bash
+docker compose exec -T keycloak /opt/keycloak/bin/kcadm.sh create realms/openpath/partial-export \
+  -s exportGroupsAndRoles=true -s exportClients=true -o > tmp/realm-live.json
+diff <(jq -S .clients docker/keycloak/realm-import.json) <(jq -S .clients tmp/realm-live.json)
+```
+
+The export masks client secrets and has generated IDs, so expect those lines to differ. Look for
+missing clients, roles or service-account settings. Fix any differences with
+[Partial import](#clients-and-groups). The export needs the `kcadm.sh` login from
+[Applying changes](#applying-realm-importjson-changes).
+
+## Reference
+
+### `Idp::ServiceConfig`
+
+`Idp::KeycloakService` calls the Keycloak Admin REST API with the OAuth2 `client_credentials` grant on
+the `rails-service-account` client. Rails reads the client ID, secret and URLs from an
+`Idp::ServiceConfig` row, one per realm, managed at `/admin/idp_service_configs`. At request time
+Rails reads only the row, never ENV. If a connector has no active row, users can still sign in through
+it but Rails can't manage their Keycloak accounts.
+
+The dev row, as created by `bootstrap_from_env`:
 
 | Column | Dev value |
 | --- | --- |
 | `provider` | `keycloak` |
-| `connector_id` | `keycloak` — the auth-proxy routing key in the JWT; must match the connector that issued the token |
-| `name` | e.g. `Keycloak (dev)` (display only) |
-| `api_url` | `http://op-keycloak.dev.test:8080` |
+| `connector_id` | `keycloak`. Must match the JWT's `federated_claims.connector_id` claim, which is the ID of the Dex connector that signed the user in |
+| `name` | `Keycloak (seeded from ENV)`. Display only |
+| `api_url` | `http://op-keycloak.dev.test:8080`. Where Rails calls the Admin API |
 | `keycloak_realm` | `openpath` |
 | `client_id` | `rails-service-account` |
-| `service_token` (encrypted, needs `ENCRYPTION_KEY`) | `rails-service-account-secret-dev` |
-| `browser_url` | `https://op-keycloak.dev.test` — public origin for browser deep-links (blank ⇒ `api_url`) |
-| `account_client_id` | `account` — OIDC client for account deep-links (blank ⇒ `account`) |
-| `manage_users` | `true` — see *Manage-users capability* below |
+| `service_token` | `rails-service-account-secret-dev`. Stored encrypted; needs `ENCRYPTION_KEY` |
+| `browser_url` | `https://op-keycloak.dev.test`. Used for links opened in the browser. If blank, `api_url` is used |
+| `account_client_id` | `warehouse-account`. The client account self-service links run under; its Base URL is where Keycloak sends a user after they confirm a new email. If blank, Keycloak's built-in `account` client is used |
+| `manage_users` | `true`. See below |
 
-Verify with the row's **Test** button — a green result means the secret is valid *and* the service
-account has the Admin-API roles.
+**Why `api_url` and `browser_url` differ in dev.** Rails reaches Keycloak on the compose network at
+`http://op-keycloak.dev.test:8080`. The browser has to go through Traefik at
+`https://op-keycloak.dev.test`, because Keycloak's session cookies are `Secure` and belong to that
+origin. Rails can't use the Traefik URL: Traefik serves a self-signed `*.dev.test` certificate that
+only your host machine trusts (see `bin/developer/certificates.sh`).
 
-### Seeding from ENV
+**`manage_users`.** `true` means the service account can manage users in the realm; use it for an IdP
+we operate. `false` means authenticate-only, e.g. a customer-operated Keycloak. With `false`, sign-in,
+logout and the Keycloak account console still work, but the Warehouse hides or skips user-management
+actions instead of calling an Admin API it isn't allowed to use.
 
-`SeedMaker#seed_idp_service_config` materializes the row from ENV on deploy, so an existing
-ENV-configured install keeps working without a manual UI step:
-
-```
-KEYCLOAK_API_URL=http://op-keycloak.dev.test:8080
-KEYCLOAK_REALM=openpath
-KEYCLOAK_SERVICE_CLIENT_ID=rails-service-account
-KEYCLOAK_SERVICE_CLIENT_SECRET=rails-service-account-secret-dev
-KEYCLOAK_PUBLIC_URL=https://op-keycloak.dev.test
-KEYCLOAK_ACCOUNT_CLIENT_ID=account
-```
-
-The dev stack provides these to the `web` container via `docker/auth/keycloak-credentials.env`. Seeding
-is **create-only and idempotent**: it runs on every deploy but never clobbers a later UI edit, never
-resurrects a soft-deleted row, and never reactivates a disabled one. It is gated on the JWT auth method
-and on `KEYCLOAK_API_URL`/`KEYCLOAK_SERVICE_CLIENT_SECRET` being present, so a Devise install or an
-external-IdP customer (no `KEYCLOAK_*`) is a silent no-op. `KEYCLOAK_CONNECTOR_ID` (default `keycloak`)
-sets the row's `connector_id`. After the row exists, credential rotation is a UI/DB operation — ENV is
+**Seeding from ENV.** `bootstrap_from_env` builds the row from `KEYCLOAK_API_URL`,
+`KEYCLOAK_PUBLIC_URL`, `KEYCLOAK_REALM`, `KEYCLOAK_SERVICE_CLIENT_ID`,
+`KEYCLOAK_SERVICE_CLIENT_SECRET`, `KEYCLOAK_ACCOUNT_CLIENT_ID` and `KEYCLOAK_CONNECTOR_ID` (default
+`keycloak`). `db:seed` calls it on every deploy. It only creates. If a row for the connector already
+exists, including a disabled or soft-deleted one, it does nothing, so edits made in the UI are never
+overwritten. It also does nothing unless `AUTH_METHOD=jwt` and the four required `KEYCLOAK_*` values
+(URL, realm, client ID, secret) are set. After the row exists, change credentials in the UI; ENV is
 not read again.
 
-### Browser URL vs Admin API URL
+### Account email self-service
 
-`api_url` is where Rails calls the Admin API. Anything handed to a *browser* instead uses `browser_url`
-from the row, falling back to `api_url` when blank.
-
-The two only differ in the dev stack: Rails uses the compose network alias
-(`http://op-keycloak.dev.test:8080`), and the browser has to go through Traefik
-(`https://op-keycloak.dev.test`) because the SSO session cookies are `Secure` and belong to that
-origin. Pointing `api_url` at Traefik instead breaks the Admin API, since Traefik serves a
-per-developer self-signed `*.dev.test` cert that only the host keychain trusts
-(`bin/developer/certificates.sh`). Both are seeded from `docker/auth/keycloak-credentials.env`.
-
-`browser_url` is a per-realm column (seeded from `KEYCLOAK_PUBLIC_URL`) rather than a request-time ENV
-read, so multi-realm production can point each realm at its own origin.
-
-`account_client_id` (the row's column, seeded from `KEYCLOAK_ACCOUNT_CLIENT_ID`, default `account`)
-names the client account deep-links run under, which decides where Keycloak returns a user who
-confirmed a new address — see [Where Keycloak sends the user back](#where-keycloak-sends-the-user-back).
-
-### Manage-users capability
-
-`manage_users` records whether this row's service account actually has admin/manage-API access to the
-realm. `true` (the default) is an IdP we operate. `false` is **authenticate-only** — a
-customer-operated Keycloak, or a service account that can sign users in but lacks the `manage-users`
-role. An authenticate-only row still builds a normal `KeycloakService` (so OIDC logout and the
-self-service account console keep working) but answers `false` to every `supports_*?` management
-predicate, so the admin/self-service management surfaces degrade (actions hidden or no-op) instead of
-failing at an Admin API we can't call. A connector with no active row at all resolves to `NullService`,
-which behaves the same way.
-
-> Heads-up: `realm-import.json` is applied only on the **first** import into a fresh `keycloak`
-> database. If your volume predates the `rails-service-account` client (or its roles), the token
-> grant 401s or the Admin API 403s. The same goes for `warehouse-account`, which is newer still: on an
-> older volume, add it by hand (public, standard flow, Base URL `https://hmis-warehouse.dev.test/account_email/edit`)
-> or the email-change return trip lands on the Keycloak account console. Confirm the live client with
-> `kcadm.sh get clients -r openpath -q clientId=rails-service-account --fields clientId,secret,serviceAccountsEnabled`
-> (after `kcadm.sh config credentials --server http://localhost:8080 --realm master --user admin
-> --password 'AdminPassword1!'`), and reset the secret in the admin console or recreate the realm
-> from a clean DB if it drifted.
-
-## Realm prerequisites for account email self-service
-
-Under the JWT arm a user changes their own email **inside Keycloak**, not in the Warehouse. The Email
-tab is read-only and hands the browser to Keycloak's `UPDATE_EMAIL` application-initiated action.
-Keycloak collects the new address, mails a confirmation link to it, and applies it only once that
+When `AUTH_METHOD=jwt`, users change their own email in Keycloak, not in the Warehouse. The
+Warehouse's Email tab is read-only and sends the browser to Keycloak's `UPDATE_EMAIL` action. Keycloak
+collects the new address, emails a confirmation link to it, and applies the change only after the
 link is clicked.
 
-The Warehouse adopts the result the next time it reads the account back from the Admin API, and only
-when Keycloak reports the mailbox verified — so no self-service path can put an unproven address in
-`users.email`. Two things read it back: every render of the Email tab, and a background sync job on
-authenticated requests. Adoption therefore does not depend on the user landing back on the tab, which
-matters because we do not control where Keycloak drops them.
+The Warehouse copies the new address into `users.email` the next time it reads the account from the
+Admin API, and only if Keycloak reports it verified. It reads the account on every render of the Email
+tab and in a background sync job on authenticated requests, so the change is picked up even if the
+user never returns to the tab. An admin changing a user's email is a separate path: the address is
+written to `users.email` directly and sent to Keycloak with `emailVerified: false`.
 
-(The **admin** path is separate and unchanged: an admin-supplied address is written locally and
-pushed with `emailVerified: false`, so an admin can still put an unverified address in `users.email`.)
-
-The service **asserts** the realm is set up for this rather than probing it, so the items below are
-operator setup for every realm running the JWT arm. Miss one and the tab still renders and still
-offers the button, but the flow misbehaves in the ways noted.
+The code does not check the realm for the settings below; it assumes they're set. In dev,
+`realm-import.json` sets all three. Any other realm that uses JWT auth needs them configured:
 
 | Requirement | Where | If missing |
 | --- | --- | --- |
-| **Update Email** required action **enabled** | Authentication → Required actions | Keycloak rejects the `kc_action=UPDATE_EMAIL` link; the user gets no way to change their address |
-| Email verification **in effect for this action** | Realm settings → Login → **Verify email**, or Authentication → Required actions → Update Email → **Force Email Verification** | Keycloak applies the new address **immediately, unverified**. The Warehouse refuses to adopt it, so Keycloak and `users.email` diverge until the realm is fixed |
-| Working **SMTP** on the realm | Realm settings → Email | The verification mail never sends, so a change can never complete |
+| **Update Email** required action **enabled** | Authentication → Required actions | Keycloak rejects the link, and the user has no way to change their address |
+| Email verification **in effect for this action**: either one of the two settings | Realm settings → Login → **Verify email** (whole realm), or Authentication → Required actions → Update Email → **Force Email Verification** (this action only; off by default) | Keycloak applies the new address immediately without verifying it. The Warehouse refuses to copy it, so Keycloak and `users.email` disagree until the realm is fixed |
+| Working **SMTP** on the realm | Realm settings → Email | The confirmation email never sends, so the change can't complete |
 
-Either verification lever is enough — the realm-wide **Verify email** setting, or **Force Email
-Verification** on the Update Email required action (off by default), which turns it on for this
-action regardless of the realm setting. The per-action one is more precise, since it leaves password
-resets and admin-provisioned accounts on the realm default.
+**Force Email Verification** is the narrower choice: it leaves password resets and admin-created
+accounts on the realm default.
 
-Additional notes
+#### Behaviour to know about
 
-- **Email is the login name.** The realm runs **Email as username**
-  (`registrationEmailAsUsername: true`), so Keycloak keeps `username` tracking `email` — matching the
-  legacy Devise model where email *is* the login.
-- **Starting a change can ask for a password.** The Update Email required action carries a **Maximum
-  Age of Authentication** (`max_auth_age`, default **300** seconds). If the browser's Keycloak session
-  last authenticated longer ago than that, Keycloak re-authenticates the user before showing the form.
+- **Email is the login name.** The realm has **Email as username** turned on
+  (`registrationEmailAsUsername: true`), so Keycloak keeps `username` equal to `email`. This matches the
+  legacy Devise setup, where the email is the login.
+- **Starting a change can ask for a password.** The Update Email required action has a **Maximum Age of
+  Authentication** (`max_auth_age`, default 300 seconds). If the user signed in to Keycloak longer ago
+  than that, Keycloak asks them to sign in again before showing the form.
 
-## Profile sync for IdPs with no admin API
+### Profile sync for IdPs with no Admin API
 
-Everything above assumes an IdP we operate. Customer-org IdPs attach as additional Dex connectors
-([§5.2.3](../architecture/05-building-blocks/05-2-3-authentication.md)) and expose no management API,
-so there is no account to read back and the JWT is the only channel that carries a profile change.
-The sync reads the profile from the token's claims instead of the admin API.
-
-Note, when updating a user from a JWT claim, treat a missing `email_verified` as a verified email and
-adopt it. External IdPs may not populate the field reliably.
+Customer-operated IdPs connect as additional Dex connectors
+([§5.2.3](../architecture/05-building-blocks/05-2-3-authentication.md)) and have no Admin API we can
+call. For users from those IdPs, the Warehouse updates the profile from the JWT's claims instead. A
+missing `email_verified` claim counts as verified, because external IdPs often leave it out; only an
+explicit `email_verified: false` blocks the email update.
 
 ## Notes
 
-- **Warehouse-only?** `oauth2-proxy-hmis` upstreams to Vite on the host (`host.docker.internal:5173`)
-  and only matters on `hmis.dev.test`. Skip it — bring up just
-  `keycloak dex oauth2-proxy-warehouse web` and use `hmis-warehouse.dev.test`.
-- **Linux:** the proxies use `extra_hosts: …:host-gateway`; needs a recent Docker Engine (it resolves
-  out of the box on Docker Desktop).
-- **Credentials:** `docker/auth/keycloak-credentials.env` is committed because its values are
-  pre-defined in `realm-import.json` (chosen, not generated). Dev-only — never used in production.
-
-In development, dump the config with
-```
-opt/keycloak/bin/kcadm.sh create realms/openpath/partial-export --config /tmp/kcadm.config -s exportGroupsAndRoles=true -s exportClients=true --server http://localhost:8080 --realm=master --user admin --password 'AdminPassword1!' -o > /tmp/realm-live.json
-```
+- **Warehouse-only work.** `hmis.dev.test` works only if the HMIS frontend's Vite dev server is
+  running on your host at port 5173. The `oauth2-proxy-hmis` container still starts, because `web`
+  depends on it. If you're only working on the Warehouse, ignore it and use
+  `https://hmis-warehouse.dev.test`.
+- **Linux.** The proxies use `extra_hosts: …:host-gateway`, which needs Docker Engine 20.10 or later.
+  Docker Desktop supports it out of the box.
+- **Credentials.** `docker/auth/keycloak-credentials.env` is committed because its values are fixed in
+  `realm-import.json`, not generated. They are for dev only and never used in production.
 
 ## Related
 
-- [User migration (`rails keycloak:*`)](./keycloak-user-migration.md) — seeding Keycloak from legacy
+- [User migration (`rails keycloak:*`)](./keycloak-user-migration.md): seeding Keycloak from legacy
   Devise/warehouse accounts before a Deployment switches to JWT auth.
