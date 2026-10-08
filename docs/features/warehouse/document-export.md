@@ -39,10 +39,10 @@ flowchart LR
 ## Creating a New Export
 1. **Subclass** `GrdaWarehouse::DocumentExport` (e.g., `GrdaWarehouse::Cohorts::DocumentExports::CohortExcelExport`).
 2. **Implement**:
-   - `authorized?` to gate downloads. Note: Exports are NOT shareable between users
+   - `authorized?` to gate creation and download. It must check the report definition is assigned to the user. When the export reads a saved report, look the report up through the model's per-user scope (e.g. `visible_to(user).find_by(id: params['id'])`) and return false when it is missing. Exports are NOT shareable between users.
    - `perform` to build the file (Axlsx, PDF, etc.) and assign `filename`, `file_data`, and `mime_type`.
    - `download_title` (optional) for notification copy.
-3. **Register** the class in `DocumentExportsControllerBase#valid_document_export_classes`.
+3. **Register** the class in `DocumentExportsControllerBase#valid_document_export_classes`. Classes missing from this allow-list cannot be created or downloaded.
 4. **Enqueue** the export from your feature (controller, job, or service) by creating the record and calling `DocumentExportJob.perform_later(export_id: export.id)` or a driver-specific job.
 5. **Provide UI** hooks for polling and download using the JSON payload from `DocumentExportsControllerBase`.
 
