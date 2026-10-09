@@ -36,7 +36,7 @@ class Hmis::Hud::Exit < Hmis::Hud::Base
   end
 
   # Hmis::MarkClientAsDirtyBehavior hook
-  protected def ce_affected_households
+  protected def ce_affected_household_keys
     # warehouse_columns_changed? is broader than needed (e.g. Destination) but skips unrelated edits.
     # Soft delete writes DateDeleted via update_columns, so it isn't in saved_changes; check deleted? instead.
     return [] unless deleted? || warehouse_columns_changed?

@@ -591,7 +591,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   end
 
   # Hmis::MarkClientAsDirtyBehavior hook: this household, plus the previous one if the enrollment moved
-  protected def ce_affected_households
+  protected def ce_affected_household_keys
     # warehouse_columns_changed? is broader than needed (e.g. MoveInDate) but skips unrelated edits.
     # Soft delete writes DateDeleted via update_columns, so it isn't in saved_changes; check deleted? instead.
     return [] unless deleted? || warehouse_columns_changed?
