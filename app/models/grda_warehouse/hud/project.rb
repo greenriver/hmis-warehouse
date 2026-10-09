@@ -207,6 +207,10 @@ module GrdaWarehouse::Hud
       es_nbn
     end
 
+    def can_edit_contacts?(user)
+      user.can_view_imports?
+    end
+
     def night_by_night?
       es_nbn?
     end

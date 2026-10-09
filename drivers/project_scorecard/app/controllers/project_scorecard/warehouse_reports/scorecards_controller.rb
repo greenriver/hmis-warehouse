@@ -224,6 +224,8 @@ module ProjectScorecard::WarehouseReports
 
     private def filtered_reports_scope
       scope = reports_scope.started_between(start_date: @history_filter.start, end_date: @history_filter.end)
+      scope = scope.where(project_id: GrdaWarehouse::Hud::Project.select(:id)).
+        or(scope.where(project_group_id: GrdaWarehouse::ProjectGroup.select(:id)))
 
       creator_user_id = @history_filter.creator_id.presence if can_view_all_reports?
       scope = scope.where(user_id: creator_user_id) if creator_user_id

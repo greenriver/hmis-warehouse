@@ -303,6 +303,10 @@ module GrdaWarehouse::Hud
       select(:OrganizationID, :OrganizationName).distinct.pluck(:OrganizationName, :OrganizationID)
     end
 
+    def can_edit_contacts?(user)
+      user.can_view_imports?
+    end
+
     def project_names
       projects.order(ProjectName: :asc).pluck(:ProjectName)
     end
