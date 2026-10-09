@@ -9,8 +9,6 @@
 module Hmis::Ce::Match::Expression
   # FieldMap implementation for household.* expression keys (e.g. household.size).
   class HouseholdFieldMap
-    NAMESPACE = 'household'
-
     def initialize(current_date: Date.current, configuration: Hmis::Ce.configuration)
       @current_date = current_date
       @configuration = configuration
@@ -42,10 +40,6 @@ module Hmis::Ce::Match::Expression
 
     def format_for_display(_field, value)
       value&.to_s
-    end
-
-    def self.field_key_for(field_key)
-      "#{NAMESPACE}.#{field_key}"
     end
 
     private

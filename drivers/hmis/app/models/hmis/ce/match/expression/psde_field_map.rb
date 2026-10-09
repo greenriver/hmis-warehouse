@@ -9,8 +9,6 @@
 module Hmis::Ce::Match::Expression
   # FieldMap implementation for flat psde.* expression keys (e.g. psde.total_monthly_income).
   class PsdeFieldMap
-    NAMESPACE = 'psde'
-
     def initialize(current_date: Date.current, configuration: Hmis::Ce.configuration)
       @current_date = current_date
       @configuration = configuration
@@ -50,10 +48,6 @@ module Hmis::Ce::Match::Expression
       return _format_for_display(value_type, value) unless multiple
 
       Array.wrap(value).map { |v| _format_for_display(value_type, v) }
-    end
-
-    def self.field_key_for(field_key)
-      "#{NAMESPACE}.#{field_key}"
     end
 
     private

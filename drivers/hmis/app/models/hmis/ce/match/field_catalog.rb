@@ -13,6 +13,12 @@ module Hmis::Ce::Match
       open_referral_project_types: 'ProjectType',
     }.freeze
 
+    # Registry-backed namespaces (psde.*, household.*) and the GraphQL field source each is exposed as
+    REGISTRY_NAMESPACES = {
+      Hmis::Ce::Match::Expression::FieldMap::PSDE => { registry: Hmis::Ce::Match::Expression::PsdeFieldRegistry, source: :PSDE },
+      Hmis::Ce::Match::Expression::FieldMap::HOUSEHOLD => { registry: Hmis::Ce::Match::Expression::HouseholdFieldRegistry, source: :HOUSEHOLD },
+    }.freeze
+
     def initialize(current_date: Date.current)
       @current_date = current_date
     end
@@ -24,11 +30,11 @@ module Hmis::Ce::Match
     # Build this catalog from the registry so newly registered PSDE fields are
     # automatically available through the GraphQL field query.
     def psde_fields
-      Hmis::Ce::Match::Expression::PsdeFieldRegistry::ALL.map { |psde_field| build_registry_field(psde_field, Hmis::Ce::Match::Expression::PsdeFieldMap, :PSDE) }
+      registry_fields(Hmis::Ce::Match::Expression::FieldMap::PSDE)
     end
 
     def household_fields
-      Hmis::Ce::Match::Expression::HouseholdFieldRegistry::ALL.map { |household_field| build_registry_field(household_field, Hmis::Ce::Match::Expression::HouseholdFieldMap, :HOUSEHOLD) }
+      registry_fields(Hmis::Ce::Match::Expression::FieldMap::HOUSEHOLD)
     end
 
     def custom_assessment_fields_for(data_source_id:, form_definition_identifier:)
@@ -51,12 +57,9 @@ module Hmis::Ce::Match
       when Hmis::Ce::Match::Expression::FieldMap::CLIENT
         client_field = client_field_by_key[resolved_key.to_sym]
         build_client_field(client_field) if client_field
-      when Hmis::Ce::Match::Expression::FieldMap::PSDE
-        psde_field = Hmis::Ce::Match::Expression::PsdeFieldRegistry[resolved_key]
-        build_registry_field(psde_field, Hmis::Ce::Match::Expression::PsdeFieldMap, :PSDE) if psde_field
-      when Hmis::Ce::Match::Expression::FieldMap::HOUSEHOLD
-        household_field = Hmis::Ce::Match::Expression::HouseholdFieldRegistry[resolved_key]
-        build_registry_field(household_field, Hmis::Ce::Match::Expression::HouseholdFieldMap, :HOUSEHOLD) if household_field
+      when Hmis::Ce::Match::Expression::FieldMap::PSDE, Hmis::Ce::Match::Expression::FieldMap::HOUSEHOLD
+        registry_field = REGISTRY_NAMESPACES.fetch(namespace)[:registry][resolved_key]
+        build_registry_field(namespace, registry_field) if registry_field
       when Hmis::Ce::Match::Expression::FieldMap::CDE
         cded_key = resolved_key.split('.').last
         cded = Hmis::Hud::CustomDataElementDefinition.for_ce_match_conditions.find_by(key: cded_key)
@@ -93,11 +96,14 @@ module Hmis::Ce::Match
       )
     end
 
-    # Builds a Field for registry-backed namespaces (psde.*, household.*)
-    def build_registry_field(registry_field, field_map, source)
+    def registry_fields(namespace)
+      REGISTRY_NAMESPACES.fetch(namespace)[:registry]::ALL.map { |registry_field| build_registry_field(namespace, registry_field) }
+    end
+
+    def build_registry_field(namespace, registry_field)
       # Keep the namespace (e.g. psde.*) in both identifiers. Besides matching the
       # expression syntax, this prevents collisions with client and CDED fields.
-      field_key = field_map.field_key_for(registry_field.key)
+      field_key = "#{namespace}.#{registry_field.key}"
 
       Field.new(
         id: field_key,
@@ -106,7 +112,7 @@ module Hmis::Ce::Match
         item_type: item_type_for_registry_field(registry_field),
         multiple: registry_field.multiple,
         field_key: field_key,
-        source: source,
+        source: REGISTRY_NAMESPACES.fetch(namespace)[:source],
         form_definition_identifier: nil,
         pick_list_reference: nil,
         pick_list_options: nil,
