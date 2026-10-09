@@ -67,6 +67,8 @@ The ranking above picks a single winner, which is right for some roles and wrong
 
 For enrollment forms, a rule that matches the project must also match the enrollment. `InstanceEnrollmentMatch` evaluates the rule's `data_collected_about` against the enrollment: `ALL_CLIENTS`, `HOH_AND_ADULTS`, `HOH`, `ALL_VETERANS`, or `VETERAN_HOH`. Unset means `ALL_CLIENTS`.
 
+`detect_best_instance_for_enrollment` takes the best rule for the project and uses it if it matches the enrollment. If it does not, only system rules can match: a more specific rule replaces non-system rules for everyone, but cannot drop someone a system rule covers. For example, with a project rule set to `HOH`, an organization rule set to `ALL_CLIENTS`, and a system rule set to `HOH_AND_ADULTS`, a non-HoH adult matches the system rule and a non-HoH child matches nothing. The form for new records still comes from `Definition.for_project`, so the more specific rule's form is used. At the project level, `Instance.effective_data_collected_about_for_project` reports the broader of the winning rule and any matching system rule, or `ALL_CLIENTS` when neither covers the other.
+
 ### Service forms
 
 Service forms resolve by service type through `Definition.for_service_type`, which prefers a rule naming the specific `custom_service_type` and falls back to one naming the `custom_service_category`. Because `SERVICE` is inclusive, a project can legitimately offer several service forms.
