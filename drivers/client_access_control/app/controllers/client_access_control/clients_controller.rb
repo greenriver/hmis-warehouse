@@ -85,7 +85,7 @@ class ClientAccessControl::ClientsController < ApplicationController
     @query = search_params['q'].presence # populates form input
     if @query
       @search_performed = true
-      @clients = client_source.text_search(@query, client_scope: client_search_scope, sorted: sorted)
+      @clients = client_source.text_search(@query, user: current_user, sorted: sorted)
     else
       @clients = client_source.none
     end
