@@ -174,8 +174,10 @@ RSpec.describe Hmis::Hud::Project, type: :model do
         system_rule.update!(data_collected_about: 'HOH')
         create(:hmis_form_instance, role: role, entity: nil, project_type: project.project_type, data_collected_about: 'ALL_CLIENTS', data_source: data_source)
         create(:hmis_form_instance, role: role, entity: project, data_collected_about: 'HOH', data_source: data_source)
+        non_hoh_enrollment = create(:hmis_hud_enrollment, project: project, data_source: data_source, household_id: enrollment.household_id, relationship_to_hoh: 2)
 
         expect(cls_feature.data_collected_about).to eq('HOH')
+        expect(non_hoh_enrollment.data_collection_features.map(&:role)).not_to include(role.to_s)
       end
 
       it 'ignores system rules for other roles, inactive system rules, and system rules on unpublished forms' do

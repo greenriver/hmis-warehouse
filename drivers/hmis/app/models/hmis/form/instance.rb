@@ -223,8 +223,12 @@ class Hmis::Form::Instance < ::GrdaWarehouseBase
     'ALL_CLIENTS'
   end
 
+  # The best rule for the project wins if it covers the enrollment; otherwise only a system rule can.
   def self.detect_best_instance_for_enrollment(enrollment:)
-    matches = in_data_source(enrollment.data_source_id).
+    best_for_project = detect_best_instance_for_project(project: enrollment.project)
+    return best_for_project if best_for_project.nil? || best_for_project.enrollment_match?(enrollment)
+
+    matches = where(system: true).in_data_source(enrollment.data_source_id).
       map { |i| i.project_and_enrollment_match(project: enrollment.project, enrollment: enrollment) }.compact
     # with_index for stable sort
     matches.sort_by.with_index { |match, idx| [match.rank, idx] }.first&.instance
@@ -237,8 +241,11 @@ class Hmis::Form::Instance < ::GrdaWarehouseBase
 
   # if the enrollment and project match
   def project_and_enrollment_match(project:, enrollment:)
-    enrollment_match = Hmis::Form::InstanceEnrollmentMatch.new(instance: self, enrollment: enrollment)
-    enrollment_match.valid? ? project_match(project) : nil
+    enrollment_match?(enrollment) ? project_match(project) : nil
+  end
+
+  def enrollment_match?(enrollment)
+    Hmis::Form::InstanceEnrollmentMatch.new(instance: self, enrollment: enrollment).valid?
   end
 
   def to_pick_list_option
