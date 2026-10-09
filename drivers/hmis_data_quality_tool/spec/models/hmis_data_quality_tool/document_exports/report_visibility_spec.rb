@@ -16,7 +16,7 @@ require 'rails_helper'
 ].each do |export_class|
   RSpec.describe export_class, type: :model do
     let(:report_class) { HmisDataQualityTool::Report }
-    let(:report_definition_url) { report_class.url }
+    let(:report_definition_url) { 'hmis_data_quality_tool/warehouse_reports/reports' }
 
     it_behaves_like 'a document export limited to visible reports' do
       let(:report_attributes) { { question_names: [], report_name: report_class.untranslated_title } }

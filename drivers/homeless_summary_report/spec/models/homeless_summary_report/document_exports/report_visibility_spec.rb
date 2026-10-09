@@ -10,7 +10,7 @@ require 'rails_helper'
 
 RSpec.describe HomelessSummaryReport::DocumentExports::ReportExport, type: :model do
   let(:report_class) { HomelessSummaryReport::Report }
-  let(:report_definition_url) { report_class.url }
+  let(:report_definition_url) { 'homeless_summary_report/warehouse_reports/reports' }
 
   it_behaves_like 'a document export limited to visible reports'
 end

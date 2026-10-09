@@ -10,7 +10,7 @@ require 'rails_helper'
 
 RSpec.describe ProjectPassFail::DocumentExports::ProjectPassFailExport, type: :model do
   let(:report_class) { ProjectPassFail::ProjectPassFail }
-  let(:report_definition_url) { report_class.url }
+  let(:report_definition_url) { 'project_pass_fail/warehouse_reports/project_pass_fail' }
 
   it_behaves_like 'a document export limited to visible reports'
 end
