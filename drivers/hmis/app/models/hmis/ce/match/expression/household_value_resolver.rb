@@ -60,7 +60,7 @@ module Hmis::Ce::Match::Expression
 
     # @return [Hash{Array(Integer, String) => Array<Integer, nil>}] household => one age per open member enrollment
     def member_ages_by_household(households)
-      rows = Hmis::HouseholdMembership.open_enrollments(households).
+      rows = Hmis::Ce::HouseholdMembership.open_enrollments(households).
         left_outer_joins(client: :warehouse_client_source).
         pluck(e_t[:data_source_id], e_t[:HouseholdID], wc_t[:destination_id])
 

@@ -30,7 +30,7 @@ module Hmis::MarkClientAsDirtyBehavior
 
     # household.* CE match fields read other members' records, so also mark the open members of any household
     # this record changed
-    client_ids += Hmis::HouseholdMembership.open_member_destination_ids(ce_affected_households)
+    client_ids += Hmis::Ce::HouseholdMembership.open_member_destination_ids(ce_affected_households)
 
     # enqueue
     Hmis::Ce::ChangeMarker.upsert_or_bump_version('GrdaWarehouse::Hud::Client', trackable_ids: client_ids)

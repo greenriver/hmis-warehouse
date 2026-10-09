@@ -1026,7 +1026,7 @@ module GrdaWarehouse::Tasks
       return unless Hmis::Ce.configuration.enabled?
 
       # household.* CE match fields read members' destination demographics (e.g. DOB for ages)
-      client_ids += Hmis::HouseholdMembership.household_member_destination_ids(client_ids)
+      client_ids += Hmis::Ce::HouseholdMembership.household_member_destination_ids(client_ids)
       Hmis::Ce::ChangeMarker.upsert_or_bump_version('GrdaWarehouse::Hud::Client', trackable_ids: client_ids)
     end
 

@@ -8,9 +8,11 @@
 
 # Looks up the open (WIP included) members of households. Households are [data_source_id, HouseholdID] pairs,
 # because a HouseholdID is only unique within a data source.
-class Hmis::HouseholdMembership
+class Hmis::Ce::HouseholdMembership
   include Hmis::Concerns::HmisArelHelper
 
+  # Base scope for household.* CE match fields, which evaluate a client against their household's open members.
+  # Grouped by data source so the SQL is one HouseholdID IN (...) per data source, not one clause per pair.
   # @param households [Array<Array(Integer, String)>] [data_source_id, HouseholdID] pairs
   # @return [ActiveRecord::Relation<Hmis::Hud::Enrollment>] the households' open member enrollments
   def self.open_enrollments(households)
@@ -23,6 +25,8 @@ class Hmis::HouseholdMembership
     Hmis::Hud::Enrollment.open_including_wip.where(condition)
   end
 
+  # A change to one member's HMIS record can change every open member's household.* values, so the whole
+  # household is marked dirty for CE, not just the record's own client.
   # @param households [Array<Array(Integer, String)>] [data_source_id, HouseholdID] pairs
   # @return [Array<Integer>] destination client ids of the households' open members
   def self.open_member_destination_ids(households)
@@ -31,6 +35,8 @@ class Hmis::HouseholdMembership
       pluck(wc_t[:destination_id])
   end
 
+  # For warehouse dedup and cleanup, which change destination clients rather than HMIS records: a client's
+  # destination demographics (e.g. DOB) feed their co-members' household.* values, so co-members are marked dirty too.
   # @param destination_client_ids [Array<Integer>]
   # @return [Array<Integer>] destination client ids of the open members of every open household the given clients
   #   belong to, including those clients

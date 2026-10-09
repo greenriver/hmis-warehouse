@@ -336,7 +336,7 @@ module GrdaWarehouse::Tasks
 
       # household.* CE match fields read members' destination demographics (e.g. DOB for ages), which linking a
       # source client to a destination sets or changes
-      client_ids += Hmis::HouseholdMembership.household_member_destination_ids(client_ids)
+      client_ids += Hmis::Ce::HouseholdMembership.household_member_destination_ids(client_ids)
       Hmis::Ce::ChangeMarker.upsert_or_bump_version('GrdaWarehouse::Hud::Client', trackable_ids: client_ids)
     end
 
