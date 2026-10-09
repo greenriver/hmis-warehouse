@@ -286,6 +286,38 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
         )
       end
     end
+
+    context 'when a project rule narrows a matching system rule' do
+      let!(:p1) { create :hmis_hud_project, data_source: ds1, organization: o1, project_type: 4 }
+      let!(:system_rule) { create :hmis_form_instance, entity: nil, project_type: 4, system: true, data_collected_about: 'HOH_AND_ADULTS', role: 'CURRENT_LIVING_SITUATION', data_source: ds1 }
+      let!(:override) { create :hmis_form_instance, entity: p1, data_collected_about: 'HOH', role: 'CURRENT_LIVING_SITUATION', data_source: ds1 }
+
+      let!(:adult) { create :hmis_hud_client, data_source: ds1, DOB: 30.years.ago.to_date }
+      let!(:child) { create :hmis_hud_client, data_source: ds1, DOB: 5.years.ago.to_date }
+      let!(:hoh_enrollment) { create :hmis_hud_enrollment, data_source: ds1, project: p1, household_id: 'hh-9555', relationship_to_hoh: 1 }
+      let!(:adult_enrollment) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: adult, household_id: 'hh-9555', relationship_to_hoh: 3 }
+      let!(:child_enrollment) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: child, household_id: 'hh-9555', relationship_to_hoh: 2 }
+
+      def cls_feature(enrollment)
+        enrollment.data_collection_features.find { |f| f.role == 'CURRENT_LIVING_SITUATION' }
+      end
+
+      it 'enables CLS for a non-HoH adult through the system rule' do
+        expect(cls_feature(adult_enrollment)).to have_attributes(instance: system_rule, data_collected_about: 'HOH_AND_ADULTS', legacy: false)
+      end
+
+      it 'does not enable CLS for a non-HoH child' do
+        expect(cls_feature(child_enrollment)).to be_nil
+      end
+
+      it 'uses the override rule for the HoH' do
+        expect(cls_feature(hoh_enrollment)).to have_attributes(instance: override)
+      end
+
+      it 'serves the override definition for new CLS records in the project' do
+        expect(Hmis::Form::Definition.for_project(project: p1, role: :CURRENT_LIVING_SITUATION)).to eq(override.definition)
+      end
+    end
   end
 
   describe 'occurrence point form instances' do
