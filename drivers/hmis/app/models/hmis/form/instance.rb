@@ -207,7 +207,7 @@ class Hmis::Form::Instance < ::GrdaWarehouseBase
   # Considers system rules in the current scope only, so callers scope by role or definition.
   def self.effective_data_collected_about_for_project(project:, best_instance:)
     effective = best_instance.data_collected_about || 'ALL_CLIENTS'
-    # ponytail: two matching system rules with incomparable values resolve by order; widen to ALL_CLIENTS if that config appears
+    # Two matching system rules with incomparable values resolve by order; widen to ALL_CLIENTS if that config appears
     where(system: true).in_data_source(project.data_source_id).each do |rule|
       next unless rule.project_match(project)
 
