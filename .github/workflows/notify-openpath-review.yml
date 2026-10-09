@@ -4,15 +4,29 @@ on:
   pull_request:
     types: [labeled]
 
+permissions: {}
+
 jobs:
   notify:
-    if: github.event.label.name == 'needs-openpath-review'
+    # Fork PRs don't get repository secrets on the pull_request event, so they
+    # can't post to Slack.
+    if: >-
+      github.event.label.name == 'needs-openpath-review' &&
+      github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     steps:
       - name: Post to Slack
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL_OP_ENG }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
         run: |
-          curl -X POST ${{ secrets.SLACK_WEBHOOK_URL_OP_ENG }} \
-          -H 'Content-type: application/json' \
-          -d '{
-            "text": "<!here> PR ready for review:\n*<${{ github.event.pull_request.html_url }}|${{ github.event.pull_request.title }}>*\nOpened by: ${{ github.event.pull_request.user.login }}\nPlease ✅ this message to claim this review!"
-          }'
+          jq -n \
+            --arg url "$PR_URL" \
+            --arg title "$PR_TITLE" \
+            --arg author "$PR_AUTHOR" \
+            '{ text: "<!here> PR ready for review:\n*<\($url)|\($title)>*\nOpened by: \($author)\nPlease ✅ this message to claim this review!" }' |
+            curl --fail-with-body -sS -X POST "$SLACK_WEBHOOK_URL" \
+              -H 'Content-type: application/json' \
+              -d @-
