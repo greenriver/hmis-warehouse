@@ -85,7 +85,7 @@ class ClientAccessControl::ClientsController < ApplicationController
     @query = search_params['q'].presence # populates form input
     if @query
       @search_performed = true
-      @clients = client_source.text_search(@query, client_scope: client_search_scope, sorted: sorted)
+      @clients = client_source.text_search(@query, user: current_user, sorted: sorted)
     else
       @clients = client_source.none
     end
@@ -131,6 +131,7 @@ class ClientAccessControl::ClientsController < ApplicationController
       preload(preloads)
 
     @pagy, @clients = pagy(@clients)
+    current_user.policy_context.preload_client_dependencies(@clients.map(&:id))
   end
 
   def show

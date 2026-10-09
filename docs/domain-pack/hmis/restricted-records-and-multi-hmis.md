@@ -2,7 +2,7 @@
 title: HMIS client merges, restricted records, and multi-HMIS hosting
 summary: "Three cross-cutting HMIS behaviors. MergeClientsJob and its undo with audit history; RestrictedRecord plus the Restrictable concern that redacts PII and hides clients from search; and multi-HMIS support where the request host binds to a data source, with the hmis_go_live_at gate."
 area: hmis
-tags: [hmis, client-merge, MergeClientsJob, UndoMergeClientsJob, ClientMergeAudit, ClientMergeHistory, RestrictedRecord, Restrictable, pii_redacted_for_client?, client_ids_hidden_from_search, searchable_to, RestrictedClientLoader, multi-hmis, current_hmis_host, attach_data_source_id, hmis_data_source_id, hmis_go_live_at, hmis_access_error_for]
+tags: [hmis, client-merge, MergeClientsJob, UndoMergeClientsJob, ClientMergeAudit, ClientMergeHistory, RestrictedRecord, Restrictable, pii_redacted_for_client?, searchable_to, RestrictedClientLoader, multi-hmis, current_hmis_host, attach_data_source_id, hmis_data_source_id, hmis_go_live_at, hmis_access_error_for]
 sources:
   - drivers/hmis/app/jobs/hmis/merge_clients_job.rb
   - drivers/hmis/app/jobs/hmis/undo_merge_clients_job.rb
@@ -68,9 +68,10 @@ Restricted records:
 - `Mutations::SetClientRestricted` (`drivers/hmis/app/graphql/mutations/set_client_restricted.rb`),
   gated by `HmisClientPolicy::Instance#can_mark_restricted?` (`can_mark_clients_as_restricted`).
 - `client.restricted?`, `client.mark_as_restricted!(user:)`, `client.remove_restriction!`.
-- `Hmis::Hud::Client.searchable_to(user)`: `visible_to` minus
-  `user.policy_context.client_ids_hidden_from_search`. Used by `Client.client_search` and the
-  `clientOmniSearch` query.
+- `Hmis::Hud::Client.searchable_to(user, client_ids: nil)`: `visible_to` minus restricted clients
+  the user cannot view (a SQL predicate). Used by `Client.client_search` and the
+  `clientOmniSearch` query. Text search goes through `Client.searchable_to_matching(user, text)`,
+  which passes the matched ids as `client_ids:`.
 - `Hmis::AuthPolicies::UserContext#pii_redacted_for_client?(client_id)`, read through
   `HmisClientPolicy::Instance#pii_redacted?`.
 
@@ -122,15 +123,19 @@ not revert retained-client attributes, recreate deduped records, or restore
 
 `hmis_restricted_records` (`Hmis::RestrictedRecord`, `acts_as_paranoid`, `has_paper_trail`) has a
 polymorphic `restrictable`; `RESTRICTABLE_TYPES` is `['Hmis::Hud::Client']` today. An active row
-means restricted. `mark!` restores a soft-deleted row if one exists and validates
-`data_source_id` matches the record. `unmark!` destroys the row.
+means restricted. `mark!` is a no-op when an active row exists, and otherwise appends a new row
+rather than restoring a soft-deleted one, so the restriction lands in PaperTrail history
+(Paranoia's `restore` skips callbacks). The unique index is partial on `deleted_at IS NULL`, so a
+restrictable has at most one active row and any number of soft-deleted ones — `with_deleted`
+lookups must expect more than one. `unmark!` destroys the row.
 
 `UserContext#pii_redacted_for_client?(client_id)` is the one rule: false unless restricted; true
 if the client has no enrollments in the data source (no project through which the permission
 could be held); otherwise true unless `client_permissions(client_id)` includes
-`can_view_restricted_clients`. `client_ids_hidden_from_search` applies that rule to every
-restricted client in the data source (`RestrictedClientLoader#restricted_ids_in_data_source`,
-one query) and backs `Client.searchable_to`. `visible_to` is unchanged, so `client(id:)` and
+`can_view_restricted_clients`. `Client.searchable_to` applies the same rule in SQL: a client is excluded when an active
+`hmis_restricted_records` row exists and no live enrollment (in a live project) sits in a project
+from `project_ids_with_permissions(:can_view_restricted_clients, mode: :any)`. The enrollment
+`EXISTS` carries an `OFFSET 0` fence so Postgres evaluates it per restricted candidate. `visible_to` is unchanged, so `client(id:)` and
 navigation from enrollments still resolve.
 
 Redaction points are the PII predicates on `HmisClientPolicy::Instance` (`can_view_name?`,
@@ -174,7 +179,7 @@ check uses `true_hmis_user`, so an admin impersonating a blocked user is not loc
 - `drivers/hmis/app/models/hmis/restricted_record.rb`: `mark!`, `unmark!`, `for_clients`, data-source validation.
 - `drivers/hmis/app/models/hmis/concerns/restrictable.rb`: `has_one :restricted_record`, the three instance methods.
 - `drivers/hmis/app/models/hmis/auth_policies/user_context.rb`: `pii_redacted_for_client?`,
-  `client_ids_hidden_from_search`, `clear_client_restriction_cache!`, `preload_client_dependencies`.
+  `clear_client_restriction_cache!`, `preload_client_dependencies`.
 - `drivers/hmis/app/models/hmis/auth_policies/context_loaders/restricted_client_loader.rb`: bulk restriction cache.
 - `drivers/hmis/app/models/hmis/auth_policies/hmis_client_policy.rb`: `pii_redacted?` folded into the PII predicates; `can_mark_restricted?`.
 - `drivers/hmis/app/graphql/mutations/set_client_restricted.rb`: mark/unmark plus cache clear.
@@ -190,8 +195,12 @@ check uses `true_hmis_user`, so an admin impersonating a blocked user is not loc
 - Restriction status is a per-request snapshot in `RestrictedClientLoader`. That is intentional.
   The only cache clear is `clear_client_restriction_cache!` in `Mutations::SetClientRestricted`;
   do not add cache busting elsewhere, including long-running exports.
-- `client_ids_hidden_from_search` loads every restricted client in the data source and evaluates
-  permissions for each. Restriction is meant for a small fraction of clients, not bulk hiding.
+- Keep the `OFFSET 0` fence on the enrollment `EXISTS` in `Client.searchable_to`; without it
+  Postgres can hash every enrollment in the permitted projects.
+- `client_ids:` on `visible_to`/`searchable_to` is applied inside each branch of the
+  `union_sql_for_clients_in_projects_or_unenrolled` union; Postgres does not push an outer
+  `where(id:)` into it. `nil` means no limit; `[]` means no clients (unlike the warehouse
+  `searchable_to`, which treats `[]` as unrestricted).
 - A restricted client with no enrollments is redacted and hidden for everyone, including users
   who hold `can_view_restricted_clients` somewhere. Marking and unmarking still use the normal
   `client_permissions` fallback to global permissions, so the marker can unmark.
@@ -231,7 +240,7 @@ check uses `true_hmis_user`, so an admin impersonating a blocked user is not loc
   `Client.searchable_to(user)`, which derives from `pii_redacted_for_client?` so search and
   redaction cannot drift.
 - Calling `Hmis::RestrictedRecord.create!` or `destroy!` directly. Use
-  `client.mark_as_restricted!(user:)` / `remove_restriction!` so restore-if-deleted and
+  `client.mark_as_restricted!(user:)` / `remove_restriction!` so the already-restricted no-op and
   data-source validation apply.
 - Moving client-owned records in a merge without writing `pre_merge_mappings`. Add the key to
   `ClientMergeAudit::PRE_MERGE_MAPPING_EXPECTED_FIELDS` and a restore step in

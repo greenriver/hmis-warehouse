@@ -441,15 +441,6 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
 
         expect(client.potential_matches[:by_name].to_a).to eq([open_destination])
       end
-
-      it 'loads the restricted client set once, not once per source-name search' do
-        second_name_source = create(:hud_client, FirstName: 'Zachary', LastName: 'Quinnson', data_source_id: source_ds.id)
-        GrdaWarehouse::WarehouseClient.create!(destination_id: client.id, source_id: second_name_source.id, id_in_source: second_name_source.PersonalID)
-
-        expect(GrdaWarehouse::AuthPolicies::ContextLoaders::RestrictedClientLoader).to receive(:new).once.and_call_original
-
-        client.potential_matches
-      end
     end
   end
 end

@@ -16,7 +16,9 @@ module WarehouseReports::Cas
 
       respond_to do |format|
         format.html
-        format.xlsx
+        format.xlsx do
+          current_user.policy_context.preload_client_dependencies(@report.cancels.map(&:client_id) + @report.declines.map(&:client_id))
+        end
       end
     end
 

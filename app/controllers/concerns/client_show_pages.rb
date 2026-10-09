@@ -38,7 +38,6 @@ module ClientShowPages
         '/clients/rollup/entry_assessments',
         '/clients/rollup/error',
         '/clients/rollup/exit_assessments',
-        '/clients/rollup/family',
         '/clients/rollup/income_benefits',
         '/clients/rollup/ongoing_residential_enrollments',
         '/clients/rollup/other_enrollments',

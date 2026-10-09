@@ -94,13 +94,22 @@ module ClientAccessControl
     # 2. Client has an ROI that would expose data to this user via an access control
     # 3. authoritative data source directly assigned to user (these have no enrollments/projects)
     private def visible_client_scope(user, client_ids: nil)
+      client_ids = client_ids.presence
       client_scope = unscoped_clients.source
-      client_scope = client_scope.where(id: client_ids) if client_ids.present?
+      client_scope = client_scope.where(id: client_ids) if client_ids
 
       # Active Record is doing some odd things with some of these, and sometimes
       # "none" is returning as "" which blows things up terribly.
-      from_assigned_projects_query = viewable_enrollments_from_access_controls(user).joins(:client).select(c_t[:id]).to_sql
-      from_rois_query = viewable_enrollments_from_rois(user).joins(:client).select(c_t[:id]).to_sql
+      # The OR'd IN (subquery) branches below can't use the outer client_ids restriction,
+      # so each subquery repeats it; otherwise Postgres builds every visible client first.
+      from_assigned_projects_query, from_rois_query = [
+        viewable_enrollments_from_access_controls(user),
+        viewable_enrollments_from_rois(user),
+      ].map do |enrollments|
+        enrollments = enrollments.joins(:client)
+        enrollments = enrollments.where(c_t[:id].in(client_ids)) if client_ids
+        enrollments.select(c_t[:id]).to_sql
+      end
       from_authoritative_ds = authoritative_viewable_ds_ids(user, permission: :can_view_clients)
 
       where_clause = c_t[:id].in([]) # generates 1=0

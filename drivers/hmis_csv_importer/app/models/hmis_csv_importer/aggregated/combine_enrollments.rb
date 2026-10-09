@@ -147,13 +147,13 @@ module HmisCsvImporter::Aggregated
 
       ex_t = exit_source.arel_table
 
-      incoming_enrollment_ids = enrollment_destination.where(
+      incoming_enrollment_keys = enrollment_destination.where(
         ProjectID: project_ids,
         data_source_id: importer_log.data_source_id,
         importer_log_id: importer_log.id,
-      ).pluck(:EnrollmentID)
+      ).pluck(:EnrollmentID, :PersonalID)
       incoming_exit_ids = exit_destination.where(
-        EnrollmentID: incoming_enrollment_ids,
+        EnrollmentID: incoming_enrollment_keys.map(&:first),
         data_source_id: importer_log.data_source_id,
         importer_log_id: importer_log.id,
       ).pluck(:ExitID)
@@ -162,7 +162,17 @@ module HmisCsvImporter::Aggregated
         ProjectID: project_ids,
         data_source_id: importer_log.data_source_id,
       ).open_during_range(date_range.range).
-        where.not(EnrollmentID: incoming_enrollment_ids).
+        where.not(EnrollmentID: incoming_enrollment_keys.map(&:first)).
+        pluck(:id)
+      # The aggregated unique key includes PersonalID, so a row whose PersonalID
+      # changed upstream is a stale duplicate of an incoming enrollment, not a match.
+      # Its exit still carries the old PersonalID until copy_incoming_data! runs,
+      # so it can look closed; don't limit this to rows open during the range.
+      enrollments_to_delete |= enrollment_source.where(
+        ProjectID: project_ids,
+        data_source_id: importer_log.data_source_id,
+        EnrollmentID: incoming_enrollment_keys.map(&:first),
+      ).where.not([:EnrollmentID, :PersonalID] => incoming_enrollment_keys).
         pluck(:id)
       exits_to_delete = enrollment_source.where(
         ProjectID: project_ids,
