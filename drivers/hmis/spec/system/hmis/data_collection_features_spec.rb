@@ -158,7 +158,7 @@ RSpec.feature 'Data collection features', type: :system do
       assert_current_path("/client/#{hoh.id}/enrollments/#{hoh_enrollment.id}/case-notes")
       expect(page).to have_css('tbody tr', count: 1) # wait for the table rows to load
 
-      table_row = find('tbody').find_all('tr').sole.text
+      table_row = find('tbody', text: 'A legacy custom case note').find_all('tr').sole.text
       expect(table_row).to include('A legacy custom case note')
 
       assert_no_text 'Add Case Note'
