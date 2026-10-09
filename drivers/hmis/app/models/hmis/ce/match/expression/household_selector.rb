@@ -54,9 +54,10 @@ module Hmis::Ce::Match::Expression
         end
     end
 
-    # @return [Hash{Array(Integer, String) => Hash}] household => { size:, hoh_entry_date: }
-    def household_stats(households)
-      Hmis::Ce::HouseholdMembership.open_enrollments(households).
+    # @param household_keys [Array<Array(Integer, String)>] [data_source_id, HouseholdID] pairs
+    # @return [Hash{Array(Integer, String) => Hash}] household key => { size:, hoh_entry_date: }
+    def household_stats(household_keys)
+      Hmis::Ce::HouseholdMembership.open_enrollments(household_keys).
         pluck(e_t[:data_source_id], e_t[:HouseholdID], e_t[:RelationshipToHoH], e_t[:EntryDate]).
         group_by { |data_source_id, household_id, _, _| [data_source_id, household_id] }.
         transform_values do |rows|

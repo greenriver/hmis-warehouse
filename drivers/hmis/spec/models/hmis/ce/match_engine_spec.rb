@@ -409,7 +409,7 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
   context 'when evaluating household-based policies' do
     let(:today) { Date.current }
     let!(:hoh) { create(:hmis_hud_client_with_warehouse_client, data_source: data_source, dob: today - 40.years) }
-    let!(:child) { create(:hmis_hud_client_with_warehouse_client, data_source: data_source, dob: today - 18.years + 1.week) }
+    let!(:child) { create(:hmis_hud_client_with_warehouse_client, data_source: data_source, dob: today + 1.week - 18.years) }
     let!(:hoh_enrollment) { create(:hmis_hud_enrollment, data_source: data_source, project: project, client: hoh, household_id: 'HH1', relationship_to_ho_h: 1) }
     let!(:child_enrollment) { create(:hmis_hud_enrollment, data_source: data_source, project: project, client: child, household_id: 'HH1', relationship_to_ho_h: 2) }
 

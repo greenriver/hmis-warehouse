@@ -50,8 +50,9 @@ RSpec.describe Hmis::Ce::Match::Expression::HouseholdSelector, type: :model do
   end
 
   it 'picks the household with the most open members' do
-    enroll(client, household_id: 'SMALL', relationship: 1)
+    # SMALL is created last so the later tiebreakers (DateUpdated, id) favor it; only size can pick BIG
     enroll(client, household_id: 'BIG', relationship: 1)
+    enroll(client, household_id: 'SMALL', relationship: 1)
     enroll(create_client, household_id: 'BIG')
     enroll(create_client, household_id: 'SMALL', exit_date: current_date - 1.day) # exited members don't count
 
@@ -59,11 +60,12 @@ RSpec.describe Hmis::Ce::Match::Expression::HouseholdSelector, type: :model do
   end
 
   it 'breaks size ties by most recent HoH entry date' do
-    enroll(client, household_id: 'OLDER', relationship: 1, entry_date: current_date - 2.months)
-    enroll(client, household_id: 'NEWER', relationship: 2, entry_date: current_date - 2.months)
+    # OLDER is created last so the later tiebreakers (DateUpdated, id) favor it; only HoH entry date can pick NEWER
     enroll(create_client, household_id: 'NEWER', relationship: 1, entry_date: current_date - 1.week)
-
-    enroll(create_client, household_id: 'OLDER')
+    enroll(client, household_id: 'NEWER', relationship: 2, entry_date: current_date - 2.months)
+    enroll(client, household_id: 'OLDER', relationship: 1, entry_date: current_date - 2.months)
+    # a non-HoH member entering after NEWER's HoH, so only the HoH's EntryDate counts
+    enroll(create_client, household_id: 'OLDER', entry_date: current_date - 1.day)
 
     expect(selector.call([destination_id])).to eq({ destination_id => household('NEWER') })
   end
@@ -79,6 +81,30 @@ RSpec.describe Hmis::Ce::Match::Expression::HouseholdSelector, type: :model do
     enroll(client, household_id: 'FIRST', relationship: 1, date_updated: date_updated)
     enroll(client, household_id: 'SECOND', relationship: 1, date_updated: date_updated)
     expect(selector.call([destination_id])).to eq({ destination_id => household('SECOND') })
+  end
+
+  it 'selects a household for each requested client in a batch' do
+    other_client = create_client
+    unrequested_member = create_client
+    enroll(client, household_id: 'SOLO', relationship: 1)
+    enroll(other_client, household_id: 'SHARED', relationship: 1)
+    enroll(unrequested_member, household_id: 'SHARED')
+
+    other_id = other_client.destination_client.id
+    expect(selector.call([destination_id, other_id])).to eq(
+      { destination_id => household('SOLO'), other_id => household('SHARED') },
+    )
+  end
+
+  it 'gives every requested member of a shared household that household' do
+    other_client = create_client
+    enroll(client, household_id: 'SHARED', relationship: 1)
+    enroll(other_client, household_id: 'SHARED')
+
+    other_id = other_client.destination_client.id
+    expect(selector.call([destination_id, other_id])).to eq(
+      { destination_id => household('SHARED'), other_id => household('SHARED') },
+    )
   end
 
   context 'with an eligibility project group' do

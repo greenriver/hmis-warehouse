@@ -18,13 +18,13 @@ RSpec.describe Hmis::Ce::Match::Expression::HouseholdValueResolver, type: :model
     create(:hmis_hud_client_with_warehouse_client, data_source: hmis_data_source, dob: dob)
   end
 
-  def enroll(client, relationship: 2, **attrs)
+  def enroll(client, relationship: 2, household_id: 'HH1', **attrs)
     create(
       :hmis_hud_enrollment,
       data_source: hmis_data_source,
       client: client,
       project: project,
-      household_id: 'HH1',
+      household_id: household_id,
       relationship_to_ho_h: relationship,
       entry_date: current_date - 1.month,
       **attrs,
@@ -47,9 +47,9 @@ RSpec.describe Hmis::Ce::Match::Expression::HouseholdValueResolver, type: :model
     expect(resolve).to eq('size' => 2, 'youngest_member_age' => 5, 'oldest_member_age' => 40)
   end
 
-  it 'resolves an adult-only household' do
-    enroll(create_client(dob: current_date - 19.years))
-    expect(resolve).to eq('size' => 2, 'youngest_member_age' => 19, 'oldest_member_age' => 40)
+  it 'resolves the age of a member whose birthday is tomorrow' do
+    enroll(create_client(dob: current_date - 18.years + 1.day))
+    expect(resolve).to include('youngest_member_age' => 17)
   end
 
   it 'ignores exited members' do
@@ -59,6 +59,13 @@ RSpec.describe Hmis::Ce::Match::Expression::HouseholdValueResolver, type: :model
 
   it 'counts DOB-less members in size but not ages' do
     enroll(create_client(dob: nil))
+    expect(resolve).to eq('size' => 2, 'youngest_member_age' => 40, 'oldest_member_age' => 40)
+  end
+
+  it 'counts members without a destination client in size but not ages' do
+    member = create(:hmis_hud_client, data_source: hmis_data_source, dob: current_date - 5.years)
+    expect(member.warehouse_client_source).to be_nil
+    enroll(member)
     expect(resolve).to eq('size' => 2, 'youngest_member_age' => 40, 'oldest_member_age' => 40)
   end
 
@@ -73,9 +80,26 @@ RSpec.describe Hmis::Ce::Match::Expression::HouseholdValueResolver, type: :model
     expect(resolve).to include('oldest_member_age' => 30)
   end
 
-  it 'selects households once when resolving several fields for the same clients' do
-    expect(Hmis::Ce::Match::Expression::HouseholdSelector).to receive(:new).once.and_call_original
-    expect(resolve).to eq('size' => 1, 'youngest_member_age' => 40, 'oldest_member_age' => 40)
+  context 'with several clients' do
+    let(:other) { create_client(dob: current_date - 30.years) }
+    let(:other_id) { other.destination_client.id }
+
+    before do
+      enroll(create_client(dob: current_date - 5.years))
+      enroll(other, relationship: 1, household_id: 'HH2')
+    end
+
+    it 'resolves each client in a batch from their own household' do
+      clients = GrdaWarehouse::Hud::Client.where(id: [destination_id, other_id])
+      expect(resolver.call(clients, registry::SIZE)).to eq(destination_id => 2, other_id => 1)
+      expect(resolver.call(clients, registry::YOUNGEST_MEMBER_AGE)).to eq(destination_id => 5, other_id => 30)
+    end
+
+    it 'selects households once per batch, and again when the batch changes' do
+      expect(Hmis::Ce::Match::Expression::HouseholdSelector).to receive(:new).twice.and_call_original
+      expect(resolve).to eq('size' => 2, 'youngest_member_age' => 5, 'oldest_member_age' => 40)
+      expect(resolver.call(GrdaWarehouse::Hud::Client.where(id: other_id), registry::SIZE)).to eq(other_id => 1)
+    end
   end
 
   it 'resolves nil when the selected household has no open members left' do
