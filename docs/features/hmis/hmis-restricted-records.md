@@ -43,6 +43,8 @@ This is deliberately stricter than the rest of the permission system. `UserConte
 
 `Hmis::Hud::Client.searchable_to` drops restricted clients the user can't find. This covers both `clientSearch` and `clientOmniSearch`, including lookup by ID and by PersonalID, since those go through the same scope. `visible_to` is unchanged, so the `client(id:)` query and any navigation from an enrollment or project still resolves the record.
 
+Search passes the matched client ids to `searchable_to` as `client_ids:` (`searchable_to_matching`), and the restricted-record check runs on those ids like any others. `client_ids: []` returns no clients.
+
 ### Redacted PII
 
 The PII predicates on `HmisClientPolicy::Instance` (e.g. `can_view_name?`) each fold redaction into the underlying permission. When a restricted client is resolved by a user without the permission `can_view_restricted_clients`:

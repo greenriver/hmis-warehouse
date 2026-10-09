@@ -128,6 +128,29 @@ RSpec.describe Hmis::Hud::Client, type: :model do
       expect(Hmis::Hud::Client.searchable_to(user_with_access_to_p1_clients)).to contain_exactly(client_at_p1, unenrolled_client)
     end
 
+    context 'with client_ids' do
+      let(:user) { user_with_access_to_p1_clients }
+
+      it 'returns only the listed clients the user can search' do
+        listed = [client_at_p1.id, client_at_p2.id]
+        expect(Hmis::Hud::Client.searchable_to(user, client_ids: listed)).to contain_exactly(client_at_p1)
+      end
+
+      it 'excludes listed unenrolled clients from another data source' do
+        listed = [unenrolled_client.id, unenrolled_client_at_ds2.id]
+        expect(Hmis::Hud::Client.searchable_to(user, client_ids: listed)).to contain_exactly(unenrolled_client)
+      end
+
+      it 'returns nothing for an empty list' do
+        expect(Hmis::Hud::Client.searchable_to(user, client_ids: [])).to be_empty
+      end
+
+      it 'excludes a listed restricted client' do
+        client_at_p1.mark_as_restricted!(user: user)
+        expect(Hmis::Hud::Client.searchable_to(user, client_ids: [client_at_p1.id, unenrolled_client.id])).to contain_exactly(unenrolled_client)
+      end
+    end
+
     context 'when an enrolled client is restricted' do
       before { client_at_p1.mark_as_restricted!(user: user_with_access_to_p1_clients) }
 
@@ -204,6 +227,47 @@ RSpec.describe Hmis::Hud::Client, type: :model do
       it 'still includes them in viewable_by, so they remain reachable by direct link' do
         expect(Hmis::Hud::Client.viewable_by(user_who_can_view_restricted_at_p1)).to include(unenrolled_client)
       end
+    end
+  end
+
+  describe '.searchable_to_matching' do
+    let(:user) { user_with_access_to_p1_clients }
+    let!(:other_name_at_p1) { create(:hmis_hud_client, data_source: ds1, with_enrollment_at: p1, FirstName: 'Zelda', LastName: 'Quixote') }
+
+    it 'returns searchable clients that match the text' do
+      expect(Hmis::Hud::Client.searchable_to_matching(user, 'Bob Ross')).to contain_exactly(client_at_p1, unenrolled_client)
+    end
+
+    it 'falls back to a subquery and returns the same clients when the matches exceed the candidate cap' do
+      stub_const('Hmis::Hud::Client::MAX_SEARCH_CANDIDATES', 1)
+      expect(Hmis::Hud::Client).to receive(:searchable_to).with(user).and_call_original
+      expect(Hmis::Hud::Client.searchable_to_matching(user, 'Bob Ross')).to contain_exactly(client_at_p1, unenrolled_client)
+    end
+
+    it 'returns nothing when nothing matches' do
+      expect(Hmis::Hud::Client.searchable_to_matching(user, 'Zzqx Wvut')).to be_empty
+    end
+  end
+
+  describe '.client_search' do
+    let(:user) { user_with_access_to_p1_clients }
+
+    def search(**input)
+      Hmis::Hud::Client.client_search(input: OpenStruct.new(input), user: user)
+    end
+
+    it 'finds a client by id only if the user can search them' do
+      expect(search(id: client_at_p1.id)).to contain_exactly(client_at_p1)
+      expect(search(id: client_at_p2.id)).to be_empty
+    end
+
+    it 'finds a client by personal id only if the user can search them' do
+      expect(search(personal_id: client_at_p1.personal_id)).to contain_exactly(client_at_p1)
+      expect(search(personal_id: client_at_p2.personal_id)).to be_empty
+    end
+
+    it 'limits a text search to searchable clients' do
+      expect(search(text_search: 'Bob Ross')).to contain_exactly(client_at_p1, unenrolled_client)
     end
   end
 
