@@ -164,23 +164,29 @@ RSpec.describe Hmis::Hud::Project, type: :model do
         expect(cls_feature).to have_attributes(instance: override, data_collected_about: 'HOH_AND_ADULTS')
       end
 
-      it 'reports the system population for an override saved before this change' do
-        override = create(:hmis_form_instance, role: role, entity: project, data_collected_about: 'HOH', data_source: data_source)
-        override.update_columns(created_at: 1.year.ago, updated_at: 1.year.ago)
-
-        expect(cls_feature).to have_attributes(instance: override, data_collected_about: 'HOH_AND_ADULTS')
-      end
-
       it 'keeps a broader override' do
         create(:hmis_form_instance, role: role, entity: project, data_collected_about: 'ALL_CLIENTS', data_source: data_source)
 
         expect(cls_feature.data_collected_about).to eq('ALL_CLIENTS')
       end
 
-      it 'uses the system population when the override is incomparable' do
-        create(:hmis_form_instance, role: role, entity: project, data_collected_about: 'ALL_VETERANS', data_source: data_source)
+      it 'does not widen to a broader rule that is not a system rule' do
+        system_rule.update!(data_collected_about: 'HOH')
+        create(:hmis_form_instance, role: role, entity: nil, project_type: project.project_type, data_collected_about: 'ALL_CLIENTS', data_source: data_source)
+        create(:hmis_form_instance, role: role, entity: project, data_collected_about: 'HOH', data_source: data_source)
 
-        expect(cls_feature.data_collected_about).to eq('HOH_AND_ADULTS')
+        expect(cls_feature.data_collected_about).to eq('HOH')
+      end
+
+      it 'ignores system rules for other roles, inactive system rules, and system rules on unpublished forms' do
+        system_rule.update!(data_collected_about: 'HOH')
+        system_rule_attrs = { entity: nil, project_type: project.project_type, system: true, data_collected_about: 'ALL_CLIENTS', data_source: data_source }
+        create(:hmis_form_instance, role: :CASE_NOTE, **system_rule_attrs)
+        create(:hmis_form_instance, role: role, active: false, **system_rule_attrs)
+        create(:hmis_form_instance, role: role, definition_status: :draft, **system_rule_attrs)
+        create(:hmis_form_instance, role: role, entity: project, data_collected_about: 'HOH', data_source: data_source)
+
+        expect(cls_feature.data_collected_about).to eq('HOH')
       end
 
       it 'ignores a system rule that does not match the project' do
@@ -296,6 +302,20 @@ RSpec.describe Hmis::Hud::Project, type: :model do
       create(:hmis_form_instance, definition: definition, entity: project, data_collected_about: 'HOH', data_source: data_source)
 
       expect(selected_instances).to contain_exactly(have_attributes(definition: definition, data_collected_about: 'HOH_AND_ADULTS'))
+    end
+
+    it 'ignores system rules on other definitions and inactive system rules' do
+      definition = create(:hmis_form_definition, role: role, data_source: data_source)
+      other_definition = create(:hmis_form_definition, role: role, data_source: data_source)
+      system_rule_attrs = { entity: nil, project_type: project.project_type, system: true, data_collected_about: 'ALL_CLIENTS', data_source: data_source }
+      create(:hmis_form_instance, definition: other_definition, **system_rule_attrs)
+      create(:hmis_form_instance, definition: definition, active: false, **system_rule_attrs)
+      create(:hmis_form_instance, definition: definition, entity: project, data_collected_about: 'HOH', data_source: data_source)
+
+      expect(selected_instances).to contain_exactly(
+        have_attributes(definition: definition, data_collected_about: 'HOH'),
+        have_attributes(definition: other_definition, data_collected_about: 'ALL_CLIENTS'),
+      )
     end
   end
 
