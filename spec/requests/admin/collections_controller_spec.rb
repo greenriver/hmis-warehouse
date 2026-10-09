@@ -67,6 +67,15 @@ RSpec.describe Admin::CollectionsController, type: :request do
     end
   end
 
+  describe 'GET #edit' do
+    it 'links back to the collection show page' do
+      get edit_admin_collection_path(project_collection)
+
+      links = Nokogiri::HTML(response.body).css(%(a[href="#{admin_collection_path(project_collection)}"]))
+      expect(links.map { |link| link.text.squish }).to include("« #{project_collection.name}")
+    end
+  end
+
   describe 'PUT update' do
     let(:viewable_params) do
       {

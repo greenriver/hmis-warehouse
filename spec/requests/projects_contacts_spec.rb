@@ -20,6 +20,18 @@ RSpec.describe 'Projects contacts', type: :request do
     sign_in user
   end
 
+  context 'when the user cannot view imports' do
+    let(:role) { create(:role, can_view_assigned_reports: true) }
+
+    it 'does not create a contact' do
+      expect do
+        post(project_contacts_path(project), params: { contact: { user_id: create(:user).id } })
+      end.not_to change(GrdaWarehouse::Contact::Project, :count)
+
+      expect(response).to redirect_to(user.my_root_path)
+    end
+  end
+
   describe 'POST /projects/:project_id/contacts' do
     it 'creates a project contact and redirects to the contacts index' do
       contact_user = create(:user)

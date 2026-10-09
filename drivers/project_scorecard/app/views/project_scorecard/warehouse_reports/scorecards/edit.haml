@@ -20,6 +20,12 @@
         %p.alert.alert-warning
           %i.icon-warning.mr-2
           There are no contacts specified for this project or organization.  The report will not be emailed automatically.
+          - project = @report.project
+          - if project&.can_edit_contacts?(current_user)
+            %br
+            = link_to 'Project contacts', project_contacts_path(project), class: 'mr-3'
+          - if project&.organization&.can_edit_contacts?(current_user)
+            = link_to 'Organization contacts', organization_contacts_path(project.organization)
       - else
         .well
           %p This report will be sent to the following contacts when the current step is complete:

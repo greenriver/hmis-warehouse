@@ -144,7 +144,7 @@ module HmisDataQualityTool::WarehouseReports
     helper_method :details_params
 
     private def set_report
-      @report = report_class.find(params[:id].to_i)
+      @report = report_scope.find(params[:id].to_i)
     end
 
     private def set_pdf_export
@@ -163,8 +163,7 @@ module HmisDataQualityTool::WarehouseReports
       @excel_export = HmisDataQualityTool::DocumentExports::ReportByClientExcelExport.new
     end
 
-    # Since this report uses the hud version of report instance, and it isn't STI
-    # we need to limit to those with a report name matching this one
+    # HUD report instances share one table and are identified by report_name, not the STI type column
     private def report_scope
       report_class.
         where(report_name: report_class.untranslated_title).
