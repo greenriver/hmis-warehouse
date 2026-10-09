@@ -351,7 +351,7 @@ class Hmis::Hud::Project < Hmis::Hud::Base
         role: role.to_s,
         id: [id, role, best_instance&.id].join(':'), # Unique ID for Apollo caching
         legacy: has_any_data && !best_instance,
-        data_collected_about: best_instance&.data_collected_about || 'ALL_CLIENTS', # Doesn't really matter for legacy
+        data_collected_about: best_instance ? instance_scope.effective_data_collected_about_for_project(project: self, best_instance: best_instance) : 'ALL_CLIENTS', # Doesn't really matter for legacy
         instance: best_instance, # just for testing
       )
     end.compact

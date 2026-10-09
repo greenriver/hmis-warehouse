@@ -31,12 +31,13 @@ class Hmis::Form::OccurrencePointFormCollection
   def for_project(project)
     occurrence_point_definition_scope(data_source_id: project.data_source_id).map do |definition|
       # Choose the most specific Instance that enables this FormDefinition for this Project
-      best_instance = definition.instances.active.order(updated_at: :desc).detect_best_instance_for_project(project: project)
+      instance_scope = definition.instances.active.order(updated_at: :desc)
+      best_instance = instance_scope.detect_best_instance_for_project(project: project)
       next unless best_instance
 
       create_form_struct(
         definition: definition,
-        data_collected_about: best_instance.data_collected_about,
+        data_collected_about: instance_scope.effective_data_collected_about_for_project(project: project, best_instance: best_instance),
         legacy: false, # not legacy, because there is an active Form Instance enabling it
       )
     end.compact

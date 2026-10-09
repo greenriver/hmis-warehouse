@@ -194,6 +194,29 @@ class Hmis::Form::Instance < ::GrdaWarehouseBase
     matches.sort_by.with_index { |match, idx| [match.rank, idx] }.first&.instance
   end
 
+  # Which data_collected_about values each value's population includes.
+  DATA_COLLECTED_ABOUT_COVERS = {
+    'ALL_CLIENTS' => ['ALL_CLIENTS', 'HOH_AND_ADULTS', 'HOH', 'ALL_VETERANS', 'VETERAN_HOH'],
+    'HOH_AND_ADULTS' => ['HOH_AND_ADULTS', 'HOH', 'VETERAN_HOH'],
+    'HOH' => ['HOH', 'VETERAN_HOH'],
+    'ALL_VETERANS' => ['ALL_VETERANS', 'VETERAN_HOH'],
+    'VETERAN_HOH' => ['VETERAN_HOH'],
+  }.freeze
+
+  # A more specific rule may choose the form, but not collect about fewer people than a matching system rule.
+  # Considers system rules in the current scope only, so callers scope by role or definition.
+  def self.effective_data_collected_about_for_project(project:, best_instance:)
+    effective = best_instance.data_collected_about || 'ALL_CLIENTS'
+    # ponytail: two matching system rules with incomparable values resolve by order; widen to ALL_CLIENTS if that config appears
+    where(system: true).in_data_source(project.data_source_id).each do |rule|
+      next unless rule.project_match(project)
+
+      required = rule.data_collected_about || 'ALL_CLIENTS'
+      effective = required unless DATA_COLLECTED_ABOUT_COVERS.fetch(effective).include?(required)
+    end
+    effective
+  end
+
   def self.detect_best_instance_for_enrollment(enrollment:)
     matches = in_data_source(enrollment.data_source_id).
       map { |i| i.project_and_enrollment_match(project: enrollment.project, enrollment: enrollment) }.compact
