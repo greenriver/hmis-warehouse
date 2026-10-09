@@ -9,32 +9,18 @@
 require 'rails_helper'
 
 RSpec.describe ProjectScorecard::DocumentExports::ScorecardExport, type: :model do
-  include_context 'report visibility users'
-
   let(:report_class) { ProjectScorecard::Report }
   let(:report_definition_url) { 'project_scorecard/warehouse_reports/scorecards' }
 
-  def export_for(user, report_id)
-    described_class.new(user: user, query_string: { report_id: report_id }.to_query)
-  end
+  it_behaves_like 'a document export limited to visible reports' do
+    let(:query_key) { 'report_id' }
 
-  # Scorecards are shared: project contacts respond to scorecards they did not create.
-  it 'authorizes a scorecard another user created when the scorecard report is assigned' do
-    expect(export_for(own_reports_user, others_report.id).authorized?).to be(true)
-  end
+    it 'authorizes a scorecard for a project the user is a contact on' do
+      project = create(:hud_project)
+      create(:grda_warehouse_contact_project, user: own_reports_user, entity: project)
+      report = report_class.create!(user_id: all_reports_user.id, project_id: project.id)
 
-  it 'refuses a user without the scorecard report assigned' do
-    user = create(:acl_user)
-    setup_access_control(user, create(:role, name: 'unassigned all reports', can_view_all_reports: true, can_view_assigned_reports: true), create(:collection))
-
-    expect(export_for(user, own_report.id).authorized?).to be(false)
-  end
-
-  it 'refuses a user without a report permission' do
-    expect(export_for(user_with_role(can_view_clients: true), own_report.id).authorized?).to be(false)
-  end
-
-  it 'refuses an id with no scorecard' do
-    expect(export_for(all_reports_user, 0).authorized?).to be(false)
+      expect(export_for(own_reports_user, report.id).authorized?).to be(true)
+    end
   end
 end

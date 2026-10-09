@@ -33,6 +33,27 @@ module ProjectScorecard
     has_many :project_group_project_contacts, through: :project_group, source: :contacts
     has_many :project_group_organization_contacts, through: :project_group, source: :organization_contacts
 
+    scope :viewable_by, ->(user) do
+      return all if user.can_view_all_reports?
+      return none unless user.can_view_assigned_reports?
+
+      project_ids = contact_project_ids(user)
+      group_ids = GrdaWarehouse::ProjectGroup.joins(:projects).
+        where(GrdaWarehouse::Hud::Project.table_name => { id: project_ids }).
+        select(:id)
+      where(user_id: user.id).
+        or(where(project_id: project_ids)).
+        or(where(project_group_id: group_ids))
+    end
+
+    # Projects where the user is a project contact or a contact on the project's organization
+    def self.contact_project_ids(user)
+      projects = GrdaWarehouse::Hud::Project.left_outer_joins(:organization)
+      projects.where(id: GrdaWarehouse::Contact::Project.where(user_id: user.id).select(:entity_id)).
+        or(projects.where(GrdaWarehouse::Hud::Organization.table_name => { id: GrdaWarehouse::Contact::Organization.where(user_id: user.id).select(:entity_id) })).
+        select(:id)
+    end
+
     scope :started_between, ->(start_date:, end_date:) do
       where(started_at: (start_date..end_date))
     end

@@ -16,7 +16,7 @@ module ProjectScorecard::DocumentExports
     end
 
     protected def report
-      @report ||= report_class.find_by(id: params['report_id'].to_i)
+      @report ||= report_class.viewable_by(user).find_by(id: params['report_id'].to_i)
     end
 
     protected def view_assigns
