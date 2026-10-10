@@ -322,4 +322,43 @@ RSpec.describe Admin::CollectionsController, type: :request do
       end
     end
   end
+
+  # ApplicationController#valid_per_form_csrf_token? also accepts a token minted for the
+  # encoded path IdProtector decodes. That token must stay bound to its action.
+  describe 'per-form CSRF tokens with protected ids' do
+    let(:bulk_entities_path) { bulk_entities_admin_collection_path(project_collection, entities: :data_sources) }
+    let(:bulk_entities_params) { { collection: { data_sources: { data_source.id.to_s => '1' } } } }
+
+    around do |example|
+      forgery = ActionController::Base.allow_forgery_protection
+      ActionController::Base.allow_forgery_protection = true
+      example.run
+    ensure
+      ActionController::Base.allow_forgery_protection = forgery
+    end
+
+    before do
+      stub_const('ProtectedId::PROTECT_IDS', true)
+      # Starts the session the tokens are minted against.
+      get entities_admin_collection_path(project_collection, entities: :data_sources)
+    end
+
+    def token_for(action)
+      controller.send(:form_authenticity_token, form_options: { action: action, method: 'patch' })
+    end
+
+    it 'accepts a token minted for the encoded bulk entities path' do
+      # This is verifying that the path is encoded and using ProtectedIDs
+      expect(bulk_entities_path).to include('==')
+      patch bulk_entities_path, params: bulk_entities_params.merge(authenticity_token: token_for(bulk_entities_path))
+      expect(response).to have_http_status(:redirect)
+      expect(project_collection.reload.data_sources).to contain_exactly(data_source)
+    end
+
+    it 'rejects a token minted for another action on the same collection' do
+      patch bulk_entities_path, params: bulk_entities_params.merge(authenticity_token: token_for(admin_collection_path(project_collection)))
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(project_collection.reload.data_sources).to be_empty
+    end
+  end
 end
