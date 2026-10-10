@@ -17,7 +17,7 @@ The classes within this module are organized into several subdirectories to grou
 - **`expression/` (Expression Handling Subsystem)**
   - A self-contained subsystem for parsing, translating, and evaluating the custom expressions used in eligibility and prioritization rules.
   - This directory contains all the logic for handling `FieldMap`s, translating expressions to SQL (`SqlExpressionTranslator`), and the `CalculatorFactory` for evaluating expressions in Ruby.
-  - **Preferred field-map pattern** (used by PSDE; preferred for new namespaces): split `*Field` (metadata), `*FieldRegistry` (inventory), `*ValueResolver` (batch value resolution), and `*FieldMap` (dispatcher adapter). Older maps (Client/CDE/CustomAssessment) are more monolithic and can migrate toward this pattern over time.
+  - **Preferred field-map pattern** (used by PSDE and household; preferred for new namespaces): split `*Field` (metadata), `*FieldRegistry` (inventory), `*ValueResolver` (batch value resolution), and `*FieldMap` (dispatcher adapter). Older maps (Client/CDE/CustomAssessment) are more monolithic and can migrate toward this pattern over time.
 
 ## Core Workflow
 
@@ -46,7 +46,10 @@ The classes within this module are organized into several subdirectories to grou
 - **Which household**: `HouseholdSelector` considers only open households: the client's own enrollment must be open (WIP included; an `ExitDate` of today counts as exited) and in the global eligibility project group. The eligibility lookback window does not apply. The household with the most open members wins; ties go to the most recent HoH `EntryDate`, then the client's most recently updated enrollment, then the highest enrollment `id`.
 - **Values**: `size` counts open member enrollments, including members with no DOB. Ages use each member's destination client DOB, calculated the same way as `current_age`; members with no DOB are ignored, and ages are `nil` when no member has one. Clients with no open in-scope household get `nil` for all three, so positive household rules don't match them.
 - **DOB caveat**: because DOB-less members are ignored for ages, an adult with a DOB-less child passes `household.youngest_member_age >= 18`. Such households may need manual verification.
-- **Freshness**: household membership lookups live in `Hmis::Ce::HouseholdMemberLookup`, and callers whose change can affect other members pass those members to `Hmis::Ce::ChangeMarker` too. Saving or deleting an Enrollment or Exit adds the open members of the household(s) it affects (`#ce_affected_household_keys`), including the old household of a client who exited or moved. Edits that don't touch household-relevant columns mark only the record's own client.
+- **Freshness**: a change to one member can change every member's values, so dirty marking extends to the household. Household membership lookups live in `Hmis::Ce::HouseholdMemberLookup`.
+  - **HMIS record changes**: saving or deleting an Enrollment or Exit also marks the open members of the household(s) it affects (`#ce_affected_household_keys`), including the old household of a client who exited or moved. Edits that don't touch household-relevant columns mark only the record's own client.
+  - **Destination client changes**: `ClientCleanup` and `IdentifyDuplicates` mark clients through `Hmis::Ce::ChangeMarker.mark_destination_clients_dirty`, which also marks everyone who shares an open household with them, since a destination DOB feeds co-members' ages.
+  - **Not propagated**: nothing marks a household when a member ages across a rule's threshold, and client merges mark only the retained client. The nightly full refresh picks up both.
 
 ## Unit Group–Driven Maintenance
 
