@@ -1024,7 +1024,7 @@ module GrdaWarehouse::Tasks
     private def post_process_clients(client_ids:)
       return if @dry_run
 
-      Hmis::Ce::ChangeMarker.upsert_or_bump_version('GrdaWarehouse::Hud::Client', trackable_ids: client_ids)
+      Hmis::Ce::ChangeMarker.mark_destination_clients_dirty(client_ids)
     end
 
     private def client_age_at date

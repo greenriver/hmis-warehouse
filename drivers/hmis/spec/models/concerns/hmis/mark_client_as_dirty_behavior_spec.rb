@@ -49,4 +49,101 @@ RSpec.describe Hmis::MarkClientAsDirtyBehavior do
   include_examples 'marks client as dirty', :hmis_hud_assessment
   include_examples 'marks client as dirty', :hmis_hud_enrollment
   include_examples 'marks client as dirty', :hmis_hud_exit
+
+  describe 'household member propagation' do
+    let!(:c2) { create :hmis_hud_client, data_source: ds1, user: u1, first_name: 'Ada', last_name: 'Lovelace', dob: 30.years.ago.to_date }
+    let!(:c3) { create :hmis_hud_client, data_source: ds1, user: u1, first_name: 'Alan', last_name: 'Turing', dob: 50.years.ago.to_date }
+    let!(:c1_enrollment) { create :hmis_hud_enrollment, client: c1, data_source: ds1, household_id: 'HH1' }
+    let!(:c3_enrollment) { create :hmis_hud_enrollment, client: c3, data_source: ds1, household_id: 'HH2' }
+
+    before do
+      GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
+      Hmis::Ce::ChangeMarker.mark_processed(Hmis::Ce::ChangeMarker.all)
+    end
+
+    def dirty?(client)
+      Hmis::Ce::ChangeMarker.where(trackable_id: client.reload.destination_client.id).dirty.exists?
+    end
+
+    it 'marks household members dirty when a member joins' do
+      create :hmis_hud_enrollment, client: c2, data_source: ds1, household_id: 'HH1'
+      expect(dirty?(c1)).to be true
+      expect(dirty?(c3)).to be false
+    end
+
+    context 'with a second member' do
+      let!(:c2_enrollment) { create :hmis_hud_enrollment, client: c2, data_source: ds1, household_id: 'HH1' }
+
+      before { Hmis::Ce::ChangeMarker.mark_processed(Hmis::Ce::ChangeMarker.all) }
+
+      it 'marks household members dirty when a member exits' do
+        create :hmis_hud_exit, enrollment: c2_enrollment, client: c2, data_source: ds1
+        expect(dirty?(c1)).to be true
+      end
+
+      household_column_changes = {
+        'HouseholdID' => -> { c2_enrollment.update!(household_id: 'HH2') },
+        'PersonalID' => -> { c2_enrollment.update!(personal_id: c3.personal_id) },
+        'ProjectID' => -> { c2_enrollment.update!(project: create(:hmis_hud_project, data_source: ds1, organization: o1, user: u1)) },
+        'EntryDate' => -> { c2_enrollment.update!(entry_date: c2_enrollment.entry_date - 1.day) },
+        'RelationshipToHoH' => -> { c2_enrollment.update!(relationship_to_ho_h: 3) },
+      }
+
+      it 'has a change for every CE household column' do
+        expect(household_column_changes.keys).to match_array(Hmis::Hud::Enrollment::CE_HOUSEHOLD_COLUMNS)
+      end
+
+      household_column_changes.each do |column, change|
+        it "marks household members dirty when a member enrollment's #{column} changes" do
+          instance_exec(&change)
+          expect(dirty?(c1)).to be true
+        end
+      end
+
+      it 'marks old and new household members dirty when a member moves households' do
+        c2_enrollment.update!(household_id: 'HH2')
+        expect(dirty?(c1)).to be true
+        expect(dirty?(c3)).to be true
+      end
+
+      # Any destination change ClientCleanup makes marks the client's open household members, e.g. a DOB change,
+      # which member ages read
+      it 'marks household members dirty when ClientCleanup updates a member destination DOB' do
+        c2.update!(dob: 5.years.ago.to_date)
+        Hmis::Ce::ChangeMarker.mark_processed(Hmis::Ce::ChangeMarker.all)
+
+        GrdaWarehouse::Tasks::ClientCleanup.new(destination_ids: [c2.reload.destination_client.id]).update_client_demographics_based_on_sources
+        expect(dirty?(c2)).to be true
+        expect(dirty?(c1)).to be true
+        expect(dirty?(c3)).to be false
+      end
+
+      it 'marks household members dirty when a member enrollment is deleted' do
+        c2_enrollment.destroy!
+        expect(dirty?(c1)).to be true
+      end
+
+      it 'marks household members dirty when a member exit is deleted' do
+        exit = create :hmis_hud_exit, enrollment: c2_enrollment, client: c2, data_source: ds1
+        Hmis::Ce::ChangeMarker.mark_processed(Hmis::Ce::ChangeMarker.all)
+        exit.destroy!
+        expect(dirty?(c1)).to be true
+      end
+
+      it 'marks only the member for enrollment changes that do not affect the household' do
+        c2_enrollment.update!(date_of_engagement: Date.current)
+        expect(dirty?(c2)).to be true
+        expect(dirty?(c1)).to be false
+      end
+
+      it 'marks the exited member but not the old household for unrelated changes after the member exits' do
+        exit = create :hmis_hud_exit, enrollment: c2_enrollment, client: c2, data_source: ds1
+        Hmis::Ce::ChangeMarker.mark_processed(Hmis::Ce::ChangeMarker.all)
+        c2_enrollment.update!(date_of_engagement: Date.current)
+        exit.update!(counseling_received: 1)
+        expect(dirty?(c2)).to be true
+        expect(dirty?(c1)).to be false
+      end
+    end
+  end
 end

@@ -45,4 +45,23 @@ RSpec.describe Hmis::Ce::ChangeMarker do
       expect(marker.current_version).to eq(3)
     end
   end
+
+  describe '.mark_destination_clients_dirty' do
+    it 'marks the clients and their open household members' do
+      allow(Hmis::Ce::HouseholdMemberLookup).to receive(:with_open_household_members).with([client1.id]).and_return([client1.id, client2.id])
+
+      described_class.mark_destination_clients_dirty([client1.id])
+
+      expect(described_class.clients.pluck(:trackable_id)).to contain_exactly(client1.id, client2.id)
+    end
+
+    it 'does nothing when CE is disabled' do
+      allow_any_instance_of(Hmis::Ce::Configuration).to receive(:enabled?).and_return(false)
+      expect(Hmis::Ce::HouseholdMemberLookup).not_to receive(:with_open_household_members)
+
+      described_class.mark_destination_clients_dirty([client1.id])
+
+      expect(described_class.count).to eq(0)
+    end
+  end
 end

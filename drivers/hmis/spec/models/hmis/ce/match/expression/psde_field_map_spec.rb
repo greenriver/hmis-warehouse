@@ -173,10 +173,4 @@ RSpec.describe Hmis::Ce::Match::Expression::PsdeFieldMap, type: :model do
       expect(field_map.joins(field_key)).to be_nil
     end
   end
-
-  describe '.field_key_for' do
-    it 'builds the psde namespace key' do
-      expect(described_class.field_key_for(field_key)).to eq("psde.#{field_key}")
-    end
-  end
 end

@@ -590,6 +590,19 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     ]).any?
   end
 
+  # Columns that change which enrollments make up a household, or the HoH EntryDate that HouseholdSelector ranks by
+  CE_HOUSEHOLD_COLUMNS = ['HouseholdID', 'PersonalID', 'ProjectID', 'EntryDate', 'RelationshipToHoH'].freeze
+
+  # Hmis::MarkClientAsDirtyBehavior hook: this household, plus the previous one if the enrollment moved
+  protected def ce_affected_household_keys
+    # Soft delete writes DateDeleted via update_columns, so it isn't in saved_changes; check deleted? instead.
+    return [] unless deleted? || saved_changes.keys.intersect?(CE_HOUSEHOLD_COLUMNS)
+
+    household_ids = [household_id]
+    household_ids << attribute_before_last_save('HouseholdID') if saved_change_to_attribute?('HouseholdID')
+    household_ids.compact.uniq.map { |id| [data_source_id, id] }
+  end
+
   # Extensions from drivers — see ADR 0007
   include HmisExternalApis::Hmis::Hud::EnrollmentExtension
 end

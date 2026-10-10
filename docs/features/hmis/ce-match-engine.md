@@ -17,7 +17,7 @@ The classes within this module are organized into several subdirectories to grou
 - **`expression/` (Expression Handling Subsystem)**
   - A self-contained subsystem for parsing, translating, and evaluating the custom expressions used in eligibility and prioritization rules.
   - This directory contains all the logic for handling `FieldMap`s, translating expressions to SQL (`SqlExpressionTranslator`), and the `CalculatorFactory` for evaluating expressions in Ruby.
-  - **Preferred field-map pattern** (used by PSDE; preferred for new namespaces): split `*Field` (metadata), `*FieldRegistry` (inventory), `*ValueResolver` (batch value resolution), and `*FieldMap` (dispatcher adapter). Older maps (Client/CDE/CustomAssessment) are more monolithic and can migrate toward this pattern over time.
+  - **Preferred field-map pattern** (used by PSDE and household; preferred for new namespaces): split `*Field` (metadata), `*FieldRegistry` (inventory), `*ValueResolver` (batch value resolution), and `*FieldMap` (dispatcher adapter). Older maps (Client/CDE/CustomAssessment) are more monolithic and can migrate toward this pattern over time.
 
 ## Core Workflow
 
@@ -38,6 +38,17 @@ The classes within this module are organized into several subdirectories to grou
 - **Unit group → candidate pool**: Each Unit Group in a waitlist-enabled project with a waitlist workflow template gets assigned a single candidate pool derived from its inherited ruleset. All opportunities within that unit group use this unit-group-level pool. (Note: old opportunity-candidate pool association and "stale" opportunity concept has been removed.)
 - **Caching Scope**: `UnitGroupRuleResolver` may memoize within process for performance. Pool caching is encapsulated in `CandidatePoolRepository`.
 - **Per-Unit Rules**: To implement rules that apply to individual units, place each unit in its own separate unit group.
+
+## Household Fields (`household.*`)
+
+`household.size`, `household.youngest_member_age`, and `household.oldest_member_age` describe the client's current household. They are evaluated in Ruby only (no SQL prefilter).
+
+- **Which household**: `HouseholdSelector` considers only open households: the client's own enrollment must be open (WIP included; an `ExitDate` of today counts as exited) and in the global eligibility project group. The eligibility lookback window does not apply. The household with the most open members wins; ties go to the most recent HoH `EntryDate`, then the client's most recently updated enrollment, then the highest enrollment `id`.
+- **Values**: `size` counts the people with an open member enrollment, including members with no DOB. Ages use each member's destination client DOB. Members with no DOB are ignored, and ages are `nil` when no member has one.
+- **Freshness**: a change to one member can change every member's values, so dirty marking extends to the household. Household membership lookups live in `Hmis::Ce::HouseholdMemberLookup`.
+  - **HMIS record changes**: saving or deleting an Enrollment or Exit also marks the open members of the household(s) it affects, including the old household of a client who exited or moved.
+  - **Destination client changes**: `ClientCleanup` and `IdentifyDuplicates` marks everyone who shares an open household with them, since a destination DOB feeds co-members' ages.
+  - **Not immediately propagated**: The nightly full refresh picks up changes due to household member aging over time and changes due to client merges.
 
 ## Unit Group–Driven Maintenance
 
