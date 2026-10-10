@@ -2,7 +2,7 @@
 title: "HMIS coordinated entry: dirty tracking, match engine, workflows, referrals"
 summary: "How CE runs inside HMIS. Change markers flag dirty clients, self-scheduling jobs rebuild candidate pools, the match engine evaluates rules through a SQL-translated expression layer, workflow templates define referral steps, and opportunities and referrals tie matches to units."
 area: hmis
-tags: [hmis, coordinated-entry, ce, ChangeMarker, MarkClientAsDirtyBehavior, ProcessPoolsJob, ProcessClientsJob, CandidatePoolBuilder, UnitGroupRuleResolver, Engine, MatchApplicability, SqlExpressionTranslator, FieldMap, PsdeFieldRegistry, WorkflowDefinition::Template, WorkflowExecution::Step, SubmitCeReferralStep, Opportunity, Referral, UnitGroup, ProjectCeConfig, CeBuilderUtils]
+tags: [hmis, coordinated-entry, ce, ChangeMarker, MarkClientAsDirtyBehavior, ProcessPoolsJob, ProcessClientsJob, CandidatePoolBuilder, UnitGroupRuleResolver, Engine, MatchApplicability, SqlExpressionTranslator, FieldMap, PsdeFieldRegistry, HouseholdFieldRegistry, HouseholdSelector, HouseholdMemberLookup, WorkflowDefinition::Template, WorkflowExecution::Step, SubmitCeReferralStep, Opportunity, Referral, UnitGroup, ProjectCeConfig, CeBuilderUtils]
 sources:
   - drivers/hmis/app/models/hmis/ce/change_marker.rb
   - drivers/hmis/app/models/concerns/hmis/mark_client_as_dirty_behavior.rb
@@ -20,6 +20,8 @@ sources:
   - drivers/hmis/app/models/hmis/ce/match/expression/field_map.rb
   - drivers/hmis/app/models/hmis/ce/match/expression/sql_expression_translator.rb
   - drivers/hmis/app/models/hmis/ce/match/expression/psde_field_registry.rb
+  - drivers/hmis/app/models/hmis/ce/match/expression/household_selector.rb
+  - drivers/hmis/app/models/hmis/ce/household_member_lookup.rb
   - drivers/hmis/app/models/hmis/ce/opportunity.rb
   - drivers/hmis/app/models/hmis/ce/referral.rb
   - drivers/hmis/app/models/hmis/ce/referral_message_handler.rb
@@ -94,7 +96,8 @@ marker is dirty.
 Dirty marking: `Hmis::Ce::ChangeMarker.upsert_or_bump_version(type, trackable_ids:)`; the
 `Hmis::MarkClientAsDirtyBehavior` concern; `CandidatePool.mark_all_dirty`;
 `GrdaWarehouse::Tasks::ClientCleanup` and `IdentifyDuplicates` mark destination clients dirty after
-merging source clients.
+merging source clients, through `ChangeMarker.mark_destination_clients_dirty`, which also marks
+everyone who shares an open household with them.
 
 GraphQL mutations under `drivers/hmis/app/graphql/mutations/ce/`: `MarkUnitsAvailable` (creates
 an `Opportunity` per unit), `CreateCeReferral` (waitlist origin), `CreateDirectCeReferral`
@@ -120,6 +123,14 @@ order. `Hmis::MarkClientAsDirtyBehavior` adds `after_save` and `after_destroy` c
 up the destination client through `GrdaWarehouse::WarehouseClient` and bump it; it is included in
 `Hmis::Hud::Client`, `Enrollment`, `Exit`, `Assessment`, and `CustomAssessment`. If no destination
 exists yet the callback is a no-op and `IdentifyDuplicates` marks the client later.
+
+`household.*` match fields read every open member of a household, so marking extends to
+co-members. The concern also bumps the open members of the households returned by
+`#ce_affected_household_keys` (`[data_source_id, HouseholdID]` pairs, default `[]`);
+`Hmis::Hud::Enrollment` and `Hmis::Hud::Exit` override it when a household-relevant column changes
+or the record is soft-deleted, and an Enrollment that moved households returns the old one too.
+`ChangeMarker.mark_destination_clients_dirty` does the same for destination-level changes.
+`Hmis::Ce::HouseholdMemberLookup` holds the shared membership queries.
 
 ### Pools and jobs
 
@@ -156,9 +167,11 @@ the requirement expression into Arel (untranslatable nodes become `1 = 1`), then
 `Internal::ClientPoolEvaluator` in memory. A client fails when any priority score is nil.
 `Expression::FieldMap` dispatches field names by namespace: bare or `client.` to
 `ClientFieldMap`, `cde.` to `CdeFieldMap`, `custom_assessment.` to `CustomAssessmentFieldMap`,
-`psde.` to `PsdeFieldMap`. The PSDE namespace is the preferred shape for new namespaces:
-`PsdeField` (metadata), `PsdeFieldRegistry` (inventory), `PsdeValueResolver` (batch values),
-`PsdeFieldMap` (adapter). `Expression::ExpressionTranslator` converts between free text and the
+`psde.` to `PsdeFieldMap`, `household.` to `HouseholdFieldMap`. The PSDE namespace is the
+preferred shape for new namespaces: `PsdeField` (metadata), `PsdeFieldRegistry` (inventory),
+`PsdeValueResolver` (batch values), `PsdeFieldMap` (adapter); the household namespace follows it.
+`HouseholdSelector` picks one open household per client (the largest, within the eligibility
+project group) and household fields have no SQL translation, so they are evaluated in Ruby only. `Expression::ExpressionTranslator` converts between free text and the
 structured clauses the front-end edits; `Expression::Validator` is called from
 `ManagesCeMatchRules` when a rule is saved.
 
@@ -207,9 +220,12 @@ own assigned or swimlane steps with `can_view_own_referrals`, and source-project
 ## Key files
 
 - `drivers/hmis/app/models/hmis/ce/change_marker.rb`: `dirty`, `clients`, `pools`,
-  `batch_by_trackable_id`, `mark_processed`, `upsert_or_bump_version`, `KNOWN_TRACKABLE_TYPES`.
+  `batch_by_trackable_id`, `mark_processed`, `upsert_or_bump_version`,
+  `mark_destination_clients_dirty`, `KNOWN_TRACKABLE_TYPES`.
 - `drivers/hmis/app/models/concerns/hmis/mark_client_as_dirty_behavior.rb`:
-  `mark_destination_client_dirty`.
+  `mark_destination_client_dirty`, `ce_affected_household_keys`.
+- `drivers/hmis/app/models/hmis/ce/household_member_lookup.rb`: `open_enrollments`,
+  `open_member_destination_ids`, `with_open_household_members`.
 - `drivers/hmis/app/models/hmis/ce/configuration.rb`: `enabled?`, `eligibility_lookback_months`,
   `eligibility_project_group`, `bulk_void_enabled?`.
 - `drivers/hmis/app/jobs/hmis/ce/process_pools_job.rb`,
@@ -236,6 +252,8 @@ own assigned or swimlane steps with `can_view_own_referrals`, and source-project
   `to_arel`, `joins`, `ALWAYS_TRUE`.
 - `drivers/hmis/app/models/hmis/ce/match/expression/psde_field_registry.rb`: field constants,
   `VALUES_IN_WINDOW_SUFFIX`.
+- `drivers/hmis/app/models/hmis/ce/match/expression/household_selector.rb`: `call`, the
+  household selection and tie-break order.
 - `drivers/hmis/app/models/hmis/ce/opportunity.rb`: state machine, `for_client`,
   `unique_opportunity_per_unit`.
 - `drivers/hmis/app/models/hmis/ce/referral.rb`: `viewable_by`, state machine,
@@ -276,6 +294,8 @@ own assigned or swimlane steps with `can_view_own_referrals`, and source-project
   A client with no destination yet is not matched until `IdentifyDuplicates` runs.
 - `ProcessClientsJob` leaves the whole batch dirty if any pool lock was busy, so a long
   `ProcessPoolsJob` delays all client updates rather than some.
+- Aging across a rule's age threshold marks nothing, and merges do not mark household
+  co-members; the hour-23 full refresh covers both.
 - `Hmis::Ce::Configuration#eligibility_lookback_months` and `eligibility_project_group_id` change
   match results but do not trigger a rebuild; the hour-23 full refresh picks them up.
 - `Rule.unit_groups_for_owner` (SQL) and `MatchApplicability` (Ruby) implement the same
