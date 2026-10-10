@@ -26,8 +26,9 @@ RSpec.describe AwsS3 do
   end
 
   describe 'region' do
-    def region_for(env)
-      stub_const('ENV', ENV.to_h.except('AWS_REGION', 'AWS_DEFAULT_REGION').merge(env))
+    def region_for(env, shared_config_region: nil)
+      stub_const('ENV', ENV.to_h.except('AWS_REGION', 'AMAZON_REGION', 'AWS_DEFAULT_REGION', 'AWS_PROFILE').merge(env))
+      allow(Aws.shared_config).to receive(:region).with(profile: 'default').and_return(shared_config_region)
       AwsS3.new(bucket_name: 'test-bucket')
       region = nil
       expect(Aws::S3::Client).to have_received(:new) { |options| region = options[:region] }
@@ -35,14 +36,22 @@ RSpec.describe AwsS3 do
     end
 
     it 'uses AWS_REGION over AWS_DEFAULT_REGION' do
-      expect(region_for('AWS_REGION' => 'us-east-2', 'AWS_DEFAULT_REGION' => 'us-west-2')).to eq('us-east-2')
+      expect(region_for({ 'AWS_REGION' => 'us-east-2', 'AWS_DEFAULT_REGION' => 'us-west-2' })).to eq('us-east-2')
     end
 
     it 'uses AWS_DEFAULT_REGION when AWS_REGION is blank' do
-      expect(region_for('AWS_REGION' => '', 'AWS_DEFAULT_REGION' => 'us-west-2')).to eq('us-west-2')
+      expect(region_for({ 'AWS_REGION' => '', 'AWS_DEFAULT_REGION' => 'us-west-2' })).to eq('us-west-2')
     end
 
-    it 'falls back to us-east-1 when neither is set' do
+    it 'prefers a region variable over the shared config profile' do
+      expect(region_for({ 'AWS_DEFAULT_REGION' => 'eu-west-1' }, shared_config_region: 'us-west-2')).to eq('eu-west-1')
+    end
+
+    it 'uses the shared config profile region when no region variable is set' do
+      expect(region_for({}, shared_config_region: 'us-west-2')).to eq('us-west-2')
+    end
+
+    it 'falls back to us-east-1 when neither a variable nor the shared config has a region' do
       expect(region_for({})).to eq('us-east-1')
     end
   end

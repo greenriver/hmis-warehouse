@@ -37,6 +37,13 @@ class AwsS3
     ENV['USE_LOCAL_S3_ENDPOINT'] == 'true' && ENV['LOCAL_S3_ENDPOINT'].present?
   end
 
+  # The AWS SDK's lookup order, ending at us-east-1 instead of raising MissingRegionError.
+  def self.default_region
+    ENV.values_at('AWS_REGION', 'AMAZON_REGION', 'AWS_DEFAULT_REGION').find(&:present?) ||
+      Aws.shared_config.region(profile: ENV['AWS_PROFILE'].presence || 'default') ||
+      'us-east-1'
+  end
+
   def initialize(
     region: nil,
     bucket_name:,
@@ -47,7 +54,7 @@ class AwsS3
   )
     @bucket_name = bucket_name
 
-    region ||= ENV['AWS_REGION'].presence || ENV['AWS_DEFAULT_REGION'].presence || 'us-east-1'
+    region ||= self.class.default_region
 
     client_options = {
       region: region,
