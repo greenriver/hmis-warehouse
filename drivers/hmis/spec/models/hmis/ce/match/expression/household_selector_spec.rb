@@ -134,7 +134,7 @@ RSpec.describe Hmis::Ce::Match::Expression::HouseholdSelector, type: :model do
     enroll(client, household_id: 'GONE', relationship: 1)
     enroll(client, household_id: 'KEPT', relationship: 1)
     enroll(other, household_id: 'GONE', relationship: 2)
-    allow(Hmis::Ce::HouseholdMembership).to(receive(:open_enrollments).
+    allow(Hmis::Ce::HouseholdMemberLookup).to(receive(:open_enrollments).
       and_wrap_original { |original, keys| original.call(keys - [household('GONE')]) })
 
     expect(select_keys([destination_id, other_id])).to eq({ destination_id => household('KEPT') })

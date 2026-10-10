@@ -8,10 +8,9 @@
 
 # Looks up the open (WIP included) members of households. Household keys are [data_source_id, HouseholdID] pairs,
 # because a HouseholdID is only unique within a data source.
-class Hmis::Ce::HouseholdMembership
+class Hmis::Ce::HouseholdMemberLookup
   include Hmis::Concerns::HmisArelHelper
 
-  # Base scope for household.* CE match fields, which evaluate a client against their household's open members.
   # Grouped by data source so the SQL is one HouseholdID IN (...) per data source, not one clause per pair.
   # @param household_keys [Array<Array(Integer, String)>] [data_source_id, HouseholdID] pairs
   # @return [ActiveRecord::Relation<Hmis::Hud::Enrollment>] the households' open member enrollments
@@ -25,8 +24,7 @@ class Hmis::Ce::HouseholdMembership
     Hmis::Hud::Enrollment.open_including_wip.where(condition)
   end
 
-  # A change to one member's HMIS record can change every open member's household.* values, so the whole
-  # household is marked dirty for CE, not just the record's own client.
+  # Members whose client has no warehouse link have no destination id and are left out.
   # @param household_keys [Array<Array(Integer, String)>] [data_source_id, HouseholdID] pairs
   # @return [Array<Integer>] destination client ids of the households' open members
   def self.open_member_destination_ids(household_keys)
@@ -36,9 +34,7 @@ class Hmis::Ce::HouseholdMembership
       pluck(wc_t[:destination_id])
   end
 
-  # Expands destination clients to include everyone who shares an open household with them. For warehouse dedup
-  # and cleanup, which change destination clients rather than HMIS records: a client's destination demographics
-  # (e.g. DOB) feed their co-members' household.* values, so co-members are marked dirty too.
+  # Expands destination clients to include everyone who shares an open household with them.
   # @param destination_client_ids [Array<Integer>]
   # @return [Array<Integer>] the given clients, plus the open members of every open household they belong to
   def self.with_open_household_members(destination_client_ids)

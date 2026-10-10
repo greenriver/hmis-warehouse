@@ -1023,11 +1023,8 @@ module GrdaWarehouse::Tasks
     # Marks given clients as dirty for future re-processing for CE
     private def post_process_clients(client_ids:)
       return if @dry_run
-      return unless Hmis::Ce.configuration.enabled?
 
-      # household.* CE match fields read members' destination demographics (e.g. DOB for ages)
-      client_ids = Hmis::Ce::HouseholdMembership.with_open_household_members(client_ids)
-      Hmis::Ce::ChangeMarker.upsert_or_bump_version('GrdaWarehouse::Hud::Client', trackable_ids: client_ids)
+      Hmis::Ce::ChangeMarker.mark_destination_clients_dirty(client_ids)
     end
 
     private def client_age_at date

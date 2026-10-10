@@ -8,7 +8,7 @@
 
 require 'rails_helper'
 
-RSpec.describe Hmis::Ce::HouseholdMembership do
+RSpec.describe Hmis::Ce::HouseholdMemberLookup do
   let!(:destination_data_source) { create :destination_data_source }
   let!(:hmis_data_source) { create :hmis_data_source }
   let(:project) { create :hmis_hud_project, data_source: hmis_data_source }

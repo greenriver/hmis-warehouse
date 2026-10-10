@@ -102,7 +102,7 @@ module Hmis::Ce::Match::Expression
     def open_households(household_keys)
       member_enrollments = pluck_as(
         MemberEnrollment,
-        Hmis::Ce::HouseholdMembership.open_enrollments(household_keys).left_outer_joins(client: :warehouse_client_source),
+        Hmis::Ce::HouseholdMemberLookup.open_enrollments(household_keys).left_outer_joins(client: :warehouse_client_source),
         data_source_id: e_t[:data_source_id],
         household_id: e_t[:HouseholdID],
         relationship_to_hoh: e_t[:RelationshipToHoH],
