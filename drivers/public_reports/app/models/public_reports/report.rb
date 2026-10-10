@@ -188,14 +188,7 @@ module PublicReports
 
         percent.round(-1)
       when 'race'
-        # Collapse any where the count of the bucket is < 100 into the None
-        data['None'] ||= Set.new
-        data.each do |k, ids|
-          next if k == 'None' || ids.count >= 100
-
-          data['None'] += ids
-          data[k] = Set.new
-        end
+        collapse_small_race_buckets(data)
       else
         # Default case is simply to return a formatted number
         number_with_delimiter(data[key])
@@ -204,6 +197,27 @@ module PublicReports
 
     private def under_threshold
       'Under 100'
+    end
+
+    # Race percents are published next to their total, so any bucket, "None" included,
+    # must hold 0 or more than SUPPRESS_TOTALS_AT_OR_BELOW people.
+    private def collapse_small_race_buckets(data)
+      floor = self.class::SUPPRESS_TOTALS_AT_OR_BELOW
+      data['None'] ||= Set.new
+      data.each do |k, ids|
+        next if k == 'None' || ids.count > floor
+
+        data['None'] += ids
+        data[k] = Set.new
+      end
+      while data['None'].count.between?(1, floor)
+        smallest, smallest_ids = data.reject { |k, v| k == 'None' || v.empty? }.min_by { |_, v| v.count }
+        break unless smallest
+
+        data['None'] += smallest_ids
+        data[smallest] = Set.new
+      end
+      data
     end
 
     # Overrides for standard publishing methods

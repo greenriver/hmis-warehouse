@@ -26,16 +26,35 @@ RSpec.describe PublicReports::Report, type: :model do
   end
 
   describe 'race buckets' do
-    it 'moves buckets under 100 into "None" and keeps "None" even when it ends up under 100' do
-      data = { 'White' => Set.new(1..150), 'Asian' => Set.new(151..155), 'None' => Set.new([156]) }
-
-      expect(report.enforce_min_threshold(data, 'race').transform_values(&:size)).to eq('White' => 150, 'Asian' => 0, 'None' => 6)
+    def buckets(sizes)
+      next_id = 0
+      sizes.transform_values do |size|
+        Set.new((next_id + 1)..(next_id += size))
+      end
     end
 
-    it 'creates the "None" bucket when the data has none' do
-      data = { 'White' => Set.new(1..150), 'Asian' => Set.new(151..155) }
+    def collapse(sizes)
+      report.enforce_min_threshold(buckets(sizes), 'race').transform_values(&:size)
+    end
 
-      expect(report.enforce_min_threshold(data, 'race').transform_values(&:size)).to eq('White' => 150, 'Asian' => 0, 'None' => 5)
+    it 'treats a bucket of exactly 100 as too small to publish' do
+      expect(collapse('White' => 150, 'Black' => 101, 'Asian' => 100)).to eq('White' => 150, 'Black' => 0, 'Asian' => 0, 'None' => 201)
+    end
+
+    it 'merges the smallest remaining bucket into "None" when "None" would publish 100 or fewer' do
+      expect(collapse('White' => 150, 'Black' => 120, 'Asian' => 50, 'Pacific' => 50)).to eq('White' => 150, 'Black' => 0, 'Asian' => 0, 'Pacific' => 0, 'None' => 220)
+    end
+
+    it 'leaves "None" alone once it holds more than 100' do
+      expect(collapse('White' => 150, 'Black' => 101, 'Asian' => 5, 'None' => 96)).to eq('White' => 150, 'Black' => 101, 'Asian' => 0, 'None' => 101)
+    end
+
+    it 'publishes an empty "None" bucket without merging anything into it' do
+      expect(collapse('White' => 150, 'Black' => 120)).to eq('White' => 150, 'Black' => 120, 'None' => 0)
+    end
+
+    it 'puts every bucket into "None" when none holds more than 100' do
+      expect(collapse('White' => 50, 'Asian' => 5)).to eq('White' => 0, 'Asian' => 0, 'None' => 55)
     end
   end
 
