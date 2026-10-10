@@ -83,4 +83,18 @@ RSpec.describe PublicReports::Report, type: :model do
       expect(tile(0, 0)).to eq('0%')
     end
   end
+
+  describe 'on HomelessPopulation, which shares these branches' do
+    let(:report) { PublicReports::HomelessPopulation.new }
+
+    it 'zeroes location and donut percents at a total of exactly 100 with a part under 11' do
+      expect([report.enforce_min_threshold([95, 5], 'location'), report.enforce_min_threshold([95, 5], 'donut')]).to eq([[0, 0], [0, 0]])
+    end
+
+    it 'collapses a race bucket of exactly 100 into "None"' do
+      data = { 'White' => Set.new(1..150), 'Black' => Set.new(151..251), 'Asian' => Set.new(252..351) }
+
+      expect(report.enforce_min_threshold(data, 'race').transform_values(&:size)).to eq('White' => 150, 'Black' => 0, 'Asian' => 0, 'None' => 201)
+    end
+  end
 end
