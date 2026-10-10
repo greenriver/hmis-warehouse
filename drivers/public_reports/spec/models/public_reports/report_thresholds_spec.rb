@@ -63,16 +63,16 @@ RSpec.describe PublicReports::Report, type: :model do
       report.enforce_min_threshold({ 'homeless_clients' => total, 'unsheltered_clients' => unsheltered }, 'unsheltered_percent')
     end
 
-    it 'is not reported when the total is at or under 100 and a part is under 11' do
-      expect([tile(5, 1), tile(100, 10), tile(100, 90), tile(5, 0)]).to eq(['Not reported'] * 4)
+    it 'is not reported when either part is 1 to 10 people, whatever the total' do
+      expect([tile(5, 1), tile(100, 10), tile(100, 90), tile(101, 1), tile(5000, 10), tile(5000, 4995), tile(5, 0)]).to eq(['Not reported'] * 7)
     end
 
     it 'publishes a ten-rounded percent at a total of 100 when both parts are at least 11' do
       expect(tile(100, 11)).to eq('10%')
     end
 
-    it 'publishes once the total is over 100, whatever the part sizes' do
-      expect(tile(101, 1)).to eq('0%')
+    it 'shows 0% when a large total has no one unsheltered' do
+      expect(tile(5000, 0)).to eq('0%')
     end
 
     it 'publishes an unrounded percent when both counts are over 100' do

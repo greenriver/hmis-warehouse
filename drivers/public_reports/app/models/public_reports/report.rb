@@ -119,7 +119,7 @@ module PublicReports
         total = data['homeless_clients'].to_i
         unsheltered = data['unsheltered_clients'].to_i
         return '0%' if total.zero?
-        return 'Not reported' if total <= self.class::SUPPRESS_TOTALS_AT_OR_BELOW && [total - unsheltered, unsheltered].any? { |m| m < self.class::MIN_THRESHOLD }
+        return 'Not reported' if [total - unsheltered, unsheltered].any? { |m| m.positive? && m < self.class::MIN_THRESHOLD }
 
         percent = unsheltered * 100.0 / total
         percent = if unsheltered > self.class::SUPPRESS_TOTALS_AT_OR_BELOW && total > self.class::SUPPRESS_TOTALS_AT_OR_BELOW
