@@ -13,6 +13,13 @@ module Hmis::Ce::Match::Expression
   # Member ages use each member's destination client DOB; members without one are ignored for ages.
   # Clients with no open in-scope household resolve to nil.
   class HouseholdValueResolver
+    Batch = Data.define(:client_ids, :households_by_client_id, :ages_by_destination_id) do
+      # @return [Array<Integer>] ages of the household's members that have a DOB
+      def member_ages(household)
+        household.member_destination_ids.filter_map { |destination_id| ages_by_destination_id[destination_id] }
+      end
+    end
+
     def initialize(current_date: Date.current, configuration: Hmis::Ce.configuration)
       @current_date = current_date.to_date
       @configuration = configuration
@@ -23,20 +30,19 @@ module Hmis::Ce::Match::Expression
       client_ids = extract_client_ids(clients)
       return {} if client_ids.empty?
 
-      selected, members = households_for(client_ids)
+      batch = batch_for(client_ids)
 
       client_ids.index_with do |client_id|
-        # nil when the client has no open in-scope household
-        ages = members[selected[client_id]]
-        next nil unless ages
+        household = batch.households_by_client_id[client_id]
+        next nil unless household
 
         case field.key
         when HouseholdFieldRegistry::SIZE.key
-          ages.size
+          household.size
         when HouseholdFieldRegistry::YOUNGEST_MEMBER_AGE.key
-          ages.compact.min
+          batch.member_ages(household).min
         when HouseholdFieldRegistry::OLDEST_MEMBER_AGE.key
-          ages.compact.max
+          batch.member_ages(household).max
         else
           raise ArgumentError, "Unknown household field \"#{field.key}\""
         end
@@ -45,23 +51,22 @@ module Hmis::Ce::Match::Expression
 
     private
 
-    # ClientPoolEvaluator resolves each household.* field separately for the same batch, so reuse the
-    # selection and ages when the client ids repeat. Only the most recent batch is kept.
-    def households_for(client_ids)
-      return @last_households if @last_client_ids == client_ids
+    # ClientPoolEvaluator resolves each household.* field separately for the same clients, so the last batch is
+    # reused when the client ids match, in any order.
+    def batch_for(client_ids)
+      client_id_set = client_ids.to_set
+      return @last_batch if @last_batch&.client_ids == client_id_set
 
-      selected, members = HouseholdSelector.new(configuration: @configuration).call_with_members(client_ids)
-      @last_client_ids = client_ids
-      @last_households = [selected, member_ages_by_household(members)]
-    end
-
-    # @param members [Hash{Array(Integer, String) => Array<Integer, nil>}] household => member destination client ids
-    # @return [Hash{Array(Integer, String) => Array<Integer, nil>}] household => one age per open member enrollment
-    def member_ages_by_household(members)
+      households_by_client_id = HouseholdSelector.new(configuration: @configuration).call(client_ids)
+      member_ids = households_by_client_id.values.flat_map(&:member_destination_ids).compact.uniq
       # Same age expression as current_age, so the two agree
-      ages = AgeCalculator.new(@current_date).call(GrdaWarehouse::Hud::Client.where(id: members.values.flatten.compact.uniq))
+      ages_by_destination_id = AgeCalculator.new(@current_date).call(GrdaWarehouse::Hud::Client.where(id: member_ids))
 
-      members.transform_values { |destination_ids| destination_ids.map { |destination_id| ages[destination_id] } }
+      @last_batch = Batch.new(
+        client_ids: client_id_set,
+        households_by_client_id: households_by_client_id,
+        ages_by_destination_id: ages_by_destination_id,
+      )
     end
 
     def extract_client_ids(clients)

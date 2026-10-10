@@ -40,7 +40,8 @@ module Hmis::Ce::Match::Expression
       scope
     end
 
-    # Restricts enrollments to the configured eligibility project group, if any. Ignores the lookback window.
+    # Restricts enrollments to the configured eligibility project group, if any. Public for HouseholdSelector,
+    # which applies the project group without the lookback window.
     def apply_project_group_filter(scope)
       project_group = @configuration.eligibility_project_group
       return scope if project_group.nil?

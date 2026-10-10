@@ -36,12 +36,12 @@ class Hmis::Ce::HouseholdMembership
       pluck(wc_t[:destination_id])
   end
 
-  # For warehouse dedup and cleanup, which change destination clients rather than HMIS records: a client's
-  # destination demographics (e.g. DOB) feed their co-members' household.* values, so co-members are marked dirty too.
+  # Expands destination clients to include everyone who shares an open household with them. For warehouse dedup
+  # and cleanup, which change destination clients rather than HMIS records: a client's destination demographics
+  # (e.g. DOB) feed their co-members' household.* values, so co-members are marked dirty too.
   # @param destination_client_ids [Array<Integer>]
-  # @return [Array<Integer>] destination client ids of the open members of every open household the given clients
-  #   belong to, including those clients
-  def self.household_member_destination_ids(destination_client_ids)
+  # @return [Array<Integer>] the given clients, plus the open members of every open household they belong to
+  def self.with_open_household_members(destination_client_ids)
     return [] if destination_client_ids.empty?
 
     household_keys = Hmis::Hud::Enrollment.open_including_wip.
@@ -49,6 +49,6 @@ class Hmis::Ce::HouseholdMembership
       where(wc_t[:destination_id].in(destination_client_ids)).
       distinct.
       pluck(e_t[:data_source_id], e_t[:HouseholdID])
-    open_member_destination_ids(household_keys)
+    (destination_client_ids + open_member_destination_ids(household_keys)).uniq
   end
 end

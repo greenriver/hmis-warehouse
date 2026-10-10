@@ -15,7 +15,7 @@ module Hmis::Ce::Match::Expression
       value_type: :numeric,
       multiple: false,
       label: 'Household Size',
-      description: "Number of members currently enrolled in the client's household, within the eligibility scope.",
+      description: "Number of members currently enrolled in the client's household. Only households the client is enrolled in within the eligibility project group are considered.",
     )
 
     YOUNGEST_MEMBER_AGE = HouseholdField.new(
@@ -23,7 +23,7 @@ module Hmis::Ce::Match::Expression
       value_type: :numeric,
       multiple: false,
       label: 'Youngest Household Member Age',
-      description: "Age of the youngest member currently enrolled in the client's household, within the eligibility scope.",
+      description: "Age of the youngest member currently enrolled in the client's household. Only households the client is enrolled in within the eligibility project group are considered.",
     )
 
     OLDEST_MEMBER_AGE = HouseholdField.new(
@@ -31,7 +31,7 @@ module Hmis::Ce::Match::Expression
       value_type: :numeric,
       multiple: false,
       label: 'Oldest Household Member Age',
-      description: "Age of the oldest member currently enrolled in the client's household, within the eligibility scope.",
+      description: "Age of the oldest member currently enrolled in the client's household. Only households the client is enrolled in within the eligibility project group are considered.",
     )
 
     ALL = [

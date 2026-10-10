@@ -16,68 +16,115 @@ module Hmis::Ce::Match::Expression
   class HouseholdSelector
     include Hmis::Concerns::HmisArelHelper
 
+    SELF_HEAD_OF_HOUSEHOLD = HudHelper.util.relationship_to_hoh('Self (head of household)', true)
+
+    # @!attribute key [Array(Integer, String)] [data_source_id, HouseholdID]
+    # @!attribute size [Integer] number of open member enrollments
+    # @!attribute hoh_entry_date [Date, nil] latest EntryDate among open HoH enrollments
+    # @!attribute member_destination_ids [Array<Integer, nil>] one per open member enrollment; nil when the
+    #   member's client has no warehouse link
+    Household = Data.define(:key, :size, :hoh_entry_date, :member_destination_ids)
+
+    # One of a requested client's open, in-scope enrollments
+    ClientEnrollment = Data.define(:destination_id, :data_source_id, :household_id, :date_updated, :id) do
+      def household_key
+        [data_source_id, household_id]
+      end
+    end
+
+    # One open member enrollment of a candidate household
+    MemberEnrollment = Data.define(:data_source_id, :household_id, :relationship_to_hoh, :entry_date, :destination_id) do
+      def household_key
+        [data_source_id, household_id]
+      end
+
+      def head_of_household?
+        relationship_to_hoh == SELF_HEAD_OF_HOUSEHOLD
+      end
+    end
+
     def initialize(configuration: Hmis::Ce.configuration)
       @configuration = configuration
     end
 
     # @param destination_client_ids [Array<Integer>]
-    # @return [Hash{Integer => Array(Integer, String)}] destination client id => [data_source_id, HouseholdID].
-    #   Clients with no open in-scope household are absent.
+    # @return [Hash{Integer => Household}] destination client id => selected household. Clients with no open
+    #   in-scope household are absent.
     def call(destination_client_ids)
-      call_with_members(destination_client_ids).first
-    end
-
-    # Same selection as #call, plus the selected households' open members from the query that sized them.
-    # @param destination_client_ids [Array<Integer>]
-    # @return [Array(Hash, Hash)] the #call result, and household key => one destination client id (nil when
-    #   the member's client has no warehouse link) per open member enrollment
-    def call_with_members(destination_client_ids)
       destination_client_ids = Array(destination_client_ids)
-      return [{}, {}] if destination_client_ids.empty?
+      return {} if destination_client_ids.empty?
 
-      client_enrollments = client_enrollment_rows(destination_client_ids)
-      return [{}, {}] if client_enrollments.empty?
+      client_enrollments = load_client_enrollments(destination_client_ids)
+      return {} if client_enrollments.empty?
 
-      stats = household_stats(client_enrollments.map { |row| row[:household] }.uniq)
+      households_by_key = open_households(client_enrollments.map(&:household_key).uniq)
 
-      # A household with no stats lost its open members after client_enrollment_rows (concurrent exit/delete)
-      candidates = client_enrollments.select { |row| stats.key?(row[:household]) }
+      # A household missing here lost its open members after load_client_enrollments (concurrent exit/delete)
+      candidates = client_enrollments.select { |enrollment| households_by_key.key?(enrollment.household_key) }
 
-      selected = candidates.group_by { |row| row[:destination_id] }.transform_values do |rows|
-        rows.max_by do |row|
-          household = stats[row[:household]]
-          [household[:size], household[:hoh_entry_date] || Date.new(0), row[:date_updated] || Time.at(0), row[:id]]
-        end[:household]
+      candidates.group_by(&:destination_id).transform_values do |enrollments|
+        best = enrollments.max_by { |enrollment| selection_rank(enrollment, households_by_key[enrollment.household_key]) }
+        households_by_key[best.household_key]
       end
-      members = stats.slice(*selected.values).transform_values { |household| household[:member_destination_ids] }
-      [selected, members]
     end
 
     private
 
-    def client_enrollment_rows(destination_client_ids)
+    # Sort key for the tie-break order in the class doc; nil dates sort first
+    def selection_rank(client_enrollment, household)
+      [
+        household.size,
+        household.hoh_entry_date || Date.new(0),
+        client_enrollment.date_updated || Time.at(0),
+        client_enrollment.id,
+      ]
+    end
+
+    def load_client_enrollments(destination_client_ids)
       scope = Hmis::Hud::Enrollment.open_including_wip.
         joins(client: :warehouse_client_source).
         where(wc_t[:destination_id].in(destination_client_ids))
       scope = eligibility_scope.apply_project_group_filter(scope)
 
-      scope.pluck(wc_t[:destination_id], e_t[:data_source_id], e_t[:HouseholdID], e_t[:DateUpdated], e_t[:id]).
-        map do |destination_id, data_source_id, household_id, date_updated, id|
-          { destination_id: destination_id, household: [data_source_id, household_id], date_updated: date_updated, id: id }
-        end
+      pluck_as(
+        ClientEnrollment,
+        scope,
+        destination_id: wc_t[:destination_id],
+        data_source_id: e_t[:data_source_id],
+        household_id: e_t[:HouseholdID],
+        date_updated: e_t[:DateUpdated],
+        id: e_t[:id],
+      )
     end
 
     # @param household_keys [Array<Array(Integer, String)>] [data_source_id, HouseholdID] pairs
-    # @return [Hash{Array(Integer, String) => Hash}] household key => { size:, hoh_entry_date:, member_destination_ids: }
-    def household_stats(household_keys)
-      Hmis::Ce::HouseholdMembership.open_enrollments(household_keys).
-        left_outer_joins(client: :warehouse_client_source).
-        pluck(e_t[:data_source_id], e_t[:HouseholdID], e_t[:RelationshipToHoH], e_t[:EntryDate], wc_t[:destination_id]).
-        group_by { |data_source_id, household_id, _, _, _| [data_source_id, household_id] }.
-        transform_values do |rows|
-          hoh_entry_date = rows.select { |_, _, relationship, _, _| relationship == 1 }.map { |row| row[3] }.compact.max
-          { size: rows.size, hoh_entry_date: hoh_entry_date, member_destination_ids: rows.map(&:last) }
-        end
+    # @return [Hash{Array(Integer, String) => Household}] households that still have open members
+    def open_households(household_keys)
+      member_enrollments = pluck_as(
+        MemberEnrollment,
+        Hmis::Ce::HouseholdMembership.open_enrollments(household_keys).left_outer_joins(client: :warehouse_client_source),
+        data_source_id: e_t[:data_source_id],
+        household_id: e_t[:HouseholdID],
+        relationship_to_hoh: e_t[:RelationshipToHoH],
+        entry_date: e_t[:EntryDate],
+        destination_id: wc_t[:destination_id],
+      )
+
+      member_enrollments.group_by(&:household_key).to_h do |household_key, members|
+        household = Household.new(
+          key: household_key,
+          size: members.size,
+          hoh_entry_date: members.select(&:head_of_household?).filter_map(&:entry_date).max,
+          member_destination_ids: members.map(&:destination_id),
+        )
+        [household_key, household]
+      end
+    end
+
+    # Plucks the columns and builds one data_class per row, keyed by the column names given
+    # @param columns [Hash{Symbol => Arel::Attributes::Attribute}] data_class attribute => column
+    def pluck_as(data_class, scope, **columns)
+      scope.pluck(*columns.values).map { |row| data_class.new(**columns.keys.zip(row).to_h) }
     end
 
     def eligibility_scope

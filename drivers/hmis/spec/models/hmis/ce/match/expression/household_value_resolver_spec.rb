@@ -100,6 +100,12 @@ RSpec.describe Hmis::Ce::Match::Expression::HouseholdValueResolver, type: :model
       expect(resolve).to eq('size' => 2, 'youngest_member_age' => 5, 'oldest_member_age' => 40)
       expect(resolver.call(GrdaWarehouse::Hud::Client.where(id: other_id), registry::SIZE)).to eq(other_id => 1)
     end
+
+    it 'reuses the batch when the same clients arrive in a different order' do
+      expect(Hmis::Ce::Match::Expression::HouseholdSelector).to receive(:new).once.and_call_original
+      resolver.call([hoh.destination_client, other.destination_client], registry::SIZE)
+      expect(resolver.call([other.destination_client, hoh.destination_client], registry::SIZE)).to eq(destination_id => 2, other_id => 1)
+    end
   end
 
   it 'resolves nil for clients with no open household' do

@@ -59,9 +59,9 @@ RSpec.describe Hmis::Ce::HouseholdMembership do
     end
   end
 
-  describe '.household_member_destination_ids' do
-    it 'returns the open members of the open households the given clients belong to' do
-      expect(described_class.household_member_destination_ids([hoh.destination_client.id])).
+  describe '.with_open_household_members' do
+    it 'returns the given clients plus the open members of their open households' do
+      expect(described_class.with_open_household_members([hoh.destination_client.id])).
         to contain_exactly(hoh.destination_client.id, member.destination_client.id)
     end
 
@@ -71,13 +71,18 @@ RSpec.describe Hmis::Ce::HouseholdMembership do
       create :hmis_warehouse_client, data_source: hmis_data_source, source: merged_source, destination: hoh.destination_client
       create :hmis_hud_enrollment, data_source: hmis_data_source, client: merged_source, project: project, household_id: 'HH2', relationship_to_ho_h: 2
 
-      expect(described_class.household_member_destination_ids([hoh.destination_client.id])).
+      expect(described_class.with_open_household_members([hoh.destination_client.id])).
         to contain_exactly(hoh.destination_client.id, member.destination_client.id, bystander.destination_client.id)
     end
 
-    it 'does not reach the old household of a client who exited' do
+    it 'returns only the given client when they have no open household' do
       exit_member
-      expect(described_class.household_member_destination_ids([member.destination_client.id])).to be_empty
+      expect(described_class.with_open_household_members([member.destination_client.id])).
+        to contain_exactly(member.destination_client.id)
+    end
+
+    it 'returns nothing for no clients' do
+      expect(described_class.with_open_household_members([])).to be_empty
     end
   end
 end

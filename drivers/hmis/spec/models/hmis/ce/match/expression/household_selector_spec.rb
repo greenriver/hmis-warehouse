@@ -34,19 +34,23 @@ RSpec.describe Hmis::Ce::Match::Expression::HouseholdSelector, type: :model do
     [hmis_data_source.id, id]
   end
 
+  def select_keys(destination_ids)
+    selector.call(destination_ids).transform_values(&:key)
+  end
+
   it 'omits clients with no open household' do
     enroll(client, household_id: 'HH1', relationship: 1, exit_date: current_date - 1.day)
-    expect(selector.call([destination_id])).to eq({})
+    expect(select_keys([destination_id])).to eq({})
   end
 
   it 'treats an enrollment exiting today as exited' do
     enroll(client, household_id: 'HH1', relationship: 1, exit_date: current_date)
-    expect(selector.call([destination_id])).to eq({})
+    expect(select_keys([destination_id])).to eq({})
   end
 
   it 'includes WIP enrollments' do
     create(:hmis_hud_wip_enrollment, data_source: hmis_data_source, client: client, project: project, household_id: 'HH1')
-    expect(selector.call([destination_id])).to eq({ destination_id => household('HH1') })
+    expect(select_keys([destination_id])).to eq({ destination_id => household('HH1') })
   end
 
   it 'picks the household with the most open members' do
@@ -56,7 +60,7 @@ RSpec.describe Hmis::Ce::Match::Expression::HouseholdSelector, type: :model do
     enroll(create_client, household_id: 'BIG')
     enroll(create_client, household_id: 'SMALL', exit_date: current_date - 1.day) # exited members don't count
 
-    expect(selector.call([destination_id])).to eq({ destination_id => household('BIG') })
+    expect(select_keys([destination_id])).to eq({ destination_id => household('BIG') })
   end
 
   it 'breaks size ties by most recent HoH entry date' do
@@ -67,20 +71,20 @@ RSpec.describe Hmis::Ce::Match::Expression::HouseholdSelector, type: :model do
     # a non-HoH member entering after NEWER's HoH, so only the HoH's EntryDate counts
     enroll(create_client, household_id: 'OLDER', entry_date: current_date - 1.day)
 
-    expect(selector.call([destination_id])).to eq({ destination_id => household('NEWER') })
+    expect(select_keys([destination_id])).to eq({ destination_id => household('NEWER') })
   end
 
   it 'breaks remaining ties by the client enrollment DateUpdated' do
     enroll(client, household_id: 'FRESH', relationship: 1, date_updated: 1.day.ago)
     enroll(client, household_id: 'STALE', relationship: 1, date_updated: 2.days.ago)
-    expect(selector.call([destination_id])).to eq({ destination_id => household('FRESH') })
+    expect(select_keys([destination_id])).to eq({ destination_id => household('FRESH') })
   end
 
   it 'breaks remaining ties by the highest client enrollment id' do
     date_updated = 1.day.ago.change(usec: 0)
     enroll(client, household_id: 'FIRST', relationship: 1, date_updated: date_updated)
     enroll(client, household_id: 'SECOND', relationship: 1, date_updated: date_updated)
-    expect(selector.call([destination_id])).to eq({ destination_id => household('SECOND') })
+    expect(select_keys([destination_id])).to eq({ destination_id => household('SECOND') })
   end
 
   it 'selects a household for each requested client in a batch' do
@@ -91,7 +95,7 @@ RSpec.describe Hmis::Ce::Match::Expression::HouseholdSelector, type: :model do
     enroll(unrequested_member, household_id: 'SHARED')
 
     other_id = other_client.destination_client.id
-    expect(selector.call([destination_id, other_id])).to eq(
+    expect(select_keys([destination_id, other_id])).to eq(
       { destination_id => household('SOLO'), other_id => household('SHARED') },
     )
   end
@@ -102,7 +106,7 @@ RSpec.describe Hmis::Ce::Match::Expression::HouseholdSelector, type: :model do
     enroll(other_client, household_id: 'SHARED')
 
     other_id = other_client.destination_client.id
-    expect(selector.call([destination_id, other_id])).to eq(
+    expect(select_keys([destination_id, other_id])).to eq(
       { destination_id => household('SHARED'), other_id => household('SHARED') },
     )
   end
@@ -120,7 +124,7 @@ RSpec.describe Hmis::Ce::Match::Expression::HouseholdSelector, type: :model do
       enroll(client, household_id: 'OUT_OF_GROUP', relationship: 1, project: other_project)
       enroll(create_client, household_id: 'OUT_OF_GROUP', project: other_project)
 
-      expect(selector.call([destination_id])).to eq({ destination_id => household('IN_GROUP') })
+      expect(select_keys([destination_id])).to eq({ destination_id => household('IN_GROUP') })
     end
   end
 
@@ -133,12 +137,23 @@ RSpec.describe Hmis::Ce::Match::Expression::HouseholdSelector, type: :model do
     allow(Hmis::Ce::HouseholdMembership).to(receive(:open_enrollments).
       and_wrap_original { |original, keys| original.call(keys - [household('GONE')]) })
 
-    expect(selector.call([destination_id, other_id])).to eq({ destination_id => household('KEPT') })
+    expect(select_keys([destination_id, other_id])).to eq({ destination_id => household('KEPT') })
   end
 
   it 'ignores the lookback window' do
     allow(configuration).to receive(:eligibility_lookback_months).and_return(1)
     enroll(client, household_id: 'HH1', relationship: 1, exit_date: current_date - 1.week)
-    expect(selector.call([destination_id])).to eq({})
+    expect(select_keys([destination_id])).to eq({})
+  end
+
+  it 'returns the selected household with its size, HoH entry date, and open members' do
+    member = create_client
+    enroll(client, household_id: 'HH1', relationship: 1, entry_date: current_date - 2.weeks)
+    enroll(member, household_id: 'HH1')
+    enroll(create_client, household_id: 'HH1', exit_date: current_date - 1.day)
+
+    household = selector.call([destination_id]).fetch(destination_id)
+    expect(household).to have_attributes(key: household('HH1'), size: 2, hoh_entry_date: current_date - 2.weeks)
+    expect(household.member_destination_ids).to contain_exactly(destination_id, member.destination_client.id)
   end
 end
