@@ -78,6 +78,19 @@ RSpec.describe PublicReports::StateDashboard, type: :model do
     data['who']['breakdown']["gender__0__#{labels.index(label)}"]
   end
 
+  # A one-decimal percent next to a published total gives the count back.
+  def race_percent_leaks
+    race = data['who']['race']
+    race['totals'].each_with_index.flat_map do |total, period_index|
+      next [] if total.nil?
+
+      race['homeless'][period_index].each_with_index.filter_map do |percent, bucket_index|
+        count = (percent * total / 100.0).round
+        "race.homeless[#{period_index}][#{bucket_index}]=#{percent}% of #{total}" if count.between?(1, PublicReports::StateDashboard::SUPPRESS_TOTALS_AT_OR_BELOW)
+      end
+    end
+  end
+
   def add_exited_entry(client:, destination:)
     create(
       :she_entry,
@@ -495,7 +508,22 @@ RSpec.describe PublicReports::StateDashboard, type: :model do
       end
     end
 
+    leaks.concat(race_percent_leaks)
     expect(leaks).to eq([])
+  end
+
+  context 'with a race total over the floor and buckets that would leave "Other or Unknown" at the floor' do
+    before do
+      stub_const('PublicReports::StateDashboard::SUPPRESS_TOTALS_AT_OR_BELOW', 3)
+      # With the base clients: White 5, Black 4, and three others at 1 each, so 12 in all.
+      # The three singles collapse to "None" = 3, which is at the floor of 3.
+      4.times { |i| create_homeless_client_and_entry(gender: :Woman, race_field: :White, household_id: "white-#{i}") }
+      3.times { |i| create_homeless_client_and_entry(gender: :Man, race_field: :BlackAfAmerican, household_id: "black-#{i}") }
+    end
+
+    it 'publishes the total and no race percent that multiplies back to 1 to 3 people' do
+      expect([data['who']['race']['totals'].last, race_percent_leaks]).to eq([12, []])
+    end
   end
 
   it 'zeroes donut percentages for a group under 100 people with a part under 11' do
