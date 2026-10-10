@@ -67,6 +67,29 @@ RSpec.describe GrdaWarehouse::ClientFile, type: :model do
           expect(file.active_consent_form?).to be true
         end
 
+        it 'rebuilds the ROI authorization once per confirmation' do
+          second_file.tag_list.add consent_tag.name
+          second_file.save!
+          expect(GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask).to receive(:rebuild_clients).once.and_call_original
+          second_file.confirm_consent!
+        end
+
+        it 'creates a full ROI authorization for the client' do
+          expect(GrdaWarehouse::ClientRoiAuthorization.where(destination_client_id: file.client_id).pluck(:status)).to eq(['full'])
+        end
+
+        it 'does not restore cleared client consent when the consent form is soft-deleted' do
+          client = file.client
+          client.invalidate_consent!
+          client.reload
+
+          file.soft_delete!
+
+          client.reload
+          expect(client.consent_form_id).to be_nil
+          expect(client.housing_release_status).to be_nil
+        end
+
         describe 'when a new non-consent form is uploaded' do
           before :each do
             second_file.tag_list.add(other_tag.name)
@@ -126,15 +149,13 @@ RSpec.describe GrdaWarehouse::ClientFile, type: :model do
               end
 
               describe 'when the original consent is un-confirmed' do
-                before :each do
-                  # rspec seems to get confused with all of the callbacks, this gets around that
-                  second_file.update_columns(consent_form_confirmed: false)
-                  file.update_columns(consent_form_confirmed: false)
-                  # This usually gets called in a callback, but acts as taggable hates transactions
-                  file.set_client_consent
-                end
-                it 'the client release should no longer be valid' do
+                it 'invalidates the client release and removes the ROI authorization' do
+                  expect(GrdaWarehouse::ClientRoiAuthorization.where(destination_client_id: file.client_id).pluck(:status)).to eq(['full'])
+
+                  file.update!(consent_form_confirmed: false)
+
                   expect(file.client.reload.consent_form_valid?).to be false
+                  expect(GrdaWarehouse::ClientRoiAuthorization.where(destination_client_id: file.client_id)).to be_empty
                 end
               end
             end
@@ -495,6 +516,75 @@ RSpec.describe GrdaWarehouse::ClientFile, type: :model do
         it 'returns nil' do
           expect(file.calculated_expiration_date).to be_nil
         end
+      end
+    end
+  end
+
+  describe 'expiration date under a Use Expiration Date release duration' do
+    let(:client) { create :grda_warehouse_hud_client }
+    let(:consent_tag) { create :available_file_tag, consent_form: true, name: 'Consent Form', full_release: true }
+    let(:other_tag) { create :available_file_tag, consent_form: false, name: 'Photo ID' }
+
+    before do
+      GrdaWarehouse::Config.delete_all
+      create(:config_b, release_duration: 'Use Expiration Date')
+      GrdaWarehouse::Config.invalidate_cache
+    end
+    after { GrdaWarehouse::Config.invalidate_cache }
+
+    def consent_form(confirmed:, expiration_date: nil, tag: consent_tag)
+      file = build(:client_file, client: client, effective_date: Date.current, expiration_date: expiration_date, consent_form_confirmed: confirmed)
+      file.tag_list = [tag.name]
+      file
+    end
+
+    it 'rejects a confirmed consent form without an expiration date' do
+      file = consent_form(confirmed: true)
+      expect(file.save).to be false
+      expect(file.errors[:expiration_date]).to eq(['Expiration date is required'])
+    end
+
+    it 'saves a confirmed consent form with an expiration date and builds a full ROI row' do
+      file = consent_form(confirmed: true, expiration_date: 1.year.from_now.to_date)
+      expect(file.save).to be true
+      expect(client.reload.consent_form_id).to eq(file.id)
+      expect(GrdaWarehouse::ClientRoiAuthorization.find_by(destination_client_id: client.id).status).to eq('full')
+    end
+
+    it 'saves an unconfirmed consent form without an expiration date' do
+      expect(consent_form(confirmed: false).save).to be true
+    end
+
+    it 'saves a confirmed non-consent file without an expiration date' do
+      expect(consent_form(confirmed: true, tag: other_tag).save).to be true
+    end
+
+    context 'with a confirmed consent form saved without an expiration date under Indefinite' do
+      let!(:file) do
+        GrdaWarehouse::Config.first.update!(release_duration: 'Indefinite')
+        GrdaWarehouse::Config.invalidate_cache
+        consent_form(confirmed: true).tap(&:save!)
+      end
+
+      before do
+        GrdaWarehouse::Config.first.update!(release_duration: 'Use Expiration Date')
+        GrdaWarehouse::Config.invalidate_cache
+      end
+
+      it 'records the delete reason and soft-deletes the file' do
+        expect(file.update(delete_reason: 1, delete_detail: 'Wrong client')).to be true
+        file.soft_delete!
+
+        deleted = GrdaWarehouse::ClientFile.with_deleted.find(file.id)
+        expect(deleted.deleted_at).to be_present
+        expect(deleted.delete_reason).to eq(1)
+      end
+
+      it 'requires an expiration date when the consent is un-revoked' do
+        file.update_columns(consent_revoked_at: Time.current)
+
+        expect(file.update(consent_revoked_at: nil)).to be false
+        expect(file.errors[:expiration_date]).to eq(['Expiration date is required'])
       end
     end
   end

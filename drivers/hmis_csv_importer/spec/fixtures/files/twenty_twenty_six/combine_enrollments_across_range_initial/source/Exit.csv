@@ -1,0 +1,6 @@
+ExitID,EnrollmentID,PersonalID,ExitDate,Destination,DestinationSubsidyType,OtherDestination,HousingAssessment,SubsidyInformation,ProjectCompletionStatus,EarlyExitReason,ExchangeForSex,ExchangeForSexPastThreeMonths,CountOfExchangeForSex,AskedOrForcedToExchangeForSex,AskedOrForcedToExchangeForSexPastThreeMonths,WorkPlaceViolenceThreats,WorkplacePromiseDifference,CoercedToContinueWork,LaborExploitPastThreeMonths,CounselingReceived,IndividualCounseling,FamilyCounseling,GroupCounseling,SessionCountAtExit,PostExitCounselingPlan,SessionsInPlan,DestinationSafeClient,DestinationSafeWorker,PosAdultConnections,PosPeerConnections,PosCommunityConnections,AftercareDate,AftercareProvided,EmailSocialMedia,Telephone,InPersonIndividual,InPersonGroup,CMExitReason,DateCreated,DateUpdated,UserID,DateDeleted,ExportID
+XN-1,N-1,C-1,2022-12-19,101,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2022-12-19 00:00:00,2022-12-19 00:00:00,user,,CR-1
+XN-2,N-2,C-1,2022-12-20,101,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2022-12-20 00:00:00,2022-12-20 00:00:00,user,,CR-1
+XM-1,M-1,C-2,2022-06-02,101,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2022-06-02 00:00:00,2022-06-02 00:00:00,user,,CR-1
+XM-2,M-2,C-2,2022-06-05,101,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2022-06-05 00:00:00,2022-06-05 00:00:00,user,,CR-1
+XL-1,L-1,C-3,2022-12-31,101,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,2022-12-31 00:00:00,2022-12-31 00:00:00,user,,CR-1

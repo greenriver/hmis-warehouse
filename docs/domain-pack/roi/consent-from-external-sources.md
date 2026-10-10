@@ -78,7 +78,9 @@ complement.
 duration runs `update_all` on destination clients with `consent_expires_on < Date.current`,
 setting `housing_release_status` to `nil` and `consented_coc_codes` to `[]`; the date columns are
 left in place and no callbacks fire. Then it iterates `consent_active.preload(:destination_client)`
-and calls the instance method on each.
+and calls the instance method on each. Last, it runs
+`GenerateClientRoiAuthorizationsTask#_perform(client_ids:)` for the destination clients whose save
+went through, so their ROI rows match the new consent in the same run.
 
 `HmisClient#maintain_client_consent` resolves `destination_client` (a `has_one ... through:
 :client`, so the link is read from `warehouse_clients` at run time) and applies newest-wins:
