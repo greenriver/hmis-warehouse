@@ -687,8 +687,8 @@ module PublicReports
               rate: rate.round(1),
               homeless_count: homeless_count,
             }
-            self.map_max_rate = rate if rate > self.map_max_rate
-            self.map_max_count = homeless_count if homeless_count > self.map_max_count
+            self.map_max_rate = rate if rate > map_max_rate
+            self.map_max_count = homeless_count if homeless_count > map_max_count
           end
         end
       end
