@@ -166,6 +166,13 @@ RSpec.describe 'PublicReports::WarehouseReports::StateDashboard sections', type:
     expect(titles).to eq(report.sections.map { |section| "#{report.instance_title} — #{section.to_s.humanize} preview" })
   end
 
+  it 'shows the edit page as processing when the report has not finished' do
+    report.update_column(:completed_at, nil)
+    get edit_public_reports_warehouse_reports_state_dashboard_path(report)
+
+    expect([response.status, Nokogiri::HTML(response.body).at_css('.warehouse-reports__completed p').text.squish]).to eq([200, 'Report Processing'])
+  end
+
   it 'shows a suppressed breakdown row as a redacted bar with no chronic percent' do
     get who_public_reports_warehouse_reports_state_dashboard_path(report)
     rows = Nokogiri::HTML(response.body).css('[data-who-period-pane]:not([hidden]) .breakdown-row')
@@ -533,7 +540,7 @@ RSpec.describe 'PublicReports::WarehouseReports::StateDashboard sections', type:
     end
 
     it 'keeps the old folder and shows the error when the new one would leave the report folder' do
-      report.update_columns(version_slug: 'state', completed_at: Time.current)
+      report.update_column(:version_slug, 'state')
 
       patch public_reports_warehouse_reports_state_dashboard_path(report), params: { public_report: { version_slug: "../state'" } }
 
