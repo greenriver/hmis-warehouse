@@ -28,6 +28,10 @@ RSpec.describe PublicReports::Report, type: :model do
     expect(['coc/ma-500', '/state', 'state/', 'coc//ma-500'].map { |slug| valid_with?(slug) }).to eq([true, false, false, false])
   end
 
+  it 'rejects a first folder starting with _staging_ and allows it deeper in the path' do
+    expect(['_staging_2026-10-10', '_staging_', 'coc/_staging_x', '_stagingx'].map { |slug| valid_with?(slug) }).to eq([false, false, true, true])
+  end
+
   it 'trims spaces around the folder before checking and saving it' do
     expect([report.update(version_slug: ' coc/ma-500  '), report.reload.version_slug]).to eq([true, 'coc/ma-500'])
   end
