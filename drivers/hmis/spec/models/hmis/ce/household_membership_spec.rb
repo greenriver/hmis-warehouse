@@ -71,7 +71,7 @@ RSpec.describe Hmis::Ce::HouseholdMembership do
       create :hmis_warehouse_client, data_source: hmis_data_source, source: merged_source, destination: hoh.destination_client
       create :hmis_hud_enrollment, data_source: hmis_data_source, client: merged_source, project: project, household_id: 'HH2', relationship_to_ho_h: 2
 
-      expect(described_class.household_member_destination_ids([hoh.destination_client.id]).uniq).
+      expect(described_class.household_member_destination_ids([hoh.destination_client.id])).
         to contain_exactly(hoh.destination_client.id, member.destination_client.id, bystander.destination_client.id)
     end
 

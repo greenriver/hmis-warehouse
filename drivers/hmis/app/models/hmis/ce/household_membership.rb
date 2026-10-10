@@ -32,6 +32,7 @@ class Hmis::Ce::HouseholdMembership
   def self.open_member_destination_ids(household_keys)
     open_enrollments(household_keys).
       joins(client: :warehouse_client_source).
+      distinct.
       pluck(wc_t[:destination_id])
   end
 
