@@ -333,6 +333,7 @@ RSpec.describe PublicReports::StateDashboard, type: :model do
 
     before do
       stub_const('PublicReports::StateDashboard::SUPPRESS_TOTALS_AT_OR_BELOW', 0)
+      stub_const('PublicReports::StateDashboard::MIN_THRESHOLD', 1)
       client = create_homeless_client_and_entry(gender: :Man, race_field: :White, household_id: 'shelter-stay')
       add_homeless_entry(client: client, household_id: 'outreach-stay', project: outreach_project, age: 30)
       create_homeless_client_and_entry(gender: :Man, race_field: :White, household_id: 'outreach-only', project: outreach_project)
@@ -387,6 +388,7 @@ RSpec.describe PublicReports::StateDashboard, type: :model do
   context 'with a two-person household and a head of household with two stays, and totals unsuppressed' do
     before do
       stub_const('PublicReports::StateDashboard::SUPPRESS_TOTALS_AT_OR_BELOW', 0)
+      stub_const('PublicReports::StateDashboard::MIN_THRESHOLD', 1)
       member = create_homeless_client_and_entry(gender: :Woman, race_field: :White, household_id: 'household-0')
       twice_enrolled = GrdaWarehouse::ServiceHistoryEnrollment.entry.find_by!(household_id: 'household-1').client
       add_homeless_entry(client: twice_enrolled, household_id: 'second-stay', project: outreach_project, age: 30)
@@ -411,6 +413,7 @@ RSpec.describe PublicReports::StateDashboard, type: :model do
 
     before do
       stub_const('PublicReports::StateDashboard::SUPPRESS_TOTALS_AT_OR_BELOW', 0)
+      stub_const('PublicReports::StateDashboard::MIN_THRESHOLD', 1)
       create_homeless_client_and_entry(gender: :Man, race_field: :White, household_id: 'permanent-housing', project: ph_project)
       create_homeless_client_and_entry(gender: :Man, race_field: :White, household_id: 'other-data-source', project: other_project)
     end
