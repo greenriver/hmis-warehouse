@@ -172,6 +172,10 @@ environment. `UserPermissionCache` (`app/models/concerns/user_permission_cache.r
   snapshot taken at the start; do not add `reload!` or cache busting inside a request.
 - `EnrollmentArbiter#unscoped_clients` deliberately drops the `Client` default scope because the
   arbiter is often called from inside a client scope.
+- `client_ids:` on the arbiter's client methods restricts each OR'd `IN (subquery)` branch as well
+  as the outer scope, because Postgres cannot push the outer restriction into those subqueries. A
+  new branch must apply it too, or the query builds every visible client first. An empty
+  `client_ids` means unrestricted, not none.
 
 ## Do not repeat
 

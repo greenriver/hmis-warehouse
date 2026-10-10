@@ -171,7 +171,9 @@ the requirement expression into Arel (untranslatable nodes become `1 = 1`), then
 preferred shape for new namespaces: `PsdeField` (metadata), `PsdeFieldRegistry` (inventory),
 `PsdeValueResolver` (batch values), `PsdeFieldMap` (adapter); the household namespace follows it.
 `HouseholdSelector` picks one open household per client (the largest, within the eligibility
-project group) and household fields have no SQL translation, so they are evaluated in Ruby only. `Expression::ExpressionTranslator` converts between free text and the
+project group) and household fields have no SQL translation, so they are evaluated in Ruby only.
+A household's size counts people, not enrollments: members sharing a destination client count
+once, and members with no warehouse link count one each. `Expression::ExpressionTranslator` converts between free text and the
 structured clauses the front-end edits; `Expression::Validator` is called from
 `ManagesCeMatchRules` when a rule is saved.
 
