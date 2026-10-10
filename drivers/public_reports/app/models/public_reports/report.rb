@@ -20,6 +20,10 @@ module PublicReports
     SUPPRESS_TOTALS_AT_OR_BELOW = 100
 
     belongs_to :user, optional: true
+
+    # The slug is part of the S3 key, the public URL and the embed code. Keys use File.join,
+    # which drops extra slashes, but URLs are interpolated, so only single inner slashes match.
+    validates :version_slug, format: { with: %r{\A(?:[A-Za-z0-9_-]+(?:/[A-Za-z0-9_-]+)*)?\z}, message: 'must be folder names of letters, numbers, dashes and underscores, separated by single slashes' }, if: :will_save_change_to_version_slug?
     scope :viewable_by, ->(user) do
       return current_scope if user.can_view_all_reports?
 

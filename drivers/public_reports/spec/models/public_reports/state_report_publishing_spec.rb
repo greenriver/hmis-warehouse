@@ -112,6 +112,18 @@ RSpec.describe 'Publishing the state-level reports', type: :model do
     expect(dashboard.sections.map { |s| dashboard.generate_publish_url_for(s) }).to eq(legacy.sections.map { |s| legacy.generate_publish_url_for(s) })
   end
 
+  it 'publishes a nested folder at the path its embed url points to' do
+    dashboard = published(PublicReports::StateDashboard)
+    dashboard.update_columns(precalculated_data: precalculated_data, version_slug: 'coc/ma-500')
+
+    dashboard.publish!
+
+    copied = s3.api_requests.select { |r| r[:operation_name] == :copy_object }.map { |r| r[:params][:key] }
+    url_paths = dashboard.sections.map { |section| dashboard.generate_publish_url_for(section)[%r{state-level-homelessness/.+\z}] }
+    expect(copied).to eq(url_paths)
+    expect(copied.first).to eq('state-level-homelessness/coc/ma-500/pit/index.html')
+  end
+
   it 'warns before publishing over the other state-level class' do
     old = published(PublicReports::StateLevelHomelessness)
     old.update_column(:completed_at, Time.zone.parse('2026-01-05'))

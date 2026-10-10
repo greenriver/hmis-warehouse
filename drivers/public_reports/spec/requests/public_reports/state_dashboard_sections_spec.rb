@@ -532,6 +532,15 @@ RSpec.describe 'PublicReports::WarehouseReports::StateDashboard sections', type:
       expect(report.reload.version_slug).to eq('coc-500')
     end
 
+    it 'keeps the old folder and shows the error when the new one would leave the report folder' do
+      report.update_columns(version_slug: 'state', completed_at: Time.current)
+
+      patch public_reports_warehouse_reports_state_dashboard_path(report), params: { public_report: { version_slug: "../state'" } }
+
+      expect(report.reload.version_slug).to eq('state')
+      expect(response.body).to include('must be folder names of letters, numbers, dashes and underscores, separated by single slashes')
+    end
+
     it 'queues publishing without publishing inline' do
       expect do
         patch public_reports_warehouse_reports_state_dashboard_path(report), params: { public_report: { published_url: report.generate_publish_url } }
