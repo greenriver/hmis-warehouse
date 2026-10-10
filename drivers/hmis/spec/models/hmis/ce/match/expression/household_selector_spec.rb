@@ -156,4 +156,15 @@ RSpec.describe Hmis::Ce::Match::Expression::HouseholdSelector, type: :model do
     expect(household).to have_attributes(key: household('HH1'), size: 2, hoh_entry_date: current_date - 2.weeks)
     expect(household.member_destination_ids).to contain_exactly(destination_id, member.destination_client.id)
   end
+
+  it 'counts source clients linked to the same destination once, and each unlinked member separately' do
+    duplicate = create(:hmis_hud_client, data_source: hmis_data_source)
+    create(:hmis_warehouse_client, data_source: hmis_data_source, source: duplicate, destination: client.destination_client)
+    enroll(client, household_id: 'HH1', relationship: 1)
+    enroll(duplicate, household_id: 'HH1')
+    enroll(create(:hmis_hud_client, data_source: hmis_data_source), household_id: 'HH1')
+    enroll(create(:hmis_hud_client, data_source: hmis_data_source), household_id: 'HH1')
+
+    expect(selector.call([destination_id]).fetch(destination_id).size).to eq(3)
+  end
 end

@@ -9,7 +9,7 @@
 module Hmis::Ce::Match::Expression
   # Resolves household.* field values for destination clients in batch, from the household chosen by HouseholdSelector.
   #
-  # size counts open member enrollments, including members with no DOB.
+  # size counts the people with an open member enrollment, including members with no DOB.
   # Member ages use each member's destination client DOB; members without one are ignored for ages.
   # Clients with no open in-scope household resolve to nil.
   class HouseholdValueResolver
@@ -58,7 +58,7 @@ module Hmis::Ce::Match::Expression
       return @last_batch if @last_batch&.client_ids == client_id_set
 
       households_by_client_id = HouseholdSelector.new(configuration: @configuration).call(client_ids)
-      member_ids = households_by_client_id.values.flat_map(&:member_destination_ids).compact.uniq
+      member_ids = households_by_client_id.values.flat_map(&:member_destination_ids).uniq
       # Same age expression as current_age, so the two agree
       ages_by_destination_id = AgeCalculator.new(@current_date).call(GrdaWarehouse::Hud::Client.where(id: member_ids))
 

@@ -81,6 +81,25 @@ RSpec.describe Hmis::MarkClientAsDirtyBehavior do
         expect(dirty?(c1)).to be true
       end
 
+      household_column_changes = {
+        'HouseholdID' => -> { c2_enrollment.update!(household_id: 'HH2') },
+        'PersonalID' => -> { c2_enrollment.update!(personal_id: c3.personal_id) },
+        'ProjectID' => -> { c2_enrollment.update!(project: create(:hmis_hud_project, data_source: ds1, organization: o1, user: u1)) },
+        'EntryDate' => -> { c2_enrollment.update!(entry_date: c2_enrollment.entry_date - 1.day) },
+        'RelationshipToHoH' => -> { c2_enrollment.update!(relationship_to_ho_h: 3) },
+      }
+
+      it 'has a change for every CE household column' do
+        expect(household_column_changes.keys).to match_array(Hmis::Hud::Enrollment::CE_HOUSEHOLD_COLUMNS)
+      end
+
+      household_column_changes.each do |column, change|
+        it "marks household members dirty when a member enrollment's #{column} changes" do
+          instance_exec(&change)
+          expect(dirty?(c1)).to be true
+        end
+      end
+
       it 'marks old and new household members dirty when a member moves households' do
         c2_enrollment.update!(household_id: 'HH2')
         expect(dirty?(c1)).to be true

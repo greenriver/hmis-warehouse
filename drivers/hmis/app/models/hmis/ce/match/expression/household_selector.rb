@@ -19,10 +19,9 @@ module Hmis::Ce::Match::Expression
     SELF_HEAD_OF_HOUSEHOLD = HudHelper.util.relationship_to_hoh('Self (head of household)', true)
 
     # @!attribute key [Array(Integer, String)] [data_source_id, HouseholdID]
-    # @!attribute size [Integer] number of open member enrollments
+    # @!attribute size [Integer] number of people with an open member enrollment.
     # @!attribute hoh_entry_date [Date, nil] latest EntryDate among open HoH enrollments
-    # @!attribute member_destination_ids [Array<Integer, nil>] one per open member enrollment; nil when the
-    #   member's client has no warehouse link
+    # @!attribute member_destination_ids [Array<Integer>] distinct destination ids of the open members
     Household = Data.define(:key, :size, :hoh_entry_date, :member_destination_ids)
 
     # One of a requested client's open, in-scope enrollments
@@ -111,11 +110,12 @@ module Hmis::Ce::Match::Expression
       )
 
       member_enrollments.group_by(&:household_key).to_h do |household_key, members|
+        destination_ids = members.map(&:destination_id)
         household = Household.new(
           key: household_key,
-          size: members.size,
+          size: destination_ids.compact.uniq.size + destination_ids.count(nil),
           hoh_entry_date: members.select(&:head_of_household?).filter_map(&:entry_date).max,
-          member_destination_ids: members.map(&:destination_id),
+          member_destination_ids: destination_ids.compact.uniq,
         )
         [household_key, household]
       end
