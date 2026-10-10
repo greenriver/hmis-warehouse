@@ -28,6 +28,10 @@ RSpec.describe PublicReports::Report, type: :model do
     expect(['coc/ma-500', '/state', 'state/', 'coc//ma-500'].map { |slug| valid_with?(slug) }).to eq([true, false, false, false])
   end
 
+  it 'trims spaces around the folder before checking and saving it' do
+    expect([report.update(version_slug: ' coc/ma-500  '), report.reload.version_slug]).to eq([true, 'coc/ma-500'])
+  end
+
   it 'still saves a report whose folder was stored before the rule' do
     report.update_column(:version_slug, 'old folder')
 
