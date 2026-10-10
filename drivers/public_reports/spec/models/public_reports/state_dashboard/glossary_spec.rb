@@ -75,6 +75,18 @@ RSpec.describe PublicReports::StateDashboard::Glossary do
     expect(hrefs).to eq(['https://example.org/'])
   end
 
+  it 'opens a web link in a new tab and leaves an in-page link alone' do
+    glossary = described_class.new("### Term\n[guide](https://example.org/guide) and [see ES](#glossary-es)\n")
+    links = Nokogiri::HTML.fragment(glossary.html).css('a').map { |a| a.to_h.slice('href', 'target', 'rel') }
+
+    expect(links).to eq(
+      [
+        { 'href' => 'https://example.org/guide', 'target' => '_blank', 'rel' => 'noopener noreferrer' },
+        { 'href' => '#glossary-es' },
+      ],
+    )
+  end
+
   it 'escapes markup inside a substituted {{Translation}}' do
     create(:translation, key: 'Glossary Note', text: '<b>bold</b>')
     glossary = described_class.new("### Term\nSee {{Glossary Note}}.\n")

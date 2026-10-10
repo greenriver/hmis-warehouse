@@ -138,4 +138,10 @@ RSpec.describe 'Publishing the state-level reports', type: :model do
 
     expect(dashboard.publish_warning).to be_nil
   end
+
+  it 'lets the embedded page open links in a new, unsandboxed tab' do
+    frame = Nokogiri::HTML(PublicReports::StateDashboard.new(version_slug: 'state').generate_embed_code_for(:summary)).at_css('iframe')
+
+    expect(frame['sandbox'].split).to contain_exactly('allow-scripts', 'allow-popups', 'allow-popups-to-escape-sandbox')
+  end
 end

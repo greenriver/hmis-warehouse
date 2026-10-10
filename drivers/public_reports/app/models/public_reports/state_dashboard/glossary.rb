@@ -23,6 +23,11 @@ class PublicReports::StateDashboard::Glossary
 
   def initialize(markdown)
     fragment = Nokogiri::HTML::DocumentFragment.parse(Redcarpet::Markdown.new(::TranslatedHtml).render(markdown.to_s))
+    # The page is usually framed, and most sites refuse to load inside a frame.
+    fragment.css('a[href^="http"]').each do |link|
+      link['target'] = '_blank'
+      link['rel'] = 'noopener noreferrer'
+    end
     @blank = fragment.text.blank?
     @definitions = {}
     @html = build_html(fragment)
