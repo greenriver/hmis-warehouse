@@ -119,7 +119,7 @@ RSpec.describe 'Publishing the state-level reports', type: :model do
     dashboard.publish!
 
     copied = s3.api_requests.select { |r| r[:operation_name] == :copy_object }.map { |r| r[:params][:key] }
-    url_paths = dashboard.sections.map { |section| dashboard.generate_publish_url_for(section)[%r{state-level-homelessness/.+\z}] }
+    url_paths = dashboard.sections.map { |section| dashboard.generate_publish_url_for(section)[/state-level-homelessness\/.+\z/] }
     expect(copied).to eq(url_paths)
     expect(copied.first).to eq('state-level-homelessness/coc/ma-500/pit/index.html')
   end
