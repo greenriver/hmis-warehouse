@@ -13,8 +13,6 @@ module Hmis::Ce::Match::Expression
   # Member ages use each member's destination client DOB; members without one are ignored for ages.
   # Clients with no open in-scope household resolve to nil.
   class HouseholdValueResolver
-    include Hmis::Concerns::HmisArelHelper
-
     def initialize(current_date: Date.current, configuration: Hmis::Ce.configuration)
       @current_date = current_date.to_date
       @configuration = configuration
@@ -28,8 +26,7 @@ module Hmis::Ce::Match::Expression
       selected, members = households_for(client_ids)
 
       client_ids.index_with do |client_id|
-        # nil when the client has no open in-scope household, or when the selected household lost its open
-        # members between the selector and member queries (concurrent exit/delete)
+        # nil when the client has no open in-scope household
         ages = members[selected[client_id]]
         next nil unless ages
 
@@ -53,22 +50,18 @@ module Hmis::Ce::Match::Expression
     def households_for(client_ids)
       return @last_households if @last_client_ids == client_ids
 
-      selected = HouseholdSelector.new(configuration: @configuration).call(client_ids)
+      selected, members = HouseholdSelector.new(configuration: @configuration).call_with_members(client_ids)
       @last_client_ids = client_ids
-      @last_households = [selected, member_ages_by_household(selected.values.uniq)]
+      @last_households = [selected, member_ages_by_household(members)]
     end
 
+    # @param members [Hash{Array(Integer, String) => Array<Integer, nil>}] household => member destination client ids
     # @return [Hash{Array(Integer, String) => Array<Integer, nil>}] household => one age per open member enrollment
-    def member_ages_by_household(households)
-      rows = Hmis::Ce::HouseholdMembership.open_enrollments(households).
-        left_outer_joins(client: :warehouse_client_source).
-        pluck(e_t[:data_source_id], e_t[:HouseholdID], wc_t[:destination_id])
-
+    def member_ages_by_household(members)
       # Same age expression as current_age, so the two agree
-      ages = AgeCalculator.new(@current_date).call(GrdaWarehouse::Hud::Client.where(id: rows.map(&:last).compact.uniq))
+      ages = AgeCalculator.new(@current_date).call(GrdaWarehouse::Hud::Client.where(id: members.values.flatten.compact.uniq))
 
-      rows.group_by { |data_source_id, household_id, _| [data_source_id, household_id] }.
-        transform_values { |household_rows| household_rows.map { |_, _, destination_id| ages[destination_id] } }
+      members.transform_values { |destination_ids| destination_ids.map { |destination_id| ages[destination_id] } }
     end
 
     def extract_client_ids(clients)

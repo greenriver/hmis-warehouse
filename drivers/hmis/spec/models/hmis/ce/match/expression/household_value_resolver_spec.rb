@@ -102,12 +102,6 @@ RSpec.describe Hmis::Ce::Match::Expression::HouseholdValueResolver, type: :model
     end
   end
 
-  it 'resolves nil when the selected household has no open members left' do
-    allow_any_instance_of(Hmis::Ce::Match::Expression::HouseholdSelector).to receive(:call).
-      and_return({ destination_id => [hmis_data_source.id, 'GONE'] })
-    expect(resolve).to eq('size' => nil, 'youngest_member_age' => nil, 'oldest_member_age' => nil)
-  end
-
   it 'resolves nil for clients with no open household' do
     create(:hmis_hud_exit, enrollment: hoh.enrollments.first, client: hoh, data_source: hmis_data_source, exit_date: current_date - 1.day)
     expect(resolve).to eq('size' => nil, 'youngest_member_age' => nil, 'oldest_member_age' => nil)

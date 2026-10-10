@@ -124,6 +124,18 @@ RSpec.describe Hmis::Ce::Match::Expression::HouseholdSelector, type: :model do
     end
   end
 
+  it 'skips households that lost their open members after the client enrollment query' do
+    other = create_client
+    other_id = other.destination_client.id
+    enroll(client, household_id: 'GONE', relationship: 1)
+    enroll(client, household_id: 'KEPT', relationship: 1)
+    enroll(other, household_id: 'GONE', relationship: 2)
+    allow(Hmis::Ce::HouseholdMembership).to(receive(:open_enrollments).
+      and_wrap_original { |original, keys| original.call(keys - [household('GONE')]) })
+
+    expect(selector.call([destination_id, other_id])).to eq({ destination_id => household('KEPT') })
+  end
+
   it 'ignores the lookback window' do
     allow(configuration).to receive(:eligibility_lookback_months).and_return(1)
     enroll(client, household_id: 'HH1', relationship: 1, exit_date: current_date - 1.week)
