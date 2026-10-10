@@ -41,18 +41,19 @@ class PublicReports::StateDashboard::Breakdowns
         when 1 then adult_and_child_household_ids(start_date, end_date).keys
         when 2 then child_only_household_ids(start_date, end_date).keys
         end
-        section_scope = base_scope.where(household_key.in(household_ids))
-        # NOTE: for adults with children we sum all categories together
-        compute_rows(
-          rows: rows,
-          grouping: 'household_type',
-          section_index: section_index,
-          setup: quarter_setup,
-          scope: section_scope,
-          date_index: date_index,
-          num_periods: num_periods,
-          combine_rows: section_index == 1,
-        )
+        with_household_keys(household_ids) do |in_section|
+          # NOTE: for adults with children we sum all categories together
+          compute_rows(
+            rows: rows,
+            grouping: 'household_type',
+            section_index: section_index,
+            setup: quarter_setup,
+            scope: base_scope.where(in_section),
+            date_index: date_index,
+            num_periods: num_periods,
+            combine_rows: section_index == 1,
+          )
+        end
       end
 
       gender_setups.each do |section_index, section|
@@ -279,6 +280,21 @@ class PublicReports::StateDashboard::Breakdowns
     households
   end
   memoize :households
+
+  HOUSEHOLD_KEYS_TABLE = 'state_dashboard_household_keys'
+
+  # Load the section's household keys once, so each count query joins a small table
+  # instead of carrying every key as a literal.
+  private def with_household_keys(keys)
+    conn = GrdaWarehouseBase.connection
+    conn.create_table(HOUSEHOLD_KEYS_TABLE, temporary: true, id: false, force: true) { |t| t.text :household_key, null: false }
+    conn.execute(GrdaWarehouseBase.sanitize_sql_array(["INSERT INTO #{HOUSEHOLD_KEYS_TABLE} (household_key) SELECT unnest(ARRAY[?]::text[])", keys])) if keys.any?
+    # Autovacuum never analyzes temp tables.
+    conn.execute("ANALYZE #{HOUSEHOLD_KEYS_TABLE}")
+    yield household_key.in(Arel.sql("SELECT household_key FROM #{HOUSEHOLD_KEYS_TABLE}"))
+  ensure
+    conn&.drop_table(HOUSEHOLD_KEYS_TABLE, if_exists: true)
+  end
 
   # HouseholdID is only unique within a data source, and an enrollment without one is its own household.
   private def household_key
