@@ -79,7 +79,7 @@
   "app/models/audit/cohort_access/base.rb": "8da75c64f181f408002ca75620e1159cd0fc476522d4adf732b41870ad893f35",
   "app/models/audit/cohort_access/intervals.rb": "7323b76fe30223cb2ae082c293b4cab3b89ad89a661176c4ccc6301e2b2f2d02",
   "app/models/audit/cohort_access/legacy.rb": "09763cee249415a52844ef1931971607227217fb2f2a6b25dc5dd471c3f75d16",
-  "app/models/aws_s3.rb": "bf7980ca2a40eccd4303a7bdd012def13ecd5f74a3744e3f68aad6fa46a1779c",
+  "app/models/aws_s3.rb": "d48ba104f6a7ac46b7cceac13d0e0e8db256df4f728a5928dae1875fa6c18611",
   "app/models/cas_base.rb": "a3a47efd9a9c01badf69690f7041fc012019af61f7095edde627b30b183b639a",
   "app/models/client_history.rb": "e1f161fc961320930a4cad881ada671fe00d7069b8fc6ded238bcb2d579a1be7",
   "app/models/cohort_columns/base.rb": "84c65ae1fd958d3d7f4f98b75f225a9692a7b086fa74120317931d4e0a410cc3",
