@@ -24,6 +24,12 @@ RSpec.describe 'Publishing the state-level reports', type: :model do
     ['pit', 'entering_exiting', 'summary', 'map', 'who', 'race', 'raw'].map { |section| "state-level-homelessness/state/#{section}/index.html" }
   end
 
+  around { |example| travel_to(Time.zone.parse('2026-10-10 12:00')) { example.run } }
+
+  let(:staging_keys) do
+    ['pit', 'entering_exiting', 'summary', 'map', 'who', 'race', 'raw'].map { |section| "state-level-homelessness/_staging_2026-10-10/state/#{section}/index.html" }
+  end
+
   def published(klass)
     report = klass.new(user: user, filter: { filters: { start: Date.parse('2024-01-01'), end: Date.parse('2025-12-31') } }, version_slug: 'state', published_url: 'https://example.test/index.html', state: 'published')
     report.save!(validate: false)
@@ -52,33 +58,38 @@ RSpec.describe 'Publishing the state-level reports', type: :model do
     expect(coc.reload.attributes.values_at('published_url', 'state')).to eq(['https://example.test/index.html', 'published'])
   end
 
-  it 'uploads one public-read html object per section at the url each embed points to' do
+  it 'stages each section privately, copies it public to the url its embed points to, then deletes the staged copy' do
     dashboard = published(PublicReports::StateDashboard)
     dashboard.update_column(:precalculated_data, precalculated_data)
 
     dashboard.publish!
 
-    puts_by_key = s3.api_requests.select { |r| r[:operation_name] == :put_object }.to_h { |r| [r[:params][:key], r[:params]] }
-    expected_keys = section_keys
-    expect(puts_by_key.keys).to match_array(expected_keys)
-    expect(puts_by_key.values.map { |p| p.values_at(:bucket, :acl, :content_type) }.uniq).to eq([['test', 'public-read', 'text/html']])
+    requests = s3.api_requests.map { |r| [r[:operation_name], r[:params]] }
+    puts_by_key = requests.select { |op, _| op == :put_object }.to_h { |_, p| [p[:key], p] }
+    expect(requests.map(&:first)).to eq([:put_object] * 7 + [:copy_object] * 7 + [:delete_object] * 7)
+    expect(puts_by_key.keys).to match_array(staging_keys)
+    expect(puts_by_key.values.map { |p| p.values_at(:bucket, :acl, :content_type) }.uniq).to eq([['test', nil, 'text/html']])
+    expect(requests.select { |op, _| op == :copy_object }.map { |_, p| p.values_at(:copy_source, :key, :acl) }).to match_array(staging_keys.zip(section_keys).map { |staged, key| ["test/#{staged}", key, 'public-read'] })
+    expect(requests.select { |op, _| op == :delete_object }.map { |_, p| p[:key] }).to match_array(staging_keys)
 
-    dashboard.sections.zip(expected_keys).each do |section, key|
+    dashboard.sections.zip(staging_keys).each do |section, key|
       body = puts_by_key.fetch(key)[:body]
       expect(body.scan('SECTION START').size).to eq(1), section.to_s
       expect(body).to include("<!-- SECTION START #{section} -->"), section.to_s
     end
-    expect(puts_by_key.fetch(expected_keys[dashboard.sections.index(:pit)])[:body]).to include('chart--line')
+    expect(puts_by_key.fetch(staging_keys[dashboard.sections.index(:pit)])[:body]).to include('chart--line')
     expect(dashboard.reload.attributes.values_at('published_url', 'state')).to eq([dashboard.generate_publish_url, 'published'])
   end
 
-  it 'leaves the report and the one it would replace unchanged when an S3 upload fails' do
+  it 'touches no public page and leaves both reports unchanged when a staging upload fails' do
     old = published(PublicReports::StateLevelHomelessness)
     dashboard = published(PublicReports::StateDashboard)
     dashboard.update_columns(precalculated_data: precalculated_data, state: 'pre-calculated', published_url: nil)
-    s3.stub_responses(:put_object, 'AccessDenied')
+    calls = 0
+    s3.stub_responses(:put_object, ->(_context) { (calls += 1) == 3 ? 'ServiceUnavailable' : { etag: '"etag"' } })
 
-    expect { dashboard.publish! }.to raise_error(Aws::S3::Errors::AccessDenied)
+    expect { dashboard.publish! }.to raise_error(Aws::S3::Errors::ServiceUnavailable)
+    expect(s3.api_requests.map { |r| r[:params][:key] } & section_keys).to eq([])
     expect(
       [old.reload.attributes.values_at('published_url', 'state'), dashboard.reload.attributes.values_at('published_url', 'state')],
     ).to eq([['https://example.test/index.html', 'published'], [nil, 'pre-calculated']])

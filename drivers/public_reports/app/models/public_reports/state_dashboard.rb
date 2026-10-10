@@ -62,46 +62,54 @@ module PublicReports
     end
 
     def publish!
-      # This should:
-      # 1. Take the contents of html and push it up to S3
-      # 2. Populate the published_url field
-      # 3. Populate the embed_code field
-      # Uploading inside the transaction keeps the report unpublished if S3 raises.
+      # Upload every section to a private staging folder first, so a failed upload leaves the
+      # public pages alone. Then copy each one into place. A failed copy can still leave a mix
+      # of old and new pages; publishing again fixes it.
+      staging_root = File.join(public_s3_directory, "_staging_#{Date.current.iso8601}")
+      self.html = as_html
+      stage_sections(staging_root)
       self.class.transaction do
         unpublish_similar
         update!(
-          html: as_html,
           published_url: generate_publish_url, # NOTE this isn't used in this report
           embed_code: generate_embed_code, # NOTE this isn't used in this report
           state: :published,
         )
-        push_to_s3
+        promote_staged_sections(staging_root)
       end
+      remove_staged_sections(staging_root)
     end
 
-    # Override default push to s3 to enable multiple files
-    private def push_to_s3
-      bucket = s3_bucket
+    private def section_key(section, root: public_s3_directory)
+      File.join(root, version_slug.to_s, section.to_s, 'index.html')
+    end
+
+    private def stage_sections(staging_root)
       sections.each do |section|
-        prefix = File.join(public_s3_directory, version_slug.to_s, section.to_s)
-        section_html = html_section(section)
-
-        key = File.join(prefix, 'index.html')
-
-        resp = s3_client.put_object(
-          acl: 'public-read',
-          bucket: bucket,
-          key: key,
-          body: section_html,
+        s3_client.put_object(
+          bucket: s3_bucket,
+          key: section_key(section, root: staging_root),
+          body: html_section(section),
           content_disposition: 'inline',
           content_type: 'text/html',
         )
-        if resp.etag
-          Rails.logger.info 'Successfully uploaded report file to s3'
-        else
-          Rails.logger.info 'Unable to upload report file'
-        end
       end
+    end
+
+    # S3 has no rename; a copy within the bucket keeps the content type and sends no body.
+    private def promote_staged_sections(staging_root)
+      sections.each do |section|
+        s3_client.copy_object(
+          bucket: s3_bucket,
+          copy_source: "#{s3_bucket}/#{section_key(section, root: staging_root)}",
+          key: section_key(section),
+          acl: 'public-read',
+        )
+      end
+    end
+
+    private def remove_staged_sections(staging_root)
+      sections.each { |section| s3_client.delete_object(bucket: s3_bucket, key: section_key(section, root: staging_root)) }
     end
 
     private def remove_from_s3
