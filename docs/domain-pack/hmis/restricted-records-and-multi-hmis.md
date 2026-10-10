@@ -68,9 +68,10 @@ Restricted records:
 - `Mutations::SetClientRestricted` (`drivers/hmis/app/graphql/mutations/set_client_restricted.rb`),
   gated by `HmisClientPolicy::Instance#can_mark_restricted?` (`can_mark_clients_as_restricted`).
 - `client.restricted?`, `client.mark_as_restricted!(user:)`, `client.remove_restriction!`.
-- `Hmis::Hud::Client.searchable_to(user)`: `visible_to` minus restricted clients
+- `Hmis::Hud::Client.searchable_to(user, client_ids: nil)`: `visible_to` minus restricted clients
   the user cannot view (a SQL predicate). Used by `Client.client_search` and the
-  `clientOmniSearch` query.
+  `clientOmniSearch` query. Text search goes through `Client.searchable_to_matching(user, text)`,
+  which passes the matched ids as `client_ids:`.
 - `Hmis::AuthPolicies::UserContext#pii_redacted_for_client?(client_id)`, read through
   `HmisClientPolicy::Instance#pii_redacted?`.
 
@@ -196,6 +197,10 @@ check uses `true_hmis_user`, so an admin impersonating a blocked user is not loc
   do not add cache busting elsewhere, including long-running exports.
 - Keep the `OFFSET 0` fence on the enrollment `EXISTS` in `Client.searchable_to`; without it
   Postgres can hash every enrollment in the permitted projects.
+- `client_ids:` on `visible_to`/`searchable_to` is applied inside each branch of the
+  `union_sql_for_clients_in_projects_or_unenrolled` union; Postgres does not push an outer
+  `where(id:)` into it. `nil` means no limit; `[]` means no clients (unlike the warehouse
+  `searchable_to`, which treats `[]` as unrestricted).
 - A restricted client with no enrollments is redacted and hidden for everyone, including users
   who hold `can_view_restricted_clients` somewhere. Marking and unmarking still use the normal
   `client_permissions` fallback to global permissions, so the marker can unmark.
