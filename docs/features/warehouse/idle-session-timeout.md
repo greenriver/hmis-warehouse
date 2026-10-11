@@ -53,12 +53,13 @@ Values are from the dev stack. Each customer has its own Dex, backed by Keycloak
 | Keycloak | `ssoSessionIdleTimeout` / `clientSessionIdleTimeout` | 1800s | `docker/keycloak/realm-import.json` |
 | Keycloak | `ssoSessionMaxLifespan` | 28800s (8h) | same |
 | Modal | `WARNING_WHEN_REMAINING_SECS` | 5m | `inactive_session_modal_controller.js` |
+| HMIS frontend | `promptToExtendBefore` | 5m | `hmis-frontend` repo, `src/routes/AppRoutes.tsx` |
 
 Constraints:
 
 - `idTokens` ≤ the IdP's idle timeout (Keycloak in dev). Otherwise the countdown outlives the real session.
 - `idTokens` > `cookie_refresh`. Otherwise a token can expire before oauth2-proxy will refresh it.
-- Warning window ≤ `idTokens` − `cookie_refresh` (5m ≤ 30m − 5m). Otherwise "I'm still here" can arrive before the cookie is old enough to refresh, and the keepalive fails.
+- Each warning window (`WARNING_WHEN_REMAINING_SECS`, and the HMIS `promptToExtendBefore`) ≤ `idTokens` − `cookie_refresh` (5m ≤ 30m − 5m). Otherwise "I'm still here" or the HMIS "Keep me signed-in" can arrive before the cookie is old enough to refresh, and the keepalive fails. In the HMIS that failure shows as "Your session can't be extended" during a healthy session.
 - Dex `absoluteLifetime` > `cookie_expire`. Otherwise the refresh token dies before the cookie does.
 - The IdP must reject a refresh once the session has been idle for the timeout (Keycloak `ssoSessionIdleTimeout`, or Okta's refresh-token idle expiry). Otherwise the modal clears the page at 0, but the next request refreshes and the user is signed back in.
 
