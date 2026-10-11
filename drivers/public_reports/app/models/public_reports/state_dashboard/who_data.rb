@@ -131,23 +131,14 @@ class PublicReports::StateDashboard::WhoData
     races = ::HudHelper.util.races(multi_racial: true).except('HispanicLatinaeo', 'MidEastNAfrican')
     client_cache = GrdaWarehouse::Hud::Client.new
 
-    labels = nil
-    colors = nil
-    overall = nil
+    race_keys = nil
     homeless_rows = []
     totals = []
 
     dates = @report.iteration_dates
-    dates.each_with_index do |date, index|
+    dates.each do |date|
       client_ids = Set.new
-      data = {}
-      census_data = {}
-      full_pop = (@report.geography.population_by_race(year: date.year) || 0).to_f
-      races.each do |race_code, label|
-        data[label] ||= Set.new
-        race_pop = @report.geography.population_by_race(race_code: race_code, year: date.year) || 0
-        census_data[label] = full_pop.positive? ? (race_pop.to_f / full_pop) * 100.0 : 0.0
-      end
+      data = races.values.to_h { |label| [label, Set.new] }
 
       period_scope(date).joins(:client).preload(:client).
         find_each do |enrollment|
@@ -159,24 +150,33 @@ class PublicReports::StateDashboard::WhoData
         end
       total_count = data.map { |_, ids| ids.count }.sum
       data = @report.enforce_min_threshold(data, 'race')
-
-      labels ||= data.keys.map { |race| race == 'None' ? 'Other or Unknown' : race }
-      colors ||= labels.each_with_index.to_h { |label, i| [label, settings.color(i, :race)] }
+      race_keys ||= data.keys
 
       homeless_rows << data.map do |_race, ids|
         total_count.positive? ? ((ids.count * 100.0) / total_count).round(1) : 0.0
       end
       totals << @report.published_total(total_count)
-
-      overall = data.keys.map { |race| race == 'None' ? nil : census_data[race]&.round(1) } if index == dates.size - 1
     end
 
+    labels = race_keys&.map { |race| race == 'None' ? 'Other or Unknown' : race }
     {
       labels: labels,
-      colors: colors,
-      overall: overall,
+      colors: labels&.each_with_index&.to_h { |label, i| [label, settings.color(i, :race)] },
+      overall: race_keys && census_shares(races, race_keys, dates.last.year),
       homeless: homeless_rows,
       totals: totals,
     }
+  end
+
+  # Census share (percent) of each race label in the statewide population; nil for the 'None' bucket.
+  private def census_shares(races, keys, year)
+    full_pop = (@report.geography.population_by_race(year: year) || 0).to_f
+    keys.map do |label|
+      race_code = races.key(label)
+      next nil unless race_code
+
+      race_pop = @report.geography.population_by_race(race_code: race_code, year: year) || 0
+      full_pop.positive? ? ((race_pop.to_f / full_pop) * 100.0).round(1) : 0.0
+    end
   end
 end
