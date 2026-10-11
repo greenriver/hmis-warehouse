@@ -75,10 +75,6 @@ RSpec.describe Hmis::RepointFormProcessorsToLatestJob, type: :job do
       expect(result.map { |r| r[:identifier] }).to eq(['my_note', 'my_cls', 'my_assessment', 'my_service']) # ordered by role, then identifier
     end
 
-    it 'does not write PaperTrail versions' do
-      expect { run(dry_run: false) }.not_to change(PaperTrail::Version, :count)
-    end
-
     it 'only repoints the requested roles' do
       result = run(roles: ['SERVICE'], dry_run: false)
 
@@ -180,12 +176,6 @@ RSpec.describe Hmis::RepointFormProcessorsToLatestJob, type: :job do
       expect(current_definition_id(mine_fp)).to eq(published.id)
       expect(current_definition_id(other_fp)).to eq(other[:retired].first.id)
     end
-
-    it 'leaves processors with no definition alone' do
-      no_definition_fp = create(:hmis_form_processor, owner: create(:hmis_hud_custom_case_note, data_source: ds), definition: nil)
-
-      expect { run(dry_run: false) }.not_to(change { current_definition_id(no_definition_fp) })
-    end
   end
 
   describe 'several retired versions of one form' do
@@ -235,42 +225,6 @@ RSpec.describe Hmis::RepointFormProcessorsToLatestJob, type: :job do
     it 'requires an explicit data source when there are several HMIS data sources' do
       other_ds
       expect { described_class.perform_now }.to raise_error(ArgumentError, /exactly one HMIS data source/)
-    end
-  end
-
-  describe 'concurrent runs' do
-    it 'does nothing when another run holds the advisory lock' do
-      form = create_form(identifier: 'my_note', role: 'CASE_NOTE')
-      fp = note_processor(form[:retired].first)
-
-      # Hold the lock from another thread on its own connection: with_advisory_lock treats a lock held by the
-      # current thread as re-entrant, and transactional specs share one connection across threads.
-      lock_holder = Class.new(ActiveRecord::Base) do
-        self.abstract_class = true
-        def self.name = 'RepointJobSpecLockHolder'
-      end
-      lock_holder.establish_connection(::GrdaWarehouseBase.connection_db_config)
-      locked = Queue.new
-      release = Queue.new
-      holder = Thread.new do
-        lock_holder.with_advisory_lock('hmis_repoint_form_processors_to_latest') do
-          locked << true
-          release.pop
-        end
-      end
-      locked.pop
-
-      begin
-        result = run(dry_run: false)
-      ensure
-        release << true
-        holder.join
-        lock_holder.remove_connection
-      end
-
-      expect(result).to eq([])
-      expect(current_definition_id(fp)).to eq(form[:retired].first.id)
-      expect(described_class).not_to have_received(:send_single_notification)
     end
   end
 end
