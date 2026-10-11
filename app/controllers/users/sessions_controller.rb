@@ -15,6 +15,8 @@ class Users::SessionsController < Devise::SessionsController
   # Wraps the entire :create callback chain (including authenticate_with_two_factor and Devise's
   # own filters), so the timing log always runs.
   prepend_around_action :time_login, only: :create
+  # The keepalive is an XHR, which skip_timeout would otherwise exclude from extending the session.
+  skip_before_action :skip_timeout, only: :keepalive
 
   # Minimum required login processing time for ALL login attempts (seconds)
   MIN_REQ_LOGIN_TIME = 2
@@ -66,7 +68,11 @@ class Users::SessionsController < Devise::SessionsController
     super
   end
 
+  # Devise's authenticate_user! no-ops in Devise controllers without `force`. Forcing it makes a
+  # keepalive with no signed-in user return 401 instead of 200. (The session itself is extended by
+  # the timeoutable hook, which runs when an earlier before_action calls current_user.)
   def keepalive
+    authenticate_user!(force: true)
     head :ok
   end
 

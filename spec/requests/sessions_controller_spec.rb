@@ -320,4 +320,39 @@ RSpec.describe 'Users::SessionsController', :devise_only, type: :request do
       end
     end
   end
+
+  describe 'keepalive' do
+    # The inactivity modal posts the keepalive as an XHR
+    def keepalive
+      post session_keepalive_path, xhr: true
+    end
+
+    it 'rejects a request with no signed-in user' do
+      keepalive
+      expect(response).to have_http_status(:unauthorized)
+    end
+
+    context 'when signed in' do
+      # sign_in takes effect on the next request, which starts the inactivity clock
+      before do
+        sign_in user
+        get root_path
+      end
+
+      it 'extends the session past the original timeout' do
+        travel(Devise.timeout_in - 5.minutes) { keepalive }
+        expect(response).to have_http_status(:ok)
+
+        travel(Devise.timeout_in + 5.minutes) do
+          get root_path
+          expect(response).to have_http_status(:ok)
+        end
+      end
+
+      it 'does not revive a session that has already timed out' do
+        travel(Devise.timeout_in + 1.minute) { keepalive }
+        expect(response).to have_http_status(:unauthorized)
+      end
+    end
+  end
 end
