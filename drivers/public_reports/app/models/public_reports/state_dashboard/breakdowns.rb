@@ -252,31 +252,36 @@ class PublicReports::StateDashboard::Breakdowns
   end
 
   # household_key => { ages:, hoh_client_id: } for households served in the period.
+  # An unknown (nil or negative) age keeps the household but adds no age, so a household with
+  # only unknown ages has no child present and classifies as adult-only. Age only grows, so the
+  # minimum known age is the age at the client's earliest service.
   private def households(start_date, end_date)
-    households = {}
-    counted_ids = Set.new
     shs_scope = GrdaWarehouse::ServiceHistoryService.where(date: start_date..end_date)
-    @report.homeless_scope.with_service_between(
+    members = @report.homeless_scope.with_service_between(
       start_date: start_date,
       end_date: end_date,
       service_scope: shs_scope,
     ).
       joins(:service_history_services).
       merge(shs_scope).
-      order(shs_t[:date].asc).
-      pluck(household_key, shs_t[:age], shs_t[:client_id], she_t[:head_of_household]).
-      each do |hh_id, age, client_id, hoh|
-        key = [hh_id, client_id]
-        households[hh_id] ||= { ages: [], hoh_client_id: nil }
-        # An unknown (nil or negative) age keeps the household but records no age, so a household
-        # with only unknown ages has no child present and classifies as adult-only. The client is
-        # marked counted only once an age is recorded, so a later known age is still taken.
-        if age.present? && !age.negative? && !counted_ids.include?(key)
-          households[hh_id][:ages] << age
-          counted_ids << key
-        end
-        households[hh_id][:hoh_client_id] = client_id if hoh
-      end
+      group(household_key, shs_t[:client_id]).
+      pluck(
+        household_key,
+        shs_t[:client_id],
+        shs_t[:age].minimum.filter(shs_t[:age].gteq(0)),
+        shs_t[:date].maximum.filter(she_t[:head_of_household].eq(true)),
+      )
+
+    households = {}
+    hoh_dates = {}
+    members.each do |hh_id, client_id, age, hoh_date|
+      household = households[hh_id] ||= { ages: [], hoh_client_id: nil }
+      household[:ages] << age if age
+      next unless hoh_date && (hoh_dates[hh_id].nil? || hoh_date > hoh_dates[hh_id])
+
+      hoh_dates[hh_id] = hoh_date
+      household[:hoh_client_id] = client_id
+    end
     households
   end
   memoize :households

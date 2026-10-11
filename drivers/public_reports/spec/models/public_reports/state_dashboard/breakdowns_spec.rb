@@ -118,6 +118,15 @@ RSpec.describe PublicReports::StateDashboard::Breakdowns, type: :model do
 
       expect(breakdowns.child_only_household_ids(period_start, period_end)).to eq(household_key('unknown-then-child') => hoh)
     end
+
+    it 'classifies by the age at the earliest service when a client turns 18 during the period' do
+      client = create(:hud_client, data_source_id: data_source.id)
+      hoh = create_member(household_id: 'turns-18', age: 17, head_of_household: true, date: Date.parse('2025-10-10'), client: client)
+      create_member(household_id: 'turns-18', age: 18, head_of_household: true, date: Date.parse('2025-10-20'), client: client)
+      create_member(household_id: 'turns-18', age: -1, date: Date.parse('2025-10-05'), client: client)
+
+      expect([breakdowns.child_only_household_ids(period_start, period_end), breakdowns.adult_only_household_ids(period_start, period_end).key?(household_key('turns-18'))]).to eq([{ household_key('turns-18') => hoh }, false])
+    end
   end
 
   describe 'household identity' do
