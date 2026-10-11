@@ -18,8 +18,8 @@
 # version, for example when a form bug is found after an import, the form is fixed and republished, and the imported
 # records need to use it. @see docs/features/hmis/hmis-form-resolution.md ("Choosing a definition for an existing record")
 #
-# GOTCHAS
-# - For case notes, services and CLS the new version also becomes the form used to EDIT them.
+# NOTES
+# - For case notes, services and CLS the new version also becomes the form used to Edit them.
 # - Questions that exist only in the retired version stop showing (the stored values are kept). Compare versions first.
 # - Skips work-in-progress assessments, HUD assessment roles and system forms.
 # - Retired definitions with no published version are skipped (reported in the log).
