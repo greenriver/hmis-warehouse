@@ -20,6 +20,27 @@ class PublicReports::StateDashboard::MapData
     'Veterans',
   ].freeze
 
+  # [max, label] per band, lowest first. Band 0 is drawn white; band n uses Setting#color(n - 1).
+  PERCENT_BANDS = [
+    [0, '0%'],
+    [10.0, 'Any - 10%'],
+    [15.0, '11% - 15%'],
+    [20.0, '16% - 20%'],
+    [25.0, '21% - 25%'],
+    [100.0, '26%+'],
+  ].freeze
+
+  CENSUS_BANDS = [
+    [0, 'None'],
+    [3.0, 'Any - 3 per 10,000'],
+    [6.0, '4 - 6 per 10,000'],
+    [9.0, '7 - 9 per 10,000'],
+    [12.0, '10 - 12 per 10,000'],
+    [15.0, '13 - 15 per 10,000'],
+    [18.0, '16 - 18 per 10,000'],
+    [100.0, '19+ per 10,000'],
+  ].freeze
+
   def initialize(report)
     @report = report
   end
@@ -80,43 +101,22 @@ class PublicReports::StateDashboard::MapData
       values: values,
       populations: populations,
       statewideTotals: statewide_totals,
-      bands: colors.map { |color, info| { max: info[:high], color: color, label: info[:description] } },
+      bands: bands,
       notReportingColor: settings.theme[:not_reporting],
       unit: census_rate? ? 'Rate per 10,000 population' : 'Percentage of homeless population',
       map_type: settings.map_type,
     }
   end
 
-  def colors
-    @colors ||= {}.tap do |m_colors|
-      colors = ['#FFFFFF']
-      8.times do |i|
-        colors << settings.color(i)
-      end
-      if census_rate?
-        m_colors[colors[0]] = { description: 'None', range: (0..0), low: 0, high: 0 }
-        m_colors[colors[1]] = { description: 'Any - 3 per 10,000', range: (0.000001..3.0), low: 0.000001, high: 3.0 }
-        m_colors[colors[2]] = { description: '4 - 6 per 10,000', range: (4.000001..6.0), low: 4.000001, high: 6.0 }
-        m_colors[colors[3]] = { description: '7 - 9 per 10,000', range: (7.000001..9.0), low: 7.000001, high: 9.0 }
-        m_colors[colors[4]] = { description: '10 - 12 per 10,000', range: (10.000001..12.0), low: 10.000001, high: 12.0 }
-        m_colors[colors[5]] = { description: '13 - 15 per 10,000', range: (13.000001..15.0), low: 13.000001, high: 15.0 }
-        m_colors[colors[6]] = { description: '16 - 18 per 10,000', range: (16.000001..18.0), low: 16.000001, high: 18.0 }
-        m_colors[colors[7]] = { description: '19+ per 10,000', range: (18.000001..100.0), low: 18.000001, high: 100.0 }
-      else
-        m_colors[colors[0]] = { description: '0%', range: (0..0), low: 0, high: 0 }
-        m_colors[colors[1]] = { description: 'Any - 10%', range: (0.000001..10.0), low: 0.000001, high: 10.0 }
-        m_colors[colors[2]] = { description: '11% - 15%', range: (10.000001..15.0), low: 10.000001, high: 15.0 }
-        m_colors[colors[3]] = { description: '16% - 20%', range: (15.000001..20.0), low: 15.000001, high: 20.0 }
-        m_colors[colors[4]] = { description: '21% - 25%', range: (20.000001..25.0), low: 20.000001, high: 25.0 }
-        m_colors[colors[5]] = { description: '26%+', range: (25.000001..100.0), low: 25.000001, high: 100.0 }
-      end
+  def bands
+    @bands ||= (census_rate? ? CENSUS_BANDS : PERCENT_BANDS).each_with_index.map do |(max, label), index|
+      { max: max, color: index.zero? ? '#FFFFFF' : settings.color(index - 1), label: label }
     end
   end
 
   # Snaps a rate to the upper bound of the color band it falls into.
   def snap_rate(rate)
-    bucket = colors.values.detect { |b| rate <= b[:high] }
-    (bucket || colors.values.last)[:high]
+    (bands.detect { |band| rate <= band[:max] } || bands.last)[:max]
   end
 
   private def settings

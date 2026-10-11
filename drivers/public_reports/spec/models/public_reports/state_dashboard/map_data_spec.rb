@@ -53,6 +53,14 @@ RSpec.describe PublicReports::StateDashboard::MapData, type: :model do
         expect(snapped).to eq([3.0, 6.0, 18.0, 100.0])
       end
     end
+
+    context 'when two band colors are the same' do
+      before { settings.update!(map_overall_population_method: 'state', color_0: '#003d79', color_1: '#003d79') }
+
+      it 'keeps every band and snaps a rate to its own band' do
+        expect([map_data.snap_rate(5.0), map_data.to_h[:bands].map { |band| band[:max] }]).to eq([10.0, [0, 10.0, 15.0, 20.0, 25.0, 100.0]])
+      end
+    end
   end
 
   # town_map.js and _town_map.haml string-match these keys, the `Percentage` prefix of
