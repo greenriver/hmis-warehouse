@@ -67,7 +67,7 @@ Constraints:
 - In JWT, a page that polls via XHR/fetch can extend extend the lifetime up to the max (8h). Audit and removal of polling is planned.
 - Within Dex's 30s `reuseInterval`, a refresh reuses the last result and doesn't contact the IdP.
 - The IdP's max session lifespan (Keycloak `ssoSessionMaxLifespan`, 8h in dev) ends the session however active the user is, which is earlier than `cookie_expire` (12h).
-- The HMIS frontend keeps its own countdown in the `hmis-frontend` repo. Its idle behaviour, and whether it shares the warehouse's IdP session, are not documented here yet.
+- The HMIS frontend keeps its own countdown in the `hmis-frontend` repo (`src/modules/auth/hooks/README.md`). Under JWT it follows the same token expiry, read from the `X-app-session-remaining-secs` header that `Hmis::BaseController#set_app_user_header` sends on every response. A plain header is enough there because every HMIS request goes through `fetch`, which can read it. Whether the HMIS shares the warehouse's IdP session is not documented here yet.
 
 ## Key Files
 

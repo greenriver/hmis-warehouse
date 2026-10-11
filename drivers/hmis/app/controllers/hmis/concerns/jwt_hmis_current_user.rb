@@ -82,6 +82,11 @@ module Hmis::Concerns::JwtHmisCurrentUser
       (user_session_expires_at - Time.current).to_i
     end
 
+    # The forwarded token's remaining lifetime, nil without a signed-in user.
+    def session_remaining_seconds
+      session_duration_seconds if current_hmis_user
+    end
+
     # no-op under JWT: session lifetime is governed by the IdP token, not a warehouse-side
     # inactivity timer. Some HMIS controllers prepend this as a before_action
     # (e.g. Hmis::UsersController#show), so the JWT arm must respond to it as the Devise arm does.
