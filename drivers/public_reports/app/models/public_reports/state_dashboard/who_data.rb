@@ -102,13 +102,8 @@ class PublicReports::StateDashboard::WhoData
 
   private def household_type_donut
     counts_by_period = @report.iteration_dates.map do |date|
-      start_date = @report.beginning_iteration(date)
-      end_date = @report.end_iteration(date)
-      [
-        household_count(breakdowns.adult_only_household_ids(start_date, end_date)),
-        household_count(breakdowns.adult_and_child_household_ids(start_date, end_date)),
-        household_count(breakdowns.child_only_household_ids(start_date, end_date)),
-      ]
+      breakdowns.household_type_counts(@report.beginning_iteration(date), @report.end_iteration(date)).
+        values_at(*PublicReports::StateDashboard::Breakdowns::HOUSEHOLD_TYPES)
     end
     donut(
       title: 'Household Type',
@@ -118,11 +113,6 @@ class PublicReports::StateDashboard::WhoData
       counts_by_period: counts_by_period,
       threshold_key: 'household_type',
     )
-  end
-
-  # A head of household with several households counts once; a household with no flagged head counts on its own.
-  private def household_count(hoh_client_id_by_household)
-    hoh_client_id_by_household.map { |household_key, hoh_client_id| hoh_client_id || household_key }.uniq.count
   end
 
   private def race_chart

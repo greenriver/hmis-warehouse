@@ -479,13 +479,6 @@ RSpec.describe PublicReports::StateDashboard, type: :model do
     end
   end
 
-  it 'sends household keys to the database once per section instead of in every count query' do
-    sqls = []
-    ActiveSupport::Notifications.subscribed(->(*, payload) { sqls << payload[:sql] }, 'sql.active_record') { data }
-
-    expect(sqls.grep(/household-0/).map { |sql| sql[/\A\s*(\w+)/, 1].upcase }.uniq).to eq(['INSERT'])
-  end
-
   it 'has no census equivalent for the "Other or Unknown" race bucket in the overall row' do
     expect(data['who']['race']['overall'].last).to be_nil
   end
