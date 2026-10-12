@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
 module Hmis::Ce::Match
-  # Catalog of CE match fields for the rule builder. This class adapts both client
-  # expression fields and CDED/form fields into the builder-facing Field shape
-  # used by GraphQL and structured-expression translation.
+  # Catalog of CE match fields for the rule builder. This class adapts client,
+  # registry-backed (PSDE, household), and CDED/form fields into the
+  # builder-facing Field shape used by GraphQL and structured-expression translation.
   class FieldCatalog
     # Pick list reference map lives here to keep it out of the ClientFieldMap implementation/engine layer
     CLIENT_PICK_LIST_REFERENCES = {
@@ -14,7 +14,22 @@ module Hmis::Ce::Match
     }.freeze
 
     # A registry-backed expression namespace (e.g. psde.*) and the GraphQL field source it is exposed as
-    RegistryNamespace = Data.define(:namespace, :registry, :source)
+    RegistryNamespace = Data.define(:namespace, :registry, :source) do
+      def registry_fields
+        registry::ALL
+      end
+
+      def registry_field(key)
+        registry[key]
+      end
+
+      # Use the namespaced key (e.g. "psde.income") for both id and field_key. This
+      # matches the expression syntax and keeps ids unique across namespaces and
+      # against bare client field keys.
+      def field_key_for(registry_field)
+        "#{namespace}.#{registry_field.key}"
+      end
+    end
 
     REGISTRY_NAMESPACES = [
       RegistryNamespace.new(
@@ -28,6 +43,7 @@ module Hmis::Ce::Match
         source: :HOUSEHOLD,
       ),
     ].index_by(&:namespace).freeze
+    private_constant :RegistryNamespace, :REGISTRY_NAMESPACES
 
     def initialize(current_date: Date.current)
       @current_date = current_date
@@ -37,8 +53,6 @@ module Hmis::Ce::Match
       client_field_map.fields.map { |client_field| build_client_field(client_field) }
     end
 
-    # Build this catalog from the registry so newly registered PSDE fields are
-    # automatically available through the GraphQL field query.
     def psde_fields
       registry_fields(Hmis::Ce::Match::Expression::FieldMap::PSDE)
     end
@@ -69,7 +83,7 @@ module Hmis::Ce::Match
         build_client_field(client_field) if client_field
       when *REGISTRY_NAMESPACES.keys
         registry_namespace = REGISTRY_NAMESPACES.fetch(namespace)
-        registry_field = registry_namespace.registry[resolved_key]
+        registry_field = registry_namespace.registry_field(resolved_key)
         build_registry_field(registry_namespace, registry_field) if registry_field
       when Hmis::Ce::Match::Expression::FieldMap::CDE
         cded_key = resolved_key.split('.').last
@@ -107,15 +121,15 @@ module Hmis::Ce::Match
       )
     end
 
+    # Build from the registry so newly registered fields are automatically
+    # available through the GraphQL field query.
     def registry_fields(namespace)
       registry_namespace = REGISTRY_NAMESPACES.fetch(namespace)
-      registry_namespace.registry::ALL.map { |registry_field| build_registry_field(registry_namespace, registry_field) }
+      registry_namespace.registry_fields.map { |registry_field| build_registry_field(registry_namespace, registry_field) }
     end
 
     def build_registry_field(registry_namespace, registry_field)
-      # Keep the namespace (e.g. psde.*) in both identifiers. Besides matching the
-      # expression syntax, this prevents collisions with client and CDED fields.
-      field_key = "#{registry_namespace.namespace}.#{registry_field.key}"
+      field_key = registry_namespace.field_key_for(registry_field)
 
       Field.new(
         id: field_key,
