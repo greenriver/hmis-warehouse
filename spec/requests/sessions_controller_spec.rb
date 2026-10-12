@@ -349,6 +349,14 @@ RSpec.describe 'Users::SessionsController', :devise_only, type: :request do
         end
       end
 
+      it 'shows the session expiry relative to the last request' do
+        freeze_time do
+          get root_path
+          expected = (Time.current + Devise.timeout_in).strftime('%l:%M:%S %P')
+          expect(response.body).to include(expected)
+        end
+      end
+
       it 'does not revive a session that has already timed out' do
         travel(Devise.timeout_in + 1.minute) { keepalive }
         expect(response).to have_http_status(:unauthorized)
