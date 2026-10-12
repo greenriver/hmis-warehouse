@@ -112,4 +112,9 @@ RSpec.describe Hmis::Ce::Match::Expression::HouseholdValueResolver, type: :model
     create(:hmis_hud_exit, enrollment: hoh.enrollments.first, client: hoh, data_source: hmis_data_source, exit_date: current_date - 1.day)
     expect(resolve).to eq('size' => nil, 'youngest_member_age' => nil, 'oldest_member_age' => nil)
   end
+
+  it 'raises on an unknown field even when no client is given' do
+    unknown = Hmis::Ce::Match::Expression::HouseholdField.new(key: 'unknown', value_type: :numeric, multiple: false, label: 'Unknown', description: '')
+    expect { resolver.call(GrdaWarehouse::Hud::Client.none, unknown) }.to raise_error(ArgumentError, /Unknown household field/)
+  end
 end

@@ -9,9 +9,8 @@
 module Hmis::Ce::Match::Expression
   # Resolves household.* field values for destination clients in batch, from the household chosen by HouseholdSelector.
   #
-  # size counts the people with an open member enrollment, including members with no DOB.
-  # Member ages use each member's destination client DOB; members without one are ignored for ages.
-  # Clients with no open in-scope household resolve to nil.
+  # size comes from HouseholdSelector. Member ages use each member's destination client DOB; members without one
+  # are ignored for ages. Clients with no open in-scope household resolve to nil.
   class HouseholdValueResolver
     Batch = Data.define(:client_ids, :households_by_client_id, :ages_by_destination_id) do
       # @return [Array<Integer>] ages of the household's members that have a DOB
@@ -27,6 +26,7 @@ module Hmis::Ce::Match::Expression
 
     # @return [Hash{Integer => Integer, nil}]
     def call(clients, field)
+      value_for = value_extractor(field)
       client_ids = extract_client_ids(clients)
       return {} if client_ids.empty?
 
@@ -34,22 +34,25 @@ module Hmis::Ce::Match::Expression
 
       client_ids.index_with do |client_id|
         household = batch.households_by_client_id[client_id]
-        next nil unless household
-
-        case field.key
-        when HouseholdFieldRegistry::SIZE.key
-          household.size
-        when HouseholdFieldRegistry::YOUNGEST_MEMBER_AGE.key
-          batch.member_ages(household).min
-        when HouseholdFieldRegistry::OLDEST_MEMBER_AGE.key
-          batch.member_ages(household).max
-        else
-          raise ArgumentError, "Unknown household field \"#{field.key}\""
-        end
+        value_for.call(household, batch) if household
       end
     end
 
     private
+
+    # Resolved before loading so an unknown field raises even when no client has a household
+    def value_extractor(field)
+      case field.key
+      when HouseholdFieldRegistry::SIZE.key
+        ->(household, _batch) { household.size }
+      when HouseholdFieldRegistry::YOUNGEST_MEMBER_AGE.key
+        ->(household, batch) { batch.member_ages(household).min }
+      when HouseholdFieldRegistry::OLDEST_MEMBER_AGE.key
+        ->(household, batch) { batch.member_ages(household).max }
+      else
+        raise ArgumentError, "Unknown household field \"#{field.key}\""
+      end
+    end
 
     # ClientPoolEvaluator resolves each household.* field separately for the same clients, so the last batch is
     # reused when the client ids match, in any order.
