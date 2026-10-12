@@ -469,6 +469,45 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
       end
     end
 
+    context 'when a project rule narrows a matching system rule' do
+      let!(:project) { create(:hmis_hud_project, data_source: ds1, project_type: 3) }
+      let!(:system_rule) { create(:hmis_form_instance, role: role, entity: nil, project_type: 3, system: true, data_collected_about: :HOH_AND_ADULTS, definition: definition, data_source: ds1) }
+      let!(:override) { create(:hmis_form_instance, role: role, entity: project, data_collected_about: :HOH, definition: definition, data_source: ds1) }
+
+      let!(:adult) { create(:hmis_hud_client, data_source: ds1, DOB: 30.years.ago.to_date) }
+      let!(:child) { create(:hmis_hud_client, data_source: ds1, DOB: 5.years.ago.to_date) }
+      let!(:adult_enrollment) { create(:hmis_hud_enrollment, project: project, client: adult, data_source: ds1, household_id: 'household1', relationship_to_hoh: 3) }
+      let!(:child_enrollment) { create(:hmis_hud_enrollment, project: project, client: child, data_source: ds1, household_id: 'household1', relationship_to_hoh: 2) }
+
+      def active_form(data_collected_about)
+        have_attributes(legacy: false, definition: definition, data_collected_about: data_collected_about)
+      end
+
+      it 'returns the form from the override for the HoH' do
+        expect(hoh_enrollment.occurrence_point_forms).to contain_exactly(active_form('HOH'))
+      end
+
+      it 'returns the form from the system rule for a non-HoH adult' do
+        expect(adult_enrollment.occurrence_point_forms).to contain_exactly(active_form('HOH_AND_ADULTS'))
+      end
+
+      it 'does not return the form for a non-HoH child' do
+        expect(child_enrollment.occurrence_point_forms).to be_empty
+      end
+
+      context 'with a broader non-system rule for the project type' do
+        let!(:project_type_rule) { create(:hmis_form_instance, role: role, entity: nil, project_type: 3, data_collected_about: :ALL_CLIENTS, definition: definition, data_source: ds1) }
+
+        it 'returns the form from the system rule, not the project type rule, for a non-HoH adult' do
+          expect(adult_enrollment.occurrence_point_forms).to contain_exactly(active_form('HOH_AND_ADULTS'))
+        end
+
+        it 'does not return the form for a non-HoH child' do
+          expect(child_enrollment.occurrence_point_forms).to be_empty
+        end
+      end
+    end
+
     context 'PATH Status form' do
       let(:legacy_expected_struct) do
         have_attributes(
