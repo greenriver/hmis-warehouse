@@ -49,7 +49,6 @@ class PublicReports::StateDashboard::MapData
     dates = @report.iteration_dates
     codes = geography.codes
     populations = codes.map { |code| overall_population_geography(dates.last.year, code) }
-    group_scopes = (0...GROUP_LABELS.size).map { |i| group_scope(i) }
 
     values = []
     statewide_totals = []
@@ -57,25 +56,13 @@ class PublicReports::StateDashboard::MapData
     dates.each do |date|
       start_date = @report.beginning_iteration(date)
       end_date = @report.end_iteration(date)
+      overall_counts = group_overall_counts(start_date, end_date, populations.first)
+      code_counts = group_counts_by_code(start_date, end_date, overall_counts)
       period_values = []
       period_totals = []
 
-      group_scopes.each do |scope, service_scope|
-        overall_homeless_population = homeless_population_overall(
-          scope: scope,
-          start_date: start_date,
-          end_date: end_date,
-          service_scope: service_scope,
-          population_overall: populations.first,
-        )
+      overall_counts.zip(code_counts).each do |overall_homeless_population, homeless_counts|
         period_totals << @report.published_total(overall_homeless_population)
-        homeless_counts = homeless_counts_by_code(
-          scope: scope,
-          start_date: start_date,
-          end_date: end_date,
-          service_scope: service_scope,
-          overall_homeless_population: overall_homeless_population,
-        )
 
         # Every period divides by the published population so the rate matches the population shown beside it.
         period_values << codes.each_with_index.map do |code, code_index|
@@ -137,23 +124,23 @@ class PublicReports::StateDashboard::MapData
     Rails.env.development?
   end
 
-  # [scope, service_scope] for one group, index-aligned with GROUP_LABELS.
-  private def group_scope(index)
-    case index
-    when 0
-      [@report.homeless_scope, :current_scope]
-    when 1
-      # filter_for_age reads @filter
-      @filter = @report.filter_object.deep_dup
-      @filter.age_ranges = [:eighteen_to_twenty_four]
-      [filter_for_age(@report.homeless_scope), GrdaWarehouse::ServiceHistoryService.aged(18..24)]
-    when 2
-      [@report.homeless_scope.adult_only_households, :current_scope]
-    when 3
-      [@report.homeless_scope.adults_with_children, :current_scope]
-    when 4
-      [@report.homeless_scope.veterans, :current_scope]
-    end
+  # Index-aligned with GROUP_LABELS: the StateDashboard#period_count_conditions key each group
+  # counts under, or nil for the youth group, which counts only 18-24 services.
+  GROUP_CONDITION_KEYS = [:all, nil, :adult_only_households, :adults_with_children, :veterans].freeze
+
+  private def youth_scope
+    # filter_for_age reads @filter
+    @filter = @report.filter_object.deep_dup
+    @filter.age_ranges = [:eighteen_to_twenty_four]
+    filter_for_age(@report.homeless_scope)
+  end
+
+  private def youth_enrolled_scope(start_date, end_date)
+    youth_scope.with_service_between(
+      start_date: start_date,
+      end_date: end_date,
+      service_scope: GrdaWarehouse::ServiceHistoryService.aged(18..24),
+    )
   end
 
   private def overall_population_geography(year, code)
@@ -162,49 +149,66 @@ class PublicReports::StateDashboard::MapData
     geography.population(year, code)
   end
 
-  private def homeless_population_overall(scope:, start_date:, end_date:, service_scope:, population_overall:)
-    if fake_counts?
-      # This should change across quarter, but not geography
-      max = [population_overall, 1].compact.max / 3
-      @fake_overall_homeless_pop_per_quarter ||= {}
-      @fake_overall_homeless_pop_per_quarter[start_date] ||= {}
-      @fake_overall_homeless_pop_per_quarter[start_date][scope.to_s] ||= (0..max).to_a.sample
-      @fake_overall_homeless_pop_per_quarter[start_date][scope.to_s]
-    else
-      scope.with_service_between(
-        start_date: start_date,
-        end_date: end_date,
-        service_scope: service_scope,
-      ).select(:client_id).distinct.count
+  # Distinct clients served in the period, one per group.
+  private def group_overall_counts(start_date, end_date, population_overall)
+    return GROUP_LABELS.each_index.map { |index| fake_overall_count(start_date, index, population_overall) } if fake_counts?
+
+    shared = @report.period_client_counts(start_date, end_date)
+    GROUP_CONDITION_KEYS.map do |key|
+      key ? shared.fetch(key) : youth_enrolled_scope(start_date, end_date).select(:client_id).distinct.count
     end
   end
 
-  # code => distinct clients served in that geography, from one grouped query.
-  private def homeless_counts_by_code(scope:, start_date:, end_date:, service_scope:, overall_homeless_population:)
+  private def fake_overall_count(start_date, index, population_overall)
+    # This should change across quarter, but not geography
+    max = [population_overall, 1].compact.max / 3
+    @fake_overall_homeless_pop_per_quarter ||= {}
+    @fake_overall_homeless_pop_per_quarter[[start_date, index]] ||= (0..max).to_a.sample
+  end
+
+  # One code => distinct clients hash per group. The groups that share period_count_conditions
+  # are counted in one grouped query, the youth group in another.
+  private def group_counts_by_code(start_date, end_date, overall_counts)
     codes = geography.codes
     if fake_counts?
-      max = [overall_homeless_population, 1].compact.max / 3
-      return codes.to_h { |code| [code, (0..max).to_a.sample] }
+      return overall_counts.map do |overall|
+        max = [overall, 1].compact.max / 3
+        codes.to_h { |code| [code, (0..max).to_a.sample] }
+      end
     end
 
-    enrolled_scope = scope.with_service_between(
-      start_date: start_date,
-      end_date: end_date,
-      service_scope: service_scope,
-    )
-    # Place and county match case-insensitively, so their counts come back keyed by the lowercased name.
-    grouped, case_insensitive = if geography.by_zip?
-      [enrolled_scope.in_zip(zip_code: codes).group(pc_t[:Zip]), false]
+    shared_keys = GROUP_CONDITION_KEYS.compact
+    conditions = @report.period_count_conditions.values_at(*shared_keys)
+    scope = @report.homeless_scope.with_service_between(start_date: start_date, end_date: end_date).left_joins(:client)
+    grouped, code_column, case_insensitive = in_geography(scope)
+    shared_rows = grouped.group(code_column).pluck(code_column, *@report.distinct_client_counts(conditions))
+    shared_counts = shared_keys.each_with_index.to_h do |key, index|
+      [key, shared_rows.to_h { |code, *counts| [code, counts[index]] }]
+    end
+
+    youth_grouped, youth_code_column, = in_geography(youth_enrolled_scope(start_date, end_date))
+    youth_counts = youth_grouped.group(youth_code_column).distinct.count(she_t[:client_id])
+
+    GROUP_CONDITION_KEYS.map do |key|
+      counts = key ? shared_counts.fetch(key) : youth_counts
+      codes.to_h { |code| [code, counts.fetch(case_insensitive ? code.downcase : code, 0)] }
+    end
+  end
+
+  # [scope limited to the map's codes, code column to group by, whether codes come back lowercased].
+  # Place and county match case-insensitively, so their counts come back keyed by the lowercased name.
+  private def in_geography(scope)
+    codes = geography.codes
+    if geography.by_zip?
+      [scope.in_zip(zip_code: codes), pc_t[:Zip], false]
     elsif geography.by_place?
-      [enrolled_scope.in_place(place: codes).group(pc_t[:City].lower), true]
+      [scope.in_place(place: codes), pc_t[:City].lower, true]
     elsif geography.by_county?
       # county_by_name downcases its argument in place, so it gets a copy of the memoized codes.
-      [enrolled_scope.in_county(county: codes.dup).group(GrdaWarehouse::Shape::County.arel_table[:namelsad].lower), true]
+      [scope.in_county(county: codes.dup), GrdaWarehouse::Shape::County.arel_table[:namelsad].lower, true]
     else
-      [enrolled_scope.in_coc(coc_code: codes).group(pc_t[:CoCCode]), false]
+      [scope.in_coc(coc_code: codes), pc_t[:CoCCode], false]
     end
-    counts = grouped.distinct.count(she_t[:client_id])
-    codes.to_h { |code| [code, counts.fetch(case_insensitive ? code.downcase : code, 0)] }
   end
 
   # Census population (per 10,000) for the geography, or the statewide homeless population.

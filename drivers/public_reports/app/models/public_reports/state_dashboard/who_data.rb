@@ -63,39 +63,32 @@ class PublicReports::StateDashboard::WhoData
     )
   end
 
-  private def location_counts(scope)
-    [
-      scope.homeless_sheltered.select(:client_id).distinct.count,
-      scope.homeless_unsheltered.select(:client_id).distinct.count,
-    ]
-  end
-
-  private def distinct_clients(scope)
-    scope.select(:client_id).distinct.count
+  private def period_client_counts
+    @report.iteration_dates.map do |date|
+      @report.period_client_counts(@report.beginning_iteration(date), @report.end_iteration(date))
+    end
   end
 
   private def all_people_donut
-    scopes = @report.iteration_dates.map { |date| period_scope(date) }
     donut(
       title: 'All People',
       unit: 'People',
       labels: ['Sheltered', 'Unsheltered'],
       colors: [settings.color(0, :location_type), settings.color(1, :location_type)],
-      counts_by_period: scopes.map { |scope| location_counts(scope) },
-      totals_by_period: scopes.map { |scope| distinct_clients(scope) },
+      counts_by_period: period_client_counts.map { |counts| counts.values_at(:sheltered, :unsheltered) },
+      totals_by_period: period_client_counts.map { |counts| counts[:all] },
       threshold_key: 'location',
     )
   end
 
   private def veterans_donut
-    scopes = @report.iteration_dates.map { |date| period_scope(date).veteran }
     donut(
       title: 'Veterans',
       unit: 'Veterans',
       labels: ['Sheltered', 'Unsheltered'],
       colors: [settings.color(0, :location_type), settings.color(1, :location_type)],
-      counts_by_period: scopes.map { |scope| location_counts(scope) },
-      totals_by_period: scopes.map { |scope| distinct_clients(scope) },
+      counts_by_period: period_client_counts.map { |counts| counts.values_at(:veterans_sheltered, :veterans_unsheltered) },
+      totals_by_period: period_client_counts.map { |counts| counts[:veterans] },
       threshold_key: 'location',
     )
   end
@@ -127,17 +120,12 @@ class PublicReports::StateDashboard::WhoData
 
     dates = @report.iteration_dates
     dates.each do |date|
-      client_ids = Set.new
       data = races.values.to_h { |label| [label, Set.new] }
 
-      period_scope(date).joins(:client).preload(:client).
-        find_each do |enrollment|
-          client = enrollment.client
-          race_code = client_cache.race_string(destination_id: client.id)
-          race_label = races[race_code]
-          data[race_label] << client.id if race_label && ! client_ids.include?(client.id)
-          client_ids << client.id
-        end
+      period_scope(date).joins(:client).distinct.pluck(:client_id).each do |client_id|
+        race_label = races[client_cache.race_string(destination_id: client_id)]
+        data[race_label] << client_id if race_label
+      end
       total_count = data.map { |_, ids| ids.count }.sum
       data = @report.enforce_min_threshold(data, 'race')
       race_keys ||= data.keys

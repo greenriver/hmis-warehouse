@@ -41,4 +41,51 @@ RSpec.describe PublicReports::StateDashboard::WhoData, type: :model do
     expect(race[:overall][race[:labels].index(white_label)]).to eq(60.0)
     expect(report.geography).not_to have_received(:population_by_race).with(hash_including(year: 2024))
   end
+
+  describe 'query volume' do
+    let(:source_data_source) { create(:data_source_fixed_id) }
+    let(:destination_data_source) { create(:grda_warehouse_data_source) }
+    let(:organization) { create(:hud_organization, data_source_id: source_data_source.id) }
+    let(:project) { create(:hud_project, data_source_id: source_data_source.id, OrganizationID: organization.OrganizationID, ProjectType: 1) }
+
+    # Race resolves through a WarehouseClient link to a source client.
+    def create_served_client(race_field)
+      client = create(:hud_client, data_source_id: destination_data_source.id)
+      source = create(:hud_client, data_source_id: source_data_source.id, race_field => 1)
+      create(:warehouse_client, destination_id: client.id, source_id: source.id, data_source_id: source_data_source.id)
+      enrollment = create(
+        :she_entry,
+        client: client,
+        data_source_id: project.data_source_id,
+        project_id: project.project_id,
+        organization_id: project.organization_id,
+        project_type: 1,
+        date: Date.parse('2025-10-15'),
+        first_date_in_program: Date.parse('2025-10-15'),
+        last_date_in_program: Date.parse('2025-12-31'),
+      )
+      create(:service_history_service, service_history_enrollment_id: enrollment.id, client_id: client.id, record_type: 'service', date: Date.parse('2025-11-01'), project_type: 1)
+    end
+
+    # [statements run, last-period race chart total]
+    def run_who_data
+      statements = []
+      data = ActiveSupport::Notifications.subscribed(->(*, payload) { statements << payload[:sql] }, 'sql.active_record') do
+        described_class.new(PublicReports::StateDashboard.find(report.id)).to_h
+      end
+      [statements.size, data[:race][:totals].last]
+    end
+
+    it 'runs the same number of queries however many clients were served' do
+      stub_const('PublicReports::StateDashboard::SUPPRESS_TOTALS_AT_OR_BELOW', 0)
+      report.save!
+      create_served_client(:White)
+      run_who_data # warms per-process caches
+      one_client_statements, = run_who_data
+      create_served_client(:Asian)
+      create_served_client(:BlackAfAmerican)
+
+      expect(run_who_data).to eq([one_client_statements, 3])
+    end
+  end
 end

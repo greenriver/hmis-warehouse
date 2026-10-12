@@ -219,6 +219,47 @@ module PublicReports
       GrdaWarehouse::ServiceHistoryEnrollment.where(id: apply_report_filters(open_homeless_scope).select(:id))
     end
 
+    # condition name => predicate on homeless_scope left-joined to Client; nil counts every client.
+    def period_count_conditions
+      she = GrdaWarehouse::ServiceHistoryEnrollment
+      sheltered = constraints_of(she.homeless_sheltered)
+      unsheltered = constraints_of(she.homeless_unsheltered)
+      veteran = constraints_of(GrdaWarehouse::Hud::Client.veterans)
+      {
+        all: nil,
+        sheltered: sheltered,
+        unsheltered: unsheltered,
+        veterans: veteran,
+        veterans_sheltered: veteran.and(sheltered),
+        veterans_unsheltered: veteran.and(unsheltered),
+        adult_only_households: constraints_of(she.adult_only_households),
+        adults_with_children: constraints_of(she.adults_with_children),
+      }
+    end
+    memoize :period_count_conditions
+
+    # One COUNT(DISTINCT client_id) per condition, filtered by that condition.
+    def distinct_client_counts(conditions)
+      conditions.map do |condition|
+        count = Arel::Nodes::Count.new([she_t[:client_id]], true)
+        condition ? count.filter(condition) : count
+      end
+    end
+
+    # period_count_conditions key => distinct clients served in the period, from one query.
+    def period_client_counts(start_date, end_date)
+      conditions = period_count_conditions
+      counts = homeless_scope.with_service_between(start_date: start_date, end_date: end_date).
+        left_joins(:client).
+        pick(*distinct_client_counts(conditions.values))
+      conditions.keys.zip(counts).to_h
+    end
+    memoize :period_client_counts
+
+    private def constraints_of(relation)
+      Arel::Nodes::Grouping.new(Arel::Nodes::And.new(relation.arel.constraints))
+    end
+
     private def open_homeless_scope
       GrdaWarehouse::ServiceHistoryEnrollment.homeless.open_between(start_date: filter_object.start, end_date: filter_object.end)
     end
