@@ -163,11 +163,8 @@ module HmisDataQualityTool::WarehouseReports
       @excel_export = HmisDataQualityTool::DocumentExports::ReportByClientExcelExport.new
     end
 
-    # HUD report instances share one table and are identified by report_name, not the STI type column
     private def report_scope
-      report_class.
-        where(report_name: report_class.untranslated_title).
-        visible_to(current_user)
+      report_class.visible_to(current_user)
     end
 
     private def report_class
