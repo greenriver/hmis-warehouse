@@ -1,6 +1,4 @@
-# Generated release notes (gh release create --generate-notes) leave these out.
-# argocd-manifests' bin/openpath-release labels its release PRs (main → staging,
-# staging → production) skip-changelog.
+# PRs labeled skip-changelog are left out of generated release notes.
 changelog:
   exclude:
     labels:
