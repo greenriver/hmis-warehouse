@@ -26,7 +26,8 @@ jobs:
             --arg url "$PR_URL" \
             --arg title "$PR_TITLE" \
             --arg author "$PR_AUTHOR" \
-            '{ text: "<!here> PR ready for review:\n*<\($url)|\($title)>*\nOpened by: \($author)\nPlease ✅ this message to claim this review!" }' |
+            '($title | gsub("&"; "&amp;") | gsub("<"; "&lt;") | gsub(">"; "&gt;")) as $escaped_title |
+             { text: "<!here> PR ready for review:\n*<\($url)|\($escaped_title)>*\nOpened by: \($author)\nPlease ✅ this message to claim this review!" }' |
             curl --fail-with-body -sS -X POST "$SLACK_WEBHOOK_URL" \
               -H 'Content-type: application/json' \
               -d @-
