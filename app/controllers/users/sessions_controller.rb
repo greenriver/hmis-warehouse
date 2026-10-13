@@ -68,12 +68,10 @@ class Users::SessionsController < Devise::SessionsController
     super
   end
 
-  # Devise's authenticate_user! no-ops in Devise controllers without `force`. Forcing it makes a
-  # keepalive with no signed-in user return 401 instead of 200. (The session itself is extended by
-  # the timeoutable hook, which runs when an earlier before_action calls current_user.)
+  # Reading the current user is what extends the session: Devise's timeoutable hook bumps
+  # last_request_at when Warden fetches the user (or signs them out if they've already timed out).
   def keepalive
-    authenticate_user!(force: true)
-    head :ok
+    head(user_signed_in? ? :ok : :unauthorized)
   end
 
   def find_user
