@@ -178,7 +178,7 @@ module GrdaWarehouse::Hud
     end
 
     scope :housed, ->(range) do
-      with_project_type(HudHelper.util.residential_project_type_ids - HudHelper.util.chronic_project_types).
+      with_project_type(HudHelper.util.residential_project_type_numbers_by_code.values_at(:ph, :th).flatten).
         where(MoveInDate: range)
     end
 

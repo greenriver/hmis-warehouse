@@ -230,7 +230,7 @@ paid for by another source.
 The warehouse rule: an RRH enrollment of any sub-type with a move-in date counts as permanent housing from the move-in
 date. An RRH: Services Only enrollment without a move-in date never counts as in housing.
 
-- Service history marks every PH day after the move-in date `homeless: false`, regardless of sub-type.
+- Service history marks every PH day on or after the move-in date `homeless: false`, regardless of sub-type.
   An RRH: Services Only enrollment without a move-in date never gets `homeless: false`, so logic driven by
   `homeless: false` follows the rule with no sub-type check.
 - Performance Measurement bed utilization counts a permanent housing bed night only on or after the

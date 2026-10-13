@@ -52,13 +52,13 @@ RSpec.describe 'Performance Measurement bed days', type: :model do
   let!(:rrh_housing_not_moved_in) { create_client_with_warehouse_link }
   let!(:rrh_sso_moved_in) { create_client_with_warehouse_link }
   let!(:rrh_sso_not_moved_in) { create_client_with_warehouse_link }
+  let!(:rrh_household_member) { create_client_with_warehouse_link }
   let!(:psh_moved_in) { create_client_with_warehouse_link }
   let!(:psh_not_moved_in) { create_client_with_warehouse_link }
   let!(:es_client) { create_client_with_warehouse_link }
 
   let!(:report) do
     [
-      [rrh_housing_moved_in, rrh_housing, move_in_date],
       [rrh_housing_not_moved_in, rrh_housing, nil],
       [rrh_sso_moved_in, rrh_sso, move_in_date],
       [rrh_sso_not_moved_in, rrh_sso, nil],
@@ -68,24 +68,34 @@ RSpec.describe 'Performance Measurement bed days', type: :model do
     ].each do |client, project, move_in|
       create_enrollment(client: client, project: project, entry_date: entry_date, exit_date: exit_date, move_in_date: move_in)
     end
+    # A household member with no move-in date of their own takes the head of household's.
+    household_id = Hmis::Hud::Base.generate_uuid
+    create_enrollment(client: rrh_housing_moved_in, project: rrh_housing, entry_date: entry_date, exit_date: exit_date, move_in_date: move_in_date, household_id: household_id)
+    create_enrollment(client: rrh_household_member, project: rrh_housing, entry_date: entry_date, exit_date: exit_date, relationship_to_ho_h: 2, household_id: household_id)
     run_report([rrh_housing, rrh_sso, psh, es])
   end
 
-  it 'counts RRH bed days only from the move-in date, for either sub-type' do
-    days = [rrh_housing_moved_in, rrh_housing_not_moved_in, rrh_sso_moved_in, rrh_sso_not_moved_in].map do |client|
-      bed_days(report, client, :reporting_days_in_rrh_bed_in_period)
-    end
+  it 'counts PH bed days only from the move-in date and ES bed days for the whole stay' do
+    days = {
+      rrh_housing_moved_in: bed_days(report, rrh_housing_moved_in, :reporting_days_in_rrh_bed_in_period),
+      rrh_housing_not_moved_in: bed_days(report, rrh_housing_not_moved_in, :reporting_days_in_rrh_bed_in_period),
+      rrh_sso_moved_in: bed_days(report, rrh_sso_moved_in, :reporting_days_in_rrh_bed_in_period),
+      rrh_sso_not_moved_in: bed_days(report, rrh_sso_not_moved_in, :reporting_days_in_rrh_bed_in_period),
+      rrh_household_member: bed_days(report, rrh_household_member, :reporting_days_in_rrh_bed_in_period),
+      psh_moved_in: bed_days(report, psh_moved_in, :reporting_days_in_psh_bed_in_period),
+      psh_not_moved_in: bed_days(report, psh_not_moved_in, :reporting_days_in_psh_bed_in_period),
+      es_client: bed_days(report, es_client, :reporting_days_in_es_bed_in_period),
+    }
 
-    expect(days).to eq([40, 0, 40, 0])
-  end
-
-  it 'counts PSH bed days only from the move-in date' do
-    days = [psh_moved_in, psh_not_moved_in].map { |client| bed_days(report, client, :reporting_days_in_psh_bed_in_period) }
-
-    expect(days).to eq([40, 0])
-  end
-
-  it 'counts ES bed days for the whole stay' do
-    expect(bed_days(report, es_client, :reporting_days_in_es_bed_in_period)).to eq(60)
+    expect(days).to eq(
+      rrh_housing_moved_in: 40,
+      rrh_housing_not_moved_in: 0,
+      rrh_sso_moved_in: 40,
+      rrh_sso_not_moved_in: 0,
+      rrh_household_member: 40,
+      psh_moved_in: 40,
+      psh_not_moved_in: 0,
+      es_client: 60,
+    )
   end
 end

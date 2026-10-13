@@ -162,16 +162,16 @@ Each `ServiceHistoryService` row carries `homeless` and `literally_homeless`, se
 |---|---|---|
 | `HudHelper.util.chronic_project_types` | `true` | `true` |
 | TH | `true` | `false` |
-| PH with `MoveInDate`, day strictly after move-in | `false` | `false` |
-| PH with `MoveInDate`, day on or before move-in | `nil` | `nil` |
+| PH with `MoveInDate`, move-in day or later | `false` | `false` |
+| PH with `MoveInDate`, day before move-in | `nil` | `nil` |
 | PH without `MoveInDate` | `nil` | `nil` |
 | Services Only, Other, Day Shelter, HP, CE, anything else | `nil` | `nil` |
 
 `homeless` is `true` for `HudHelper.util.homeless_project_types`, else `nil`.
 `literally_homeless` is `true` for `chronic_project_types`, `false` for TH, else `nil`. The
-membership of both lists is version-specific and lives in the HUD utility class. The PH flip uses `date > self.MoveInDate`, the enrollment's own `MoveInDate`, not
+membership of both lists is version-specific and lives in the HUD utility class. The PH flip uses `date >= self.MoveInDate`, the enrollment's own `MoveInDate`, not
 the household-derived `move_in_date` written to the `ServiceHistoryEnrollment` row. The
-move-in day itself stays `nil`.
+move-in day is the first `false` day.
 
 The `ServiceHistoryEnrollment` scopes `currently_homeless` and `hud_currently_homeless` do not
 read these flags. They take ongoing `entry` rows in homeless types and exclude clients who also
