@@ -120,10 +120,9 @@ module Types
       end
     end
 
-    # The restrictable type is only readable from the version payload. A destroy version can lose
-    # it if `object` was never written, so fall back to the one type that can be restricted today.
+    # nil if the version payload lacks it, in which case graphql_type reports the restriction itself.
     private def restrictable_type
-      item_attributes&.dig('restrictable_type') || Hmis::RestrictedRecord::CLIENT_RESTRICTABLE_TYPE
+      item_attributes&.dig('restrictable_type')
     end
 
     # A restriction row records no meaningful column change of its own: every column is a foreign
