@@ -125,11 +125,8 @@ module Types
       item_attributes&.dig('restrictable_type')
     end
 
-    # A restriction row records no meaningful column change of its own: every column is a foreign
-    # key or a timestamp, and `deleted_at` is nil on both sides of the destroy. Restricting and
-    # unrestricting are reported as an update to the restrictable's `restricted` field instead, so
-    # the audit row shows the direction of the change rather than a bare "Create" or "Delete".
     def event
+      # Show restrict/unrestrict actions as an update to `restricted` value (not create/destroy)
       return 'update' if restriction?
 
       object.event
