@@ -339,27 +339,52 @@ RSpec.describe 'Users::SessionsController', :devise_only, type: :request do
         get root_path
       end
 
+      # root_path renders 200 for anonymous visitors too, so the keepalive itself is the signed-in check
       it 'extends the session past the original timeout' do
         travel(Devise.timeout_in - 5.minutes) { keepalive }
         expect(response).to have_http_status(:ok)
 
         travel(Devise.timeout_in + 5.minutes) do
-          get root_path
+          keepalive
           expect(response).to have_http_status(:ok)
         end
       end
 
-      it 'shows the session expiry relative to the last request' do
-        freeze_time do
-          get root_path
-          expected = (Time.current + Devise.timeout_in).strftime('%l:%M:%S %P')
-          expect(response.body).to include(expected)
+      it 'does not let other XHRs extend the session' do
+        travel(Devise.timeout_in - 5.minutes) { get root_path, xhr: true }
+        expect(response).to have_http_status(:ok)
+
+        travel(Devise.timeout_in + 5.minutes) do
+          keepalive
+          expect(response).to have_http_status(:unauthorized)
         end
       end
 
       it 'does not revive a session that has already timed out' do
-        travel(Devise.timeout_in + 1.minute) { keepalive }
-        expect(response).to have_http_status(:unauthorized)
+        travel(Devise.timeout_in + 1.minute) do
+          keepalive
+          expect(response).to have_http_status(:unauthorized)
+
+          keepalive
+          expect(response).to have_http_status(:unauthorized)
+        end
+      end
+    end
+  end
+
+  describe 'session expiry display' do
+    before do
+      sign_in user
+      get root_path
+    end
+
+    # Every full page load bumps last_request_at to now, so this pins the Warden session key the
+    # helper reads; DeviseCurrentUser's spec covers the arithmetic against an older last_request_at.
+    it "renders the expiry from Devise's Warden-scoped last_request_at" do
+      freeze_time do
+        get root_path
+        expected = (Time.current + Devise.timeout_in).strftime('%l:%M:%S %P')
+        expect(response.body).to include(expected)
       end
     end
   end
