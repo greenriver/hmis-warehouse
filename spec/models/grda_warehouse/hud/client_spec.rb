@@ -424,18 +424,19 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
     end
 
     context 'when consent validity is two years' do
+      around { |example| travel_to(Date.new(2026, 10, 5)) { example.run } }
+      after { GrdaWarehouse::Config.invalidate_cache }
+
       before(:each) do
-        client.instance_variable_set(:@release_duration, 'Two Years')
-        client_signed_yesterday.instance_variable_set(:@release_duration, 'Two Years')
-        client_signed_2_years_ago_short_consent.instance_variable_set(:@release_duration, 'Two Years')
-        client_signed_3_years_ago_short_consent.instance_variable_set(:@release_duration, 'Two Years')
+        GrdaWarehouse::Config.first_or_create.update!(release_duration: 'Two Years')
+        GrdaWarehouse::Config.invalidate_cache
       end
       context 'client with signed consent has ' do
         it 'valid consent when signed yesterday' do
           expect(client_signed_yesterday.consent_form_valid?).to be true
         end
-        it 'invalid consent when signed 2 years ago' do
-          expect(client_signed_2_years_ago_short_consent.consent_form_valid?).to be false
+        it 'valid consent on its expiration date, two years after signing' do
+          expect(client_signed_2_years_ago_short_consent.consent_form_valid?).to be true
         end
         it 'invalid consent when signed 3 years ago' do
           expect(client_signed_3_years_ago_short_consent.consent_form_valid?).to be false
@@ -485,7 +486,8 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
       let!(:signed_one_year_ago_today) { create(:grda_warehouse_hud_client, consent_form_signed_on: 1.year.ago.to_date, housing_release_status: full_release) }
       let!(:signed_one_year_and_a_day_ago) { create(:grda_warehouse_hud_client, consent_form_signed_on: 1.year.ago.to_date - 1.day, housing_release_status: full_release) }
 
-      around { |example| freeze_time { example.run } }
+      # A fixed date, so a year-based expiration date is never shifted by Feb 29
+      around { |example| travel_to(Date.new(2026, 10, 5)) { example.run } }
       after { GrdaWarehouse::Config.invalidate_cache }
 
       before do
@@ -500,6 +502,11 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
 
       it 'clears consent that expired yesterday' do
         expect(signed_one_year_and_a_day_ago.reload.housing_release_status).to be_nil
+      end
+
+      it 'treats consent that expires today as valid in the method and the scope' do
+        expect(described_class.find(signed_one_year_ago_today.id).consent_form_valid?).to be true
+        expect(described_class.consent_form_valid.where(id: signed_one_year_ago_today.id).exists?).to be true
       end
     end
   end

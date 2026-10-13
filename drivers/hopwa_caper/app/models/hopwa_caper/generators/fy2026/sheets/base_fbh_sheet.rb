@@ -89,35 +89,33 @@ module HopwaCaper::Generators::Fy2026::Sheets
     def facility_leasing_expenditures(sheet, fbh_activity_label:)
       sheet.append_row(label: 'Leasing -- Households and Expenditures Served by this Activity Expenditures total should include overhead (staff costs, fringe, etc.).')
 
-      # 2: 'Security deposits'
-      # 3: 'Utility deposits'
-      leasing_services = relevant_services.where(type_provided: [2, 3])
       facility_row(sheet, label: "How many households received #{fbh_activity_label} Facility-Based Housing Leasing support for each facility?") do |fac, row|
-        services = leasing_services.
-          joins(:enrollment).
-          where(enrollment: { project_id: fac.id }).
-          select(:report_household_id).
-          distinct
+        members = heads_of_household_for(leasing_household_ids(fac))
+        row.append_cell_members(members: members)
+      end
 
-        members = heads_of_household_for(services)
+      empty_row(sheet, label: "What were the HOPWA funds expended for #{fbh_activity_label} Facility-Based Housing Leasing Costs for each facility?")
+    end
+
+    # Every enrolled household is reported as receiving operating support. The funder daily rate is
+    # the facility's operating cost.
+    def facility_operating_expenditures(sheet, fbh_activity_label:)
+      sheet.append_row(label: 'Operating -- Households and Expenditures Served by this Activity Expenditures total should include overhead (staff costs, fringe, etc.).')
+
+      facility_row(sheet, label: "How many households received #{fbh_activity_label} Facility-Based Housing Operating support for each facility?") do |fac, row|
+        members = heads_of_household_for(relevant_enrollments.where(project_id: fac.id))
         row.append_cell_members(members: members)
       end
 
       facility_row(
         sheet,
-        label: "What were the HOPWA funds expended for #{fbh_activity_label} Facility-Based Housing Leasing Costs for each facility?",
+        label: "What were the HOPWA funds expended for #{fbh_activity_label} Facility-Based Housing Operating Costs for each facility?",
       ) do |fac, row|
-        # only drill down to households that contributed to the expenditure total
+        # total_project_cost is only calculated for heads of household
         filtered = relevant_enrollments.head_of_household.where(project_id: fac.id).where.not(total_project_cost: [0, nil])
         value = filtered.sum { |e| e.total_project_cost.to_i }
         row.append_cell_members(value: value, members: filtered.as_report_members)
       end
-    end
-
-    def facility_operating_expenditures(sheet, fbh_activity_label:)
-      sheet.append_row(label: 'Operating -- Households and Expenditures Served by this Activity Expenditures total should include overhead (staff costs, fringe, etc.).')
-      empty_row(sheet, label: "How many households received #{fbh_activity_label} Facility-Based Housing Operating support for each facility?")
-      empty_row(sheet, label: "What were the HOPWA funds expended for #{fbh_activity_label} Facility-Based Housing Operating Costs for each facility?")
     end
 
     def income_levels(sheet, spreadsheet_row:, data_check_label:)
@@ -223,13 +221,30 @@ module HopwaCaper::Generators::Fy2026::Sheets
     def facility_deduplication(sheet, fbh_activity_label:)
       sheet.append_row(label: "#{fbh_activity_label} Deduplication")
 
-      empty_row(sheet, label: "How many households received more than one type of #{fbh_activity_label} for each facility?")
-
-      facility_row(sheet, label: 'Total Deduplicated Household Count') do |fac, row|
-        cell_scope = relevant_enrollments.where(project_id: fac.id)
-        members = heads_of_household_for(cell_scope)
+      # Every household receives operating support, so households with leasing support received more than one type.
+      facility_row(sheet, label: "How many households received more than one type of #{fbh_activity_label} for each facility?") do |fac, row|
+        members = heads_of_household_for(leasing_household_ids(fac))
         row.append_cell_members(members: members)
       end
+
+      # Template formula is the leasing, operating, other (and hotel-motel on ST-TFBH) household rows,
+      # minus households in more than one. That reduces to the operating row: every enrolled household.
+      facility_row(sheet, label: 'Total Deduplicated Household Count') do |fac, row|
+        members = heads_of_household_for(relevant_enrollments.where(project_id: fac.id))
+        row.append_cell_members(members: members)
+      end
+    end
+
+    # Deposits on a facility enrollment count as Leasing support. This is a team decision; the
+    # HOPWA HMIS Manual lists security and utility deposits under Permanent Housing Placement.
+    # 2: 'Security deposits'
+    # 3: 'Utility deposits'
+    def leasing_household_ids(fac)
+      relevant_services.where(type_provided: [2, 3]).
+        joins(:enrollment).
+        where(enrollment: { project_id: fac.id }).
+        select(:report_household_id).
+        distinct
     end
 
     def add_filtered_enrollment_facilities(sheet, filters:, start_index: nil)
