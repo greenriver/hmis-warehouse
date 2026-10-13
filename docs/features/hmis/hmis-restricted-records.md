@@ -2,7 +2,7 @@
 
 `hmis_restricted_records` marks individual HMIS records as **restricted**, so visibility can be limited to staff with the appropriate permission. The table was introduced to support **restricted clients**, with the intention to expand the same pattern to other record types later (for example case notes or assessments).
 
-An active (non-deleted) row means the associated record is restricted. Soft-deleting the row clears the restriction.
+An active (non-deleted) row means the associated record is restricted. Soft-deleting the row clears the restriction. Restricting a record that was restricted before creates a new row rather than reviving the old one, so that each restriction is captured in PaperTrail history — Paranoia's `restore` writes through `update_columns` and skips PaperTrail. The unique index is partial on `deleted_at IS NULL`, so a restrictable has at most one active row and any number of soft-deleted ones.
 
 ## Use Cases
 
@@ -42,6 +42,8 @@ This is deliberately stricter than the rest of the permission system. `UserConte
 ### Excluded from search
 
 `Hmis::Hud::Client.searchable_to` drops restricted clients the user can't find. This covers both `clientSearch` and `clientOmniSearch`, including lookup by ID and by PersonalID, since those go through the same scope. `visible_to` is unchanged, so the `client(id:)` query and any navigation from an enrollment or project still resolves the record.
+
+Search passes the matched client ids to `searchable_to` as `client_ids:` (`searchable_to_matching`), and the restricted-record check runs on those ids like any others. `client_ids: []` returns no clients.
 
 ### Redacted PII
 

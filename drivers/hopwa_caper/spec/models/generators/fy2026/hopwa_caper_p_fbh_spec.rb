@@ -33,7 +33,7 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::PFbhSheet, type: :model d
   it 'reports leasing support correctly' do
     _, rows = run_and_extract_rows([project], 'Q10')
     expect(rows.fetch("How many households received #{activity_label} Facility-Based Housing Leasing support for each facility?")).to eq(1)
-    expect(rows.fetch("What were the HOPWA funds expended for #{activity_label} Facility-Based Housing Leasing Costs for each facility?")).to eq(0)
+    expect(rows.fetch("What were the HOPWA funds expended for #{activity_label} Facility-Based Housing Leasing Costs for each facility?")).to be_blank
   end
 
   context 'with funder daily rate configured' do
@@ -88,7 +88,7 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::PFbhSheet, type: :model d
       expect(exiting_record.total_project_cost).to eq(exiting_days * 10)
     end
 
-    it 'reports leasing expenditure totals per facility' do
+    it 'reports daily rate costs as operating expenditures per facility' do
       _, rows = run_and_extract_rows([project], 'Q10')
 
       hoh_days = (report_end_date - report_start_date).to_i
@@ -96,7 +96,12 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::PFbhSheet, type: :model d
       exiting_days = (exit_date - 1.day - report_start_date).to_i
       expected_total = (hoh_days + exiting_days) * 10
 
-      expect(rows.fetch("What were the HOPWA funds expended for #{activity_label} Facility-Based Housing Leasing Costs for each facility?")).to eq(expected_total)
+      expect(rows.fetch("What were the HOPWA funds expended for #{activity_label} Facility-Based Housing Operating Costs for each facility?")).to eq(expected_total)
+      # both households were costed at the daily rate; hoh_client also has a leasing service
+      expect(rows.fetch("How many households received #{activity_label} Facility-Based Housing Operating support for each facility?")).to eq(2)
+      expect(rows.fetch("How many households received Other types of #{activity_label} Facility-Based Housing support for each facility?")).to be_blank
+      expect(rows.fetch('How many households received more than one type of P-FBH for each facility?')).to eq(1)
+      expect(rows.fetch('Total Deduplicated Household Count')).to eq(2)
     end
 
     it 'uses the higher rate when funders overlap' do
@@ -152,10 +157,10 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::PFbhSheet, type: :model d
       expect(exiting_record.total_project_cost).to eq(0)
     end
 
-    it 'excludes zero-cost households from the leasing expenditure drilldown' do
+    it 'excludes zero-cost households from the operating expenditure drilldown' do
       # funder is active only after exiting_enrollment exits, so only hoh_enrollment has a cost
       project.funders.first.update!(start_date: report_end_date - 2.months, end_date: report_end_date)
-      label = "What were the HOPWA funds expended for #{activity_label} Facility-Based Housing Leasing Costs for each facility?"
+      label = "What were the HOPWA funds expended for #{activity_label} Facility-Based Housing Operating Costs for each facility?"
 
       report = create_report([project])
       run_report(report)
@@ -241,16 +246,37 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::PFbhSheet, type: :model d
   it 'deduplicates households correctly' do
     # Add another member to the same household
     other_member = create(:hud_client, data_source: data_source)
-    create_hiv_positive_enrollment(
+    other_enrollment = create_hiv_positive_enrollment(
       client: other_member,
       project: project,
       entry_date: report_start_date + 1.day,
       household_id: household_id,
       relationship_to_ho_h: 2,
     )
+    create_leasing_service(other_enrollment)
 
     _, rows = run_and_extract_rows([project], 'Q10')
-    # Total Deduplicated Household Count should be 2 (hoh_client and exiting_client), not 3 (including other_member)
+    # hoh_client and other_member share one leasing household. Every household gets operating support,
+    # so only hoh_client's household received more than one type. other_member is not counted separately.
+    expect(rows.fetch("How many households received #{activity_label} Facility-Based Housing Operating support for each facility?")).to eq(2)
+    expect(rows.fetch("How many households received Other types of #{activity_label} Facility-Based Housing support for each facility?")).to be_blank
+    expect(rows.fetch('How many households received more than one type of P-FBH for each facility?')).to eq(1)
+    expect(rows.fetch('Total Deduplicated Household Count')).to eq(2)
+  end
+
+  it 'counts a head of household who re-enters the facility once in each support row' do
+    # hoh_client heads a second household in the same facility with no leasing service
+    create_hiv_positive_enrollment(
+      client: hoh_client,
+      project: project,
+      entry_date: report_start_date + 3.months,
+      household_id: Hmis::Hud::Base.generate_uuid,
+    )
+
+    _, rows = run_and_extract_rows([project], 'Q10')
+    expect(rows.fetch("How many households received #{activity_label} Facility-Based Housing Leasing support for each facility?")).to eq(1)
+    expect(rows.fetch("How many households received #{activity_label} Facility-Based Housing Operating support for each facility?")).to eq(2)
+    expect(rows.fetch('How many households received more than one type of P-FBH for each facility?')).to eq(1)
     expect(rows.fetch('Total Deduplicated Household Count')).to eq(2)
   end
 
@@ -262,12 +288,13 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::PFbhSheet, type: :model d
 
     # Enroll a DIFFERENT client in project2
     client2 = create(:hud_client, data_source: data_source)
-    create_hiv_positive_enrollment(
+    enrollment2 = create_hiv_positive_enrollment(
       client: client2,
       project: project2,
       entry_date: report_start_date + 1.day,
       household_id: Hmis::Hud::Base.generate_uuid,
     )
+    create_leasing_service(enrollment2)
 
     _, rows = run_and_extract_fbh_rows([project, project2], 'Q10')
 
@@ -278,5 +305,8 @@ RSpec.describe HopwaCaper::Generators::Fy2026::Sheets::PFbhSheet, type: :model d
     # Project 1 has 2 households (hoh_client and exiting_client)
     # Project 2 has 1 household (client2)
     expect(rows.fetch('Total Deduplicated Household Count')).to eq([2, 1])
+    # hoh_client and client2 have leasing services; every household gets operating support
+    expect(rows.fetch("How many households received #{activity_label} Facility-Based Housing Leasing support for each facility?")).to eq([1, 1])
+    expect(rows.fetch("How many households received #{activity_label} Facility-Based Housing Operating support for each facility?")).to eq([2, 1])
   end
 end

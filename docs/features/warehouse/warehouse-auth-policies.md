@@ -14,7 +14,7 @@ The system consists of four main components:
 
 - **Entry Point**: `User#policy_for(resource)` or `User#reporting_policy_for_project(project_id)` are the primary ways to obtain a policy.
 - **Context Objects**: `UserAclContext` and `UserLegacyContext` encapsulate permission lookups. They provide a common interface for policies to query permissions without knowing how they are stored or resolved.
-- **Context Loaders**: objects owned by the context that load and cache the data policies need, so checking many records doesn't cause N+1 queries.
+- **Context Loaders**: objects owned by the context that load and cache the data policies need, so checking many records doesn't cause N+1 queries. `ClientRoiLoader` reads `ClientRoiAuthorization.visible_in_cocs`; see [Client ROI and Consent](client-roi-and-consent.md).
 - **Policies**: Concrete classes inheriting from `BasePolicy` that define domain-specific authorization logic.
 
 ### Relationship Diagram
@@ -131,6 +131,8 @@ Fragment caches that render a client's PII must include `client_restricted?(clie
 Hidden clients are excluded from every warehouse-side client search by name or SSN. Search by DOB and lookup by exact warehouse id or PersonalID still find them: restriction blocks PII display and search by PII, not access to the record.
 
 New search code that matches on name or SSN should go through `Client.text_search`, or add `GrdaWarehouse::HiddenClients.not_hidden(column)` to its query. HMIS front-end search has its own restriction handling (see [HMIS Restricted Records](../hmis/hmis-restricted-records.md)) and is not affected.
+
+Pass `user:` to limit results to `Client.searchable_to(user)`. `text_search` checks visibility against its matches only, because building a user's whole searchable set takes seconds for users who can see most clients.
 
 ### OP Analytics and Superset `analytics.client_piis`
 

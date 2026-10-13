@@ -131,6 +131,22 @@ class ApplicationController < ActionController::Base
 
   private
 
+  # Overrides ActionController::RequestForgeryProtection#valid_per_form_csrf_token?, which
+  # verify_authenticity_token reaches via valid_authenticity_token?.
+  #
+  # A per-form token is minted for the form's action, which carries encoded ids. IdProtector
+  # decodes them in PATH_INFO before routing, so also check the path the browser submitted to.
+  def valid_per_form_csrf_token?(token, session = nil)
+    return true if super
+    return false unless per_form_csrf_tokens
+
+    submitted_path = request.original_fullpath.split('?', 2).first.chomp('/')
+    return false if submitted_path == request.path.chomp('/')
+
+    correct_token = per_form_csrf_token(session, submitted_path, request.request_method)
+    ActiveSupport::SecurityUtils.fixed_length_secure_compare(token, correct_token)
+  end
+
   def _basic_auth
     authenticate_or_request_with_http_basic do |user, password|
       user == Rails.application.secrets.basic_auth_user && \
@@ -259,5 +275,11 @@ class ApplicationController < ActionController::Base
   before_action :set_app_user_header
   def set_app_user_header
     response.headers['X-app-user-id'] = current_user&.id
+    # Every response that can extend the IdP session moves the inactivity countdown, not just page loads.
+    # Sent as Server-Timing because the browser's Resource Timing API exposes it for every request type
+    # (fetch, XHR, iframes) without wrapping each client. Rails' ServerTiming middleware appends to it.
+    # Absent on the Devise arm, whose countdown rolls forward from X-app-user-id alone.
+    remaining_secs = inactive_session_countdown_values[:session_remaining_secs_value]
+    response.headers['Server-Timing'] = "app-session-remaining;desc=\"#{remaining_secs}\"" if remaining_secs
   end
 end
