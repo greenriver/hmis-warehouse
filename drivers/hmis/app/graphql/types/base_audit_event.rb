@@ -100,13 +100,12 @@ module Types
     end
 
     def graphql_type
-      # A restriction is reported as its restrictable's type, so the synthesized `restricted`
-      # change below resolves against a real schema field and renders as Yes/No rather than a raw
-      # boolean. Client is the only restrictable type today, and the only one whose schema has a
-      # `restricted` field, but reading it off the version keeps this honest as more are added.
-      # `record_id` deliberately still reports the restriction row, not the restrictable, so that
-      # it means the same thing here as it does for every other record type.
-      return graphql_type_for(restrictable_type) if restriction?
+      # For a restriction version, return the restricted record's type (e.g. 'Client'), not
+      # 'RestrictedRecord'. The frontend looks the changed field up on this type to decide how to
+      # display the value: `Client.restricted` is a Boolean, so the audit row reads
+      # "Restricted: No → Yes" instead of "Restricted: false → true".
+      # `record_id` still points at the restriction row.
+      return graphql_type_for(restrictable_type) if restriction? && restrictable_type
 
       graphql_type_for(object.item_type)
     end
