@@ -44,5 +44,19 @@ RSpec.describe GrdaWarehouse::Tasks::ChronicallyHomeless, type: :model do
 
       expect(task.homeless_reset(client_id: client.id)).to eq(Date.current - 20.days)
     end
+
+    it 'ends at the last 90+ day RRH with housing stay with a move-in date' do
+      stay(project_type: 13, rrh_sub_type: 2, last_date: Date.current - 20.days, move_in_date: Date.current - 130.days)
+      stay(project_type: 0, last_date: Date.current - 5.days)
+
+      expect(task.homeless_reset(client_id: client.id)).to eq(Date.current - 20.days)
+    end
+
+    it 'ignores RRH stays without a move-in date, for either sub-type' do
+      stay(project_type: 13, rrh_sub_type: 2, last_date: Date.current - 20.days)
+      stay(project_type: 13, rrh_sub_type: 1, last_date: Date.current - 10.days)
+
+      expect(task.homeless_reset(client_id: client.id)).to be_nil
+    end
   end
 end

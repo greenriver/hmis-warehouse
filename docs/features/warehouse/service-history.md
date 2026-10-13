@@ -233,8 +233,8 @@ date. An RRH: Services Only enrollment without a move-in date never counts as in
 - Service history marks every PH day after the move-in date `homeless: false`, regardless of sub-type.
   An RRH: Services Only enrollment without a move-in date never gets `homeless: false`, so logic driven by
   `homeless: false` follows the rule with no sub-type check.
-- `ServiceHistoryEnrollment.excluding_rrh_sso_pre_move_in` applies the rule to enrollment-level queries,
-  such as Performance Measurement RRH bed utilization.
+- Performance Measurement bed utilization counts a permanent housing bed night only on or after the
+  move-in date, for every PH project type and RRH sub-type.
 - The "Enrolled in PH" cohort column reports enrollment in a housing project, so it excludes
   RRH: Services Only regardless of move-in date.
 - Logic that requires a move-in date for any PH project type (CAS `enrolled_in_rrh`, `currently_homeless`,

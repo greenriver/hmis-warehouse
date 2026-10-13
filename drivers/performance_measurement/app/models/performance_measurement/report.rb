@@ -249,6 +249,12 @@ module PerformanceMeasurement
       GrdaWarehouse::Hud::Project.where(id: project_ids).active_during(filter.range).pluck(:id)
     end
 
+    # A permanent housing bed is occupied from the household's move-in date. Requires a join to service_history_services.
+    private def occupied_bed_night
+      she_t[:project_type].not_in(HudHelper.util.residential_project_type_numbers_by_code[:ph]).
+        or(she_t[:move_in_date].lteq(shs_t[:date]))
+    end
+
     def report_scope_source
       GrdaWarehouse::ServiceHistoryEnrollment.entry
     end
@@ -858,7 +864,7 @@ module PerformanceMeasurement
             {}.tap do |days_by_client_id|
               scope = report_scope.joins(:service_history_services, :project, :client).
                 send(p_type).
-                excluding_rrh_sso_pre_move_in.
+                where(occupied_bed_night).
                 distinct
               dobs = scope.pluck(:client_id, c_t[:DOB]).to_h
               scope.group(:client_id, p_t[:id]).
@@ -889,7 +895,7 @@ module PerformanceMeasurement
             {}.tap do |days_by_client_id|
               scope = report_scope.joins(:service_history_services, :project, :client).
                 send(p_type).
-                excluding_rrh_sso_pre_move_in.
+                where(occupied_bed_night).
                 distinct
               dobs = scope.pluck(:client_id, c_t[:DOB]).to_h
               scope.group(:client_id, p_t[:id]).
@@ -921,7 +927,7 @@ module PerformanceMeasurement
               scope = report_scope.joins(:service_history_services, :project, :client).
                 merge(GrdaWarehouse::ServiceHistoryService.where(date: filter.range)).
                 send(p_type).
-                excluding_rrh_sso_pre_move_in.
+                where(occupied_bed_night).
                 distinct
               dobs = scope.pluck(:client_id, c_t[:DOB]).to_h
               scope.group(:client_id, p_t[:id]).
@@ -954,7 +960,7 @@ module PerformanceMeasurement
               scope = report_scope.joins(:service_history_services, :project, :client).
                 merge(GrdaWarehouse::ServiceHistoryService.where(date: filter.range)).
                 send(p_type).
-                excluding_rrh_sso_pre_move_in.
+                where(occupied_bed_night).
                 distinct
               dobs = scope.pluck(:client_id, c_t[:DOB]).to_h
               scope.group(:client_id, p_t[:id]).

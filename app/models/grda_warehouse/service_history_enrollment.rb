@@ -97,16 +97,6 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
     in_project_type(project_types)
   end
 
-  # RRH: Services Only enrollments count as housing only once the household has moved in.
-  scope :excluding_rrh_sso_pre_move_in, -> do
-    joins(:project).where(
-      p_t[:ProjectType].not_eq(13).
-        or(p_t[:RRHSubType].eq(nil)).
-        or(p_t[:RRHSubType].not_eq(HudHelper.util.rrh_sub_type_sso_only)).
-        or(arel_table[:move_in_date].not_eq(nil)),
-    )
-  end
-
   scope :homeless_sheltered, -> do
     in_project_type(HudHelper.util.homeless_sheltered_project_types)
   end
