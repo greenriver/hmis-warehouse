@@ -15,10 +15,36 @@ RSpec.describe 'Organizations contacts', type: :request do
   let(:data_source) { create(:grda_warehouse_data_source) }
   let(:organization) { create(:grda_warehouse_hud_organization, data_source: data_source) }
 
+  let(:viewables) { { data_sources: [data_source.id] } }
+
   before do
-    collection.set_viewables(data_sources: [data_source.id])
+    collection.set_viewables(viewables)
     setup_access_control(user, role, collection)
     sign_in user
+  end
+
+  context 'when the user cannot view imports' do
+    let(:role) { create(:role, can_view_assigned_reports: true) }
+
+    it 'does not create a contact' do
+      expect do
+        post(organization_contacts_path(organization), params: { contact: { user_id: create(:user).id } })
+      end.not_to change(GrdaWarehouse::Contact::Organization, :count)
+
+      expect(response).to redirect_to(user.my_root_path)
+    end
+  end
+
+  context 'when Can View Imports is granted on a collection without the organization' do
+    let(:viewables) { { organizations: [create(:hud_organization).id] } }
+
+    it 'does not create a contact' do
+      expect do
+        post(organization_contacts_path(organization), params: { contact: { user_id: create(:user).id } })
+      end.not_to change(GrdaWarehouse::Contact::Organization, :count)
+
+      expect(response).to redirect_to(user.my_root_path)
+    end
   end
 
   describe 'POST /organizations/:organization_id/contacts' do

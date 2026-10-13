@@ -45,6 +45,7 @@ module WarehouseReports
 
       load_filter
       report = GrdaWarehouse::WarehouseReports::HudChronicReport.new
+      report.user_id = report_params[:current_user_id]
       report.started_at = DateTime.now
       report.parameters = params.slice(:filter).merge(date: @filter.date)
       load_filter

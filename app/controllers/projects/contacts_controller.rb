@@ -7,7 +7,7 @@
 # frozen_string_literal: true
 
 module Projects
-  class ContactsController < ApplicationController
+  class ContactsController < ApplicationControllerV2
     include Contacts
     include AjaxModalRails::Controller
 
