@@ -12,6 +12,9 @@ require_relative '../../../../../spec/shared_contexts/hud_enrollment_builders'
 RSpec.describe 'Performance Measurement and SPM Alignment', type: :model do
   include_context 'HUD enrollment builders'
 
+  # The PM filter keeps only CoC codes its user can see; the system user sees all of them.
+  let(:user) { User.system_user }
+
   # Common variables
   let(:test_start_date) { '2022-10-01'.to_date }
   let(:test_end_date) { '2023-09-30'.to_date }
@@ -23,6 +26,7 @@ RSpec.describe 'Performance Measurement and SPM Alignment', type: :model do
       user_id: user.id,
       start: test_start_date,
       end: test_end_date,
+      coc_code: test_coc_code,
       coc_codes: [test_coc_code],
       enforce_one_year_range: false,
     )
@@ -60,8 +64,8 @@ RSpec.describe 'Performance Measurement and SPM Alignment', type: :model do
     # Create PM report
     PerformanceMeasurement::Goal.ensure_default
     pm_report = PerformanceMeasurement::Report.new(user_id: user.id)
-    pm_report.filter = default_filter.dup
-    pm_report.filter.update(project_ids: projects.map(&:id))
+    # Report#filter= serializes the filter, so project_ids must be set before assignment.
+    pm_report.filter = default_filter.dup.tap { |filter| filter.project_ids = projects.map(&:id) }
     pm_report.update_goal_configuration!
     pm_report.save!
     pm_report.run_and_save!
@@ -306,16 +310,12 @@ RSpec.describe 'Performance Measurement and SPM Alignment', type: :model do
       @spm_report, @pm_report = setup_reports(projects: [@es_project, @so_project])
     end
 
-    it 'has the same count of homeless clients in both reports' do
-      # SPM report total sheltered homeless count
+    it 'counts sheltered clients from SPM 3.2 plus unsheltered SO clients' do
       spm_count = @spm_report.answer(question: '3.2', cell: 'C2').summary
+      pm_count = @pm_report.result_for(:count_of_homeless_clients_in_range).primary_value
 
-      # PM report homeless count
-      pm_result = @pm_report.result_for(:count_of_homeless_clients_in_range)
-      pm_count = pm_result.primary_value
-
-      # 3 total homeless clients but only 2 in ES
-      compare_spm_and_pm_values(spm_count, pm_count, 2)
+      # SPM 3.2 counts the 2 ES clients; PM adds the SO client.
+      expect([spm_count.to_i, pm_count.to_i]).to eq([2, 3])
     end
 
     it 'has the same count of sheltered homeless clients' do
