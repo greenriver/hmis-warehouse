@@ -42,6 +42,8 @@ module Hmis::Ce::Match::Expression
       end
     end
 
+    private_constant :SELF_HEAD_OF_HOUSEHOLD, :ClientEnrollment, :MemberEnrollment
+
     def initialize(configuration: Hmis::Ce.configuration)
       @configuration = configuration
     end
@@ -110,15 +112,20 @@ module Hmis::Ce::Match::Expression
       )
 
       member_enrollments.group_by(&:household_key).to_h do |household_key, members|
-        destination_ids = members.map(&:destination_id)
-        household = Household.new(
-          key: household_key,
-          size: destination_ids.compact.uniq.size + destination_ids.count(nil),
-          hoh_entry_date: members.select(&:head_of_household?).filter_map(&:entry_date).max,
-          member_destination_ids: destination_ids.compact.uniq,
-        )
-        [household_key, household]
+        [household_key, build_household(household_key, members)]
       end
+    end
+
+    # Linked members are counted once per destination client; unlinked members (no destination id) count individually
+    def build_household(household_key, members)
+      destination_ids = members.map(&:destination_id)
+      linked_ids = destination_ids.compact.uniq
+      Household.new(
+        key: household_key,
+        size: linked_ids.size + destination_ids.count(nil),
+        hoh_entry_date: members.select(&:head_of_household?).filter_map(&:entry_date).max,
+        member_destination_ids: linked_ids,
+      )
     end
 
     # Plucks the columns and builds one data_class per row, keyed by the column names given
