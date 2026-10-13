@@ -181,6 +181,30 @@ RSpec.describe PublicReports::StateDashboard::Breakdowns, type: :model do
     end
   end
 
+  describe '#published_row_totals' do
+    before { stub_const('PublicReports::StateDashboard::SUPPRESS_TOTALS_AT_OR_BELOW', 100) }
+
+    it 'also hides the smallest published non-zero row when exactly one row is hidden' do
+      expect(breakdowns.published_row_totals([500, 40, 300, 0])).to eq([500, nil, nil, 0])
+    end
+
+    it 'hides no extra row when two rows are already hidden' do
+      expect(breakdowns.published_row_totals([500, 40, 30, 300])).to eq([500, nil, nil, 300])
+    end
+
+    it 'treats 100 as hidden and 101 as published' do
+      expect(breakdowns.published_row_totals([101, 100, 400])).to eq([nil, nil, 400])
+    end
+
+    it 'hides nothing more when every other row is zero' do
+      expect(breakdowns.published_row_totals([40, 0, 0])).to eq([nil, 0, 0])
+    end
+
+    it 'publishes every row when none is hidden' do
+      expect(breakdowns.published_row_totals([500, 300, 0])).to eq([500, 300, 0])
+    end
+  end
+
   describe 'query volume' do
     it 'reads service history enrollments once per period' do
       create_member(household_id: 'one', age: 30, head_of_household: true)
@@ -258,6 +282,26 @@ RSpec.describe PublicReports::StateDashboard::Breakdowns, type: :model do
 
     it 'counts each period from services in that period only' do
       expect(rows['household_type__0__1'][:totals]).to eq([1, 0, 0, 3])
+    end
+
+    context 'when one gender row is hidden' do
+      before do
+        stub_const('PublicReports::StateDashboard::SUPPRESS_TOTALS_AT_OR_BELOW', 2)
+        create_member(household_id: 'trans', age: 30, head_of_household: true, client: new_client(Transgender: 1))
+        2.times { |i| create_member(household_id: "man-#{i}", age: 30, head_of_household: true, client: new_client(Man: 1)) }
+        3.times { |i| create_member(household_id: "woman-#{i}", age: 30, head_of_household: true, client: new_client(Woman: 1)) }
+      end
+
+      # Q4 genders: Woman 4 (3 here plus the outer 'woman'), Man 3 (2 here plus 'family-1'), Transgender 1.
+      it 'hides the smallest published row with it, including its chronic and location columns' do
+        expect((0..2).map { |i| q4("gender__0__#{i}") }).to eq(
+          [
+            { totals: 4, chronic: 30, sheltered: 3, unsheltered: 1 },
+            { totals: nil, chronic: nil, sheltered: nil, unsheltered: nil },
+            { totals: nil, chronic: nil, sheltered: nil, unsheltered: nil },
+          ],
+        )
+      end
     end
   end
 

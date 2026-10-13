@@ -60,6 +60,13 @@ class PublicReports::StateDashboard::LineChart
     DASH_PATTERNS[series_index % DASH_PATTERNS.size]
   end
 
+  # Report#enforce_min_threshold publishes every count from 1 to SUPPRESS_TOTALS_AT_OR_BELOW as that number.
+  def format_value(value)
+    return "#{value} or fewer" if value == PublicReports::StateDashboard::SUPPRESS_TOTALS_AT_OR_BELOW
+
+    ActiveSupport::NumberHelper.number_to_delimited(value)
+  end
+
   def points_for(values)
     values.each_with_index.map { |v, i| "#{x_at(i).round(1)},#{y_at(v).round(1)}" }.join(' ')
   end

@@ -1177,7 +1177,7 @@ img {
 .breakdown-row__total {
   font-size: var(--type-175);
   font-variant-numeric: tabular-nums;
-  /* "100 or fewer People" (the redacted case) wraps to two lines — same
+  /* "Not reported" (the redacted case) can wrap to two lines — same
      line-height fix as .breakdown-row__chronic-pct below, for the same
      reason. */
   line-height: 1.2;

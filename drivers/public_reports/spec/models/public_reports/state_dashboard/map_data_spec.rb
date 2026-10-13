@@ -110,6 +110,9 @@ RSpec.describe PublicReports::StateDashboard::MapData, type: :model do
       )
     end
 
+    # These tests check counting and bands, so no group total is suppressed.
+    before { stub_const('PublicReports::StateDashboard::SUPPRESS_TOTALS_AT_OR_BELOW', 0) }
+
     # Geography#population reads the town's census value, so every shape needs one.
     def create_town(name, west:, population:)
       GrdaWarehouse::Shape::Town.create!(
@@ -285,6 +288,26 @@ RSpec.describe PublicReports::StateDashboard::MapData, type: :model do
 
       expect(data[:towns]).to eq(['01001', '01002', '01003'])
       expect(data[:values].last.first).to eq([25.0, 100.0, 0])
+    end
+
+    context 'when a group total is suppressed' do
+      before { stub_const('PublicReports::StateDashboard::SUPPRESS_TOTALS_AT_OR_BELOW', 20) }
+
+      it 'publishes no town rates for that group and keeps the rates of a group above the threshold' do
+        settings.update!(map_overall_population_method: 'state')
+        create_town('OTHERTOWN', west: -71.5, population: 10_000)
+        create_town('TESTVILLE', west: -71.0, population: 10_000)
+        enroll_clients(48, city: 'Othertown')
+        enroll_clients(12, city: 'Testville', veteran: true)
+
+        data = map_data.to_h
+
+        # Group 0 is everyone (60 people, published); group 4 is veterans (12, suppressed at 20).
+        # Q1-Q3 have no one, and a total of 0 is not suppressed.
+        expect(data[:statewideTotals].last.values_at(0, 4)).to eq([60, nil])
+        expect(data[:values].last.values_at(0, 4)).to eq([[100.0, 20.0], [nil, nil]])
+        expect(data[:values].first(3)).to eq(Array.new(3) { Array.new(5) { [0, 0] } })
+      end
     end
   end
 end

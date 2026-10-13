@@ -62,7 +62,13 @@ class PublicReports::StateDashboard::MapData
       period_totals = []
 
       overall_counts.zip(code_counts).each do |overall_homeless_population, homeless_counts|
-        period_totals << @report.published_total(overall_homeless_population)
+        period_total = @report.published_total(overall_homeless_population)
+        period_totals << period_total
+        # With the group total hidden, any banded town would show where its few clients were served.
+        if period_total.nil?
+          period_values << Array.new(codes.size)
+          next
+        end
 
         # Every period divides by the published population so the rate matches the population shown beside it.
         period_values << codes.each_with_index.map do |code, code_index|

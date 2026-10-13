@@ -73,6 +73,17 @@ class PublicReports::StateDashboard::Breakdowns
     period_counts(start_date, end_date)[:household_types]
   end
 
+  # Published row totals for one section and period, nil where hidden. A single hidden row could be
+  # estimated from the period total and the other rows, so the smallest published non-zero row is hidden too.
+  def published_row_totals(totals)
+    published = totals.map { |total| @report.published_total(total) }
+    return published unless published.count(&:nil?) == 1
+
+    smallest = published.each_index.select { |i| published[i]&.positive? }.min_by { |i| published[i] }
+    published[smallest] = nil if smallest
+    published
+  end
+
   # { sections: { [grouping, section_index] => row counts }, household_types: }
   private def period_counts(start_date, end_date)
     with_period_tables(start_date, end_date) do
@@ -95,6 +106,7 @@ class PublicReports::StateDashboard::Breakdowns
   private def record_rows(rows:, grouping:, section_index:, row_counts:, date_index:, num_periods:, combine_rows:)
     combined_chronic_count = row_counts.sum { |counts| counts[:chronic] }
     combined_total_count = row_counts.sum { |counts| counts[:total] }
+    row_totals = published_row_totals(row_counts.map { |counts| counts[:total] })
 
     row_counts.each_with_index do |counts, row_index|
       row_id = "#{grouping}__#{section_index}__#{row_index}"
@@ -106,7 +118,7 @@ class PublicReports::StateDashboard::Breakdowns
       }
 
       chronic_count = combine_rows ? combined_chronic_count : counts[:chronic]
-      row_total = @report.published_total(counts[:total])
+      row_total = row_totals[row_index]
       rows[row_id][:totals][date_index] = row_total
       rows[row_id][:chronic][date_index] = row_total && @report.enforce_min_threshold([chronic_count, combine_rows ? combined_total_count : counts[:total]], 'chronic_percents')
 

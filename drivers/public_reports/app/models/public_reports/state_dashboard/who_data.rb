@@ -113,6 +113,8 @@ class PublicReports::StateDashboard::WhoData
     # NOTE: HispanicLatinaeo and MidEastNAfrican are not included in the census data, so we're ignoring them
     races = ::HudHelper.util.races(multi_racial: true).except('HispanicLatinaeo', 'MidEastNAfrican')
     client_cache = GrdaWarehouse::Hud::Client.new
+    # race_string caches one id set per race; limit them to this report's clients.
+    report_clients = GrdaWarehouse::Hud::Client.where(id: @report.homeless_scope.select(:client_id))
 
     race_keys = nil
     homeless_rows = []
@@ -123,7 +125,7 @@ class PublicReports::StateDashboard::WhoData
       data = races.values.to_h { |label| [label, Set.new] }
 
       period_scope(date).joins(:client).distinct.pluck(:client_id).each do |client_id|
-        race_label = races[client_cache.race_string(destination_id: client_id)]
+        race_label = races[client_cache.race_string(destination_id: client_id, scope_limit: report_clients)]
         data[race_label] << client_id if race_label
       end
       total_count = data.map { |_, ids| ids.count }.sum

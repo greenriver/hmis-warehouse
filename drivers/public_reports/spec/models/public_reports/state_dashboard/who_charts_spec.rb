@@ -36,8 +36,12 @@ RSpec.describe PublicReports::StateDashboard::WhoCharts do
     expect(described_class.contrast_ring_style('#14558F')).to eq('')
   end
 
-  it 'gives no ring and no inline label for a colour that is not six-digit hex' do
-    expect([described_class.contrast_ring_style('#abc'), described_class.inline_label_color(50, 'red')]).to eq(['', nil])
+  it 'treats a three-digit hex colour as its six-digit form' do
+    expect([described_class.contrast_ring_style('#036'), described_class.inline_label_color(50, '#036')]).to eq(['', '#fff'])
+  end
+
+  it 'rings a colour it cannot measure and gives it no inline label' do
+    expect([described_class.contrast_ring_style('white'), described_class.inline_label_color(50, 'white')]).to eq(['box-shadow:inset 0 0 0 1px var(--color-ink);', nil])
   end
 
   it 'appends the unit to a row label unless the label already ends with it' do

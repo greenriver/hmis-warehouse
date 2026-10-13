@@ -17,14 +17,14 @@
       - chart.labels.each_with_index do |label, idx|
         %text.chart-axis-label{ class: ('chart-axis-label--minor' if minor_every && idx.odd?), x: chart.x_at(idx).round(1), y: 190, 'text-anchor' => 'middle' }= label
     - chart.column_bounds.each_with_index do |bounds, idx|
-      .chart-point.chart-point--column{ style: "left:#{bounds[:left_pct]}%;width:#{bounds[:width_pct]}%", tabindex: 0, role: 'img', 'aria-label' => "#{chart.labels[idx]}: #{chart.series.map { |s| "#{s['label']}: #{number_with_delimiter(s['values'][idx])}" }.join('; ')}" }
+      .chart-point.chart-point--column{ style: "left:#{bounds[:left_pct]}%;width:#{bounds[:width_pct]}%", tabindex: 0, role: 'img', 'aria-label' => "#{chart.labels[idx]}: #{chart.series.map { |s| "#{s['label']}: #{chart.format_value(s['values'][idx])}" }.join('; ')}" }
         .chart-tooltip.chart-tooltip--html.chart-tooltip--table{ 'aria-hidden' => 'true' }
           .chart-tooltip__header= chart.labels[idx]
           - chart.series.each_with_index do |s, i|
             .chart-tooltip__row
               %span.swatch{ style: "background:#{colors[i % colors.size]};" }
               %span.chart-tooltip__label= s['label']
-              %span.chart-tooltip__value= number_with_delimiter(s['values'][idx])
+              %span.chart-tooltip__value= chart.format_value(s['values'][idx])
   %ul.chart-legend
     - chart.series.each_with_index do |s, i|
       - color = colors[i % colors.size]
@@ -48,4 +48,4 @@
           %tr
             %th{ scope: 'row' }= label
             - chart.series.each do |s|
-              %td= number_with_delimiter(s['values'][idx])
+              %td= chart.format_value(s['values'][idx])

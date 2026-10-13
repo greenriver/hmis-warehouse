@@ -69,6 +69,19 @@ RSpec.describe 'PublicReports::WarehouseReports::StateDashboard sections', type:
     expect(Nokogiri::HTML(response.body).css('.stat-tile__value').map { |value| value.text.strip }).to eq(['10,214', '13,939', '13%'])
   end
 
+  it 'labels a suppressed PIT count as 100 or fewer in the table, tooltip and screen-reader label' do
+    stored = JSON.parse(precalculated_data)
+    stored['pit_chart']['series'][0]['values'] = [100, 13_939]
+    report.update_column(:precalculated_data, stored.to_json)
+
+    get pit_public_reports_warehouse_reports_state_dashboard_path(report)
+    chart = Nokogiri::HTML(response.body).at_css('figure.chart--line')
+
+    expect(chart.css('table tbody tr').map { |tr| tr.css('th, td').map { |cell| cell.text.strip } }).to eq([['2024', '100 or fewer'], ['2025*', '13,939']])
+    expect(chart.css('.chart-tooltip__value').map { |value| value.text.strip }).to eq(['100 or fewer', '13,939'])
+    expect(chart.css('.chart-point--column').first['aria-label']).to eq('2024: People served in ES, SO, SH, or TH: 100 or fewer')
+  end
+
   describe 'who section periods' do
     let(:who) { JSON.parse(precalculated_data)['who'] }
 
@@ -173,13 +186,14 @@ RSpec.describe 'PublicReports::WarehouseReports::StateDashboard sections', type:
     expect([response.status, Nokogiri::HTML(response.body).at_css('.warehouse-reports__completed p').text.squish]).to eq([200, 'Report Processing'])
   end
 
-  it 'shows a suppressed breakdown row as a redacted bar with no chronic percent' do
+  it 'shows a suppressed breakdown row as a redacted bar with no total and no chronic percent' do
     get who_public_reports_warehouse_reports_state_dashboard_path(report)
     rows = Nokogiri::HTML(response.body).css('[data-who-period-pane]:not([hidden]) .breakdown-row')
     row = rows.find { |r| r.at_css('.breakdown-row__label').text == 'Persons over age 24' }
 
     expect(row.at_css('.breakdown-bar__segment--redacted')['aria-label']).to eq('Persons over age 24: sheltered/unsheltered breakdown unavailable for this group')
     expect(row.at_css('[data-row-chronic-full]').text).to eq('Chronically Homeless: not reported')
+    expect(row.at_css('.breakdown-row__total').text.strip).to eq('Not reported')
   end
 
   it 'links the summary heading to the glossary on summary and raw' do

@@ -558,10 +558,12 @@ RSpec.describe PublicReports::StateDashboard, type: :model do
     end
 
     it 'still publishes a row whose own total is over the threshold' do
+      # A second hidden row (Man is the first) means no published row is hidden as a complement.
+      create_homeless_client_and_entry(gender: :Transgender, race_field: :White, household_id: 'transgender')
       woman_row = gender_row('Woman')
 
       # 3 women from the shared setup plus 8 here.
-      expect(woman_row['totals'].last).to eq(11)
+      expect([woman_row['totals'].last, gender_row('Transgender')['totals'].last]).to eq([11, nil])
     end
 
     context 'with three more men, putting the Man row exactly at the threshold' do
