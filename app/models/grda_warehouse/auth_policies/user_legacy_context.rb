@@ -129,7 +129,7 @@ class GrdaWarehouse::AuthPolicies::UserLegacyContext < GrdaWarehouse::AuthPolici
     legacy_permissions
   end
 
-  def data_source_access_group_ids(data_source_id)
+  memoize def data_source_access_group_ids(data_source_id)
     ids = GrdaWarehouse::GroupViewableEntity.
       where(entity_type: GrdaWarehouse::DataSource.sti_name).
       where(entity_id: data_source_id).
