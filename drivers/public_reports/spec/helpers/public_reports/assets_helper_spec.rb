@@ -14,6 +14,6 @@ RSpec.describe PublicReports::AssetsHelper, type: :helper do
   end
 
   it 'returns the contents of an allow-listed asset' do
-    expect(helper.public_report_asset('who_page.js')).to start_with(File.read(Rails.root.join('drivers/public_reports/lib/public_reports/assets/who_page.js')).first(20))
+    expect(helper.public_report_asset('who_page.js')).to eq(File.read(Rails.root.join('drivers/public_reports/lib/public_reports/assets/who_page.js')))
   end
 end

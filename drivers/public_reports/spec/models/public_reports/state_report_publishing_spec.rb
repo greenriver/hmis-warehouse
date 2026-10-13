@@ -139,6 +139,15 @@ RSpec.describe 'Publishing the state-level reports', type: :model do
     expect(dashboard.publish_warning).to be_nil
   end
 
+  it 'escapes the report title inside the embed snippet fallback link' do
+    dashboard = PublicReports::StateDashboard.new(version_slug: 'state')
+    allow(dashboard).to receive(:instance_title).and_return('<b>Title</b> & Co')
+    frame = Nokogiri::HTML.fragment(dashboard.generate_embed_code_for(:summary)).at_css('iframe')
+
+    expect(frame.at_css('b')).to be_nil
+    expect(frame.at_css('a').text).to eq('<b>Title</b> & Co -- Summary')
+  end
+
   it 'lets the embedded page open links in a new, unsandboxed tab' do
     frame = Nokogiri::HTML(PublicReports::StateDashboard.new(version_slug: 'state').generate_embed_code_for(:summary)).at_css('iframe')
 

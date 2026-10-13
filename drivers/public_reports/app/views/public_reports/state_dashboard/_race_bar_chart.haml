@@ -1,9 +1,11 @@
 - homeless = race['homeless'][period_index]
-- rows = race['labels'].each_with_index.map { |label, i| { label: label, homeless: homeless[i], overall: race['overall'][i]&.to_f, color: race['colors'][label] || '#999' } }
+- rows = race['labels'].each_with_index.map { |label, i| { label: label, homeless: homeless[i], overall: race['overall'][i]&.to_f, color: race['colors'][label] || 'var(--color-redacted)' } }
 - title = PublicReports::StateDashboard::WhoCharts.format_total(race['totals'][period_index], 'People')
+- bars = [[:homeless, 'homelessPct', categories[0]]]
+- bars << [:overall, 'overallPct', categories[1]] if rows.any? { |row| row[:overall] }
 .chart.chart--stacked-bar{ data: { component: 'stacked-bar', 'chart-id' => 'race' }, role: 'group', 'aria-labelledby' => "chart-title-race-#{period_index}" }
   %p.chart-title{ id: "chart-title-race-#{period_index}" }= title
-  - [[:homeless, 'homelessPct', categories[0]], [:overall, 'overallPct', categories[1]]].each do |key, data_key, population_label|
+  - bars.each do |key, data_key, population_label|
     .stacked-bar{ data: { key: data_key } }
       %p.stacked-bar__label= population_label
       .stacked-bar__track
@@ -25,7 +27,8 @@
         %tr
           %th{ scope: 'col' } Category
           %th{ scope: 'col' }= categories[0]
-          %th{ scope: 'col' }= categories[1]
+          - if bars.size == 2
+            %th{ scope: 'col' }= categories[1]
       %tbody
         - rows.each do |row|
           %tr
@@ -33,4 +36,5 @@
               %span.swatch{ style: "background:#{row[:color]};#{PublicReports::StateDashboard::WhoCharts.contrast_ring_style(row[:color])}" }
               = row[:label]
             %td= row[:homeless].nil? ? '—' : "#{PublicReports::StateDashboard::WhoCharts.js_number(row[:homeless])}%"
-            %td= row[:overall].nil? ? '—' : "#{PublicReports::StateDashboard::WhoCharts.js_number(row[:overall])}%"
+            - if bars.size == 2
+              %td= row[:overall].nil? ? '—' : "#{PublicReports::StateDashboard::WhoCharts.js_number(row[:overall])}%"

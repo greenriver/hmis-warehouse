@@ -73,7 +73,16 @@ RSpec.describe PublicReports::StateDashboard::MapData, type: :model do
 
       expect(data.keys).to eq([:towns, :periods, :groups, :values, :populations, :statewideTotals, :bands, :notReportingColor, :unit, :map_type])
       expect(data[:bands].map(&:keys).uniq).to eq([[:max, :color, :label]])
-      expect(data[:bands].map { |band| band[:max] }).to eq([0, 10.0, 15.0, 20.0, 25.0, 100.0])
+      expect(data[:bands].map { |band| band.values_at(:max, :label) }).to eq(
+        [
+          [0, '0%'],
+          [10.0, 'Over 0% to 10%'],
+          [15.0, 'Over 10% to 15%'],
+          [20.0, 'Over 15% to 20%'],
+          [25.0, 'Over 20% to 25%'],
+          [100.0, 'Over 25%'],
+        ],
+      )
       expect(data.values_at(:unit, :notReportingColor, :map_type)).to eq(['Percentage of homeless population', '#EDEDED', 'place'])
       expect([data[:values].size, data[:statewideTotals].size, data[:periods]]).to eq([4, 4, ['2025 Q1', '2025 Q2', '2025 Q3', '2025 Q4']])
     end
@@ -87,13 +96,13 @@ RSpec.describe PublicReports::StateDashboard::MapData, type: :model do
       expect(data[:bands].map { |band| band.values_at(:max, :label) }).to eq(
         [
           [0, 'None'],
-          [3.0, 'Any - 3 per 10,000'],
-          [6.0, '4 - 6 per 10,000'],
-          [9.0, '7 - 9 per 10,000'],
-          [12.0, '10 - 12 per 10,000'],
-          [15.0, '13 - 15 per 10,000'],
-          [18.0, '16 - 18 per 10,000'],
-          [100.0, '19+ per 10,000'],
+          [3.0, 'Over 0 to 3 per 10,000'],
+          [6.0, 'Over 3 to 6 per 10,000'],
+          [9.0, 'Over 6 to 9 per 10,000'],
+          [12.0, 'Over 9 to 12 per 10,000'],
+          [15.0, 'Over 12 to 15 per 10,000'],
+          [18.0, 'Over 15 to 18 per 10,000'],
+          [100.0, 'Over 18 per 10,000'],
         ],
       )
     end
@@ -220,6 +229,54 @@ RSpec.describe PublicReports::StateDashboard::MapData, type: :model do
       # people but no denominator, so it must be nil rather than 0.
       expect(data[:populations]).to eq([100_000, 0])
       expect(data[:values].last.first).to eq([6.0, nil])
+    end
+
+    it 'reports nil for a town with no census value and a per-10,000 rate elsewhere in census mode' do
+      settings.update!(map_overall_population_method: 'geography')
+      create_town('OTHERTOWN', west: -71.5, population: 100_000)
+      GrdaWarehouse::Shape::Town.create!(town: 'TESTVILLE', statefp: state.geoid, full_geoid: 'CUSTOMTOWNUSTESTVILLE', geom: square(-71.0))
+      enroll_clients(48, city: 'Othertown')
+      enroll_clients(2, city: 'Testville')
+
+      data = map_data.to_h
+
+      expect(data[:populations]).to eq([100_000, nil])
+      expect(data[:values].last.first).to eq([6.0, nil])
+    end
+
+    # One client served in Q1 and Q4 2025, with the age recorded on each service.
+    def enroll_aging_client(q1_age:, q4_age:)
+      project = create(:hud_project, data_source_id: data_source.id, OrganizationID: organization.OrganizationID, ProjectType: 1)
+      create(:hud_project_coc, data_source: data_source, ProjectID: project.ProjectID, City: 'Testville', CoCCode: 'MA-500')
+      client = create(:hud_client, data_source_id: data_source.id)
+      she = create(
+        :she_entry,
+        client: client,
+        data_source_id: data_source.id,
+        project_id: project.project_id,
+        organization_id: project.organization_id,
+        project_type: 1,
+        date: Date.parse('2025-02-01'),
+        first_date_in_program: Date.parse('2025-02-01'),
+        last_date_in_program: Date.parse('2025-12-31'),
+        household_id: "aging-#{q1_age}",
+        head_of_household: true,
+      )
+      { Date.parse('2025-02-01') => q1_age, Date.parse('2025-11-01') => q4_age }.each do |date, age|
+        create(:service_history_service, service_history_enrollment_id: she.id, client_id: client.id, record_type: 'service', date: date, project_type: 1, age: age)
+      end
+    end
+
+    it 'counts a client in the youth group for each period they were served at age 18 to 24' do
+      settings.update!(map_overall_population_method: 'state')
+      create_town('TESTVILLE', west: -71.0, population: 10_000)
+      enroll_aging_client(q1_age: 16, q4_age: 18)
+      enroll_aging_client(q1_age: 24, q4_age: 25)
+
+      data = map_data.to_h
+
+      # Q1: only the 24-year-old; Q4: only the client who turned 18.
+      expect(data[:statewideTotals].map { |totals| totals[1] }).to eq([1, 0, 0, 1])
     end
 
     it 'counts each CoC from its own ProjectCoC code in CoC mode' do

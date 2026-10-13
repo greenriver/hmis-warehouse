@@ -136,8 +136,12 @@ RSpec.describe 'PublicReports::WarehouseReports::StateDashboard sections', type:
   it 'fills a map path whose rate falls between band maxima with the next band up' do
     # Abington's current-period rate is 7.3, between the 0 and 10.0 bands.
     get map_public_reports_warehouse_reports_state_dashboard_path(report)
-    abington = Nokogiri::HTML(response.body).at_css('path#town-abington')
-    expect(abington['style']).to eq('fill:#D7E0E9')
+    page = Nokogiri::HTML(response.body)
+    bands = JSON.parse(page.at_css('script[data-town-map-data]').text)['bands']
+    next_band_up = bands.detect { |band| band['max'] >= 7.3 }
+
+    expect(next_band_up).to eq(bands[1])
+    expect(page.at_css('path#town-abington')['style']).to eq("fill:#{next_band_up['color']}")
   end
 
   it 'renders breakdown rows for every grouping' do
@@ -183,7 +187,9 @@ RSpec.describe 'PublicReports::WarehouseReports::StateDashboard sections', type:
     report.update_column(:completed_at, nil)
     get edit_public_reports_warehouse_reports_state_dashboard_path(report)
 
-    expect([response.status, Nokogiri::HTML(response.body).at_css('.warehouse-reports__completed p').text.squish]).to eq([200, 'Report Processing'])
+    page = Nokogiri::HTML(response.body)
+    expect([response.status, page.at_css('.warehouse-reports__completed p').text.squish]).to eq([200, 'Report Processing'])
+    expect(page.at_css('input[type=submit][value=Publish]')).to be_nil
   end
 
   it 'shows a suppressed breakdown row as a redacted bar with no total and no chronic percent' do
@@ -387,10 +393,10 @@ RSpec.describe 'PublicReports::WarehouseReports::StateDashboard sections', type:
     end
 
     it 'adds the published date after the glossary on the raw page' do
-      report.update_column(:completed_at, Time.zone.parse('2026-01-05 10:00'))
+      report.update_column(:completed_at, Time.zone.parse('2026-01-15 10:00'))
       get raw_public_reports_warehouse_reports_state_dashboard_path(report)
 
-      expect(Nokogiri::HTML(response.body).css('.container > p.data-note').map(&:text)).to eq(['Date published: Jan  5, 2026'])
+      expect(Nokogiri::HTML(response.body).css('.container > p.data-note').map(&:text)).to eq(['Date published: Jan 15, 2026'])
     end
   end
 
@@ -403,7 +409,10 @@ RSpec.describe 'PublicReports::WarehouseReports::StateDashboard sections', type:
     it 'renders the current period of each donut with labelled segments and a table' do
       donut = page.at_css('[data-who-period-pane]:not([hidden]) figure.chart--donut[data-donut-id="all-people"]')
 
-      expect(donut.at_css('svg title').text).to eq('All People: 19,000 People')
+      svg = donut.at_css('svg')
+      expect(svg.at_css('title').text).to eq('All People: 19,000 People')
+      expect([svg['role'], svg['aria-labelledby']]).to eq(['img', svg.at_css('title')['id']])
+      expect(svg.css('.donut-total-value, .donut-total-label').map { |t| t['aria-hidden'] }).to eq(['true', 'true'])
       segments = donut.css('circle.donut-segment')
       expect(segments.map { |s| s['aria-label'] }).to eq(['All People, Sheltered: 85%', 'All People, Unsheltered: 15%'])
       expect(segments.map { |s| [s['stroke-dasharray'], s['stroke-dashoffset']] }).to eq([['85 15', '25'], ['15 85', '-60']])
@@ -437,6 +446,17 @@ RSpec.describe 'PublicReports::WarehouseReports::StateDashboard sections', type:
       expect(chart.css('tbody tr').map { |tr| tr.css('th, td').map { |c| c.text.squish } }).to eq([['White', '44.5%', '71.4%'], ['Other or Unknown', '0.9%', '—']])
     end
 
+    it 'omits the overall population bar and column when no census share is stored' do
+      stored = JSON.parse(precalculated_data)
+      stored['who']['race']['overall'] = [nil, nil]
+      report.update_column(:precalculated_data, stored.to_json)
+
+      chart = page.at_css('[data-who-period-pane]:not([hidden]) .chart--stacked-bar[data-chart-id="race"]')
+      expect(chart.css('.stacked-bar__label').map(&:text)).to eq(['Homeless Population'])
+      expect(chart.css('thead th').size).to eq(2)
+      expect(chart.text).not_to include('0.0%')
+    end
+
     it 'renders race bars from reports that stored census shares as strings' do
       stored = JSON.parse(precalculated_data)
       stored['who']['race']['overall'] = ['71.4', nil]
@@ -450,8 +470,10 @@ RSpec.describe 'PublicReports::WarehouseReports::StateDashboard sections', type:
   describe 'design tokens' do
     it 'defines every custom property the raw page uses' do
       get raw_public_reports_warehouse_reports_state_dashboard_path(report)
-      css = Nokogiri::HTML(response.body).css('style').map(&:text).join("\n")
-      used = css.scan(/var\((--[\w-]+)/).flatten.uniq
+      page = Nokogiri::HTML(response.body)
+      css = page.css('style').map(&:text).join("\n")
+      inline = page.css('[style]').map { |el| el['style'] }.join("\n")
+      used = (css + inline).scan(/var\((--[\w-]+)/).flatten.uniq
       defined = css.scan(/(--[\w-]+)\s*:/).flatten.uniq
 
       expect(used - defined).to be_empty
@@ -562,7 +584,20 @@ RSpec.describe 'PublicReports::WarehouseReports::StateDashboard sections', type:
       expect(response.body).to include('must be folder names of letters, numbers, dashes and underscores, separated by single slashes, and not start with _staging_')
     end
 
+    it 'does not queue publishing for a report that has not finished' do
+      report.update_column(:completed_at, nil)
+
+      expect do
+        patch public_reports_warehouse_reports_state_dashboard_path(report), params: { public_report: { published_url: report.generate_publish_url } }
+      end.not_to change(Delayed::Job, :count)
+
+      expect(response).to redirect_to(edit_public_reports_warehouse_reports_state_dashboard_path(report))
+      expect(report.reload.state).not_to eq('published')
+    end
+
     it 'queues publishing without publishing inline' do
+      report.update_column(:completed_at, Time.current)
+
       expect do
         patch public_reports_warehouse_reports_state_dashboard_path(report), params: { public_report: { published_url: report.generate_publish_url } }
       end.to change(Delayed::Job, :count).by(1)

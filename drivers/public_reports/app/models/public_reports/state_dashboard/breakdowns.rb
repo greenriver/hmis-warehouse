@@ -173,6 +173,8 @@ class PublicReports::StateDashboard::Breakdowns
         she_t[:project_type],
         named(household_key, 'household_key'),
         named(she_t[:id].in(chronic_enrollment_ids.arel), 'chronic'),
+        # A client who crosses an age boundary within the period is flagged in both bands, so
+        # the age rows are not disjoint and can sum above the section total.
         named(nf('BOOL_OR', [age.between(0..17)]), 'age_0_17'),
         named(nf('BOOL_OR', [age.between(18..24)]), 'age_18_24'),
         named(nf('BOOL_OR', [age.between(25..104)]), 'age_25_104'),
@@ -184,7 +186,9 @@ class PublicReports::StateDashboard::Breakdowns
   end
 
   # One row per household: its type and the head of household it counts under. A member's age
-  # is their minimum known age in the period, so a household with only unknown ages is adult-only.
+  # is their minimum known age in the period. There is no unknown-age household type: a child
+  # plus any other member (adult or unknown age) is adult-and-child, only children is child-only,
+  # and anything else, including a household with no known ages, is adult-only.
   private def period_households
     e_t = Arel::Table.new(ENROLLMENTS_TABLE)
     m_t = Arel::Table.new('members')
@@ -195,7 +199,7 @@ class PublicReports::StateDashboard::Breakdowns
       e_t[:hoh_date].maximum.as('hoh_date'),
     ).group(e_t[:household_key], e_t[:client_id])
     child_present = nf('BOOL_OR', [m_t[:age].lt(18)])
-    adult_present = nf('BOOL_OR', [m_t[:age].gteq(18)])
+    adult_present = nf('BOOL_OR', [m_t[:age].gteq(18).or(m_t[:age].eq(nil))])
     Arel::SelectManager.new(members.as('members')).
       project(
         m_t[:household_key],
@@ -324,11 +328,12 @@ class PublicReports::StateDashboard::Breakdowns
           'Asian' => GrdaWarehouse::Hud::Client.with_races(['Asian']),
           'Black or African American' => GrdaWarehouse::Hud::Client.with_races(['BlackAfAmerican']),
           'Native Hawaiian or Pacific Islander' => GrdaWarehouse::Hud::Client.with_races(['NativeHIPacific']),
-          # NOTE: these two are not included in the census data, so we're ignoring them
-          # 'Hispanic/Latina/e/o' => GrdaWarehouse::Hud::Client.with_races(['HispanicLatinaeo']),
-          # 'Middle Eastern or North African' => GrdaWarehouse::Hud::Client.with_races(['MidEastNAfrican']),
           'White' => GrdaWarehouse::Hud::Client.with_races(['White']),
-          'Other or Unknown' => GrdaWarehouse::Hud::Client.with_race_none,
+          # The census has no HispanicLatinaeo or MidEastNAfrican category, so a client with none
+          # of the five census races, those two included, is Other or Unknown.
+          'Other or Unknown' => GrdaWarehouse::Hud::Client.where(
+            ['AmIndAKNative', 'Asian', 'BlackAfAmerican', 'NativeHIPacific', 'White'].map { |race| c_t[race].not_eq(1).or(c_t[race].eq(nil)) }.reduce(:and),
+          ),
         },
       },
     }

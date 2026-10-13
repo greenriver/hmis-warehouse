@@ -99,11 +99,17 @@ class PublicReports::StateDashboard::Geography
     results.map(&:val).sum
   end
 
+  # Code => population, nil for a geography with no census value for the year.
   private def population_by_year(year)
     @population_by_year ||= {}
     @population_by_year[year] ||= {}.tap do |populations|
       population_geometries.each do |geo|
-        populations[population_code(geo)] ||= geo.population(internal_names: ALL_PEOPLE, year: year).val
+        populations[population_code(geo)] ||= begin
+          geo.population(internal_names: ALL_PEOPLE, year: year).val
+        rescue GrdaWarehouse::UsCensusApi::Finder::CannotFindData => e
+          Rails.logger.error "population error: #{e.message}"
+          nil
+        end
       end
     end
   end

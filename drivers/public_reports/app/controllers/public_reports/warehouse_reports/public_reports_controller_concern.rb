@@ -56,7 +56,7 @@ module PublicReports::WarehouseReports::PublicReportsControllerConcern
         @report.unpublish!
         flash[:notice] = 'Report has been unpublished.'
         respond_with(@report, location: path_to_report)
-      elsif params.dig(:public_report, :published_url).present?
+      elsif params.dig(:public_report, :published_url).present? && @report.completed_at
         @report.delay.publish!
         flash[:notice] = 'Report publishing queued, please check the public link in a few minutes.'
         respond_with(@report, location: path_to_report)

@@ -105,6 +105,13 @@ RSpec.describe PublicReports::StateDashboard::Breakdowns, type: :model do
   end
 
   describe 'unknown ages' do
+    it 'classifies a household with a child and a member of unknown age as adults-with-children' do
+      create_member(household_id: 'child-and-unknown', age: 10, head_of_household: true)
+      create_member(household_id: 'child-and-unknown', age: nil)
+
+      expect(household_types).to eq('adult_only' => 0, 'adult_and_child' => 1, 'child_only' => 0)
+    end
+
     it 'classifies a household as adult-only whether some or all of its members have unknown ages' do
       create_member(household_id: 'adult-and-unknown', age: 30, head_of_household: true)
       create_member(household_id: 'adult-and-unknown', age: nil)
@@ -325,6 +332,15 @@ RSpec.describe PublicReports::StateDashboard::Breakdowns, type: :model do
     it 'counts a client in the White row only when the destination client record carries the race' do
       expect(breakdowns.groupings[:race][:sections][0][:rows][4]).to eq('White')
       expect(breakdowns.rows['race__0__4'][:totals].last).to eq(1)
+    end
+
+    it 'counts a client whose only race is Hispanic/Latina/e/o or Middle Eastern/North African in the Other or Unknown row' do
+      create_member(household_id: 'hispanic', age: 30, head_of_household: true, client: create_linked_client(destination_race: { HispanicLatinaeo: 1 }, source_race: {}))
+      create_member(household_id: 'mena', age: 30, head_of_household: true, client: create_linked_client(destination_race: { MidEastNAfrican: 1 }, source_race: {}))
+
+      expect(breakdowns.groupings[:race][:sections][0][:rows][5]).to eq('Other or Unknown')
+      # The source-only client from the outer setup is the third.
+      expect(breakdowns.rows['race__0__5'][:totals].last).to eq(3)
     end
   end
 end

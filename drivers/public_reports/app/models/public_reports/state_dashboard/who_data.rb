@@ -110,7 +110,8 @@ class PublicReports::StateDashboard::WhoData
 
   private def race_chart
     # Manually do HUD race lookup to avoid a bunch of unnecessary mapping and lookups
-    # NOTE: HispanicLatinaeo and MidEastNAfrican are not included in the census data, so we're ignoring them
+    # NOTE: the census has no HispanicLatinaeo or MidEastNAfrican category, so a client whose only
+    # race is one of those counts in the 'None' (Other or Unknown) bucket, which has no census share.
     races = ::HudHelper.util.races(multi_racial: true).except('HispanicLatinaeo', 'MidEastNAfrican')
     client_cache = GrdaWarehouse::Hud::Client.new
     # race_string caches one id set per race; limit them to this report's clients.
@@ -123,10 +124,11 @@ class PublicReports::StateDashboard::WhoData
     dates = @report.iteration_dates
     dates.each do |date|
       data = races.values.to_h { |label| [label, Set.new] }
+      data['None'] = Set.new
 
       period_scope(date).joins(:client).distinct.pluck(:client_id).each do |client_id|
         race_label = races[client_cache.race_string(destination_id: client_id, scope_limit: report_clients)]
-        data[race_label] << client_id if race_label
+        data[race_label || 'None'] << client_id
       end
       total_count = data.map { |_, ids| ids.count }.sum
       data = @report.enforce_min_threshold(data, 'race')
@@ -148,15 +150,16 @@ class PublicReports::StateDashboard::WhoData
     }
   end
 
-  # Census share (percent) of each race label in the statewide population; nil for the 'None' bucket.
+  # Census share (percent) of each race label in the statewide population; nil for the 'None'
+  # bucket and for every label when the census population is missing.
   private def census_shares(races, keys, year)
-    full_pop = (@report.geography.population_by_race(year: year) || 0).to_f
+    full_pop = @report.geography.population_by_race(year: year)&.to_f
     keys.map do |label|
       race_code = races.key(label)
-      next nil unless race_code
+      next nil unless race_code && full_pop&.positive?
 
-      race_pop = @report.geography.population_by_race(race_code: race_code, year: year) || 0
-      full_pop.positive? ? ((race_pop.to_f / full_pop) * 100.0).round(1) : 0.0
+      race_pop = @report.geography.population_by_race(race_code: race_code, year: year)
+      race_pop && ((race_pop.to_f / full_pop) * 100.0).round(1)
     end
   end
 end

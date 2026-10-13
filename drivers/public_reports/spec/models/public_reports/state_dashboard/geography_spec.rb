@@ -163,6 +163,14 @@ RSpec.describe PublicReports::StateDashboard::Geography, type: :model do
 
       expect(described_class.new('county').population(2024, 'Washington County')).to eq(10_000)
     end
+
+    it 'returns nil for a town with no census value and the population of the town that has one' do
+      GrdaWarehouse::Shape::Town.create!(town: 'NOCENSUS', statefp: state.geoid, full_geoid: 'CUSTOMTOWNUSNOCENSUS', geom: square(-71.5))
+      GrdaWarehouse::Shape::Town.create!(town: 'TESTVILLE', statefp: state.geoid, full_geoid: 'CUSTOMTOWNUSTESTVILLE', geom: square(-71.0))
+      census_population('CUSTOMTOWNUSTESTVILLE', 10_000)
+
+      expect([geography.population(2024, 'NOCENSUS'), geography.population(2024, 'TESTVILLE')]).to eq([nil, 10_000])
+    end
   end
 
   describe '#svg caching' do

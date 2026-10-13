@@ -9,7 +9,6 @@
 # The `map` section of StateDashboard#chart_data: per-period,
 # per-group homeless rates for each geography, snapped to the map color bands.
 class PublicReports::StateDashboard::MapData
-  include Filter::FilterScopes
   include ArelHelper
 
   GROUP_LABELS = [
@@ -20,25 +19,26 @@ class PublicReports::StateDashboard::MapData
     'Veterans',
   ].freeze
 
-  # [max, label] per band, lowest first. Band 0 is drawn white; band n uses Setting#color(n - 1).
+  # [max, label] per band, lowest first; a band holds rates above the previous max up to its own.
+  # Band 0 is drawn white; band n uses Setting#color(n - 1).
   PERCENT_BANDS = [
     [0, '0%'],
-    [10.0, 'Any - 10%'],
-    [15.0, '11% - 15%'],
-    [20.0, '16% - 20%'],
-    [25.0, '21% - 25%'],
-    [100.0, '26%+'],
+    [10.0, 'Over 0% to 10%'],
+    [15.0, 'Over 10% to 15%'],
+    [20.0, 'Over 15% to 20%'],
+    [25.0, 'Over 20% to 25%'],
+    [100.0, 'Over 25%'],
   ].freeze
 
   CENSUS_BANDS = [
     [0, 'None'],
-    [3.0, 'Any - 3 per 10,000'],
-    [6.0, '4 - 6 per 10,000'],
-    [9.0, '7 - 9 per 10,000'],
-    [12.0, '10 - 12 per 10,000'],
-    [15.0, '13 - 15 per 10,000'],
-    [18.0, '16 - 18 per 10,000'],
-    [100.0, '19+ per 10,000'],
+    [3.0, 'Over 0 to 3 per 10,000'],
+    [6.0, 'Over 3 to 6 per 10,000'],
+    [9.0, 'Over 6 to 9 per 10,000'],
+    [12.0, 'Over 9 to 12 per 10,000'],
+    [15.0, 'Over 12 to 15 per 10,000'],
+    [18.0, 'Over 15 to 18 per 10,000'],
+    [100.0, 'Over 18 per 10,000'],
   ].freeze
 
   def initialize(report)
@@ -134,15 +134,9 @@ class PublicReports::StateDashboard::MapData
   # counts under, or nil for the youth group, which counts only 18-24 services.
   GROUP_CONDITION_KEYS = [:all, nil, :adult_only_households, :adults_with_children, :veterans].freeze
 
-  private def youth_scope
-    # filter_for_age reads @filter
-    @filter = @report.filter_object.deep_dup
-    @filter.age_ranges = [:eighteen_to_twenty_four]
-    filter_for_age(@report.homeless_scope)
-  end
-
+  # Age is the age recorded on each service, so a client counts in the periods they were 18-24.
   private def youth_enrolled_scope(start_date, end_date)
-    youth_scope.with_service_between(
+    @report.homeless_scope.with_service_between(
       start_date: start_date,
       end_date: end_date,
       service_scope: GrdaWarehouse::ServiceHistoryService.aged(18..24),
