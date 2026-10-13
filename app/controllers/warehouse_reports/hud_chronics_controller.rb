@@ -73,10 +73,6 @@ module WarehouseReports
       render json: @counts
     end
 
-    def report_scope
-      report_source.visible_to(current_user)
-    end
-
     def report_source
       GrdaWarehouse::WarehouseReports::HudChronicReport
     end
@@ -86,6 +82,10 @@ module WarehouseReports
     end
 
     private
+
+    def report_scope
+      report_source.visible_to(current_user)
+    end
 
     def set_report
       @report = report_scope.find params[:id].to_i

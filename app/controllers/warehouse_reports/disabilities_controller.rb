@@ -103,7 +103,7 @@ module WarehouseReports
       {}
     end
 
-    def report_scope
+    private def report_scope
       report_source.visible_to(current_user)
     end
 
