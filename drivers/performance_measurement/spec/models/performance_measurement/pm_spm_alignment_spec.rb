@@ -307,15 +307,21 @@ RSpec.describe 'Performance Measurement and SPM Alignment', type: :model do
         exit_date: test_start_date + 150.days,
       )
 
-      @spm_report, @pm_report = setup_reports(projects: [@es_project, @so_project])
+      # SPM 3.2 counts sheltered clients only, while PM's homeless count includes SO. Leaving the SO project
+      # out of the report keeps the two comparable.
+      @spm_report, @pm_report = setup_reports(projects: [@es_project])
     end
 
-    it 'counts sheltered clients from SPM 3.2 plus unsheltered SO clients' do
+    it 'has the same count of homeless clients in both reports' do
+      # SPM report total sheltered homeless count
       spm_count = @spm_report.answer(question: '3.2', cell: 'C2').summary
-      pm_count = @pm_report.result_for(:count_of_homeless_clients_in_range).primary_value
 
-      # SPM 3.2 counts the 2 ES clients; PM adds the SO client.
-      expect([spm_count.to_i, pm_count.to_i]).to eq([2, 3])
+      # PM report homeless count
+      pm_result = @pm_report.result_for(:count_of_homeless_clients_in_range)
+      pm_count = pm_result.primary_value
+
+      # 3 total homeless clients but only 2 in the ES project the report includes
+      compare_spm_and_pm_values(spm_count, pm_count, 2)
     end
 
     it 'has the same count of sheltered homeless clients' do
