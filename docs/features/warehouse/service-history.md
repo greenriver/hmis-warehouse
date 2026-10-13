@@ -220,3 +220,26 @@ The cached data in `WarehouseClientsProcessed` is used by:
     -   `fix_project_type` - Invalidates enrollments when project type changes
     -   `homeless_mismatch?` - Detects homeless status inconsistencies
     -   `invalidate_service_for_moved_projects` - Handles projects moved to different organizations
+
+## RRH: Services Only
+
+HUD FY2024 added `Project.RRHSubType`. RRH projects with sub-type 1 (Services Only) don't provide the housing
+assistance themselves, but HUD still collects a Housing Move-in Date when the household moves into permanent housing
+paid for by another source.
+
+The warehouse rule: an RRH enrollment of any sub-type with a move-in date counts as permanent housing from the move-in
+date. An RRH: Services Only enrollment without a move-in date never counts as in housing.
+
+- Service history marks every PH day after the move-in date `homeless: false`, regardless of sub-type.
+  An RRH: Services Only enrollment without a move-in date never gets `homeless: false`, so logic driven by
+  `homeless: false` follows the rule with no sub-type check.
+- `ServiceHistoryEnrollment.excluding_rrh_sso_pre_move_in` applies the rule to enrollment-level queries,
+  such as Performance Measurement RRH bed utilization.
+- The "Enrolled in PH" cohort column reports enrollment in a housing project, so it excludes
+  RRH: Services Only regardless of move-in date.
+- Logic that requires a move-in date for any PH project type (CAS `enrolled_in_rrh`, `currently_homeless`,
+  chronic calculations, `Hud::Enrollment.housed`, HMIS `client_is_housed`) already follows the rule.
+- `Project.residential` and its variants classify projects, not enrollments, and exclude RRH: Services Only
+  regardless of move-in date. Reports built on them (public homeless population counts, outflow) leave
+  RRH: Services Only out entirely.
+- HUD report generators follow the HUD programming specifications instead of this rule.

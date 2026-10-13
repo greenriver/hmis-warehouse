@@ -231,4 +231,48 @@ RSpec.describe GrdaWarehouse::ServiceHistoryEnrollment, type: :model do
       end
     end
   end
+
+  describe '.excluding_rrh_sso_pre_move_in' do
+    let(:data_source) { create :grda_warehouse_data_source }
+    let(:organization) { create :hud_organization, data_source: data_source }
+
+    def project_with(project_type:, rrh_sub_type: nil)
+      create(
+        :hud_project,
+        data_source: data_source,
+        OrganizationID: organization.OrganizationID,
+        ProjectType: project_type,
+        RRHSubType: rrh_sub_type,
+      )
+    end
+
+    def entry_in(project, move_in_date: nil)
+      create(
+        :grda_warehouse_service_history,
+        :service_history_entry,
+        data_source: data_source,
+        project_id: project.ProjectID,
+        organization_id: project.OrganizationID,
+        project_type: project.ProjectType,
+        move_in_date: move_in_date,
+      )
+    end
+
+    let!(:sso_without_move_in) { entry_in(project_with(project_type: 13, rrh_sub_type: 1)) }
+    let!(:sso_with_move_in) { entry_in(project_with(project_type: 13, rrh_sub_type: 1), move_in_date: Date.current - 5.days) }
+    let!(:rrh_housing_without_move_in) { entry_in(project_with(project_type: 13, rrh_sub_type: 2)) }
+    let!(:rrh_legacy_without_move_in) { entry_in(project_with(project_type: 13, rrh_sub_type: nil)) }
+    let!(:psh_without_move_in) { entry_in(project_with(project_type: 3)) }
+    let!(:es) { entry_in(project_with(project_type: 0)) }
+
+    it 'drops only RRH: Services Only enrollments without a move-in date' do
+      expect(described_class.excluding_rrh_sso_pre_move_in).to contain_exactly(
+        sso_with_move_in,
+        rrh_housing_without_move_in,
+        rrh_legacy_without_move_in,
+        psh_without_move_in,
+        es,
+      )
+    end
+  end
 end

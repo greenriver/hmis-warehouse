@@ -858,6 +858,7 @@ module PerformanceMeasurement
             {}.tap do |days_by_client_id|
               scope = report_scope.joins(:service_history_services, :project, :client).
                 send(p_type).
+                excluding_rrh_sso_pre_move_in.
                 distinct
               dobs = scope.pluck(:client_id, c_t[:DOB]).to_h
               scope.group(:client_id, p_t[:id]).
@@ -888,6 +889,7 @@ module PerformanceMeasurement
             {}.tap do |days_by_client_id|
               scope = report_scope.joins(:service_history_services, :project, :client).
                 send(p_type).
+                excluding_rrh_sso_pre_move_in.
                 distinct
               dobs = scope.pluck(:client_id, c_t[:DOB]).to_h
               scope.group(:client_id, p_t[:id]).
@@ -919,6 +921,7 @@ module PerformanceMeasurement
               scope = report_scope.joins(:service_history_services, :project, :client).
                 merge(GrdaWarehouse::ServiceHistoryService.where(date: filter.range)).
                 send(p_type).
+                excluding_rrh_sso_pre_move_in.
                 distinct
               dobs = scope.pluck(:client_id, c_t[:DOB]).to_h
               scope.group(:client_id, p_t[:id]).
@@ -951,6 +954,7 @@ module PerformanceMeasurement
               scope = report_scope.joins(:service_history_services, :project, :client).
                 merge(GrdaWarehouse::ServiceHistoryService.where(date: filter.range)).
                 send(p_type).
+                excluding_rrh_sso_pre_move_in.
                 distinct
               dobs = scope.pluck(:client_id, c_t[:DOB]).to_h
               scope.group(:client_id, p_t[:id]).
