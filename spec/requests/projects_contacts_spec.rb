@@ -14,14 +14,28 @@ RSpec.describe 'Projects contacts', type: :request do
   let(:collection) { create(:collection, collection_type: 'Projects') }
   let!(:project) { create(:hud_project) }
 
+  let(:viewable_project) { project }
+
   before do
-    collection.set_viewables(projects: [project.id])
+    collection.set_viewables(projects: [viewable_project.id])
     setup_access_control(user, role, collection)
     sign_in user
   end
 
   context 'when the user cannot view imports' do
     let(:role) { create(:role, can_view_assigned_reports: true) }
+
+    it 'does not create a contact' do
+      expect do
+        post(project_contacts_path(project), params: { contact: { user_id: create(:user).id } })
+      end.not_to change(GrdaWarehouse::Contact::Project, :count)
+
+      expect(response).to redirect_to(user.my_root_path)
+    end
+  end
+
+  context 'when Can View Imports is granted on a collection without the project' do
+    let(:viewable_project) { create(:hud_project) }
 
     it 'does not create a contact' do
       expect do

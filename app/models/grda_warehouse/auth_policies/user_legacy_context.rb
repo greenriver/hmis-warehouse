@@ -30,6 +30,11 @@ class GrdaWarehouse::AuthPolicies::UserLegacyContext < GrdaWarehouse::AuthPolici
     permissions_for_access_group_ids(access_group_ids)
   end
 
+  memoize def organization_role_permissions(organization_id, data_source_id)
+    access_group_ids = organization_access_group_ids(organization_id, data_source_id)
+    permissions_for_access_group_ids(access_group_ids)
+  end
+
   memoize def direct_client_role_permissions(client_id)
     access_group_ids = direct_client_access_group_ids(client_id)
     permissions_for_access_group_ids(access_group_ids)
@@ -131,6 +136,18 @@ class GrdaWarehouse::AuthPolicies::UserLegacyContext < GrdaWarehouse::AuthPolici
       where.not(access_group_id: nil).
       pluck(:access_group_id)
     (active_access_group_ids & ids).to_a.sort
+  end
+
+  # Returns the access group ids that include this organization or its data source
+  def organization_access_group_ids(organization_id, data_source_id)
+    return [] if data_source_id.blank?
+
+    ids = GrdaWarehouse::GroupViewableEntity.
+      where(entity_type: GrdaWarehouse::Hud::Organization.sti_name).
+      where(entity_id: organization_id).
+      where.not(access_group_id: nil).
+      pluck(:access_group_id)
+    ((active_access_group_ids & ids).to_a + data_source_access_group_ids(data_source_id)).uniq.sort
   end
 
   # Returns the access group ids that include this project id

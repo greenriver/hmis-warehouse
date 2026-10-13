@@ -11,7 +11,7 @@ module Contacts
 
   included do
     before_action :set_entity
-    before_action :require_can_edit_contacts!
+    authorize_with { current_user.policy_for(@entity).can_edit_contacts? }
     before_action :set_contact, only: [:show, :edit, :update, :destroy]
     before_action :load_alert_definitions, only: [:new, :edit]
 
@@ -54,10 +54,6 @@ module Contacts
           :user_id,
           alert_definition_ids: [],
         )
-    end
-
-    def require_can_edit_contacts!
-      not_authorized! unless @entity.can_edit_contacts?(current_user)
     end
 
     def set_contact

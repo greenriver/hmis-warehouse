@@ -22,10 +22,24 @@ RSpec.describe 'ProjectScorecard::WarehouseReports::ScorecardsController contact
   context 'when the user can manage contacts' do
     let(:user) { user_with_role(can_view_assigned_reports: true, can_view_imports: true) }
 
+    before { collection.set_viewables(reports: [report_definition.id], data_sources: [organization.data_source_id]) }
+
     it 'links the no-contacts warning to the project and organization contacts pages' do
       get edit_project_scorecard_warehouse_reports_scorecard_path(report)
 
       expect(response.body).to include(project_contacts_path(project), organization_contacts_path(organization))
+    end
+  end
+
+  context 'when Can View Imports is granted on a collection without the project or organization' do
+    let(:user) { user_with_role(can_view_assigned_reports: true, can_view_imports: true) }
+
+    it 'shows the no-contacts warning without links' do
+      get edit_project_scorecard_warehouse_reports_scorecard_path(report)
+
+      expect(response.body).to include('There are no contacts specified')
+      expect(response.body).not_to include(project_contacts_path(project))
+      expect(response.body).not_to include(organization_contacts_path(organization))
     end
   end
 

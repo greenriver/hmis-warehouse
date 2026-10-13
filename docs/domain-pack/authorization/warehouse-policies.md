@@ -13,6 +13,7 @@ sources:
   - app/models/grda_warehouse/auth_policies/destination_client_policy.rb
   - app/models/grda_warehouse/auth_policies/source_client_policy.rb
   - app/models/grda_warehouse/auth_policies/data_source_policy.rb
+  - app/models/grda_warehouse/auth_policies/organization_policy.rb
   - app/models/grda_warehouse/auth_policies/hud_report_policy.rb
   - app/models/grda_warehouse/auth_policies/cohort_pii_policy.rb
   - app/models/grda_warehouse/auth_policies/allow_pii_policy.rb
@@ -39,7 +40,7 @@ related:
 Warehouse policies are the current way to answer "may this user do X to this record" without
 caring whether the user is on Access Controls or on legacy roles. A policy class under
 `app/models/grda_warehouse/auth_policies/` holds the rules for one resource type (project,
-source client, destination client, data source, HUD report instance). It reads permissions from
+organization, source client, destination client, data source, HUD report instance). It reads permissions from
 a context object built once per user per request: `GrdaWarehouse::AuthPolicies::UserAclContext`
 or `GrdaWarehouse::AuthPolicies::UserLegacyContext`, both subclasses of `UserBaseContext`.
 
@@ -60,7 +61,7 @@ action. This is the replacement for the legacy `before_action :require_can_*!` f
   `GrdaWarehouse::AuthPolicies::BasePolicy`. Models defining `policy_class` today:
   `GrdaWarehouse::Hud::Project`, `GrdaWarehouse::Hud::Client` (chooses
   `DestinationClientPolicy` or `SourceClientPolicy` by `destination?(strict: true)`),
-  `GrdaWarehouse::DataSource`, `HudReports::ReportInstance`.
+  `GrdaWarehouse::Hud::Organization`, `GrdaWarehouse::DataSource`, `HudReports::ReportInstance`.
 - `User#policy_context`, memoized. Returns `UserAclContext` when `using_acls?`, else
   `UserLegacyContext`. Exposes `client_restricted?(client_id)`,
   `preload_project_dependencies(project_ids)`, `preload_client_dependencies(client_ids)`,
@@ -93,9 +94,13 @@ an array at the top of the class (`[:can_edit_projects, :can_edit?]`) and define
 `Collection` membership joined to the user's `AccessControl` rows. `UserLegacyContext` does the
 same through `AccessGroup` and returns the user's flat legacy role permissions when any group
 matches. Both expose the same public methods (`project_role_permissions`,
-`data_source_role_permissions`, `direct_client_role_permissions`,
+`organization_role_permissions`, `data_source_role_permissions`, `direct_client_role_permissions`,
 `enrolled_project_ids_for_client`, `legacy_permissions`), so policies do not branch on user
 type. `SourceClientPolicy` is the one policy that reads legacy-only data (window data sources).
+`organization_role_permissions` reaches an organization through a collection or access group
+that includes the organization or its data source; a group that includes only one of its
+projects does not reach it. `OrganizationPolicy#can_edit_contacts?` and
+`ProjectPolicy#can_edit_contacts?` both map to `can_view_imports` on the record.
 
 Context loaders live under `auth_policies/context_loaders/`. `ClientRoiLoader` caches, per
 destination client id, the status of the
@@ -129,7 +134,8 @@ Adding a policy for a new resource type:
 3. List `[permission_symbol, predicate_name]` pairs and `define_method` each as
    `resource_permissions.include?(permission)`, as `ProjectPolicy` does.
 4. Define `resource_permissions` by calling a context method (`project_role_permissions`,
-   `data_source_role_permissions`, or `direct_client_role_permissions`) with the resource id.
+   `organization_role_permissions`, `data_source_role_permissions`, or
+   `direct_client_role_permissions`) with the resource id.
 5. Add `def policy_class = GrdaWarehouse::AuthPolicies::<Thing>Policy` to the model.
 6. In the controller, subclass `ApplicationControllerV2` and declare
    `authorize_with { thing_policy.can_view? }` with a `helper_method def thing_policy` that
