@@ -42,12 +42,10 @@ RSpec.describe DeviseCurrentUser, :devise_only, type: :controller do
 
     it 'measures the timeout from the last_request_at stored in the Warden session' do
       freeze_time do
-        last_request_at = 10.minutes.ago.to_i
         allow(warden).to receive(:authenticated?).with(:user).and_return(true)
-        allow(warden).to receive(:session).with(:user).and_return('last_request_at' => last_request_at)
+        allow(warden).to receive(:session).with(:user).and_return('last_request_at' => 10.minutes.ago.to_i)
 
-        expect(user_session_expires_at).to eq(Time.zone.at(last_request_at) + Devise.timeout_in)
-        expect(user_session_expires_at).to be < Time.current + Devise.timeout_in
+        expect(user_session_expires_at).to eq(Devise.timeout_in.from_now - 10.minutes)
       end
     end
 
