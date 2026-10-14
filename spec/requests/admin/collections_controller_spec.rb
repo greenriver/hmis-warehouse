@@ -180,23 +180,27 @@ RSpec.describe Admin::CollectionsController, type: :request do
       end.to raise_error(ArgumentError, /Unknown entity type/)
     end
 
+    def entity_rows
+      Nokogiri::HTML(response.body).css('table.collections tbody tr').to_h do |tr|
+        cells = tr.css('td').map { |td| td.text.strip }
+        [cells[1], cells[2..]]
+      end
+    end
+
+    def queries_for_entities_page(entities)
+      count = 0
+      counter = ->(*, payload) { count += 1 unless payload[:name].in?(['SCHEMA', 'TRANSACTION']) || payload[:cached] }
+      ActiveSupport::Notifications.subscribed(counter, 'sql.active_record') do
+        get entities_admin_collection_path(project_collection, entities: entities)
+      end
+      count
+    end
+
+    def soft_delete(record)
+      record.update_columns(DateDeleted: Time.current)
+    end
+
     describe 'organizations' do
-      def organization_rows
-        Nokogiri::HTML(response.body).css('table.collections tbody tr').to_h do |tr|
-          cells = tr.css('td').map { |td| td.text.strip }
-          [cells[1], cells[2..]]
-        end
-      end
-
-      def queries_for_organizations_page
-        count = 0
-        counter = ->(*, payload) { count += 1 unless payload[:name].in?(['SCHEMA', 'TRANSACTION']) || payload[:cached] }
-        ActiveSupport::Notifications.subscribed(counter, 'sql.active_record') do
-          get entities_admin_collection_path(project_collection, entities: :organizations)
-        end
-        count
-      end
-
       def add_organization_with_project
         org = create(:grda_warehouse_hud_organization)
         create(:grda_warehouse_hud_project, organization: org)
@@ -210,7 +214,7 @@ RSpec.describe Admin::CollectionsController, type: :request do
 
         get entities_admin_collection_path(project_collection, entities: :organizations)
 
-        expect(organization_rows).to eq(
+        expect(entity_rows).to eq(
           'Two Project Org' => ['Green River', '2'],
           'One Project Org' => ['Green River', '1'],
         )
@@ -229,7 +233,7 @@ RSpec.describe Admin::CollectionsController, type: :request do
 
         get entities_admin_collection_path(project_collection, entities: :organizations)
 
-        expect(organization_rows).to eq(
+        expect(entity_rows).to eq(
           'Home Org' => ['Green River', '1'],
           'Shared ID Org' => ['Other Source', '2'],
         )
@@ -243,15 +247,123 @@ RSpec.describe Admin::CollectionsController, type: :request do
 
         get entities_admin_collection_path(project_collection, entities: :organizations)
 
-        expect(organization_rows.keys).to contain_exactly('Live Org')
+        expect(entity_rows.keys).to contain_exactly('Live Org')
       end
 
       it 'runs the same number of queries regardless of organization count' do
-        queries_for_organizations_page # warm per-process caches
-        baseline = queries_for_organizations_page
+        queries_for_entities_page(:organizations) # warm per-process caches
+        baseline = queries_for_entities_page(:organizations)
         3.times { add_organization_with_project }
 
-        expect(queries_for_organizations_page).to eq(baseline)
+        expect(queries_for_entities_page(:organizations)).to eq(baseline)
+      end
+    end
+
+    describe 'data sources' do
+      let!(:other_data_source) { create(:grda_warehouse_data_source, name: 'Other Source', source_type: :sftp) }
+
+      before do
+        project_coc.data_source.update!(name: 'Vendor A')
+        project_coc_2.data_source.update!(name: 'Vendor B')
+      end
+
+      it 'shows client count, project count, and last import per data source, ignoring deleted rows' do
+        create(:grda_warehouse_hud_client, data_source: data_source)
+        soft_delete(create(:grda_warehouse_hud_client, data_source: data_source))
+        create_list(:grda_warehouse_hud_client, 3, data_source: other_data_source)
+        create(:grda_warehouse_hud_project)
+        soft_delete(create(:grda_warehouse_hud_project))
+        create(:grda_warehouse_hud_project, data_source_id: other_data_source.id)
+        last_import = Time.zone.local(2026, 3, 2, 10)
+        GrdaWarehouse::ImportLog.create!(data_source_id: data_source.id, completed_at: last_import - 1.day)
+        GrdaWarehouse::ImportLog.create!(data_source_id: data_source.id, completed_at: last_import)
+
+        get entities_admin_collection_path(project_collection, entities: :data_sources)
+
+        expect(entity_rows).to eq(
+          'Green River' => ['1', '2', last_import.localtime.to_s],
+          'Other Source' => ['3', '1', ''],
+          'Vendor A' => ['0', '0', ''],
+          'Vendor B' => ['0', '0', ''],
+        )
+      end
+
+      def add_data_source_with_rows
+        source = create(:grda_warehouse_data_source, source_type: :sftp)
+        create(:grda_warehouse_hud_client, data_source: source)
+        create(:grda_warehouse_hud_project, data_source_id: source.id)
+        GrdaWarehouse::ImportLog.create!(data_source_id: source.id, completed_at: Time.current)
+      end
+
+      it 'runs the same number of queries regardless of data source count' do
+        add_data_source_with_rows # baseline needs every row type so batched preloads run on both sides
+        queries_for_entities_page(:data_sources) # warm per-process caches
+        baseline = queries_for_entities_page(:data_sources)
+        3.times { add_data_source_with_rows }
+
+        expect(queries_for_entities_page(:data_sources)).to eq(baseline)
+      end
+    end
+
+    [:project_groups, :project_access_groups].each do |entities|
+      describe entities.to_s do
+        it 'counts projects per group, ignoring deleted projects' do
+          project_group.update!(name: 'Two Project Group')
+          project_group.projects << project
+          project_group.projects << create(:grda_warehouse_hud_project)
+          project_group_2.update!(name: 'One Project Group')
+          project_group_2.projects << create(:grda_warehouse_hud_project)
+          deleted_project = create(:grda_warehouse_hud_project)
+          project_group_2.projects << deleted_project
+          soft_delete(deleted_project)
+
+          get entities_admin_collection_path(project_collection, entities: entities)
+
+          expect(entity_rows).to eq(
+            'Two Project Group' => ['2'],
+            'One Project Group' => ['1'],
+          )
+        end
+
+        it 'runs the same number of queries regardless of group count' do
+          queries_for_entities_page(entities) # warm per-process caches
+          baseline = queries_for_entities_page(entities)
+          3.times { create(:project_group).projects << create(:grda_warehouse_hud_project) }
+
+          expect(queries_for_entities_page(entities)).to eq(baseline)
+        end
+      end
+    end
+
+    describe 'CoC codes' do
+      # CoC code lookups are seeded from HudHelper.util.cocs before the suite runs.
+      def add_project_to_coc(coc_code, project: create(:grda_warehouse_hud_project))
+        create(:hud_project_coc, CoCCode: coc_code, data_source_id: project.data_source_id, ProjectID: project.ProjectID)
+      end
+
+      it 'shows the official name and counts projects per CoC, ignoring deleted projects' do
+        add_project_to_coc('XX-500')
+        add_project_to_coc('XX-500', project: project)
+        add_project_to_coc('XX-501')
+        deleted_project = create(:grda_warehouse_hud_project)
+        add_project_to_coc('XX-501', project: deleted_project)
+        soft_delete(deleted_project)
+
+        get entities_admin_collection_path(project_collection, entities: :coc_codes)
+
+        expect(entity_rows).to eq(
+          'XX-500' => ['Test CoC', '2'],
+          'XX-501' => ['2nd Test CoC', '1'],
+          project_coc_2.CoCCode => [project_coc_2.lookup_coc.official_name, '0'],
+        )
+      end
+
+      it 'runs the same number of queries regardless of CoC count' do
+        queries_for_entities_page(:coc_codes) # warm per-process caches
+        baseline = queries_for_entities_page(:coc_codes)
+        ['XX-502', 'XX-518', 'AA-000'].each { |coc_code| add_project_to_coc(coc_code) }
+
+        expect(queries_for_entities_page(:coc_codes)).to eq(baseline)
       end
     end
   end
