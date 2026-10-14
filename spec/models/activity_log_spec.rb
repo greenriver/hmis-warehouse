@@ -181,4 +181,92 @@ RSpec.describe ActivityLog do
       expect(described_class.warehouse_reports).to include(entry)
     end
   end
+
+  describe 'client_id from path' do
+    # path => expected client_id. Shared by the callback and backfill examples so the Ruby and
+    # SQL matching rules can't drift apart.
+    client_id_cases = {
+      '/clients/52' => 52,
+      '/clients/52/audits' => 52,
+      '/clients/52/notes/7' => 52,
+      '/clients/52?tab=history' => 52,
+      '/clients/52.pdf' => 52,
+      '/clients/1010/audits' => 1010,
+      '/source_clients/52/edit' => nil,
+      '/reports?return_to=/clients/52' => nil,
+      '/clients/123456789012345678901' => nil,
+      '/clients' => nil,
+    }.freeze
+
+    describe 'on save' do
+      client_id_cases.each do |path, expected|
+        it "is #{expected.inspect} for #{path}" do
+          expect(log(path: path).reload.client_id).to eq(expected)
+        end
+      end
+
+      it 'is nil when path is nil' do
+        expect(log(path: nil).reload.client_id).to be_nil
+      end
+    end
+
+    describe '.backfill_client_id!' do
+      it 'sets client_id from path exactly as the save callback does' do
+        entries = client_id_cases.keys.map { |path| log(path: path) }
+        described_class.where(id: entries.map(&:id)).update_all(client_id: nil)
+
+        described_class.backfill_client_id!(batch_size: 3)
+
+        expect(entries.map { |e| [e.path, e.reload.client_id] }.to_h).to eq(client_id_cases)
+      end
+
+      it 'backfills the row with the highest id, in the final partial batch' do
+        entries = Array.new(4) { |i| log(path: "/clients/#{70 + i}") }
+        described_class.where(id: entries.map(&:id)).update_all(client_id: nil)
+
+        described_class.backfill_client_id!(batch_size: 3)
+
+        expect(entries.map { |e| e.reload.client_id }).to eq([70, 71, 72, 73])
+      end
+
+      it 'leaves an already-set client_id unchanged' do
+        entry = log(path: '/clients/52')
+        entry.update_column(:client_id, 999)
+
+        described_class.backfill_client_id!
+
+        expect(entry.reload.client_id).to eq(999)
+      end
+    end
+  end
+
+  # CREATE INDEX CONCURRENTLY can't run inside the per-example transaction, so this group manages
+  # the index itself and drops it afterwards, leaving the test database as structure.sql defines it.
+  describe '.ensure_client_id_index!' do
+    self.use_transactional_tests = false
+
+    let(:connection) { described_class.connection }
+    let(:index_name) { described_class::CLIENT_ID_INDEX_NAME }
+
+    def index_present?
+      connection.index_exists?(:activity_logs, [:client_id, :created_at], name: index_name, where: 'client_id IS NOT NULL')
+    end
+
+    def drop_index
+      connection.remove_index(:activity_logs, name: index_name) if connection.index_name_exists?(:activity_logs, index_name)
+    end
+
+    before { drop_index }
+    after { drop_index }
+
+    it 'builds the partial client_id, created_at index when it is missing' do
+      expect { described_class.ensure_client_id_index! }.to change { index_present? }.from(false).to(true)
+    end
+
+    it 'leaves an existing index in place' do
+      described_class.ensure_client_id_index!
+
+      expect { described_class.ensure_client_id_index! }.not_to change { index_present? }.from(true)
+    end
+  end
 end
