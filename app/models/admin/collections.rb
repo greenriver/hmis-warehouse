@@ -41,7 +41,7 @@ module Admin
         extra_columns: [
           {
             header: 'Project Count',
-            content: ->(entity) { ActionController::Base.helpers.number_with_delimiter(entity.projects.count) },
+            content: ->(entity, **) { ActionController::Base.helpers.number_with_delimiter(entity.projects.count) },
           },
         ],
       ),
@@ -57,15 +57,15 @@ module Admin
         extra_columns: [
           {
             header: 'Client Records',
-            content: ->(entity) { ActionController::Base.helpers.number_with_delimiter(entity.clients.count) },
+            content: ->(entity, **) { ActionController::Base.helpers.number_with_delimiter(entity.clients.count) },
           },
           {
             header: 'Project Count',
-            content: ->(entity) { ActionController::Base.helpers.number_with_delimiter(entity.projects.count) },
+            content: ->(entity, **) { ActionController::Base.helpers.number_with_delimiter(entity.projects.count) },
           },
           {
             header: 'Last Import',
-            content: ->(entity) { entity.import_logs.maximum(:completed_at)&.localtime },
+            content: ->(entity, **) { entity.import_logs.maximum(:completed_at)&.localtime },
           },
         ],
       ),
@@ -90,13 +90,13 @@ module Admin
         extra_columns: [
           {
             header: 'Data Source',
-            content: ->(_entity, group_name) { group_name },
+            content: ->(_entity, group_name:, **) { group_name },
           },
           {
             header: 'Project Count',
             preload: -> { GrdaWarehouse::Hud::Project.group(:data_source_id, :OrganizationID).count },
-            content: ->(entity, _group_name, counts) do
-              ActionController::Base.helpers.number_with_delimiter(counts[[entity.data_source_id, entity.OrganizationID]] || 0)
+            content: ->(entity, preloaded:, **) do
+              ActionController::Base.helpers.number_with_delimiter(preloaded[[entity.data_source_id, entity.OrganizationID]] || 0)
             end,
           },
         ],
@@ -121,7 +121,7 @@ module Admin
         extra_columns: [
           {
             header: 'Data Source / Organization',
-            content: ->(_entity, group_name) { group_name },
+            content: ->(_entity, group_name:, **) { group_name },
           },
         ],
       ),
@@ -137,7 +137,7 @@ module Admin
         extra_columns: [
           {
             header: 'Project Count',
-            content: ->(entity) { ActionController::Base.helpers.number_with_delimiter(entity.projects.count) },
+            content: ->(entity, **) { ActionController::Base.helpers.number_with_delimiter(entity.projects.count) },
           },
         ],
       ),
@@ -154,11 +154,11 @@ module Admin
         extra_columns: [
           {
             header: 'CoC Name',
-            content: lambda(&:official_name),
+            content: ->(entity, **) { entity.official_name },
           },
           {
             header: 'Project Count',
-            content: ->(entity) { ActionController::Base.helpers.number_with_delimiter(entity.projects.count) },
+            content: ->(entity, **) { ActionController::Base.helpers.number_with_delimiter(entity.projects.count) },
           },
         ],
       ),

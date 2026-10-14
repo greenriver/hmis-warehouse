@@ -37,5 +37,5 @@
                 %label{for: id}
         %td= entity_name
         - extra_columns.each_with_index do |column, i|
-          %td= config.extra_column_value(column, entity_data, group_name, preloaded_columns[i])
+          %td= config.extra_column_value(column, entity_data, group_name: group_name, preloaded: preloaded_columns[i])
 
