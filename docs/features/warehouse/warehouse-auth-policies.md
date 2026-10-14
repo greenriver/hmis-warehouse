@@ -53,6 +53,15 @@ pii_policy = current_user.reporting_policy_for_project(project_id)
 pii_policy.can_view_full_ssn?
 ```
 
+### Client feature permissions
+
+The client History page and the homeless verification PDF are authorized per client through the destination client policy:
+
+- `policy.can_view_history_calendar?` requires `can_view_clients` (or ROI view access) and `can_view_client_history_calendar` from a role that covers one of the client's projects.
+- `policy.can_generate_homeless_verification_pdfs?` requires the same view access and `can_generate_homeless_verification_pdfs`.
+
+A role that grants these permissions on a project the client is not enrolled in does not grant them for that client.
+
 ### Preloading
 
 Before checking policies, PII, or restriction across a list of clients, call `preload_client_dependencies` once with the list. It accepts source or destination ids, widens them to each whole warehouse identity, and loads everything a client policy or PII check reads in a small, fixed number of queries.
