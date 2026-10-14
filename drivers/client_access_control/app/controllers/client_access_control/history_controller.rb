@@ -14,7 +14,11 @@ module ClientAccessControl
     skip_before_action :authenticate_user!, only: [:pdf]
     before_action :require_can_see_this_client_demographics!, except: [:pdf]
     before_action :set_client, except: [:pdf]
+    before_action :require_can_view_history_calendar!, only: [:show]
+    before_action :require_can_generate_homeless_verification_pdf!, only: [:queue]
     after_action :log_client
+
+    helper_method :can_generate_homeless_verification_pdf?
 
     # Removed from UI to use standard OP date format
     # Leaving here in case we need to restore
@@ -116,6 +120,22 @@ module ClientAccessControl
 
     private def enrollment_scope
       @client.service_history_enrollments.visible_in_window_to(current_user)
+    end
+
+    private def client_policy
+      current_user.policy_for(@client)
+    end
+
+    private def can_generate_homeless_verification_pdf?
+      client_policy.can_generate_homeless_verification_pdfs?
+    end
+
+    private def require_can_view_history_calendar!
+      not_authorized! unless client_policy.can_view_history_calendar?
+    end
+
+    private def require_can_generate_homeless_verification_pdf!
+      not_authorized! unless can_generate_homeless_verification_pdf?
     end
 
     private def title_for_show
