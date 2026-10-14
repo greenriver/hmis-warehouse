@@ -214623,6 +214623,13 @@ CREATE INDEX "index_CurrentLivingSituation_on_verified_by_project_id" ON public.
 
 
 --
+-- Name: idx_custom_assessments_on_en_id_p_id_ds_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_custom_assessments_on_en_id_p_id_ds_id ON public."CustomAssessments" USING btree ("EnrollmentID", "PersonalID", data_source_id) WHERE ("DateDeleted" IS NULL);
+
+
+--
 -- Name: index_CustomAssessments_on_created_by_hud_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -360279,6 +360286,7 @@ ALTER TABLE ONLY public.import_logs
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261014140000'),
 ('20260918121000'),
 ('20260918120000'),
 ('20260916122000'),
