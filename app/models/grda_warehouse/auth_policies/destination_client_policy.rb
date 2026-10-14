@@ -15,6 +15,8 @@ class GrdaWarehouse::AuthPolicies::DestinationClientPolicy < GrdaWarehouse::Auth
     :can_view_full_dob,
     :can_view_full_ssn,
     :can_view_hiv_status,
+    :can_view_history_calendar,
+    :can_generate_homeless_verification_pdfs,
   ].each do |permission|
     method_name = :"#{permission}?"
     define_method(method_name) do

@@ -35,6 +35,14 @@ class GrdaWarehouse::AuthPolicies::SourceClientPolicy < GrdaWarehouse::AuthPolic
     false
   end
 
+  memoize def can_view_history_calendar?
+    can_view? && resource_permissions.include?(:can_view_client_history_calendar)
+  end
+
+  memoize def can_generate_homeless_verification_pdfs?
+    can_view? && resource_permissions.include?(:can_generate_homeless_verification_pdfs)
+  end
+
   def can_view_supplemental_data?
     # supplemental data sets do not support legacy role-based permissions
     return false unless user.using_acls?
