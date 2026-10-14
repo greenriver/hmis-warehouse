@@ -52,6 +52,9 @@ CollectionConfig = Struct.new(
   # Array<Hash> (optional) - Additional columns to display in entity tables
   # Each hash should have :header (String) and :content (Proc) keys
   # Example: [{ header: 'Project Count', content: ->(entity) { entity.projects.count } }]
+  # :content receives the group name as a second argument when :grouped is true.
+  # An optional :preload Proc runs once per page; its result is passed to :content as
+  # the last argument, so per-row values can be looked up instead of queried.
   :extra_columns,
 
   # Boolean (optional) - Whether the collection is grouped (e.g., projects grouped by organization)
@@ -98,5 +101,16 @@ CollectionConfig = Struct.new(
 
   def extra_columns_config
     extra_columns || []
+  end
+
+  def preload_extra_columns
+    extra_columns_config.map { |column| column[:preload]&.call }
+  end
+
+  def extra_column_value(column, entity, group_name, preloaded)
+    args = [entity]
+    args << group_name if grouped
+    args << preloaded if column[:preload]
+    column[:content].call(*args)
   end
 end

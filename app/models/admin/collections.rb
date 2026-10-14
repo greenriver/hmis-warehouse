@@ -76,9 +76,10 @@ module Admin
         name_method: ->(org) { org.name(ignore_confidential_status: true) },
         collection_scope: -> do
           GrdaWarehouse::Hud::Organization.
+            joins(:data_source).
             order(:name).
             preload(:data_source).
-            group_by { |o| o.data_source&.name }
+            group_by { |o| o.data_source.name }
         end,
         placeholder: 'Organization',
         css_class: 'jUserViewable jOrganizations',
@@ -92,12 +93,11 @@ module Admin
             content: ->(_entity, group_name) { group_name },
           },
           {
-            header: 'Client Records',
-            content: ->(entity, _group_name) { ActionController::Base.helpers.number_with_delimiter(entity.clients.count) },
-          },
-          {
             header: 'Project Count',
-            content: ->(entity, _group_name) { ActionController::Base.helpers.number_with_delimiter(entity.projects.count) },
+            preload: -> { GrdaWarehouse::Hud::Project.group(:data_source_id, :OrganizationID).count },
+            content: ->(entity, _group_name, counts) do
+              ActionController::Base.helpers.number_with_delimiter(counts[[entity.data_source_id, entity.OrganizationID]] || 0)
+            end,
           },
         ],
       ),

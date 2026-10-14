@@ -179,6 +179,62 @@ RSpec.describe Admin::CollectionsController, type: :request do
         get entities_admin_collection_path(project_collection, entities: :invalid_type)
       end.to raise_error(ArgumentError, /Unknown entity type/)
     end
+
+    describe 'organizations' do
+      def organization_rows
+        Nokogiri::HTML(response.body).css('table.collections tbody tr').to_h do |tr|
+          cells = tr.css('td').map { |td| td.text.strip }
+          [cells[1], cells[2..]]
+        end
+      end
+
+      def queries_for_organizations_page
+        count = 0
+        counter = ->(*, payload) { count += 1 unless payload[:name].in?(['SCHEMA', 'TRANSACTION']) || payload[:cached] }
+        ActiveSupport::Notifications.subscribed(counter, 'sql.active_record') do
+          get entities_admin_collection_path(project_collection, entities: :organizations)
+        end
+        count
+      end
+
+      def add_organization_with_project
+        org = create(:grda_warehouse_hud_organization)
+        create(:grda_warehouse_hud_project, organization: org)
+      end
+
+      it 'counts projects per organization' do
+        organization.update!(OrganizationName: 'Two Project Org')
+        create(:grda_warehouse_hud_project, organization: organization)
+        other_org = create(:grda_warehouse_hud_organization, OrganizationName: 'One Project Org')
+        create(:grda_warehouse_hud_project, organization: other_org)
+
+        get entities_admin_collection_path(project_collection, entities: :organizations)
+
+        expect(organization_rows).to eq(
+          'Two Project Org' => ['Green River', '2'],
+          'One Project Org' => ['Green River', '1'],
+        )
+      end
+
+      it 'excludes organizations whose data source is deleted' do
+        organization.update!(OrganizationName: 'Live Org')
+        deleted_data_source = create(:grda_warehouse_data_source)
+        create(:grda_warehouse_hud_organization, data_source_id: deleted_data_source.id, OrganizationName: 'Orphan Org')
+        deleted_data_source.destroy!
+
+        get entities_admin_collection_path(project_collection, entities: :organizations)
+
+        expect(organization_rows.keys).to contain_exactly('Live Org')
+      end
+
+      it 'runs the same number of queries regardless of organization count' do
+        queries_for_organizations_page # warm per-process caches
+        baseline = queries_for_organizations_page
+        3.times { add_organization_with_project }
+
+        expect(queries_for_organizations_page).to eq(baseline)
+      end
+    end
   end
 
   describe 'PUT bulk_entities' do
