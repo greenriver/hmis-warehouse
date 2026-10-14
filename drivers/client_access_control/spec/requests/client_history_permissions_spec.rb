@@ -89,6 +89,41 @@ RSpec.describe ClientAccessControl::HistoryController, type: :request do
     end
   end
 
+  describe 'when the feature permissions come from a project the client is not enrolled in' do
+    before do
+      grant
+      setup_access_control(
+        user,
+        create(:role, **base_permissions, can_view_client_history_calendar: true, can_generate_homeless_verification_pdfs: true),
+        window_project_viewable_collection,
+      )
+    end
+
+    it 'redirects the history page even though the user holds both permissions elsewhere' do
+      expect(user.can_view_client_history_calendar?).to eq(true)
+      expect(user.can_generate_homeless_verification_pdfs?).to eq(true)
+
+      get client_history_path(destination)
+
+      expect(response).to redirect_to(user.my_root_path)
+    end
+
+    it 'rejects queue without enqueuing the verification job' do
+      expect do
+        post queue_client_history_path(destination), params: { pdf: { years: 2 } }
+      end.not_to have_enqueued_job(ServiceHistory::ChronicVerificationJob)
+
+      expect(response).to redirect_to(user.my_root_path)
+    end
+
+    it 'omits the History tab on the client dashboard' do
+      get client_path(destination)
+
+      expect(response).to have_http_status(:ok)
+      expect(Nokogiri::HTML(response.body).css("a[href='#{client_history_path(destination)}']").size).to eq(0)
+    end
+  end
+
   describe 'History tab on the client dashboard' do
     def history_tab_links
       Nokogiri::HTML(response.body).css("a[href='#{client_history_path(destination)}']").map { |a| a.text.strip }
