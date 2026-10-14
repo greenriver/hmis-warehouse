@@ -167,10 +167,10 @@ RSpec.describe GrdaWarehouse::AuthPolicies::DestinationClientPolicy, type: :mode
         expect(feature_results).to eq([true, false])
       end
 
-      it 'grants the PDF permission without the history calendar' do
+      it 'denies the PDF permission without the history calendar' do
         setup_access_control(user, create(:role, can_view_clients: true, can_generate_homeless_verification_pdfs: true), client_collection)
 
-        expect(feature_results).to eq([false, true])
+        expect(feature_results).to eq([false, false])
       end
 
       it 'denies both when the role lacks can_view_clients' do

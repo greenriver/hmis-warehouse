@@ -18,7 +18,7 @@ module ClientAccessControl
     before_action :require_can_generate_homeless_verification_pdf!, only: [:queue]
     after_action :log_client
 
-    helper_method :can_generate_homeless_verification_pdf?
+    helper_method :can_generate_homeless_verification_pdfs_for_client?
 
     # Removed from UI to use standard OP date format
     # Leaving here in case we need to restore
@@ -126,7 +126,7 @@ module ClientAccessControl
       current_user.policy_for(@client)
     end
 
-    private def can_generate_homeless_verification_pdf?
+    private def can_generate_homeless_verification_pdfs_for_client?
       client_policy.can_generate_homeless_verification_pdfs?
     end
 
@@ -135,7 +135,7 @@ module ClientAccessControl
     end
 
     private def require_can_generate_homeless_verification_pdf!
-      not_authorized! unless can_generate_homeless_verification_pdf?
+      not_authorized! unless can_generate_homeless_verification_pdfs_for_client?
     end
 
     private def title_for_show

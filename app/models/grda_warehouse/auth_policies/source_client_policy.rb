@@ -40,7 +40,7 @@ class GrdaWarehouse::AuthPolicies::SourceClientPolicy < GrdaWarehouse::AuthPolic
   end
 
   memoize def can_generate_homeless_verification_pdfs?
-    can_view? && resource_permissions.include?(:can_generate_homeless_verification_pdfs)
+    can_view_history_calendar? && resource_permissions.include?(:can_generate_homeless_verification_pdfs)
   end
 
   def can_view_supplemental_data?

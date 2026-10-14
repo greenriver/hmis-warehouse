@@ -87,6 +87,17 @@ RSpec.describe ClientAccessControl::HistoryController, type: :request do
       expect(response).to redirect_to(user.my_root_path)
       expect(destination.reload.generate_manual_history_pdf).to eq(false)
     end
+
+    it 'rejects the request without flagging the client when the role grants the PDF permission but not the history calendar' do
+      grant(can_generate_homeless_verification_pdfs: true)
+
+      expect do
+        post queue_client_history_path(destination), params: { pdf: { years: 2 } }
+      end.not_to have_enqueued_job(ServiceHistory::ChronicVerificationJob)
+
+      expect(response).to redirect_to(user.my_root_path)
+      expect(destination.reload.generate_manual_history_pdf).to eq(false)
+    end
   end
 
   describe 'when the feature permissions come from a project the client is not enrolled in' do
