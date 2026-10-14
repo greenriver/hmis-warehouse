@@ -156,5 +156,29 @@ RSpec.describe ClientAccessControl::HistoryController, type: :request do
       expect(response).to have_http_status(:ok)
       expect(history_tab_links).to eq([])
     end
+
+    context 'with the VA client dashboard' do
+      before do
+        config.update!(client_dashboard: 'va')
+        GrdaWarehouse::Config.invalidate_cache
+      end
+
+      it 'links to History when the role grants the history calendar' do
+        grant(can_view_client_history_calendar: true)
+
+        get client_path(destination)
+
+        expect(history_tab_links).to eq(['History'])
+      end
+
+      it 'omits the History link when the role lacks the history calendar permission' do
+        grant
+
+        get client_path(destination)
+
+        expect(response).to have_http_status(:ok)
+        expect(history_tab_links).to eq([])
+      end
+    end
   end
 end

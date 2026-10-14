@@ -189,6 +189,22 @@ RSpec.describe GrdaWarehouse::AuthPolicies::DestinationClientPolicy, type: :mode
         expect(user.can_generate_homeless_verification_pdfs?).to eq(true)
         expect(feature_results).to eq([false, false])
       end
+
+      context 'when view access comes from an ROI instead of can_view_clients' do
+        before do
+          setup_access_control(user, create(:role, can_view_client_enrollments_with_roi: true, **feature_permissions), client_collection)
+        end
+
+        it 'grants both when the client has an ROI' do
+          create(:client_roi_authorization, destination_client: destination_client)
+
+          expect(feature_results).to eq([true, true])
+        end
+
+        it 'denies both when the client has no ROI' do
+          expect(feature_results).to eq([false, false])
+        end
+      end
     end
 
     context 'with legacy user permissions' do
