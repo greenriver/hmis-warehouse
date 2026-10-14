@@ -216,6 +216,25 @@ RSpec.describe Admin::CollectionsController, type: :request do
         )
       end
 
+      it 'counts projects separately for organizations sharing an OrganizationID across data sources' do
+        organization.update!(OrganizationName: 'Home Org')
+        other_data_source = create(:grda_warehouse_data_source, name: 'Other Source')
+        create(
+          :grda_warehouse_hud_organization,
+          data_source_id: other_data_source.id,
+          OrganizationID: organization.OrganizationID,
+          OrganizationName: 'Shared ID Org',
+        )
+        create_list(:grda_warehouse_hud_project, 2, data_source_id: other_data_source.id, OrganizationID: organization.OrganizationID)
+
+        get entities_admin_collection_path(project_collection, entities: :organizations)
+
+        expect(organization_rows).to eq(
+          'Home Org' => ['Green River', '1'],
+          'Shared ID Org' => ['Other Source', '2'],
+        )
+      end
+
       it 'excludes organizations whose data source is deleted' do
         organization.update!(OrganizationName: 'Live Org')
         deleted_data_source = create(:grda_warehouse_data_source)
