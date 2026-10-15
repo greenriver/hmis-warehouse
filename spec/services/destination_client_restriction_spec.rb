@@ -67,6 +67,11 @@ RSpec.describe DestinationClientRestriction, type: :model do
       expect(GrdaWarehouse::HiddenClients.restricted_subset([destination.id])).to eq(Set.new)
     end
 
+    it 'returns true when it removed a row and false when there was none' do
+      restriction.restrict!(user: user)
+      expect([restriction.unrestrict!, restriction.unrestrict!]).to eq([true, false])
+    end
+
     it 'leaves an HMIS restriction on a source in place' do
       restrict_in_hmis(source)
       restriction.restrict!(user: user)

@@ -55,12 +55,11 @@ pii_policy.can_view_full_ssn?
 
 ### Client feature permissions
 
-The client History page and the homeless verification PDF are authorized per client through the destination client policy:
+Client features are authorized per client through the destination client policy:
 
 - `policy.can_view_history_calendar?` requires `can_view_clients` (or ROI view access) and `can_view_client_history_calendar` from a role that covers one of the client's projects.
 - `policy.can_generate_homeless_verification_pdfs?` requires everything `can_view_history_calendar?` requires, plus `can_generate_homeless_verification_pdfs`. The PDF contains the client's history, so the PDF permission alone is not enough.
 - `GrdaWarehouse::ClientFile.visible_by?(user, client:)` uses the same predicate to decide whether a generated verification PDF appears on the client's Files tab.
-
 - `policy.can_mark_restricted?` requires `can_mark_clients_as_restricted`. It is client-level and delegated to source clients like the PII permissions. Restriction does not affect it, so the marking user can always unrestrict.
 
 A role that grants these permissions on a project the client is not enrolled in does not grant them for that client.
@@ -131,7 +130,7 @@ Two states hide a client's PII in the warehouse:
 
 Any of these blocks PII for every warehouse user, regardless of role or permissions; there is no warehouse-side override. `can_mark_clients_as_restricted` marks and unmarks a client. It never grants viewing, so a user with it sees the same redacted PII as everyone else while the client is restricted. `current_user.policy_context.client_restricted?(client_id)` answers for all states. Visibility returns when every restriction on the identity is removed, or when the identity has new activity and the next retention run clears it. The warehouse removes only its own destination row. HMIS rows are removed in HMIS.
 
-Restriction applies to the whole warehouse identity. HMIS restriction is limited to a single data source on the HMIS front end, but in the warehouse a restriction on any source client hides the destination and every other source merged into it. `merge_from` removes the restriction row from a merged-away destination before destroying it.
+Restriction applies to the whole warehouse identity. HMIS restriction is limited to a single data source on the HMIS front end, but in the warehouse a restriction on any source client hides the destination and every other source merged into it. `merge_from` removes the restriction row from a merged-away destination when that destination is destroyed, which happens once it has no sources left. A destination that keeps other sources keeps its row.
 
 Merges and splits:
 

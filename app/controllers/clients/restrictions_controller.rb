@@ -22,18 +22,25 @@ module Clients
 
     def update
       restriction = DestinationClientRestriction.new(@client)
-      if params[:restricted] == '1'
+      case params[:restricted]
+      when '1'
         restriction.restrict!(user: current_user)
         flash[:notice] = 'Client restricted.'
+      when '0'
+        removed = restriction.unrestrict!
+        flash[:notice] = unrestrict_message(removed: removed, in_hmis: restriction.restricted_in_hmis?)
       else
-        restriction.unrestrict!
-        flash[:notice] = if restriction.restricted_in_hmis?
-          'Warehouse restriction removed. This client is still restricted in HMIS and can only be unrestricted there.'
-        else
-          'Client restriction removed.'
-        end
+        return head :bad_request
       end
       redirect_to polymorphic_path(client_path_generator, id: @client.id)
+    end
+
+    private def unrestrict_message(removed:, in_hmis:)
+      if removed
+        in_hmis ? 'Warehouse restriction removed. This client is still restricted in HMIS and can only be unrestricted there.' : 'Client restriction removed.'
+      else
+        in_hmis ? 'This client is restricted in HMIS and can only be unrestricted there.' : 'Client was not restricted.'
+      end
     end
 
     private def set_client

@@ -36,9 +36,11 @@ class DestinationClientRestriction
     @client.clear_view_cache
   end
 
+  # @return [Boolean] whether a warehouse row was removed
   def unrestrict!
-    Hmis::RestrictedRecord.unmark!(restrictable)
+    removed = Hmis::RestrictedRecord.unmark!(restrictable).present?
     @client.clear_view_cache
+    removed
   end
 
   # A create version is a restriction and a destroy is its removal.

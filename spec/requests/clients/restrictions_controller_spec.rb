@@ -56,16 +56,39 @@ RSpec.describe Clients::RestrictionsController, type: :request do
       expect(warehouse_rows.count).to eq(0)
     end
 
-    it 'keeps an HMIS restriction and says so when unrestricting' do
+    def restrict_in_hmis
       Hmis::RestrictedRecord.create!(
         restrictable_id: source_client.id,
         restrictable_type: Hmis::RestrictedRecord::CLIENT_RESTRICTABLE_TYPE,
         data_source_id: source_client.data_source_id,
         created_by: Hmis::User.find(user.id),
       )
+    end
+
+    it 'keeps an HMIS restriction and says so when unrestricting' do
+      restrict_in_hmis
+      DestinationClientRestriction.new(client).restrict!(user: user)
       patch client_restriction_path(client), params: { restricted: '0' }
       expect(Hmis::RestrictedRecord.for_clients.where(restrictable_id: source_client.id).count).to eq(1)
       expect(flash[:notice]).to eq('Warehouse restriction removed. This client is still restricted in HMIS and can only be unrestricted there.')
+    end
+
+    it 'says the client is restricted only in HMIS when there is no warehouse restriction to remove' do
+      restrict_in_hmis
+      patch client_restriction_path(client), params: { restricted: '0' }
+      expect(flash[:notice]).to eq('This client is restricted in HMIS and can only be unrestricted there.')
+    end
+
+    it 'says the client was not restricted when there is nothing to remove' do
+      patch client_restriction_path(client), params: { restricted: '0' }
+      expect(flash[:notice]).to eq('Client was not restricted.')
+    end
+
+    it 'changes nothing and responds bad request when the restricted param is missing' do
+      DestinationClientRestriction.new(client).restrict!(user: user)
+      patch client_restriction_path(client)
+      expect(response).to have_http_status(:bad_request)
+      expect(warehouse_rows.count).to eq(1)
     end
 
     it 'shows the restrict button on the dashboard and the form in the modal' do

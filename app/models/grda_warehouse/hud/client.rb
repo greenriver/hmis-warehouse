@@ -2290,7 +2290,7 @@ module GrdaWarehouse::Hud
       to_clean = [id]
       dnd_warehouse_data_source = GrdaWarehouse::DataSource.destination.first
 
-      carry_restriction = DestinationClientRestriction.new(self).restricted_in_warehouse?
+      carry_restriction = Hmis::RestrictedRecord.for_clients.where(restrictable_id: id).exists?
 
       GrdaWarehouse::Hud::Base.transaction do
         client_ids.each do |client_id|
@@ -2373,7 +2373,7 @@ module GrdaWarehouse::Hud
           to_clean << other_client.id
           other_client
         end
-        carry_restriction = prev_destination_client.present? && DestinationClientRestriction.new(prev_destination_client).restricted_in_warehouse?
+        carry_restriction = prev_destination_client.present? && Hmis::RestrictedRecord.for_clients.where(restrictable_id: prev_destination_client.id).exists?
         # if it had sources then move those over to us
         # and say who made the decision and when
         other_client.source_clients.each do |m|

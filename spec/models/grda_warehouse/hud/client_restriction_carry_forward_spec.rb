@@ -48,6 +48,12 @@ RSpec.describe GrdaWarehouse::Hud::Client, '#merge_from and #split restriction',
         to eq(Set[dest_b.id, source_a.id, source_b.id, dest_a.id, source_c.id])
     end
 
+    it 'merges from a destination with sources that is not in a destination data source' do
+      dest_a.update_columns(data_source_id: source_ds.id)
+      expect { dest_b.merge_from(dest_a, reviewed_by: reviewer, reviewed_at: Time.current, cleanup: false) }.not_to raise_error
+      expect(GrdaWarehouse::WarehouseClient.find_by!(source_id: source_a.id).destination_id).to eq(dest_b.id)
+    end
+
     it 'leaves the surviving destination unrestricted when neither was restricted' do
       dest_b.merge_from(dest_a, reviewed_by: reviewer, reviewed_at: Time.current, cleanup: false)
       expect(Hmis::RestrictedRecord.for_clients.where(restrictable_id: dest_b.id).count).to eq(0)
