@@ -55,6 +55,7 @@ RSpec.describe ClientAccessControl::HistoryController, type: :request do
 
       get client_history_path(destination)
 
+      expect(response).to have_http_status(:ok)
       expect(response.body).to include('Generate Homeless Verification PDF')
     end
 

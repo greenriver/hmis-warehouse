@@ -240,7 +240,7 @@
   "app/models/pii/scrubber/static_scrubber.rb": "8bbc979d0d1230824e9fe72346fce6b6acfe074c8f1609e2e4d3336b07108f47",
   "app/models/pii/scrubber/version_history_pruner.rb": "e82666ef41402a7cab7b79ced31da265517cdb8b406a2336eb0d63a8f10eff57",
   "app/models/reporting/housed.rb": "179f9e9d5e437861e8b7667ae5811e103aeb390520f8a6dfb585d6f50263bb49",
-  "app/models/role.rb": "87b51424bc9d8098777d3706d1279c71d0cbff49a2defcda46c26c49df80602f",
+  "app/models/role.rb": "1d5c9241aff01d9f1f5706f64cb2bce233e434cc3c5a8cc99d88c19e01d35a90",
   "app/models/similarity_metric/tasks/generate_candidates.rb": "8d9183366b858ac71ebc5d5b7be1c537d3685554badfd40510bc99d9a2ddd6d6",
   "app/models/simple_reports/report_instance.rb": "952018adba827c7d3f84e0960f2fa010c2d572bd7aebdb097f48bc2a3f81bbd2",
   "app/models/soft_delete_retention_configuration.rb": "60137aa34f6c4547158adea77d743941c1ccd9460449ad64e2a1bf85694107ab",
