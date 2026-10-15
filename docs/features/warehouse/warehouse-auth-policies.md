@@ -35,7 +35,7 @@ graph TD
 Policies are located in `app/models/grda_warehouse/auth_policies/`.
 
 - `BasePolicy`: Abstract base class providing common initialization and validation helpers.
-- **Resource Policies**: for warehouse resources (e.g., `ProjectPolicy`, `SourceClientPolicy`, `DataSourcePolicy`).
+- **Resource Policies**: for warehouse resources (e.g., `ProjectPolicy`, `OrganizationPolicy`, `SourceClientPolicy`, `DataSourcePolicy`).
 - **Specialized Policies**: optimized for controlling access to sensitive data in reporting contexts (e.g., `ProjectPiiPolicy`).
 
 ## Usage

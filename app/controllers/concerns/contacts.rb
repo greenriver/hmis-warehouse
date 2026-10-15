@@ -10,8 +10,8 @@ module Contacts
   extend ActiveSupport::Concern
 
   included do
-    before_action :require_can_view_imports!
     before_action :set_entity
+    authorize_with { current_user.policy_for(@entity).can_edit_contacts? }
     before_action :set_contact, only: [:show, :edit, :update, :destroy]
     before_action :load_alert_definitions, only: [:new, :edit]
 
