@@ -126,7 +126,7 @@ class Collection < ApplicationRecord
   end
 
   scope :contains_coc_code_with_inherited, ->(coc_code) do
-    project_ids = GrdaWarehouse::Hud::Project.in_coc(coc_code: coc_code).pluck(:id)
+    project_ids = GrdaWarehouse::Hud::Project.in_coc(coc_code: coc_code).select(:id)
     where(id: GrdaWarehouse::ProjectCollectionMember.where(project_id: project_ids).pluck(:collection_id)).
       or(for_coc_codes([coc_code]))
   end

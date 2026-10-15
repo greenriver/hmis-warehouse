@@ -56,6 +56,17 @@ RSpec.describe HmisAdmin::AccessControlsController, type: :request do
     expect(options).not_to include('Warehouse Only Org')
   end
 
+  it 'masks only confidential organization names for users who cannot view them' do
+    confidential_organization = create(:hmis_hud_organization, data_source: data_source, OrganizationName: 'Secret Shelter Org', confidential: true)
+    get hmis_admin_access_controls_path
+    options = page.css('#filter_organization_id option').to_h { |o| [o['value'].to_i, o.text] }
+    expect(options).to include(
+      confidential_organization.id => GrdaWarehouse::Hud::Organization.confidential_organization_name,
+      project.organization.id => project.organization.OrganizationName,
+    )
+    expect(response.body).not_to include('Secret Shelter Org')
+  end
+
   it 'offers only CoC codes used by projects in HMIS data sources' do
     create(:hmis_hud_project_coc, data_source: data_source, project: project, CoCCode: 'XX-500')
     create(:hud_project_coc, data_source_id: warehouse_only_data_source.id, CoCCode: 'XX-777')

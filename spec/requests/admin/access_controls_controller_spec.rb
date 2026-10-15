@@ -12,7 +12,7 @@ RSpec.describe Admin::AccessControlsController, type: :request do
   include AccessControlSetup
 
   let!(:data_source) { create :data_source_fixed_id }
-  let!(:organization) { create :grda_warehouse_hud_organization }
+  let!(:organization) { create :grda_warehouse_hud_organization, OrganizationName: 'Open Shelter Org' }
   let!(:project) { create :grda_warehouse_hud_project, organization: organization }
   let!(:other_project) { create :grda_warehouse_hud_project, organization: organization }
   let!(:admin) { create :acl_user }
@@ -82,6 +82,31 @@ RSpec.describe Admin::AccessControlsController, type: :request do
       group_labels = Nokogiri::HTML(response.body).css('optgroup').map { |g| g['label'] }
       expect(group_labels).to include(a_string_including('Confidential Organization'))
       expect(response.body).not_to include('Secret Shelter Org')
+    end
+  end
+
+  describe 'organization options' do
+    let!(:confidential_organization) { create(:grda_warehouse_hud_organization, OrganizationName: 'Secret Shelter Org', confidential: true) }
+
+    def organization_option_texts
+      Nokogiri::HTML(response.body).css('#filter_organization_id option').to_h { |o| [o['value'].to_i, o.text] }
+    end
+
+    it 'masks only confidential organization names for users who cannot view them' do
+      get admin_access_controls_path
+      expect(organization_option_texts).to include(
+        confidential_organization.id => GrdaWarehouse::Hud::Organization.confidential_organization_name,
+        organization.id => organization.OrganizationName,
+      )
+      expect(response.body).not_to include('Secret Shelter Org')
+    end
+
+    it 'shows confidential organization names to users who can view them' do
+      viewer = create(:acl_user)
+      setup_access_control(viewer, create(:role, can_edit_users: true, can_view_confidential_project_names: true), create(:collection))
+      sign_in viewer
+      get admin_access_controls_path
+      expect(organization_option_texts).to include(confidential_organization.id => 'Secret Shelter Org')
     end
   end
 
