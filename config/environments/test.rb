@@ -24,12 +24,10 @@ Rails.application.configure do
     config.enable_reloading = true
   end
 
-  # Eager loading loads your entire application. Locally and across the parallel CI test
-  # buckets we keep this off (single-test speed + lower memory). A single dedicated CI
-  # job sets EAGER_LOAD=true to boot the whole app the way production does, which catches
-  # load-time errors (bad constants, class-body failures, zeitwerk naming) in code no
-  # test exercises — the kind that would otherwise only surface on deploy. Booting
-  # eagerly needs a database, so only enable it in a job that has one.
+  # Off locally so a single spec boots quickly. CI spec runs set EAGER_LOAD=true so specs
+  # run against the app loaded the way production loads it: load-time errors (bad constants,
+  # class-body failures, zeitwerk naming) and load-order differences (e.g. `.descendants`
+  # registries) fail in CI instead of on deploy. Booting eagerly needs a database.
   config.eager_load = ENV.fetch('EAGER_LOAD', 'false') == 'true'
 
   config.action_view.cache_template_loading = true
