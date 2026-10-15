@@ -123,6 +123,11 @@ order. A system default ranks last so a community default beats it. Funder match
 `Hmis::Form::InstanceEnrollmentMatch` evaluates the rule's `data_collected_about`
 (`ALL_CLIENTS` when nil, `HOH_AND_ADULTS`, `HOH`, `ALL_VETERANS`, `VETERAN_HOH`) against the
 enrollment; `Instance#project_and_enrollment_match` requires both matches.
+`Instance.detect_best_instance_for_enrollment` uses the best rule for the project when it matches
+the enrollment, and otherwise considers only `system: true` rules. A more specific rule replaces
+non-system rules for everyone but cannot drop someone a matching system rule covers. At the
+project level, `Instance.effective_data_collected_about_for_project` reports the broader of the
+winning rule and any matching system rule (`DATA_COLLECTED_ABOUT_COVERS`).
 
 Exclusive-vs-inclusive is decided in `query_type.rb`, not the model: `recordFormDefinition`
 returns one definition; service and custom-assessment resolvers return every match.

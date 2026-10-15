@@ -83,4 +83,27 @@ RSpec.describe Hmis::Form::Instance, type: :model do
       expect(scope).to contain_exactly(instance1, instance2)
     end
   end
+
+  describe '.broader_data_collected_about' do
+    it 'defines coverage for every data_collected_about value' do
+      expect(described_class::DATA_COLLECTED_ABOUT_COVERS.keys).to match_array(Hmis::Form::InstanceEnrollmentMatch::MATCHES)
+    end
+
+    [
+      ['HOH', 'HOH', 'HOH'],
+      ['HOH', 'HOH_AND_ADULTS', 'HOH_AND_ADULTS'],
+      ['HOH', 'ALL_CLIENTS', 'ALL_CLIENTS'],
+      ['VETERAN_HOH', 'HOH', 'HOH'],
+      ['VETERAN_HOH', 'HOH_AND_ADULTS', 'HOH_AND_ADULTS'],
+      ['VETERAN_HOH', 'ALL_VETERANS', 'ALL_VETERANS'],
+      ['ALL_VETERANS', 'ALL_CLIENTS', 'ALL_CLIENTS'],
+      ['ALL_VETERANS', 'HOH', 'ALL_CLIENTS'],
+      ['ALL_VETERANS', 'HOH_AND_ADULTS', 'ALL_CLIENTS'],
+    ].each do |first, second, expected|
+      it "returns #{expected} for #{first} and #{second} in either order" do
+        expect(described_class.broader_data_collected_about(first, second)).to eq(expected)
+        expect(described_class.broader_data_collected_about(second, first)).to eq(expected)
+      end
+    end
+  end
 end
