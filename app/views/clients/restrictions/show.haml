@@ -1,0 +1,17 @@
+- content_for :modal_title, 'Client Restriction'
+
+%p
+  A restricted client's name, SSN, date of birth, photo, and HIV status are hidden from every
+  warehouse user, and the client is left out of name and SSN searches.
+  The restriction applies to every record merged into this client. It does not restrict the client in HMIS.
+- if @restriction.restricted_in_hmis?
+  .alert.alert-warning
+    This client is restricted in HMIS. That restriction can only be removed in HMIS.
+
+= form_with url: client_restriction_path(@client), method: :patch do |f|
+  - if @restriction.restricted_in_warehouse?
+    = hidden_field_tag :restricted, '0'
+    = f.submit 'Remove Restriction', class: 'btn btn-danger'
+  - else
+    = hidden_field_tag :restricted, '1'
+    = f.submit 'Restrict Client', class: 'btn btn-primary'

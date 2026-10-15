@@ -1,0 +1,9 @@
+- restriction = DestinationClientRestriction.new(client)
+- can_mark = current_user.policy_for(client).can_mark_restricted?
+- if restriction.restricted? || can_mark
+  #restriction-flag.d-inline-flex.align-items-center.gap-2.mb-2
+    - if restriction.restricted?
+      %span.badge.text-bg-danger Restricted
+    - if can_mark
+      = link_to client_restriction_path(client), class: 'btn btn-sm btn-outline-secondary', data: { loads_in_pjax_modal: true } do
+        = restriction.restricted_in_warehouse? ? 'Remove Restriction' : 'Restrict Client'
