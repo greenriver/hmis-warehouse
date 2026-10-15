@@ -47,6 +47,7 @@ module Hmis
         merge_and_find_primary_name
         merge_custom_data_elements
         update_client_id_foreign_keys
+        carry_warehouse_restriction
         delete_warehouse_clients
         update_personal_id_foreign_keys
         merge_mci_ids
@@ -339,6 +340,20 @@ module Hmis
       build_and_update_merge_mappings(key: 'client_locations', scope: location_scope, attributes: 'client_id')
 
       location_scope.update_all(client_id: client_to_retain.id)
+    end
+
+    # A warehouse restriction is a row on a destination id. Deleting the merged clients' links
+    # would otherwise leave this person under an unrestricted destination.
+    def carry_warehouse_restriction
+      merged_destination_ids = ::GrdaWarehouse::WarehouseClient.
+        where(source_id: clients_needing_reference_updates.map(&:id)).
+        pluck(:destination_id)
+      return unless Hmis::RestrictedRecord.for_clients.where(restrictable_id: merged_destination_ids).exists?
+
+      retained_destination_id = client_to_retain.warehouse_id
+      raise "Client #{client_to_retain.id} has no warehouse destination to carry a restriction to" unless retained_destination_id
+
+      DestinationClientRestriction.new(::GrdaWarehouse::Hud::Client.find(retained_destination_id)).restrict!(user: actor)
     end
 
     def delete_warehouse_clients

@@ -668,6 +668,38 @@ RSpec.describe Hmis::MergeClientsJob, type: :model do
     end
   end
 
+  describe 'warehouse restrictions' do
+    let(:client1) { create(:hmis_hud_client_with_warehouse_client, data_source: data_source, date_created: Date.current - 1.week) }
+    let(:client2) { create(:hmis_hud_client_with_warehouse_client, data_source: data_source, date_created: Date.current - 1.day) }
+    let(:retained_destination) { GrdaWarehouse::Hud::Client.find(client1.warehouse_id) }
+    let(:merged_destination) { GrdaWarehouse::Hud::Client.find(client2.warehouse_id) }
+
+    it 'restricts the kept client destination when a merged-away client destination was restricted in the warehouse' do
+      DestinationClientRestriction.new(merged_destination).restrict!(user: actor)
+
+      Hmis::MergeClientsJob.perform_now(client_ids: client_ids, actor_id: actor.id)
+
+      expect(Hmis::RestrictedRecord.for_clients.where(restrictable_id: retained_destination.id).pluck(:created_by_id)).to eq([actor.id])
+      expect(GrdaWarehouse::HiddenClients.restricted_subset([retained_destination.id, client1.id])).to eq(Set[retained_destination.id, client1.id])
+    end
+
+    it 'leaves the kept client destination unrestricted when no destination was restricted' do
+      Hmis::MergeClientsJob.perform_now(client_ids: client_ids, actor_id: actor.id)
+
+      expect(Hmis::RestrictedRecord.for_clients.where(restrictable_id: retained_destination.id).count).to eq(0)
+    end
+
+    it 'fails the merge when the kept client has no warehouse destination yet' do
+      DestinationClientRestriction.new(merged_destination).restrict!(user: actor)
+      client1.warehouse_client_source.destroy!
+
+      expect do
+        Hmis::MergeClientsJob.perform_now(client_ids: client_ids, actor_id: actor.id)
+      end.to raise_error(RuntimeError, /no warehouse destination/)
+      expect(client2.reload.deleted?).to be false
+    end
+  end
+
   describe 'client name special cases' do
     let!(:c1_without_custom_name) { create(:hmis_hud_client_complete, date_created: Time.current - 3.days, data_source: data_source) }
     let!(:c2_without_custom_name) { create(:hmis_hud_client_complete, date_created: Time.current, data_source: data_source) }
