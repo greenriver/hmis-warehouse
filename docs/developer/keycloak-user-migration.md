@@ -23,6 +23,13 @@ an invitation is what sets `confirmed_at`, so they have no credential to carry a
 provisioned on first JWT login. Already-linked users have an account in Keycloak, so there is nothing
 left to carry.
 
+Before selecting users, `migrate_users` and `export_users` run
+`UserImporter.deactivate_expired_users!`. Devise expires an account by date (no activity within
+`ACCOUNT_EXPIRATION_DAYS`, or a past `expired_at`) without clearing `active`. JWT mode checks only
+`active`, so these users are set to `active: false` first, which keeps them out of the migration and
+inactive after the switch. Each change is recorded in the user's edit history as "Account deactivated"
+by the System User. An admin can reactivate them the usual way.
+
 ## Re-running and the pre-flip pass
 
 The importer is safe to re-run, and a final re-run is the intended last step before switching auth.
