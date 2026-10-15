@@ -71,7 +71,7 @@ module IncomeBenefitsReport::WarehouseReports
     helper_method :breakdown
 
     private def set_report
-      @report = report_class.find(params[:id].to_i)
+      @report = report_scope.find(params[:id].to_i)
       if @report.include_comparison?
         @comparison = @report.to_comparison
       else
