@@ -61,6 +61,8 @@ The client History page and the homeless verification PDF are authorized per cli
 - `policy.can_generate_homeless_verification_pdfs?` requires everything `can_view_history_calendar?` requires, plus `can_generate_homeless_verification_pdfs`. The PDF contains the client's history, so the PDF permission alone is not enough.
 - `GrdaWarehouse::ClientFile.visible_by?(user, client:)` uses the same predicate to decide whether a generated verification PDF appears on the client's Files tab.
 
+- `policy.can_mark_restricted?` requires `can_mark_clients_as_restricted`. It is client-level and delegated to source clients like the PII permissions. Restriction does not affect it, so the marking user can always unrestrict.
+
 A role that grants these permissions on a project the client is not enrolled in does not grant them for that client.
 
 ### Preloading
@@ -123,12 +125,20 @@ The masked SSN (`XXX-XX-1234`) is a separate permission from the full SSN. Every
 
 Two states hide a client's PII in the warehouse:
 
-- An HMIS client marked restricted (see [HMIS Restricted Records](../hmis/hmis-restricted-records.md)).
+- An HMIS source client marked restricted in HMIS (see [HMIS Restricted Records](../hmis/hmis-restricted-records.md)).
+- A destination client marked restricted in the warehouse by a user with `can_mark_clients_as_restricted` (`DestinationClientRestriction`, stored as an `Hmis::RestrictedRecord` on the destination id).
 - A client whose warehouse identity has aged out under [Client Data Retention](client-data-retention.md).
 
-Either one blocks PII for every warehouse user, regardless of role or permissions; there is no warehouse-side override. `current_user.policy_context.client_restricted?(client_id)` answers for both states. Visibility returns when HMIS staff unmark the client, or when the identity has new activity and the next retention run clears it.
+Any of these blocks PII for every warehouse user, regardless of role or permissions; there is no warehouse-side override. `can_mark_clients_as_restricted` marks and unmarks a client. It never grants viewing, so a user with it sees the same redacted PII as everyone else while the client is restricted. `current_user.policy_context.client_restricted?(client_id)` answers for all states. Visibility returns when every restriction on the identity is removed, or when the identity has new activity and the next retention run clears it. The warehouse removes only its own destination row. HMIS rows are removed in HMIS.
 
-Restriction applies to the whole warehouse identity. HMIS restriction is limited to a single data source on the HMIS front end, but in the warehouse a restriction on any source client hides the destination and every other source merged into it.
+Restriction applies to the whole warehouse identity. HMIS restriction is limited to a single data source on the HMIS front end, but in the warehouse a restriction on any source client hides the destination and every other source merged into it. `merge_from` removes the restriction row from a merged-away destination before destroying it.
+
+Merges and splits:
+
+- Warehouse merges (`merge_from`) and HMIS client merges (`Hmis::MergeClientsJob`) carry a warehouse restriction to the surviving destination.
+- An HMIS merge fails if the kept client has no warehouse destination yet, when a restriction needs to carry over.
+- A split keeps a warehouse restriction on both sides.
+- A split carries only warehouse rows. An HMIS restriction stays with its source client, so the side without that source becomes visible.
 
 Hidden status is looked up a page of clients at a time, never loaded whole, so code that checks restriction for a list of clients must preload first (see [Preloading](#preloading)).
 
