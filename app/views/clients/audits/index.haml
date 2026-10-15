@@ -5,6 +5,25 @@
 = render 'clients/aliases'
 = render 'clients/tab_navigation', current: client_audits_path(@client)
 
+- if @restriction_versions.any?
+  %h2 Restriction History
+  .table-responsive
+    %table.table.table-striped#restriction-history
+      %thead
+        %tr
+          %th Date
+          %th User
+          %th Change
+          %th Source
+      %tbody
+        - @restriction_versions.each do |version|
+          - actor = @restriction_users[version.clean_user_id.to_i]
+          %tr
+            %td= version.created_at
+            %td= actor&.name || 'Unknown'
+            %td= version.event == 'destroy' ? 'Restricted: Yes → No' : 'Restricted: No → Yes'
+            %td= version.client_id == @client.id ? 'Warehouse' : 'HMIS'
+
 %h1=content_for :title
 - if @pagy.count.positive?
   = render 'common/pagination_top', item_name: 'log'
