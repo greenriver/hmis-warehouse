@@ -110,6 +110,27 @@ class Collection < ApplicationRecord
     )
   end
 
+  scope :contains_with_inherited, ->(entity) do
+    case entity
+    when GrdaWarehouse::DataSource
+      contains(entity)
+    when GrdaWarehouse::Hud::Organization
+      contains(entity).or(contains(entity.data_source))
+    when GrdaWarehouse::Hud::Project
+      # project_collection_members does not include membership through CoC codes
+      where(id: GrdaWarehouse::ProjectCollectionMember.where(project_id: entity.id).pluck(:collection_id)).
+        or(for_coc_codes(entity.project_cocs.pluck(:CoCCode)))
+    else
+      none
+    end
+  end
+
+  scope :contains_coc_code_with_inherited, ->(coc_code) do
+    project_ids = GrdaWarehouse::Hud::Project.in_coc(coc_code: coc_code).pluck(:id)
+    where(id: GrdaWarehouse::ProjectCollectionMember.where(project_id: project_ids).pluck(:collection_id)).
+      or(for_coc_codes([coc_code]))
+  end
+
   scope :with_source_entity, -> do
     where.not(source_id: nil)
   end

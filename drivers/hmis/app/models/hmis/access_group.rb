@@ -56,6 +56,13 @@ class Hmis::AccessGroup < ApplicationRecord
     where(id: collection_ids)
   end
 
+  scope :contains_coc_code_with_inherited, ->(coc_code) do
+    project_ids = Hmis::Hud::Project.joins(:project_cocs).
+      merge(Hmis::Hud::ProjectCoc.where(CoCCode: coc_code)).
+      pluck(:id)
+    where(id: Hmis::ProjectAccessGroupMember.where(project_id: project_ids).pluck(:access_group_id))
+  end
+
   def self.text_search(text)
     return none unless text.present?
 

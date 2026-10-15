@@ -70,32 +70,28 @@ class AccessControl < ApplicationRecord
       order(UserGroup.arel_table[:name].asc, Role.arel_table[:name].asc, Collection.arel_table[:name].asc)
   end
 
-  # filter for access controls that somehow interact with the following
-  # User, UserGroup, Role, EntityGroup
+  ENTITY_FILTERS = {
+    data_source_id: 'GrdaWarehouse::DataSource',
+    organization_id: 'GrdaWarehouse::Hud::Organization',
+    project_id: 'GrdaWarehouse::Hud::Project',
+  }.freeze
+
   scope :filtered, ->(filter_params) do
-    return current_scope unless filter_params
-    return current_scope if filter_params[:user_id].blank? && filter_params[:user_group_id].blank? && filter_params[:role_id].blank? && filter_params[:collection_id].blank?
+    return all if filter_params.blank?
 
-    ids = []
-    if filter_params[:user_id].present?
-      user_scope = UserGroup.with_user_id(filter_params[:user_id].to_i)
-      ids += joins(:user_group).
-        merge(user_scope).pluck(:id)
-    end
-    if filter_params[:user_group_id].present?
-      user_group_scope = where(user_group_id: filter_params[:user_group_id].to_i)
-      ids += user_group_scope.pluck(:id)
-    end
-    if filter_params[:role_id].present?
-      role_scope = where(role_id: filter_params[:role_id].to_i)
-      ids += role_scope.pluck(:id)
-    end
-    if filter_params[:collection_id].present?
-      entity_group_scope = where(collection_id: filter_params[:collection_id].to_i)
-      ids += entity_group_scope.pluck(:id)
-    end
+    scope = all
+    scope = scope.where(user_group_id: UserGroup.with_user_id(filter_params[:user_id].to_i).select(:id)) if filter_params[:user_id].present?
+    scope = scope.where(user_group_id: filter_params[:user_group_id].to_i) if filter_params[:user_group_id].present?
+    scope = scope.where(role_id: filter_params[:role_id].to_i) if filter_params[:role_id].present?
+    scope = scope.where(collection_id: filter_params[:collection_id].to_i) if filter_params[:collection_id].present?
+    ENTITY_FILTERS.each do |key, class_name|
+      next if filter_params[key].blank?
 
-    where(id: ids)
+      entity = class_name.constantize.find_by(id: filter_params[key].to_i)
+      scope = entity ? scope.where(collection_id: Collection.contains_with_inherited(entity).select(:id)) : scope.none
+    end
+    scope = scope.where(collection_id: Collection.contains_coc_code_with_inherited(filter_params[:coc_code]).select(:id)) if filter_params[:coc_code].present?
+    scope
   end
 
   scope :visible_to, ->(_user) do
