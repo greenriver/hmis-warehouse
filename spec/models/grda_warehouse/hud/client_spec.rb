@@ -8,6 +8,7 @@
 
 require 'rails_helper'
 require 'shared_contexts/enrollment_rollup_context'
+require 'shared_contexts/hud_enrollment_builders'
 include ActiveJob::TestHelper
 
 RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
@@ -862,6 +863,25 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
           end
         end
       end
+    end
+  end
+
+  describe '#moved_in_with_ph?' do
+    include_context 'HUD enrollment builders'
+
+    let(:psh) { create_project(project_type: 3) }
+    let(:source_client) { create_client_with_warehouse_link }
+
+    it 'is true on the move-in date' do
+      create_enrollment(client: source_client, project: psh, entry_date: Date.current - 30.days, move_in_date: Date.current)
+
+      expect(source_client.moved_in_with_ph?).to be(true)
+    end
+
+    it 'is false before the move-in date' do
+      create_enrollment(client: source_client, project: psh, entry_date: Date.current - 30.days, move_in_date: Date.tomorrow)
+
+      expect(source_client.moved_in_with_ph?).to be(false)
     end
   end
 

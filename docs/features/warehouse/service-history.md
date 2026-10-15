@@ -234,11 +234,13 @@ date. An RRH: Services Only enrollment without a move-in date never counts as in
   An RRH: Services Only enrollment without a move-in date never gets `homeless: false`, so logic driven by
   `homeless: false` follows the rule with no sub-type check.
 - Performance Measurement bed utilization counts a permanent housing bed night only on or after the
-  move-in date, for every PH project type and RRH sub-type.
+  move-in date. RRH: Services Only nights never count, because HUD says those projects have no bed inventory.
 - The "Enrolled in PH" cohort column reports enrollment in a housing project, so it excludes
   RRH: Services Only regardless of move-in date.
-- Logic that requires a move-in date for any PH project type (CAS `enrolled_in_rrh`, `currently_homeless`,
-  chronic calculations, `Hud::Enrollment.housed`, HMIS `client_is_housed`) already follows the rule.
+- Logic that requires a move-in date for any PH project type follows the rule and treats the move-in date as
+  the first housed day: CAS `enrolled_in_rrh` and `moved_in_with_ph?`, the Currently Homeless cohort, the
+  `ServiceHistoryEnrollment` scopes `currently_homeless` and `hud_currently_homeless`, chronic calculations,
+  `Hud::Enrollment.housed`, and HMIS `client_is_housed`.
 - `Project.residential` and its variants classify projects, not enrollments, and exclude RRH: Services Only
   regardless of move-in date. Reports built on them (public homeless population counts, outflow) leave
   RRH: Services Only out entirely.

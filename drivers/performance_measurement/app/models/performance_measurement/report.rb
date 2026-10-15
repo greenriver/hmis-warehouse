@@ -249,10 +249,16 @@ module PerformanceMeasurement
       GrdaWarehouse::Hud::Project.where(id: project_ids).active_during(filter.range).pluck(:id)
     end
 
-    # A permanent housing bed is occupied from the household's move-in date. Requires a join to service_history_services.
+    # A permanent housing bed is occupied from the household's move-in date. RRH: Services Only projects
+    # have no bed inventory (HMIS Data Standards 2.02), so their nights never occupy a bed.
+    # Requires joins to service_history_services and project.
     private def occupied_bed_night
+      rrh_sso_sub_type = HudHelper.util.rrh_sub_type('RRH: Services Only', true)
       she_t[:project_type].not_in(HudHelper.util.residential_project_type_numbers_by_code[:ph]).
-        or(she_t[:move_in_date].lteq(shs_t[:date]))
+        or(
+          she_t[:move_in_date].lteq(shs_t[:date]).
+            and(p_t[:RRHSubType].not_eq(rrh_sso_sub_type).or(p_t[:RRHSubType].eq(nil))),
+        )
     end
 
     def report_scope_source

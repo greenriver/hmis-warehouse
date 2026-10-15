@@ -176,7 +176,7 @@ move-in day is the first `false` day.
 The `ServiceHistoryEnrollment` scopes `currently_homeless` and `hud_currently_homeless` do not
 read these flags. They take ongoing `entry` rows in homeless types and exclude clients who also
 have an ongoing PH (or PH and TH, for `chronic_types_only`) enrollment with `move_in_date`
-before the date.
+on or before the date.
 
 `GrdaWarehouse::Tasks::ProjectCleanup#homeless_mismatch?` checks the last two years of service
 rows per project: a homeless-type project must have no rows with `homeless` not `true`; any

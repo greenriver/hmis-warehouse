@@ -45,14 +45,28 @@ RSpec.describe 'Performance Measurement bed days', type: :model do
 
   let(:rrh_housing) { create_project(project_type: 13).tap { |p| p.update!(RRHSubType: 2) } }
   let(:rrh_sso) { create_project(project_type: 13).tap { |p| p.update!(RRHSubType: 1) } }
+  let(:rrh_no_sub_type) { create_project(project_type: 13).tap { |p| p.update!(RRHSubType: nil) } }
   let(:psh) { create_project(project_type: 3) }
+  let(:psh_pre_move_in_only) { create_project(project_type: 3) }
   let(:es) { create_project(project_type: 0) }
+
+  def create_bed_inventory(project, beds)
+    create(
+      :hud_inventory,
+      ProjectID: project.ProjectID,
+      data_source_id: project.data_source_id,
+      CoCCode: 'MA-500',
+      InventoryStartDate: test_start_date,
+      BedInventory: beds,
+    )
+  end
 
   let!(:rrh_housing_moved_in) { create_client_with_warehouse_link }
   let!(:rrh_housing_not_moved_in) { create_client_with_warehouse_link }
   let!(:rrh_sso_moved_in) { create_client_with_warehouse_link }
   let!(:rrh_sso_not_moved_in) { create_client_with_warehouse_link }
   let!(:rrh_household_member) { create_client_with_warehouse_link }
+  let!(:rrh_no_sub_type_moved_in) { create_client_with_warehouse_link }
   let!(:psh_moved_in) { create_client_with_warehouse_link }
   let!(:psh_not_moved_in) { create_client_with_warehouse_link }
   let!(:es_client) { create_client_with_warehouse_link }
@@ -62,8 +76,9 @@ RSpec.describe 'Performance Measurement bed days', type: :model do
       [rrh_housing_not_moved_in, rrh_housing, nil],
       [rrh_sso_moved_in, rrh_sso, move_in_date],
       [rrh_sso_not_moved_in, rrh_sso, nil],
+      [rrh_no_sub_type_moved_in, rrh_no_sub_type, move_in_date],
       [psh_moved_in, psh, move_in_date],
-      [psh_not_moved_in, psh, nil],
+      [psh_not_moved_in, psh_pre_move_in_only, nil],
       [es_client, es, nil],
     ].each do |client, project, move_in|
       create_enrollment(client: client, project: project, entry_date: entry_date, exit_date: exit_date, move_in_date: move_in)
@@ -72,16 +87,19 @@ RSpec.describe 'Performance Measurement bed days', type: :model do
     household_id = Hmis::Hud::Base.generate_uuid
     create_enrollment(client: rrh_housing_moved_in, project: rrh_housing, entry_date: entry_date, exit_date: exit_date, move_in_date: move_in_date, household_id: household_id)
     create_enrollment(client: rrh_household_member, project: rrh_housing, entry_date: entry_date, exit_date: exit_date, relationship_to_ho_h: 2, household_id: household_id)
-    run_report([rrh_housing, rrh_sso, psh, es])
+    create_bed_inventory(psh, 2)
+    create_bed_inventory(psh_pre_move_in_only, 5)
+    run_report([rrh_housing, rrh_sso, rrh_no_sub_type, psh, psh_pre_move_in_only, es])
   end
 
-  it 'counts PH bed days only from the move-in date and ES bed days for the whole stay' do
+  it 'counts PH bed days from the move-in date, none for RRH: Services Only, and ES bed days for the whole stay' do
     days = {
       rrh_housing_moved_in: bed_days(report, rrh_housing_moved_in, :reporting_days_in_rrh_bed_in_period),
       rrh_housing_not_moved_in: bed_days(report, rrh_housing_not_moved_in, :reporting_days_in_rrh_bed_in_period),
       rrh_sso_moved_in: bed_days(report, rrh_sso_moved_in, :reporting_days_in_rrh_bed_in_period),
       rrh_sso_not_moved_in: bed_days(report, rrh_sso_not_moved_in, :reporting_days_in_rrh_bed_in_period),
       rrh_household_member: bed_days(report, rrh_household_member, :reporting_days_in_rrh_bed_in_period),
+      rrh_no_sub_type_moved_in: bed_days(report, rrh_no_sub_type_moved_in, :reporting_days_in_rrh_bed_in_period),
       psh_moved_in: bed_days(report, psh_moved_in, :reporting_days_in_psh_bed_in_period),
       psh_not_moved_in: bed_days(report, psh_not_moved_in, :reporting_days_in_psh_bed_in_period),
       es_client: bed_days(report, es_client, :reporting_days_in_es_bed_in_period),
@@ -90,12 +108,19 @@ RSpec.describe 'Performance Measurement bed days', type: :model do
     expect(days).to eq(
       rrh_housing_moved_in: 40,
       rrh_housing_not_moved_in: 0,
-      rrh_sso_moved_in: 40,
+      rrh_sso_moved_in: 0,
       rrh_sso_not_moved_in: 0,
       rrh_household_member: 40,
+      rrh_no_sub_type_moved_in: 40,
       psh_moved_in: 40,
       psh_not_moved_in: 0,
       es_client: 60,
     )
+  end
+
+  it 'leaves a PH project with only pre-move-in nights out of the utilization capacity' do
+    result = report.results.system_level.for_field(:psh_average_bed_utilization).first
+
+    expect(result.reporting_denominator).to eq(2)
   end
 end

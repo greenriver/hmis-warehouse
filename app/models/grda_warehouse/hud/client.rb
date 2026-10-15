@@ -950,7 +950,7 @@ module GrdaWarehouse::Hud
       enrollments.
         open_on_date.
         with_project_type(HudHelper.util.residential_project_type_numbers_by_code[:ph]).
-        where(GrdaWarehouse::Hud::Enrollment.arel_table[:MoveInDate].lt(Date.current)).exists?
+        where(GrdaWarehouse::Hud::Enrollment.arel_table[:MoveInDate].lteq(Date.current)).exists?
     end
 
     def self.show_last_seen_info?
