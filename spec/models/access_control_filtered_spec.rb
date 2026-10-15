@@ -88,6 +88,15 @@ RSpec.describe AccessControl, type: :model do
       expect(result).to contain_exactly(project_acl)
     end
 
+    it 'matches an organization whose data source was deleted through the organization alone' do
+      deleted_data_source = create(:grda_warehouse_data_source, source_type: :sftp)
+      orphan_organization = create(:grda_warehouse_hud_organization, data_source_id: deleted_data_source.id)
+      deleted_data_source.update_column(:deleted_at, Time.current)
+      orphan_organization_acl = access_control_for({ organizations: [orphan_organization.id] })
+      result = AccessControl.user_managed.filtered({ organization_id: orphan_organization.id.to_s })
+      expect(result).to contain_exactly(orphan_organization_acl)
+    end
+
     it 'returns nothing for a project id that does not exist' do
       result = AccessControl.user_managed.filtered({ project_id: '0' })
       expect(result).to be_empty

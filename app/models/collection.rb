@@ -115,7 +115,7 @@ class Collection < ApplicationRecord
     when GrdaWarehouse::DataSource
       contains(entity)
     when GrdaWarehouse::Hud::Organization
-      contains(entity).or(contains(entity.data_source))
+      entity.data_source ? contains(entity).or(contains(entity.data_source)) : contains(entity)
     when GrdaWarehouse::Hud::Project
       # project_collection_members does not include membership through CoC codes
       where(id: GrdaWarehouse::ProjectCollectionMember.where(project_id: entity.id).pluck(:collection_id)).

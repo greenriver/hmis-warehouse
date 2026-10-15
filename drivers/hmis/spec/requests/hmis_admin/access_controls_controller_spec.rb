@@ -47,9 +47,41 @@ RSpec.describe HmisAdmin::AccessControlsController, type: :request do
     expect(options).not_to include('Warehouse Only Source')
   end
 
+  it 'offers only organizations in HMIS data sources' do
+    create(:grda_warehouse_hud_organization, data_source_id: warehouse_only_data_source.id, OrganizationName: 'Warehouse Only Org')
+    get hmis_admin_access_controls_path
+    options = page.css('#filter_organization_id option').map(&:text)
+    expect(options).to include(project.organization.OrganizationName)
+    expect(options).not_to include('Warehouse Only Org')
+  end
+
+  it 'offers only CoC codes used by projects in HMIS data sources' do
+    create(:hmis_hud_project_coc, data_source: data_source, project: project, CoCCode: 'XX-500')
+    create(:hud_project_coc, data_source_id: warehouse_only_data_source.id, CoCCode: 'XX-777')
+    get hmis_admin_access_controls_path
+    expect(page.css('#filter_coc_code option').map { |o| o['value'] }).to eq(['', 'XX-500'])
+  end
+
   it 'lists only access controls whose collection contains the filtered project' do
     get hmis_admin_access_controls_path, params: { filter: { project_id: project.id } }
     expect(row_texts).to include(a_string_including('Matching Project Collection'))
     expect(row_texts).not_to include(a_string_including('Other Project Collection'))
+  end
+
+  it 'lists every access control when the filter is empty' do
+    get hmis_admin_access_controls_path, params: { filter: { project_id: '', coc_code: '' } }
+    expect(row_texts).to include(
+      a_string_including('Matching Project Collection'),
+      a_string_including('Other Project Collection'),
+    )
+  end
+
+  it 'loads only projects in HMIS data sources as project options' do
+    warehouse_only_organization = create(:grda_warehouse_hud_organization, data_source_id: warehouse_only_data_source.id)
+    warehouse_only_project = create(:grda_warehouse_hud_project, data_source_id: warehouse_only_data_source.id, organization: warehouse_only_organization)
+    post project_options_hmis_admin_access_controls_path
+    values = page.css('option').map { |o| o['value'].to_i }
+    expect(values).to contain_exactly(project.id, other_project.id)
+    expect(values).not_to include(warehouse_only_project.id)
   end
 end

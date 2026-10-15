@@ -49,13 +49,41 @@ RSpec.describe Admin::AccessControlsController, type: :request do
     expect(row_texts).not_to include(a_string_including('Other Project Collection'))
   end
 
-  it 'hides confidential organization names in the project filter from users who cannot view them' do
-    confidential_organization = create(:grda_warehouse_hud_organization, OrganizationName: 'Secret Shelter Org', confidential: true)
-    create(:grda_warehouse_hud_project, organization: confidential_organization)
-    get admin_access_controls_path
-    project_groups = Nokogiri::HTML(response.body).css('#filter_project_id optgroup').map { |g| g['label'] }
-    expect(project_groups).to include(a_string_including('Confidential Organization'))
-    expect(response.body).not_to include('Secret Shelter Org')
+  it 'loads project options separately, passing the selected project' do
+    get admin_access_controls_path, params: { filter: { project_id: project.id } }
+    select = Nokogiri::HTML(response.body).at_css('#filter_project_id')
+    expect(select.css('option').map { |o| o['value'] }).to eq([''])
+    expect(select['data-collection-path']).to eq(project_options_admin_access_controls_path(selected_project_ids: [project.id]))
+  end
+
+  describe 'project options' do
+    def options
+      Nokogiri::HTML(response.body).css('option')
+    end
+
+    it 'lists projects the admin has no access to and marks the selected project' do
+      post project_options_admin_access_controls_path, params: { selected_project_ids: [project.id.to_s] }
+      expect(options.map { |o| o['value'].to_i }).to contain_exactly(project.id, other_project.id)
+      expect(options.select { |o| o['selected'] }.map { |o| o['value'].to_i }).to eq([project.id])
+    end
+
+    it 'does not list projects for a user who cannot edit users' do
+      non_admin = create(:acl_user)
+      setup_access_control(non_admin, create(:role, can_view_projects: true), create(:collection))
+      sign_in non_admin
+      post project_options_admin_access_controls_path
+      expect(response).to have_http_status(:redirect)
+      expect(response.body).not_to include(project.ProjectName)
+    end
+
+    it 'hides confidential organization names from users who cannot view them' do
+      confidential_organization = create(:grda_warehouse_hud_organization, OrganizationName: 'Secret Shelter Org', confidential: true)
+      create(:grda_warehouse_hud_project, organization: confidential_organization)
+      post project_options_admin_access_controls_path
+      group_labels = Nokogiri::HTML(response.body).css('optgroup').map { |g| g['label'] }
+      expect(group_labels).to include(a_string_including('Confidential Organization'))
+      expect(response.body).not_to include('Secret Shelter Org')
+    end
   end
 
   it 'offers CoC codes that a collection lists even when no project uses them' do
