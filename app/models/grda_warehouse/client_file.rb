@@ -93,7 +93,7 @@ module GrdaWarehouse
         or(where(id: confidential_data_source_scope.select(:id)))
     end
 
-    scope :visible_by?, ->(user) do
+    scope :visible_by?, ->(user, client:) do
       return current_scope if user.can_manage_client_files?
 
       # setup sql statements
@@ -130,11 +130,14 @@ module GrdaWarehouse
       # You can only see files you uploaded
       elsif user.can_see_own_file_uploads? || user.can_use_separated_consent?
         where(sql)
-      # You have specific permission to generate homeless verification PDFs
-      elsif user.can_generate_homeless_verification_pdfs? && GrdaWarehouse::Config.get(:verified_homeless_history_visible_to_all)
-        where(is_verified_homeless_history)
-      elsif user.can_generate_homeless_verification_pdfs?
-        where(is_own_file.and(is_verified_homeless_history))
+      # The client's policy grants homeless verification PDFs for this client
+      elsif user.policy_for(client).can_generate_homeless_verification_pdfs?
+        verification_pdfs = where(client_id: client.id).where(is_verified_homeless_history)
+        if GrdaWarehouse::Config.get(:verified_homeless_history_visible_to_all)
+          verification_pdfs
+        else
+          verification_pdfs.where(is_own_file)
+        end
       else
         none
       end

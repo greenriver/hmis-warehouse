@@ -71,8 +71,8 @@ jobs:
 
     env:
       CLIENT: test
-      # Boot the whole app eagerly (like production) so zeitwerk:check below catches
-      # load-time errors app-wide once. Other CI jobs stay lazy to save memory.
+      # Boot the whole app eagerly (like production) so zeitwerk:check below reports load-time
+      # errors in one fast job, whether or not the matrix router schedules the unit test buckets.
       EAGER_LOAD: true
       DATABASE_ADAPTER: postgresql
       DATABASE_APP_DB_TEST: warehouse_app_test

@@ -126,6 +126,15 @@ or all false. `ProjectPiiPolicy` grants by project permissions; `SourceClientPol
 `can_view?` still delegates. `can_view_partial_ssn?` is true on every policy except
 `RestrictedPolicy`: restriction means no SSN at all.
 
+Client feature predicates sit beside the PII ones on `SourceClientPolicy` and are delegated by
+`DestinationClientPolicy`: `can_view_history_calendar?` is `can_view?` plus the
+`can_view_client_history_calendar` resource permission, and
+`can_generate_homeless_verification_pdfs?` is `can_view_history_calendar?` plus
+`can_generate_homeless_verification_pdfs`. Both compose on `can_view?`, so a role granting the
+feature permission on a project the client is not enrolled in does not grant it for that client,
+and ROI-based view access satisfies them. `ClientAccessControl::HistoryController` and the client
+dashboard tab navigation check these instead of the global `user.can_*?` flags.
+
 Adding a policy for a new resource type:
 
 1. Create `app/models/grda_warehouse/auth_policies/<thing>_policy.rb`, class
@@ -168,6 +177,7 @@ already preloaded.
   `legacy_window_data_source_ids`, `legacy_window_access_requires_release?`.
 - `app/models/grda_warehouse/auth_policies/project_policy.rb`: canonical resource policy.
 - `app/models/grda_warehouse/auth_policies/source_client_policy.rb`: `can_view?` with ROI,
+  `can_view_history_calendar?`, `can_generate_homeless_verification_pdfs?`,
   `add_legacy_data_source_permissions`, `add_project_based_permissions`,
   `add_direct_client_permissions`.
 - `app/models/grda_warehouse/auth_policies/destination_client_policy.rb`: calls
