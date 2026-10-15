@@ -264,6 +264,8 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   def allows_same_day_exit?
     if services_only_rrh?
       true # RRH-Services-Only projects allow same-day exit
+    elsif HudHelper.util.project_type_number_from_code(:so).include?(project_type)
+      true # Street Outreach can exit on the same day, even though it belongs to 'residential_project_type_ids'
     elsif HudHelper.util.residential_project_type_ids.include?(project_type)
       false # Residential projects do not allow same-day exit
     else
