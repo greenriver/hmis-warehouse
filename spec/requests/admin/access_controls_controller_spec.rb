@@ -49,6 +49,25 @@ RSpec.describe Admin::AccessControlsController, type: :request do
     expect(row_texts).not_to include(a_string_including('Other Project Collection'))
   end
 
+  it 'hides confidential organization names in the project filter from users who cannot view them' do
+    confidential_organization = create(:grda_warehouse_hud_organization, OrganizationName: 'Secret Shelter Org', confidential: true)
+    create(:grda_warehouse_hud_project, organization: confidential_organization)
+    get admin_access_controls_path
+    project_groups = Nokogiri::HTML(response.body).css('#filter_project_id optgroup').map { |g| g['label'] }
+    expect(project_groups).to include(a_string_including('Confidential Organization'))
+    expect(response.body).not_to include('Secret Shelter Org')
+  end
+
+  it 'offers CoC codes that a collection lists even when no project uses them' do
+    coc_lookup = create(:lookup_coc, coc_code: 'XX-502', official_name: 'Fake CoC 502')
+    unused_lookup = create(:lookup_coc, coc_code: 'XX-503', official_name: 'Fake CoC 503')
+    create(:collection).set_viewables({ coc_codes: [coc_lookup.id] })
+    get admin_access_controls_path
+    options = Nokogiri::HTML(response.body).css('#filter_coc_code option').map { |o| o['value'] }
+    expect(options).to include('XX-502')
+    expect(options).not_to include(unused_lookup.coc_code)
+  end
+
   it 'lists every access control when the filter is empty' do
     get admin_access_controls_path, params: { filter: { project_id: '' } }
     expect(row_texts).to include(

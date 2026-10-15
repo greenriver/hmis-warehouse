@@ -91,6 +91,14 @@ class Admin::AccessControlsController < ApplicationController
     GrdaWarehouse::DataSource.source
   end
 
+  # Warehouse collections can list CoC codes that no project uses
+  private def coc_code_filter_options
+    collection_coc_codes = GrdaWarehouse::Lookups::CocCode.where(
+      id: GrdaWarehouse::GroupViewableEntity.where(entity_type: GrdaWarehouse::Lookups::CocCode.sti_name).select(:entity_id),
+    ).pluck(:coc_code)
+    (super + collection_coc_codes).uniq.sort
+  end
+
   private def access_control_params
     params.require(:access_control).permit(
       :role_id,

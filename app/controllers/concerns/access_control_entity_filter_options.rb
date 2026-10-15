@@ -38,12 +38,16 @@ module AccessControlEntityFilterOptions
   end
 
   private def project_filter_options
+    show_confidential = current_user.can_view_confidential_project_names?
     GrdaWarehouse::Hud::Project.
       where(data_source_id: filter_data_source_scope.select(:id)).
       joins(:organization, :data_source).
       order(o_t[:OrganizationName].asc, p_t[:ProjectName].asc).
       pluck(o_t[:OrganizationName], ds_t[:short_name], p_t[:ProjectName], p_t[:id], p_t[:confidential], o_t[:confidential]).
-      group_by { |org_name, ds_name, *| "#{org_name} (#{ds_name})" }.
+      group_by do |org_name, ds_name, _, _, _, org_confidential|
+        org_name = GrdaWarehouse::Hud::Organization.confidential_organization_name if org_confidential && !show_confidential
+        "#{org_name} (#{ds_name})"
+      end.
       transform_values do |rows|
         rows.map do |_, _, name, id, project_confidential, org_confidential|
           [GrdaWarehouse::Hud::Project.confidentialize_name(current_user, name, project_confidential || org_confidential), id]
