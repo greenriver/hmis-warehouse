@@ -12,6 +12,8 @@ sources:
   - drivers/hmis_external_apis/app/models/hmis_external_apis/external_forms/form_submission.rb
   - drivers/hmis_external_apis/app/jobs/hmis_external_apis/publish_external_forms_job.rb
   - drivers/hmis_external_apis/app/jobs/hmis_external_apis/consume_external_form_submissions_job.rb
+  - drivers/hmis_external_apis/app/jobs/hmis_external_apis/notify_external_form_submissions_job.rb
+  - drivers/hmis_external_apis/app/mailers/hmis_external_apis/external_form_submission_notification_mailer.rb
   - drivers/hmis_external_apis/app/models/hmis_external_apis/ac_hmis/mci.rb
   - drivers/hmis_external_apis/app/models/hmis_external_apis/ac_hmis/mper.rb
   - drivers/hmis_external_apis/app/models/hmis_external_apis/ac_hmis/referral.rb
@@ -79,7 +81,12 @@ External forms:
   both the S3 and encryption-key credentials are present), and on demand by the
   `Mutations::RefreshExternalSubmissions` GraphQL mutation. Runs under an advisory lock
   (`with_lock`) and declares `supports_idempotent_retry? => false` — a failed run isn't retried;
-  the next hourly enqueue picks the remaining objects back up.
+  the next hourly enqueue picks the remaining objects back up. A successful run enqueues
+  `NotifyExternalFormSubmissionsJob`.
+- `HmisExternalApis::NotifyExternalFormSubmissionsJob` emails users with
+  `can_manage_external_form_submissions` about new submissions in projects that have an
+  `EXTERNAL_FORM_SUBMISSION_NOTIFICATIONS` project config. It stamps `reviewers_notified_at` on
+  every pending submission, opted in or not.
 - `HmisExternalApis::ExternalFormsController` (`external_forms_controller.rb`) is development
   only; its `before_action` raises outside `Rails.env.development?`. Routes are wrapped in the
   same guard in `drivers/hmis_external_apis/config/routes.rb`.

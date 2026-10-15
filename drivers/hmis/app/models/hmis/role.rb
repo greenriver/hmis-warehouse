@@ -597,6 +597,7 @@ class Hmis::Role < ::ApplicationRecord
         access: [:editable],
         category: 'Project Access',
         sub_category: 'Public Forms',
+        requirements: [:can_view_project], # the review queue is a project page, so it needs project visibility
       },
       can_view_enrollment_location_map: {
         description: 'Access to view a Location Map, which shows the locations where the client was contacted during the Enrollment.',

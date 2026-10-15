@@ -84,6 +84,33 @@ RSpec.describe HmisExternalApis::ConsumeExternalFormSubmissionsJob, type: :model
     expect(JSON.parse(submission.raw_data.to_json)).to eq(JSON.parse(submission_document))
   end
 
+  describe 'notification' do
+    include ActiveJob::TestHelper
+
+    before { allow_any_instance_of(GrdaWarehouse::RemoteCredentials::S3).to receive(:s3).and_return(s3_client_double) }
+    after { clear_enqueued_jobs }
+
+    it 'enqueues the notify job after a successful run' do
+      expect do
+        described_class.new.perform
+      end.to have_enqueued_job(HmisExternalApis::NotifyExternalFormSubmissionsJob)
+    end
+
+    it 'does not enqueue the notify job when disabled' do
+      s3_cred.update!(active: false)
+      expect do
+        described_class.new.perform
+      end.not_to have_enqueued_job(HmisExternalApis::NotifyExternalFormSubmissionsJob)
+    end
+
+    it 'does not enqueue the notify job when the lock is held' do
+      allow(GrdaWarehouseBase).to receive(:with_advisory_lock).and_return(false)
+      expect do
+        described_class.new.perform
+      end.not_to have_enqueued_job(HmisExternalApis::NotifyExternalFormSubmissionsJob)
+    end
+  end
+
   describe '.enabled?' do
     it 'is true when both the bucket and shared key credentials are active' do
       expect(described_class).to be_enabled

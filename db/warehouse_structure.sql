@@ -4022,7 +4022,8 @@ CREATE TABLE public.hmis_external_form_submissions (
     object_key character varying NOT NULL,
     raw_data jsonb NOT NULL,
     notes text,
-    enrollment_id bigint
+    enrollment_id bigint,
+    reviewers_notified_at timestamp(6) without time zone
 );
 
 
@@ -213881,6 +213882,13 @@ CREATE INDEX idx_client_ssn ON public."Client" USING btree ("SSN");
 
 
 --
+-- Name: idx_custom_assessments_on_en_id_p_id_ds_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_custom_assessments_on_en_id_p_id_ds_id ON public."CustomAssessments" USING btree ("EnrollmentID", "PersonalID", data_source_id) WHERE ("DateDeleted" IS NULL);
+
+
+--
 -- Name: idx_custom_data_element_definitions_id_ds; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -214620,13 +214628,6 @@ CREATE INDEX "index_CurrentLivingSituation_on_pending_date_deleted" ON public."C
 --
 
 CREATE INDEX "index_CurrentLivingSituation_on_verified_by_project_id" ON public."CurrentLivingSituation" USING btree (verified_by_project_id);
-
-
---
--- Name: idx_custom_assessments_on_en_id_p_id_ds_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_custom_assessments_on_en_id_p_id_ds_id ON public."CustomAssessments" USING btree ("EnrollmentID", "PersonalID", data_source_id) WHERE ("DateDeleted" IS NULL);
 
 
 --
@@ -360286,6 +360287,7 @@ ALTER TABLE ONLY public.import_logs
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261015120000'),
 ('20261014140000'),
 ('20260918121000'),
 ('20260918120000'),

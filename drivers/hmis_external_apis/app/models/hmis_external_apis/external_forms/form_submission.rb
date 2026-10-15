@@ -33,7 +33,7 @@ module HmisExternalApis::ExternalForms
     # For now we will start with 0.5 as the threshold, maybe we will adjust in future
     SPAM_THRESHOLD = 0.5
     scope :not_spam, -> { where(spam_score: SPAM_THRESHOLD...).or(where(spam_score: nil)) }
-    scope :spam, -> { where(spam_score: ..SPAM_THRESHOLD) }
+    scope :spam, -> { where(spam_score: ...SPAM_THRESHOLD) }
 
     def spam
       spam_score && spam_score < SPAM_THRESHOLD
