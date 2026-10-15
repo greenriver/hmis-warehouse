@@ -266,6 +266,7 @@ jobs:
       - name: Run tests
         if: matrix.test_group.tag || matrix.test_group.test_path
         env:
+          EAGER_LOAD: true
           MAX_FAILURES: 60
           AWS_ACCESS_KEY_ID: local_access_key
           AWS_SECRET_ACCESS_KEY: local_secret_key
@@ -341,6 +342,17 @@ jobs:
           TEST_DEVELOPMENT_LOGGING_CONFIG=true RAILS_LOG_TO_STDOUT=false LOGRAGE=true bundle exec rspec --color -fd spec/models/logging_spec.rb
           TEST_DEVELOPMENT_LOGGING_CONFIG=true RAILS_LOG_TO_STDOUT=false LOGRAGE=false bundle exec rspec --color -fd spec/models/logging_spec.rb
           TEST_STAGING_LOGGING_CONFIG=true bundle exec rspec --color -fd spec/models/logging_spec.rb
+
+      # memory.peak is the job container's cgroup high-water mark; service containers
+      # (postgres, redis, etc.) run in their own cgroups and are not included.
+      - name: Report memory
+        if: always()
+        run: |
+          peak=$(cat /sys/fs/cgroup/memory.peak 2>/dev/null || echo unavailable)
+          if [ "$peak" != "unavailable" ]; then peak="$((peak / 1024 / 1024)) MiB"; fi
+          echo "Peak container memory: $peak"
+          free -m
+          echo "Peak container memory (${{ matrix.test_group.id }}): $peak" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Archive artifacts
         if: always()
