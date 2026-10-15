@@ -1,0 +1,5 @@
+# PRs labeled skip-changelog are left out of generated release notes.
+changelog:
+  exclude:
+    labels:
+      - skip-changelog

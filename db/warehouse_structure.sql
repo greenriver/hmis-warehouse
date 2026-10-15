@@ -213888,6 +213888,13 @@ CREATE INDEX idx_client_ssn ON public."Client" USING btree ("SSN");
 
 
 --
+-- Name: idx_custom_assessments_on_en_id_p_id_ds_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_custom_assessments_on_en_id_p_id_ds_id ON public."CustomAssessments" USING btree ("EnrollmentID", "PersonalID", data_source_id) WHERE ("DateDeleted" IS NULL);
+
+
+--
 -- Name: idx_custom_data_element_definitions_id_ds; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -360286,6 +360293,7 @@ ALTER TABLE ONLY public.import_logs
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261014140000'),
 ('20260921142542'),
 ('20260918121000'),
 ('20260918120000'),
