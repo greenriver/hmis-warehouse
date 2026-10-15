@@ -1,5 +1,6 @@
 - config = Admin::Collections::CONFIG[entity_type.to_sym]
 - extra_columns = config.extra_columns_config
+- preloaded_columns = config.preload_extra_columns
 - name_column = config.name_column_header
 - name_method = config.name_method
 - grouped = config.grouped || false
@@ -35,7 +36,6 @@
                 %input{ id: id, name: name, type: 'checkbox', value: 1, checked: checked }
                 %label{for: id}
         %td= entity_name
-        - extra_columns.each do |column|
-          - # Pass appropriate arguments based on whether we have a group_name
-          %td= group_name ? column[:content].call(entity_data, group_name) : column[:content].call(entity_data)
+        - extra_columns.each_with_index do |column, i|
+          %td= config.extra_column_value(column, entity_data, group_name: group_name, preloaded: preloaded_columns[i])
 
