@@ -41,6 +41,7 @@ module InactiveClientReport::WarehouseReports
 
     private def set_pagy_data
       @pagy, @clients = pagy(@report.clients.order(:last_name, :first_name))
+      current_user.policy_context.preload_client_dependencies(@clients.map(&:id))
     end
 
     def data

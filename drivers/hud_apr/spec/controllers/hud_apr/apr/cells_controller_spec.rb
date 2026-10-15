@@ -51,6 +51,21 @@ RSpec.describe HudApr::Apr::CellsController, type: :request do
         expect(response).to be_successful
       end
     end
+
+    it 'lists every client in the cell when more clients than the preload miss threshold are in it' do
+      cell = report.report_cells.create!(question: '5a', cell_name: 'B2')
+      extra = Array.new(preload_miss_client_count) do |i|
+        destination = create(:grda_warehouse_hud_client, FirstName: "Preload#{i}", LastName: 'Coverage')
+        apr_client = create(:hud_report_apr_client, report_instance: report, client_id: destination.id, destination_client_id: destination.id, first_name: destination.FirstName, last_name: destination.LastName)
+        HudReports::UniverseMember.create!(report_cell: cell, universe_membership: apr_client, client_id: destination.id)
+        destination
+      end
+
+      get hud_reports_apr_question_cell_path(apr_id: report.id, question_id: 'Question 5', id: 'B2', table: '5a')
+
+      expect(response).to have_http_status(:ok)
+      extra.each { |client| expect(response.body).to include(client.FirstName) }
+    end
   end
 
   describe 'GET #search' do

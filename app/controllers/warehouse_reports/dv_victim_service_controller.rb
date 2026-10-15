@@ -15,6 +15,7 @@ module WarehouseReports
 
     def index
       @pagy, @clients = pagy(clients)
+      current_user.policy_context.preload_client_dependencies(@clients.map(&:id))
     end
 
     def clients

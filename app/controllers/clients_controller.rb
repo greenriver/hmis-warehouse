@@ -70,6 +70,7 @@ class ClientsController < ApplicationController
       @existing_matches = client_source.where(id: existing_matches).
         joins(:warehouse_client_source).
         includes(:warehouse_client_source, :data_source)
+      current_user.policy_context.preload_client_dependencies(existing_matches)
       render action: :new
     elsif clean_params[:bypass_search].present? || existing_matches.empty?
       # Create a new source and destination client
@@ -115,6 +116,13 @@ class ClientsController < ApplicationController
 
   def edit
     @search_clients = client_source.text_search(params[:q], client_scope: client_source, sorted: true).where.not(id: @client.id).limit(50) if params[:q].present?
+    current_user.policy_context.preload_client_dependencies(
+      [@client.id] +
+      @potential_matches.values.flat_map { |clients| clients.pluck(:id) } +
+      Array(@search_clients&.pluck(:id)) +
+      @client.splits_from.pluck(:split_from) +
+      @client.splits_to.pluck(:split_into),
+    )
   end
 
   # display an assessment form in a modal

@@ -177,7 +177,9 @@ module TxClientReports
     def rows
       return [] unless @filter.project_ids.any? || @filter.project_group_ids.any?
 
-      client_scope.map do |client|
+      clients = client_scope.to_a
+      @filter.user.policy_context.preload_client_restrictions(clients.map(&:id))
+      clients.map do |client|
         enrollment = enrollments[client.id]
         next unless enrollment.present?
 
@@ -188,7 +190,7 @@ module TxClientReports
           income_benefits_at_entry&.
           TotalMonthlyIncome
         household = if enrollment.household_id.present?
-          enrollment.household_enrollments&.map(&:client)
+          enrollment.household_enrollments&.map(&:client)&.compact
         else
           [client]
         end

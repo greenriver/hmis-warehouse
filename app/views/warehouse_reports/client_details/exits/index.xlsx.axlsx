@@ -16,6 +16,7 @@ wb.add_worksheet(name: "Exit Detail #{GrdaWarehouse::WarehouseReports::Dashboard
     'Exit From',
   ] + GrdaWarehouse::Hud::Client.race_fields.map { |m| HudHelper.util.race(m).gsub('None', 'Race None') }, style: title)
   current_user.policy_context.preload_project_dependencies(@report.clients.map { |e| e.project.id })
+  current_user.policy_context.preload_client_dependencies(@report.clients.map(&:client_id))
   @report.clients.each do |enrollment|
     client = enrollment.client
     pii = client.project_pii_provider(project: enrollment.project, user: current_user, mode: :download)

@@ -236,6 +236,107 @@ RSpec.describe GrdaWarehouse::AuthPolicies::UserAclContext do
     end
   end
 
+  describe '#preload_client_dependencies across a warehouse identity' do
+    subject(:context) { described_class.new(acl_user) }
+
+    let(:marked) { create(:warehouse_client) }
+    let(:unmarked) { create(:warehouse_client) }
+    let(:miss_error) { GrdaWarehouse::AuthPolicies::PreloadMissTracker::PreloadMissError }
+
+    before do
+      GrdaWarehouse::ClientRetentionMark.create!(client_id: marked.source_id, marked_on: Date.current, last_activity_on: 10.years.ago.to_date, retention_years: 7)
+      create(:client_roi_authorization, destination_client: marked.destination, status: 'full', coc_codes: nil)
+    end
+
+    it 'answers restriction checks by destination id when given source ids' do
+      context.preload_client_dependencies([marked.source_id, unmarked.source_id])
+
+      answers = nil
+      queries = count_database_queries do
+        answers = [marked.destination_id, unmarked.destination_id].map { |id| context.client_restricted?(id) }
+      end
+
+      expect(answers).to eq([true, false])
+      expect(queries).to eq(0)
+    end
+
+    it 'preloads ROI for the destinations of the given source ids' do
+      context.preload_client_dependencies([marked.source_id, unmarked.source_id])
+
+      answers = nil
+      queries = count_database_queries do
+        answers = [marked.destination_id, unmarked.destination_id].map { |id| context.client_roi_loader.get(id) }
+      end
+
+      expect(answers).to eq([true, false])
+      expect(queries).to eq(0)
+    end
+
+    it 'preloads restriction checks by source id when given destination ids' do
+      context.preload_client_dependencies([marked.destination_id, unmarked.destination_id])
+
+      answers = nil
+      queries = count_database_queries do
+        answers = [marked.source_id, unmarked.source_id].map { |id| context.client_restricted?(id) }
+      end
+
+      expect(answers).to eq([true, false])
+      expect(queries).to eq(0)
+    end
+
+    it 'preloads sibling source clients when given one source id' do
+      sibling = create(:warehouse_client, destination: marked.destination)
+      context.preload_client_dependencies([marked.source_id])
+
+      queries = count_database_queries { context.enrolled_project_ids_for_client(sibling.source_id) }
+
+      expect(queries).to eq(0)
+    end
+
+    it 'runs no queries for an empty or nil-only list' do
+      context # force the lazy user/context creation outside the measured block
+
+      expect(count_database_queries { context.preload_client_dependencies([nil]) }).to eq(0)
+    end
+
+    it 'runs no queries for ids it has already preloaded' do
+      context.preload_client_dependencies([marked.source_id])
+
+      expect(count_database_queries { context.preload_client_dependencies([marked.destination_id, marked.source_id]) }).to eq(0)
+    end
+
+    context 'when more clients than the threshold are read' do
+      let(:batch_one) { create_list(:warehouse_client, 4).map(&:source_id) }
+      let(:batch_two) { create_list(:warehouse_client, 4).map(&:source_id) }
+
+      it 'raises for enrolled projects read without a preload' do
+        expect { batch_one.each { |id| context.enrolled_project_ids_for_client(id) } }.
+          to raise_error(miss_error, /enrolled_projects/)
+      end
+
+      it 'raises for direct grants read without a preload' do
+        expect { batch_one.each { |id| context.direct_client_role_permissions(id) } }.
+          to raise_error(miss_error, /direct_client_grants/)
+      end
+
+      it 'raises for destinations resolved one at a time with preload_client' do
+        destination_ids = GrdaWarehouse::WarehouseClient.where(source_id: batch_one).pluck(:destination_id)
+
+        expect { destination_ids.each { |id| context.preload_client(id) } }.
+          to raise_error(miss_error, /destination_clients/)
+      end
+
+      it 'does not count clients preloaded batch by batch as misses' do
+        results = [batch_one, batch_two].flat_map do |batch|
+          context.preload_client_dependencies(batch)
+          batch.map { |id| [context.client_restricted?(id), context.enrolled_project_ids_for_client(id)] }
+        end
+
+        expect(results).to eq([[false, []]] * 8)
+      end
+    end
+  end
+
   describe 'string mutation operations' do
     subject(:context) { described_class.new(acl_user) }
     let(:user_group) { create(:user_group) }
@@ -304,6 +405,23 @@ RSpec.describe GrdaWarehouse::AuthPolicies::UserAclContext do
         # Should not include CoC collection IDs since there are no CoC codes
         expect(collection_ids).not_to include(coc_collection.id)
       end
+    end
+  end
+
+  describe '#preload_project_dependencies for projects with no CoC codes or collections' do
+    it 'reads back permissions for five such projects in the same number of queries as one' do
+      small_batch = [create(:grda_warehouse_hud_project, organization: organization, data_source: data_source)]
+      large_batch = create_list(:grda_warehouse_hud_project, 5, organization: organization, data_source: data_source)
+
+      small_context = described_class.new(acl_user)
+      small_context.preload_project_dependencies(small_batch.map(&:id))
+      small_queries = count_database_queries { small_batch.each { |p| small_context.project_role_permissions(p.id) } }
+
+      large_context = described_class.new(acl_user)
+      large_context.preload_project_dependencies(large_batch.map(&:id))
+      large_queries = count_database_queries { large_batch.each { |p| large_context.project_role_permissions(p.id) } }
+
+      expect(large_queries).to eq(small_queries)
     end
   end
 end

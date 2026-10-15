@@ -1,5 +1,6 @@
 ---
 name: domain-pack-maintenance
+disable-model-invocation: true
 description: Repair a failing "Domain Pack" CI check (`ruby bin/domain_pack check`) in hmis-warehouse. Takes a GitHub Actions run/job URL (or PR number, or nothing, to use the current branch), finds each source file whose stamp no longer matches, re-verifies the facts in every docs/domain-pack doc that lists it against the current code, updates the docs where they drifted, and re-stamps the manifest. Use whenever someone pastes a failed "Domain pack manifest is current" job link, says "fix the domain pack", "domain pack is stale", "restamp the domain pack", "source changed since last stamp", or edits a file listed in docs/domain-pack/manifest.json and needs the docs brought back in line.
 ---
 

@@ -23,6 +23,7 @@ class AdHocDataSources::UploadsController < ApplicationController
 
   def show
     @found_clients = GrdaWarehouse::Hud::Client.where(id: @upload.ad_hoc_clients.joins(:client).select(:client_id)).index_by(&:id)
+    current_user.policy_context.preload_client_dependencies(@found_clients.keys)
     possible_client_ids = @upload.ad_hoc_clients.pluck(:matching_client_ids).flatten
     possible_matches = GrdaWarehouse::Hud::Client.where(id: possible_client_ids).index_by(&:id)
     @possible_matches = {}

@@ -134,7 +134,9 @@ The phases in code order, each named as in the source: `Update Client ROIs`, `Up
 forms`, `Sync with CAS`, `Identify Duplicates`, `Clean projects & clients`, `Generate service
 history and related records`, `Maintain name search maintenance`, `Import Census`,
 `Chronically Homeless at Entry`, `Finalize client history`, `Legacy reporting setup`, `Prune
-HUD report data`, `System maintenance`. The per-phase detail of what each step calls and why
+HUD report data`, `System maintenance`. Between `Generate service history and related records`
+and `Maintain name search maintenance` the job enqueues `ClientRetentionJob` outside any named
+phase; that job returns immediately when `client_retention_years` is nil. The per-phase detail of what each step calls and why
 the ordering matters for service history is in `hud-reporting/service-history.md` under
 "Daily pipeline order"; this doc does not restate it.
 
@@ -206,7 +208,8 @@ Adding a setting takes four steps, all verified from code:
    (`_roi.haml`, `_cas.haml`, `_client_calculations.haml`, and others). Selects take a
    `collection:` from a class method on the model that returns a label-to-value hash, such as
    `available_release_durations` or `available_roi_models`, with `as: :select_two`.
-4. Validate in the model only when one setting depends on another; the single example is
+4. Validate in the model only when a value has a range or one setting depends on another:
+   `client_retention_years` (positive integer or nil) and
    `validates :cas_sync_project_group_id, presence: ..., if:` for the project-group CAS sync
    methods. A setter can normalize input, as `client_demographic_columns=` strips the hidden
    blank a multi-select posts.

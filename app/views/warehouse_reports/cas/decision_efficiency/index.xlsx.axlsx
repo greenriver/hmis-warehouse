@@ -4,6 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+current_user.policy_context.preload_client_dependencies(@data.map { |row| row[:warehouse_client_id] })
 wb = xlsx_package.workbook
 wb.add_worksheet(name: 'Decision Efficiency') do |sheet|
   title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})

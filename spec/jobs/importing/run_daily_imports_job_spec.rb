@@ -114,6 +114,10 @@ RSpec.describe Importing::RunDailyImportsJob, type: :job do
         end
       end
 
+      it 'queues the client retention pass at maintenance priority instead of running it inline' do
+        expect { job.perform }.to have_enqueued_job(ClientRetentionJob).at_priority(BaseJob::MAINTENANCE_PRIORITY_15)
+      end
+
       it 'sends completion notification' do
         job.perform
 

@@ -49,7 +49,7 @@ Where pagination happens depends on who owns it, and the preload call goes where
 
   A download/export format serving the full (unpaginated) list is a separate code path with its own preload over the full set it actually iterates — don't try to share one preload call between a paginated html view and an unpaginated xlsx export of the same action.
 
-Client restriction needs no preload of this kind. `client_restricted?` is backed by `RestrictedClientLoader`, which loads the whole restricted-client set once per request (memoized on `User#policy_context`) rather than per page — see [PII Redaction](features/warehouse/warehouse-auth-policies.md#pii-redaction). Just call `pii_provider`/`client_restricted?` per row; there's nothing to preload first.
+Client restriction is part of the same preload. HMIS restriction loads once per request, but retention marks are looked up per client, so a loop that calls `pii_provider`, `client_restricted?`, or `reporting_policy_for_project(client_id:)` needs `current_user.policy_context.preload_client_dependencies(ids)` first, like any other client policy check — see [PII Redaction](features/warehouse/warehouse-auth-policies.md#pii-redaction).
 
 ### View Helper methods
 

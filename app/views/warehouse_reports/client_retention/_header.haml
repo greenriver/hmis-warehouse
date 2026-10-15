@@ -1,0 +1,20 @@
+- title = 'Client Data Retention'
+- content_for :title, title
+.row
+  .col-sm-8
+    %h1= title
+= render '/warehouse_reports/breadcrumbs'
+
+- if @global_years.nil?
+  .alert.alert-info Client data retention is disabled. Enable it under Site Configuration to start marking inactive clients.
+- else
+  %p
+    Clients with no activity in
+    %strong= "#{@global_years} years"
+    (or a data source's own window, whichever is longer) are marked inactive by the nightly job and redacted throughout the warehouse. This report lists ids only.
+
+- tabs = [['Records Expiring Soon', warehouse_reports_client_retention_index_path, 'index'], ['Expired Records', expired_warehouse_reports_client_retention_index_path, 'expired'], ['Retention Run History', runs_warehouse_reports_client_retention_index_path, 'runs']]
+%ul.nav.nav-tabs.mb-3{role: :tablist}
+  - tabs.each do |label, path, action|
+    %li.nav-item{role: :presentation}
+      = link_to label, path, class: ['nav-link', ('active' if action_name == action)]

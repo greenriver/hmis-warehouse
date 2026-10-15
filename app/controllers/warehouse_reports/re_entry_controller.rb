@@ -39,6 +39,7 @@ module WarehouseReports
       @enrollments = scope
       # go back for the re-entries for those we actually have permission to see
       @re_entries = reporting_class.re_entry.where(enrollment_id: @enrollments.pluck(:id)).index_by(&:enrollment_id)
+      current_user.policy_context.preload_client_dependencies(@enrollments.map(&:client_id))
 
       @filter.errors.add(:project_type_codes, message: 'are required') if @filter.project_type_codes.blank?
       respond_to do |format|

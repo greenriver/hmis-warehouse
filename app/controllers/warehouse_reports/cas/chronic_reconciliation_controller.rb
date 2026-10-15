@@ -35,6 +35,7 @@ module WarehouseReports::Cas
         where(id: (cas_ids - chronic_ids)).
         order(last_name: :asc, first_name: :asc).
         includes(site_chronics_table)
+      current_user.policy_context.preload_client_dependencies(@not_on_list.map(&:id))
     end
 
     def client_columns

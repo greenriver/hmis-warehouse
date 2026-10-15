@@ -154,9 +154,24 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   # with their PII redacted.
   # See docs/features/hmis/hmis-restricted-records.md
   scope :searchable_to, ->(user) do
-    hidden_ids = user.policy_context.client_ids_hidden_from_search
-    scope = visible_to(user)
-    hidden_ids.any? ? scope.where.not(id: hidden_ids) : scope
+    permitted_project_ids = user.policy_context.project_ids_with_permissions(:can_view_restricted_clients, mode: :any)
+    rr_t = Hmis::RestrictedRecord.arel_table
+
+    # OFFSET 0 stops the planner from rewriting this EXISTS into a hashed subplan over every
+    # enrollment in the permitted projects; with it the probe runs only for restricted candidates.
+    enrolled_where_permitted = e_t.project(Arel.sql('1')).
+      join(p_t).on(p_t[:id].eq(e_t[:project_pk]).and(p_t[:DateDeleted].eq(nil))).
+      where(p_t[:id].in(permitted_project_ids)).
+      where(e_t[:DateDeleted].eq(nil)).
+      where(e_t[:PersonalID].eq(c_t[:PersonalID]).and(e_t[:data_source_id].eq(c_t[:data_source_id]))).
+      skip(0)
+    hidden = rr_t.project(Arel.sql('1')).
+      where(rr_t[:restrictable_type].eq(Hmis::RestrictedRecord::CLIENT_RESTRICTABLE_TYPE)).
+      where(rr_t[:deleted_at].eq(nil)).
+      where(rr_t[:restrictable_id].eq(c_t[:id])).
+      where(enrolled_where_permitted.exists.not)
+
+    visible_to(user).where(hidden.exists.not)
   end
 
   scope :matching_search_term, ->(text_search) do

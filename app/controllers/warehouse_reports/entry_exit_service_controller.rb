@@ -38,6 +38,7 @@ module WarehouseReports
         end
       end
       current_user.policy_context.preload_project_dependencies(@data.map { |row| row[:project_id] }.uniq)
+      current_user.policy_context.preload_client_dependencies(@data.map { |row| row[:destination_id] })
     end
 
     private def row_to_hash(row)

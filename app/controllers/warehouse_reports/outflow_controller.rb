@@ -29,6 +29,7 @@ module WarehouseReports
         end
         format.html do
           @enrollments = @report.enrollments_for(@key)
+          current_user.policy_context.preload_client_dependencies(@enrollments.keys)
         end
       end
     end

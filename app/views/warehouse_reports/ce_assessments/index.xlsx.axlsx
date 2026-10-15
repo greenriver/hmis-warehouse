@@ -13,9 +13,14 @@ wb.add_worksheet(name: "CE Assessment Details") do |sheet|
   sheet.add_row(row, :style => title)
 
   @clients.each do |client|
+    pii = GrdaWarehouse::PiiProvider.new(client, policy: current_user.reporting_policy_for_client(client: client, mode: :download))
     row = detail_columns.values.map do |(location, field)|
       if location == :client
-        client.public_send(field)
+        case field
+        when :name then pii.full_name
+        when :DOB then pii.dob
+        else client.public_send(field)
+        end
       elsif location == :assessor
         client.ce_assessment.assessor.public_send(field)
       else

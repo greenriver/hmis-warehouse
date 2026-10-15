@@ -13,12 +13,14 @@ class Export::RestrictedClientPiiTransform
 
   def initialize(options)
     @export = options[:export]
-    @loader = GrdaWarehouse::AuthPolicies::ContextLoaders::RestrictedClientLoader.new
+    # Kiba hands us one row at a time, so the hidden ids inside this export's client scope are
+    # loaded once per export and held as a Set for the job's lifetime.
+    @hidden_ids = GrdaWarehouse::HiddenClients.hidden_ids_in(options.fetch(:client_scope))
   end
 
   def process(row)
     return row if @export.hash_status == 4 || @export.faked_pii
-    return row unless @loader.restricted?(row.id)
+    return row unless @hidden_ids.include?(row.id)
 
     row.FirstName = row.MiddleName = row.LastName = row.NameSuffix = REDACTED
     row.SSN = nil

@@ -1637,6 +1637,19 @@ CREATE TABLE public."Client" (
 
 
 --
+-- Name: client_retention_marks; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.client_retention_marks (
+    id bigint NOT NULL,
+    client_id bigint NOT NULL,
+    marked_on date NOT NULL,
+    last_activity_on date NOT NULL,
+    retention_years integer NOT NULL
+);
+
+
+--
 -- Name: hmis_restricted_records; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1699,6 +1712,14 @@ CREATE VIEW analytics.client_piis AS
          SELECT warehouse_clients.source_id
            FROM (public.warehouse_clients
              JOIN restricted_destinations ON ((restricted_destinations.client_id = warehouse_clients.destination_id)))
+          WHERE (warehouse_clients.deleted_at IS NULL)
+        UNION
+         SELECT client_retention_marks.client_id
+           FROM public.client_retention_marks
+        UNION
+         SELECT warehouse_clients.destination_id
+           FROM (public.warehouse_clients
+             JOIN public.client_retention_marks ON ((client_retention_marks.client_id = warehouse_clients.source_id)))
           WHERE (warehouse_clients.deleted_at IS NULL)
         )
  SELECT "Client".id,
@@ -2978,7 +2999,8 @@ CREATE TABLE public.data_sources (
     obey_consent boolean DEFAULT true,
     disable_imports boolean DEFAULT false NOT NULL,
     pre_process_hooks jsonb DEFAULT '{}'::jsonb NOT NULL,
-    hmis_go_live_at timestamp without time zone
+    hmis_go_live_at timestamp without time zone,
+    client_retention_years integer
 );
 
 
@@ -26508,6 +26530,133 @@ ALTER SEQUENCE public.client_notes_id_seq OWNED BY public.client_notes.id;
 
 
 --
+-- Name: client_retention_expiring_clients; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.client_retention_expiring_clients (
+    id bigint NOT NULL,
+    run_id bigint NOT NULL,
+    destination_client_id bigint NOT NULL,
+    source_clients jsonb DEFAULT '[]'::jsonb NOT NULL,
+    last_activity_on date NOT NULL,
+    retention_years integer NOT NULL,
+    basis character varying NOT NULL,
+    expires_on date NOT NULL
+);
+
+
+--
+-- Name: client_retention_expiring_clients_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.client_retention_expiring_clients_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: client_retention_expiring_clients_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.client_retention_expiring_clients_id_seq OWNED BY public.client_retention_expiring_clients.id;
+
+
+--
+-- Name: client_retention_log_entries; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.client_retention_log_entries (
+    id bigint NOT NULL,
+    run_id bigint NOT NULL,
+    action character varying NOT NULL,
+    destination_client_id bigint NOT NULL,
+    source_clients jsonb DEFAULT '[]'::jsonb NOT NULL,
+    last_activity_on date,
+    retention_years integer,
+    created_at timestamp without time zone NOT NULL
+);
+
+
+--
+-- Name: client_retention_log_entries_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.client_retention_log_entries_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: client_retention_log_entries_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.client_retention_log_entries_id_seq OWNED BY public.client_retention_log_entries.id;
+
+
+--
+-- Name: client_retention_marks_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.client_retention_marks_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: client_retention_marks_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.client_retention_marks_id_seq OWNED BY public.client_retention_marks.id;
+
+
+--
+-- Name: client_retention_runs; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.client_retention_runs (
+    id bigint NOT NULL,
+    started_at timestamp without time zone NOT NULL,
+    completed_at timestamp without time zone,
+    failed_at timestamp without time zone,
+    global_retention_years integer NOT NULL,
+    data_source_overrides jsonb DEFAULT '{}'::jsonb NOT NULL,
+    evaluated_count integer DEFAULT 0 NOT NULL,
+    marked_count integer DEFAULT 0 NOT NULL,
+    unmarked_count integer DEFAULT 0 NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: client_retention_runs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.client_retention_runs_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: client_retention_runs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.client_retention_runs_id_seq OWNED BY public.client_retention_runs.id;
+
+
+--
 -- Name: client_roi_authorizations_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -27160,7 +27309,8 @@ CREATE TABLE public.configs (
     client_demographic_columns jsonb,
     created_at timestamp(6) without time zone,
     updated_at timestamp(6) without time zone,
-    dob_selection_method character varying DEFAULT 'legacy'::character varying NOT NULL
+    dob_selection_method character varying DEFAULT 'legacy'::character varying NOT NULL,
+    client_retention_years integer
 );
 
 
@@ -57190,6 +57340,34 @@ ALTER TABLE ONLY public.client_notes ALTER COLUMN id SET DEFAULT nextval('public
 
 
 --
+-- Name: client_retention_expiring_clients id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.client_retention_expiring_clients ALTER COLUMN id SET DEFAULT nextval('public.client_retention_expiring_clients_id_seq'::regclass);
+
+
+--
+-- Name: client_retention_log_entries id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.client_retention_log_entries ALTER COLUMN id SET DEFAULT nextval('public.client_retention_log_entries_id_seq'::regclass);
+
+
+--
+-- Name: client_retention_marks id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.client_retention_marks ALTER COLUMN id SET DEFAULT nextval('public.client_retention_marks_id_seq'::regclass);
+
+
+--
+-- Name: client_retention_runs id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.client_retention_runs ALTER COLUMN id SET DEFAULT nextval('public.client_retention_runs_id_seq'::regclass);
+
+
+--
 -- Name: client_roi_authorizations id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -63855,6 +64033,38 @@ ALTER TABLE ONLY public.client_merge_histories
 
 ALTER TABLE ONLY public.client_notes
     ADD CONSTRAINT client_notes_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: client_retention_expiring_clients client_retention_expiring_clients_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.client_retention_expiring_clients
+    ADD CONSTRAINT client_retention_expiring_clients_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: client_retention_log_entries client_retention_log_entries_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.client_retention_log_entries
+    ADD CONSTRAINT client_retention_log_entries_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: client_retention_marks client_retention_marks_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.client_retention_marks
+    ADD CONSTRAINT client_retention_marks_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: client_retention_runs client_retention_runs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.client_retention_runs
+    ADD CONSTRAINT client_retention_runs_pkey PRIMARY KEY (id);
 
 
 --
@@ -216128,6 +216338,34 @@ CREATE INDEX index_client_notes_on_user_id ON public.client_notes USING btree (u
 
 
 --
+-- Name: index_client_retention_expiring_on_run_id_and_expires_on; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_client_retention_expiring_on_run_id_and_expires_on ON public.client_retention_expiring_clients USING btree (run_id, expires_on);
+
+
+--
+-- Name: index_client_retention_log_entries_on_destination_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_client_retention_log_entries_on_destination_client_id ON public.client_retention_log_entries USING btree (destination_client_id);
+
+
+--
+-- Name: index_client_retention_log_entries_on_run_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_client_retention_log_entries_on_run_id ON public.client_retention_log_entries USING btree (run_id);
+
+
+--
+-- Name: index_client_retention_marks_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_client_retention_marks_on_client_id ON public.client_retention_marks USING btree (client_id);
+
+
+--
 -- Name: index_client_roi_authorizations_on_destination_client_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -360041,7 +360279,11 @@ ALTER TABLE ONLY public.import_logs
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260918121000'),
 ('20260918120000'),
+('20260916122000'),
+('20260916121000'),
+('20260916120000'),
 ('20260911120000'),
 ('20260908122000'),
 ('20260908121000'),

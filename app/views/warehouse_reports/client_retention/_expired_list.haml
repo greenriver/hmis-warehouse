@@ -1,0 +1,19 @@
+.card
+  %table.table.table-striped
+    %thead
+      %tr
+        %th When
+        %th Action
+        %th Warehouse client
+        %th Source client ids
+        %th Last activity
+        %th Window
+    %tbody
+      - list.each do |entry|
+        %tr
+          %td= entry.created_at.to_fs(:db)
+          %td= entry.action.humanize
+          %td= link_to entry.destination_client_id, client_path(entry.destination_client_id)
+          %td= entry.source_clients.map { |sc| sc['client_id'] }.join(', ')
+          %td= entry.last_activity_on
+          %td= entry.retention_years && "#{entry.retention_years} years"

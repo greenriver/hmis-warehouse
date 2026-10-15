@@ -53,12 +53,14 @@ module WarehouseReports
         format.html do
           @pagy, @clients = pagy(@clients)
           client_ids = @clients.map(&:id)
+          current_user.policy_context.preload_client_dependencies(client_ids)
           enrollment_ids = @homeless_clients.values_at(*client_ids).flatten.map { |m| m[:id] }
           @homeless_service = service_materialized_source.where(service_history_enrollment_id: enrollment_ids).group(:service_history_enrollment_id).count
           @homeless_service_dates = service_materialized_source.where(service_history_enrollment_id: enrollment_ids).group(:service_history_enrollment_id).maximum(:date)
         end
         format.xlsx do
           client_ids = @clients.map(&:id)
+          current_user.policy_context.preload_client_dependencies(client_ids)
           enrollment_ids = @homeless_clients.values_at(*client_ids).flatten.map { |m| m[:id] }
           @homeless_service = service_materialized_source.where(service_history_enrollment_id: enrollment_ids).group(:service_history_enrollment_id).count
           @homeless_service_dates = service_materialized_source.where(service_history_enrollment_id: enrollment_ids).group(:service_history_enrollment_id).maximum(:date)

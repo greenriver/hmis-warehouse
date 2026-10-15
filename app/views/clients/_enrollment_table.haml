@@ -7,7 +7,8 @@
       %em Showing #{pluralize(visible, 'enrollment')} of #{pluralize(total, 'total enrollment')}
   - hmis_source_visible = @client.hmis_source_visible_by?(current_user)
   - household_member_ids = enrollments.flat_map { |e| Array.wrap(e[:household]).map { |c| c['client_id'] } }.compact.uniq
-  - household_members = GrdaWarehouse::Hud::Client.where(id: household_member_ids).index_by(&:id)
+  - household_members = GrdaWarehouse::Hud::Client.where(id: household_member_ids).preload(:source_clients).index_by(&:id)
+  - current_user.policy_context.preload_client_dependencies(household_members.keys)
   %table.table
     %thead
       %tr

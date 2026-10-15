@@ -55,6 +55,8 @@ module MaReports::WarehouseReports
     def details
       @key = params[:key]
       @sub_key = params[:sub_key]
+      @enrollments = @report.enrollments_for(@key, @sub_key)
+      current_user.policy_context.preload_client_dependencies(@enrollments.map(&:client_id))
     end
 
     def report_class

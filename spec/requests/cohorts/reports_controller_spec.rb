@@ -84,4 +84,15 @@ RSpec.describe Cohorts::ReportsController, type: :request do
     row = (sheet.first_row..sheet.last_row).map { |i| sheet.row(i) }.find { |r| r[0] == open_destination_client.id }
     expect(row[1]).to eq('Name Redacted')
   end
+
+  it 'renders more changed clients than the preload miss threshold without raising' do
+    create_list(:grda_warehouse_hud_client, 4).each do |client|
+      cohort_client = GrdaWarehouse::CohortClient.create!(cohort: cohort, client: client)
+      GrdaWarehouse::CohortClientChange.create!(cohort_client: cohort_client, cohort: cohort, user: user, change: 'add', changed_at: Time.current)
+    end
+
+    get cohort_report_path(cohort)
+
+    expect(response).to have_http_status(:success)
+  end
 end

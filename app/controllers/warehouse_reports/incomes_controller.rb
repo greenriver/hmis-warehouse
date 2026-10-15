@@ -28,6 +28,7 @@ module WarehouseReports
       respond_to do |format|
         format.html do
           @pagy, @enrollments = pagy(@enrollments)
+          current_user.policy_context.preload_client_dependencies(@enrollments.map(&:client_id))
         end
         format.xlsx do
           require_can_view_clients!
@@ -49,6 +50,7 @@ module WarehouseReports
     helper_method :headers_for_export
 
     def rows_for_export
+      current_user.policy_context.preload_client_dependencies(@enrollments.map(&:client_id))
       @enrollments.map do |record|
         client = record.client
         pii = client.project_pii_provider(project: record.project, user: current_user, mode: :download)

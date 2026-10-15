@@ -31,6 +31,7 @@ module Dashboards
           @clients = GrdaWarehouse::Hud::Client.where(
             id: @enrollments.distinct.pluck(:client_id),
           ).index_by(&:id)
+          current_user.policy_context.preload_client_dependencies(@clients.keys)
           @projects = GrdaWarehouse::Hud::Project.where(
             id: @enrollments.distinct.pluck(:project_id),
           ).index_by(&:id)

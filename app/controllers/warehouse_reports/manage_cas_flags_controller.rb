@@ -68,6 +68,7 @@ module WarehouseReports
             pluck(*client_fields),
         )
       end
+      current_user.policy_context.preload_client_dependencies(@clients.map { |c| c[:id] })
     end
 
     def bulk_update

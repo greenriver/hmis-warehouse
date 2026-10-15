@@ -2,17 +2,19 @@
 
 Warehouse Auth Policies contain the business rules for determining user access to warehouse resources such as clients, projects, and data sources.
 
+Implementation details (query shapes, loader internals, key files, and patterns not to repeat) are in the domain pack: [Warehouse policies](../../domain-pack/authorization/warehouse-policies.md) and [PII and restricted clients](../../domain-pack/warehouse/pii-and-restricted-clients.md).
+
 ## Overview
 
 The authorization system decouples permission checks from the underlying data models and the specific authentication mechanism (Legacy Role-based or ACL-based). Policies are initialized with a context object that resolves permissions for the current user.
 
 ## Architecture
 
-The system consists of three main components:
+The system consists of four main components:
 
 - **Entry Point**: `User#policy_for(resource)` or `User#reporting_policy_for_project(project_id)` are the primary ways to obtain a policy.
 - **Context Objects**: `UserAclContext` and `UserLegacyContext` encapsulate permission lookups. They provide a common interface for policies to query permissions without knowing how they are stored or resolved.
-- **Context Loaders**: Specialized objects (e.g., `ClientRoiLoader`) that provide cached data loading for policies to avoid N+1 queries.
+- **Context Loaders**: objects owned by the context that load and cache the data policies need, so checking many records doesn't cause N+1 queries. `ClientRoiLoader` reads `ClientRoiAuthorization.visible_in_cocs`; see [Client ROI and Consent](client-roi-and-consent.md).
 - **Policies**: Concrete classes inheriting from `BasePolicy` that define domain-specific authorization logic.
 
 ### Relationship Diagram
@@ -53,35 +55,36 @@ pii_policy.can_view_full_ssn?
 
 ### Preloading
 
-When checking policies for multiple resources (e.g., in a list view), the context provides helpers to preload dependencies to avoid N+1 queries.
+Before checking policies, PII, or restriction across a list of clients, call `preload_client_dependencies` once with the list. It accepts source or destination ids, widens them to each whole warehouse identity, and loads everything a client policy or PII check reads in a small, fixed number of queries.
 
 ```ruby
 context = current_user.policy_context
-
-# Preload resource permissions
-context.preload_some_dependencies(resource_ids)
-
-# Preload through a context loader
-context.some_loader.preload(resource_ids)
+context.preload_client_dependencies(client_ids)
 ```
+
+For project-keyed report rows, where there's no client list, use `preload_project_dependencies(project_ids)`.
+
+Single-client pages such as the client dashboard need no preload; `DestinationClientPolicy` preloads its own client.
+
+When a context falls back to one-at-a-time lookups for more than a handful of distinct clients, it raises in development and test and sends a Sentry warning in staging and production. The fix is a preload where the list is loaded, not a higher threshold.
 
 ## PII Provider Instantiation
 
 `GrdaWarehouse::PiiProvider` is built a few different ways depending on whether a policy already exists and whether restriction still needs to be applied.
 
-`Client#pii_provider(user:)` is the standard entry point for a single client shown in isolation (e.g. the client dashboard). It resolves the user's policy for the client and applies restriction in one call.
+`Client#pii_provider(user:)` is the standard entry point for a single client shown on its own (e.g. the client dashboard). It resolves the user's policy for the client and applies restriction.
 
 ```ruby
 pii = client.pii_provider(user: current_user)
 ```
 
-`Client#project_pii_provider(project:, user:, mode:)` is the entry point for project-scoped reporting, where `User#reporting_policy_for_project` already wraps the resolved policy with `PiiProvider.restrict`.
+`Client#project_pii_provider` is the entry point for project-scoped reporting, where `User#reporting_policy_for_project` has already applied restriction.
 
 ```ruby
 pii = client.project_pii_provider(project: project, user: current_user, mode: :browse)
 ```
 
-`GrdaWarehouse::PiiProvider.new(client, policy: GrdaWarehouse::PiiProvider.restrict(allow_policy, restricted: ...))` is used instead of `client.pii_provider(user:)` when the policy isn't sourced from resolving a `User` against the client. This occurs when a `CohortPiiPolicy` or `AllowPiiPolicy` is applied per row of a cohort or bulk report, or when restriction must be preloaded and checked across many rows rather than recomputed per client.
+Build the provider yourself, wrapping the policy with `PiiProvider.restrict`, when the policy doesn't come from resolving the user against the client — for example a cohort or bulk report that applies one policy to every row.
 
 ```ruby
 policy = GrdaWarehouse::PiiProvider.restrict(
@@ -91,65 +94,68 @@ policy = GrdaWarehouse::PiiProvider.restrict(
 pii = GrdaWarehouse::PiiProvider.new(client, policy: policy)
 ```
 
-Most HUD report drilldowns and exports (APR, HOPWA CAPER, PIT, SPM, PATH, HMIS Data Quality Tool) don't have a live `Client` record, they render a denormalized, per-report `HudReports::ReportClientBase` subclass row snapshotted when the report ran. Instead of using the client PII provider they call `User#reporting_policy_for_project(project_id:, mode:, client_id:)` and pass the resulting policy to that row's own `#display_value`, which fans it out per column into `PiiProvider.viewable_name`/`viewable_ssn`/`viewable_dob`/`viewable_hiv_status`, without ever constructing a `PiiProvider` instance.
+HUD report drilldowns and exports render the report's own snapshotted client rows rather than a live `Client`. They get a policy from `User#reporting_policy_for_project` and pass it to the row's `#display_value`, which redacts per column without building a provider.
 
 ```ruby
 pii_policy = current_user.reporting_policy_for_project(project_id: client.project_id, client_id: client.destination_client_id_for_pii)
 client.display_value(:first_name, pii_policy: pii_policy)
 ```
 
-`GrdaWarehouse::PiiProvider.from_attributes(policy:, first_name:, last_name:, middle_name:, dob:, ssn:, image:)` is used when there's no AR client record to wrap. For a plucked hash row a `PiiProviderRecordAdapter` is used so the same `policy`-driven redaction can be applied.
-
-```ruby
-policy = GrdaWarehouse::PiiProvider.restrict(GrdaWarehouse::AuthPolicies::CohortPiiPolicy.new(user: current_user), restricted: restricted)
-provider = GrdaWarehouse::PiiProvider.from_attributes(policy: policy, first_name: c[:FirstName], last_name: c[:LastName], dob: c[:DOB], ssn: c[:SSN])
-```
+When there's no client record at all (plucked columns or a hash row), use `GrdaWarehouse::PiiProvider.from_attributes(policy:, ...)` so the same policy-driven redaction applies.
 
 ## PII Redaction
 
-`GrdaWarehouse::PiiProvider` (`app/models/grda_warehouse/pii_provider.rb`) mediates name, SSN, DOB, photo, and HIV status display for a client, given a duck-typed `policy:` object (any object implementing `can_view_name?`, `can_view_full_ssn?`, `can_view_partial_ssn?`, `can_view_full_dob?`, `can_view_photo?`, `can_view_hiv_status?`, `can_view?`). Most PII display paths in the app, including the client dashboard, HUD report drilldowns/exports (APR, CAPER, HOPWA CAPER, PIT, SPM, PATH, HMIS Data Quality Tool), and cohort grids, and the `HomelessSummaryReport`, `MaYyaReport`, `WarehouseReport::Outcomes`, and `CoreDemographicsReport` warehouse reports, resolve a policy object and ask it these questions before showing a value.
+`GrdaWarehouse::PiiProvider` mediates display of a client's name, SSN, DOB, photo, and HIV status. It takes any policy object that answers the `can_view_*?` PII questions and asks them before showing each value. The client dashboard, HUD report drilldowns and exports, cohort grids, and most warehouse reports display PII through it.
 
-`can_view_partial_ssn?` gates the masked (`XXX-XX-1234`) SSN, distinct from `can_view_full_ssn?`'s unmasked one. It is `true` for every policy except a restricted client's. Restriction means no SSN at all, matching `Hmis::AuthPolicies::HmisClientPolicy::Instance#can_view_partial_ssn?`.
+The masked SSN (`XXX-XX-1234`) is a separate permission from the full SSN. Every policy allows it except a restricted client's: restriction means no SSN at all, matching HMIS.
 
-### HMIS client restriction
+### Client restriction
 
-An HMIS source client marked restricted (see [HMIS Restricted Records](../hmis/hmis-restricted-records.md)) is treated as a PII block in the warehouse: `GrdaWarehouse::PiiProvider.restrict(policy, restricted:)` wraps any resolved policy in a `RestrictedPolicy` that forces every PII predicate to `false`, regardless of what the underlying policy would grant. There is no warehouse-side override permission; the only way to restore visibility is for HMIS staff to unmark the client. A `RestrictedRecord` placed directly on the destination client id (there is no UI for this today, but the polymorphic `restrictable_id` allows it) restricts the same way.
+Two states hide a client's PII in the warehouse:
 
-**Loading strategy.** Restriction are expected to be applied infrequently and is not a bulk visibility mechanism. `GrdaWarehouse::AuthPolicies::ContextLoaders::RestrictedClientLoader` loads the full set of restricted client ids the first time a lookup occurs. This process uses three bounded queries. The data is memoized on `UserBaseContext`, which is memoized on `User#policy_context`. This ensures a request or background job only performs the load one time. The methods `client_restricted?` and `restricted?` function as a standard Set membership test.
+- An HMIS client marked restricted (see [HMIS Restricted Records](../hmis/hmis-restricted-records.md)).
+- A client whose warehouse identity has aged out under [Client Data Retention](client-data-retention.md).
 
-**Per-request snapshot** The set of restricted clients is memoized on the `User` instance for the life of a request or job.  Client's who are marked restricted during a long-running task (HMIS CSV export, or similar) will remain unrestricted in that export.
+Either one blocks PII for every warehouse user, regardless of role or permissions; there is no warehouse-side override. `current_user.policy_context.client_restricted?(client_id)` answers for both states. Visibility returns when HMIS staff unmark the client, or when the identity has new activity and the next retention run clears it.
 
-**Not bounded data source.** HMIS's `restricted_ids_in_data_source` is limited to the data in a single data source on the HMIS front-end.  When we extend the client restriction to the warehouse, we restrict any related source and destination record.
+Restriction applies to the whole warehouse identity. HMIS restriction is limited to a single data source on the HMIS front end, but in the warehouse a restriction on any source client hides the destination and every other source merged into it.
+
+Hidden status is looked up a page of clients at a time, never loaded whole, so code that checks restriction for a list of clients must preload first (see [Preloading](#preloading)).
+
+The answer is a snapshot for the life of a request or job. A client restricted or marked inactive while a long-running export is in progress stays visible in that export.
+
+Fragment caches that render a client's PII must include `client_restricted?(client_id)` in their cache key, so restricting or marking a client busts that client's fragments.
 
 ### Search
 
-Restricted clients are also excluded from every warehouse-side client search path by name or SSN — window/admin search, the client-edit merge-candidate search, the new-client duplicate check, cohort "Add Client to Cohort" search, `potential_matches`, the chronic/HUD-chronic report name filters, and the Coordinated Entry client proxy search. DOB search and exact-ID/PersonalID lookup are unaffected, matching the general rule that restriction blocks PII display and search-by-PII, not record access.
+Hidden clients are excluded from every warehouse-side client search by name or SSN. Search by DOB and lookup by exact warehouse id or PersonalID still find them: restriction blocks PII display and search by PII, not access to the record.
 
-`GrdaWarehouse::Hud::Client.hmis_restricted_source_client_ids` computes the excluded id set (both source and destination ids, since restriction is tracked per source client but some search scopes can return destination rows). `ClientSearch#text_searcher` (`app/models/concerns/client_search.rb`, shared by `GrdaWarehouse::Hud::Client` and `Hmis::Hud::Client`) takes this set through an optional `exclude_ids_for_name_and_ssn:` keyword, applied only to the SSN-exact-match and free-text name-matching branches; the keyword defaults to `nil`; `Hmis::Hud::Client`'s own search methods never pass it, so `Hmis::Hud::Client.searchable_to` (see [HMIS Restricted Records](../hmis/hmis-restricted-records.md)) is unaffected by this mechanism. `GrdaWarehouse::Hud::Client.strict_search` excludes restricted destination clients from its final result set entirely, since its 3-of-4-criteria match can never be satisfied by DOB alone. The one search path that doesn't go through `text_searcher` — the new-client duplicate check (`ClientController#look_for_existing_match`) — applies the same exclusion directly to its SSN and name clauses.
+New search code that matches on name or SSN should go through `Client.text_search`, or add `GrdaWarehouse::HiddenClients.not_hidden(column)` to its query. HMIS front-end search has its own restriction handling (see [HMIS Restricted Records](../hmis/hmis-restricted-records.md)) and is not affected.
+
+Pass `user:` to limit results to `Client.searchable_to(user)`. `text_search` checks visibility against its matches only, because building a user's whole searchable set takes seconds for users who can see most clients.
 
 ### OP Analytics and Superset `analytics.client_piis`
 
-The Scenic view `analytics.client_piis` (`db/views/analytics_client_piis_v02.sql`) enforces PII redaction for HMIS Restricted clients. The view computes the restricted id set in SQL in the same way `RestrictedClientLoader` does in Ruby.  Directly restricted source clients, their destination clients, and sibling source clients all have their name and SSN fields redacted. `DOB` is not redacted in this view so that the transformations can calculate age. Row-level security in the `superset-sync` repository governs which clients a given Superset user can query.
+The `analytics.client_piis` view redacts name and SSN for the same hidden clients, computed in SQL. DOB is not redacted so that the transformations can calculate age. Row-level security in the `superset-sync` repository governs which clients a given Superset user can query.
 
 ### HMIS CSV Export
 
-`Export::RestrictedClientPiiTransform` (`app/models/export/restricted_client_pii_transform.rb`) is a Kiba transform appended last in the FY2022/2024/2026 client exporters' `Client.transforms` (`drivers/hmis_csv_twenty_twenty_{two,four,six}/app/models/hmis_csv_twenty_twenty_*/exporter/client.rb`). For a restricted client's row, it replaces `FirstName`, `MiddleName`, `LastName`, and `NameSuffix` with `GrdaWarehouse::PiiProvider::REDACTED` and blanks `SSN`, setting `SSNDataQuality` to 99 so the column stays import-valid. `DOB` is left untouched, matching `analytics.client_piis`.
+HMIS CSV exports redact hidden clients in `Client.csv`: `FirstName`, `MiddleName`, `LastName`, and `NameSuffix` are replaced with the redacted placeholder, and `SSN` is blanked with `SSNDataQuality` set to 99 so the file still imports. `DOB` is left untouched, matching `analytics.client_piis`.
 
-Hashed (`hash_status == 4`) and faked (`faked_pii`) exports are **not** redacted — the transform returns the row unchanged in either case. A SHA-256 hash of a restricted client's name/SSN is already irreversible, and a faked value can't be reversed without access to the database that still holds the real PII, so redacting on top of either would add no protection.
+Hashed and faked exports are **not** redacted. A hash of a restricted client's name or SSN is already irreversible, and a faked value can't be reversed without access to the database that holds the real PII, so redacting either would add no protection.
 
 ### Known limitations
 
-Coverage is bounded by what actually calls into `PiiProvider`/the `reporting_policy_for_*` methods. The following do not honor restriction, and continue to show a restricted client's real PII:
+Redaction only covers code that goes through `PiiProvider` or the `reporting_policy_for_*` methods. These still show a hidden client's real PII:
 
-- `drivers/ma_reports/app/models/ma_reports/csg_engage/report_components/household_member.rb` — external state submission; a product decision on how (or whether) to redact restricted clients there is pending.
-- `ApplicationHelper#ssn`/`#dob_or_age`, used by the ad-hoc upload review (`app/views/ad_hoc_data_sources/uploads/show.haml`) for unmatched rows — that workflow needs the real name, SSN, and DOB to let staff match a row by hand.
-- Hashed and faked HMIS CSV exports (see "HMIS CSV Export" above) are not redacted — the hash is irreversible on its own, and a faked value is only reversible with access to the source database.
-- Aggregate `can_view_hiv_status?` gates (`filter_base`, `push_clients_to_cas`, `disability_summary`, HUD PIT/DQ cells, `ce_performance` populations) — they gate counts, not a named client's row, so restriction doesn't apply. The per-client disability rollup views (`clients/rollup/_disabilities`, `clients/rollup/_disability_types`) and the CAS readiness forms do honor restriction.
-- `warehouse_reports/cas/non_hmis_clients` renders raw candidate name/SSN/DOB from an external CAS import with no warehouse client id to gate on — these rows aren't yet linked to any warehouse identity, so there's no restriction to check.
+- CSG Engage state submission — a product decision on how, or whether, to redact there is pending.
+- Ad hoc upload review, for rows that haven't been matched — staff need the real name, SSN, and DOB to match a row by hand.
+- Aggregate HIV-status permission checks in reports and filters — they gate counts, not a named client's row. The per-client disability views and CAS readiness forms do honor restriction.
+- The CAS non-HMIS clients report — its rows come from a CAS import and aren't linked to a warehouse client yet, so there's no restriction to check.
 
 ### Report detail rows
 
-Two conventions cover restriction-aware PII display in report detail/support views, chosen by row shape:
+Two conventions cover restriction-aware PII in report detail views, chosen by row shape:
 
-- **Array rows aligned to a header list** (a plucked/hash row, headers decide which positions are PII): `WarehouseReports::PiiDetailRows#redact_pii_in_row(row, headers:, user:, mode:, client_id_index: 0, project_id: nil)` (`app/models/concerns/warehouse_reports/pii_detail_rows.rb`) redacts `First Name`/`Last Name`/`DOB`/`SSN` columns in place and returns a new row, given the warehouse client id at `client_id_index`.
-- **Per-row report models** (a report's own `Client`/`Enrollment` AR record): a `detail_value(key, user:, mode:)` instance method, memoizing a `PiiProvider` per `[record, mode]`, returns the redacted value for PII keys and the raw attribute otherwise.
+- **Array rows aligned to a header list**: `WarehouseReports::PiiDetailRows#redact_pii_in_row` redacts the name, DOB, and SSN columns, given the position of the warehouse client id in the row.
+- **Per-row report models** (a report's own client or enrollment record): a `detail_value(key, user:, mode:)` method returns the redacted value for PII keys and the raw attribute otherwise.

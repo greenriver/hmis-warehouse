@@ -239,7 +239,10 @@ tasks in code order:
     `warm_cache`.
 11. `Legacy reporting setup`, 12. `Prune HUD report data`, 13. `System maintenance`.
 
-There is no task named for client retention. `ClientCleanup` (unused destination clients)
+Between tasks 6 and 7, outside any named task, the job enqueues `ClientRetentionJob`
+(`MAINTENANCE_PRIORITY_15`) so it runs after `IdentifyDuplicates` and `ClientCleanup` have
+rewritten `warehouse_clients`; it marks inactive clients and does nothing while
+`GrdaWarehouse::Config` `client_retention_years` is nil. `ClientCleanup` (unused destination clients)
 runs before service history in task 5 and after it in task 10. `PurgeForDeletedDataSources`
 has a `retain_at` of 24 hours and runs first inside task 6. Because `IdentifyDuplicates`
 (task 4) precedes generation (task 6), a merge done tonight is reflected in tonight's service

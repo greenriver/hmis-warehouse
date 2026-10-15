@@ -42,6 +42,38 @@ RSpec.describe GrdaWarehouse::Config, type: :model do
     end
   end
 
+  describe 'client_retention_years' do
+    it 'is a known config so it can be set from the admin form' do
+      expect(described_class.known_configs).to include(:client_retention_years)
+    end
+
+    it 'accepts nil (retention off) and any whole number of years, including console-set windows under seven' do
+      [nil, 3, 7, 20, 25].each do |years|
+        expect(build(:config, client_retention_years: years)).to be_valid
+      end
+    end
+
+    it 'rejects zero, negative and fractional windows' do
+      [0, -1, 7.5].each do |years|
+        config = build(:config, client_retention_years: years)
+        expect(config).not_to be_valid
+        expect(config.errors[:client_retention_years]).to be_present
+      end
+    end
+
+    it 'offers Disabled plus each year from 7 to 20' do
+      options = described_class.available_client_retention_years
+      expect(options['Disabled']).to be_nil
+      expect(options.values.compact).to eq((7..20).to_a)
+    end
+
+    it 'lists a console-set window outside 7..20 first, labelled as current, so the form can keep it' do
+      expect(described_class.available_client_retention_years(current: 3).to_a.second).to eq(['3 years (current)', 3])
+      expect(described_class.available_client_retention_years(current: 25).to_a.second).to eq(['25 years (current)', 25])
+      expect(described_class.available_client_retention_years(current: 10).values.compact).to eq((7..20).to_a)
+    end
+  end
+
   describe 'PaperTrail' do
     it 'creates a version on update' do
       PaperTrailHelper.with_paper_trail do

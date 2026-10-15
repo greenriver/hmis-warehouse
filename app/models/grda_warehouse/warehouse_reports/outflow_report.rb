@@ -409,7 +409,9 @@ module GrdaWarehouse::WarehouseReports
 
     def rows_for_export(key)
       rows = []
-      enrollments_for(key).values.each do |enrollments|
+      grouped_enrollments = enrollments_for(key)
+      @user.policy_context.preload_client_dependencies(grouped_enrollments.keys)
+      grouped_enrollments.values.each do |enrollments|
         enrollments.each do |enrollment|
           client = enrollment.client
           pii = GrdaWarehouse::PiiProvider.new(client, policy: @user.reporting_policy_for_client(client: client, mode: :download))

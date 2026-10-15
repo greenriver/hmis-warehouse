@@ -18,6 +18,7 @@
 
 :ruby
   current_user.policy_context.preload_project_dependencies(@report.enrollments.values.flatten.map { |e| e.project.id })
+  current_user.policy_context.preload_client_dependencies(@report.enrollments.keys)
 - @report.buckets.each do |group, clients|
   .mb-1
     %h3

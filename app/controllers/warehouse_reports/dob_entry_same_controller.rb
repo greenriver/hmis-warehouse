@@ -21,6 +21,7 @@ module WarehouseReports
         order(DOB: :asc)
 
       @pagy, @clients = pagy(@clients)
+      current_user.policy_context.preload_client_dependencies(@clients.map(&:id))
     end
 
     private def client_source

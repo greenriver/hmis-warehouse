@@ -48,10 +48,11 @@ RSpec.describe HudSpmReport::CellDetailExportBuilder, type: :model do
         )
       end
 
+      # The ceiling includes the per-batch client policy preload; it must not grow with client count.
       it 'avoids N+1 queries when building the export package with real Episode data' do
         expect do
           builder.call
-        end.to make_database_queries(count: 10..20)
+        end.to make_database_queries(count: 10..26)
       end
     end
 
@@ -96,7 +97,7 @@ RSpec.describe HudSpmReport::CellDetailExportBuilder, type: :model do
       it 'avoids N+1 queries when building the export package with real Return data' do
         expect do
           builder.call
-        end.to make_database_queries(count: 10..20)
+        end.to make_database_queries(count: 10..26)
       end
     end
 
@@ -128,7 +129,7 @@ RSpec.describe HudSpmReport::CellDetailExportBuilder, type: :model do
       it 'avoids N+1 queries when building the export package with real SpmEnrollment data' do
         expect do
           builder.call
-        end.to make_database_queries(count: 10..20)
+        end.to make_database_queries(count: 10..26)
       end
     end
   end

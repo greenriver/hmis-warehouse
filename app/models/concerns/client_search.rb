@@ -12,9 +12,9 @@ module ClientSearch
     # @param text [String] search term
     # @param sorted [Boolean] will attempt ordering against search term it seems to be free-text
     # @param resolve_for_join_query [Boolean] return results as sub query of (client_id, score) suitable for joins
-    # @param exclude_ids_for_name_and_ssn [Enumerable, nil] ids to exclude from the SSN-exact-match and
-    #   free-text name-matching branches only; no-op unless passed
-    def self.text_searcher(text, sorted:, resolve_for_join_query: false, exclude_ids_for_name_and_ssn: nil)
+    # @param name_and_ssn_filter [Arel::Nodes::Node, nil] predicate on this table that SSN-exact-match
+    #   and free-text name matches must also satisfy; other branches ignore it
+    def self.text_searcher(text, sorted:, resolve_for_join_query: false, name_and_ssn_filter: nil)
       return none unless text.present?
 
       text = text.strip
@@ -40,7 +40,7 @@ module ClientSearch
         where = sa[:PersonalID].matches(text.gsub('-', ''))
       elsif social
         where = sa[:SSN].eq(text.gsub('-', ''))
-        where = where.and(sa[:id].not_in(exclude_ids_for_name_and_ssn.to_a)) if exclude_ids_for_name_and_ssn.present?
+        where = where.and(name_and_ssn_filter) if name_and_ssn_filter
       elsif date
         (month, day, year) = text.split('/')
         where = sa[:DOB].eq("#{year}-#{month}-#{day}")
@@ -73,7 +73,7 @@ module ClientSearch
         unless matches_external_ids
           # short circuit the rest of search. Since no external IDS are found, this seems to be free text and we can just return
           # name search results
-          name_search_scope = exclude_ids_for_name_and_ssn.present? ? self.where.not(id: exclude_ids_for_name_and_ssn) : self
+          name_search_scope = name_and_ssn_filter ? where(name_and_ssn_filter) : self
           return ClientSearchUtil::NameSearch.perform_as_joinable_query(term: text, clients: name_search_scope) if resolve_for_join_query
 
           return ClientSearchUtil::NameSearch.perform(term: text, clients: name_search_scope, sorted: sorted)

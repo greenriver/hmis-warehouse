@@ -90,6 +90,7 @@ module CePerformance::WarehouseReports
       @event_type = @result.class.available_event_ids.detect { |m| m == params[:event_type]&.to_i }
       @exit_type = @result.class.available_exit_destination_ids.detect { |m| m == params[:exit_type]&.to_i }
       @clients = @result.clients_for(report: @report, period: @period, sub_population: @sub_population, vispdat_range: @vispdat_range, event_type: @event_type, vispdat_type: @vispdat_type, exit_type: @exit_type)
+      current_user.policy_context.preload_client_dependencies(@clients.map(&:destination_client_id))
       respond_to do |format|
         format.html {}
         format.xlsx do

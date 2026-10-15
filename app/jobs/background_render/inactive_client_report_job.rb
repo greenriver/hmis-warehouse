@@ -18,6 +18,7 @@ class BackgroundRender::InactiveClientReportJob < BackgroundRenderJob
     @filter = ::Filters::FilterBase.new(user_id: user_id).set_from_params(JSON.parse(filters).with_indifferent_access)
     set_report
     @pagy, @clients = pagy(@report.clients.order(:last_name, :first_name), page: page, params: @filter.for_params)
+    current_user.policy_context.preload_client_dependencies(@clients.map(&:id))
     InactiveClientReport::WarehouseReports::ReportsController.render(
       partial: 'report',
       assigns: {

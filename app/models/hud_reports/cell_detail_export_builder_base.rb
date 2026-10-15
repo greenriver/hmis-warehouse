@@ -99,6 +99,7 @@ module HudReports
     def preload_batch_policies(batch)
       project_ids = batch.map(&:project_id).compact.uniq
       user.policy_context.preload_project_dependencies(project_ids) if project_ids.any?
+      user.policy_context.preload_client_dependencies(batch.map(&:destination_client_id_for_pii))
     end
   end
 end

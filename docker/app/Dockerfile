@@ -102,6 +102,7 @@ RUN apt-get update && apt-get upgrade -y \
   gpg \
   imagemagick \
   less \
+  lftp \
   libcurl4t64 \
   libcurl4-openssl-dev \
   libffi-dev \
@@ -138,6 +139,7 @@ RUN apt-get update && apt-get upgrade -y \
   pkexec \
   polkitd \
   poppler-utils \
+  postgis \
   postgresql-client \
   postgresql-server-dev-all \
   ripgrep \

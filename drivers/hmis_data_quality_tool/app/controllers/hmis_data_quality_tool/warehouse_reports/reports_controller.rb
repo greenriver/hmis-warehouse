@@ -47,6 +47,7 @@ module HmisDataQualityTool::WarehouseReports
       @clients = @report.clients.preload(client: :data_source).order(:last_name, :first_name)
       @pivot_details = @report.pivot_details
       @pagy, @clients = pagy(@clients)
+      current_user.policy_context.preload_client_dependencies(@clients.map(&:destination_client_id_for_pii))
       respond_to do |format|
         format.html {}
         format.xlsx do
@@ -118,6 +119,7 @@ module HmisDataQualityTool::WarehouseReports
       # Preload project dependencies for PII policy checks
       all_project_ids = all_project_ids_from_items(@items)
       current_user.policy_context.preload_project_dependencies(all_project_ids)
+      current_user.policy_context.preload_client_dependencies(@items.map(&:destination_client_id_for_pii))
       @project_names = @report.overlap_project_names(items: @items, user: current_user)
 
       respond_to do |format|

@@ -134,4 +134,50 @@ RSpec.describe ClientsController, '#edit suggested matches', type: :request do
     doc = Nokogiri::HTML(response.body)
     expect(doc.at_css("input##{match_source_deleted.id}")).to be_nil
   end
+
+  context 'with more unrestricted clients than the preload miss threshold' do
+    let(:own_source) { create(:hud_client, FirstName: 'Roberta', LastName: 'Smithers', DOB: Date.new(1980, 1, 1), data_source_id: active_ds.id) }
+
+    def build_linked_destination(attrs)
+      source = create(:hud_client, attrs.merge(data_source_id: active_ds.id))
+      destination = create(:hud_client, attrs.merge(data_source_id: destination_ds.id))
+      GrdaWarehouse::WarehouseClient.create!(destination_id: destination.id, source_id: source.id, id_in_source: source.PersonalID)
+      destination
+    end
+
+    it 'lists every suggested match' do
+      matches = Array.new(preload_miss_client_count) do |i|
+        build_linked_destination(FirstName: 'Roberta', LastName: "Smithers#{('a'.ord + i).chr}", DOB: Date.new(1980, 1, 1))
+      end
+
+      get edit_client_path(destination_client)
+
+      expect(response).to have_http_status(:ok)
+      matches.each { |match| expect(response.body).to include(match.LastName) }
+    end
+
+    it 'lists every client found by the match search' do
+      found = Array.new(preload_miss_client_count) do |i|
+        build_linked_destination(FirstName: "Searchable#{i}", LastName: 'Zzcoverage', DOB: Date.new(1990, 1, 1))
+      end
+
+      get edit_client_path(destination_client, q: 'Zzcoverage')
+
+      expect(response).to have_http_status(:ok)
+      found.each { |client| expect(response.body).to include(client.FirstName) }
+    end
+
+    it 'lists every client this client was split into' do
+      split_into = Array.new(preload_miss_client_count) do |i|
+        build_linked_destination(FirstName: "Splitinto#{i}", LastName: 'Zzsplit', DOB: Date.new(1990, 1, 1)).tap do |other|
+          GrdaWarehouse::ClientSplitHistory.create!(split_from: destination_client.id, split_into: other.id)
+        end
+      end
+
+      get edit_client_path(destination_client)
+
+      expect(response).to have_http_status(:ok)
+      split_into.each { |client| expect(response.body).to include(client.FirstName) }
+    end
+  end
 end

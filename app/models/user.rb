@@ -272,7 +272,7 @@ class User < ApplicationRecord
   #
   # Note: if multiple projects will need retrieving, preloading the policies may be helpful
   # preloaded projects example:
-  #   current_user.client_view_accessor.preload_project_dependencies(project_ids)
+  #   current_user.policy_context.preload_project_dependencies(project_ids)
   #   project_ids.each do |project_id|
   #     pii_policy = current_user.reporting_policy_for_project(project_id)
   #   end

@@ -53,6 +53,7 @@ module WarehouseReports
             render(xlsx: 'index', filename: xlsx_filename)
           when 'Download Per-Client Data'
             zip_filename = "Youth Intake Exports #{Time.current.to_s.delete(',')}.zip"
+            current_user.policy_context.preload_client_dependencies(@intakes.map(&:client_id))
             zip_exporter = GrdaWarehouse::Youth::ZipExporter.new(
               intakes: @intakes,
               referrals: @referrals,
