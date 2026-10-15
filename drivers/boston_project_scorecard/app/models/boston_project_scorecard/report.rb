@@ -29,6 +29,13 @@ module BostonProjectScorecard
     belongs_to :apr, class_name: 'HudReports::ReportInstance', optional: true
     belongs_to :comparison_apr, class_name: 'HudReports::ReportInstance', optional: true
 
+    scope :viewable_by, ->(user) do
+      return all if user.can_view_all_reports?
+      return none unless user.can_view_assigned_reports?
+
+      where(user_id: user.id).or(where(secondary_reviewer_id: user.id))
+    end
+
     scope :started_between, ->(start_date:, end_date:) do
       where(started_at: (start_date..end_date))
     end
@@ -39,11 +46,6 @@ module BostonProjectScorecard
 
     def pending?
       status == 'pending'
-    end
-
-    def authorized?(_user)
-      # TODO: determine if the user is authorized to access the report
-      true
     end
 
     def locked?(field, _user)
