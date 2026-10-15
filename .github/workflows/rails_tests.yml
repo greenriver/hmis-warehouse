@@ -266,7 +266,6 @@ jobs:
       - name: Run tests
         if: matrix.test_group.tag || matrix.test_group.test_path
         env:
-          EAGER_LOAD: true
           MAX_FAILURES: 60
           AWS_ACCESS_KEY_ID: local_access_key
           AWS_SECRET_ACCESS_KEY: local_secret_key
