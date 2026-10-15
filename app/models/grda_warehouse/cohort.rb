@@ -176,8 +176,8 @@ module GrdaWarehouse
     def available_owners
       # Pluck IDs from the warehouse DB first to avoid cross-DB join errors.
       # Two paths exist depending on where the installation is in the legacy -> ACL migration.
-      collection_ids = group_viewable_entities.where.not(collection_id: nil).pluck(:collection_id)
-      access_group_ids = group_viewable_entities.where.not(access_group_id: nil).pluck(:access_group_id)
+      collection_ids = group_viewable_entities.using_acls.pluck(:collection_id)
+      access_group_ids = group_viewable_entities.legacy.pluck(:access_group_id)
 
       user_ids = []
       user_ids += User.joins(:access_controls).where(access_controls: { collection_id: collection_ids }).pluck(:id) if collection_ids.any?

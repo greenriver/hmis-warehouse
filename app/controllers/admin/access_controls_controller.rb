@@ -94,7 +94,7 @@ class Admin::AccessControlsController < ApplicationController
   # Warehouse collections can list CoC codes that no project uses
   private def coc_code_filter_options
     collection_coc_codes = GrdaWarehouse::Lookups::CocCode.where(
-      id: GrdaWarehouse::GroupViewableEntity.where(entity_type: GrdaWarehouse::Lookups::CocCode.sti_name).select(:entity_id),
+      id: GrdaWarehouse::GroupViewableEntity.using_acls.where(entity_type: GrdaWarehouse::Lookups::CocCode.sti_name).select(:entity_id),
     ).pluck(:coc_code)
     (super + collection_coc_codes).uniq.sort
   end

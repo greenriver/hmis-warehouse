@@ -65,6 +65,6 @@ module AccessControlEntityFilterOptions
       distinct.
       order(:CoCCode).
       pluck(:CoCCode).
-      compact
+      compact_blank
   end
 end

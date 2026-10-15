@@ -32,13 +32,13 @@ RSpec.describe Admin::AccessControlsController, type: :request do
     Nokogiri::HTML(response.body).css('table tbody tr').map { |tr| tr.text.squish }
   end
 
-  it 'lists the filters in table column order' do
+  it 'lists grant filters in the first column and user and entity filters in the second' do
     get admin_access_controls_path
-    select_ids = Nokogiri::HTML(response.body).css('form select').map { |s| s['id'] }
-    expect(select_ids).to eq(
+    columns = Nokogiri::HTML(response.body).css('form .o-filtration__option > div').map { |column| column.css('select').map { |s| s['id'] } }
+    expect(columns).to eq(
       [
-        'filter_user_group_id', 'filter_user_id', 'filter_role_id', 'filter_collection_id',
-        'filter_data_source_id', 'filter_organization_id', 'filter_project_id', 'filter_coc_code'
+        ['filter_user_group_id', 'filter_role_id', 'filter_collection_id'],
+        ['filter_user_id', 'filter_data_source_id', 'filter_organization_id', 'filter_project_id', 'filter_coc_code'],
       ],
     )
   end
@@ -72,8 +72,7 @@ RSpec.describe Admin::AccessControlsController, type: :request do
       setup_access_control(non_admin, create(:role, can_view_projects: true), create(:collection))
       sign_in non_admin
       post project_options_admin_access_controls_path
-      expect(response).to have_http_status(:redirect)
-      expect(response.body).not_to include(project.ProjectName)
+      expect(response).to redirect_to(root_path)
     end
 
     it 'hides confidential organization names from users who cannot view them' do
@@ -94,6 +93,24 @@ RSpec.describe Admin::AccessControlsController, type: :request do
     options = Nokogiri::HTML(response.body).css('#filter_coc_code option').map { |o| o['value'] }
     expect(options).to include('XX-502')
     expect(options).not_to include(unused_lookup.coc_code)
+  end
+
+  it 'does not offer CoC codes that only a legacy access group lists' do
+    collection_lookup = create(:lookup_coc, coc_code: 'XX-502', official_name: 'Fake CoC 502')
+    legacy_lookup = create(:lookup_coc, coc_code: 'XX-504', official_name: 'Fake CoC 504')
+    create(:collection).set_viewables({ coc_codes: [collection_lookup.id] })
+    GrdaWarehouse::GroupViewableEntity.create!(access_group: create(:access_group), entity: legacy_lookup)
+    get admin_access_controls_path
+    options = Nokogiri::HTML(response.body).css('#filter_coc_code option').map { |o| o['value'] }
+    expect(options).to eq(['', 'XX-502'])
+  end
+
+  it 'does not offer a blank CoC code' do
+    create(:hud_project_coc, ProjectID: project.ProjectID, data_source_id: data_source.id, CoCCode: '')
+    create(:hud_project_coc, ProjectID: other_project.ProjectID, data_source_id: data_source.id, CoCCode: 'XX-600')
+    get admin_access_controls_path
+    options = Nokogiri::HTML(response.body).css('#filter_coc_code option').map { |o| o['value'] }
+    expect(options).to eq(['', 'XX-600'])
   end
 
   it 'lists every access control when the filter is empty' do

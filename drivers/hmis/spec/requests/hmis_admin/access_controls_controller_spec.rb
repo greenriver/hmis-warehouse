@@ -30,12 +30,13 @@ RSpec.describe HmisAdmin::AccessControlsController, type: :request do
     page.css('table tbody tr').map { |tr| tr.text.squish }
   end
 
-  it 'lists the filters in table column order' do
+  it 'lists grant filters in the first column and user and entity filters in the second' do
     get hmis_admin_access_controls_path
-    expect(page.css('form select').map { |s| s['id'] }).to eq(
+    columns = page.css('form .o-filtration__option > div').map { |column| column.css('select').map { |s| s['id'] } }
+    expect(columns).to eq(
       [
-        'filter_user_group_id', 'filter_user_id', 'filter_role_id', 'filter_access_group_id',
-        'filter_data_source_id', 'filter_organization_id', 'filter_project_id', 'filter_coc_code'
+        ['filter_user_group_id', 'filter_role_id', 'filter_access_group_id'],
+        ['filter_user_id', 'filter_data_source_id', 'filter_organization_id', 'filter_project_id', 'filter_coc_code'],
       ],
     )
   end
@@ -83,5 +84,25 @@ RSpec.describe HmisAdmin::AccessControlsController, type: :request do
     values = page.css('option').map { |o| o['value'].to_i }
     expect(values).to contain_exactly(project.id, other_project.id)
     expect(values).not_to include(warehouse_only_project.id)
+  end
+
+  it 'does not load project options for a user who cannot administer the HMIS' do
+    non_admin = create(:acl_user)
+    create_access_control(Hmis::User.find(non_admin.id), [project], without_permission: :can_administer_hmis)
+    sign_in non_admin
+    post project_options_hmis_admin_access_controls_path
+    expect(response).to redirect_to(root_path)
+  end
+
+  it 'hides confidential project and organization names from users who cannot view them' do
+    confidential_organization = create(:hmis_hud_organization, data_source: data_source, OrganizationName: 'Secret Shelter Org', confidential: true)
+    create(:hmis_hud_project, data_source: data_source, organization: confidential_organization, ProjectName: 'Project In Secret Org')
+    create(:hmis_hud_project, data_source: data_source, ProjectName: 'Secret Project', confidential: true)
+    post project_options_hmis_admin_access_controls_path
+    group_labels = page.css('optgroup').map { |g| g['label'] }
+    option_texts = page.css('option').map(&:text)
+    expect(group_labels).to include(a_string_including(GrdaWarehouse::Hud::Organization.confidential_organization_name))
+    expect(option_texts.count(GrdaWarehouse::Hud::Project.confidential_project_name)).to eq(2)
+    expect(response.body).not_to include('Secret Shelter Org', 'Project In Secret Org', 'Secret Project')
   end
 end

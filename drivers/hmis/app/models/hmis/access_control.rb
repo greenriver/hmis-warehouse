@@ -10,6 +10,8 @@
 # @see docs/features/hmis/hmis-permissions.md
 
 class Hmis::AccessControl < ApplicationRecord
+  include AccessControlFiltering
+
   acts_as_paranoid
   has_paper_trail
 
@@ -59,27 +61,12 @@ class Hmis::AccessControl < ApplicationRecord
       )
   end
 
-  ENTITY_FILTERS = {
-    data_source_id: 'GrdaWarehouse::DataSource',
-    organization_id: 'Hmis::Hud::Organization',
-    project_id: 'Hmis::Hud::Project',
-  }.freeze
-
-  scope :filtered, ->(filter_params) do
-    return all if filter_params.blank?
-
-    scope = all
-    scope = scope.where(user_group_id: Hmis::UserGroup.with_user_id(filter_params[:user_id].to_i).select(:id)) if filter_params[:user_id].present?
-    scope = scope.where(user_group_id: filter_params[:user_group_id].to_i) if filter_params[:user_group_id].present?
-    scope = scope.where(role_id: filter_params[:role_id].to_i) if filter_params[:role_id].present?
-    scope = scope.where(access_group_id: filter_params[:access_group_id].to_i) if filter_params[:access_group_id].present?
-    ENTITY_FILTERS.each do |key, class_name|
-      next if filter_params[key].blank?
-
-      entity = class_name.constantize.find_by(id: filter_params[key].to_i)
-      scope = entity ? scope.where(access_group_id: Hmis::AccessGroup.contains_with_inherited(entity).select(:id)) : scope.none
-    end
-    scope = scope.where(access_group_id: Hmis::AccessGroup.contains_coc_code_with_inherited(filter_params[:coc_code]).select(:id)) if filter_params[:coc_code].present?
-    scope
-  end
+  filterable_by(
+    collection_association: :access_group,
+    entity_class_names: {
+      data_source_id: 'GrdaWarehouse::DataSource',
+      organization_id: 'Hmis::Hud::Organization',
+      project_id: 'Hmis::Hud::Project',
+    },
+  )
 end
