@@ -35,6 +35,16 @@ class Hmis::Hud::Exit < Hmis::Hud::Base
     HudHelper.util.counseling_method_fields.select { |k| send(k) == 1 }.values
   end
 
+  # Hmis::MarkClientAsDirtyBehavior hook
+  protected def ce_affected_household_keys
+    # Only ExitDate changes household membership. Soft delete writes DateDeleted via update_columns, so it isn't in
+    # saved_changes; check deleted? instead.
+    return [] unless deleted? || saved_change_to_attribute?('ExitDate')
+    return [] unless enrollment&.household_id
+
+    [[enrollment.data_source_id, enrollment.household_id]]
+  end
+
   private def warehouse_trigger_processing
     return unless enrollment && warehouse_columns_changed?
 

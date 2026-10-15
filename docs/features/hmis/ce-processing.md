@@ -14,7 +14,7 @@ This is achieved through a versioning system managed by the `Hmis::Ce::ChangeMar
 - **`Hmis::Ce::Match::CandidatePoolBuilder`**: A service object that serves as the main component for maintaining candidate pools. It is triggered synchronously by model callbacks and a daily Rake task to create pools and associate them with `UnitGroup`s.
 - **`Hmis::Ce::ProcessPoolsJob`**: A self-scheduling job that processes dirty candidate pools on the long-running queue. It is enqueued by the `CandidatePoolBuilder` or the nightly Rake task.
 - **`Hmis::Ce::ProcessClientsJob`**: A self-scheduling job that processes dirty clients on the short-running queue for fast updates. It uses non-blocking per-pool locks to coordinate with the pool processor.
-- **`Hmis::MarkClientAsDirtyBehavior`**: A concern included in various HUD models to automatically mark a client as dirty whenever their data is saved.
+- **`Hmis::MarkClientAsDirtyBehavior`**: A concern included in various HUD models to automatically mark a client as dirty whenever their data is saved. Enrollment and Exit changes also mark the other open members of the affected household.
 - **`Hmis::Ce::Match::UnitGroupRuleResolver` & `Hmis::Ce::Match::CandidatePoolRepository`**: Service classes used by the builder to resolve rule hierarchies and manage the persistence of candidate pools.
 
 ### Event Triggers and Actions
@@ -124,15 +124,17 @@ The `Hmis::MarkClientAsDirtyBehavior` concern is the primary mechanism for flagg
 
 When a record with this concern is saved, an `after_save` callback triggers `Hmis::Ce::ChangeMarker.upsert_or_bump_version`, which either creates a new marker or increments the `current_version` of an existing one.
 
+Household match fields (`household.*`) depend on other clients' records, so a model can override `#ce_affected_household_keys` to return the households its change affects. The open members of those households are marked dirty along with the record's own client. `Hmis::Hud::Enrollment` and `Hmis::Hud::Exit` override it; see [Household Fields](ce-match-engine.md#household-fields-household) for which changes count.
+
 `Hmis::Ce::Match::Rule`, `Hmis::UnitGroup` and `Hmis::ProjectCeConfig` models use `after_*` callbacks to synchronously run the `CandidatePoolBuilder` to ensure pool data is always consistent with the latest rules and configuration.
 
 #### 4. Client Deduplication & Cleanup Integration
 
-The `GrdaWarehouse::Tasks::ClientCleanup` and `IdentifyDuplicates` tasks are responsible for consolidating source client records into a single destination client. After this consolidation, they mark the affected destination client as dirty. This is a critical step, as the CE matching process runs against these unified destination client records, not the original source HMIS clients.
+The `GrdaWarehouse::Tasks::ClientCleanup` and `IdentifyDuplicates` tasks are responsible for consolidating source client records into a single destination client. After this consolidation, they mark the affected destination clients dirty through `Hmis::Ce::ChangeMarker.mark_destination_clients_dirty`. This is a critical step, as the CE matching process runs against these unified destination client records, not the original source HMIS clients. The method also marks everyone who shares an open household with those clients, because household match fields read each member's destination demographics (such as DOB).
 
 #### 5. Relationship with Daily Full Refresh
 
 The incremental change tracking system works alongside the existing daily full refresh mechanism:
 
 - **Incremental Processing**: The `ProcessPoolsJob` and `ProcessClientsJob` run frequently to process only dirty records, providing near real-time updates with optimal performance through concurrent processing.
-- **Daily Full Refresh**: A nightly Rake task runs the `CandidatePoolBuilder` to rebuild all candidate pools and marks them all dirty, serving as a comprehensive backup and catch-all for any missed changes.
+- **Daily Full Refresh**: A nightly Rake task runs the `CandidatePoolBuilder` to rebuild all candidate pools and marks them all dirty, serving as a comprehensive backup and catch-all for any missed changes. It is also the only mechanism that picks up time-based changes with no triggering record save, such as a client or household member aging across an age threshold in a rule (`current_age`, `household.youngest_member_age`, `household.oldest_member_age`).

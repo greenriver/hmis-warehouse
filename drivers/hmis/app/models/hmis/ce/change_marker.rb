@@ -80,6 +80,17 @@ class Hmis::Ce::ChangeMarker < GrdaWarehouseBase
     )
   end
 
+  # Marks destination clients dirty, along with everyone who shares an open household with them. household.* CE
+  # match fields read every member's destination demographics (e.g. DOB for ages), so a change to one client's
+  # destination record can change their co-members' values too.
+  # @param destination_client_ids [Array<Integer>]
+  def self.mark_destination_clients_dirty(destination_client_ids)
+    return unless Hmis::Ce.configuration.enabled?
+
+    client_ids = Hmis::Ce::HouseholdMemberLookup.with_open_household_members(destination_client_ids)
+    upsert_or_bump_version('GrdaWarehouse::Hud::Client', trackable_ids: client_ids)
+  end
+
   def mark_processed = self.class.mark_processed([self])
   def dirty? = current_version > processed_version
 end

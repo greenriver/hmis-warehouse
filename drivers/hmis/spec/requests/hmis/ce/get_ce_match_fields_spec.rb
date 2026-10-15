@@ -86,6 +86,25 @@ RSpec.describe 'ceMatchFields query', type: :request do
     )
   end
 
+  it 'exposes registered household fields' do
+    fields = query_fields('HOUSEHOLD')
+
+    expect(fields.map { |field| field['key'] }).
+      to match_array(Hmis::Ce::Match::Expression::HouseholdFieldRegistry::ALL.map(&:key))
+    expect(fields).to include(
+      {
+        'key' => 'size',
+        'label' => 'Household Size',
+        'description' => Hmis::Ce::Match::Expression::HouseholdFieldRegistry::SIZE.description,
+        'itemType' => 'INTEGER',
+        'multiple' => false,
+        'expressionField' => 'household.size',
+        'pickListReference' => nil,
+        'pickListOptions' => nil,
+      },
+    )
+  end
+
   it 'exposes every registered client field' do
     fields = query_fields('CLIENT')
 

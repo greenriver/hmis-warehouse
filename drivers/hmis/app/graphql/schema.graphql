@@ -1092,6 +1092,11 @@ enum CeMatchRuleFieldSource {
   CUSTOM_DATA_ELEMENT
 
   """
+  Household
+  """
+  HOUSEHOLD
+
+  """
   HUD
   """
   PSDE

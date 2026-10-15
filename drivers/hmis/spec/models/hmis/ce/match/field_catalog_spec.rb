@@ -26,5 +26,9 @@ RSpec.describe Hmis::Ce::Match::FieldCatalog do
     it 'returns Field with source :PSDE for a valid PSDE key' do
       expect(described_class.new.field_for('psde.total_monthly_income')&.source).to eq(:PSDE)
     end
+
+    it 'returns Field with source :HOUSEHOLD for a valid household key' do
+      expect(described_class.new.field_for('household.size')&.source).to eq(:HOUSEHOLD)
+    end
   end
 end

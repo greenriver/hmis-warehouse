@@ -332,7 +332,7 @@ module GrdaWarehouse::Tasks
 
     # Marks given clients as dirty for future re-processing for CE
     private def post_process_clients(client_ids:)
-      Hmis::Ce::ChangeMarker.upsert_or_bump_version('GrdaWarehouse::Hud::Client', trackable_ids: client_ids)
+      Hmis::Ce::ChangeMarker.mark_destination_clients_dirty(client_ids)
     end
 
     memoize private def previous_candidate_matches
