@@ -66,8 +66,10 @@ module HmisCsvImporter::Aggregated
                 active_enrollment = enrollment
               elsif enrollment.EntryDate != last_enrollment.exit.ExitDate
                 # Non-contiguous enrollment, so close the current active enrollment, and start a new one
-                enrollment_batch << new_enrollment_from_enrollment(active_enrollment) if enrollment_during_date_range?(active_enrollment.EntryDate, active_enrollment.exit&.ExitDate)
-                exit_batch << new_exit_for_enrollment(last_enrollment.exit, active_enrollment) if enrollment_during_date_range?(active_enrollment.EntryDate, last_enrollment.exit&.ExitDate)
+                if enrollment_during_date_range?(active_enrollment.EntryDate, last_enrollment.exit.ExitDate)
+                  enrollment_batch << new_enrollment_from_enrollment(active_enrollment)
+                  exit_batch << new_exit_for_enrollment(last_enrollment.exit, active_enrollment)
+                end
 
                 active_enrollment = enrollment
                 # else Contiguous enrollment, nothing to do
@@ -75,8 +77,10 @@ module HmisCsvImporter::Aggregated
               last_enrollment = enrollment
             end
           # Emit the remaining in-process enrollment
-          enrollment_batch << new_enrollment_from_enrollment(active_enrollment) if active_enrollment && enrollment_during_date_range?(active_enrollment.EntryDate, active_enrollment.exit&.ExitDate)
-          exit_batch << new_exit_for_enrollment(last_enrollment.exit, active_enrollment) if last_enrollment&.exit && enrollment_during_date_range?(active_enrollment.EntryDate, last_enrollment.exit&.ExitDate)
+          if active_enrollment && enrollment_during_date_range?(active_enrollment.EntryDate, last_enrollment.exit.ExitDate)
+            enrollment_batch << new_enrollment_from_enrollment(active_enrollment)
+            exit_batch << new_exit_for_enrollment(last_enrollment.exit, active_enrollment)
+          end
         end
 
         # These are imported into the staging table, there is no uniqueness constraint, and existing data is marked as don't import

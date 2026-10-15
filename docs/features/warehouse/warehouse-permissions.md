@@ -43,6 +43,8 @@ Roles come in three flavors:
 - **System** — auto-managed (e.g., "System User Role"); hidden from normal admin views
 - **Health** — assigned via `user_roles` (the legacy join), not through AccessControls
 
+The ROI permissions `can_search_clients_with_roi` and `can_view_client_enrollments_with_roi` depend on a client's release of information; see [Client ROI and Consent](client-roi-and-consent.md).
+
 Permissions are stored as columns rather than as a separate join table. Adding a new permission requires a schema migration: define it in `permissions_with_descriptions` and call `Role.ensure_permissions_exist` in the migration to add the column.
 
 ### Collection

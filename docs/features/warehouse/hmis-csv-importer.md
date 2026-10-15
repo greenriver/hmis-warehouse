@@ -47,6 +47,8 @@ Every import is scoped by three dimensions derived from the CSV files:
 
 These define which warehouse rows the import is "authoritative" for. The `involved_warehouse_scope` class method on each staging model builds the base warehouse query for this scope. Each model overrides it to join through the appropriate association chain (e.g. Disability joins through Enrollment → Project).
 
+Exits dated after `ExportEndDate` are outside the scope, because reporting-period exports don't send them.
+
 ### `pending_date_deleted` — The Central State Machine
 
 The ingestion algorithm uses a "guilty until proven innocent" approach via the `pending_date_deleted` column on warehouse tables. At the start of ingestion, every in-scope warehouse row is flagged as pending deletion. Each subsequent step either **clears** that flag (proving the row should survive) or leaves it set. At the end, anything still flagged is soft-deleted.
@@ -71,7 +73,7 @@ import!
 
 ### Ingestion
 
-Ingestion reconciles staged data with the warehouse in four passes:
+Ingestion reconciles staged data with the warehouse in five passes:
 
 **Pass 0 — Mark all as pending deletion.** Every in-scope warehouse row gets `pending_date_deleted = today`.
 
@@ -83,6 +85,8 @@ Ingestion reconciles staged data with the warehouse in four passes:
 - **Apply updates**: Everything still pending at this point has newer or changed data. The warehouse row is overwritten from staging. Side effects: client demographics and enrollment service history are flagged for rebuild.
 
 **Pass 3 — Remove pending deletes.** Anything still carrying `pending_date_deleted` existed in the warehouse within scope but was absent from the import — it's soft-deleted. Clients are a special case: they are never hard-deleted, only flagged for re-evaluation.
+
+**Pass 4 — Remove exits before the export range.** Soft-deletes exits dated before `ExportStartDate` for enrollments in `Enrollment.csv` whose `ExitID` is not in `Exit.csv`. These exits are outside the involved scope, so passes 0-3 can't reach them. The affected enrollments are already flagged for service history rebuild by pass 1, which upserts every enrollment in `Enrollment.csv` that is outside the involved scope with `processed_as = nil`. Runs only when `ExportPeriodType` is Reporting period, the only type that guarantees every enrollment in `Enrollment.csv` is active in the range. `precalculate_change_counts` includes these exits in the `Exit.csv` removed count, so record-count thresholds see them.
 
 **After ingest — Post-ingest hooks.** Staging models may implement `after_ingest!`; the importer calls them for all data sources. Hooks receive `data_source`, and `project_ids` (from `Project.csv`). The FY2026 enrollment importer populates `project_pk` when the data source is an Open Path HMIS installation, setting it on all enrollments in the imported projects regardless of export date range.
 

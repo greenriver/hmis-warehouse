@@ -142,4 +142,9 @@ RSpec.describe GrdaWarehouse::AuthPolicies::DestinationClientPolicy, type: :mode
       expect(destinations.map { |d| user.policy_for(d).can_view_name? }).to eq([false] * 4)
     end
   end
+
+  it 'rejects a source client with an ArgumentError' do
+    user = create(:acl_user)
+    expect { user.policy_for(source_client, policy_class: described_class) }.to raise_error(ArgumentError, 'Must be a destination client')
+  end
 end

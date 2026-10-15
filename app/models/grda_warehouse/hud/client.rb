@@ -429,7 +429,7 @@ module GrdaWarehouse::Hud
       when 'One Year', 'Two Years'
         where(
           release_string_query.
-            and(arel_table[:consent_form_signed_on].gteq(consent_validity_period.ago)),
+            and(arel_table[:consent_form_signed_on].gteq(consent_validity_period.ago.to_date)),
         )
       when 'Use Expiration Date'
         where(
@@ -1093,7 +1093,7 @@ module GrdaWarehouse::Hud
 
     def consent_form_valid?
       if release_duration.in?(['One Year', 'Two Years'])
-        release_valid? && consent_form_signed_on.present? && consent_form_signed_on >= self.class.consent_validity_period.ago
+        release_valid? && consent_form_signed_on.present? && consent_form_signed_on >= self.class.consent_validity_period.ago.to_date
       elsif release_duration == 'Use Expiration Date'
         release_valid? && consent_expires_on.present? && consent_expires_on >= Date.current
       else
@@ -2520,9 +2520,12 @@ module GrdaWarehouse::Hud
     def force_full_service_history_rebuild
       # If we're already forcing a rebuild, we don't need to clear things again
       self.class.with_advisory_lock([__method__, self.class.name, id].join('_'), timeout_seconds: 0) do
-        service_history_enrollments.where(record_type: [:entry, :exit, :service, :extrapolated]).delete_all
-        source_enrollments.update_all(processed_as: nil)
-        invalidate_service_history
+        # source_enrollments spans data sources, so this can deadlock with an import's mark_tree_as_dead
+        GrdaWarehouseBase.retry_on_deadlock("force_full_service_history_rebuild client #{id}") do
+          service_history_enrollments.where(record_type: [:entry, :exit, :service, :extrapolated]).delete_all
+          source_enrollments.update_all(processed_as: nil)
+          invalidate_service_history
+        end
       end
     end
 
