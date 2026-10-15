@@ -35,7 +35,7 @@ graph TD
 Policies are located in `app/models/grda_warehouse/auth_policies/`.
 
 - `BasePolicy`: Abstract base class providing common initialization and validation helpers.
-- **Resource Policies**: for warehouse resources (e.g., `ProjectPolicy`, `SourceClientPolicy`, `DataSourcePolicy`).
+- **Resource Policies**: for warehouse resources (e.g., `ProjectPolicy`, `OrganizationPolicy`, `SourceClientPolicy`, `DataSourcePolicy`).
 - **Specialized Policies**: optimized for controlling access to sensitive data in reporting contexts (e.g., `ProjectPiiPolicy`).
 
 ## Usage
@@ -52,6 +52,16 @@ policy.can_edit?
 pii_policy = current_user.reporting_policy_for_project(project_id)
 pii_policy.can_view_full_ssn?
 ```
+
+### Client feature permissions
+
+The client History page and the homeless verification PDF are authorized per client through the destination client policy:
+
+- `policy.can_view_history_calendar?` requires `can_view_clients` (or ROI view access) and `can_view_client_history_calendar` from a role that covers one of the client's projects.
+- `policy.can_generate_homeless_verification_pdfs?` requires everything `can_view_history_calendar?` requires, plus `can_generate_homeless_verification_pdfs`. The PDF contains the client's history, so the PDF permission alone is not enough.
+- `GrdaWarehouse::ClientFile.visible_by?(user, client:)` uses the same predicate to decide whether a generated verification PDF appears on the client's Files tab.
+
+A role that grants these permissions on a project the client is not enrolled in does not grant them for that client.
 
 ### Preloading
 

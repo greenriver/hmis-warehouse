@@ -17,7 +17,7 @@
       .main-inner-prs1
         - if false # Disabled until the report structure has settled
           .text-right.mb-4
-            = render 'report_downloads/report_download', export: @pdf_export, excel_download_path: disability_summary_warehouse_reports_disability_summary_index_path({format: :xlsx}.merge(@filter.for_params))
+            = render 'report_downloads/report_download', export: nil, excel_download_path: disability_summary_warehouse_reports_disability_summary_index_path({format: :xlsx}.merge(@filter.for_params))
       - @report.class.available_section_types.each do |section|
         = render 'background_render', url: render_section_disability_summary_warehouse_reports_disability_summary_index_path, fetch_params: {partial: section, filters: @filter.for_params[:filters] } do
           .rollup
