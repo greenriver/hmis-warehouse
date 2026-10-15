@@ -56,7 +56,7 @@ module Hmis
 
       unsupported = @roles - SUPPORTED_ROLES
       raise ArgumentError, "unsupported roles: #{unsupported.join(', ')} (supported: #{SUPPORTED_ROLES.join(', ')})" if unsupported.any?
-      raise ArgumentError, "data source #{@data_source_id} is not an HMIS data source" unless GrdaWarehouse::DataSource.hmis.exists?(id: @data_source_id)
+      raise ArgumentError, "data source #{@data_source_id} is not an HMIS data source" unless ::GrdaWarehouse::DataSource.hmis.exists?(id: @data_source_id)
 
       # returns the block's result, or false when another run holds the lock
       results = ::GrdaWarehouseBase.with_advisory_lock('hmis_repoint_form_processors_to_latest', timeout_seconds: 0) { repoint_all }
