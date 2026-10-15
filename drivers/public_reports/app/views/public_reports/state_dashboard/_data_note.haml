@@ -1,0 +1,3 @@
+- data_through = @report.parsed_pre_calculated_data['data_through']
+- if data_through
+  %p.data-note{ class: ('data-note--left' if local_assigns[:left]) }= "Data updated through #{Date.parse(data_through)}"

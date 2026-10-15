@@ -2058,8 +2058,9 @@ module GrdaWarehouse::Hud
 
     # call this on GrdaWarehouse::Hud::Client.new() instead of self, to take
     # advantage of caching
-    def race_string(destination_id:, include_none_reason: false, scope_limit: self.class.destination)
-      @limited_scope ||= self.class.destination.merge(scope_limit)
+    def race_string(destination_id:, include_none_reason: false, scope_limit: nil)
+      # A default of self.class.destination would query data_sources on every call.
+      @limited_scope ||= scope_limit ? self.class.destination.merge(scope_limit) : self.class.destination
 
       @race_am_ind_ak_native ||= @limited_scope.where(id: self.class.race_am_ind_ak_native.select(:id)).distinct.pluck(:id).to_set
       @race_asian ||= @limited_scope.where(id: self.class.race_asian.select(:id)).distinct.pluck(:id).to_set
