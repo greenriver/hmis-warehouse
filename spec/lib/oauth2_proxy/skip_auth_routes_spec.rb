@@ -23,8 +23,8 @@ RSpec.describe 'oauth2-proxy skip_auth_routes', :jwt_only do
     }
   end
 
-  # Served without a user session, and behind the proxy on QA. Each needs a decision: add a
-  # skip_auth_routes entry here and on QA, or move it to behind_proxy with the reason.
+  # Served without a user session, and behind the proxy. Each needs a decision: add a
+  # skip_auth_routes entry here and in deployment configurations, or move it to behind_proxy with the reason.
   let(:pending_review) do
     [
       '/users/sign_in',
