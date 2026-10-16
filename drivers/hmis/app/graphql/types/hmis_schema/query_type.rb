@@ -75,7 +75,7 @@ module Types
     def client_omni_search(text_search:)
       persist_client_search_query({ 'text_search' => text_search })
 
-      Hmis::Hud::Client.searchable_to(current_user).
+      Hmis::Hud::Client.searchable_to_matching(current_user, text_search).
         matching_search_term(text_search).
         sort_by_option(:recently_added)
     end
