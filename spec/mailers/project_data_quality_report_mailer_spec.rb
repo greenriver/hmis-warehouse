@@ -52,14 +52,11 @@ RSpec.describe ProjectDataQualityReportMailer, type: :mailer do
         expect(mail.subject).to eq("Report Complete: #{project.ProjectName}")
       end
 
-      it 'creates a report token' do
-        expect do
-          ProjectDataQualityReportMailer.report_complete([project], report, contact).deliver_now
-        end.to change(GrdaWarehouse::ReportToken, :count).by(1)
+      it 'links to the project report' do
+        mail = ProjectDataQualityReportMailer.report_complete([project], report, contact)
 
-        token = GrdaWarehouse::ReportToken.last
-        expect(token.report_id).to eq(report.id)
-        expect(token.contact_id).to eq(contact.id)
+        expect(mail.body.encoded).to include(project_data_quality_report_url(project_id: project.id, id: report.id))
+        expect(mail.body.encoded).not_to include('/notifications/')
       end
 
       it 'updates sent_at timestamp' do
@@ -85,12 +82,6 @@ RSpec.describe ProjectDataQualityReportMailer, type: :mailer do
 
         expect(mail.to).to eq([contact.email])
         expect(mail.subject).to eq("Report Complete: #{project.ProjectName}")
-      end
-
-      it 'creates a report token' do
-        expect do
-          ProjectDataQualityReportMailer.report_complete([project], report, contact).deliver_now
-        end.to change(GrdaWarehouse::ReportToken, :count).by(1)
       end
     end
 
@@ -120,6 +111,12 @@ RSpec.describe ProjectDataQualityReportMailer, type: :mailer do
 
         expect(mail.to).to eq([contact.email])
         expect(mail.subject).to eq('Report Complete: Test Group')
+      end
+
+      it 'links to the project group report' do
+        mail = ProjectDataQualityReportMailer.report_complete([project, project2], report, contact)
+
+        expect(mail.body.encoded).to include(project_group_data_quality_report_url(project_group_id: project_group.id, id: report.id))
       end
     end
   end

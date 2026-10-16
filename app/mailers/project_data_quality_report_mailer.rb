@@ -18,7 +18,6 @@ class ProjectDataQualityReportMailer < DatabaseMailer
       @report.project_group.name
     end
 
-    @token = GrdaWarehouse::ReportToken.create(report_id: @report.id, contact_id: @contact.id)
     mail(to: @contact.email, subject: "Report Complete: #{@project_name}")
 
     @report.notifications_sent
