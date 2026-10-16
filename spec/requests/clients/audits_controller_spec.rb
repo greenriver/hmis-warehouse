@@ -99,6 +99,42 @@ RSpec.describe Clients::AuditsController, type: :request do
     )
   end
 
+  describe 'access history titles' do
+    before do
+      ['Jane Doe - Audit', 'Jane Doe'].each_with_index do |title, i|
+        ActivityLog.create!(
+          user_id: user.id,
+          item_model: 'GrdaWarehouse::Hud::Client',
+          item_id: client.id,
+          controller_name: 'clients',
+          action_name: 'show',
+          ip_address: '127.0.0.1',
+          path: "/clients/#{client.id}",
+          title: title,
+          created_at: i.minutes.ago,
+        )
+      end
+    end
+
+    def access_history_items
+      Nokogiri::HTML(response.body).css('table').first.css('tbody tr').map { |tr| tr.css('td').last.text.strip }
+    end
+
+    it 'hides the name logged before the client was restricted, keeping the page label' do
+      DestinationClientRestriction.new(client).restrict!(user: user)
+
+      get client_audits_path(client)
+
+      expect(access_history_items).to eq(['Name Redacted - Audit', 'Name Redacted'])
+    end
+
+    it 'shows the logged name for an unrestricted client' do
+      get client_audits_path(client)
+
+      expect(access_history_items).to eq(['Jane Doe - Audit', 'Jane Doe'])
+    end
+  end
+
   it 'omits the table for a client that was never restricted' do
     DestinationClientRestriction.new(other_client).restrict!(user: user)
 
