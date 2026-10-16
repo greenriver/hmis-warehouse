@@ -264,8 +264,8 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Exports::AdHoc, type: :model do
     context 'when nothing is selected' do
       let(:selection) { {} }
 
-      it 'includes clients from every project the user can view' do
-        expect(client_ids(ad_hoc_anon)).to contain_exactly(restricted_destination_client.id, open_destination_client.id, multi_project_client.id, nameless_client.id)
+      it 'includes clients from every residential project' do
+        expect(client_ids(ad_hoc_anon)).to contain_exactly(restricted_destination_client.id, open_destination_client.id, multi_project_client.id, nameless_client.id, other_project_client.id, confidential_client.id)
       end
     end
   end

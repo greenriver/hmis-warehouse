@@ -24,6 +24,14 @@ module GrdaWarehouse::WarehouseReports::Exports
       GrdaWarehouse::Hud::Project.all
     end
 
+    # Don't limit by user visibility, end results are de-identified. With nothing
+    # selected, every residential project, not only the ones the user can view.
+    memoize private def authorized_project_ids
+      return GrdaWarehouse::Hud::Project.residential.pluck(:id) unless any_project_selection?
+
+      super
+    end
+
     private def clients_within_projects
       @clients_within_projects ||= GrdaWarehouse::Hud::Client.destination.joins(service_history_enrollments: :project).
         merge(GrdaWarehouse::Hud::Project.where(id: authorized_project_ids))
