@@ -75,11 +75,10 @@ module MaYyaFollowupReport
     end
 
     private def enrollment_scope
-      # Selected and authorized projects are applied as one merge; merging them separately
-      # lets the second `where` on the project id replace the first.
+      # `authorized_project_ids` already holds only projects the user can report on
       scope = ::GrdaWarehouse::ServiceHistoryEnrollment.entry.
         joins(:project).
-        merge(project_source.where(id: authorized_project_ids))
+        merge(::GrdaWarehouse::Hud::Project.where(id: authorized_project_ids))
       scope = filter_for_range(scope)
       filter_for_age(scope)
     end
