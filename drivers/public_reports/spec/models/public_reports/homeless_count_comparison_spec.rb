@@ -111,10 +111,18 @@ RSpec.describe PublicReports::HomelessCountComparison, type: :model do
       end
 
       describe '#run_and_save!' do
+        # Entered after the prior period ends, so it counts only in the current period: 2 current vs 1 prior.
+        let!(:current_only_client) { create(:grda_warehouse_hud_client) }
+        let!(:current_only_she) do
+          she = create(:she_entry, client: current_only_client, data_source: data_source, project: project, project_type: 1, first_date_in_program: report_start + 1.day, last_date_in_program: nil)
+          create(:service_history_service, service_history_enrollment_id: she.id, client_id: current_only_client.id, date: report_start + 5.days, record_type: 'service', project_type: 1)
+          she
+        end
+
         it 'compares both periods over the same projects' do
           report.run_and_save!
 
-          expect(JSON.parse(report.reload.precalculated_data)).to include('count' => 0, 'change_direction' => 'no-change')
+          expect(JSON.parse(report.reload.precalculated_data)).to include('count' => 100.0, 'change_direction' => 'positive')
         end
       end
     end
