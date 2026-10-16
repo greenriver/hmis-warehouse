@@ -16,6 +16,6 @@ class Filters::Criteria::FilterForOrganizations < Filters::Criteria::Base
     # Viewable and selected organizations in one merge; merging them separately lets the
     # second `where` on the organization id replace the first
     scope.joins(:organization).
-      merge(GrdaWarehouse::Hud::Organization.viewable_by(user).where(id: input.organization_ids))
+      merge(GrdaWarehouse::Hud::Organization.viewable_by(user, permission: :can_view_assigned_reports).where(id: input.organization_ids))
   end
 end

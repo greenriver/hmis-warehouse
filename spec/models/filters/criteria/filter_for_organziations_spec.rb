@@ -68,18 +68,37 @@ RSpec.describe Filters::Criteria::FilterForOrganizations do
     end
 
     context 'when the user can only view some of the selected organizations' do
-      let(:limited_user) { create(:acl_user) }
       let(:filter) { ::Filters::FilterBase.new(user_id: limited_user.id, organization_ids: [organization.id, organization2.id]) }
 
-      before do
-        Rails.cache.clear
-        limited_collection = create(:collection)
-        limited_collection.set_viewables({ projects: [project.id] })
-        setup_access_control(limited_user, role, limited_collection)
+      [:acl, :legacy].each do |mode|
+        context "with #{mode} access" do
+          let(:limited_user) { create(mode == :acl ? :acl_user : :user) }
+
+          before do
+            Rails.cache.clear
+            grant_project_access(limited_user, role, [project], mode: mode)
+          end
+
+          it 'returns enrollments from the viewable organizations only' do
+            expect(criteria.apply(scope).pluck(:id)).to contain_exactly(enrollments[0].id)
+          end
+        end
       end
 
-      it 'returns enrollments from the viewable organizations only' do
-        expect(criteria.apply(scope).pluck(:id)).to contain_exactly(enrollments[0].id)
+      # Legacy access ignores the permission, so this is ACL only
+      context 'when report access and project viewing come from different roles' do
+        let(:limited_user) { create(:acl_user) }
+        let(:report_only_role) { create(:role, can_view_project_related_filters: true, can_view_assigned_reports: true, can_view_projects: false) }
+        let(:view_only_role) { create(:role, can_view_project_related_filters: true, can_view_assigned_reports: false, can_view_projects: true) }
+
+        before do
+          grant_project_access(limited_user, report_only_role, [project], mode: :acl)
+          grant_project_access(limited_user, view_only_role, [project2], mode: :acl)
+        end
+
+        it 'returns enrollments from the organizations the user can report on' do
+          expect(criteria.apply(scope).pluck(:id)).to contain_exactly(enrollments[0].id)
+        end
       end
     end
 
