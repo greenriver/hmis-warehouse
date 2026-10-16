@@ -6,17 +6,20 @@
 
 # frozen_string_literal: true
 
-class DataQualityReportsController < ApplicationController
+class DataQualityReportsController < ApplicationControllerV2
   include AjaxModalRails::Controller
   include WarehouseReports::PiiDetailRows
-  skip_before_action :authenticate_user!, only: [:show, :answers]
-  before_action :require_valid_token_or_report_access!, except: [:index]
-  before_action :require_valid_token_or_project_access!
 
   before_action :set_project
   before_action :set_report, except: [:index]
+  authorize_with(only: :index) { subject_viewable? }
+  authorize_with(except: :index) { report_policy.can_view? }
   before_action :set_support_path, only: [:show]
   before_action :set_report_keys, only: [:show]
+
+  helper_method def report_policy
+    current_user.policy_for(@report)
+  end
 
   def show
     @modal_size = :xl
@@ -99,7 +102,7 @@ class DataQualityReportsController < ApplicationController
 
   def set_client_path
     @client_path = [:destination, :window, :source_client]
-    @client_path = [:destination, :source_client] if can_view_clients?
+    @client_path = [:destination, :source_client] if current_user.can_view_clients?
   end
 
   def support_render_path
@@ -112,12 +115,10 @@ class DataQualityReportsController < ApplicationController
       id: @report.id,
       individual: true,
     }
-    @report_keys[:notification_id] = notification_id if notification_id
   end
 
   def set_support_path
     @support_path = [:project, :data_quality_report]
-    @support_path = [:notification] + @support_path if notification_id
     @support_path = [:support] + @support_path
   end
 
@@ -163,6 +164,10 @@ class DataQualityReportsController < ApplicationController
     project_source.viewable_by current_user
   end
 
+  def subject_viewable?
+    project_scope.where(id: params[:project_id].to_i).exists?
+  end
+
   def project_source
     GrdaWarehouse::Hud::Project
   end
@@ -173,43 +178,6 @@ class DataQualityReportsController < ApplicationController
 
   def set_project
     @project = project_source.find(params[:project_id].to_i)
-  end
-
-  def notification_id
-    params[:notification_id]
-  end
-  helper_method :notification_id
-
-  def require_valid_token_or_report_access!
-    if notification_id.present?
-      token = GrdaWarehouse::ReportToken.find_by_token(notification_id)
-      raise ActionController::RoutingError, 'Not Found' if token.blank?
-      return true if token.valid?
-    else
-      set_report
-      report_viewable = GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: 'warehouse_reports/project/data_quality').viewable_by(current_user).exists?
-      return true if report_viewable
-
-      not_authorized!
-      return
-    end
-    raise ActionController::RoutingError, 'Not Found'
-  end
-
-  def require_valid_token_or_project_access!
-    if notification_id.present?
-      token = GrdaWarehouse::ReportToken.find_by_token(notification_id)
-      raise ActionController::RoutingError, 'Not Found' if token.blank?
-      return true if token.valid?
-    else
-      set_project
-      project_viewable = project_scope.where(id: @project.id).exists?
-      return true if project_viewable
-
-      not_authorized!
-      return
-    end
-    raise ActionController::RoutingError, 'Not Found'
   end
 
   def missing_grade_scope
