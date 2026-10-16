@@ -138,12 +138,17 @@ Merges and splits:
 
 - Warehouse merges (`merge_from`) and HMIS client merges (`Hmis::MergeClientsJob`) carry a warehouse restriction to the surviving destination.
 - Both merges remove the restriction row from a merged-away destination that has no sources left. A destination that keeps other sources keeps its row.
-- When a restriction needs to carry over and the kept client has no warehouse destination yet, the HMIS merge links it first (`IdentifyDuplicates#ensure_source_client_linked!`) and fails only if that cannot be done.
+- When a restriction needs to carry over and the kept client has no warehouse destination yet, the HMIS merge links it first (`IdentifyDuplicates#ensure_source_client_linked!`) and fails only if that cannot be done. Linking waits only a few seconds for the `identify_duplicates` lock, so while a full IdentifyDuplicates run holds it the merge fails and must be retried after the run finishes. This is a known gap.
+- A warehouse merge into a client outside a destination data source fails and rolls back when the merged-away destination is restricted.
 - Undoing an HMIS merge (`Hmis::UndoMergeClientsJob`) does not move a warehouse restriction back. This is a known gap. The retained destination stays restricted, and the restored client is unrestricted if duplicate identification puts it under a different destination.
 - A split keeps a warehouse restriction on both sides.
 - A split carries only warehouse rows. An HMIS restriction stays with its source client, so the side without that source becomes visible.
 
 Restriction changes record the acting user as the PaperTrail `whodunnit` when no request has set one, so changes made by merge jobs are attributed on the audit page.
+
+The client audit page's Restriction History lists versions on the destination's own id and its current sources' ids. After a merge, the survivor's history starts with the carried restriction; the merged-away destination's history, including the removal of its row, is not shown. Rows on the destination are labeled Warehouse and rows on a source are labeled HMIS.
+
+Both the client audit page and a user's audit page (`admin/audits`) show `Name Redacted` in place of the name logged in an access-history title when the client is restricted at view time, since titles are stored at visit time. The user's audit page finds the client from the logged path and preloads restriction for the page (`ActivityLog#client_id_from_path`, `#display_title`).
 
 Hidden status is looked up a page of clients at a time, never loaded whole, so code that checks restriction for a list of clients must preload first (see [Preloading](#preloading)).
 

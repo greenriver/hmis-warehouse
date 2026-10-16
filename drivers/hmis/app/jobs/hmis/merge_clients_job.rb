@@ -364,6 +364,9 @@ module Hmis
 
     # A client created moments before the merge may not be linked yet, since linking runs in
     # a background job after creation.
+    # Known gap: ensure_source_client_linked! waits only PER_CLIENT_LOCK_TIMEOUT_SECONDS for the
+    # identify_duplicates lock. While a full IdentifyDuplicates run holds it, the client stays
+    # unlinked, this raises, and the merge rolls back. Retrying after that run finishes succeeds.
     # @return [Integer]
     def retained_destination_id!
       destination_id = -> { ::GrdaWarehouse::WarehouseClient.where(source_id: client_to_retain.id, deleted_at: nil).pick(:destination_id) }

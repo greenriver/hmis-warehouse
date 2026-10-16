@@ -18,7 +18,7 @@
           %th Item
       %tbody
         - @audit_log.each do |item|
-          - title = audit_item_title(item)
+          - title = item.display_title(name_redacted: @client_restricted)
           %tr
             %td= item.created_at
             %td= link_to item.user.name, edit_admin_user_path(item.user.id)

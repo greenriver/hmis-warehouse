@@ -2404,7 +2404,8 @@ module GrdaWarehouse::Hud
           update(current_cas_columns)
           save!
 
-          # Sources that moved here would show PII under this destination otherwise.
+          # Sources that moved here would show PII under this destination otherwise. Raises, rolling
+          # back the merge, when this client is outside a destination data source.
           DestinationClientRestriction.new(self).restrict!(user: reviewed_by) if carry_restriction
 
           prev_destination_client.force_full_service_history_rebuild

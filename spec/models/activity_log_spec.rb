@@ -181,4 +181,40 @@ RSpec.describe ActivityLog do
       expect(described_class.warehouse_reports).to include(entry)
     end
   end
+
+  describe '#client_id_from_path' do
+    def client_log(path, item_model: 'GrdaWarehouse::Hud::Client')
+      described_class.new(path: path, item_model: item_model)
+    end
+
+    it 'reads the client id from client page paths, including nested and query-string paths' do
+      paths = ['/clients/12', '/clients/12/files/99', '/clients/12?tab=history']
+      expect(paths.map { |path| client_log(path).client_id_from_path }).to eq([12, 12, 12])
+    end
+
+    it 'ignores paths that only end in clients/<id>, and rows for other item models' do
+      expect(
+        [
+          client_log('/source_clients/12').client_id_from_path,
+          client_log('/clients/12', item_model: 'User').client_id_from_path,
+        ],
+      ).to eq([nil, nil])
+    end
+  end
+
+  describe '#display_title' do
+    def titled(title)
+      described_class.new(title: title, controller_name: 'clients')
+    end
+
+    it 'replaces the logged name and keeps the page label when the name is redacted' do
+      expect([titled('Jane Doe').display_title(name_redacted: true), titled('Jane Doe - Files').display_title(name_redacted: true)]).
+        to eq(['Name Redacted', 'Name Redacted - Files'])
+    end
+
+    it 'shows the logged title, or the controller name without one, when the name is not redacted' do
+      expect([titled('Jane Doe - Files').display_title, titled(nil).display_title, titled(nil).display_title(name_redacted: true)]).
+        to eq(['Jane Doe - Files', 'clients', 'clients'])
+    end
+  end
 end

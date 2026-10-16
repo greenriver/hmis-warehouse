@@ -24,20 +24,10 @@ class Clients::AuditsController < ApplicationController
             or(al_t[:path].matches("%clients/#{client_id}"))). # ends with client_id
       order(created_at: :desc)
     @pagy, @audit_log = pagy(@audit_log, items: 25)
+    @client_restricted = current_user.policy_context.client_restricted?(@client.id)
   end
 
   protected
-
-  # Titles are stored at visit time as "<name>" or "<name> - <page>", so rows logged before
-  # a restriction still carry the client's name.
-  helper_method def audit_item_title(item)
-    return item.title || item.controller_name unless item.title && current_user.policy_context.client_restricted?(@client.id)
-
-    redacted_name = @client.pii_provider(user: current_user).full_name
-    return redacted_name unless item.title.include?(' - ')
-
-    "#{redacted_name} - #{item.title.rpartition(' - ').last}"
-  end
 
   def set_client
     @client = destination_searchable_client_scope.find(params[:client_id].to_i)
