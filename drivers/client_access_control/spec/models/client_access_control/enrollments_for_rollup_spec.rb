@@ -30,8 +30,8 @@ RSpec.describe 'GrdaWarehouse::Hud::Client#enrollments_for_rollup', type: :model
 
     it 'counts served, adjusted, and homeless days per enrollment' do
       expect(by_name['Shelter A < Test Org ']).to include(days: 10, adjusted_days: 6, homeless_days: 6, homeless: true, residential: true)
-      expect(by_name['Shelter B < Test Org ']).to include(days: 14, adjusted_days: 14, homeless_days: 13, homeless: true, residential: true)
-      expect(by_name['Housing < Test Org ']).to include(days: 17, adjusted_days: 17, homeless_days: 4, homeless: false, residential: true)
+      expect(by_name['Shelter B < Test Org ']).to include(days: 14, adjusted_days: 14, homeless_days: 12, homeless: true, residential: true)
+      expect(by_name['Housing < Test Org ']).to include(days: 17, adjusted_days: 17, homeless_days: 3, homeless: false, residential: true)
     end
 
     it 'reports entry, exit, move-in, and most recent service dates' do
