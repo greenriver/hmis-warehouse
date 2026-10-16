@@ -84,7 +84,7 @@ External forms:
   the next hourly enqueue picks the remaining objects back up. A successful run enqueues
   `NotifyExternalFormSubmissionsJob` for each project with an active external form.
 - `HmisExternalApis::NotifyExternalFormSubmissionsJob` takes a `project_id:` and emails users with
-  `can_manage_external_form_submissions` on that project about new submissions in its review
+  `can_manage_external_form_submissions` and `can_view_project` on that project about new submissions in its review
   queue (`FormSubmission.in_review_queue_for`, the same scope the GraphQL queue uses), if the project
   has an `EXTERNAL_FORM_SUBMISSION_NOTIFICATIONS` project config. It stamps `reviewers_notified_at`
   on every pending submission in the queue, opted in or not.

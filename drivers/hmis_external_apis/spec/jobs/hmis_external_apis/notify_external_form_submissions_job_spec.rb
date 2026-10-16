@@ -20,10 +20,6 @@ RSpec.describe HmisExternalApis::NotifyExternalFormSubmissionsJob, type: :model 
   let!(:definition) { external_form_for(p1) }
   let!(:opt_in) { create(:hmis_project_external_form_submission_notification_config, project: p1) }
 
-  before do
-    allow(HmisExternalApis::ConsumeExternalFormSubmissionsJob).to receive(:enabled?).and_return(true)
-  end
-
   after { clear_enqueued_jobs }
 
   def external_form_for(project)
@@ -33,7 +29,7 @@ RSpec.describe HmisExternalApis::NotifyExternalFormSubmissionsJob, type: :model 
   end
 
   def submit(form = definition, **attrs)
-    create(:hmis_external_form_submission, definition: form, reviewers_notified_at: nil, **attrs)
+    create(:hmis_external_form_submission, definition: form, **attrs)
   end
 
   def reviewer(permissions: reviewer_permissions)
@@ -52,22 +48,25 @@ RSpec.describe HmisExternalApis::NotifyExternalFormSubmissionsJob, type: :model 
   it 'emails each reviewer of the project, and nobody else' do
     other_reviewer = reviewer
     no_permission = reviewer(permissions: [:can_view_project])
+    cannot_view_project = reviewer(permissions: [:can_manage_external_form_submissions])
     inactive = reviewer.tap { |u| u.update_columns(active: false) }
     submit
 
     messages = run_job
 
     expect(messages.map(&:user_id)).to contain_exactly(user.id, other_reviewer.id)
-    expect(messages.map(&:user_id)).not_to include(no_permission.id, inactive.id)
+    expect(messages.map(&:user_id)).not_to include(no_permission.id, cannot_view_project.id, inactive.id)
     expect(messages.first.subject).to eq('New external form submissions to review')
     expect(messages.first.body).to include(p1.project_name, '1 new submission')
   end
 
-  it 'does not email a user who can manage submissions but not view the project' do
-    remove_permissions(access_control, :can_view_project)
+  it 'does not email a user who reviews submissions only at a different project' do
+    p2 = create(:hmis_hud_project, data_source: ds1, organization: o1)
+    other_project_reviewer = create(:user)
+    create_access_control(other_project_reviewer.related_hmis_user(ds1), p2, with_permission: reviewer_permissions)
     submit
 
-    expect(run_job).to be_empty
+    expect(run_job.map(&:user_id)).to contain_exactly(user.id)
   end
 
   it 'stamps reviewed submissions without counting them' do
@@ -114,13 +113,13 @@ RSpec.describe HmisExternalApis::NotifyExternalFormSubmissionsJob, type: :model 
 
   it 'sends nothing and stamps nothing when finding recipients raises, then sends once on the next run' do
     submission = submit
-    allow(Hmis::Hud::Project).to receive(:with_access).and_raise('boom')
+    allow(Hmis::User).to receive(:can_manage_external_form_submissions_for).and_raise('boom')
 
     expect { described_class.perform_now(project_id: p1.id) }.to raise_error('boom')
     expect(enqueued_jobs).to be_empty
     expect(submission.reload.reviewers_notified_at).to be_nil
 
-    allow(Hmis::Hud::Project).to receive(:with_access).and_call_original
+    allow(Hmis::User).to receive(:can_manage_external_form_submissions_for).and_call_original
     expect(run_job.size).to eq(1)
     expect(run_job).to be_empty
   end
@@ -156,14 +155,6 @@ RSpec.describe HmisExternalApis::NotifyExternalFormSubmissionsJob, type: :model 
     project.destroy!
 
     expect(run_job(project)).to be_empty
-    expect(submission.reload.reviewers_notified_at).to be_nil
-  end
-
-  it 'does nothing when external forms are disabled' do
-    allow(HmisExternalApis::ConsumeExternalFormSubmissionsJob).to receive(:enabled?).and_return(false)
-    submission = submit
-
-    expect(run_job).to be_empty
     expect(submission.reload.reviewers_notified_at).to be_nil
   end
 

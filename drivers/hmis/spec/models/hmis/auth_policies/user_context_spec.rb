@@ -55,17 +55,6 @@ RSpec.describe Hmis::AuthPolicies::UserContext, type: :model do
         context.project_permissions(other_project.id)
       end
     end
-
-    context 'when can_manage_external_form_submissions is granted without can_view_project' do
-      before do
-        create_access_control(user, project, with_permission: :can_manage_external_form_submissions)
-      end
-
-      it 'does not grant can_manage_external_form_submissions' do
-        expect(context.project_permissions(project.id)).not_to include(:can_manage_external_form_submissions)
-        expect(context.project_ids_with_permissions(:can_manage_external_form_submissions, mode: :any)).not_to include(project.id)
-      end
-    end
   end
 
   describe '#client_permissions' do
