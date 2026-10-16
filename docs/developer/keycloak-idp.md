@@ -279,7 +279,7 @@ explicit `email_verified: false` blocks the email update.
 
 ### Routes that bypass oauth2-proxy
 
-`skip_auth_routes` in `docker/auth/dev.oauth2-proxy-warehouse.cfg` matches the QA oauth2-proxy
+`skip_auth_routes` in `docker/auth/dev.oauth2-proxy-warehouse.cfg` matches a deployed oauth2-proxy
 config. `spec/lib/oauth2_proxy/skip_auth_routes_spec.rb` (JWT arm) fails when:
 
 - an action skips `authenticate_user!` / `authenticate_hmis_user!`, or authenticates with its own
