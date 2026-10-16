@@ -57,6 +57,24 @@ RSpec.describe DestinationClientRestriction, type: :model do
       2.times { restriction.restrict!(user: user) }
       expect(active_rows_for(destination).count).to eq(1)
     end
+
+    it 'writes the row when HMIS is disabled' do
+      allow(HmisEnforcement).to receive(:hmis_enabled?).and_return(false)
+      restriction.restrict!(user: user)
+      expect(active_rows_for(destination).pluck(:created_by_id)).to eq([user.id])
+    end
+  end
+
+  # clear_view_cache returns early in the test environment, so the cache itself can't be inspected.
+  describe 'view cache' do
+    before { allow(GrdaWarehouse::Hud::Client).to receive(:clear_view_cache) }
+
+    it 'clears the destination view cache on restrict!, unrestrict!, and unrestrict_merged_away!' do
+      restriction.restrict!(user: user)
+      restriction.unrestrict!(user: user)
+      described_class.unrestrict_merged_away!(destination.id, user: user)
+      expect(GrdaWarehouse::Hud::Client).to have_received(:clear_view_cache).with(destination.id).exactly(3).times
+    end
   end
 
   describe '#unrestrict!' do

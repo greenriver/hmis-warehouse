@@ -54,6 +54,8 @@ RSpec.describe Clients::RestrictionsController, type: :request do
       DestinationClientRestriction.new(client).restrict!(user: user)
       patch client_restriction_path(client), params: { restricted: '0' }
       expect(warehouse_rows.count).to eq(0)
+      expect(flash[:notice]).to eq('Client restriction removed.')
+      expect(response).to redirect_to(client_path(client))
     end
 
     def restrict_in_hmis
@@ -170,6 +172,29 @@ RSpec.describe Clients::RestrictionsController, type: :request do
 
       expect(response.body).to include('Do you want to remove the restriction for this client?')
       expect(response.body).not_to include('Quimby')
+    end
+  end
+
+  context 'with the permission only at a project the client is not enrolled in' do
+    let(:other_project) { create :grda_warehouse_hud_project, data_source_id: source_client.data_source_id }
+    let(:other_collection) { create(:collection).tap { |collection| collection.add_viewable(other_project) } }
+
+    before do
+      setup_access_control(user, viewing_role, project_collection)
+      setup_access_control(user, marking_role, other_collection)
+    end
+
+    it 'does not restrict the client' do
+      patch client_restriction_path(client), params: { restricted: '1' }
+      expect(warehouse_rows.count).to eq(0)
+      expect(response).to redirect_to(user.my_root_path)
+    end
+
+    it 'does not remove an existing restriction' do
+      DestinationClientRestriction.new(client).restrict!(user: user)
+      patch client_restriction_path(client), params: { restricted: '0' }
+      expect(warehouse_rows.count).to eq(1)
+      expect(response).to redirect_to(user.my_root_path)
     end
   end
 

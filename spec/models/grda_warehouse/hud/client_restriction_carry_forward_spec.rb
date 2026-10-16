@@ -66,6 +66,12 @@ RSpec.describe GrdaWarehouse::Hud::Client, '#merge_from and #split restriction',
       expect(Hmis::RestrictedRecord.for_clients.where(restrictable_id: dest_b.id).count).to eq(1)
     end
 
+    it 'attributes the carried restriction to the reviewer' do
+      DestinationClientRestriction.new(dest_a).restrict!(user: create(:user))
+      dest_b.merge_from(dest_a, reviewed_by: reviewer, reviewed_at: Time.current, cleanup: false)
+      expect(Hmis::RestrictedRecord.for_clients.where(restrictable_id: dest_b.id).pluck(:created_by_id)).to eq([reviewer.id])
+    end
+
     it 'keeps the row on a restricted destination that still has sources after one is merged out' do
       source_c = create(:hud_client, data_source: source_ds)
       GrdaWarehouse::WarehouseClient.create!(
@@ -92,12 +98,13 @@ RSpec.describe GrdaWarehouse::Hud::Client, '#merge_from and #split restriction',
       GrdaWarehouse::Hud::Client.find(GrdaWarehouse::WarehouseClient.find_by!(source_id: source.id).destination_id)
     end
 
-    it 'keeps a warehouse restriction on both sides of the split' do
-      DestinationClientRestriction.new(dest_a).restrict!(user: reviewer)
+    it 'keeps a warehouse restriction on both sides of the split, attributing the new one to the splitting user' do
+      DestinationClientRestriction.new(dest_a).restrict!(user: create(:user))
       dest_a.split([source_c.id], nil, [], reviewer)
       new_dest = new_destination_for(source_c)
       expect(new_dest.id).not_to eq(dest_a.id)
       expect([DestinationClientRestriction.new(dest_a.reload).restricted_in_warehouse?, DestinationClientRestriction.new(new_dest).restricted_in_warehouse?]).to eq([true, true])
+      expect(Hmis::RestrictedRecord.for_clients.where(restrictable_id: new_dest.id).pluck(:created_by_id)).to eq([reviewer.id])
     end
 
     it 'opens the side without the source restricted in HMIS' do

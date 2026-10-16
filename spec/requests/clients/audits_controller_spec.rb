@@ -128,6 +128,19 @@ RSpec.describe Clients::AuditsController, type: :request do
       expect(access_history_items).to eq(['Name Redacted - Audit', 'Name Redacted'])
     end
 
+    it 'hides the logged name when only a source client is restricted in HMIS' do
+      Hmis::RestrictedRecord.create!(
+        restrictable_id: source_client.id,
+        restrictable_type: Hmis::RestrictedRecord::CLIENT_RESTRICTABLE_TYPE,
+        data_source_id: source_client.data_source_id,
+        created_by: Hmis::User.find(user.id),
+      )
+
+      get client_audits_path(client)
+
+      expect(access_history_items).to eq(['Name Redacted - Audit', 'Name Redacted'])
+    end
+
     it 'shows the logged name for an unrestricted client' do
       get client_audits_path(client)
 
