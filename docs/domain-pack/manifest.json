@@ -423,7 +423,7 @@
   "drivers/hmis/app/models/hmis/hud/processors/client_processor.rb": "0352c853b436224247344d9ce609904ccce81b09e28b51abe027cfd0faa028d6",
   "drivers/hmis/app/models/hmis/hud/processors/enrollment_processor.rb": "9fcf1b66bec9fbad6639a6daf7c35edc9d1c1b4e28ad7fc339d9cef53e00cee0",
   "drivers/hmis/app/models/hmis/hud/processors/workflow_step_processor.rb": "c56ab372095d05293cf1f99cba6b0887896b48ff082b060612d7b3be1dab620d",
-  "drivers/hmis/app/models/hmis/hud/project.rb": "6cae2c1281460ae23bac785a4050ac522917295fd7af9356f5981600f84fb64b",
+  "drivers/hmis/app/models/hmis/hud/project.rb": "84db5e31308e6ee2b54fe15fd7bd33fa0f5c5f49256fcd77b52e70ee088de147",
   "drivers/hmis/app/models/hmis/hud/validators/custom_assessment_validator.rb": "628f3725be070443b6df9d9fe430b8afa7a61968593a03d48a928b81401b9ca8",
   "drivers/hmis/app/models/hmis/project_access_group_member.rb": "8a5d11fb49b5f973d52c38d1a9578197be80075968f8ac798a7132a574f3addd",
   "drivers/hmis/app/models/hmis/project_ce_config.rb": "38b00defadc1170011a3efa277c01c5ccf11dd8cd5f991b571986d9cdfec28f6",
