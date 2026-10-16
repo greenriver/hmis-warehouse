@@ -97,6 +97,42 @@ RSpec.describe Clients::RestrictionsController, type: :request do
       get client_restriction_path(client)
       expect(response.body).to include('Restrict Client')
     end
+
+    it 'names the client by last name in the modal before removing a restriction' do
+      client.update!(LastName: 'Quimby')
+      DestinationClientRestriction.new(client).restrict!(user: user)
+
+      get client_restriction_path(client)
+
+      expect(response.body).to include('Do you want to remove the restriction for this client with a last name of <strong>Quimby</strong>?')
+    end
+
+    it 'leaves the first name out of the modal before removing a restriction' do
+      client.update!(FirstName: 'Ermengarde', LastName: 'Quimby')
+      DestinationClientRestriction.new(client).restrict!(user: user)
+
+      get client_restriction_path(client)
+
+      expect(response.body).to include('<strong>Quimby</strong>')
+      expect(response.body).not_to include('Ermengarde')
+    end
+
+    it 'says no last name is recorded when the client has none' do
+      client.update!(LastName: nil)
+      DestinationClientRestriction.new(client).restrict!(user: user)
+
+      get client_restriction_path(client)
+
+      expect(response.body).to include('Do you want to remove the restriction for this client? No last name is recorded.')
+    end
+
+    it 'leaves the last name out of the modal when restricting' do
+      client.update!(LastName: 'Quimby')
+
+      get client_restriction_path(client)
+
+      expect(response.body).not_to include('Quimby')
+    end
   end
 
   context 'without the permission' do

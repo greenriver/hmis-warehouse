@@ -11,6 +11,10 @@
 = form_with url: client_restriction_path(@client), method: :patch do |f|
   - if @restriction.restricted_in_warehouse?
     = hidden_field_tag :restricted, '0'
+    - if @client.LastName.present?
+      %p= safe_join(['Do you want to remove the restriction for this client with a last name of ', tag.strong(@client.LastName), '?'])
+    - else
+      %p Do you want to remove the restriction for this client? No last name is recorded.
     = f.submit 'Remove Restriction', class: 'btn btn-danger'
   - else
     = hidden_field_tag :restricted, '1'
