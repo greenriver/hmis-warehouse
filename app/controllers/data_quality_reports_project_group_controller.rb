@@ -17,7 +17,7 @@ class DataQualityReportsProjectGroupController < DataQualityReportsController
 
   def set_report_keys
     @report_keys = {
-      project_group_id: @project_group.id,
+      project_group_id: params[:project_group_id].to_i,
       id: @report.id,
       individual: true,
     }
