@@ -399,6 +399,10 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       send_notifications
     end
 
+    def policy_class
+      GrdaWarehouse::AuthPolicies::DataQualityReportPolicy
+    end
+
     def report_type
       if projects.count == 1
         :project
