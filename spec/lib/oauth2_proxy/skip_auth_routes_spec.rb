@@ -20,6 +20,8 @@ RSpec.describe 'oauth2-proxy skip_auth_routes', :jwt_only do
       /\A\/rails\/active_storage\// => 'Drawn only in the test environment; Rack::Attack blocks the prefix in every environment',
       /\A\/rails\/(conductor\/)?action_mailbox\// => 'Loaded by rails/all; the app receives no inbound email',
       /\A\/(404|422|500)\z/ => 'Rendered by exceptions_app inside the failing request',
+      /\A(\/notifications\/:notification_id)?\/(projects\/:project_id|project_groups\/:project_group_id)\/data_quality_reports\/:id(\/answers)?\z/ =>
+        'Legacy data quality reports, slated for removal; not opened at the proxy',
     }
   end
 
@@ -32,14 +34,6 @@ RSpec.describe 'oauth2-proxy skip_auth_routes', :jwt_only do
       '/public/pages/:slug',
       '/maintenance',
       '/maintenance_saver',
-      '/projects/:project_id/data_quality_reports/:id',
-      '/projects/:project_id/data_quality_reports/:id/answers',
-      '/project_groups/:project_group_id/data_quality_reports/:id',
-      '/project_groups/:project_group_id/data_quality_reports/:id/answers',
-      '/notifications/:notification_id/projects/:project_id/data_quality_reports/:id',
-      '/notifications/:notification_id/projects/:project_id/data_quality_reports/:id/answers',
-      '/notifications/:notification_id/project_groups/:project_group_id/data_quality_reports/:id',
-      '/notifications/:notification_id/project_groups/:project_group_id/data_quality_reports/:id/answers',
       '/logo/:logo',
       '/hmis_external_api/ac_hmis/referrals',
       '/hmis_external_api/ac_hmis/program_involvements',
