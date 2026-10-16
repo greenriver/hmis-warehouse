@@ -2415,8 +2415,7 @@ module GrdaWarehouse::Hud
             # Carry-forward: if the merged-away client was excluded from external data sharing,
             # ensure the surviving client is also excluded.
             ClientExternalDataSharing.new(self).set_exclusion!(value: true) if ClientExternalDataSharing.new(prev_destination_client).excluded?
-            # The client has no restricted_record association, so the row would outlive it.
-            Hmis::RestrictedRecord.unmark!(Hmis::Hud::Client.find(prev_destination_client.id)) if carry_restriction
+            DestinationClientRestriction.unrestrict_merged_away!(prev_destination_client.id, user: reviewed_by) if carry_restriction
             prev_destination_client.destroy
           end
 

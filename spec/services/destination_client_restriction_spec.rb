@@ -62,20 +62,20 @@ RSpec.describe DestinationClientRestriction, type: :model do
   describe '#unrestrict!' do
     it 'removes the destination row' do
       restriction.restrict!(user: user)
-      restriction.unrestrict!
+      restriction.unrestrict!(user: user)
       expect(active_rows_for(destination).count).to eq(0)
       expect(GrdaWarehouse::HiddenClients.restricted_subset([destination.id])).to eq(Set.new)
     end
 
     it 'returns true when it removed a row and false when there was none' do
       restriction.restrict!(user: user)
-      expect([restriction.unrestrict!, restriction.unrestrict!]).to eq([true, false])
+      expect([restriction.unrestrict!(user: user), restriction.unrestrict!(user: user)]).to eq([true, false])
     end
 
     it 'leaves an HMIS restriction on a source in place' do
       restrict_in_hmis(source)
       restriction.restrict!(user: user)
-      restriction.unrestrict!
+      restriction.unrestrict!(user: user)
       expect(active_rows_for(source).count).to eq(1)
       expect(restriction.restricted?).to be true
     end
@@ -110,7 +110,7 @@ RSpec.describe DestinationClientRestriction, type: :model do
     it 'lists restriction changes on the destination and its sources, newest first, and none from other identities' do
       restrict_in_hmis(source)
       restriction.restrict!(user: user)
-      restriction.unrestrict!
+      restriction.unrestrict!(user: user)
       described_class.new(other_destination).restrict!(user: user)
 
       expect(restriction.versions.pluck(:event, :client_id)).to eq(
@@ -120,6 +120,42 @@ RSpec.describe DestinationClientRestriction, type: :model do
           ['create', source.id],
         ],
       )
+    end
+
+    it 'attributes changes made outside a request to the acting user' do
+      restriction.restrict!(user: user)
+      restriction.unrestrict!(user: user)
+
+      expect(restriction.versions.pluck(:event, :whodunnit)).to eq([['destroy', user.id.to_s], ['create', user.id.to_s]])
+    end
+
+    it 'keeps the whodunnit set by the request, which can record impersonation' do
+      admin = create(:user)
+      PaperTrail.request(whodunnit: "#{admin.id} as #{user.id}") do
+        restriction.restrict!(user: user)
+      end
+
+      expect(restriction.versions.pluck(:whodunnit)).to eq(["#{admin.id} as #{user.id}"])
+    end
+  end
+
+  describe '.unrestrict_merged_away!' do
+    around do |example|
+      PaperTrail.enabled = true
+      example.run
+    ensure
+      PaperTrail.enabled = false
+    end
+
+    it 'removes the row from a destination left without sources, attributed to the acting user' do
+      restriction.restrict!(user: user)
+      described_class.new(other_destination).restrict!(user: user)
+      GrdaWarehouse::WarehouseClient.where(destination_id: destination.id).delete_all
+
+      described_class.unrestrict_merged_away!(destination.id, user: user)
+
+      expect([active_rows_for(destination).count, active_rows_for(other_destination).count]).to eq([0, 1])
+      expect(GrdaWarehouse.paper_trail_versions.where(item_type: Hmis::RestrictedRecord.name, client_id: destination.id, event: 'destroy').pluck(:whodunnit)).to eq([user.id.to_s])
     end
   end
 end

@@ -30,15 +30,35 @@ class DestinationClientRestriction
     restricted_in_warehouse? || restricted_in_hmis?
   end
 
+  # Removes the row from a destination that a merge left without sources. The client has no
+  # restricted_record association, so the row would outlive it. Without sources the client is no
+  # longer a destination?(strict: true), so this does not go through new.
+  # @param client_id [Integer]
+  # @param user [User]
+  def self.unrestrict_merged_away!(client_id, user:)
+    as_actor(user) { Hmis::RestrictedRecord.unmark!(Hmis::Hud::Client.find(client_id)) }
+    GrdaWarehouse::Hud::Client.clear_view_cache(client_id)
+  end
+
+  # The audit page names the user from the version's whodunnit, which jobs leave blank. A
+  # whodunnit set by a request is kept, since it can record impersonation.
+  # @param user [User]
+  def self.as_actor(user, &block)
+    return yield if PaperTrail.request.whodunnit.present?
+
+    PaperTrail.request(whodunnit: user.id.to_s, &block)
+  end
+
   # @param user [User]
   def restrict!(user:)
-    Hmis::RestrictedRecord.mark!(restrictable, user: Hmis::User.find(user.id))
+    self.class.as_actor(user) { Hmis::RestrictedRecord.mark!(restrictable, user: Hmis::User.find(user.id)) }
     @client.clear_view_cache
   end
 
+  # @param user [User]
   # @return [Boolean] whether a warehouse row was removed
-  def unrestrict!
-    removed = Hmis::RestrictedRecord.unmark!(restrictable).present?
+  def unrestrict!(user:)
+    removed = self.class.as_actor(user) { Hmis::RestrictedRecord.unmark!(restrictable) }.present?
     @client.clear_view_cache
     removed
   end

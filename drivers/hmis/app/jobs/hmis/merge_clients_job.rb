@@ -343,17 +343,26 @@ module Hmis
     end
 
     # A warehouse restriction is a row on a destination id. Deleting the merged clients' links
-    # would otherwise leave this person under an unrestricted destination.
+    # would otherwise leave this person under an unrestricted destination. Runs before
+    # delete_warehouse_clients, which leaves some merged destinations without sources.
     def carry_warehouse_restriction
-      merged_destination_ids = ::GrdaWarehouse::WarehouseClient.
-        where(source_id: clients_needing_reference_updates.map(&:id)).
-        pluck(:destination_id)
-      return unless Hmis::RestrictedRecord.for_clients.where(restrictable_id: merged_destination_ids).exists?
+      merged_ids = clients_needing_reference_updates.map(&:id)
+      merged_destination_ids = ::GrdaWarehouse::WarehouseClient.where(source_id: merged_ids).pluck(:destination_id)
+      restricted_destination_ids = Hmis::RestrictedRecord.for_clients.where(restrictable_id: merged_destination_ids).pluck(:restrictable_id)
+      return if restricted_destination_ids.empty?
 
       retained_destination_id = client_to_retain.warehouse_id
       raise "Client #{client_to_retain.id} has no warehouse destination to carry a restriction to" unless retained_destination_id
 
       DestinationClientRestriction.new(::GrdaWarehouse::Hud::Client.find(retained_destination_id)).restrict!(user: actor)
+
+      kept_destination_ids = ::GrdaWarehouse::WarehouseClient.
+        where(destination_id: restricted_destination_ids, deleted_at: nil).
+        where.not(source_id: merged_ids).
+        pluck(:destination_id)
+      (restricted_destination_ids - kept_destination_ids).each do |destination_id|
+        DestinationClientRestriction.unrestrict_merged_away!(destination_id, user: actor)
+      end
     end
 
     def delete_warehouse_clients

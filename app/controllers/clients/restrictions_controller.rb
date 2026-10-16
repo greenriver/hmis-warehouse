@@ -27,7 +27,7 @@ module Clients
         restriction.restrict!(user: current_user)
         flash[:notice] = 'Client restricted.'
       when '0'
-        removed = restriction.unrestrict!
+        removed = restriction.unrestrict!(user: current_user)
         flash[:notice] = unrestrict_message(removed: removed, in_hmis: restriction.restricted_in_hmis?)
       else
         return head :bad_request
