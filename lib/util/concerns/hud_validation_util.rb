@@ -8,6 +8,16 @@
 
 module Concerns::HudValidationUtil
   extend ActiveSupport::Concern
+
+  VALID_SOCIAL_RULES = {
+    numeric: 'Cannot contain a non-numeric character.',
+    length: 'Must be 9 digits long.',
+    area: 'First three digits cannot be "000," "666," or in the 900 series.',
+    group: 'The second group / 4th and 5th digits cannot be "00".',
+    serial: 'The third group / last four digits cannot be "0000".',
+    pattern: 'There cannot be repetitive (e.g. "333333333") or sequential (e.g. "345678901" "987654321") numbers for all 9 digits.',
+  }.freeze
+
   class_methods do
     # Translate function used by HudLists2022/4 concerns
     def _translate(map, id, reverse, raise_on_missing: false)
@@ -49,15 +59,7 @@ module Concerns::HudValidationUtil
     end
 
     def describe_valid_social_rules
-      [
-        'Cannot contain a non-numeric character.',
-        'Must be 9 digits long.',
-        'First three digits cannot be "000," "666," or in the 900 series.',
-        'The second group / 5th and 6th digits cannot be "00".',
-        'The third group / last four digits cannot be "0000".',
-        'There cannot be repetitive (e.g. "333333333") or sequential (e.g. "345678901" "987654321")',
-        'numbers for all 9 digits.',
-      ]
+      VALID_SOCIAL_RULES.values
     end
 
     def describe_valid_dob_rules
@@ -70,24 +72,31 @@ module Concerns::HudValidationUtil
 
     # factored out of app/models/grda_warehouse/tasks/identify_duplicates.rb
     def valid_social?(ssn)
-      # see https://en.wikipedia.org/wiki/Social_Security_number#Structure
-      return false if ssn.blank? || ssn.length != 9
+      invalid_social_reasons(ssn).empty?
+    end
+
+    # The VALID_SOCIAL_RULES descriptions the SSN breaks; empty when it is valid.
+    # see https://en.wikipedia.org/wiki/Social_Security_number#Structure
+    def invalid_social_reasons(ssn)
+      return [VALID_SOCIAL_RULES[:length]] if ssn.blank?
+
+      failed = []
+      failed << :numeric unless ssn.match?(/\A\d+\z/)
+      failed << :length unless ssn.length == 9
+      return VALID_SOCIAL_RULES.values_at(*failed) if failed.any?
 
       area_number = ssn.first(3)
       group_number = ssn[3..4]
       serial_number = ssn.last(4)
 
-      # Fields can't be all zeros
-      return false if area_number.to_i.zero? || group_number.to_i.zero? || serial_number.to_i.zero?
-      # Fields must be numbers
-      return false unless digits?(area_number) && digits?(group_number) && digits?(serial_number)
-      # 900+ are not assigned, and 666 is excluded
-      return false if area_number.to_i >= 900 || area_number == '666'
-      # Published IDs are not valid
-      return false if known_invalid_ssns.include?(ssn)
-      return false if ssn.split('').uniq.count == 1 # all the same number
+      # 000 and 900+ are not assigned, and 666 is excluded
+      failed << :area if area_number == '000' || area_number == '666' || area_number.to_i >= 900
+      failed << :group if group_number == '00'
+      failed << :serial if serial_number == '0000'
+      # Published IDs and all the same number
+      failed << :pattern if known_invalid_ssns.include?(ssn) || ssn.chars.uniq.one?
 
-      true
+      VALID_SOCIAL_RULES.values_at(*failed)
     end
 
     def valid_last_four_social?(last_four)
@@ -111,7 +120,6 @@ module Concerns::HudValidationUtil
         seq.dup.each do |m|
           seq << m.reverse
         end
-        seq += ['219099999', '078051120']
       end
     end
 
