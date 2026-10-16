@@ -44,7 +44,7 @@ module Clients
     end
 
     private def set_client
-      @client = client_source.destination.find(params[:client_id].to_i)
+      @client = client_source.destination.joins(:warehouse_client_destination).find(params[:client_id].to_i)
     end
   end
 end

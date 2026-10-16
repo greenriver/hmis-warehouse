@@ -15,7 +15,7 @@ class Clients::AuditsController < ApplicationController
 
   def index
     @restriction_versions = DestinationClientRestriction.new(@client).versions.to_a
-    @restriction_users = User.where(id: @restriction_versions.map(&:clean_user_id).compact.map(&:to_i)).index_by(&:id)
+    @restriction_users = User.with_deleted.where(id: @restriction_versions.map(&:clean_user_id).compact.map(&:to_i)).index_by(&:id)
 
     client_id = @client.id
     al_t = ActivityLog.arel_table

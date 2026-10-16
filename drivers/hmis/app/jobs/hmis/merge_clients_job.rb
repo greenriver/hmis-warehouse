@@ -347,14 +347,11 @@ module Hmis
     # delete_warehouse_clients, which leaves some merged destinations without sources.
     def carry_warehouse_restriction
       merged_ids = clients_needing_reference_updates.map(&:id)
-      merged_destination_ids = ::GrdaWarehouse::WarehouseClient.where(source_id: merged_ids).pluck(:destination_id)
+      merged_destination_ids = ::GrdaWarehouse::WarehouseClient.where(source_id: merged_ids, deleted_at: nil).pluck(:destination_id)
       restricted_destination_ids = Hmis::RestrictedRecord.for_clients.where(restrictable_id: merged_destination_ids).pluck(:restrictable_id)
       return if restricted_destination_ids.empty?
 
-      retained_destination_id = client_to_retain.warehouse_id
-      raise "Client #{client_to_retain.id} has no warehouse destination to carry a restriction to" unless retained_destination_id
-
-      DestinationClientRestriction.new(::GrdaWarehouse::Hud::Client.find(retained_destination_id)).restrict!(user: actor)
+      DestinationClientRestriction.new(::GrdaWarehouse::Hud::Client.find(retained_destination_id!)).restrict!(user: actor)
 
       kept_destination_ids = ::GrdaWarehouse::WarehouseClient.
         where(destination_id: restricted_destination_ids, deleted_at: nil).
@@ -363,6 +360,18 @@ module Hmis
       (restricted_destination_ids - kept_destination_ids).each do |destination_id|
         DestinationClientRestriction.unrestrict_merged_away!(destination_id, user: actor)
       end
+    end
+
+    # A client created moments before the merge may not be linked yet, since linking runs in
+    # a background job after creation.
+    # @return [Integer]
+    def retained_destination_id!
+      destination_id = -> { ::GrdaWarehouse::WarehouseClient.where(source_id: client_to_retain.id, deleted_at: nil).pick(:destination_id) }
+      found = destination_id.call
+      return found if found
+
+      ::GrdaWarehouse::Tasks::IdentifyDuplicates.new.ensure_source_client_linked!(client_to_retain.id)
+      destination_id.call || raise("Client #{client_to_retain.id} could not be linked to a warehouse destination; a merged client is restricted in the warehouse, so the merge was not performed")
     end
 
     def delete_warehouse_clients

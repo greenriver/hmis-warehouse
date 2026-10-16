@@ -93,6 +93,14 @@ RSpec.describe Clients::RestrictionsController, type: :request do
       expect(warehouse_rows.count).to eq(1)
     end
 
+    it 'responds not found for a destination client with no sources' do
+      sourceless = create(:fixed_destination_client, id: 102)
+
+      get client_restriction_path(sourceless)
+
+      expect(response).to have_http_status(:not_found)
+    end
+
     it 'shows the restrict button on the dashboard and the form in the modal' do
       get client_path(client)
       expect(response.body).to include(client_restriction_path(client))

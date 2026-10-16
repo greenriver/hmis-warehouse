@@ -128,7 +128,7 @@ Three states hide a client's PII in the warehouse:
 - A destination client marked restricted in the warehouse by a user with `can_mark_clients_as_restricted` (`DestinationClientRestriction`, stored as an `Hmis::RestrictedRecord` on the destination id).
 - A client whose warehouse identity has aged out under [Client Data Retention](client-data-retention.md).
 
-Any of these blocks PII for every warehouse user, regardless of role or permissions; there is no warehouse-side override. `can_mark_clients_as_restricted` marks and unmarks a client. It never grants viewing, so a user with it sees the same redacted PII as everyone else while the client is restricted. `current_user.policy_context.client_restricted?(client_id)` answers for all states. Visibility returns when every restriction on the identity is removed, or when the identity has new activity and the next retention run clears it. The warehouse removes only its own destination row. HMIS rows are removed in HMIS.
+Any of these blocks PII for every warehouse user, regardless of role or permissions; there is no warehouse-side override. `can_mark_clients_as_restricted` marks and unmarks a client. It never grants viewing, so a user with it sees the same redacted PII as everyone else while the client is restricted, with one exception: the removal confirmation shows the last name the user would see once the warehouse row is gone, subject to their name permission, an HMIS restriction, and an inactive identity. `current_user.policy_context.client_restricted?(client_id)` answers for all states. Visibility returns when every restriction on the identity is removed, or when the identity has new activity and the next retention run clears it. The warehouse removes only its own destination row. HMIS rows are removed in HMIS.
 
 Restriction applies to the whole warehouse identity. HMIS restriction is limited to a single data source on the HMIS front end, but in the warehouse a restriction on any source client hides the destination and every other source merged into it.
 
@@ -138,7 +138,7 @@ Merges and splits:
 
 - Warehouse merges (`merge_from`) and HMIS client merges (`Hmis::MergeClientsJob`) carry a warehouse restriction to the surviving destination.
 - Both merges remove the restriction row from a merged-away destination that has no sources left. A destination that keeps other sources keeps its row.
-- An HMIS merge fails if the kept client has no warehouse destination yet, when a restriction needs to carry over.
+- When a restriction needs to carry over and the kept client has no warehouse destination yet, the HMIS merge links it first (`IdentifyDuplicates#ensure_source_client_linked!`) and fails only if that cannot be done.
 - Undoing an HMIS merge (`Hmis::UndoMergeClientsJob`) does not move a warehouse restriction back. This is a known gap. The retained destination stays restricted, and the restored client is unrestricted if duplicate identification puts it under a different destination.
 - A split keeps a warehouse restriction on both sides.
 - A split carries only warehouse rows. An HMIS restriction stays with its source client, so the side without that source becomes visible.

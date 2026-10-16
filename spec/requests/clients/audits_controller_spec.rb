@@ -99,6 +99,16 @@ RSpec.describe Clients::AuditsController, type: :request do
     )
   end
 
+  it 'names a user who has since been deleted' do
+    deleted_user = create(:user)
+    DestinationClientRestriction.new(client).restrict!(user: deleted_user)
+    deleted_user.destroy!
+
+    get client_audits_path(client)
+
+    expect(restriction_rows).to eq([[deleted_user.name, 'Restricted: No → Yes', 'Warehouse']])
+  end
+
   describe 'access history titles' do
     before do
       ['Jane Doe - Audit', 'Jane Doe'].each_with_index do |title, i|

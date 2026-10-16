@@ -689,14 +689,42 @@ RSpec.describe Hmis::MergeClientsJob, type: :model do
       expect(Hmis::RestrictedRecord.for_clients.where(restrictable_id: retained_destination.id).count).to eq(0)
     end
 
-    it 'fails the merge when the kept client has no warehouse destination yet' do
-      DestinationClientRestriction.new(merged_destination).restrict!(user: actor)
-      client1.warehouse_client_source.destroy!
+    context 'when the kept client has no warehouse destination yet' do
+      before do
+        DestinationClientRestriction.new(merged_destination).restrict!(user: actor)
+        client1.warehouse_client_source.destroy!
+      end
 
-      expect do
+      it 'links the kept client to a destination and restricts it' do
         Hmis::MergeClientsJob.perform_now(client_ids: client_ids, actor_id: actor.id)
-      end.to raise_error(RuntimeError, /no warehouse destination/)
-      expect(client2.reload.deleted?).to be false
+
+        new_destination_id = GrdaWarehouse::WarehouseClient.where(source_id: client1.id, deleted_at: nil).pick(:destination_id)
+        expect(new_destination_id).to be_present
+        expect(Hmis::RestrictedRecord.for_clients.where(restrictable_id: new_destination_id).pluck(:created_by_id)).to eq([actor.id])
+      end
+
+      it 'fails the merge when the kept client cannot be linked' do
+        linker = instance_double(GrdaWarehouse::Tasks::IdentifyDuplicates, ensure_source_client_linked!: nil)
+        allow(GrdaWarehouse::Tasks::IdentifyDuplicates).to receive(:new).and_return(linker)
+
+        expect do
+          Hmis::MergeClientsJob.perform_now(client_ids: client_ids, actor_id: actor.id)
+        end.to raise_error(RuntimeError, /could not be linked to a warehouse destination/)
+        expect(linker).to have_received(:ensure_source_client_linked!).with(client1.id)
+        expect(client2.reload.deleted?).to be false
+      end
+    end
+
+    it 'ignores a soft-deleted link from a merged client to a restricted destination' do
+      DestinationClientRestriction.new(merged_destination).restrict!(user: actor)
+      client2.warehouse_client_source.update!(deleted_at: 1.day.ago)
+      merged_destination.update_columns(DateDeleted: Time.current)
+
+      Hmis::MergeClientsJob.perform_now(client_ids: client_ids, actor_id: actor.id)
+
+      expect(Hmis::RestrictedRecord.for_clients.where(restrictable_id: retained_destination.id).count).to eq(0)
+      expect(Hmis::RestrictedRecord.for_clients.where(restrictable_id: merged_destination.id).count).to eq(1)
+      expect(client2.reload.deleted?).to be true
     end
 
     it 'attributes the carried restriction to the actor in the version history' do
