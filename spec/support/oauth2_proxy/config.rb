@@ -31,14 +31,24 @@ module Oauth2Proxy
       entries = []
       until scanner.eos?
         if scanner.scan(/"((?:[^"\\]|\\.)*)"/)
-          entries << Regexp.new(unescape(scanner[1]))
+          entries << pattern(unescape(scanner[1]))
+        elsif scanner.scan(/'([^'\n]*)'/)
+          entries << pattern(scanner[1])
         elsif scanner.scan(/\]/)
           return entries
-        else
-          scanner.skip(/#[^\n]*/) || scanner.getch
+        elsif !scanner.skip(/\s+|,|#[^\n]*/)
+          raise ArgumentError, "unexpected #{scanner.peek(20).inspect} in #{key}"
         end
       end
       raise ArgumentError, "#{key} has no closing ]"
+    end
+
+    # The spec matches entries against paths as plain regexes, so verb-scoped (METHOD=regex) and
+    # unanchored entries would never match and would hide an over-broad skip.
+    private def pattern(source)
+      raise ArgumentError, "#{source} must start with ^/" unless source.start_with?('^/')
+
+      Regexp.new(source)
     end
 
     private def unescape(string)

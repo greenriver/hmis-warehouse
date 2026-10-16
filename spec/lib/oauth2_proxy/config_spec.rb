@@ -48,6 +48,29 @@ RSpec.describe Oauth2Proxy::Config do
 
       expect { bad.patterns('skip_auth_routes') }.to raise_error(ArgumentError, /unsupported escape/)
     end
+
+    it 'reads TOML literal strings verbatim, including a ] inside them' do
+      literal = described_class.new(<<~'CFG')
+        skip_auth_routes=[
+          '^/document_exports/[0-9]+$',
+          "^/after"
+        ]
+      CFG
+
+      expect(literal.patterns('skip_auth_routes').map(&:source)).to eq(['^/document_exports/[0-9]+$', '^/after'])
+    end
+
+    it 'raises ArgumentError on an unquoted entry' do
+      bare = described_class.new("skip_auth_routes=[\n  ^/bare\n]\n")
+
+      expect { bare.patterns('skip_auth_routes') }.to raise_error(ArgumentError, /unexpected/)
+    end
+
+    it 'raises ArgumentError on an entry that does not start with ^/, such as a verb-scoped one' do
+      verb_scoped = described_class.new(%(skip_auth_routes=[\n  "GET=^/foo"\n]\n))
+
+      expect { verb_scoped.patterns('skip_auth_routes') }.to raise_error(ArgumentError, /must start with \^\//)
+    end
   end
 
   describe '.load' do
