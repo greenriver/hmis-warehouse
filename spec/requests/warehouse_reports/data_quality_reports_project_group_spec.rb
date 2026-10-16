@@ -49,6 +49,19 @@ RSpec.describe 'DataQualityReportsProjectGroupController', type: :request do
 
     expect(response).to have_http_status(:ok)
     expect(response.body).to include('Casey')
+    expect(response.body).to include(destination_source_client_path(id: 1))
+  end
+
+  context 'when the user cannot view clients' do
+    let!(:role) { create(:role, can_view_assigned_reports: true, can_view_projects: true) }
+
+    it 'renders support rows without a client link' do
+      get support_project_group_data_quality_report_path(project_group, report, individual: true, method: 'test')
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('Casey')
+      expect(response.body).not_to include(destination_source_client_path(id: 1))
+    end
   end
 
   it 'redirects support for a report on a group outside the user collections without rendering rows' do

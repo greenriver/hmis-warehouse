@@ -101,7 +101,6 @@ class DataQualityReportsController < ApplicationControllerV2
   helper_method :describe_computations
 
   def set_client_path
-    @client_path = [:destination, :window, :source_client]
     @client_path = [:destination, :source_client] if current_user.can_view_clients?
   end
 
