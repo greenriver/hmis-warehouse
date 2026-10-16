@@ -525,7 +525,7 @@ Relevant Sections:
 		 from tlsa_Enrollment n
 		 where n.PersonalID = lp.PersonalID and n.LSAProjectType = 15 and n.Active = 1)
 		 , -1)
-		, lp.Step = '5.11.3'
+		, lp.Step = '5.11.7'
 	from tlsa_Person lp
 
 	update lp 
@@ -534,6 +534,6 @@ Relevant Sections:
 		 from tlsa_Enrollment n
 		 where n.PersonalID = lp.PersonalID and n.LSAProjectType = 15 and n.Active = 1)
 		 , -1)
-		, lp.Step = '5.11.4'
+		, lp.Step = '5.11.8'
 	from tlsa_Person lp
 

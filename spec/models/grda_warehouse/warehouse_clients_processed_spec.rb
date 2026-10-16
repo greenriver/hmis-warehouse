@@ -130,3 +130,46 @@ RSpec.describe GrdaWarehouse::WarehouseClientsProcessed, type: :model do
     # above are the closest coverage achievable within that constraint.
   end
 end
+
+RSpec.describe GrdaWarehouse::WarehouseClientsProcessed::StatsCalculator, type: :model do
+  describe '#enrolled_permanent_housing' do
+    let(:data_source) { create :grda_warehouse_data_source }
+    let(:organization) { create :hud_organization, data_source: data_source }
+
+    def client_enrolled_in(project_type:, rrh_sub_type: nil, move_in_date: nil)
+      project = create(
+        :hud_project,
+        data_source: data_source,
+        OrganizationID: organization.OrganizationID,
+        ProjectType: project_type,
+        RRHSubType: rrh_sub_type,
+      )
+      create(
+        :grda_warehouse_service_history,
+        :service_history_entry,
+        client_id: create(:grda_warehouse_hud_client).id,
+        data_source: data_source,
+        project_id: project.ProjectID,
+        organization_id: project.OrganizationID,
+        project_type: project_type,
+        move_in_date: move_in_date,
+      ).client_id
+    end
+
+    let!(:sso_moved_in) { client_enrolled_in(project_type: 13, rrh_sub_type: 1, move_in_date: Date.current - 5.days) }
+    let!(:sso_not_moved_in) { client_enrolled_in(project_type: 13, rrh_sub_type: 1) }
+    let!(:rrh_housing) { client_enrolled_in(project_type: 13, rrh_sub_type: 2) }
+    let!(:rrh_legacy) { client_enrolled_in(project_type: 13, rrh_sub_type: nil) }
+    let!(:psh) { client_enrolled_in(project_type: 3) }
+    let!(:es) { client_enrolled_in(project_type: 0) }
+
+    let(:client_ids) { [sso_moved_in, sso_not_moved_in, rrh_housing, rrh_legacy, psh, es] }
+    let(:calculator) { described_class.new(client_ids: client_ids) }
+
+    it 'flags PH enrollments other than RRH: Services Only, with or without a move-in date' do
+      flagged = client_ids.select { |id| calculator.enrolled_permanent_housing(id) }
+
+      expect(flagged).to contain_exactly(rrh_housing, rrh_legacy, psh)
+    end
+  end
+end
