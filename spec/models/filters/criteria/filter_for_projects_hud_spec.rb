@@ -49,18 +49,21 @@ RSpec.describe Filters::Criteria::FilterForProjectsHud do
     end
 
     context 'when the user can only view some of the selected projects' do
-      let(:limited_user) { create(:acl_user) }
       let(:filter) { ::Filters::FilterBase.new(user_id: limited_user.id, project_ids: [project.id, project2.id]) }
 
-      before do
-        Rails.cache.clear
-        limited_collection = create(:collection)
-        limited_collection.set_viewables({ projects: [project.id] })
-        setup_access_control(limited_user, role, limited_collection)
-      end
+      [:acl, :legacy].each do |mode|
+        context "with #{mode} access" do
+          let(:limited_user) { create(mode == :acl ? :acl_user : :user) }
 
-      it 'returns enrollments from the viewable projects only' do
-        expect(criteria.apply(scope).pluck(:id)).to contain_exactly(enrollments[0].id)
+          before do
+            Rails.cache.clear
+            grant_project_access(limited_user, role, [project], mode: mode)
+          end
+
+          it 'returns enrollments from the viewable projects only' do
+            expect(criteria.apply(scope).pluck(:id)).to contain_exactly(enrollments[0].id)
+          end
+        end
       end
     end
 

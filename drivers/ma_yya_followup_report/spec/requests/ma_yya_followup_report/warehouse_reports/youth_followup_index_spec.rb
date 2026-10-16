@@ -9,9 +9,9 @@
 require 'rails_helper'
 
 RSpec.describe 'MaYyaFollowupReport::WarehouseReports::YouthFollowup#index', type: :request do
-  let!(:collection) { create(:collection) }
   let!(:role) { create(:role, can_view_assigned_reports: true, can_view_clients: true, can_view_client_name: true, can_view_project_related_filters: true) }
-  let!(:user) { create(:acl_user) }
+  let(:access_mode) { :acl }
+  let!(:user) { create(access_mode == :acl ? :acl_user : :user) }
 
   let!(:hmis_ds) { create(:hmis_primary_data_source) }
   let!(:hmis_user) { create(:hmis_user, data_source: hmis_ds) }
@@ -46,8 +46,7 @@ RSpec.describe 'MaYyaFollowupReport::WarehouseReports::YouthFollowup#index', typ
   before do
     Rails.cache.clear
     Collection.maintain_system_groups
-    collection.set_viewables({ projects: [project.id] })
-    setup_access_control(user, role, collection)
+    grant_project_access(user, role, [project], mode: access_mode)
     allow_any_instance_of(MaYyaFollowupReport::WarehouseReports::YouthFollowupController).to receive(:report_visible?).and_return(true)
     GrdaWarehouse::WarehouseClient.create!(destination_id: restricted_destination_client.id, source_id: restricted_source_client.id, data_source_id: hmis_ds.id, id_in_source: restricted_source_client.id.to_s)
     restricted_source_client.mark_as_restricted!(user: hmis_user)
@@ -85,10 +84,9 @@ RSpec.describe 'MaYyaFollowupReport::WarehouseReports::YouthFollowup#index', typ
   shared_context 'projects with mixed access' do
     let(:filter_permission) { true }
     let!(:nameless_role) { create(:role, can_view_assigned_reports: true, can_view_clients: true, can_view_client_name: false, can_view_project_related_filters: filter_permission) }
-    let!(:nameless_collection) { create(:collection) }
     # Viewable, but through a role without `can_view_client_name`.
     let!(:nameless_project) { create(:hud_project, organization: organization, data_source: hmis_ds, ProjectType: 1) }
-    # In the user's collection, but the user can't report on confidential projects.
+    # Granted to the user, but the user can't report on confidential projects.
     let!(:confidential_project) { create(:hud_project, organization: organization, data_source: hmis_ds, ProjectType: 1, confidential: true) }
 
     let!(:multi_project_client) { create(:grda_warehouse_hud_client, FirstName: 'Multi', LastName: 'Project', DOB: youth_dob) }
@@ -106,9 +104,8 @@ RSpec.describe 'MaYyaFollowupReport::WarehouseReports::YouthFollowup#index', typ
     end
 
     before do
-      collection.set_viewables({ projects: [project.id, confidential_project.id] })
-      nameless_collection.set_viewables({ projects: [nameless_project.id] })
-      setup_access_control(user, nameless_role, nameless_collection)
+      grant_project_access(user, role, [confidential_project], mode: access_mode)
+      grant_project_access(user, nameless_role, [nameless_project], mode: access_mode)
     end
 
     # Full href so one client id can't match as a prefix of another
@@ -125,49 +122,87 @@ RSpec.describe 'MaYyaFollowupReport::WarehouseReports::YouthFollowup#index', typ
   describe 'project selection' do
     include_context 'projects with mixed access'
 
-    context 'when only an age range is selected' do
-      it 'includes youth from every project the user can view' do
-        run_report({ filter: { on: on_date.to_s, age_ranges: ['eighteen_to_twenty_four'] } })
+    [:acl, :legacy].each do |mode|
+      context "with #{mode} access" do
+        let(:access_mode) { mode }
 
-        expect(response.body).to include('Open Doe', 'Multi Project', client_link(nameless_client.id))
-        expect(response.body).not_to include(client_link(other_project_client.id))
-        expect(response.body).not_to include(client_link(confidential_client.id))
-        expect(response.body).not_to include('Older Adult')
+        context 'when only an age range is selected' do
+          it 'includes youth from every project the user can view' do
+            run_report({ filter: { on: on_date.to_s, age_ranges: ['eighteen_to_twenty_four'] } })
+
+            expect(response.body).to include('Open Doe', 'Multi Project', client_link(nameless_client.id))
+            expect(response.body).not_to include(client_link(other_project_client.id))
+            expect(response.body).not_to include(client_link(confidential_client.id))
+            expect(response.body).not_to include('Older Adult')
+          end
+        end
+
+        context 'when a project outside the user\'s access is selected' do
+          let(:selected_project_ids) { [project.id, other_project.id] }
+
+          it 'excludes clients enrolled only in that project' do
+            run_report
+
+            expect(response.body).to include('Open Doe')
+            expect(response.body).not_to include(client_link(other_project_client.id))
+          end
+        end
+
+        context 'when a confidential project is selected' do
+          let(:selected_project_ids) { [project.id, confidential_project.id] }
+
+          it 'excludes clients enrolled only in that project' do
+            run_report
+
+            expect(response.body).to include('Open Doe')
+            expect(response.body).not_to include(client_link(confidential_client.id))
+          end
+        end
+
+        context 'when the user cannot see project-related filters' do
+          let(:filter_permission) { false }
+          let!(:role) { create(:role, can_view_assigned_reports: true, can_view_clients: true, can_view_client_name: true, can_view_project_related_filters: false) }
+
+          it 'still limits the report to the selected projects' do
+            run_report
+
+            expect(response.body).to include('Open Doe')
+            expect(response.body).not_to include(client_link(nameless_client.id))
+            expect(response.body).not_to include(client_link(other_project_client.id))
+          end
+        end
       end
     end
+  end
 
-    context 'when a project outside the user\'s access is selected' do
-      let(:selected_project_ids) { [project.id, other_project.id] }
+  # ACL roles apply per collection, so a project the user can view but not report on stays out.
+  # Legacy access ignores the permission, so this is ACL only.
+  describe 'a project viewable without report access' do
+    include_context 'projects with mixed access'
 
-      it 'excludes clients enrolled only in that project' do
+    let(:access_mode) { :acl }
+    let!(:view_only_role) { create(:role, can_view_assigned_reports: false, can_view_clients: true, can_view_projects: true, can_view_client_name: true, can_view_project_related_filters: true) }
+    let!(:view_only_project) { create(:hud_project, organization: organization, data_source: hmis_ds, ProjectType: 1) }
+    let!(:view_only_client) { create(:grda_warehouse_hud_client, FirstName: 'View', LastName: 'Only', DOB: youth_dob) }
+    let!(:view_only_she) { build_entry(view_only_client, view_only_project) }
+
+    before { grant_project_access(user, view_only_role, [view_only_project], mode: access_mode) }
+
+    it 'excludes its clients when only an age range is selected' do
+      run_report({ filter: { on: on_date.to_s, age_ranges: ['eighteen_to_twenty_four'] } })
+
+      expect(response.body).to include('Open Doe')
+      expect(response.body).not_to include(client_link(view_only_client.id))
+    end
+
+    context 'when that project is selected' do
+      let(:selected_project_ids) { [project.id, view_only_project.id] }
+
+      it 'excludes its clients' do
         run_report
 
         expect(response.body).to include('Open Doe')
-        expect(response.body).not_to include(client_link(other_project_client.id))
-      end
-    end
-
-    context 'when a confidential project is selected' do
-      let(:selected_project_ids) { [project.id, confidential_project.id] }
-
-      it 'excludes clients enrolled only in that project' do
-        run_report
-
-        expect(response.body).to include('Open Doe')
-        expect(response.body).not_to include(client_link(confidential_client.id))
-      end
-    end
-
-    context 'when the user cannot see project-related filters' do
-      let(:filter_permission) { false }
-      let!(:role) { create(:role, can_view_assigned_reports: true, can_view_clients: true, can_view_client_name: true, can_view_project_related_filters: false) }
-
-      it 'still limits the report to the selected projects' do
-        run_report
-
-        expect(response.body).to include('Open Doe')
-        expect(response.body).not_to include(client_link(nameless_client.id))
-        expect(response.body).not_to include(client_link(other_project_client.id))
+        expect(response.body).not_to include(client_link(view_only_client.id))
       end
     end
   end
@@ -175,13 +210,19 @@ RSpec.describe 'MaYyaFollowupReport::WarehouseReports::YouthFollowup#index', typ
   describe 'empty results' do
     include_context 'projects with mixed access'
 
-    context 'when only unauthorized projects are selected' do
-      let(:selected_project_ids) { [other_project.id, confidential_project.id] }
+    [:acl, :legacy].each do |mode|
+      context "with #{mode} access" do
+        let(:access_mode) { mode }
 
-      it 'renders no clients' do
-        run_report
+        context 'when only unauthorized projects are selected' do
+          let(:selected_project_ids) { [other_project.id, confidential_project.id] }
 
-        expect(response.body).to include('No Clients found.')
+          it 'renders no clients' do
+            run_report
+
+            expect(response.body).to include('No Clients found.')
+          end
+        end
       end
     end
   end
@@ -214,6 +255,41 @@ RSpec.describe 'MaYyaFollowupReport::WarehouseReports::YouthFollowup#index', typ
 
         expect(response.body).to include(client_link(multi_project_client.id))
         expect(response.body).not_to include('Multi Project')
+      end
+    end
+  end
+
+  # Legacy roles apply to every project the user can reach, so names follow the role alone.
+  describe 'name visibility with legacy access' do
+    include_context 'projects with mixed access'
+
+    let(:access_mode) { :legacy }
+
+    it 'shows names when the role allows them' do
+      run_report
+
+      expect(response.body).to include('Open Doe')
+    end
+
+    # The ACL examples above redact both of these clients
+    context 'with only the project reached through the nameless role selected' do
+      let(:selected_project_ids) { [nameless_project.id] }
+
+      it 'shows names granted by the user\'s other role' do
+        run_report
+
+        expect(response.body).to include('Nameless Person', 'Multi Project')
+      end
+    end
+
+    context 'when the role does not allow names' do
+      let!(:role) { create(:role, can_view_assigned_reports: true, can_view_clients: true, can_view_client_name: false, can_view_project_related_filters: true) }
+
+      it 'redacts names' do
+        run_report
+
+        expect(response.body).to include(client_link(open_destination_client.id))
+        expect(response.body).not_to include('Open Doe')
       end
     end
   end

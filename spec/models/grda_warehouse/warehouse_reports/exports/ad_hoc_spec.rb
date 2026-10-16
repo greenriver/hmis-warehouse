@@ -10,9 +10,9 @@ require 'rails_helper'
 
 RSpec.describe GrdaWarehouse::WarehouseReports::Exports::AdHoc, type: :model do
   shared_context 'ad hoc report setup' do
-    let!(:running_user) { create(:acl_user) }
+    let(:access_mode) { :acl }
+    let!(:running_user) { create(access_mode == :acl ? :acl_user : :user) }
     let!(:role) { create(:role, can_view_project_related_filters: true, can_view_assigned_reports: true, can_view_projects: true, can_view_client_name: true) }
-    let!(:collection) { create(:collection) }
 
     let!(:hmis_ds) { create(:hmis_primary_data_source) }
     let!(:hmis_user) { create(:hmis_user, data_source: hmis_ds) }
@@ -52,14 +52,17 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Exports::AdHoc, type: :model do
       # see `youth/export_spec.rb`).
       Rails.cache.clear
       Collection.maintain_system_groups
-      collection.set_viewables({ projects: [project.id] })
-      setup_access_control(running_user, role, collection)
+      grant_project_access(running_user, role, [project], mode: access_mode)
       GrdaWarehouse::WarehouseClient.create!(destination_id: restricted_destination_client.id, source_id: restricted_source_client.id, data_source_id: hmis_ds.id, id_in_source: restricted_source_client.id.to_s)
       GrdaWarehouse::WarehouseClient.create!(destination_id: open_destination_client.id, source_id: open_source_client.id, data_source_id: hmis_ds.id, id_in_source: open_source_client.id.to_s)
       restricted_source_client.mark_as_restricted!(user: hmis_user)
     end
 
     after { GrdaWarehouse::Config.invalidate_cache }
+
+    def names_for(client)
+      row_by_header(ad_hoc.headers_for_report, ad_hoc.rows_for_export, key: client.id).values_at('First Name', 'Last Name')
+    end
   end
 
   describe '#rows_for_export' do
@@ -96,12 +99,11 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Exports::AdHoc, type: :model do
   # client enrolled in both `project` and `nameless_project`.
   shared_context 'projects with mixed access' do
     let!(:nameless_role) { create(:role, can_view_project_related_filters: true, can_view_assigned_reports: true, can_view_projects: true, can_view_client_name: false) }
-    let!(:nameless_collection) { create(:collection) }
     # Viewable, but through a role without `can_view_client_name`.
     let!(:nameless_project) { create(:hud_project, organization: organization, data_source: hmis_ds, ProjectType: 1) }
-    # Same data source and organization, but outside the running user's collections.
+    # Same data source and organization, but outside the running user's access.
     let!(:other_project) { create(:hud_project, organization: organization, data_source: hmis_ds, ProjectType: 1) }
-    # In the running user's collection, but the user can't report on confidential projects.
+    # Granted to the running user, but the user can't report on confidential projects.
     let!(:confidential_project) { create(:hud_project, organization: organization, data_source: hmis_ds, ProjectType: 1, confidential: true) }
 
     let!(:multi_project_client) { create(:grda_warehouse_hud_client, FirstName: 'Multi', LastName: 'Project', DOB: 20.years.ago.to_date) }
@@ -123,9 +125,8 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Exports::AdHoc, type: :model do
     end
 
     before do
-      collection.set_viewables({ projects: [project.id, confidential_project.id] })
-      nameless_collection.set_viewables({ projects: [nameless_project.id] })
-      setup_access_control(running_user, nameless_role, nameless_collection)
+      grant_project_access(running_user, role, [confidential_project], mode: access_mode)
+      grant_project_access(running_user, nameless_role, [nameless_project], mode: access_mode)
     end
   end
 
@@ -133,53 +134,90 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Exports::AdHoc, type: :model do
     include_context 'ad hoc report setup'
     include_context 'projects with mixed access'
 
-    context 'when nothing is selected' do
-      let(:selection) { {} }
+    [:acl, :legacy].each do |mode|
+      context "with #{mode} access" do
+        let(:access_mode) { mode }
 
-      it 'includes clients enrolled in every project the user can view' do
-        expect(client_ids(ad_hoc)).to contain_exactly(restricted_destination_client.id, open_destination_client.id, multi_project_client.id, nameless_client.id)
-      end
+        context 'when nothing is selected' do
+          let(:selection) { {} }
 
-      context 'with a viewable non-residential project' do
-        # The project picker only offers residential projects, so "nothing selected" covers the same set
-        let!(:services_only_project) { create(:hud_project, organization: organization, data_source: hmis_ds, ProjectType: 6) } # SSO
-        let!(:services_only_client) { create(:grda_warehouse_hud_client, FirstName: 'Services', LastName: 'Only', DOB: 20.years.ago.to_date) }
-        let!(:services_only_she) { build_open_enrollment(services_only_client, services_only_project) }
+          it 'includes clients enrolled in every project the user can view' do
+            expect(client_ids(ad_hoc)).to contain_exactly(restricted_destination_client.id, open_destination_client.id, multi_project_client.id, nameless_client.id)
+          end
 
-        before { collection.set_viewables({ projects: [project.id, confidential_project.id, services_only_project.id] }) }
+          context 'with a viewable non-residential project' do
+            # The project picker only offers residential projects, so "nothing selected" covers the same set
+            let!(:services_only_project) { create(:hud_project, organization: organization, data_source: hmis_ds, ProjectType: 6) } # SSO
+            let!(:services_only_client) { create(:grda_warehouse_hud_client, FirstName: 'Services', LastName: 'Only', DOB: 20.years.ago.to_date) }
+            let!(:services_only_she) { build_open_enrollment(services_only_client, services_only_project) }
 
-        it 'excludes clients enrolled only in that project' do
-          expect(client_ids(ad_hoc)).not_to include(services_only_client.id)
+            before { grant_project_access(running_user, role, [services_only_project], mode: access_mode) }
+
+            it 'excludes clients enrolled only in that project' do
+              expect(client_ids(ad_hoc)).not_to include(services_only_client.id)
+            end
+          end
+        end
+
+        context 'when only a data source is selected' do
+          let(:selection) { { data_source_ids: [hmis_ds.id] } }
+
+          it 'includes only clients enrolled in projects the user can view' do
+            expect(client_ids(ad_hoc)).to contain_exactly(restricted_destination_client.id, open_destination_client.id, multi_project_client.id, nameless_client.id)
+          end
+        end
+
+        context 'when only an organization is selected' do
+          let(:selection) { { organization_ids: [organization.id] } }
+
+          it 'includes only clients enrolled in projects the user can view' do
+            expect(client_ids(ad_hoc)).to contain_exactly(restricted_destination_client.id, open_destination_client.id, multi_project_client.id, nameless_client.id)
+          end
+        end
+
+        context 'when a project outside the user\'s access is selected' do
+          let(:selection) { { project_ids: [project.id, other_project.id] } }
+
+          it 'excludes clients enrolled only in that project' do
+            expect(client_ids(ad_hoc)).to contain_exactly(restricted_destination_client.id, open_destination_client.id, multi_project_client.id)
+          end
+        end
+
+        context 'when a confidential project is selected' do
+          let(:selection) { { project_ids: [project.id, confidential_project.id] } }
+
+          it 'excludes clients enrolled only in that project' do
+            expect(client_ids(ad_hoc)).to contain_exactly(restricted_destination_client.id, open_destination_client.id, multi_project_client.id)
+          end
         end
       end
     end
+  end
 
-    context 'when only a data source is selected' do
-      let(:selection) { { data_source_ids: [hmis_ds.id] } }
+  # ACL roles apply per collection, so a project the user can view but not report on stays out.
+  # Legacy access ignores the permission, so this is ACL only.
+  describe 'a project viewable without report access' do
+    include_context 'ad hoc report setup'
+    include_context 'projects with mixed access'
 
-      it 'includes only clients enrolled in projects the user can view' do
-        expect(client_ids(ad_hoc)).to contain_exactly(restricted_destination_client.id, open_destination_client.id, multi_project_client.id, nameless_client.id)
-      end
-    end
+    let(:access_mode) { :acl }
+    let!(:view_only_role) { create(:role, can_view_project_related_filters: true, can_view_assigned_reports: false, can_view_projects: true, can_view_client_name: true) }
+    let!(:view_only_project) { create(:hud_project, organization: organization, data_source: hmis_ds, ProjectType: 1) }
+    let!(:view_only_client) { create(:grda_warehouse_hud_client, FirstName: 'View', LastName: 'Only', DOB: 20.years.ago.to_date) }
+    let!(:view_only_she) { build_open_enrollment(view_only_client, view_only_project) }
 
-    context 'when only an organization is selected' do
-      let(:selection) { { organization_ids: [organization.id] } }
+    before { grant_project_access(running_user, view_only_role, [view_only_project], mode: access_mode) }
 
-      it 'includes only clients enrolled in projects the user can view' do
-        expect(client_ids(ad_hoc)).to contain_exactly(restricted_destination_client.id, open_destination_client.id, multi_project_client.id, nameless_client.id)
-      end
-    end
-
-    context 'when a project outside the user\'s access is selected' do
-      let(:selection) { { project_ids: [project.id, other_project.id] } }
+    context 'when nothing is selected' do
+      let(:selection) { {} }
 
       it 'excludes clients enrolled only in that project' do
-        expect(client_ids(ad_hoc)).to contain_exactly(restricted_destination_client.id, open_destination_client.id, multi_project_client.id)
+        expect(client_ids(ad_hoc)).to contain_exactly(restricted_destination_client.id, open_destination_client.id, multi_project_client.id, nameless_client.id)
       end
     end
 
-    context 'when a confidential project is selected' do
-      let(:selection) { { project_ids: [project.id, confidential_project.id] } }
+    context 'when that project is selected' do
+      let(:selection) { { project_ids: [project.id, view_only_project.id] } }
 
       it 'excludes clients enrolled only in that project' do
         expect(client_ids(ad_hoc)).to contain_exactly(restricted_destination_client.id, open_destination_client.id, multi_project_client.id)
@@ -201,10 +239,16 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Exports::AdHoc, type: :model do
       end
     end
 
-    context 'when only unauthorized projects are selected' do
-      let(:selection) { { project_ids: [other_project.id, confidential_project.id] } }
+    [:acl, :legacy].each do |mode|
+      context "with #{mode} access" do
+        let(:access_mode) { mode }
 
-      it_behaves_like 'an empty report'
+        context 'when only unauthorized projects are selected' do
+          let(:selection) { { project_ids: [other_project.id, confidential_project.id] } }
+
+          it_behaves_like 'an empty report'
+        end
+      end
     end
   end
 
@@ -213,10 +257,6 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Exports::AdHoc, type: :model do
     include_context 'projects with mixed access'
 
     before { GrdaWarehouse::Config.first_or_create.update!(include_pii_in_detail_downloads: true) }
-
-    def names_for(client)
-      row_by_header(ad_hoc.headers_for_report, ad_hoc.rows_for_export, key: client.id).values_at('First Name', 'Last Name')
-    end
 
     context 'with both the name-granting and the nameless project selected' do
       let(:selection) { { project_ids: [project.id, nameless_project.id] } }
@@ -239,33 +279,71 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Exports::AdHoc, type: :model do
     end
   end
 
+  # Legacy roles apply to every project the user can reach, so names follow the role alone.
+  describe 'name visibility with legacy access' do
+    include_context 'ad hoc report setup'
+    include_context 'projects with mixed access'
+
+    let(:access_mode) { :legacy }
+
+    before { GrdaWarehouse::Config.first_or_create.update!(include_pii_in_detail_downloads: true) }
+
+    it 'shows names when the role allows them' do
+      expect(names_for(open_destination_client)).to eq(['Open', 'Client'])
+    end
+
+    # The ACL examples above redact both of these clients
+    context 'with only the project reached through the nameless role selected' do
+      let(:selection) { { project_ids: [nameless_project.id] } }
+
+      it 'shows names granted by the user\'s other role' do
+        expect(names_for(nameless_client)).to eq(['Nameless', 'Person'])
+        expect(names_for(multi_project_client)).to eq(['Multi', 'Project'])
+      end
+    end
+
+    context 'when the role does not allow names' do
+      let!(:role) { create(:role, can_view_project_related_filters: true, can_view_assigned_reports: true, can_view_projects: true, can_view_client_name: false) }
+
+      it 'redacts names' do
+        expect(names_for(open_destination_client)).to eq(['Name Redacted', 'Name Redacted'])
+      end
+    end
+  end
+
   describe GrdaWarehouse::WarehouseReports::Exports::AdHocAnon do
     include_context 'ad hoc report setup'
     include_context 'projects with mixed access'
 
     let(:ad_hoc_anon) { described_class.create!(user_id: running_user.id, options: ad_hoc_options) }
 
-    # De-identified output: selected projects are not narrowed to the user's viewable projects.
-    context 'when a project outside the user\'s access is selected' do
-      let(:selection) { { project_ids: [project.id, other_project.id] } }
+    [:acl, :legacy].each do |mode|
+      context "with #{mode} access" do
+        let(:access_mode) { mode }
 
-      it 'includes clients from every selected project' do
-        expect(client_ids(ad_hoc_anon)).to contain_exactly(restricted_destination_client.id, open_destination_client.id, multi_project_client.id, other_project_client.id)
-      end
+        # De-identified output: selected projects are not narrowed to the user's viewable projects.
+        context 'when a project outside the user\'s access is selected' do
+          let(:selection) { { project_ids: [project.id, other_project.id] } }
 
-      it 'emits no names' do
-        GrdaWarehouse::Config.first_or_create.update!(include_pii_in_detail_downloads: true)
+          it 'includes clients from every selected project' do
+            expect(client_ids(ad_hoc_anon)).to contain_exactly(restricted_destination_client.id, open_destination_client.id, multi_project_client.id, other_project_client.id)
+          end
 
-        expect(ad_hoc_anon.headers_for_report).not_to include('First Name', 'Last Name', 'Client ID')
-        expect(ad_hoc_anon.rows_for_export.flatten).not_to include('Open', 'Multi', 'Elsewhere')
-      end
-    end
+          it 'emits no names' do
+            GrdaWarehouse::Config.first_or_create.update!(include_pii_in_detail_downloads: true)
 
-    context 'when nothing is selected' do
-      let(:selection) { {} }
+            expect(ad_hoc_anon.headers_for_report).not_to include('First Name', 'Last Name', 'Client ID')
+            expect(ad_hoc_anon.rows_for_export.flatten).not_to include('Open', 'Multi', 'Elsewhere')
+          end
+        end
 
-      it 'includes clients from every residential project' do
-        expect(client_ids(ad_hoc_anon)).to contain_exactly(restricted_destination_client.id, open_destination_client.id, multi_project_client.id, nameless_client.id, other_project_client.id, confidential_client.id)
+        context 'when nothing is selected' do
+          let(:selection) { {} }
+
+          it 'includes clients from every residential project' do
+            expect(client_ids(ad_hoc_anon)).to contain_exactly(restricted_destination_client.id, open_destination_client.id, multi_project_client.id, nameless_client.id, other_project_client.id, confidential_client.id)
+          end
+        end
       end
     end
   end
