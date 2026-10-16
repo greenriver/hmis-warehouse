@@ -531,7 +531,7 @@ module HmisDataQualityTool
         },
         ssn_issues: {
           title: 'Social Security Number',
-          description: "SSN is blank, SSN Data Quality is not \"Full SSN reported\" (1), or the value is not a valid Social Security Number. A valid SSN must meet all of the following rules: #{HudHelper.util.describe_valid_social_rules.join(' ')}",
+          description: 'SSN is blank, SSN Data Quality is not "Full SSN reported" (1), or the SSN breaks a HUD validity rule',
           required_for: 'All',
           detail_columns: [
             :destination_client_id,
