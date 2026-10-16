@@ -13,8 +13,6 @@ RSpec.describe HmisExternalApis::ExternalFormSubmissionNotificationMailer, type:
   include_context 'hmis base setup'
   include ActiveJob::TestHelper
 
-  let(:project_counts) { { p1.id.to_s => 2 } }
-
   after { clear_enqueued_jobs }
 
   # Enqueue the email the way the notify job does, apply a change before it's delivered, then deliver it
@@ -22,8 +20,8 @@ RSpec.describe HmisExternalApis::ExternalFormSubmissionNotificationMailer, type:
     before_id = Message.maximum(:id) || 0
     described_class.new_submissions(
       user_id: user.id,
-      data_source_id: ds1.id,
-      project_counts: project_counts,
+      project_id: p1.id,
+      new_count: 2,
     ).deliver_later
     yield if block_given?
     perform_enqueued_jobs
@@ -42,7 +40,7 @@ RSpec.describe HmisExternalApis::ExternalFormSubmissionNotificationMailer, type:
     expect(deliver_after { user.destroy! }).to be_empty
   end
 
-  it 'sends nothing when every project is gone before delivery' do
+  it 'sends nothing when the project is deleted before delivery' do
     expect(deliver_after { p1.destroy! }).to be_empty
   end
 end

@@ -82,11 +82,12 @@ External forms:
   `Mutations::RefreshExternalSubmissions` GraphQL mutation. Runs under an advisory lock
   (`with_lock`) and declares `supports_idempotent_retry? => false` — a failed run isn't retried;
   the next hourly enqueue picks the remaining objects back up. A successful run enqueues
-  `NotifyExternalFormSubmissionsJob`.
-- `HmisExternalApis::NotifyExternalFormSubmissionsJob` emails users with
-  `can_manage_external_form_submissions` about new submissions in projects that have an
-  `EXTERNAL_FORM_SUBMISSION_NOTIFICATIONS` project config. It stamps `reviewers_notified_at` on
-  every pending submission, opted in or not.
+  `NotifyExternalFormSubmissionsJob` for each project with an active external form.
+- `HmisExternalApis::NotifyExternalFormSubmissionsJob` takes a `project_id:` and emails users with
+  `can_manage_external_form_submissions` on that project about new submissions in its review
+  queue (`FormSubmission.in_review_queue_for`, the same scope the GraphQL queue uses), if the project
+  has an `EXTERNAL_FORM_SUBMISSION_NOTIFICATIONS` project config. It stamps `reviewers_notified_at`
+  on every pending submission in the queue, opted in or not.
 - `HmisExternalApis::ExternalFormsController` (`external_forms_controller.rb`) is development
   only; its `before_action` raises outside `Rails.env.development?`. Routes are wrapped in the
   same guard in `drivers/hmis_external_apis/config/routes.rb`.

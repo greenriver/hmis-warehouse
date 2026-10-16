@@ -1,12 +1,5 @@
 -# Never render submission content or client data here; see the mailer
 %p
-  = "There are new external form submissions to review in #{Translation.translate('Open Path HMIS')}."
-  Review them on each project's External Forms page.
-%ul
-  - @project_rows.each do |row|
-    %li
-      %strong= row[:name]
-      = ": #{pluralize(row[:new_count], 'new submission')}"
-      - if row[:url].present?
-        %br
-        = link_to 'Review External Forms', row[:url]
+  = "#{@project.project_name} has #{pluralize(@new_count, 'new submission')} to review in #{Translation.translate('Open Path HMIS')}."
+- if @url.present?
+  %p= link_to 'Review External Forms', @url
