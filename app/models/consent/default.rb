@@ -55,6 +55,11 @@ class Consent::Default
     GrdaWarehouse::Hud::Client.arel_table[:housing_release_status].matches("%#{full_release_string}")
   end
 
+  # A partial release is CAS-only and does not make a client visible in the warehouse
+  def self.visible_roi_statuses
+    [GrdaWarehouse::ClientRoiAuthorization::FULL_STATUS]
+  end
+
   def release_current_status
     consent_text = if @client.housing_release_status.blank?
       no_release_string

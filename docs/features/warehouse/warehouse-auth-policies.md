@@ -14,7 +14,7 @@ The system consists of four main components:
 
 - **Entry Point**: `User#policy_for(resource)` or `User#reporting_policy_for_project(project_id)` are the primary ways to obtain a policy.
 - **Context Objects**: `UserAclContext` and `UserLegacyContext` encapsulate permission lookups. They provide a common interface for policies to query permissions without knowing how they are stored or resolved.
-- **Context Loaders**: objects owned by the context that load and cache the data policies need, so checking many records doesn't cause N+1 queries.
+- **Context Loaders**: objects owned by the context that load and cache the data policies need, so checking many records doesn't cause N+1 queries. `ClientRoiLoader` reads `ClientRoiAuthorization.visible_in_cocs`; see [Client ROI and Consent](client-roi-and-consent.md).
 - **Policies**: Concrete classes inheriting from `BasePolicy` that define domain-specific authorization logic.
 
 ### Relationship Diagram
@@ -35,7 +35,7 @@ graph TD
 Policies are located in `app/models/grda_warehouse/auth_policies/`.
 
 - `BasePolicy`: Abstract base class providing common initialization and validation helpers.
-- **Resource Policies**: for warehouse resources (e.g., `ProjectPolicy`, `SourceClientPolicy`, `DataSourcePolicy`).
+- **Resource Policies**: for warehouse resources (e.g., `ProjectPolicy`, `OrganizationPolicy`, `SourceClientPolicy`, `DataSourcePolicy`).
 - **Specialized Policies**: optimized for controlling access to sensitive data in reporting contexts (e.g., `ProjectPiiPolicy`).
 
 ## Usage
@@ -52,6 +52,16 @@ policy.can_edit?
 pii_policy = current_user.reporting_policy_for_project(project_id)
 pii_policy.can_view_full_ssn?
 ```
+
+### Client feature permissions
+
+The client History page and the homeless verification PDF are authorized per client through the destination client policy:
+
+- `policy.can_view_history_calendar?` requires `can_view_clients` (or ROI view access) and `can_view_client_history_calendar` from a role that covers one of the client's projects.
+- `policy.can_generate_homeless_verification_pdfs?` requires everything `can_view_history_calendar?` requires, plus `can_generate_homeless_verification_pdfs`. The PDF contains the client's history, so the PDF permission alone is not enough.
+- `GrdaWarehouse::ClientFile.visible_by?(user, client:)` uses the same predicate to decide whether a generated verification PDF appears on the client's Files tab.
+
+A role that grants these permissions on a project the client is not enrolled in does not grant them for that client.
 
 ### Preloading
 
@@ -131,6 +141,8 @@ Fragment caches that render a client's PII must include `client_restricted?(clie
 Hidden clients are excluded from every warehouse-side client search by name or SSN. Search by DOB and lookup by exact warehouse id or PersonalID still find them: restriction blocks PII display and search by PII, not access to the record.
 
 New search code that matches on name or SSN should go through `Client.text_search`, or add `GrdaWarehouse::HiddenClients.not_hidden(column)` to its query. HMIS front-end search has its own restriction handling (see [HMIS Restricted Records](../hmis/hmis-restricted-records.md)) and is not affected.
+
+Pass `user:` to limit results to `Client.searchable_to(user)`. `text_search` checks visibility against its matches only, because building a user's whole searchable set takes seconds for users who can see most clients.
 
 ### OP Analytics and Superset `analytics.client_piis`
 

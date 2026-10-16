@@ -82,6 +82,7 @@ module HmisExternalApis
           File.write(path, "#{JSON.pretty_generate(document)}\n")
 
           validate_form(identifier, document)
+          validate_keys(identifier, rows)
         end
 
         write_overlay(merge_overlay(overlay, generated_overlay))
@@ -585,6 +586,26 @@ module HmisExternalApis
             identifier: identifier,
             title: @form_titles[identifier],
             message: error.full_message,
+          }
+        end
+      end
+
+      # DefinitionValidator runs with skip_cded_validation, so check here that each
+      # CDED key is present and would pass the CustomDataElementDefinition format validation.
+      def validate_keys(identifier, rows)
+        rows.each do |row|
+          key = row['key']
+          problem = if key.blank?
+            'key is blank'
+          elsif !key.match?(::Hmis::Hud::CustomDataElementDefinition::KEY_FORMAT)
+            "key #{key.inspect} has invalid characters (allowed: letters, numbers, underscore, hyphen)"
+          end
+          next unless problem
+
+          @validator_errors << {
+            identifier: identifier,
+            title: @form_titles[identifier],
+            message: "Item '#{row['link_id']}': #{problem}",
           }
         end
       end

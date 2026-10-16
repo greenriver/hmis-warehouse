@@ -3,6 +3,7 @@
 
 = render '/warehouse_reports/breadcrumbs', tab: 'public'
 %h1.mb-5= title
-
+.alert.alert-warning
+  %span This report is deprecated and is being replaced by #{link_to 'the State Dashboard Report Generator', public_reports_warehouse_reports_state_dashboard_index_path}.
 = render 'filter'
 = render 'public_reports/history'

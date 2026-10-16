@@ -142,6 +142,21 @@ RSpec.describe GrdaWarehouse::ServiceHistoryEnrollment, type: :model do
         expect(literally_homeless_scope).not_to include past_move_in_th
       end
     end
+
+    describe 'with an ES enrollment and a PH move-in' do
+      let!(:es_moved_in_today) { create :grda_warehouse_service_history, :service_history_entry, client_id: 5, data_source_id: 1, first_date_in_program: start_date, last_date_in_program: end_date }
+      let!(:ph_moved_in_today) { create :grda_warehouse_service_history, :service_history_entry, :with_ph_enrollment, client_id: 5, data_source_id: 1, move_in_date: Date.current, first_date_in_program: start_date, last_date_in_program: end_date }
+      let!(:es_moving_in_tomorrow) { create :grda_warehouse_service_history, :service_history_entry, client_id: 6, data_source_id: 1, first_date_in_program: start_date, last_date_in_program: end_date }
+      let!(:ph_moving_in_tomorrow) { create :grda_warehouse_service_history, :service_history_entry, :with_ph_enrollment, client_id: 6, data_source_id: 1, move_in_date: Date.tomorrow, first_date_in_program: start_date, last_date_in_program: end_date }
+
+      [:currently_homeless, :hud_currently_homeless].each do |scope|
+        it "#{scope} excludes a client on their PH move-in date but not the day before it" do
+          ids = described_class.public_send(scope, date: Date.current).where(client_id: [5, 6]).pluck(:id)
+
+          expect(ids).to contain_exactly(es_moving_in_tomorrow.id)
+        end
+      end
+    end
   end
 
   describe '.in_age_ranges' do

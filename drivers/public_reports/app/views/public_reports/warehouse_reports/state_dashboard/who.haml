@@ -1,0 +1,5 @@
+- if @report.renderable?
+  = render 'public_reports/state_dashboard/population_section', who: @report.parsed_pre_calculated_data['who'], include_breakdown: true
+  = render 'public_reports/state_dashboard/glossary'
+- else
+  = render 'public_reports/state_dashboard/stale'

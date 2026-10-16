@@ -97,7 +97,7 @@ Restriction:
 - `client.pii_restricted?(user:)`.
 - `GrdaWarehouse::HiddenClients.not_hidden(column)` (Arel predicate for queries),
   `.restricted_subset(ids, identity_links:)`, `.identity_links(ids)`, `.inactive_subset(ids)`, `.hidden_ids_in(scope)`.
-- `GrdaWarehouse::Hud::Client.text_search(text, client_scope:)`,
+- `GrdaWarehouse::Hud::Client.text_search(text, client_scope:, user:)`,
   `.strict_search(criteria, client_scope:)`, `client.potential_matches`;
   `ClientSearch.text_searcher(text, sorted:, name_and_ssn_filter:)`;
   `HudReports::ReportClientBase.restricted_condition`.
@@ -233,6 +233,12 @@ duplicate check) adds `not_hidden` to its name and SSN clauses directly.
 `HudReports::ReportClientBase.restricted_condition` applies `not_hidden` to each report
 drilldown client id column. `Hmis::Hud::Client` never passes the keyword; its exclusion is
 `searchable_to`.
+
+`Client.text_search(user:)` limits results to `Client.searchable_to(user)`, checked against the
+matched source ids (`searchable_to(user, client_ids:)`) rather than the user's whole searchable
+set. Above `MAX_SEARCH_CANDIDATES` matches it falls back to a `searchable_to(user)` subquery. An
+empty match list skips the call, because `searchable_to` treats empty `client_ids` as unrestricted.
+`ClientAccessControl::ClientsController#perform_text_search` passes `user: current_user`.
 
 **Exports.** `Export::RestrictedClientPiiTransform` redacts `Client.csv` in HMIS CSV exports
 for restricted and inactive destination clients unless the export is hashed or faked; see

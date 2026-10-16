@@ -57,6 +57,16 @@ Remaining fields (financials, PIT participation, CoC meetings, etc.) are entered
 - `belongs_to :apr` / `belongs_to :spm` (`HudReports::ReportInstance`) — both generated automatically during pre-fill
 - Contacts resolved through project and project group associations
 
+## Access
+
+Every controller action and the PDF export require the scorecard report definition to be assigned to the user (`WarehouseReportAuthorization`). Scorecard records are then limited by `Report.viewable_by(user)`:
+
+- `can_view_all_reports`: every scorecard.
+- `can_view_assigned_reports`: scorecards the user created, plus scorecards where the user is linked (`Contact#user_id`) to a contact on the project or its organization. For a project group scorecard, contacts on any project in the group, or on those projects' organizations, count.
+- Neither permission: none.
+
+Being a contact is enough; the user does not also need access to the project. The index, history, member actions (`show`, `edit`, `update`, `complete`, `rewind`), and `ScorecardExport` all use this scope. Any user who passes it can run every workflow step; per-role step rules are not enforced.
+
 ## Field Locking
 
 `Report#locked?` restricts which fields are editable based on the current status. The creator edits scored fields during `pre-filled`; contacts edit agency response fields during `ready`; all fields lock on `completed`.

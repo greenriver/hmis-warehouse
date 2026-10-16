@@ -91,7 +91,8 @@ shows the `with_deleted` idiom.
 `Hmis::Hud::CustomDataElementDefinition` (table `CustomDataElementDefinitions`) describes one custom
 field: `owner_type` (an STI name such as `Hmis::Hud::CustomAssessment`), `key`, `label`,
 `field_type` (one of `FIELD_TYPES`), `repeats`, and an optional `form_definition_identifier`. The
-database enforces `(owner_type, key)` unique across all data sources. `Hmis::Hud::CustomDataElement`
+database enforces `(owner_type, key)` unique across all data sources. `key` must match
+`CustomDataElementDefinition::KEY_FORMAT` (letters, digits, `_`, `-`). `Hmis::Hud::CustomDataElement`
 (table `CustomDataElements`) holds one value in the `value_<field_type>` column matching its
 definition (`value_file_id` for `file`) and `belongs_to :owner, polymorphic: true`. Validations
 require exactly one value column and an owner type equal to the definition's; a uniqueness

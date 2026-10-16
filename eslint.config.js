@@ -14,6 +14,8 @@ module.exports = [
         console: true,
         document: true,
         localStorage: true,
+        performance: true,
+        PerformanceObserver: true,
         setInterval: true,
         setTimeout: true,
         clearTimeout: true,

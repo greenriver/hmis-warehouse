@@ -23,6 +23,31 @@ module GrdaWarehouse
         where(arel_table[:expires_at].eq(nil).or(arel_table[:expires_at].gteq(date)))
     }
 
+    # Blank coc_codes and 'All CoCs' apply in every CoC
+    scope :in_coc_codes, ->(coc_codes) {
+      column = arel_table[:coc_codes]
+      where(column.eq(nil).or(column.eq([])).or(column.overlaps(Array.wrap(coc_codes) + ['All CoCs'])))
+    }
+
+    # The ROI rule for warehouse client visibility; EnrollmentArbiter, ClientRoiLoader and
+    # Client#show_demographics_to? must all use it
+    scope :visible_in_cocs, ->(coc_codes, date = Date.current) {
+      active(date).
+        where(status: GrdaWarehouse::Config.active_consent_class.visible_roi_statuses).
+        in_coc_codes(coc_codes)
+    }
+
+    # An ROI only exposes source clients from data sources that obey consent, so a destination
+    # with no such source has nothing to show
+    scope :with_consenting_source, -> {
+      consenting_destination_ids = GrdaWarehouse::WarehouseClient.
+        where(deleted_at: nil).
+        joins(source: :data_source).
+        merge(GrdaWarehouse::DataSource.obeys_consent).
+        select(:destination_id)
+      where(destination_client_id: consenting_destination_ids)
+    }
+
     def active?(date: Date.current)
       case status
       when PARTIAL_STATUS, FULL_STATUS
@@ -42,17 +67,6 @@ module GrdaWarehouse
       else
         true
       end
-    end
-
-    def matches_coc_codes?(any_coc_codes)
-      # if there are no codes, assume visibility not limited by COC
-      return true if coc_codes.blank?
-
-      # Mirror valid_in_coc in drivers/client_access_control/app/models/client_access_control/extensions/grda_warehouse/hud/client_extension.rb:
-      # an ROI that includes "All CoCs" applies to all CoCs and must not require a literal code intersection
-      return true if coc_codes.include?('All CoCs')
-
-      (any_coc_codes & coc_codes).present?
     end
 
     def partial_release?
