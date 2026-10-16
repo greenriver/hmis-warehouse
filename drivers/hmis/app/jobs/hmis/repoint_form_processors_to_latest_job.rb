@@ -40,8 +40,6 @@
 # Returns one entry per retired definition: { role:, identifier:, from_version:, to_version:, processors: }
 module Hmis
   class RepointFormProcessorsToLatestJob < BaseJob
-    include NotifierConfig
-
     queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
 
     SUPPORTED_ROLES = ['CUSTOM_ASSESSMENT', 'CASE_NOTE', 'SERVICE', 'CURRENT_LIVING_SITUATION'].freeze
@@ -160,7 +158,7 @@ module Hmis
     # Set of work-in-progress assessment ids. Only assessments can be saved in progress, and their processors are skipped.
     def wip_assessment_ids
       @wip_assessment_ids ||= if @roles.include?('CUSTOM_ASSESSMENT')
-        Hmis::Hud::CustomAssessment.where(data_source_id: @data_source_id, wip: true).pluck(:id).to_set
+        Hmis::Hud::CustomAssessment.in_progress.where(data_source_id: @data_source_id).pluck(:id).to_set
       else
         Set.new
       end
