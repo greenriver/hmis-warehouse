@@ -171,6 +171,24 @@ RSpec.describe 'DataQualityReportsController#support', type: :request do
       expect(response.body).to include(project.ProjectName)
     end
 
+    it 'returns the report answers for a project in the user collections' do
+      report.update!(report: { 'total_clients' => 'Viewable project answer' })
+
+      get answers_project_data_quality_report_path(project, report)
+
+      expect(response).to have_http_status(:ok)
+      expect(JSON.parse(response.body)).to eq('total_clients' => 'Viewable project answer')
+    end
+
+    it 'redirects answers for a report on a project outside the user collections without returning the report' do
+      other_report.update!(report: { 'total_clients' => 'Hidden project answer' })
+
+      get answers_project_data_quality_report_path(other_project, other_report)
+
+      expect(response).to redirect_to(user.my_root_path)
+      expect(response.body).not_to include('Hidden project answer')
+    end
+
     it 'redirects a logged-out request for show to sign in' do
       sign_out(user)
 
