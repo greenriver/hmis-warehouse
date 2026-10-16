@@ -67,6 +67,22 @@ RSpec.describe Filters::Criteria::FilterForOrganizations do
       end
     end
 
+    context 'when the user can only view some of the selected organizations' do
+      let(:limited_user) { create(:acl_user) }
+      let(:filter) { ::Filters::FilterBase.new(user_id: limited_user.id, organization_ids: [organization.id, organization2.id]) }
+
+      before do
+        Rails.cache.clear
+        limited_collection = create(:collection)
+        limited_collection.set_viewables({ projects: [project.id] })
+        setup_access_control(limited_user, role, limited_collection)
+      end
+
+      it 'returns enrollments from the viewable organizations only' do
+        expect(criteria.apply(scope).pluck(:id)).to contain_exactly(enrollments[0].id)
+      end
+    end
+
     context 'with multiple organizations selected' do
       let(:organization_ids) { [organization.id, organization2.id] }
 

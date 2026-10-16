@@ -13,8 +13,9 @@ class Filters::Criteria::FilterForOrganizations < Filters::Criteria::Base
 
   def apply(scope)
     scope = super(scope)
-    # order of scopes may matter here
-    scope.merge(GrdaWarehouse::Hud::Organization.viewable_by(user)).
-      in_organization(input.organization_ids)
+    # Viewable and selected organizations in one merge; merging them separately lets the
+    # second `where` on the organization id replace the first
+    scope.joins(:organization).
+      merge(GrdaWarehouse::Hud::Organization.viewable_by(user).where(id: input.organization_ids))
   end
 end
