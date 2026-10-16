@@ -117,6 +117,28 @@ RSpec.describe Clients::RestrictionsController, type: :request do
       expect(response.body).not_to include('Ermengarde')
     end
 
+    it 'leaves the last name out of the modal when the client is also restricted in HMIS' do
+      client.update!(LastName: 'Quimby')
+      restrict_in_hmis
+      DestinationClientRestriction.new(client).restrict!(user: user)
+
+      get client_restriction_path(client)
+
+      expect(response.body).to include('Do you want to remove the restriction for this client?')
+      expect(response.body).not_to include('Quimby')
+    end
+
+    it 'leaves the last name out of the modal when the client is inactive' do
+      client.update!(LastName: 'Quimby')
+      GrdaWarehouse::ClientRetentionMark.create!(client_id: source_client.id, marked_on: Date.current, last_activity_on: 10.years.ago.to_date, retention_years: 7)
+      DestinationClientRestriction.new(client).restrict!(user: user)
+
+      get client_restriction_path(client)
+
+      expect(response.body).to include('Do you want to remove the restriction for this client?')
+      expect(response.body).not_to include('Quimby')
+    end
+
     it 'says no last name is recorded when the client has none' do
       client.update!(LastName: nil)
       DestinationClientRestriction.new(client).restrict!(user: user)
@@ -131,6 +153,22 @@ RSpec.describe Clients::RestrictionsController, type: :request do
 
       get client_restriction_path(client)
 
+      expect(response.body).not_to include('Quimby')
+    end
+  end
+
+  context 'with the permission but not client names' do
+    let(:nameless_role) { create(:role, can_view_clients: true, can_view_full_client_dashboard: true, can_mark_clients_as_restricted: true) }
+
+    before { setup_access_control(user, nameless_role, project_collection) }
+
+    it 'leaves the last name out of the modal' do
+      client.update!(LastName: 'Quimby')
+      DestinationClientRestriction.new(client).restrict!(user: user)
+
+      get client_restriction_path(client)
+
+      expect(response.body).to include('Do you want to remove the restriction for this client?')
       expect(response.body).not_to include('Quimby')
     end
   end

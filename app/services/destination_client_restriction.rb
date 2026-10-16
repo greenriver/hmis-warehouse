@@ -63,6 +63,16 @@ class DestinationClientRestriction
     removed
   end
 
+  # The client's PII as the user would see it with the warehouse row removed. Name permissions,
+  # an HMIS restriction, and an inactive identity still hide it.
+  # @param user [User]
+  # @return [GrdaWarehouse::PiiProvider]
+  def pii_provider_without_warehouse_restriction(user:)
+    hidden = restricted_in_hmis? || GrdaWarehouse::HiddenClients.inactive_subset([@client.id]).any?
+    policy = GrdaWarehouse::PiiProvider.restrict(user.policy_for(@client), restricted: hidden)
+    GrdaWarehouse::PiiProvider.new(@client, policy: policy)
+  end
+
   # A create version is a restriction and a destroy is its removal.
   # @return [ActiveRecord::Relation<GrdaWarehouse::Version>]
   def versions

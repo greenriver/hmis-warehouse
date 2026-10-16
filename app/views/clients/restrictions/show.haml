@@ -11,8 +11,11 @@
 = form_with url: client_restriction_path(@client), method: :patch do |f|
   - if @restriction.restricted_in_warehouse?
     = hidden_field_tag :restricted, '0'
-    - if @client.LastName.present?
-      %p= safe_join(['Do you want to remove the restriction for this client with a last name of ', tag.strong(@client.LastName), '?'])
+    - pii = @restriction.pii_provider_without_warehouse_restriction(user: current_user)
+    - if pii.redact_name?
+      %p Do you want to remove the restriction for this client?
+    - elsif pii.last_name.present?
+      %p= safe_join(['Do you want to remove the restriction for this client with a last name of ', tag.strong(pii.last_name), '?'])
     - else
       %p Do you want to remove the restriction for this client? No last name is recorded.
     = f.submit 'Remove Restriction', class: 'btn btn-danger'
