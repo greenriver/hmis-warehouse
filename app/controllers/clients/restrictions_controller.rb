@@ -7,13 +7,13 @@
 # frozen_string_literal: true
 
 module Clients
-  class RestrictionsController < ApplicationController
+  class RestrictionsController < ApplicationControllerV2
     include AjaxModalRails::Controller
     include ClientPathGenerator
     include ClientDependentControllers
 
     before_action :set_client
-    before_action :require_can_mark_restricted!
+    authorize_with { current_user.policy_for(@client).can_mark_restricted? }
     after_action :log_client
 
     def show
@@ -45,10 +45,6 @@ module Clients
 
     private def set_client
       @client = client_source.destination.find(params[:client_id].to_i)
-    end
-
-    private def require_can_mark_restricted!
-      not_authorized! unless current_user.policy_for(@client).can_mark_restricted?
     end
   end
 end
