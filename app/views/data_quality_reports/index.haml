@@ -1,4 +1,4 @@
-- safe_project_name = @project.name(current_user, ignore_confidential_status: current_user.can_edit_projects?)
+- safe_project_name = @project.name(current_user, ignore_confidential_status: can_edit_projects?)
 = content_for :crumbs do
   = link_to project_path(@project) do
     = "« #{safe_project_name}"

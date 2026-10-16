@@ -2,7 +2,7 @@
   = "Project Data Quality Report for #{@project.name(current_user)} at #{@project.organization_name(current_user)} - Supporting Data"
 - if @data.any?
   - client_link = [:window, :client]
-  - if current_user.can_view_clients?
+  - if can_view_clients?
     - client_link = [:client]
   .pull-right
     = link_to support_project_data_quality_report_path(@project, @report, {key: @key, format: :xlsx}) do

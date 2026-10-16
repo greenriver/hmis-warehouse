@@ -55,6 +55,7 @@ RSpec.describe 'DataQualityReportsProjectGroupController', type: :request do
     get support_project_group_data_quality_report_path(other_project_group, other_report, individual: true, method: 'test')
 
     expect(response).to redirect_to(user.my_root_path)
+    expect(flash[:alert]).to be_present
     expect(response.body).not_to include('Casey')
   end
 
