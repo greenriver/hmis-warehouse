@@ -51,6 +51,8 @@ class DestinationClientRestriction
 
   # @param user [User]
   def restrict!(user:)
+    # created_by is an Hmis::User (the same users row). Not as_hmis_user: it returns nil when
+    # HMIS is disabled, and warehouse restrictions still need to work then.
     self.class.as_actor(user) { Hmis::RestrictedRecord.mark!(restrictable, user: Hmis::User.find(user.id)) }
     @client.clear_view_cache
   end

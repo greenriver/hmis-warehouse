@@ -122,7 +122,7 @@ The masked SSN (`XXX-XX-1234`) is a separate permission from the full SSN. Every
 
 ### Client restriction
 
-Two states hide a client's PII in the warehouse:
+Three states hide a client's PII in the warehouse:
 
 - An HMIS source client marked restricted in HMIS (see [HMIS Restricted Records](../hmis/hmis-restricted-records.md)).
 - A destination client marked restricted in the warehouse by a user with `can_mark_clients_as_restricted` (`DestinationClientRestriction`, stored as an `Hmis::RestrictedRecord` on the destination id).
@@ -131,6 +131,8 @@ Two states hide a client's PII in the warehouse:
 Any of these blocks PII for every warehouse user, regardless of role or permissions; there is no warehouse-side override. `can_mark_clients_as_restricted` marks and unmarks a client. It never grants viewing, so a user with it sees the same redacted PII as everyone else while the client is restricted. `current_user.policy_context.client_restricted?(client_id)` answers for all states. Visibility returns when every restriction on the identity is removed, or when the identity has new activity and the next retention run clears it. The warehouse removes only its own destination row. HMIS rows are removed in HMIS.
 
 Restriction applies to the whole warehouse identity. HMIS restriction is limited to a single data source on the HMIS front end, but in the warehouse a restriction on any source client hides the destination and every other source merged into it.
+
+Warehouse restrictions reuse `hmis_restricted_records` and its HMIS classes. The row's `restrictable_type` is `Hmis::Hud::Client` and its `created_by` is an `Hmis::User`, which read the same rows as `GrdaWarehouse::Hud::Client` and `User`. Every reader of the table matches on the `Hmis::Hud::Client` type string, including `GrdaWarehouse::HiddenClients` (redaction and search exclusion) and the `analytics.client_piis` view. A separate warehouse model or type string would mean updating each of them, and PaperTrail history would split across two item types. The HMIS driver's models load whether or not `ENABLE_HMIS_API` is set, so this works with HMIS disabled. Convert a `User` with `Hmis::User.find(user.id)`, not `as_hmis_user`, which returns nil when HMIS is disabled.
 
 Merges and splits:
 
