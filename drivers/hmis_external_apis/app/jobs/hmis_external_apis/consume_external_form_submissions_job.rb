@@ -30,6 +30,7 @@ class HmisExternalApis::ConsumeExternalFormSubmissionsJob < BaseJob
     instrument_as_maintenance_task do |run|
       with_lock do
         _perform(...)
+        HmisExternalApis::NotifyExternalFormSubmissionsJob.perform_later_for_review_projects
         run.complete!
       end
     end

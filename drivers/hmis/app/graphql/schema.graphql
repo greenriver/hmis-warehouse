@@ -10151,6 +10151,11 @@ enum ProjectConfigType {
   COORDINATED_ENTRY
 
   """
+  External Form Submission Notifications
+  """
+  EXTERNAL_FORM_SUBMISSION_NOTIFICATIONS
+
+  """
   Outgoing Referrals
   """
   SENDS_DIRECT_CE_REFERRALS

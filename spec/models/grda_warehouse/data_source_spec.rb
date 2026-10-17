@@ -711,6 +711,27 @@ RSpec.describe model, type: :model do
 
       expect(hmis_ds.hmis_url_for(client, user: user)).to eq("https://hmis.example.test/client/#{client.id}")
     end
+
+    describe 'subpath' do
+      let(:project) { create(:hud_project, data_source: hmis_ds) }
+
+      it 'appends the subpath to the entity path' do
+        expect(hmis_ds.hmis_url_for(project, subpath: 'external-form-submissions')).
+          to eq("https://hmis.example.test/projects/#{project.id}/external-form-submissions")
+      end
+
+      it 'leaves the URL unchanged when omitted' do
+        expect(hmis_ds.hmis_url_for(project)).to eq("https://hmis.example.test/projects/#{project.id}")
+      end
+
+      it 'includes the subpath in the sign-in redirect', :jwt_only do
+        allow(user).to receive(:related_hmis_user).and_return(nil)
+        user.update_column(:last_connector_id, 'keycloak')
+
+        expect(hmis_ds.hmis_url_for(project, user: user, subpath: 'external-form-submissions')).
+          to eq("https://hmis.example.test/oauth2/sign_in?connector_id=keycloak&rd=%2Fprojects%2F#{project.id}%2Fexternal-form-submissions")
+      end
+    end
   end
 
   describe 'hmis hostnames' do
