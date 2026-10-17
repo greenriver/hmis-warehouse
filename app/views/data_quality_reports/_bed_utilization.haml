@@ -45,7 +45,7 @@
                 = project["#{measure}_percentage"] || 0
                 %span.text-muted
                   - if project[measure] > 0
-                    = link_to polymorphic_path(support_path, {key: key}), data: {loads_in_pjax_modal: true} do
+                    = dq_support_link_to(support_path, {key: key}, data: {loads_in_pjax_modal: true}) do
                       (#{project[measure]})
         - if @report.projects.count > 1
           %tr
@@ -60,5 +60,5 @@
               %td.text-center{class: odd_class, style: "color: #{grade.color};"}
                 = totals[:counts]["#{measure}_percentage"] || 0
                 %span.text-muted
-                  = link_to polymorphic_path(support_path, {key: key}), data: {loads_in_pjax_modal: true} do
+                  = dq_support_link_to(support_path, {key: key}, data: {loads_in_pjax_modal: true}) do
                     (#{totals[:counts][measure]})

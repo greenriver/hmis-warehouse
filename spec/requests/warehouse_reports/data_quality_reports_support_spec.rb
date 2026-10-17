@@ -211,4 +211,76 @@ RSpec.describe 'DataQualityReportsController#support', type: :request do
       expect(response).to have_http_status(:not_found)
     end
   end
+
+  describe 'support links on the report page' do
+    before { report.update!(completed_at: Time.current, requestor_id: user.id) }
+
+    it 'links enrolled client counts to support when the user can view clients' do
+      get project_data_quality_report_path(project, report)
+
+      path = support_project_data_quality_report_path(project, report, individual: true, method: :enrolled_clients)
+      expect(response.body).to include(ERB::Util.html_escape(path))
+    end
+
+    [:data_quality_report_version_four].each do |factory|
+      it "links a #{factory} report to support" do
+        older_report = create(factory, project: project, requestor_id: user.id, completed_at: Time.current, report: {})
+
+        get project_data_quality_report_path(project, older_report)
+
+        expect(response).to have_http_status(:ok)
+        expect(response.body).to include("data_quality_reports/#{older_report.id}/support")
+      end
+    end
+  end
+
+  context 'as a project contact without client access' do
+    let!(:contact_user) { create(:acl_user) }
+
+    before do
+      contact_collection = create(:collection)
+      contact_collection.set_viewables({ reports: [report_definition.id] })
+      setup_access_control(contact_user, create(:role, can_view_assigned_reports: true), contact_collection)
+      create(:grda_warehouse_contact_project, entity: project, user: contact_user)
+      sign_out(user)
+      sign_in(contact_user)
+    end
+
+    it 'redirects support and does not render rows' do
+      get support_project_data_quality_report_path(project, report, individual: true, method: 'test')
+
+      expect(response).to redirect_to(contact_user.my_root_path)
+      expect(response.body).not_to include('Open')
+    end
+
+    it 'shows enrolled client counts as text without a support link' do
+      report.update!(completed_at: Time.current, requestor_id: user.id)
+
+      get project_data_quality_report_path(project, report)
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include(ActionController::Base.helpers.pluralize(report.enrolled_client_count, 'client'))
+      expect(response.body).not_to include("data_quality_reports/#{report.id}/support")
+    end
+
+    [:data_quality_report_version_four].each do |factory|
+      it "renders a #{factory} report without support links" do
+        older_report = create(factory, project: project, requestor_id: user.id, completed_at: Time.current, report: {})
+
+        get project_data_quality_report_path(project, older_report)
+
+        expect(response).to have_http_status(:ok)
+        expect(response.body).not_to include("data_quality_reports/#{older_report.id}/support")
+      end
+    end
+
+    it 'returns the report answers' do
+      report.update!(report: { 'total_clients' => 'Contact answer' })
+
+      get answers_project_data_quality_report_path(project, report)
+
+      expect(response).to have_http_status(:ok)
+      expect(JSON.parse(response.body)).to eq('total_clients' => 'Contact answer')
+    end
+  end
 end

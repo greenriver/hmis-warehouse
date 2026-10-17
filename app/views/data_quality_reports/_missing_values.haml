@@ -123,7 +123,7 @@
                       #{counts["#{project.id}"]["#{type}_#{word}_percentage"].try(&:round)}%
                       .text-muted
                         - if measure > 0
-                          = link_to polymorphic_path(support_path, {key: key}), data: {loads_in_pjax_modal: true} do
+                          = dq_support_link_to(support_path, {key: key}, data: {loads_in_pjax_modal: true}) do
                             #{measure}
                         - else
                           #{measure}
@@ -144,7 +144,7 @@
                     #{totals["#{type}_#{word}_percentage"].try(&:round)}%
                     .text-muted
                       - if measure > 0
-                        = link_to polymorphic_path(support_path, {key: key}), data: {loads_in_pjax_modal: true} do
+                        = dq_support_link_to(support_path, {key: key}, data: {loads_in_pjax_modal: true}) do
                           #{measure}
                       - else
                         #{measure}

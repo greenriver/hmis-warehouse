@@ -14,11 +14,16 @@ class DataQualityReportsController < ApplicationControllerV2
   before_action :set_report, except: [:index]
   authorize_with(only: :index) { subject_viewable? }
   authorize_with(except: :index) { report_policy.can_view? }
+  authorize_with(only: :support) { can_view_dq_support? }
   before_action :set_support_path, only: [:show]
   before_action :set_report_keys, only: [:show]
 
   helper_method def report_policy
     current_user.policy_for(@report)
+  end
+
+  helper_method def can_view_dq_support?
+    report_policy.can_view_client_details?
   end
 
   def show

@@ -573,51 +573,39 @@ module GrdaWarehouse::Hud
     def self.project_ids_viewable_by(user, permission: :can_view_projects)
       return Set.new unless user&.send("#{permission}?")
 
-      ids = Set.new
-      ids += project_ids_from_viewable_entities(user, permission)
-      ids += project_ids_from_organizations(user, permission)
-      ids += project_ids_from_data_sources(user, permission)
-      ids += project_ids_from_coc_codes(user, permission)
-      ids += project_ids_from_project_groups(user, permission)
-      ids
+      project_ids_in_collections(user.collections_for_permission(permission))
     end
 
     def self.project_ids_editable_by(user)
       return Set.new unless user&.can_edit_projects?
 
+      project_ids_in_collections(user.collections_for_permission(:can_edit_projects))
+    end
+
+    def self.project_ids_in_collections(collection_ids)
+      return Set.new if collection_ids.empty?
+
       ids = Set.new
-      ids += project_ids_from_viewable_entities(user, :can_edit_projects)
-      ids += project_ids_from_organizations(user, :can_edit_projects)
-      ids += project_ids_from_data_sources(user, :can_edit_projects)
-      ids += project_ids_from_coc_codes(user, :can_edit_projects)
-      ids += project_ids_from_project_groups(user, :can_edit_projects)
+      ids += project_ids_from_viewable_entities(collection_ids)
+      ids += project_ids_from_organizations(collection_ids)
+      ids += project_ids_from_data_sources(collection_ids)
+      ids += project_ids_from_coc_codes(collection_ids)
+      ids += project_ids_from_project_groups(collection_ids)
       ids
     end
 
-    def self.project_ids_from_viewable_entities(user, permission)
-      return [] unless user.present?
-      return [] unless user.send("#{permission}?")
-
-      collection_ids = user.collections_for_permission(permission)
-      return [] if collection_ids.empty?
-
+    def self.project_ids_from_viewable_entities(collection_ids)
       GrdaWarehouse::GroupViewableEntity.where(
         collection_id: collection_ids,
         entity_type: 'GrdaWarehouse::Hud::Project',
       ).pluck(:entity_id)
     end
 
-    def self.project_ids_from_coc_codes(user, permission)
-      project_ids_from_entity_type(user, permission, GrdaWarehouse::Lookups::CocCode)
+    def self.project_ids_from_coc_codes(collection_ids)
+      project_ids_from_entity_type(collection_ids, GrdaWarehouse::Lookups::CocCode)
     end
 
-    def self.project_ids_from_entity_type(user, permission, entity_class)
-      return [] unless user.present?
-      return [] unless user.send("#{permission}?")
-
-      collection_ids = user.collections_for_permission(permission)
-      return [] if collection_ids.empty?
-
+    def self.project_ids_from_entity_type(collection_ids, entity_class)
       entity_class.where(
         id: GrdaWarehouse::GroupViewableEntity.where(
           collection_id: collection_ids,
@@ -626,16 +614,16 @@ module GrdaWarehouse::Hud
       ).joins(:projects).pluck(p_t[:id])
     end
 
-    def self.project_ids_from_organizations(user, permission)
-      project_ids_from_entity_type(user, permission, GrdaWarehouse::Hud::Organization)
+    def self.project_ids_from_organizations(collection_ids)
+      project_ids_from_entity_type(collection_ids, GrdaWarehouse::Hud::Organization)
     end
 
-    def self.project_ids_from_data_sources(user, permission)
-      project_ids_from_entity_type(user, permission, GrdaWarehouse::DataSource)
+    def self.project_ids_from_data_sources(collection_ids)
+      project_ids_from_entity_type(collection_ids, GrdaWarehouse::DataSource)
     end
 
-    def self.project_ids_from_project_groups(user, permission)
-      project_ids_from_entity_type(user, permission, GrdaWarehouse::ProjectAccessGroup)
+    def self.project_ids_from_project_groups(collection_ids)
+      project_ids_from_entity_type(collection_ids, GrdaWarehouse::ProjectAccessGroup)
     end
 
     # make a scope for every project type and a type? method for instances

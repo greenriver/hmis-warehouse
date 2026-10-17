@@ -30,9 +30,7 @@
       %strong Email
       checkbox is checked.
     %p
-      Contacts will not have access to the client-level details of the report,
-      %strong unless
-      they are logged-in with a user account that can view the report and can view the project.
+      Contacts can view the report when logged in with a user account that has access to the Project Data Quality report.  Client-level details also require access to the clients in the project.
 
   = simple_form_for :project_data_quality, url: warehouse_reports_project_data_quality_path(filters: link_params[:filters].to_h) do |f|
     - select_scope = 'allOrgsProjects'

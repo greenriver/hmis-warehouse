@@ -95,6 +95,7 @@ class App.DataQualityReports.Completeness extends App.DataQualityReports.Base
             "#{v}%"
 
   _follow_link: (d, element) =>
+    return unless @support_url
     # console.log(@project_id)
     column = @columns[d.x]
     switch d.id

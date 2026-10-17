@@ -26,7 +26,7 @@ RSpec.describe 'DataQualityReportsProjectGroupController', type: :request do
   let!(:other_project) { create(:hud_project, data_source: data_source, OrganizationID: organization.OrganizationID) }
   let!(:project_group) { create(:project_group, projects: [project]) }
   let!(:other_project_group) { create(:project_group, projects: [other_project]) }
-  let!(:report) { create(:data_quality_report_version_five, project: nil, project_group: project_group) }
+  let!(:report) { create(:data_quality_report_version_five, project: nil, project_group: project_group, requestor_id: user.id) }
   let!(:other_report) { create(:data_quality_report_version_five, project: nil, project_group: other_project_group) }
   let(:support_data) do
     {
@@ -38,7 +38,7 @@ RSpec.describe 'DataQualityReportsProjectGroupController', type: :request do
 
   before do
     Collection.maintain_system_groups
-    collection.set_viewables({ reports: [report_definition.id], project_groups: [project_group.id] })
+    collection.set_viewables({ reports: [report_definition.id], project_groups: [project_group.id], projects: [project.id] })
     setup_access_control(user, role, collection)
     allow_any_instance_of(GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionFive).to receive(:support_for).and_return(support_data)
     sign_in(user)
@@ -55,12 +55,17 @@ RSpec.describe 'DataQualityReportsProjectGroupController', type: :request do
   context 'when the user cannot view clients' do
     let!(:role) { create(:role, can_view_assigned_reports: true, can_view_projects: true) }
 
-    it 'renders support rows without a client link' do
+    it 'redirects support without rendering rows' do
       get support_project_group_data_quality_report_path(project_group, report, individual: true, method: 'test')
 
+      expect(response).to redirect_to(user.my_root_path)
+      expect(response.body).not_to include('Casey')
+    end
+
+    it 'renders show for the report' do
+      get project_group_data_quality_report_path(project_group, report)
+
       expect(response).to have_http_status(:ok)
-      expect(response.body).to include('Casey')
-      expect(response.body).not_to include(destination_source_client_path(id: 1))
     end
   end
 

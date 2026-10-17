@@ -54,7 +54,7 @@ module WarehouseReports::Project
         @project_ids = project_params
         # filter by viewability
         @project_ids = project_scope.where(id: @project_ids).pluck(:id)
-        @project_group_ids = project_group_params
+        @project_group_ids = project_group_scope.where(id: project_group_params).pluck(:id)
 
         raise ActionController::ParameterMissing, 'Parameters missing' if @project_ids.empty? && @project_group_ids.empty?
       rescue ActionController::ParameterMissing
@@ -190,15 +190,17 @@ module WarehouseReports::Project
     end
 
     def project_scope
-      if current_user.can_view_confidential_project_names?
-        GrdaWarehouse::Hud::Project.viewable_by(current_user, permission: :can_view_assigned_reports)
-      else
-        GrdaWarehouse::Hud::Project.viewable_by(current_user, permission: :can_view_assigned_reports).non_confidential
-      end
+      scope = GrdaWarehouse::Hud::Project.where(id: report_policy_class.reportable_project_ids(current_user))
+      scope = scope.non_confidential unless current_user.can_view_confidential_project_names?
+      scope
     end
 
     def project_group_scope
-      GrdaWarehouse::ProjectGroup.viewable_by(current_user)
+      GrdaWarehouse::ProjectGroup.where(id: report_policy_class.reportable_project_group_ids(current_user))
+    end
+
+    def report_policy_class
+      GrdaWarehouse::AuthPolicies::DataQualityReportPolicy
     end
 
     # The version of the report we are currently generating
@@ -227,16 +229,12 @@ module WarehouseReports::Project
     end
 
     private def filtered_report_scope
-      scope = report_scope.where(started_at: (@history_filter.start..@history_filter.end))
-
-      scope = scope.where(project_id: project_scope.select(:id)).
-        or(scope.where(project_group_id: project_group_scope.select(:id)))
+      scope = report_scope.where(started_at: (@history_filter.start..@history_filter.end)).
+        where(id: report_policy_class.viewable_reports(current_user).select(:id))
 
       if can_view_all_reports?
         creator_user_id = @history_filter.creator_id.presence
         scope = scope.where(requestor_id: creator_user_id) if creator_user_id
-      else
-        scope = scope.where(requestor_id: current_user.id)
       end
 
       project_ids = @history_filter.project_ids

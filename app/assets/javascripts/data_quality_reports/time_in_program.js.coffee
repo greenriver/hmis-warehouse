@@ -18,7 +18,7 @@ class App.DataQualityReports.TimeInProgram extends App.DataQualityReports.Base
           type: "category",
           categories: @data['labels']
   _follow_link: (d, element) =>
-    # Do nothing by default
+    return unless @support_url
     project_id = @data.projects[d.name]
     label = @data.labels[d.index]
     range = @data.ranges[label]
