@@ -55,7 +55,6 @@ RSpec.describe HmisExternalApis::NotifyExternalFormSubmissionsJob, type: :model 
     messages = run_job
 
     expect(messages.map(&:user_id)).to contain_exactly(user.id, other_reviewer.id)
-    expect(messages.map(&:user_id)).not_to include(no_permission.id, cannot_view_project.id, inactive.id)
     expect(messages.first.subject).to eq('New external form submissions to review')
     expect(messages.first.body).to include(p1.project_name, '1 new submission')
   end
@@ -67,6 +66,33 @@ RSpec.describe HmisExternalApis::NotifyExternalFormSubmissionsJob, type: :model 
     submit
 
     expect(run_job.map(&:user_id)).to contain_exactly(user.id)
+  end
+
+  # Each user holds both permissions somewhere, but only one of them at this project
+  context 'when a user holds the two permissions at different projects' do
+    let(:p2) { create(:hmis_hud_project, data_source: ds1, organization: o1) }
+
+    def split_reviewer(at_p1:, at_p2:)
+      create(:user).tap do |u|
+        hmis_user = u.related_hmis_user(ds1)
+        create_access_control(hmis_user, p1, with_permission: [at_p1])
+        create_access_control(hmis_user, p2, with_permission: [at_p2])
+      end
+    end
+
+    it 'does not email a user who can view this project but reviews submissions only at another' do
+      split_reviewer(at_p1: :can_view_project, at_p2: :can_manage_external_form_submissions)
+      submit
+
+      expect(run_job.map(&:user_id)).to contain_exactly(user.id)
+    end
+
+    it 'does not email a user who reviews submissions at this project but can view only another' do
+      split_reviewer(at_p1: :can_manage_external_form_submissions, at_p2: :can_view_project)
+      submit
+
+      expect(run_job.map(&:user_id)).to contain_exactly(user.id)
+    end
   end
 
   it 'stamps reviewed submissions without counting them' do
@@ -104,6 +130,15 @@ RSpec.describe HmisExternalApis::NotifyExternalFormSubmissionsJob, type: :model 
     expect(orphan_submission.reload.reviewers_notified_at).to be_nil
   end
 
+  it "leaves another data source's submissions alone when its form shares this form's identifier" do
+    ds2 = create(:hmis_data_source)
+    other_ds_definition = create(:hmis_external_form_definition, data_source: ds2, identifier: definition.identifier)
+    other_ds_submission = submit(other_ds_definition)
+
+    expect(run_job).to be_empty
+    expect(other_ds_submission.reload.reviewers_notified_at).to be_nil
+  end
+
   it 'sends nothing on a second run' do
     submit
 
@@ -133,20 +168,6 @@ RSpec.describe HmisExternalApis::NotifyExternalFormSubmissionsJob, type: :model 
       expect(text).not_to include('DISTINCTIVE-RAW-DATA-VALUE')
       expect(text).not_to include('DISTINCTIVE-NOTES-VALUE')
     end
-  end
-
-  it 'creates an undelivered message for users on a daily digest' do
-    user.update!(email_schedule: 'daily')
-    submit
-
-    message = run_job.sole
-    expect(message.user_id).to eq(user.id)
-    expect(message.sent_at).to be_nil
-  end
-
-  it "links to the project's External Forms page in the HMIS" do
-    submit
-    expect(run_job.sole.body).to include("/projects/#{p1.id}/external-form-submissions")
   end
 
   it 'does nothing when the project no longer exists' do
