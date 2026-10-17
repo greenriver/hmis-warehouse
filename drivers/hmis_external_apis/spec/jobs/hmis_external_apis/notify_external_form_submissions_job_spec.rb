@@ -47,9 +47,9 @@ RSpec.describe HmisExternalApis::NotifyExternalFormSubmissionsJob, type: :model 
 
   it 'emails each reviewer of the project, and nobody else' do
     other_reviewer = reviewer
-    no_permission = reviewer(permissions: [:can_view_project])
-    cannot_view_project = reviewer(permissions: [:can_manage_external_form_submissions])
-    inactive = reviewer.tap { |u| u.update_columns(active: false) }
+    reviewer(permissions: [:can_view_project])
+    reviewer(permissions: [:can_manage_external_form_submissions])
+    reviewer.tap { |u| u.update_columns(active: false) }
     submit
 
     messages = run_job
