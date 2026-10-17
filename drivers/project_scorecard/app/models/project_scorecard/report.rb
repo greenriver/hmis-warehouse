@@ -55,7 +55,7 @@ module ProjectScorecard
     end
 
     scope :started_between, ->(start_date:, end_date:) do
-      where(started_at: (start_date..end_date))
+      where(started_at: start_date.in_time_zone.beginning_of_day..end_date.in_time_zone.end_of_day)
     end
 
     def completed?
