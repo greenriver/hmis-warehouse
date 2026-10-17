@@ -68,7 +68,8 @@ RSpec.describe HmisExternalApis::NotifyExternalFormSubmissionsJob, type: :model 
     expect(run_job.map(&:user_id)).to contain_exactly(user.id)
   end
 
-  # Each user holds both permissions somewhere, but only one of them at this project
+  # Each user holds both permissions somewhere, but only one of them at this project. Each example
+  # also checks that this project's reviewer is still emailed, so an empty run can't pass.
   context 'when a user holds the two permissions at different projects' do
     let(:p2) { create(:hmis_hud_project, data_source: ds1, organization: o1) }
 
@@ -81,17 +82,21 @@ RSpec.describe HmisExternalApis::NotifyExternalFormSubmissionsJob, type: :model 
     end
 
     it 'does not email a user who can view this project but reviews submissions only at another' do
-      split_reviewer(at_p1: :can_view_project, at_p2: :can_manage_external_form_submissions)
+      reviews_elsewhere = split_reviewer(at_p1: :can_view_project, at_p2: :can_manage_external_form_submissions)
       submit
 
-      expect(run_job.map(&:user_id)).to contain_exactly(user.id)
+      recipient_ids = run_job.map(&:user_id)
+      expect(recipient_ids).to include(user.id)
+      expect(recipient_ids).not_to include(reviews_elsewhere.id)
     end
 
     it 'does not email a user who reviews submissions at this project but can view only another' do
-      split_reviewer(at_p1: :can_manage_external_form_submissions, at_p2: :can_view_project)
+      views_elsewhere = split_reviewer(at_p1: :can_manage_external_form_submissions, at_p2: :can_view_project)
       submit
 
-      expect(run_job.map(&:user_id)).to contain_exactly(user.id)
+      recipient_ids = run_job.map(&:user_id)
+      expect(recipient_ids).to include(user.id)
+      expect(recipient_ids).not_to include(views_elsewhere.id)
     end
   end
 
@@ -191,6 +196,16 @@ RSpec.describe HmisExternalApis::NotifyExternalFormSubmissionsJob, type: :model 
 
       enqueued_project_ids = enqueued_jobs.map { |job| job[:args].first['project_id'] }
       expect(enqueued_project_ids).to contain_exactly(p1.id, p2.id)
+    end
+
+    it 'enqueues projects that have not opted in, so their backlog is stamped' do
+      p2 = create(:hmis_hud_project, data_source: ds1, organization: o1)
+      external_form_for(p2)
+
+      described_class.perform_later_for_review_projects
+
+      enqueued_project_ids = enqueued_jobs.map { |job| job[:args].first['project_id'] }
+      expect(enqueued_project_ids).to include(p2.id)
     end
   end
 end
