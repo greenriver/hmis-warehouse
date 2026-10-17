@@ -14,13 +14,17 @@ class Clients::AuditsController < ApplicationController
   after_action :log_client
 
   def index
+    @restriction_versions = DestinationClientRestriction.new(@client).versions.to_a
+    @restriction_users = User.with_deleted.where(id: @restriction_versions.map(&:clean_user_id).compact.map(&:to_i)).index_by(&:id)
+
     client_id = @client.id
     al_t = ActivityLog.arel_table
     @audit_log = ActivityLog.where(item_model: 'GrdaWarehouse::Hud::Client').
       where(al_t[:path].matches("%clients/#{client_id}/%"). # contains client_id
             or(al_t[:path].matches("%clients/#{client_id}"))). # ends with client_id
       order(created_at: :desc)
-    @pagy, @audit_log = pagy(@audit_log, items: 50)
+    @pagy, @audit_log = pagy(@audit_log, items: 25)
+    @client_restricted = current_user.policy_context.client_restricted?(@client.id)
   end
 
   protected

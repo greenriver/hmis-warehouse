@@ -263,6 +263,12 @@ class Role < ApplicationRecord
         category: 'Client Access',
         sub_category: 'Administrative',
       },
+      can_mark_clients_as_restricted: {
+        description: 'Ability to mark and unmark clients as restricted. A restricted client\'s name, SSN, date of birth, photo, and HIV status are hidden from every warehouse user. Applies to clients enrolled at projects the user can access.',
+        administrative: true,
+        category: 'Client Access',
+        sub_category: 'Administrative',
+      },
       can_edit_users: {
         description: 'Ability to add and edit user accounts for all users',
         administrative: true,
