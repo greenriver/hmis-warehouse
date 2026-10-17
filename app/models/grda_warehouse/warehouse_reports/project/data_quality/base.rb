@@ -21,7 +21,6 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     has_many :organization_contacts, through: :project
     has_many :project_group_contacts, through: :project_group, source: :contacts
     has_many :organization_project_group_contacts, through: :project_group, source: :organization_contacts
-    has_many :report_tokens, foreign_key: :report_id, class_name: 'GrdaWarehouse::ReportToken'
 
     scope :complete, -> do
       where.not(completed_at: nil).
@@ -397,6 +396,10 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       save
       notify_requestor
       send_notifications
+    end
+
+    def policy_class
+      GrdaWarehouse::AuthPolicies::DataQualityReportPolicy
     end
 
     def report_type

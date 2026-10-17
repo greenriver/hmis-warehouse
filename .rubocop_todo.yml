@@ -566,11 +566,6 @@ Lint/AssignmentInCondition:
     - "app/models/similarity_metric/name_data_quality.rb"
 
 # Offense count: 1
-Lint/BinaryOperatorWithIdenticalOperands:
-  Exclude:
-    - "app/models/grda_warehouse/report_token.rb"
-
-# Offense count: 1
 # This cop supports safe autocorrection (--autocorrect).
 Lint/DeprecatedClassMethods:
   Exclude:

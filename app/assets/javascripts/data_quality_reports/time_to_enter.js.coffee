@@ -28,6 +28,7 @@ class App.DataQualityReports.TimeToEnter extends App.DataQualityReports.Base
           categories: @data['labels'],
 
   _follow_link: (d, element) =>
+    return unless @support_url
     if @support_url.includes('individual') # VersionFour support links are different
       project_id = @data.projects[d.name]
       url = @support_url + "&selected_project_id=#{project_id}"

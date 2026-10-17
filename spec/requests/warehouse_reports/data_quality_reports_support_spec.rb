@@ -139,4 +139,148 @@ RSpec.describe 'DataQualityReportsController#support', type: :request do
       extra_clients.each { |c| expect(response.body).to include(c.FirstName) }
     end
   end
+
+  context 'authorization' do
+    let!(:other_project) { create(:hud_project, data_source: project_data_source, OrganizationID: organization.OrganizationID) }
+    let!(:other_report) { create(:data_quality_report_version_five, project: other_project) }
+
+    it 'redirects a request for a report on a project outside the user collections' do
+      get support_project_data_quality_report_path(other_project, other_report, individual: true, method: 'test')
+
+      expect(response).to redirect_to(user.my_root_path)
+      expect(flash[:alert]).to be_present
+      expect(response.body).not_to include('Doe')
+    end
+
+    it 'redirects show when the user lacks the report definition' do
+      collection.set_viewables({ reports: [], projects: [project.id] })
+      user.clear_memery_cache!
+
+      get project_data_quality_report_path(project, report)
+
+      expect(response).to redirect_to(user.my_root_path)
+    end
+
+    it 'allows index when the user has the project but not the report definition' do
+      collection.set_viewables({ reports: [], projects: [project.id] })
+      user.clear_memery_cache!
+
+      get project_data_quality_reports_path(project)
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include(project.ProjectName)
+    end
+
+    it 'returns the report answers for a project in the user collections' do
+      report.update!(report: { 'total_clients' => 'Viewable project answer' })
+
+      get answers_project_data_quality_report_path(project, report)
+
+      expect(response).to have_http_status(:ok)
+      expect(JSON.parse(response.body)).to eq('total_clients' => 'Viewable project answer')
+    end
+
+    it 'redirects answers for a report on a project outside the user collections without returning the report' do
+      other_report.update!(report: { 'total_clients' => 'Hidden project answer' })
+
+      get answers_project_data_quality_report_path(other_project, other_report)
+
+      expect(response).to redirect_to(user.my_root_path)
+      expect(response.body).not_to include('Hidden project answer')
+    end
+
+    it 'redirects a logged-out request for show to sign in' do
+      sign_out(user)
+
+      get project_data_quality_report_path(project, report)
+
+      expect(response).to redirect_to(new_user_session_path)
+    end
+
+    it 'redirects a logged-out request for answers to sign in' do
+      sign_out(user)
+
+      get answers_project_data_quality_report_path(project, report)
+
+      expect(response).to redirect_to(new_user_session_path)
+    end
+
+    it 'does not route the former notification path' do
+      get "/notifications/abc/projects/#{project.id}/data_quality_reports/#{report.id}"
+
+      expect(response).to have_http_status(:not_found)
+    end
+  end
+
+  describe 'support links on the report page' do
+    before { report.update!(completed_at: Time.current, requestor_id: user.id) }
+
+    it 'links enrolled client counts to support when the user can view clients' do
+      get project_data_quality_report_path(project, report)
+
+      path = support_project_data_quality_report_path(project, report, individual: true, method: :enrolled_clients)
+      expect(response.body).to include(ERB::Util.html_escape(path))
+    end
+
+    [:data_quality_report_version_four].each do |factory|
+      it "links a #{factory} report to support" do
+        older_report = create(factory, project: project, requestor_id: user.id, completed_at: Time.current, report: {})
+
+        get project_data_quality_report_path(project, older_report)
+
+        expect(response).to have_http_status(:ok)
+        expect(response.body).to include("data_quality_reports/#{older_report.id}/support")
+      end
+    end
+  end
+
+  context 'as a project contact without client access' do
+    let!(:contact_user) { create(:acl_user) }
+
+    before do
+      contact_collection = create(:collection)
+      contact_collection.set_viewables({ reports: [report_definition.id] })
+      setup_access_control(contact_user, create(:role, can_view_assigned_reports: true), contact_collection)
+      create(:grda_warehouse_contact_project, entity: project, user: contact_user)
+      sign_out(user)
+      sign_in(contact_user)
+    end
+
+    it 'redirects support and does not render rows' do
+      get support_project_data_quality_report_path(project, report, individual: true, method: 'test')
+
+      expect(response).to redirect_to(contact_user.my_root_path)
+      expect(response.body).not_to include('Open')
+    end
+
+    it 'shows enrolled client counts as text without a support link' do
+      report.update!(completed_at: Time.current, requestor_id: user.id)
+
+      get project_data_quality_report_path(project, report)
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include(ActionController::Base.helpers.pluralize(report.enrolled_client_count, 'client'))
+      expect(response.body).not_to include("data_quality_reports/#{report.id}/support")
+    end
+
+    [:data_quality_report_version_four].each do |factory|
+      it "renders a #{factory} report without support links" do
+        older_report = create(factory, project: project, requestor_id: user.id, completed_at: Time.current, report: {})
+
+        get project_data_quality_report_path(project, older_report)
+
+        expect(response).to have_http_status(:ok)
+        expect(response.body).not_to include("data_quality_reports/#{older_report.id}/support")
+      end
+    end
+
+    it 'returns the report answers' do
+      report.update!(report: { 'total_clients' => 'Contact answer' })
+
+      get answers_project_data_quality_report_path(project, report)
+
+      expect(response).to have_http_status(:ok)
+      expect(JSON.parse(response.body)).to eq('total_clients' => 'Contact answer')
+    end
+  end
 end
