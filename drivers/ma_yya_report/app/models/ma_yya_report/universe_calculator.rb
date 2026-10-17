@@ -160,7 +160,7 @@ module MaYyaReport
             health_insurance: enrollment.enrollment.income_benefits_at_entry&.InsuranceFromAnySource == 1,
             # rehoused_on: rehoused_on(enrollment.enrollment), # Legacy column no longer in use
             subsequent_current_living_situations: subsequent_current_living_situations(enrollment.enrollment),
-            zip_codes: zip_codes(client),
+            zip_codes: zip_codes(enrollment.client),
             flex_funds: flex_funds(enrollments_by_client_id[client_id]), # Column only used if the HMIS collects flex funds
             language: language(enrollment.enrollment),
             employed: employment_status&.Employed == 1,
@@ -217,8 +217,8 @@ module MaYyaReport
       enrollment_scope_without_date_range.
         preload(
           :project,
-          client: [:custom_client_addresses],
-          enrollment: [:client, :current_living_situations, :events, :youth_education_statuses, :disabilities, :health_and_dvs, :income_benefits_at_entry, custom_services: [:custom_data_elements]],
+          client: [source_clients: :custom_client_addresses],
+          enrollment: [:client, :project, :exit, :current_living_situations, :events, :youth_education_statuses, :employment_educations, :disabilities, :health_and_dvs, :income_benefits_at_entry, custom_services: [:custom_data_elements]],
           household_enrollments: [:client, :exit],
         )
     end
@@ -540,12 +540,13 @@ module MaYyaReport
     private def disability?(enrollment, disability_type, disability_responses = [1])
       # Find most recent disability record associated with the enrollment for the appropriate type with a value
       # recorded before the end of the reporting period
-      disability = enrollment.disabilities.order(InformationDate: :desc).
-        detect do |d|
+      disability = enrollment.disabilities.
+        select do |d|
           d.InformationDate < filter.end_date &&
           d.DisabilityType == disability_type &&
           d.DisabilityResponse.in?([0, 1, 2, 3]) # Include 'no' responses in the sort
-        end
+        end.
+        max_by(&:InformationDate)
       disability.present? && disability.indefinite_and_impairs? && disability.DisabilityResponse.in?(disability_responses)
     end
 
@@ -573,7 +574,7 @@ module MaYyaReport
     # and at least 90 days after entry
     private def subsequent_current_living_situations(enrollment)
       enrollment.current_living_situations.
-        order(InformationDate: :asc).
+        sort_by(&:InformationDate).
         select do |cls|
         cls.InformationDate.between?(filter.start_date, filter.end_date) &&
           cls.InformationDate >= enrollment.EntryDate + 90.days
@@ -614,13 +615,14 @@ module MaYyaReport
       end
     end
 
-    private def flex_funds_service_type
-      @flex_funds_service_type ||= Hmis::Hud::CustomServiceType.find_by(name: 'Flex Funds')
+    # memoize (not ||=) so an unconfigured, nil result isn't re-queried for every client
+    memoize private def flex_funds_service_type
+      Hmis::Hud::CustomServiceType.find_by(name: 'Flex Funds')
     end
 
     # Custom data element definition for specifying the type of flex fund received (Eg "rent")
-    private def flex_funds_types_cded
-      @flex_funds_types_cded ||= Hmis::Hud::CustomDataElementDefinition.find_by(key: :flex_funds_types)
+    memoize private def flex_funds_types_cded
+      Hmis::Hud::CustomDataElementDefinition.find_by(key: :flex_funds_types)
     end
 
     private def flex_funds_services_in_range(enrollment)
