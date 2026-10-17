@@ -277,6 +277,18 @@ call. For users from those IdPs, the Warehouse updates the profile from the JWT'
 missing `email_verified` claim counts as verified, because external IdPs often leave it out; only an
 explicit `email_verified: false` blocks the email update.
 
+### Routes that bypass oauth2-proxy
+
+`skip_auth_routes` in `docker/auth/dev.oauth2-proxy-warehouse.cfg` matches a deployed oauth2-proxy
+config. `spec/lib/oauth2_proxy/skip_auth_routes_spec.rb` (JWT arm) fails when:
+
+- an action skips `authenticate_user!` / `authenticate_hmis_user!`, or authenticates with its own
+  token, and no skip entry matches its route, or
+- a skip entry matches a route that requires a user session.
+
+To make a route public, add the skip entry to the local config and to the deployed configs. To
+keep a public action behind the proxy, add it to `behind_proxy` in the spec with the reason.
+
 ## Notes
 
 - **Warehouse-only work.** `hmis.dev.test` works only if the HMIS frontend's Vite dev server is
