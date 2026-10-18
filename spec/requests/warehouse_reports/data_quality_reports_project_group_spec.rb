@@ -129,12 +129,18 @@ RSpec.describe 'DataQualityReportsProjectGroupController', type: :request do
     expect(response).to redirect_to(user.my_root_path)
   end
 
-  it 'redirects a logged-out request for show to sign in' do
+  it 'redirects a logged-out request for show to sign in', :devise_only do
     sign_out(user)
 
     get project_group_data_quality_report_path(project_group, report)
 
     expect(response).to redirect_to(new_user_session_path)
+  end
+
+  it 'refuses a logged-out request for show', :jwt_only do
+    sign_out(user)
+
+    expect { get project_group_data_quality_report_path(project_group, report) }.to raise_error(Idp::UnauthenticatedRequestError)
   end
 
   it 'does not route the former notification path' do

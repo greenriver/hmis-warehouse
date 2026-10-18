@@ -217,7 +217,13 @@ RSpec.describe 'DataQualityReportsController#support', type: :request do
       expect(response.body).not_to include('Hidden project answer')
     end
 
-    it 'redirects a logged-out request for show to sign in' do
+    it 'returns not found when the report id belongs to a different project' do
+      get support_project_data_quality_report_path(project, other_report, individual: true, method: 'test')
+
+      expect(response).to have_http_status(:not_found)
+    end
+
+    it 'redirects a logged-out request for show to sign in', :devise_only do
       sign_out(user)
 
       get project_data_quality_report_path(project, report)
@@ -225,12 +231,24 @@ RSpec.describe 'DataQualityReportsController#support', type: :request do
       expect(response).to redirect_to(new_user_session_path)
     end
 
-    it 'redirects a logged-out request for answers to sign in' do
+    it 'redirects a logged-out request for answers to sign in', :devise_only do
       sign_out(user)
 
       get answers_project_data_quality_report_path(project, report)
 
       expect(response).to redirect_to(new_user_session_path)
+    end
+
+    it 'refuses a logged-out request for show', :jwt_only do
+      sign_out(user)
+
+      expect { get project_data_quality_report_path(project, report) }.to raise_error(Idp::UnauthenticatedRequestError)
+    end
+
+    it 'refuses a logged-out request for answers', :jwt_only do
+      sign_out(user)
+
+      expect { get answers_project_data_quality_report_path(project, report) }.to raise_error(Idp::UnauthenticatedRequestError)
     end
 
     it 'does not route the former notification path' do
