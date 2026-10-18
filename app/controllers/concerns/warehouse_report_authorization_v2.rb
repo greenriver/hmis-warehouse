@@ -58,7 +58,8 @@ module WarehouseReportAuthorizationV2
   end
 
   private def authorize_report!
-    mark_authorization_performed!
     not_authorized! unless report_visible?
+
+    authorization_performed!
   end
 end

@@ -1,8 +1,8 @@
 ---
 title: Warehouse authorization policies and PiiProvider
-summary: Policy classes under GrdaWarehouse::AuthPolicies, the UserAclContext/UserLegacyContext split, controller authorize_with blocks with the ensure_authorized after_action, and PiiProvider for name/SSN/DOB display decisions.
+summary: Policy classes under GrdaWarehouse::AuthPolicies, the UserAclContext/UserLegacyContext split, controller authorize_with blocks with the send_action authorization check, and PiiProvider for name/SSN/DOB display decisions.
 area: authorization
-tags: [authorization, policy, BasePolicy, policy_for, authorize_with, ApplicationControllerV2, ensure_authorized, PiiProvider, AllowPiiPolicy, DenyPiiPolicy, context-loaders, preload_client_dependencies, PreloadMissTracker, PreloadMissError]
+tags: [authorization, policy, BasePolicy, policy_for, authorize_with, ApplicationControllerV2, authorization_performed!, PiiProvider, AllowPiiPolicy, DenyPiiPolicy, context-loaders, preload_client_dependencies, PreloadMissTracker, PreloadMissError]
 sources:
   - app/models/grda_warehouse/auth_policies/base_policy.rb
   - app/models/grda_warehouse/auth_policies/user_base_context.rb
@@ -50,8 +50,8 @@ shown, masked, or replaced with `Redacted`. HMIS client restriction is folded in
 `PiiProvider.restrict`, which wraps any policy so every PII predicate returns false.
 
 Controllers that subclass `ApplicationControllerV2` declare `authorize_with { ... }` blocks and
-get an `after_action` that raises `AuthorizationNotPerformedError` if no block ran for the
-action. This is the replacement for the legacy `before_action :require_can_*!` filters.
+get a check in `send_action` that raises `AuthorizationNotPerformedError` before the action
+body if no check passed. This is the replacement for the legacy `before_action :require_can_*!` filters.
 
 ## Entry points
 
@@ -73,7 +73,9 @@ action. This is the replacement for the legacy `before_action :require_can_*!` f
   `GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)`.
 - `authorize_with(only:, except:) { ... }` class method from `ControllerAuthorizationV2`,
   available on any `ApplicationControllerV2` subclass. The block runs as a `before_action` in
-  controller instance scope and calls `not_authorized!` when it returns false.
+  controller instance scope; it must return `true` or `false` (anything else raises `TypeError`),
+  and `false` calls `not_authorized!`. An `only:`/`except:` action name that doesn't exist raises
+  `ArgumentError`.
 - `not_authorized!(message = nil)` on `ApplicationController` raises `NotAuthorizedError`
   (`lib/util/not_authorized_error.rb`), rescued into a redirect with a flash alert.
 - `GrdaWarehouse::Hud::Client#pii_provider(user:)` for a single client (dashboard);
@@ -110,11 +112,11 @@ answering `get` and `full_release?`, with `preload(client_ids)`.
 retention (inactive) status, filled per page by `preload(client_ids, identity_links: nil)`; see
 `warehouse/pii-and-restricted-clients.md`.
 
-`ControllerAuthorizationV2` calls `mark_authorization_performed!` inside every
-`authorize_with` block; `after_action :ensure_authorized` raises
-`AuthorizationNotPerformedError` when no check marked the request. Other V2 concerns that
-authorize through a named `before_action`, such as `WarehouseReportAuthorizationV2`, call
-`mark_authorization_performed!` too. `ApplicationController.inherited`
+`ControllerAuthorizationV2` calls `authorization_performed!` when an `authorize_with` block
+returns true; its `send_action` override raises `AuthorizationNotPerformedError` after the
+`before_action` chain when nothing did. Other V2 concerns that authorize through a named
+`before_action`, such as `WarehouseReportAuthorizationV2`, call `authorization_performed!` after
+their check passes. `ApplicationController.inherited`
 includes `LegacyControllerAuthorization` only for subclasses that are not
 `ApplicationControllerV2`, so the two systems never coexist in one controller.
 
@@ -197,7 +199,7 @@ already preloaded.
   SSN masking.
 - `app/controllers/application_controller_v2.rb`,
   `app/controllers/concerns/controller_authorization_v2.rb`: `authorize_with`,
-  `mark_authorization_performed!`, `ensure_authorized`.
+  `authorization_performed!`, `send_action`.
 - `lib/util/authorization_not_performed_error.rb`, `lib/util/not_authorized_error.rb`.
 - `app/models/user.rb`: `policy_for`, `policy_context`, `reporting_policy_for_project`,
   `reporting_policy_for_client`.
@@ -207,7 +209,7 @@ already preloaded.
 ## Gotchas
 
 - A controller inheriting `ApplicationController` rather than `ApplicationControllerV2` gets
-  `LegacyControllerAuthorization` and no `ensure_authorized` safety net. An action with no
+  `LegacyControllerAuthorization` and no `AuthorizationNotPerformedError` safety net. An action with no
   `before_action :require_can_*!` there is silently open.
 - `authorize_with` blocks run in controller instance scope, before the action, so any instance
   variable they read must be set by an earlier `before_action`. `ProjectsController` orders
