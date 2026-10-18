@@ -85,7 +85,7 @@ touch points, and the driver reports) are not described one by one.
 - `WarehouseReportAuthorizationV2` (`app/controllers/concerns/warehouse_report_authorization_v2.rb`):
   the same for `ApplicationControllerV2` controllers, which lack the `require_*!` helpers. Adds
   `before_action :authorize_report!` (checks `report_visible?` and marks the request authorized),
-  plus `related_report`, `set_limited`, and `reload_from_csv`. Skip it per action with
+  plus `related_report`; unlike V1 it has no `set_limited` or `reload_from_csv`. Skip it per action with
   `skip_before_action :authorize_report!`; a skipped action needs its own `authorize_with`.
   `DataQualityReportsController` uses it.
 - `GrdaWarehouse::WarehouseReports::ReportDefinition.maintain_report_definitions`: upserts the

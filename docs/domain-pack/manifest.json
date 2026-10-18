@@ -27,7 +27,7 @@
   "app/controllers/concerns/hud_reports/report_urls.rb": "b12e44981567c881f3b5dfa8670b59a66ea6421bee53fd275b46644a374180b1",
   "app/controllers/concerns/legacy_controller_authorization.rb": "d4bd369fe38c89a9e14874a8525d98799a38064ddc99791a05ded4cec5c99987",
   "app/controllers/concerns/warehouse_report_authorization.rb": "949d7bea71437be971833a43393473568c4126cceed0cfe7fcc7211d5f7dc6df",
-  "app/controllers/concerns/warehouse_report_authorization_v2.rb": "99583c6e124c0afb15c3c9b80f5811f7e689da47c5ab44c6eff05731a33fdfdc",
+  "app/controllers/concerns/warehouse_report_authorization_v2.rb": "6518ce9ef169e16f7d95e1761f81758bdf950debe1d4e4336cdbd7b914782bf5",
   "app/controllers/data_sources/custom_imports_controller.rb": "f250149953ce78e01f35fd899d13a4485e903dce654abccc98c96711d444b9c7",
   "app/controllers/data_sources_controller.rb": "b7cd5ac9db364793703c0cba0a375e46aec6b1ab62699af744fa6bdf6257d7a0",
   "app/controllers/document_exports_controller_base.rb": "e25355b649281585ef8d303eeeb7027bd0ca8189b60eb3cee0cb6c19ac875730",
