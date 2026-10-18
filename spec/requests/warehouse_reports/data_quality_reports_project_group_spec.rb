@@ -90,6 +90,43 @@ RSpec.describe 'DataQualityReportsProjectGroupController', type: :request do
     expect(response.body).to include(project_group.name)
   end
 
+  describe 'index listing' do
+    let!(:colleague_report) { create(:data_quality_report_version_five, project: nil, project_group: project_group, requestor_id: create(:user).id) }
+
+    def listed_report_ids
+      Nokogiri::HTML(response.body).css('tbody a').map { |a| a['href'][/\/data_quality_reports\/(\d+)/, 1].to_i }
+    end
+
+    it 'lists only the requestor own report on the group for a user without can_view_all_reports' do
+      get project_group_data_quality_reports_path(project_group)
+
+      expect(listed_report_ids).to contain_exactly(report.id)
+    end
+
+    it 'lists every report on the group for a contact on a project in the group without access to the group' do
+      contact_user = create(:acl_user)
+      contact_collection = create(:collection)
+      contact_collection.set_viewables({ reports: [report_definition.id] })
+      setup_access_control(contact_user, create(:role, can_view_assigned_reports: true), contact_collection)
+      create(:grda_warehouse_contact_project, entity: project, user: contact_user)
+      sign_out(user)
+      sign_in(contact_user)
+
+      get project_group_data_quality_reports_path(project_group)
+
+      expect(listed_report_ids).to contain_exactly(report.id, colleague_report.id)
+    end
+  end
+
+  it 'redirects index when the user lacks the report definition' do
+    collection.set_viewables({ reports: [], project_groups: [project_group.id], projects: [project.id] })
+    user.clear_memery_cache!
+
+    get project_group_data_quality_reports_path(project_group)
+
+    expect(response).to redirect_to(user.my_root_path)
+  end
+
   it 'redirects index for a group outside the user collections' do
     get project_group_data_quality_reports_path(other_project_group)
 

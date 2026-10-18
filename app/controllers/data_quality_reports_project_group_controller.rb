@@ -11,10 +11,6 @@ class DataQualityReportsProjectGroupController < DataQualityReportsController
   skip_before_action :set_project
   before_action :set_project_group
 
-  def index
-    @reports = @project_group.data_quality_reports.order(started_at: :desc)
-  end
-
   def set_report_keys
     @report_keys = {
       project_group_id: params[:project_group_id].to_i,
@@ -36,8 +32,8 @@ class DataQualityReportsProjectGroupController < DataQualityReportsController
     GrdaWarehouse::ProjectGroup
   end
 
-  def set_report
-    @report = report_scope.where(project_group_id: params[:project_group_id].to_i).find(params[:id].to_i)
+  def subject_reports
+    report_scope.where(project_group_id: params[:project_group_id].to_i)
   end
 
   def set_project_group

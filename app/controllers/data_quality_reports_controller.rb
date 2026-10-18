@@ -11,10 +11,9 @@ class DataQualityReportsController < ApplicationControllerV2
   include WarehouseReportAuthorizationV2
   include WarehouseReports::PiiDetailRows
 
-  skip_before_action :authorize_report!, only: :index
   before_action :set_project
   before_action :set_report, except: [:index]
-  authorize_with(only: :index) { subject_viewable? }
+  authorize_with(only: :index) { subject_viewable? || viewable_subject_reports.exists? }
   authorize_with(except: :index) { report_policy.can_view? }
   authorize_with(only: :support) { can_view_dq_support? }
   before_action :set_support_path, only: [:show]
@@ -45,7 +44,7 @@ class DataQualityReportsController < ApplicationControllerV2
   end
 
   def index
-    @reports = @project.data_quality_reports.order(started_at: :desc)
+    @reports = viewable_subject_reports.order(started_at: :desc)
   end
 
   def answers
@@ -182,8 +181,16 @@ class DataQualityReportsController < ApplicationControllerV2
     GrdaWarehouse::Hud::Project
   end
 
+  def subject_reports
+    report_scope.where(project_id: params[:project_id].to_i)
+  end
+
+  def viewable_subject_reports
+    subject_reports.where(id: GrdaWarehouse::AuthPolicies::DataQualityReportPolicy.viewable_reports(current_user).select(:id))
+  end
+
   def set_report
-    @report = report_scope.where(project_id: params[:project_id].to_i).find(params[:id].to_i)
+    @report = subject_reports.find(params[:id].to_i)
   end
 
   def set_project
