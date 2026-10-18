@@ -35,8 +35,8 @@ graph TD
 Policies are located in `app/models/grda_warehouse/auth_policies/`.
 
 - `BasePolicy`: Abstract base class providing common initialization and validation helpers.
-- **Resource Policies**: for warehouse resources (e.g., `ProjectPolicy`, `OrganizationPolicy`, `SourceClientPolicy`, `DataSourcePolicy`, `DataQualityReportPolicy`). `DataQualityReportPolicy` controls project data quality reports. Every check first requires `can_view_assigned_reports` and the Project Data Quality report definition.
-  - A project or project group is *reportable* when it shares a collection with the report definition under ACLs, or is anywhere in the user's access groups under role-based access. Only reportable subjects can be queued or listed on the report page.
+- **Resource Policies**: for warehouse resources (e.g., `ProjectPolicy`, `OrganizationPolicy`, `SourceClientPolicy`, `DataSourcePolicy`, `DataQualityReportPolicy`). `DataQualityReportPolicy` controls project data quality reports. It does not check access to the Project Data Quality report definition; the controllers do that through `WarehouseReportAuthorizationV2`.
+  - A project is *reportable* when `Project.viewable_by(user, permission: :can_view_assigned_reports)` includes it, and a project group when `ProjectGroup.viewable_by(user)` does. Only reportable subjects can be queued or listed on the report page.
   - `can_view?` is true for the requestor of a report on a reportable subject, for a `can_view_all_reports` user on a reportable subject, and for a contact on the report's project or its organization (any project in the group for a group report). The contact rule needs no other access to the project, which departs on purpose from the usual report rules.
   - `can_view_client_details?` adds `can_view_clients` on the project, or on every project in a group, and gates the client-level support pages and their links.
   - Unlike the other policies, it also has class methods that take a user and return relations (`reportable_project_ids`, `reportable_project_group_ids`, `viewable_reports`), so the queue form and the previously run reports list use the same rules as `can_view?`.

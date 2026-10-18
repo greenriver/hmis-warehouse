@@ -10,6 +10,7 @@ sources:
   - app/models/simple_reports/report_instance.rb
   - app/controllers/warehouse_reports_controller.rb
   - app/controllers/concerns/warehouse_report_authorization.rb
+  - app/controllers/concerns/warehouse_report_authorization_v2.rb
   - app/controllers/concerns/background_render_action.rb
   - app/controllers/warehouse_reports/chronic_controller.rb
   - app/controllers/warehouse_reports/client_details/entries_controller.rb
@@ -81,6 +82,12 @@ touch points, and the driver reports) are not described one by one.
 - `WarehouseReportAuthorization` (`app/controllers/concerns/warehouse_report_authorization.rb`):
   `include` in every report controller. Adds `before_action :report_visible?` and
   `before_action :require_can_view_any_reports!`, plus `set_limited` and `reload_from_csv`.
+- `WarehouseReportAuthorizationV2` (`app/controllers/concerns/warehouse_report_authorization_v2.rb`):
+  the same for `ApplicationControllerV2` controllers, which lack the `require_*!` helpers. Adds
+  `before_action :authorize_report!` (checks `report_visible?` and marks the request authorized),
+  plus `related_report`, `set_limited`, and `reload_from_csv`. Skip it per action with
+  `skip_before_action :authorize_report!`; a skipped action needs its own `authorize_with`.
+  `DataQualityReportsController` uses it.
 - `GrdaWarehouse::WarehouseReports::ReportDefinition.maintain_report_definitions`: upserts the
   hard-coded `report_list` into the table by `url` and soft-deletes retired URLs. Called from
   `db/seed_maker.rb` (so `db/seeds.rb` runs it) and from `spec/rails_helper.rb`; no rake task or

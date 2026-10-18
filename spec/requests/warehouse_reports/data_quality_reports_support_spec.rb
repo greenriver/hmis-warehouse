@@ -161,6 +161,34 @@ RSpec.describe 'DataQualityReportsController#support', type: :request do
       expect(response).to redirect_to(user.my_root_path)
     end
 
+    it 'renders show when the report definition and the project are in different collections' do
+      collection.set_viewables({ reports: [report_definition.id] })
+      project_collection = create(:collection)
+      project_collection.set_viewables({ projects: [project.id] })
+      setup_access_control(user, role, project_collection)
+      user.clear_memery_cache!
+
+      get project_data_quality_report_path(project, report)
+
+      expect(response).to have_http_status(:ok)
+    end
+
+    it 'redirects show and answers for a project contact without the report definition' do
+      contact_user = create(:acl_user)
+      setup_access_control(contact_user, create(:role, can_view_assigned_reports: true), create(:collection))
+      create(:grda_warehouse_contact_project, entity: project, user: contact_user)
+      report.update!(report: { 'total_clients' => 'Contact-only answer' })
+      sign_out(user)
+      sign_in(contact_user)
+
+      get project_data_quality_report_path(project, report)
+      expect(response).to redirect_to(contact_user.my_root_path)
+
+      get answers_project_data_quality_report_path(project, report)
+      expect(response).to redirect_to(contact_user.my_root_path)
+      expect(response.body).not_to include('Contact-only answer')
+    end
+
     it 'allows index when the user has the project but not the report definition' do
       collection.set_viewables({ reports: [], projects: [project.id] })
       user.clear_memery_cache!

@@ -8,8 +8,10 @@
 
 class DataQualityReportsController < ApplicationControllerV2
   include AjaxModalRails::Controller
+  include WarehouseReportAuthorizationV2
   include WarehouseReports::PiiDetailRows
 
+  skip_before_action :authorize_report!, only: :index
   before_action :set_project
   before_action :set_report, except: [:index]
   authorize_with(only: :index) { subject_viewable? }
@@ -17,6 +19,10 @@ class DataQualityReportsController < ApplicationControllerV2
   authorize_with(only: :support) { can_view_dq_support? }
   before_action :set_support_path, only: [:show]
   before_action :set_report_keys, only: [:show]
+
+  def related_report
+    GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: report_scope.url)
+  end
 
   helper_method def report_policy
     current_user.policy_for(@report)

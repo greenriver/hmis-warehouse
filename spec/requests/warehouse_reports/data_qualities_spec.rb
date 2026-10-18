@@ -31,14 +31,17 @@ RSpec.describe WarehouseReports::Project::DataQualitiesController, type: :reques
     sign_in(user)
   end
 
-  context 'with the report definition and some subjects in one collection and other subjects in another' do
+  context 'with the report definition, reportable subjects, and view-only subjects in separate collections' do
     before do
       report_collection = create(:collection)
-      report_collection.set_viewables({ reports: [report_definition.id], projects: [project.id], project_groups: [project_group.id] })
+      report_collection.set_viewables({ reports: [report_definition.id] })
       setup_access_control(user, reporting_role, report_collection)
-      other_collection = create(:collection)
-      other_collection.set_viewables({ projects: [other_project.id], project_groups: [other_project_group.id] })
-      setup_access_control(user, reporting_role, other_collection)
+      reportable_collection = create(:collection)
+      reportable_collection.set_viewables({ projects: [project.id], project_groups: [project_group.id] })
+      setup_access_control(user, reporting_role, reportable_collection)
+      view_only_collection = create(:collection)
+      view_only_collection.set_viewables({ projects: [other_project.id], project_groups: [other_project_group.id] })
+      setup_access_control(user, create(:role, can_view_projects: true), view_only_collection)
     end
 
     def queue(project_ids: [], project_group_ids: [])
@@ -53,19 +56,19 @@ RSpec.describe WarehouseReports::Project::DataQualitiesController, type: :reques
       GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionFive.pluck(:project_id, :project_group_id, :requestor_id)
     end
 
-    it 'queues reports for a project and a group in the same collection as the report definition' do
+    it 'queues reports for a project and a group in a collection without the report definition' do
       queue(project_ids: [project.id], project_group_ids: [project_group.id])
 
       expect(queued_rows).to contain_exactly([project.id, nil, user.id], [nil, project_group.id, user.id])
     end
 
-    it 'does not queue a project or group that is only in a different collection' do
+    it 'does not queue a project or group visible only through a role without can_view_assigned_reports' do
       queue(project_ids: [project.id, other_project.id], project_group_ids: [other_project_group.id])
 
       expect(queued_rows).to contain_exactly([project.id, nil, user.id])
     end
 
-    it 'lists only same-collection projects on the selection page' do
+    it 'lists only reportable projects on the selection page' do
       get warehouse_reports_project_data_quality_path, params: { filters: { project_ids: [project.id, other_project.id] } }
 
       expect(response.body).to include("project[#{project.id}]")

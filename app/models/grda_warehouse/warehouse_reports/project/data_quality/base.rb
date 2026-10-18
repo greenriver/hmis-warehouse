@@ -398,6 +398,10 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
       send_notifications
     end
 
+    def self.url
+      'warehouse_reports/project/data_quality'
+    end
+
     def policy_class
       GrdaWarehouse::AuthPolicies::DataQualityReportPolicy
     end

@@ -16,14 +16,6 @@ RSpec.describe GrdaWarehouse::AuthPolicies::DataQualityReportPolicy, type: :mode
   let(:other_project) { create :hud_project, data_source: data_source, OrganizationID: other_organization.OrganizationID }
   let(:project_group) { create :project_group, projects: [project] }
   let(:other_project_group) { create :project_group, projects: [other_project] }
-  let!(:report_definition) do
-    GrdaWarehouse::WarehouseReports::ReportDefinition.create!(
-      url: 'warehouse_reports/project/data_quality',
-      name: 'Project Data Quality',
-      report_group: 'Reports',
-      description: 'Project Data Quality',
-    )
-  end
   let(:other_user) { create(:user) }
   let(:requestor_id) { user.id }
   let(:project_report) { create :data_quality_report_version_five, project: project, requestor_id: requestor_id }
@@ -43,6 +35,7 @@ RSpec.describe GrdaWarehouse::AuthPolicies::DataQualityReportPolicy, type: :mode
 
   context 'with access control permissions' do
     let(:user) { create(:acl_user) }
+    let(:project_viewer_role) { create(:role, can_view_projects: true) }
 
     def grant(role, collection)
       user_group = create(:user_group)
@@ -56,40 +49,39 @@ RSpec.describe GrdaWarehouse::AuthPolicies::DataQualityReportPolicy, type: :mode
     end
 
     describe 'the requestor' do
-      it 'is allowed when one collection holds the report definition and the project' do
-        grant(reporting_role, collection_with(reports: [report_definition.id], projects: [project.id]))
-
-        expect(can_view?(project_report)).to be true
-      end
-
-      it 'is allowed when one collection holds the report definition and the project organization' do
-        grant(reporting_role, collection_with(reports: [report_definition.id], organizations: [organization.id]))
-
-        expect(can_view?(project_report)).to be true
-      end
-
-      it 'is denied when the report definition and the project are in different collections' do
-        grant(reporting_role, collection_with(reports: [report_definition.id]))
+      it 'is allowed when the collection holds the project' do
         grant(reporting_role, collection_with(projects: [project.id]))
 
-        expect(can_view?(project_report)).to be false
+        expect(can_view?(project_report)).to be true
+      end
+
+      it 'is allowed when the collection holds the project organization' do
+        grant(reporting_role, collection_with(organizations: [organization.id]))
+
+        expect(can_view?(project_report)).to be true
       end
 
       it 'is denied when the collection holds only a different project' do
-        grant(reporting_role, collection_with(reports: [report_definition.id], projects: [other_project.id]))
+        grant(reporting_role, collection_with(projects: [other_project.id]))
 
         expect(can_view?(project_report)).to be false
       end
 
-      it 'is allowed for a group report when one collection holds the report definition and the group' do
-        grant(reporting_role, collection_with(reports: [report_definition.id], project_groups: [project_group.id]))
+      it 'is denied when the project is only in a collection whose role lacks can_view_assigned_reports' do
+        grant(reporting_role, collection_with(projects: [other_project.id]))
+        grant(project_viewer_role, collection_with(projects: [project.id]))
+
+        expect(can_view?(project_report)).to be false
+      end
+
+      it 'is allowed for a group report when the collection holds the group' do
+        grant(reporting_role, collection_with(project_groups: [project_group.id]))
 
         expect(can_view?(group_report)).to be true
       end
 
-      it 'is denied for a group report when the group is only in a different collection' do
-        grant(reporting_role, collection_with(reports: [report_definition.id], project_groups: [other_project_group.id]))
-        grant(reporting_role, collection_with(project_groups: [project_group.id]))
+      it 'is denied for a group report when the collection holds only a different group' do
+        grant(reporting_role, collection_with(project_groups: [other_project_group.id]))
 
         expect(can_view?(group_report)).to be false
       end
@@ -98,37 +90,35 @@ RSpec.describe GrdaWarehouse::AuthPolicies::DataQualityReportPolicy, type: :mode
     describe 'a user who did not request the report' do
       let(:requestor_id) { other_user.id }
 
-      it 'is denied without can_view_all_reports when one collection holds the report definition and the project' do
-        grant(reporting_role, collection_with(reports: [report_definition.id], projects: [project.id]))
+      it 'is denied without can_view_all_reports when the collection holds the project' do
+        grant(reporting_role, collection_with(projects: [project.id]))
 
         expect(can_view?(project_report)).to be false
       end
 
-      it 'is allowed with can_view_all_reports when one collection holds the report definition and the project' do
-        grant(all_reports_role, collection_with(reports: [report_definition.id], projects: [project.id]))
+      it 'is allowed with can_view_all_reports when the collection holds the project' do
+        grant(all_reports_role, collection_with(projects: [project.id]))
 
         expect(can_view?(project_report)).to be true
       end
 
       it 'is denied with can_view_all_reports when the collection holds only a different project' do
-        grant(all_reports_role, collection_with(reports: [report_definition.id], projects: [other_project.id]))
+        grant(all_reports_role, collection_with(projects: [other_project.id]))
 
         expect(can_view?(project_report)).to be false
       end
     end
 
-    describe 'a contact' do
+    describe 'a contact with no access to the project' do
       let(:requestor_id) { other_user.id }
 
-      before { grant(reporting_role, collection_with(reports: [report_definition.id])) }
-
-      it 'is allowed as a project contact when the collection holds only the report definition' do
+      it 'is allowed as a project contact' do
         create(:grda_warehouse_contact_project, entity: project, user: user)
 
         expect(can_view?(project_report)).to be true
       end
 
-      it 'is allowed as an organization contact when the collection holds only the report definition' do
+      it 'is allowed as an organization contact' do
         create(:grda_warehouse_contact_organization, entity: organization, user: user)
 
         expect(can_view?(project_report)).to be true
@@ -171,13 +161,6 @@ RSpec.describe GrdaWarehouse::AuthPolicies::DataQualityReportPolicy, type: :mode
       end
     end
 
-    it 'denies a project contact when no collection holds the report definition' do
-      grant(reporting_role, collection_with(projects: [project.id]))
-      create(:grda_warehouse_contact_project, entity: project, user: user)
-
-      expect(can_view?(project_report)).to be false
-    end
-
     describe '#can_view_client_details?' do
       let(:client_role) { create(:role, can_view_clients: true) }
       let(:client_reporting_role) { create(:role, can_view_assigned_reports: true, can_view_projects: true, can_view_clients: true) }
@@ -187,7 +170,7 @@ RSpec.describe GrdaWarehouse::AuthPolicies::DataQualityReportPolicy, type: :mode
       end
 
       it 'is true for the requestor holding can_view_clients on the project' do
-        grant(client_reporting_role, collection_with(reports: [report_definition.id], projects: [project.id]))
+        grant(client_reporting_role, collection_with(projects: [project.id]))
 
         expect(can_view_client_details?(project_report)).to be true
       end
@@ -195,10 +178,7 @@ RSpec.describe GrdaWarehouse::AuthPolicies::DataQualityReportPolicy, type: :mode
       context 'for a project contact who did not request the report' do
         let(:requestor_id) { other_user.id }
 
-        before do
-          grant(reporting_role, collection_with(reports: [report_definition.id]))
-          create(:grda_warehouse_contact_project, entity: project, user: user)
-        end
+        before { create(:grda_warehouse_contact_project, entity: project, user: user) }
 
         it 'is false without client access to the project' do
           expect(can_view?(project_report)).to be true
@@ -221,7 +201,7 @@ RSpec.describe GrdaWarehouse::AuthPolicies::DataQualityReportPolicy, type: :mode
       context 'for a group report with two projects' do
         let(:project_group) { create :project_group, projects: [project, other_project] }
 
-        before { grant(reporting_role, collection_with(reports: [report_definition.id], project_groups: [project_group.id])) }
+        before { grant(reporting_role, collection_with(project_groups: [project_group.id])) }
 
         it 'is false when can_view_clients covers one of the projects' do
           grant(client_role, collection_with(projects: [project.id]))
@@ -239,7 +219,7 @@ RSpec.describe GrdaWarehouse::AuthPolicies::DataQualityReportPolicy, type: :mode
 
       it 'is false for a group report on a group with no projects' do
         empty_group = create :project_group, projects: []
-        grant(reporting_role, collection_with(reports: [report_definition.id], project_groups: [empty_group.id]))
+        grant(reporting_role, collection_with(project_groups: [empty_group.id]))
         grant(client_role, collection_with(projects: [project.id]))
         report = create :data_quality_report_version_five, project: nil, project_group: empty_group, requestor_id: user.id
 
@@ -250,7 +230,7 @@ RSpec.describe GrdaWarehouse::AuthPolicies::DataQualityReportPolicy, type: :mode
 
     describe '.viewable_reports' do
       it 'lists exactly the reports the user requested on reportable projects or is a contact for' do
-        grant(reporting_role, collection_with(reports: [report_definition.id], projects: [project.id]))
+        grant(reporting_role, collection_with(projects: [project.id]))
         contact_project = create :hud_project, data_source: data_source, OrganizationID: other_organization.OrganizationID
         create(:grda_warehouse_contact_project, entity: contact_project, user: user)
         requested = create :data_quality_report_version_five, project: project, requestor_id: user.id
@@ -264,15 +244,15 @@ RSpec.describe GrdaWarehouse::AuthPolicies::DataQualityReportPolicy, type: :mode
 
     describe '.reportable_project_ids and .reportable_project_group_ids' do
       before do
-        grant(reporting_role, collection_with(reports: [report_definition.id], projects: [project.id], project_groups: [project_group.id]))
-        grant(reporting_role, collection_with(projects: [other_project.id], project_groups: [other_project_group.id]))
+        grant(reporting_role, collection_with(projects: [project.id], project_groups: [project_group.id]))
+        grant(project_viewer_role, collection_with(projects: [other_project.id], project_groups: [other_project_group.id]))
       end
 
-      it 'returns only projects in a collection that also holds the report definition' do
+      it 'returns only projects in a collection whose role has can_view_assigned_reports' do
         expect(GrdaWarehouse::Hud::Project.where(id: described_class.reportable_project_ids(user))).to contain_exactly(project)
       end
 
-      it 'returns only project groups in a collection that also holds the report definition' do
+      it 'returns only project groups in a collection whose role has can_view_assigned_reports' do
         expect(GrdaWarehouse::ProjectGroup.where(id: described_class.reportable_project_group_ids(user))).to contain_exactly(project_group)
       end
     end
@@ -286,10 +266,9 @@ RSpec.describe GrdaWarehouse::AuthPolicies::DataQualityReportPolicy, type: :mode
     before do
       access_group.add(user)
       role.add(user)
-      access_group.add_viewable(report_definition)
     end
 
-    it 'allows the requestor when an access group holds the report definition and the project' do
+    it 'allows the requestor when an access group holds the project' do
       access_group.add_viewable(project)
 
       expect(can_view?(project_report)).to be true
@@ -313,7 +292,8 @@ RSpec.describe GrdaWarehouse::AuthPolicies::DataQualityReportPolicy, type: :mode
       expect(can_view?(group_report)).to be false
     end
 
-    it 'allows a project contact when the access group holds only the report definition' do
+    it 'allows a project contact whose access group does not hold the project' do
+      access_group.add_viewable(other_project)
       create(:grda_warehouse_contact_project, entity: project, user: user)
       other_report = create :data_quality_report_version_five, project: project, requestor_id: other_user.id
 
@@ -329,19 +309,11 @@ RSpec.describe GrdaWarehouse::AuthPolicies::DataQualityReportPolicy, type: :mode
         expect(can_view?(project_report)).to be false
       end
 
-      context 'with can_view_all_reports and can_view_assigned_reports' do
+      context 'with can_view_all_reports' do
         let(:role) { all_reports_role }
 
         it 'allows the user' do
           expect(can_view?(project_report)).to be true
-        end
-      end
-
-      context 'with can_view_all_reports but not can_view_assigned_reports' do
-        let(:role) { create(:role, can_view_all_reports: true, can_view_projects: true) }
-
-        it 'denies the user' do
-          expect(can_view?(project_report)).to be false
         end
       end
     end

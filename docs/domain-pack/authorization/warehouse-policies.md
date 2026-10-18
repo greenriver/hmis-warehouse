@@ -110,9 +110,11 @@ answering `get` and `full_release?`, with `preload(client_ids)`.
 retention (inactive) status, filled per page by `preload(client_ids, identity_links: nil)`; see
 `warehouse/pii-and-restricted-clients.md`.
 
-`ControllerAuthorizationV2` sets `@authorization_performed = true` inside every
+`ControllerAuthorizationV2` calls `mark_authorization_performed!` inside every
 `authorize_with` block; `after_action :ensure_authorized` raises
-`AuthorizationNotPerformedError` when the flag is unset. `ApplicationController.inherited`
+`AuthorizationNotPerformedError` when no check marked the request. Other V2 concerns that
+authorize through a named `before_action`, such as `WarehouseReportAuthorizationV2`, call
+`mark_authorization_performed!` too. `ApplicationController.inherited`
 includes `LegacyControllerAuthorization` only for subclasses that are not
 `ApplicationControllerV2`, so the two systems never coexist in one controller.
 
@@ -195,7 +197,7 @@ already preloaded.
   SSN masking.
 - `app/controllers/application_controller_v2.rb`,
   `app/controllers/concerns/controller_authorization_v2.rb`: `authorize_with`,
-  `ensure_authorized`.
+  `mark_authorization_performed!`, `ensure_authorized`.
 - `lib/util/authorization_not_performed_error.rb`, `lib/util/not_authorized_error.rb`.
 - `app/models/user.rb`: `policy_for`, `policy_context`, `reporting_policy_for_project`,
   `reporting_policy_for_client`.
@@ -211,8 +213,8 @@ already preloaded.
   variable they read must be set by an earlier `before_action`. `ProjectsController` orders
   `before_action :set_project` ahead of the `authorize_with` calls.
 - `user.policy_for(record)` without `policy_class:` raises `ArgumentError` unless the model
-  defines `policy_class`. Only `Project`, `Client`, `DataSource`, and `HudReports::ReportInstance`
-  do today.
+  defines `policy_class`. `Project`, `Client`, `DataSource`, `HudReports::ReportInstance`, and
+  `GrdaWarehouse::WarehouseReports::Project::DataQuality::Base` do.
 - `SourceClientPolicy` and `DestinationClientPolicy` raise if handed the wrong kind of client.
   `Client#policy_class` picks the right one; call `policy_for(client)` rather than constructing
   either directly.

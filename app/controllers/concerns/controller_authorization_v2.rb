@@ -16,13 +16,17 @@ module ControllerAuthorizationV2
   class_methods do
     def authorize_with(only: nil, except: nil, &block)
       before_action only: only, except: except do |controller|
-        controller.instance_variable_set(:@authorization_performed, true)
+        controller.send(:mark_authorization_performed!)
         controller.send(:not_authorized!) unless instance_exec(&block)
       end
     end
   end
 
   private
+
+  def mark_authorization_performed!
+    @authorization_performed = true
+  end
 
   def ensure_authorized
     raise AuthorizationNotPerformedError unless @authorization_performed

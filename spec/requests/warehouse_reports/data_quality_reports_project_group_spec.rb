@@ -120,6 +120,15 @@ RSpec.describe 'DataQualityReportsProjectGroupController', type: :request do
     expect(response.body).not_to include('Hidden group answer')
   end
 
+  it 'redirects show when the user lacks the report definition' do
+    collection.set_viewables({ reports: [], project_groups: [project_group.id], projects: [project.id] })
+    user.clear_memery_cache!
+
+    get project_group_data_quality_report_path(project_group, report)
+
+    expect(response).to redirect_to(user.my_root_path)
+  end
+
   it 'redirects a logged-out request for show to sign in' do
     sign_out(user)
 

@@ -80,10 +80,7 @@ a polymorphic join on `(collection_id, entity_type, entity_id)`. Entity types: `
 `collection_type` (`Projects`, `Project Groups`, `Reports`, `Cohorts`, `Supplemental Data Sets`)
 limits which types the admin UI offers; see `Collection#relevant_entity_types`. Project access is
 inclusive: `Project.project_ids_viewable_by` unions ids from directly listed projects, their
-organizations, data sources, CoC codes, and project access groups, across every collection the
-user holds the permission in. `Project.project_ids_in_collections(collection_ids)` does the same
-union for a given set of collections; `DataQualityReportPolicy` uses it to require that the project
-share a collection with the report definition. `Collection#set_viewables`
+organizations, data sources, CoC codes, and project access groups. `Collection#set_viewables`
 replaces membership, restoring soft-deleted rows rather than inserting duplicates.
 
 **System collections.** `Collection.maintain_system_groups` keeps the "All ..." collections,
@@ -137,8 +134,7 @@ environment. `UserPermissionCache` (`app/models/concerns/user_permission_cache.r
   scopes, `collections_for_permission`, `viewable_project_ids`, `editable_project_ids`,
   `clear_cached_permissions`, `ids_for_relations`, `policy_for`, `policy_context`.
 - `app/models/grda_warehouse/hud/project.rb`: `viewable_by`, `viewable_by_entity`,
-  `editable_by`, `project_ids_viewable_by`, `project_ids_in_collections` and the
-  `project_ids_from_*` helpers.
+  `editable_by`, `project_ids_viewable_by` and the `project_ids_from_*` helpers.
 - `drivers/client_access_control/app/models/client_access_control/enrollment_arbiter.rb`: client
   and enrollment visibility.
 - `app/controllers/admin/access_controls_controller.rb` (`AccessControl.user_managed`,

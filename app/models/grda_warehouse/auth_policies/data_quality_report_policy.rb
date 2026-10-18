@@ -6,40 +6,19 @@
 
 # frozen_string_literal: true
 
+# Does not check access to the report definition; controllers do that through WarehouseReportAuthorization.
 # @see docs/features/warehouse/warehouse-auth-policies.md
 class GrdaWarehouse::AuthPolicies::DataQualityReportPolicy < GrdaWarehouse::AuthPolicies::BasePolicy
-  REPORT_DEFINITION_URL = 'warehouse_reports/project/data_quality'
-
-  def self.report_definition_viewable?(user)
-    return false unless user&.can_view_assigned_reports?
-
-    report_definition_scope.viewable_by(user).exists?
-  end
-
-  # Under ACLs the project must share a collection with the report definition, so one access control grants both.
   def self.reportable_project_ids(user)
-    return GrdaWarehouse::Hud::Project.none.select(:id) unless report_definition_viewable?(user)
-
-    scope = GrdaWarehouse::Hud::Project.viewable_by(user, permission: :can_view_assigned_reports)
-    scope = scope.where(id: GrdaWarehouse::Hud::Project.project_ids_in_collections(report_collection_ids(user))) if user.using_acls?
-    scope.select(:id)
+    GrdaWarehouse::Hud::Project.viewable_by(user, permission: :can_view_assigned_reports).select(:id)
   end
 
   def self.reportable_project_group_ids(user)
-    return GrdaWarehouse::ProjectGroup.none.select(:id) unless report_definition_viewable?(user)
-    return GrdaWarehouse::ProjectGroup.viewable_by(user).select(:id) unless user.using_acls?
-
-    group_ids = GrdaWarehouse::GroupViewableEntity.where(
-      collection_id: report_collection_ids(user),
-      entity_type: GrdaWarehouse::ProjectGroup.sti_name,
-    ).select(:entity_id)
-    GrdaWarehouse::ProjectGroup.where(id: group_ids).select(:id)
+    GrdaWarehouse::ProjectGroup.viewable_by(user).select(:id)
   end
 
   # Contacts on the project or its organization can view the report without any other access to the project.
   def self.viewable_reports(user)
-    return report_scope.none unless report_definition_viewable?(user)
-
     reporting = report_scope.where(project_id: reportable_project_ids(user)).
       or(report_scope.where(project_group_id: reportable_project_group_ids(user)))
     reporting = reporting.where(requestor_id: user.id) unless user.can_view_all_reports?
@@ -97,18 +76,6 @@ class GrdaWarehouse::AuthPolicies::DataQualityReportPolicy < GrdaWarehouse::Auth
 
     def report_scope
       GrdaWarehouse::WarehouseReports::Project::DataQuality::Base
-    end
-
-    def report_definition_scope
-      GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: REPORT_DEFINITION_URL)
-    end
-
-    def report_collection_ids(user)
-      GrdaWarehouse::GroupViewableEntity.where(
-        collection_id: user.collections_for_permission(:can_view_assigned_reports),
-        entity_type: GrdaWarehouse::WarehouseReports::ReportDefinition.sti_name,
-        entity_id: report_definition_scope.select(:id),
-      ).distinct.pluck(:collection_id)
     end
 
     def contact_project_ids(user)
