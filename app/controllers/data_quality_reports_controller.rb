@@ -9,7 +9,6 @@
 class DataQualityReportsController < ApplicationController
   include AjaxModalRails::Controller
   include WarehouseReports::PiiDetailRows
-  skip_before_action :authenticate_user!, only: [:show, :answers]
   before_action :require_valid_token_or_report_access!, except: [:index]
   before_action :require_valid_token_or_project_access!
 
@@ -184,7 +183,7 @@ class DataQualityReportsController < ApplicationController
     if notification_id.present?
       token = GrdaWarehouse::ReportToken.find_by_token(notification_id)
       raise ActionController::RoutingError, 'Not Found' if token.blank?
-      return true if token.valid?
+      return true if token.valid_for_report?(params[:id])
     else
       set_report
       report_viewable = GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: 'warehouse_reports/project/data_quality').viewable_by(current_user).exists?
@@ -200,7 +199,7 @@ class DataQualityReportsController < ApplicationController
     if notification_id.present?
       token = GrdaWarehouse::ReportToken.find_by_token(notification_id)
       raise ActionController::RoutingError, 'Not Found' if token.blank?
-      return true if token.valid?
+      return true if token.valid_for_report?(params[:id])
     else
       set_project
       project_viewable = project_scope.where(id: @project.id).exists?

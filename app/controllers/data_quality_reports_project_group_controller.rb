@@ -9,7 +9,6 @@
 class DataQualityReportsProjectGroupController < DataQualityReportsController
   include AjaxModalRails::Controller
   # Authorize by either access to projects OR access by token
-  skip_before_action :authenticate_user!, only: [:show, :answers]
   skip_before_action :set_project
   before_action :require_valid_token_or_project_access!
   before_action :set_report, only: [:show, :support, :answers]
@@ -61,7 +60,7 @@ class DataQualityReportsProjectGroupController < DataQualityReportsController
     if notification_id.present?
       token = GrdaWarehouse::ReportToken.find_by_token(notification_id)
       raise ActionController::RoutingError, 'Not Found' if token.blank?
-      return true if token.valid?
+      return true if token.valid_for_report?(params[:id])
     else
       set_project_group
       project_group_viewable = project_group_scope.where(id: @project_group.id).exists?

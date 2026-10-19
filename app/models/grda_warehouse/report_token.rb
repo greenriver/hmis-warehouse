@@ -18,7 +18,7 @@ module GrdaWarehouse
     end
 
     def valid_for_report?(report_id)
-      ! expired? && report_id == report_id
+      !expired? && self.report_id == report_id.to_i
     end
 
     def setup_token

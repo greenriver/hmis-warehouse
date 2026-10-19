@@ -1,0 +1,157 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+# frozen_string_literal: true
+
+require 'rails_helper'
+
+RSpec.describe 'Data quality report token access', type: :request do
+  let!(:user) { create(:acl_user) }
+  let!(:data_source) { create(:grda_warehouse_data_source) }
+  let!(:organization) { create(:hud_organization, data_source: data_source) }
+  let!(:project) { create(:hud_project, data_source: data_source, OrganizationID: organization.OrganizationID) }
+  let!(:other_project) { create(:hud_project, data_source: data_source, OrganizationID: organization.OrganizationID) }
+  let!(:project_group) { create(:dq_project_group) }
+
+  let!(:project_report) { create(:data_quality_report_version_five, project: project) }
+  let!(:other_project_report) { create(:data_quality_report_version_five, project: other_project) }
+  let!(:sibling_project_report) { create(:data_quality_report_version_five, project: project) }
+  let!(:group_report) { create(:data_quality_report_version_five, project_group: project_group) }
+  let!(:other_group_report) { create(:data_quality_report_version_five, project_group: project_group) }
+
+  def token_for(report)
+    GrdaWarehouse::ReportToken.create!(report_id: report.id, contact_id: 1)
+  end
+
+  let!(:project_token) { token_for(project_report) }
+  let!(:group_token) { token_for(group_report) }
+
+  def project_url(action, token, report, project_id: project.id)
+    helper = {
+      show: :notification_project_data_quality_report_path,
+      answers: :answers_notification_project_data_quality_report_path,
+      support: :support_notification_project_data_quality_report_path,
+    }.fetch(action)
+    public_send(helper, token.token, project_id, report.id)
+  end
+
+  def group_url(action, token, report)
+    helper = {
+      show: :notification_project_group_data_quality_report_path,
+      answers: :answers_notification_project_group_data_quality_report_path,
+      support: :support_notification_project_group_data_quality_report_path,
+    }.fetch(action)
+    public_send(helper, token.token, project_group.id, report.id)
+  end
+
+  context 'when logged out' do
+    shared_examples 'requires sign-in' do
+      it 'for show' do
+        expect_unauthenticated_warehouse_request { get(url_for_action.call(:show)) }
+      end
+
+      it 'for answers' do
+        expect_unauthenticated_warehouse_request { get(url_for_action.call(:answers)) }
+      end
+    end
+
+    context 'with a project report token' do
+      let(:url_for_action) { ->(action) { project_url(action, project_token, project_report) } }
+
+      it_behaves_like 'requires sign-in'
+    end
+
+    context 'with a project group report token' do
+      let(:url_for_action) { ->(action) { group_url(action, group_token, group_report) } }
+
+      it_behaves_like 'requires sign-in'
+    end
+
+    it 'remembers the token URL as the post-sign-in destination', :devise_only do
+      url = project_url(:show, project_token, project_report)
+      get url
+
+      expect(session['user_return_to']).to eq(url)
+    end
+  end
+
+  context 'when signed in without project or report access' do
+    before { sign_in(user) }
+
+    it 'shows the project report for its own token' do
+      get project_url(:show, project_token, project_report)
+
+      expect(response).to have_http_status(:ok)
+    end
+
+    it 'shows the project group report for its own token' do
+      get group_url(:show, group_token, group_report)
+
+      expect(response).to have_http_status(:ok)
+    end
+
+    it 'returns project report answers for its own token' do
+      get project_url(:answers, project_token, project_report)
+
+      expect(response).to have_http_status(:ok)
+      expect(response.parsed_body).to eq(project_report.report.as_json)
+    end
+
+    it 'returns project group report answers for its own token' do
+      get group_url(:answers, group_token, group_report)
+
+      expect(response).to have_http_status(:ok)
+      expect(response.parsed_body).to eq(group_report.report.as_json)
+    end
+
+    [:show, :answers, :support].each do |action|
+      it "returns 404 for #{action} of another report on the same project" do
+        get project_url(action, project_token, sibling_project_report)
+        expect(response).to have_http_status(:not_found)
+      end
+
+      it "returns 404 for #{action} of a report on another project" do
+        get project_url(action, project_token, other_project_report, project_id: other_project.id)
+        expect(response).to have_http_status(:not_found)
+      end
+
+      it "returns 404 for #{action} of another report in the same project group" do
+        get group_url(action, group_token, other_group_report)
+        expect(response).to have_http_status(:not_found)
+      end
+
+      it "returns 404 for #{action} when the URL project is not the token's report project" do
+        get project_url(action, project_token, project_report, project_id: other_project.id)
+        expect(response).to have_http_status(:not_found)
+      end
+    end
+
+    [:show, :answers].each do |action|
+      it "returns 404 for #{action} with an expired token on its own project report" do
+        project_token.update_columns(expires_at: 1.day.ago)
+
+        get project_url(action, project_token, project_report)
+
+        expect(response).to have_http_status(:not_found)
+      end
+
+      it "returns 404 for #{action} with an expired token on its own project group report" do
+        group_token.update_columns(expires_at: 1.day.ago)
+
+        get group_url(action, group_token, group_report)
+
+        expect(response).to have_http_status(:not_found)
+      end
+    end
+
+    it 'returns 404 for an unknown token' do
+      unknown = GrdaWarehouse::ReportToken.new(token: 'unknown', report_id: project_report.id)
+
+      get project_url(:show, unknown, project_report)
+      expect(response).to have_http_status(:not_found)
+    end
+  end
+end
