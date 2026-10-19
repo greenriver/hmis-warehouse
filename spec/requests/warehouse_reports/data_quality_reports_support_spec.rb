@@ -9,6 +9,32 @@
 require 'rails_helper'
 
 RSpec.describe 'DataQualityReportsController#support', type: :request do
+  utilization_totals = { 'counts' => { 'capacity' => 1, 'average_daily' => 1, 'average_daily_percentage' => 100 } }
+  timeliness = { 'data' => {} }
+  percent_keys = ['name', 'ssn', 'dob', 'veteran', 'ethnicity', 'race'].flat_map { |k| ["missing_#{k}_percent", "refused_#{k}_percent"] }
+  percentage_keys = ['disabling_condition', 'prior_living_situation', 'destination', 'income_at_entry', 'income_at_exit'].flat_map { |k| ["missing_#{k}_percentage", "refused_#{k}_percentage"] }
+  version_three_report = {
+    'total_clients' => 1,
+    'total_active_clients' => 1,
+    'unit_utilization_totals' => utilization_totals,
+    'bed_utilization_totals' => utilization_totals,
+    'households' => { 'total_active_households' => 0 },
+    'average_timeliness_of_entry' => timeliness,
+    'average_timeliness_of_exit' => timeliness,
+    'project_missing' => {},
+    'length_of_stay_totals' => { 'average' => 0, 'buckets' => {} },
+    'incorrect_dob' => { 'Project' => 1 },
+    'missing_nights' => {},
+    'service_after_close' => {},
+    'individuals_at_family_projects' => {},
+    'families_at_individual_projects' => {},
+    'enrollments_with_no_service' => {},
+  }.merge((percent_keys + percentage_keys).index_with { 0 })
+  factory_attributes = {
+    data_quality_report_version_three: { report: version_three_report },
+    data_quality_report_version_four: { report: {} },
+  }
+
   let!(:collection) { create(:collection) }
   let!(:role) { create(:role, can_view_all_reports: true, can_view_assigned_reports: true, can_view_clients: true, can_view_client_name: true, can_view_projects: true) }
   let!(:user) { create(:acl_user) }
@@ -320,9 +346,9 @@ RSpec.describe 'DataQualityReportsController#support', type: :request do
       expect(response.body).to include(ERB::Util.html_escape(path))
     end
 
-    [:data_quality_report_version_four].each do |factory|
+    factory_attributes.each do |factory, attributes|
       it "links a #{factory} report to support" do
-        older_report = create(factory, project: project, requestor_id: user.id, completed_at: Time.current, report: {})
+        older_report = create(factory, project: project, requestor_id: user.id, completed_at: Time.current, **attributes)
 
         get project_data_quality_report_path(project, older_report)
 
@@ -344,6 +370,40 @@ RSpec.describe 'DataQualityReportsController#support', type: :request do
       sign_in(contact_user)
     end
 
+    context 'when can_view_clients covers only a different project' do
+      before do
+        unrelated_project = create(:hud_project, data_source: project_data_source, OrganizationID: organization.OrganizationID)
+        client_collection = create(:collection)
+        client_collection.set_viewables({ projects: [unrelated_project.id] })
+        setup_access_control(contact_user, create(:role, can_view_clients: true, can_view_client_name: true), client_collection)
+        contact_user.clear_memery_cache!
+      end
+
+      it 'redirects support in HTML and xlsx' do
+        get support_project_data_quality_report_path(project, report, individual: true, method: 'test')
+        expect(response).to redirect_to(contact_user.my_root_path)
+
+        get support_project_data_quality_report_path(project, report, individual: true, method: 'test', format: :xlsx)
+        expect(response).to redirect_to(contact_user.my_root_path)
+      end
+    end
+
+    context 'when can_view_clients covers the project' do
+      before do
+        client_collection = create(:collection)
+        client_collection.set_viewables({ projects: [project.id] })
+        setup_access_control(contact_user, create(:role, can_view_clients: true, can_view_client_name: true), client_collection)
+        contact_user.clear_memery_cache!
+      end
+
+      it 'renders support rows' do
+        get support_project_data_quality_report_path(project, report, individual: true, method: 'test')
+
+        expect(response).to have_http_status(:ok)
+        expect(table_cells).to include('Doe')
+      end
+    end
+
     it 'redirects support and does not render rows' do
       get support_project_data_quality_report_path(project, report, individual: true, method: 'test')
 
@@ -361,9 +421,9 @@ RSpec.describe 'DataQualityReportsController#support', type: :request do
       expect(response.body).not_to include("data_quality_reports/#{report.id}/support")
     end
 
-    [:data_quality_report_version_four].each do |factory|
+    factory_attributes.each do |factory, attributes|
       it "renders a #{factory} report without support links" do
-        older_report = create(factory, project: project, requestor_id: user.id, completed_at: Time.current, report: {})
+        older_report = create(factory, project: project, requestor_id: user.id, completed_at: Time.current, **attributes)
 
         get project_data_quality_report_path(project, older_report)
 

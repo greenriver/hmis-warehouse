@@ -44,6 +44,17 @@ RSpec.describe 'DataQualityReportsProjectGroupController', type: :request do
     sign_in(user)
   end
 
+  def sign_in_group_contact(entity)
+    contact_user = create(:acl_user)
+    contact_collection = create(:collection)
+    contact_collection.set_viewables({ reports: [report_definition.id] })
+    setup_access_control(contact_user, create(:role, can_view_assigned_reports: true), contact_collection)
+    create(:grda_warehouse_contact_project, entity: entity, user: contact_user)
+    sign_out(user)
+    sign_in(contact_user)
+    contact_user
+  end
+
   it 'renders support rows for a report on a group in the user collections' do
     get support_project_group_data_quality_report_path(project_group, report, individual: true, method: 'test')
 
@@ -62,11 +73,61 @@ RSpec.describe 'DataQualityReportsProjectGroupController', type: :request do
       expect(response.body).not_to include('Casey')
     end
 
-    it 'renders show for the report' do
+    it 'renders show for the report without support links' do
+      report.update!(completed_at: Time.current)
+
       get project_group_data_quality_report_path(project_group, report)
 
       expect(response).to have_http_status(:ok)
+      expect(response.body).not_to include("data_quality_reports/#{report.id}/support")
     end
+  end
+
+  context 'when the group has a second project the user cannot view clients for' do
+    before { project_group.update!(projects: [project, other_project]) }
+
+    it 'redirects support in HTML and xlsx' do
+      get support_project_group_data_quality_report_path(project_group, report, individual: true, method: 'test')
+      expect(response).to redirect_to(user.my_root_path)
+
+      get support_project_group_data_quality_report_path(project_group, report, individual: true, method: 'test', format: :xlsx)
+      expect(response).to redirect_to(user.my_root_path)
+    end
+
+    it 'renders support rows once the user can view clients on both projects' do
+      collection.set_viewables({ reports: [report_definition.id], project_groups: [project_group.id], projects: [project.id, other_project.id] })
+      user.clear_memery_cache!
+
+      get support_project_group_data_quality_report_path(project_group, report, individual: true, method: 'test')
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('Casey')
+    end
+  end
+
+  it 'links to support on the group report page when the user can view clients' do
+    report.update!(completed_at: Time.current)
+
+    get project_group_data_quality_report_path(project_group, report)
+
+    expect(response.body).to include("data_quality_reports/#{report.id}/support")
+  end
+
+  it 'renders show for a contact on a project in the group without access to the group' do
+    sign_in_group_contact(project)
+
+    get project_group_data_quality_report_path(project_group, report)
+
+    expect(response).to have_http_status(:ok)
+    expect(response.body).not_to include("data_quality_reports/#{report.id}/support")
+  end
+
+  it 'redirects show for a contact on a project outside the group' do
+    contact_user = sign_in_group_contact(other_project)
+
+    get project_group_data_quality_report_path(project_group, report)
+
+    expect(response).to redirect_to(contact_user.my_root_path)
   end
 
   it 'redirects support for a report on a group outside the user collections without rendering rows' do
@@ -104,13 +165,7 @@ RSpec.describe 'DataQualityReportsProjectGroupController', type: :request do
     end
 
     it 'lists every report on the group for a contact on a project in the group without access to the group' do
-      contact_user = create(:acl_user)
-      contact_collection = create(:collection)
-      contact_collection.set_viewables({ reports: [report_definition.id] })
-      setup_access_control(contact_user, create(:role, can_view_assigned_reports: true), contact_collection)
-      create(:grda_warehouse_contact_project, entity: project, user: contact_user)
-      sign_out(user)
-      sign_in(contact_user)
+      sign_in_group_contact(project)
 
       get project_group_data_quality_reports_path(project_group)
 
