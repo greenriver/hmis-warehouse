@@ -18,6 +18,11 @@ RSpec.describe 'ProjectScorecard::WarehouseReports::ScorecardsController visibil
   describe 'history' do
     include_context 'report visibility users'
 
+    # 9pm Eastern is already tomorrow in UTC; history must still list scorecards started today
+    around do |example|
+      travel_to(Time.zone.local(2026, 10, 16, 21, 0)) { example.run }
+    end
+
     let(:contact_project) { create(:hud_project) }
     let(:other_project) { create(:hud_project) }
     let!(:contact_report) { report_class.create!(user_id: all_reports_user.id, project_id: contact_project.id, started_at: Time.current) }
