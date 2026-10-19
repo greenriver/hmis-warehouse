@@ -74,6 +74,60 @@ RSpec.describe WarehouseReports::Project::DataQualitiesController, type: :reques
       expect(response.body).to include("project[#{project.id}]")
       expect(response.body).not_to include("project[#{other_project.id}]")
     end
+
+    it 'queues a report for a project group alone' do
+      queue(project_group_ids: [project_group.id])
+
+      expect(queued_rows).to contain_exactly([nil, project_group.id, user.id])
+    end
+
+    it 'queues nothing and shows an error when every requested id is out of scope' do
+      queue(project_ids: [other_project.id], project_group_ids: [other_project_group.id])
+
+      expect(queued_rows).to be_empty
+      expect(flash[:error]).to include('At least one project or project group must be selected')
+    end
+
+    it 'lists only reportable project groups on the selection page' do
+      view_only_group = create(:project_group, projects: [project])
+      view_only_collection = create(:collection)
+      view_only_collection.set_viewables({ project_groups: [view_only_group.id] })
+      setup_access_control(user, create(:role, can_view_projects: true), view_only_collection)
+
+      get warehouse_reports_project_data_quality_path, params: { filters: { project_ids: [project.id] } }
+
+      expect(response.body).to include("project_group[#{project_group.id}]")
+      expect(response.body).not_to include("project_group[#{view_only_group.id}]")
+    end
+
+    context 'with a confidential project the user can report on' do
+      let!(:confidential_project) { create(:hud_project, data_source: data_source, OrganizationID: organization.OrganizationID, ProjectName: 'Confidential Project', confidential: true) }
+      let(:confidential_role_attributes) { { can_view_assigned_reports: true, can_view_projects: true, can_report_on_confidential_projects: true } }
+
+      def grant_confidential(attributes)
+        confidential_collection = create(:collection)
+        confidential_collection.set_viewables({ projects: [confidential_project.id] })
+        setup_access_control(user, create(:role, **attributes), confidential_collection)
+      end
+
+      it 'does not list or queue it without can_view_confidential_project_names' do
+        grant_confidential(confidential_role_attributes)
+
+        get warehouse_reports_project_data_quality_path, params: { filters: { project_ids: [confidential_project.id] } }
+        expect(response.body).not_to include("project[#{confidential_project.id}]")
+
+        queue(project_ids: [confidential_project.id])
+        expect(queued_rows).to be_empty
+      end
+
+      it 'queues it with can_view_confidential_project_names' do
+        grant_confidential(confidential_role_attributes.merge(can_view_confidential_project_names: true))
+
+        queue(project_ids: [confidential_project.id])
+
+        expect(queued_rows).to contain_exactly([confidential_project.id, nil, user.id])
+      end
+    end
   end
 
   describe 'history' do
