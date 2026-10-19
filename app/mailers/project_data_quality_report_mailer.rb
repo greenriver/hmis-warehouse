@@ -13,7 +13,7 @@ class ProjectDataQualityReportMailer < DatabaseMailer
     @contact = contact
 
     @project_name = if @report.project_id.present?
-      @report.project.ProjectName
+      @report.project.name(@contact.user)
     else
       @report.project_group.name
     end

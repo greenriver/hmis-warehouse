@@ -442,6 +442,38 @@ RSpec.describe 'DataQualityReportsController#support', type: :request do
     end
   end
 
+  context 'as a project contact on a confidential project' do
+    let!(:contact_user) { create(:acl_user) }
+    let(:placeholder) { GrdaWarehouse::Hud::Project.confidential_project_name }
+
+    before do
+      project.update!(confidential: true, ProjectName: 'Secret Shelter')
+      report.update!(completed_at: Time.current, requestor_id: user.id)
+      contact_collection = create(:collection)
+      contact_collection.set_viewables({ reports: [report_definition.id] })
+      setup_access_control(contact_user, create(:role, can_view_assigned_reports: true), contact_collection)
+      create(:grda_warehouse_contact_project, entity: project, user: contact_user)
+      sign_out(user)
+      sign_in(contact_user)
+    end
+
+    it 'hides the project name on the report page' do
+      get project_data_quality_report_path(project, report)
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).not_to include('Secret Shelter')
+      expect(response.body).to include(placeholder)
+    end
+
+    it 'hides the project name on the project report list' do
+      get project_data_quality_reports_path(project)
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).not_to include('Secret Shelter')
+      expect(response.body).to include(placeholder)
+    end
+  end
+
   describe 'legacy support on a version three report' do
     let!(:legacy_report) do
       create(

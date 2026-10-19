@@ -68,6 +68,37 @@ RSpec.describe ProjectDataQualityReportMailer, type: :mailer do
       end
     end
 
+    context 'for a report on a confidential project' do
+      let(:project) do
+        create :grda_warehouse_hud_project, data_source: data_source, organization: organization, confidential: true, ProjectName: 'Secret Shelter'
+      end
+      let(:user) { create :acl_user }
+      let(:contact) do
+        create(
+          :grda_warehouse_contact_project,
+          entity: project,
+          user: user,
+        )
+      end
+
+      it 'shows the confidential placeholder instead of the project name to a contact without the confidential name permission' do
+        mail = ProjectDataQualityReportMailer.report_complete([project], report, contact)
+
+        expect(mail.subject).to eq("Report Complete: #{GrdaWarehouse::Hud::Project.confidential_project_name}")
+        expect(mail.body.encoded).not_to include('Secret Shelter')
+      end
+
+      it 'shows the project name to a contact who can view confidential project names on the project' do
+        collection = create(:collection)
+        collection.set_viewables({ projects: [project.id] })
+        setup_access_control(user, create(:role, can_view_projects: true, can_view_confidential_project_names: true), collection)
+
+        mail = ProjectDataQualityReportMailer.report_complete([project], report, contact)
+
+        expect(mail.subject).to eq('Report Complete: Secret Shelter')
+      end
+    end
+
     context 'with organization contact' do
       let(:contact) do
         create(
