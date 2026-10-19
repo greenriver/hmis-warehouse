@@ -15,6 +15,7 @@ require 'rails_helper'
 # the confidentiality exclusion project_scope applies alongside permission.
 RSpec.describe Api::ProjectsController, type: :request do
   include AccessControlSetup
+  include LegacyProjectNamesSetup
 
   before(:all) { GrdaWarehouse::Utility.clear! }
   after(:all) { GrdaWarehouse::Utility.clear! }
@@ -93,6 +94,44 @@ RSpec.describe Api::ProjectsController, type: :request do
 
     it 'returns the same projects when a permission is given (legacy branch ignores it)' do
       post_projects(permission: 'can_view_assigned_reports')
+      expect(returned_project_ids).to match_array(granted_project_ids)
+    end
+  end
+
+  context 'with a legacy role-based user and a confidential project' do
+    let!(:confidential_project) do
+      create(
+        :hud_project,
+        data_source_id: data_source.id,
+        OrganizationID: organization.OrganizationID,
+        ProjectType: 4,
+        confidential: true,
+      )
+    end
+    let(:viewer_permissions) { { can_view_assigned_reports: true, can_view_projects: true, can_report_on_confidential_projects: true } }
+
+    def sign_in_legacy_user(permissions)
+      sign_in(create_legacy_user(permissions, [data_source]))
+    end
+
+    it 'includes the confidential project when a role holds can_view_confidential_project_names' do
+      sign_in_legacy_user(viewer_permissions.merge(can_view_confidential_project_names: true))
+
+      post_projects
+      expect(returned_project_ids).to match_array(granted_project_ids + [confidential_project.id])
+    end
+
+    it 'includes the confidential project when a permission is given and a role holds can_view_confidential_project_names' do
+      sign_in_legacy_user(viewer_permissions.merge(can_view_confidential_project_names: true))
+
+      post_projects(permission: 'can_view_assigned_reports')
+      expect(returned_project_ids).to match_array(granted_project_ids + [confidential_project.id])
+    end
+
+    it 'excludes the confidential project when no role holds can_view_confidential_project_names' do
+      sign_in_legacy_user(viewer_permissions)
+
+      post_projects
       expect(returned_project_ids).to match_array(granted_project_ids)
     end
   end
