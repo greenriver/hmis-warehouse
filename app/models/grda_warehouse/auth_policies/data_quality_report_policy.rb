@@ -6,7 +6,8 @@
 
 # frozen_string_literal: true
 
-# Does not check access to the report definition; controllers do that through WarehouseReportAuthorization.
+# Does not check access to the report definition. The queue page does that through WarehouseReportAuthorization,
+# the report pages through WarehouseReportAuthorizationV2.
 # @see docs/features/warehouse/warehouse-auth-policies.md
 class GrdaWarehouse::AuthPolicies::DataQualityReportPolicy < GrdaWarehouse::AuthPolicies::BasePolicy
   def self.reportable_project_ids(user)
