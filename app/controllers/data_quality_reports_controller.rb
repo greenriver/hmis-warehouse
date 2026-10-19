@@ -133,23 +133,20 @@ class DataQualityReportsController < ApplicationControllerV2
 
   def legacy_support
     @key = params[:key].to_s
-    if @key.blank?
-      render json: @report.support
-    else
-      support = @report.support
-      @data = support[@key].with_indifferent_access
-      current_user.policy_context.preload_client_dependencies(@data[:counts].map { |row| row[0] })
-      respond_to do |format|
-        format.xlsx do
-          @data[:counts] = @data[:counts].map { |row| redact_pii_in_row(row, headers: @data[:headers], user: current_user, mode: :download) }
-          render xlsx: 'index', filename: "support-#{@key}.xlsx"
-        end
-        format.html do
-          @data[:counts] = @data[:counts].map { |row| redact_pii_in_row(row, headers: @data[:headers], user: current_user, mode: :browse) }
-          render layout: 'ajax_modal_rails/content' if params[:layout].present? && params[:layout] == 'false'
-        end
-        format.js {}
+    @data = @report.support&.[](@key)&.with_indifferent_access
+    return head(:not_found) if @data.blank?
+
+    current_user.policy_context.preload_client_dependencies(@data[:counts].map { |row| row[0] })
+    respond_to do |format|
+      format.xlsx do
+        @data[:counts] = @data[:counts].map { |row| redact_pii_in_row(row, headers: @data[:headers], user: current_user, mode: :download) }
+        render xlsx: 'index', filename: "support-#{@key}.xlsx"
       end
+      format.html do
+        @data[:counts] = @data[:counts].map { |row| redact_pii_in_row(row, headers: @data[:headers], user: current_user, mode: :browse) }
+        render layout: 'ajax_modal_rails/content' if params[:layout].present? && params[:layout] == 'false'
+      end
+      format.js {}
     end
   end
 

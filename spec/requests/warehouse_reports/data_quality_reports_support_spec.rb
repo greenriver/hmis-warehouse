@@ -441,4 +441,37 @@ RSpec.describe 'DataQualityReportsController#support', type: :request do
       expect(JSON.parse(response.body)).to eq('total_clients' => 'Contact answer')
     end
   end
+
+  describe 'legacy support on a version three report' do
+    let!(:legacy_report) do
+      create(
+        :data_quality_report_version_three,
+        project: project,
+        requestor_id: user.id,
+        completed_at: Time.current,
+        report: {},
+        support: { 'missing_dob' => { 'headers' => ['Client ID', 'First Name', 'Last Name'], 'counts' => [[open_destination_client.id, 'Open', 'Doe']] } },
+      )
+    end
+
+    it 'renders the rows for a known key' do
+      get support_project_data_quality_report_path(project, legacy_report, key: 'missing_dob')
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('Doe')
+    end
+
+    it 'returns not found without a key instead of the raw support payload' do
+      get support_project_data_quality_report_path(project, legacy_report)
+
+      expect(response).to have_http_status(:not_found)
+      expect(response.body).not_to include('Doe')
+    end
+
+    it 'returns not found for an unknown key' do
+      get support_project_data_quality_report_path(project, legacy_report, key: 'unknown')
+
+      expect(response).to have_http_status(:not_found)
+    end
+  end
 end
