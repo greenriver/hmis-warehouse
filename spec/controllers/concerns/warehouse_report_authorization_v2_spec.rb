@@ -25,13 +25,15 @@ RSpec.describe WarehouseReportAuthorizationV2, type: :controller do
   let(:reporting_role) { create(:role, can_view_assigned_reports: true) }
 
   # `index` is the report page whose path names the report definition, `open_action` is skipped,
-  # and `guarded_open_action` is skipped but has its own authorize_with.
+  # `guarded_open_action` is skipped but has its own authorize_with, and `denied_report_action`
+  # runs authorize_report! and an authorize_with that fails.
   def setup_test_controller
     klass = Class.new(ApplicationControllerV2) do
       include WarehouseReportAuthorizationV2
 
       skip_before_action :authorize_report!, only: [:open_action, :guarded_open_action]
       authorize_with(only: :guarded_open_action) { true }
+      authorize_with(only: :denied_report_action) { false }
 
       def root_action
         render plain: 'root'
@@ -48,6 +50,10 @@ RSpec.describe WarehouseReportAuthorizationV2, type: :controller do
       def guarded_open_action
         render plain: 'guarded open'
       end
+
+      def denied_report_action
+        render plain: 'denied report'
+      end
     end
 
     @controller = klass.new
@@ -60,6 +66,7 @@ RSpec.describe WarehouseReportAuthorizationV2, type: :controller do
       get 'test_report' => 'test_report#index'
       get 'open_action' => 'test_report#open_action'
       get 'guarded_open_action' => 'test_report#guarded_open_action'
+      get 'denied_report_action' => 'test_report#denied_report_action'
     end
   end
 
@@ -85,8 +92,7 @@ RSpec.describe WarehouseReportAuthorizationV2, type: :controller do
     get :index
 
     expect(response).to redirect_to(user.my_root_path)
-    expect(flash[:alert]).to be_present
-    expect(response.body).not_to include('report')
+    expect(flash[:alert]).to eq('Sorry you are not authorized to do that.')
   end
 
   it 'redirects when the collection holds a different report definition' do
@@ -103,6 +109,17 @@ RSpec.describe WarehouseReportAuthorizationV2, type: :controller do
     get :index
 
     expect(response).to redirect_to(user.my_root_path)
+  end
+
+  it 'redirects an action whose own authorize_with fails even when the report definition is visible' do
+    collection = create(:collection)
+    collection.set_viewables({ reports: [report_definition.id] })
+    setup_access_control(user, reporting_role, collection)
+
+    get :denied_report_action
+
+    expect(response).to redirect_to(user.my_root_path)
+    expect(response.body).not_to include('denied report')
   end
 
   it 'raises for a skipped action that has no authorize_with of its own' do
