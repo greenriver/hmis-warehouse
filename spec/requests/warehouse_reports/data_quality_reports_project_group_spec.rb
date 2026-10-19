@@ -238,6 +238,15 @@ RSpec.describe 'DataQualityReportsProjectGroupController', type: :request do
         expect(response.body).to include('Open Door Shelter')
         expect(response.body).to include("#{GrdaWarehouse::Hud::Project.confidential_project_name} (2)")
       end
+
+      it 'shows the placeholder in the time to enter list' do
+        Reporting::DataQualityReports::Enrollment.where(report_id: report.id).update_all(entered: true, days_to_add_entry_date: 3)
+
+        get project_group_data_quality_report_path(project_group, report)
+
+        expect(list_text_under('Projects')).not_to include('Hidden Alpha Shelter', 'Hidden Beta Shelter')
+        expect(list_text_under('Projects')).to include(GrdaWarehouse::Hud::Project.confidential_project_name, 'Open Door Shelter')
+      end
     end
 
     context 'when the confidential-name permission covers the group projects' do
@@ -255,6 +264,14 @@ RSpec.describe 'DataQualityReportsProjectGroupController', type: :request do
           expect(list_text_under(heading)).to include('Hidden Alpha Shelter', 'Hidden Beta Shelter', 'Open Door Shelter')
         end
         expect(response.body).not_to include(GrdaWarehouse::Hud::Project.confidential_project_name)
+      end
+
+      it 'shows the confidential names in the time to enter list' do
+        Reporting::DataQualityReports::Enrollment.where(report_id: report.id).update_all(entered: true, days_to_add_entry_date: 3)
+
+        get project_group_data_quality_report_path(project_group, report)
+
+        expect(list_text_under('Projects')).to include('Hidden Alpha Shelter', 'Hidden Beta Shelter', 'Open Door Shelter')
       end
     end
   end

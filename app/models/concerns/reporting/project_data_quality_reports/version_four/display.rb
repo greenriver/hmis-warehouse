@@ -164,7 +164,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
       enrolled_clients.adult_or_head_of_household
     end
 
-    def served_percentages(user:)
+    def served_percentages(user: viewing_user)
       @served_percentages ||= begin
         percentages = []
         enrolled = enrolled_clients.group(:project_id).select(:enrolled).count
@@ -187,7 +187,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
       @served_percentages
     end
 
-    def describe_completeness(method, as_percent: false, support_path: nil, report_keys: nil, user: nil) # rubocop:disable Lint/UnusedMethodArgument
+    def describe_completeness(method, as_percent: false, support_path: nil, report_keys: nil, user: viewing_user) # rubocop:disable Lint/UnusedMethodArgument
       served_percentages = send(method, user: user)
       if served_percentages.any?
         served_percentages.map do |details|
@@ -208,7 +208,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
       end
     end
 
-    def bed_utilization_percentages(user:)
+    def bed_utilization_percentages(user: viewing_user)
       @bed_utilization_percentages ||= begin
         percentages = []
         report_projects.each do |report_project|
@@ -226,7 +226,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
       @bed_utilization_percentages
     end
 
-    def unit_utilization_percentages(user:)
+    def unit_utilization_percentages(user: viewing_user)
       @unit_utilization_percentages ||= begin
         percentages = []
         report_projects.each do |report_project|
@@ -244,7 +244,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
       @unit_utilization_percentages
     end
 
-    def project_descriptor(user:)
+    def project_descriptor(user: viewing_user)
       @project_descriptor ||= begin
         issues = []
         report_projects.each do |report_project|
@@ -346,7 +346,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
     end
 
     # return where the completeness value is < threshold
-    def client_data(user:)
+    def client_data(user: viewing_user)
       @client_data ||= begin
         percentages = []
 
@@ -513,7 +513,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
       ]
     end
 
-    def timeliness(user:)
+    def timeliness(user: viewing_user)
       @timeliness ||= begin
         issues = []
         time_to_enter_entry = entering_clients.group(:project_id).
@@ -554,7 +554,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
       @timeliness
     end
 
-    def dob_after_entry(user:)
+    def dob_after_entry(user: viewing_user)
       @dob_after_entry ||= begin
         issues = []
         dob_issues = enrolled_clients.group(:project_id).
@@ -575,7 +575,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
       end
     end
 
-    def final_month_service(user:)
+    def final_month_service(user: viewing_user)
       @final_month_service ||= begin
         issues = []
         service_issues = enrolled_clients.group(:project_id).
@@ -596,7 +596,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
       end
     end
 
-    def service_after_exit_date(user:)
+    def service_after_exit_date(user: viewing_user)
       @service_after_exit_date ||= begin
         issues = []
         service_issues = exiting_clients.group(:project_id).
@@ -617,7 +617,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
       end
     end
 
-    def household_type_mismatch(user:)
+    def household_type_mismatch(user: viewing_user)
       @household_type_mismatch ||= begin
         issues = []
         household_type_issues = enrolled_clients.where(incorrect_household_type: true).group(:project_id).distinct.
@@ -648,7 +648,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
       end
     end
 
-    def enrollments_with_no_service(user:)
+    def enrollments_with_no_service(user: viewing_user)
       @enrollments_with_no_service ||= begin
         issues = []
         service_issues = enrolled_clients.group(:project_id).
@@ -669,7 +669,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
       end
     end
 
-    def move_in_date_after_threshold(user:)
+    def move_in_date_after_threshold(user: viewing_user)
       @move_in_date_after_threshold ||= begin
         issues = []
         move_in_date_issues = move_in_date_above_threshold.group(:project_id).
@@ -690,7 +690,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
     end
 
     # formatted for billboardjs
-    def bed_census_data(user = nil)
+    def bed_census_data(user: viewing_user)
       @bed_census_data ||= begin
         dates = report_range.range.to_a
         data = {}
@@ -701,7 +701,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
           dates.each do |date|
             counts << report_project.nightly_client_census[date.to_s] || 0
           end
-          data[project_display_name(report_project.project_id, user)] = counts
+          data[project_display_name(report_project.project_id, user: user)] = counts
         end
         if report_type == :project_group
           counts = []
@@ -717,7 +717,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
       end
     end
 
-    def unit_census_data(user = nil)
+    def unit_census_data(user: viewing_user)
       @unit_census_data ||= begin
         dates = report_range.range.to_a
         data = {}
@@ -728,7 +728,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
           dates.each do |date|
             counts << report_project.nightly_household_census[date.to_s] || 0
           end
-          data[project_display_name(report_project.project_id, user)] = counts
+          data[project_display_name(report_project.project_id, user: user)] = counts
         end
         if report_type == :project_group
           counts = []
@@ -744,7 +744,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
       end
     end
 
-    def describe_time_to_enter(user:)
+    def describe_time_to_enter(user: viewing_user)
       @describe_time_to_enter ||= begin
         issues = []
         time_to_enter_by_project_id.each do |id, count|
@@ -765,12 +765,12 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
       end
     end
 
-    def time_to_enter_by_project_id(user: nil) # rubocop:disable Lint/UnusedMethodArgument
+    def time_to_enter_by_project_id(user: viewing_user) # rubocop:disable Lint/UnusedMethodArgument
       @time_to_enter_by_project_id ||= entering_clients.group(:project_id).
         sum(:days_to_add_entry_date)
     end
 
-    def describe_time_to_exit(user:)
+    def describe_time_to_exit(user: viewing_user)
       @describe_time_to_exit ||= begin
         issues = []
         report_projects.each do |project|
@@ -796,7 +796,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
         sum(:days_to_add_exit_date)
     end
 
-    def average_time_to_enter(user = nil)
+    def average_time_to_enter(user: viewing_user)
       @average_time_to_enter ||= begin
         # these need to be padded front and back for chart js to correctly show the goal
         labels = ['', 'Days to Entry', '']
@@ -812,16 +812,16 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
                                end
           data[project.id] = [0, average_timeliness, 0]
         end
-        data = re_key_on_project_name(data, user)
+        data = re_key_on_project_name(data, user: user)
         {
           labels: labels,
           data: data.merge('Goal' => goal),
-          projects: project_display_names(user).invert,
+          projects: project_display_names(user: user).invert,
         }
       end
     end
 
-    def average_time_to_exit(user = nil)
+    def average_time_to_exit(user: viewing_user)
       @average_time_to_exit ||= begin
         # these need to be padded front and back for chart js to correctly show the goal
         labels = ['', 'Days to Exit', '']
@@ -837,16 +837,16 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
                                end
           data[project.id] = [0, average_timeliness, 0]
         end
-        data = re_key_on_project_name(data, user)
+        data = re_key_on_project_name(data, user: user)
         {
           labels: labels,
           data: data.merge('Goal' => goal),
-          projects: project_display_names(user).invert,
+          projects: project_display_names(user: user).invert,
         }
       end
     end
 
-    def average_time_in_project(user:)
+    def average_time_in_project(user: viewing_user)
       @average_time_in_project ||= begin
         issues = []
         days_by_project_id = enrolled_clients.group(:project_id).
@@ -885,7 +885,7 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
       end
     end
 
-    def percent_in_project_over_one_year(user:)
+    def percent_in_project_over_one_year(user: viewing_user)
       @percent_in_project_over_one_year ||= begin
         issues = []
         more_than_one_year = enrolled_clients.group(:project_id).
@@ -924,14 +924,14 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
       end
     end
 
-    def re_key_on_project_name(data, user = nil)
+    def re_key_on_project_name(data, user: viewing_user)
       # To prevent duplicate names from being counted oddly, we key on id then replace for display
       data.map do |id, values|
-        [project_display_name(report_projects.detect { |rp| rp.id == id }&.project_id, user), values]
+        [project_display_name(report_projects.detect { |rp| rp.id == id }&.project_id, user: user), values]
       end.to_h
     end
 
-    def enrolled_length_of_stay(user = nil)
+    def enrolled_length_of_stay(user: viewing_user)
       @enrolled_length_of_stay ||= begin
         labels = self.class.length_of_stay_buckets.keys
         data = {}
@@ -948,17 +948,17 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
             totals[index] += count
           end
         end
-        data = re_key_on_project_name(data, user)
+        data = re_key_on_project_name(data, user: user)
         {
           labels: labels,
           data: data.merge('Totals' => totals),
           ranges: self.class.length_of_stay_buckets,
-          projects: project_display_names(user).invert,
+          projects: project_display_names(user: user).invert,
         }
       end
     end
 
-    def ph_destinations(user = nil)
+    def ph_destinations(user: viewing_user)
       @ph_destinations ||= begin
         data = {}
         labels = ['', 'Exit %', '']
@@ -977,16 +977,16 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
                        end
           data[project.id] = [0, percentage, 0]
         end
-        data = re_key_on_project_name(data, user)
+        data = re_key_on_project_name(data, user: user)
         {
           labels: labels,
           data: data.merge('Goal' => goal),
-          projects: project_display_names(user).invert,
+          projects: project_display_names(user: user).invert,
         }
       end
     end
 
-    def percent_exiting_to_ph(user:)
+    def percent_exiting_to_ph(user: viewing_user)
       @percent_exiting_to_ph ||= begin
         issues = []
         report_projects.each do |project|

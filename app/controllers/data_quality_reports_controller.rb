@@ -147,6 +147,7 @@ class DataQualityReportsController < ApplicationControllerV2
 
   def set_report
     @report = subject_reports.find(params[:id].to_i)
+    @report.viewing_user = current_user
   end
 
   def set_project

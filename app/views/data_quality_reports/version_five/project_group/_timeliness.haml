@@ -16,7 +16,7 @@
               This Project
           %hr
           %ul.list-unstyled.text-center
-            = @report.describe_completeness :describe_time_to_enter, user: current_user
+            = @report.describe_completeness :describe_time_to_enter
         .time-to-enter-chart.jChart
           %p.jLoading Loading
     .col-sm-6
@@ -35,6 +35,6 @@
               This Project
           %hr
           %ul.list-unstyled.text-center
-            = @report.describe_completeness :describe_time_to_exit, user: current_user
+            = @report.describe_completeness :describe_time_to_exit
         .time-to-exit-chart.jChart
           %p.jLoading Loading

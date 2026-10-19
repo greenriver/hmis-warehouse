@@ -53,16 +53,37 @@ RSpec.describe 'Project data quality report chart keys', type: :model do
       before { build_rows(report) }
 
       it 'gives each confidential project its own key in the census charts' do
-        expect(report.bed_census_data(user)[:data].keys).to contain_exactly(*expected_names.keys, 'Total')
-        expect(report.unit_census_data(user)[:data].keys).to contain_exactly(*expected_names.keys, 'Total')
+        expect(report.bed_census_data(user: user)[:data].keys).to contain_exactly(*expected_names.keys, 'Total')
+        expect(report.unit_census_data(user: user)[:data].keys).to contain_exactly(*expected_names.keys, 'Total')
+      end
+
+      it 'masks confidential projects when no viewer is set' do
+        fresh = report.class.find(report.id)
+
+        expect(fresh.bed_census_data[:data].keys).to contain_exactly(*expected_names.keys, 'Total')
+      end
+
+      it 'uses the viewing user by default and an explicit user over it' do
+        viewer = create(:acl_user)
+        collection = create(:collection)
+        collection.set_viewables({ projects: [alpha.id, beta.id, open_project.id] })
+        setup_access_control(viewer, create(:role, can_view_projects: true, can_view_confidential_project_names: true), collection)
+
+        by_default = report.class.find(report.id)
+        by_default.viewing_user = viewer
+        overridden = report.class.find(report.id)
+        overridden.viewing_user = viewer
+
+        expect(by_default.bed_census_data[:data].keys).to contain_exactly('Hidden Alpha Shelter', 'Hidden Beta Shelter', 'Open Door Shelter', 'Total')
+        expect(overridden.bed_census_data(user: user)[:data].keys).to contain_exactly(*expected_names.keys, 'Total')
       end
 
       it 'maps each chart key to its own project id for click-through' do
         [
-          report.average_time_to_enter(user),
-          report.average_time_to_exit(user),
-          report.enrolled_length_of_stay(user),
-          report.ph_destinations(user),
+          report.average_time_to_enter(user: user),
+          report.average_time_to_exit(user: user),
+          report.enrolled_length_of_stay(user: user),
+          report.ph_destinations(user: user),
         ].each do |chart|
           expect(chart[:projects]).to eq(expected_names)
           expect(chart[:data].keys - ['Goal', 'Totals']).to match_array(expected_names.keys)

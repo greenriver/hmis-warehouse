@@ -13,7 +13,7 @@ module Reporting::ProjectDataQualityReports::ProjectDisplayNames
   # Charts key series by these names and the JS maps a clicked name back to a
   # project id, so masked confidential projects need distinct names: duplicates
   # get " (2)", " (3)", ... in project id order.
-  def project_display_names(user)
+  def project_display_names(user: viewing_user)
     @project_display_names ||= {}
     @project_display_names[user&.id] ||= begin
       hud_projects = projects.index_by(&:id)
@@ -35,8 +35,8 @@ module Reporting::ProjectDataQualityReports::ProjectDisplayNames
     user&.policy_context&.preload_project_dependencies(ids) if ids.any?
   end
 
-  def project_display_name(project_id, user)
-    project_display_names(user)[project_id]
+  def project_display_name(project_id, user: viewing_user)
+    project_display_names(user: user)[project_id]
   end
 
   private def name_project_ids

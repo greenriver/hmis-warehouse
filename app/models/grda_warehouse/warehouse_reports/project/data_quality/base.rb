@@ -13,6 +13,9 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     include ArelHelper
     include NotifierConfig
     include Memery
+
+    attr_accessor :viewing_user
+
     self.table_name = :project_data_quality
 
     belongs_to :project, class_name: 'GrdaWarehouse::Hud::Project', optional: true
@@ -55,7 +58,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     def print
     end
 
-    def title(user = nil)
+    def title(user = viewing_user)
       if projects.count == 1
         "#{project&.name(user)} at #{project&.organization_name(user)}"
       else
