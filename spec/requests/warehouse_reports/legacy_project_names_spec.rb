@@ -56,11 +56,11 @@ RSpec.describe 'Confidential project names for role-based users in the Project D
     end
 
     it 'does not open the report for a requestor whose access group has a different project' do
-      open_report_as(create_legacy_user(names_permissions, [report_definition, other_project]))
+      user = create_legacy_user(names_permissions, [report_definition, other_project])
+      open_report_as(user)
 
-      expect(response).to have_http_status(:redirect)
-      expect(response.body).not_to include('Distinct Project Name')
-      expect(response.body).not_to include('Distinct Org Name')
+      expect(response).to redirect_to(user.my_root_path)
+      expect(flash[:alert]).to eq('Sorry you are not authorized to do that.')
     end
 
     it 'masks the names for a project contact whose access group has a different project' do
@@ -75,10 +75,11 @@ RSpec.describe 'Confidential project names for role-based users in the Project D
     end
 
     it 'does not open the report for a requestor whose role has the names permission but not project view' do
-      open_report_as(create_legacy_user({ can_view_assigned_reports: true, can_view_confidential_project_names: true }, [report_definition, project]))
+      user = create_legacy_user({ can_view_assigned_reports: true, can_view_confidential_project_names: true }, [report_definition, project])
+      open_report_as(user)
 
-      expect(response).to have_http_status(:redirect)
-      expect(response.body).not_to include('Distinct Project Name')
+      expect(response).to redirect_to(user.my_root_path)
+      expect(flash[:alert]).to eq('Sorry you are not authorized to do that.')
     end
 
     it 'masks the names for a requestor whose role has project view but not the names permission' do
@@ -141,6 +142,7 @@ RSpec.describe 'Confidential project names for role-based users in the Project D
 
       expect(response.body).to include("project[#{project.id}]")
       expect(response.body).to include("project[#{other_project.id}]")
+      expect(response.body).to include('Distinct Project Name')
     end
 
     it 'does not list the confidential project for a user whose access group lacks it' do
@@ -148,6 +150,7 @@ RSpec.describe 'Confidential project names for role-based users in the Project D
 
       expect(response.body).not_to include("project[#{project.id}]")
       expect(response.body).to include("project[#{other_project.id}]")
+      expect(response.body).not_to include('Distinct Project Name')
     end
   end
 end
