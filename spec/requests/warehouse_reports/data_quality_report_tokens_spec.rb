@@ -96,6 +96,14 @@ RSpec.describe 'DataQualityReportTokensController', type: :request do
       expect(response).to have_http_status(:not_found)
     end
 
+    it 'returns not found for an expired token on the project group support url' do
+      create_token(report: group_report, token: 'oldgrp', expires_at: 1.day.ago)
+
+      get "/notifications/oldgrp/project_groups/#{project_group.id}/data_quality_reports/#{group_report.id}/support"
+
+      expect(response).to have_http_status(:not_found)
+    end
+
     it 'returns not found when the token report no longer exists' do
       create_token(report: report)
       GrdaWarehouse::ReportToken.where(token: 'abc123').update_all(report_id: 0)
@@ -127,17 +135,13 @@ RSpec.describe 'DataQualityReportTokensController', type: :request do
       sign_out(user)
     end
 
-    it 'is sent to sign in, then lands on the report page', :devise_only do
+    it 'is sent to sign in and the token url is stored as the return location', :devise_only do
       path = "/notifications/abc123/projects/#{project.id}/data_quality_reports/#{report.id}"
 
       get path
 
       expect(response).to redirect_to(new_user_session_path)
-
-      sign_in(user)
-      get path
-
-      expect(response).to redirect_to(project_data_quality_report_path(project, report))
+      expect(session['user_return_to']).to eq(path)
     end
 
     it 'is sent to sign in for an expired token before the lookup', :devise_only do
