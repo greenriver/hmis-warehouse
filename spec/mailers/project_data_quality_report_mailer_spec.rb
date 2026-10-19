@@ -46,14 +46,14 @@ RSpec.describe ProjectDataQualityReportMailer, type: :mailer do
       end
 
       it 'sends email to contact' do
-        mail = ProjectDataQualityReportMailer.report_complete([project], report, contact)
+        mail = ProjectDataQualityReportMailer.report_complete([project], report, contact, user: contact.user)
 
         expect(mail.to).to eq([contact.email])
         expect(mail.subject).to eq("Report Complete: #{project.ProjectName}")
       end
 
       it 'links to the project report' do
-        mail = ProjectDataQualityReportMailer.report_complete([project], report, contact)
+        mail = ProjectDataQualityReportMailer.report_complete([project], report, contact, user: contact.user)
 
         expect(mail.body.encoded).to include(project_data_quality_report_url(project_id: project.id, id: report.id))
         expect(mail.body.encoded).not_to include('/notifications/')
@@ -62,7 +62,7 @@ RSpec.describe ProjectDataQualityReportMailer, type: :mailer do
       it 'updates sent_at timestamp' do
         expect(report.sent_at).to be_nil
 
-        ProjectDataQualityReportMailer.report_complete([project], report, contact).deliver_now
+        ProjectDataQualityReportMailer.report_complete([project], report, contact, user: contact.user).deliver_now
 
         expect(report.reload.sent_at).to be_present
       end
@@ -82,10 +82,19 @@ RSpec.describe ProjectDataQualityReportMailer, type: :mailer do
       end
 
       it 'shows the confidential placeholder instead of the project name to a contact without the confidential name permission' do
-        mail = ProjectDataQualityReportMailer.report_complete([project], report, contact)
+        mail = ProjectDataQualityReportMailer.report_complete([project], report, contact, user: contact.user)
 
         expect(mail.subject).to eq("Report Complete: #{GrdaWarehouse::Hud::Project.confidential_project_name}")
-        expect(mail.body.encoded).not_to include('Secret Shelter')
+        expect(mail.body.decoded).to include(GrdaWarehouse::Hud::Project.confidential_project_name)
+        expect(mail.body.decoded).not_to include('Secret Shelter')
+      end
+
+      it 'shows the placeholder to a requestor without the confidential name permission' do
+        mail = ProjectDataQualityReportMailer.report_complete([project], report, user, user: user)
+
+        expect(mail.to).to eq([user.email])
+        expect(mail.subject).to eq("Report Complete: #{GrdaWarehouse::Hud::Project.confidential_project_name}")
+        expect(mail.body.decoded).not_to include('Secret Shelter')
       end
 
       it 'shows the project name to a contact who can view confidential project names on the project' do
@@ -93,9 +102,10 @@ RSpec.describe ProjectDataQualityReportMailer, type: :mailer do
         collection.set_viewables({ projects: [project.id] })
         setup_access_control(user, create(:role, can_view_projects: true, can_view_confidential_project_names: true), collection)
 
-        mail = ProjectDataQualityReportMailer.report_complete([project], report, contact)
+        mail = ProjectDataQualityReportMailer.report_complete([project], report, contact, user: contact.user)
 
         expect(mail.subject).to eq('Report Complete: Secret Shelter')
+        expect(mail.body.decoded).to include('Secret Shelter')
       end
     end
 
@@ -109,7 +119,7 @@ RSpec.describe ProjectDataQualityReportMailer, type: :mailer do
       end
 
       it 'sends email to organization contact' do
-        mail = ProjectDataQualityReportMailer.report_complete([project], report, contact)
+        mail = ProjectDataQualityReportMailer.report_complete([project], report, contact, user: contact.user)
 
         expect(mail.to).to eq([contact.email])
         expect(mail.subject).to eq("Report Complete: #{project.ProjectName}")
@@ -138,17 +148,27 @@ RSpec.describe ProjectDataQualityReportMailer, type: :mailer do
       end
 
       it 'sends email with project group name in subject' do
-        mail = ProjectDataQualityReportMailer.report_complete([project, project2], report, contact)
+        mail = ProjectDataQualityReportMailer.report_complete([project, project2], report, contact, user: contact.user)
 
         expect(mail.to).to eq([contact.email])
         expect(mail.subject).to eq('Report Complete: Test Group')
       end
 
       it 'links to the project group report' do
-        mail = ProjectDataQualityReportMailer.report_complete([project, project2], report, contact)
+        mail = ProjectDataQualityReportMailer.report_complete([project, project2], report, contact, user: contact.user)
 
         expect(mail.body.encoded).to include(project_group_data_quality_report_url(project_group_id: project_group.id, id: report.id))
       end
+    end
+  end
+
+  describe '#notify_requestor' do
+    it 'delivers the report email to the requesting user' do
+      report.update!(requestor_id: user.id)
+
+      expect { report.notify_requestor }.to change { ActionMailer::Base.deliveries.count }.by(1)
+
+      expect(ActionMailer::Base.deliveries.last.to).to eq([user.email])
     end
   end
 

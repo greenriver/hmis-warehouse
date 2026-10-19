@@ -7,13 +7,13 @@
 # frozen_string_literal: true
 
 class ProjectDataQualityReportMailer < DatabaseMailer
-  def report_complete(projects, report, contact)
+  def report_complete(projects, report, contact, user:)
     @projects = projects
     @report = report
     @contact = contact
 
     @project_name = if @report.project_id.present?
-      @report.project.name(@contact.user)
+      @report.project.name(user)
     else
       @report.project_group.name
     end

@@ -119,7 +119,7 @@ RSpec.describe WarehouseReportAuthorizationV2, type: :controller do
     get :denied_report_action
 
     expect(response).to redirect_to(user.my_root_path)
-    expect(response.body).not_to include('denied report')
+    expect(flash[:alert]).to eq('Sorry you are not authorized to do that.')
   end
 
   it 'raises for a skipped action that has no authorize_with of its own' do

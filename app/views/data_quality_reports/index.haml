@@ -2,7 +2,7 @@
 = content_for :crumbs do
   = link_to project_path(@project) do
     = "« #{safe_project_name}"
-- content_for :title, "Project Data Quality Reports for #{safe_project_name} at #{@project.organization.OrganizationName}"
+- content_for :title, "Project Data Quality Reports for #{safe_project_name} at #{@project.organization_name(current_user)}"
 %h1= content_for :title
 
 - if @reports.any?

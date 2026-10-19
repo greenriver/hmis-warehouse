@@ -441,7 +441,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
 
       # Send emails to unique contacts (by email)
       subscribed_contacts.index_by(&:email).values.each do |contact|
-        ProjectDataQualityReportMailer.report_complete(projects, self, contact).deliver
+        ProjectDataQualityReportMailer.report_complete(projects, self, contact, user: contact.user).deliver
       end
       notifications_sent if subscribed_contacts.any?
     end
@@ -449,7 +449,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
     def notify_requestor
       return unless requestor.present?
 
-      ProjectDataQualityReportMailer.report_complete(projects, self, requestor).deliver
+      ProjectDataQualityReportMailer.report_complete(projects, self, requestor, user: requestor).deliver
     end
 
     def requestor

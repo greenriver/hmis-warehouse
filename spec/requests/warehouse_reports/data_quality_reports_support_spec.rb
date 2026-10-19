@@ -448,6 +448,7 @@ RSpec.describe 'DataQualityReportsController#support', type: :request do
 
     before do
       project.update!(confidential: true, ProjectName: 'Secret Shelter')
+      organization.update!(OrganizationName: 'Hidden Org Name')
       report.update!(completed_at: Time.current, requestor_id: user.id)
       contact_collection = create(:collection)
       contact_collection.set_viewables({ reports: [report_definition.id] })
@@ -470,6 +471,7 @@ RSpec.describe 'DataQualityReportsController#support', type: :request do
 
       expect(response).to have_http_status(:ok)
       expect(response.body).not_to include('Secret Shelter')
+      expect(response.body).not_to include('Hidden Org Name')
       expect(response.body).to include(placeholder)
     end
   end
