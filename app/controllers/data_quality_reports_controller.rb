@@ -78,11 +78,11 @@ class DataQualityReportsController < ApplicationControllerV2
       current_user.policy_context.preload_client_dependencies(@data[:counts].map { |row| row[0] })
       respond_to do |format|
         format.xlsx do
-          @data[:counts] = @data[:counts].map { |row| redact_pii_in_row(row, headers: @data[:headers], user: current_user, mode: :download, project_id: support_row_project_id(row, project_id_index)) }
+          @data[:counts] = @data[:counts].map { |row| redact_pii_in_row(row, headers: @data[:headers], user: current_user, mode: :download, **support_row_pii_scope(row, project_id_index)) }
           render support_render_path, filename: "support-#{@method}.xlsx"
         end
         format.html do
-          @data[:counts] = @data[:counts].map { |row| redact_pii_in_row(row, headers: @data[:headers], user: current_user, mode: :browse, project_id: support_row_project_id(row, project_id_index)) }
+          @data[:counts] = @data[:counts].map { |row| redact_pii_in_row(row, headers: @data[:headers], user: current_user, mode: :browse, **support_row_pii_scope(row, project_id_index)) }
           set_client_path
           # The view is versioned using the model name
           layout = if request.xhr?
@@ -221,16 +221,19 @@ class DataQualityReportsController < ApplicationControllerV2
     project_name_index = @data[:headers].find_index('Project')
     return unless project_id_index && project_name_index
 
-    projects = GrdaWarehouse::Hud::Project.where(id: support_project_ids(project_id_index)).index_by(&:id)
+    projects = GrdaWarehouse::Hud::WithDeleted::Project.where(id: support_project_ids(project_id_index)).index_by(&:id)
     @data[:counts] = @data[:counts].map do |row|
       project = projects[row[project_id_index]]
-      next row unless project
-
-      row.dup.tap { |r| r[project_name_index] = project.name(current_user) }
+      name = project ? project.name(current_user) : GrdaWarehouse::Hud::Project.confidential_project_name
+      row.dup.tap { |r| r[project_name_index] = name }
     end
   end
 
-  private def support_row_project_id(row, project_id_index)
-    project_id_index ? row[project_id_index] : @project&.id
+  # Rows whose project can't be determined get no PII.
+  private def support_row_pii_scope(row, project_id_index)
+    project_id = project_id_index ? row[project_id_index] : @project&.id
+    return { project_id: project_id } if project_id
+
+    { policy: GrdaWarehouse::AuthPolicies::DenyPiiPolicy.instance }
   end
 end

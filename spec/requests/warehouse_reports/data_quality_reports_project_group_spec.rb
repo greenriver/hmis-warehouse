@@ -59,7 +59,8 @@ RSpec.describe 'DataQualityReportsProjectGroupController', type: :request do
     get support_project_group_data_quality_report_path(project_group, report, individual: true, method: 'test')
 
     expect(response).to have_http_status(:ok)
-    expect(response.body).to include('Casey')
+    expect(response.body).to include(GrdaWarehouse::PiiProvider::NAME_REDACTED)
+    expect(response.body).not_to include('Casey')
     expect(response.body).to include(destination_source_client_path(id: 1))
   end
 
@@ -101,7 +102,7 @@ RSpec.describe 'DataQualityReportsProjectGroupController', type: :request do
       get support_project_group_data_quality_report_path(project_group, report, individual: true, method: 'test')
 
       expect(response).to have_http_status(:ok)
-      expect(response.body).to include('Casey')
+      expect(response.body).to include(destination_source_client_path(id: 1))
     end
   end
 
@@ -330,6 +331,51 @@ RSpec.describe 'DataQualityReportsProjectGroupController', type: :request do
 
         expect(table_cells).to include('Open Door Shelter', 'Hidden Alpha Shelter')
         expect(response.body).not_to include(placeholder)
+      end
+    end
+
+    context 'when a row has no project id' do
+      let(:support_data) do
+        {
+          headers: headers,
+          counts: [[101, 'Casey', 'Example', '1980-01-01', '111223333', nil, 'Unknown']],
+          title: 'Clients',
+        }
+      end
+
+      before { grant({ can_view_client_name: true, can_view_full_dob: true, can_view_full_ssn: true }, [project, alpha]) }
+
+      it 'redacts name, DOB, and SSN in HTML' do
+        get support_project_group_data_quality_report_path(project_group, report, individual: true, method: 'test')
+
+        cells = table_cells
+        expect(cells).to include(GrdaWarehouse::PiiProvider::NAME_REDACTED, GrdaWarehouse::PiiProvider::REDACTED)
+        expect(cells).not_to include('Casey', 'Example', '111-22-3333')
+        expect(cells.join(' ')).not_to include('1980')
+      end
+    end
+
+    context 'when a row names a soft-deleted confidential project' do
+      let!(:gone) { create(:hud_project, data_source: data_source, OrganizationID: organization.OrganizationID, ProjectName: 'Deleted Secret Shelter', confidential: true) }
+      let(:support_data) do
+        {
+          headers: headers,
+          counts: [[102, 'Dana', 'Hidden', '1975-02-02', '444556666', gone.id, 'Deleted Secret Shelter']],
+          title: 'Clients',
+        }
+      end
+
+      before do
+        grant({ can_view_client_name: true }, [project, alpha])
+        gone.destroy
+      end
+
+      it 'shows the placeholder instead of the project name' do
+        get support_project_group_data_quality_report_path(project_group, report, individual: true, method: 'test')
+
+        expect(response).to have_http_status(:ok)
+        expect(table_cells).to include(placeholder)
+        expect(response.body).not_to include('Deleted Secret Shelter')
       end
     end
 

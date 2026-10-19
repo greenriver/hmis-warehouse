@@ -115,6 +115,22 @@ RSpec.describe 'DataQualityReportsController#support', type: :request do
     expect(cells.count(GrdaWarehouse::PiiProvider::REDACTED)).to eq(2)
   end
 
+  context 'when the role lacks full DOB and SSN on the project' do
+    before do
+      role.update!(can_view_full_dob: false, can_view_full_ssn: false)
+      user.clear_memery_cache!
+    end
+
+    it 'redacts DOB and SSN but keeps the name in HTML' do
+      get support_project_data_quality_report_path(project, report, individual: true, method: 'test')
+
+      cells = table_cells
+      expect(cells).to include('Open', 'Doe')
+      expect(cells).not_to include('987-65-4321')
+      expect(cells.join(' ')).not_to include('1985')
+    end
+  end
+
   context 'in the Excel export' do
     it 'redacts only the restricted client when include_pii_in_detail_downloads is on' do
       configure_download_toggle(true)
