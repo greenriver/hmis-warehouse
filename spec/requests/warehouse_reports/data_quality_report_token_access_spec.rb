@@ -11,6 +11,7 @@ require 'rails_helper'
 RSpec.describe 'Data quality report token access', type: :request do
   let!(:user) { create(:acl_user) }
   let!(:other_user) { create(:acl_user) }
+  let!(:third_user) { create(:acl_user) }
   let!(:data_source) { create(:grda_warehouse_data_source) }
   let!(:organization) { create(:hud_organization, data_source: data_source) }
   let!(:project) { create(:hud_project, data_source: data_source, OrganizationID: organization.OrganizationID) }
@@ -95,7 +96,7 @@ RSpec.describe 'Data quality report token access', type: :request do
       end
     end
 
-    it 'returns 404 when the other user id matches a contact id on a requestor-style token' do
+    it 'returns 404 when the token contact_id is the signed-in user id and no contact has that id' do
       token = token_for(project_report, contact_id: other_user.id)
       get project_url(:show, token, project_report)
       expect(response).to have_http_status(:not_found)
@@ -128,6 +129,20 @@ RSpec.describe 'Data quality report token access', type: :request do
       sign_in(user)
       get project_url(:show, requestor_token, requested_report)
       expect(response).to have_http_status(:not_found)
+    end
+
+    it 'returns 404 for the user of an unrelated contact whose id equals the requestor id' do
+      create(:grda_warehouse_contact_project, id: other_user.id, user: third_user, entity: other_project)
+      sign_in(third_user)
+      get project_url(:show, requestor_token, requested_report)
+      expect(response).to have_http_status(:not_found)
+    end
+
+    it 'shows the report to the user of a contact on the report project whose id equals the requestor id' do
+      create(:grda_warehouse_contact_project, id: other_user.id, user: third_user, entity: project)
+      sign_in(third_user)
+      get project_url(:show, requestor_token, requested_report)
+      expect(response).to have_http_status(:ok)
     end
 
     it 'returns 404 for a user whose id is the token contact_id but who is not the report requestor' do

@@ -23,8 +23,20 @@ module GrdaWarehouse
     def valid_for?(report_id:, user:)
       return false if expired? || self.report_id != report_id.to_i
 
-      GrdaWarehouse::Contact::Base.where(id: contact_id, user_id: user.id).exists? ||
-        (contact_id == user.id && report&.requestor_id == user.id)
+      return true if contact_id == user.id && report&.requestor_id == user.id
+
+      report_recipient?(user)
+    end
+
+    private def report_recipient?(user)
+      return false if report.nil?
+
+      [
+        report.project_contacts,
+        report.organization_contacts,
+        report.project_group_contacts,
+        report.organization_project_group_contacts,
+      ].any? { |contacts| contacts.where(id: contact_id, user_id: user.id).exists? }
     end
 
     def setup_token
