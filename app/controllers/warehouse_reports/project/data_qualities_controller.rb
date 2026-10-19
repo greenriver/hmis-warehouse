@@ -10,6 +10,7 @@ module WarehouseReports::Project
   class DataQualitiesController < ApplicationController
     include WarehouseReportAuthorization
     include ArelHelper
+    include HidesUnnameableConfidentialProjects
     before_action :set_filter, only: [:show, :create]
     before_action :set_projects, :set_current_reports, only: [:show]
     before_action :set_history_filter, only: [:history]
@@ -211,14 +212,8 @@ module WarehouseReports::Project
     end
     helper_method :organization_filter_options
 
-    # The name policy is per project, so it can't be expressed in SQL. Only confidential projects
-    # are checked, and they are excluded by id so pagination stays correct.
     private def hidden_confidential_project_ids
-      @hidden_confidential_project_ids ||= begin
-        confidential_projects = reportable_scope.confidential.to_a
-        current_user.policy_context.preload_project_dependencies(confidential_projects.map(&:id))
-        confidential_projects.reject { |project| current_user.policy_for(project).can_view_name? }.map(&:id)
-      end
+      @hidden_confidential_project_ids ||= unnameable_confidential_project_ids(reportable_scope)
     end
 
     def project_group_scope

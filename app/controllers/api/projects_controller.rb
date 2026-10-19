@@ -14,6 +14,7 @@
 module Api
   class ProjectsController < ApplicationController
     include ArelHelper
+    include HidesUnnameableConfidentialProjects
 
     def index
       respond_to do |format|
@@ -141,7 +142,7 @@ module Api
         else
           project_source.viewable_by(current_user)
         end
-        scope = scope.merge(project_source.non_confidential) unless current_user.can_view_confidential_project_names?
+        scope = without_unnameable_confidential_projects(scope)
 
         scope = scope.joins(:data_source, :organization).with_project_type(project_types)
         scope = scope.merge(data_source_source.where(id: data_source_ids)) if data_source_ids.present?
