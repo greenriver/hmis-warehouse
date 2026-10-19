@@ -10,6 +10,8 @@ module GrdaWarehouse
   class ReportToken < GrdaWarehouseBase
     has_paper_trail
 
+    belongs_to :report, class_name: 'GrdaWarehouse::WarehouseReports::Project::DataQuality::Base', optional: true
+
     validates :token, uniqueness: true
     before_validation :setup_token
 
@@ -17,8 +19,12 @@ module GrdaWarehouse
       Time.now > expires_at
     end
 
-    def valid_for_report?(report_id)
-      !expired? && self.report_id == report_id.to_i
+    # contact_id is a contacts.id for contact notifications, or a users.id for requestor notifications
+    def valid_for?(report_id:, user:)
+      return false if expired? || self.report_id != report_id.to_i
+
+      GrdaWarehouse::Contact::Base.where(id: contact_id, user_id: user.id).exists? ||
+        (contact_id == user.id && report&.requestor_id == user.id)
     end
 
     def setup_token

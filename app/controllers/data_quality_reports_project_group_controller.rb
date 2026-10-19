@@ -60,7 +60,7 @@ class DataQualityReportsProjectGroupController < DataQualityReportsController
     if notification_id.present?
       token = GrdaWarehouse::ReportToken.find_by_token(notification_id)
       raise ActionController::RoutingError, 'Not Found' if token.blank?
-      return true if token.valid_for_report?(params[:id])
+      return true if token.valid_for?(report_id: params[:id], user: current_user)
     else
       set_project_group
       project_group_viewable = project_group_scope.where(id: @project_group.id).exists?

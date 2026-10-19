@@ -10,11 +10,13 @@ require 'rails_helper'
 
 RSpec.describe 'Data quality report token access', type: :request do
   let!(:user) { create(:acl_user) }
+  let!(:other_user) { create(:acl_user) }
   let!(:data_source) { create(:grda_warehouse_data_source) }
   let!(:organization) { create(:hud_organization, data_source: data_source) }
   let!(:project) { create(:hud_project, data_source: data_source, OrganizationID: organization.OrganizationID) }
   let!(:other_project) { create(:hud_project, data_source: data_source, OrganizationID: organization.OrganizationID) }
   let!(:project_group) { create(:dq_project_group) }
+  let!(:contact) { create(:grda_warehouse_contact_project, user: user, entity: project) }
 
   let!(:project_report) { create(:data_quality_report_version_five, project: project) }
   let!(:other_project_report) { create(:data_quality_report_version_five, project: other_project) }
@@ -22,8 +24,8 @@ RSpec.describe 'Data quality report token access', type: :request do
   let!(:group_report) { create(:data_quality_report_version_five, project_group: project_group) }
   let!(:other_group_report) { create(:data_quality_report_version_five, project_group: project_group) }
 
-  def token_for(report)
-    GrdaWarehouse::ReportToken.create!(report_id: report.id, contact_id: 1)
+  def token_for(report, contact_id: contact.id)
+    GrdaWarehouse::ReportToken.create!(report_id: report.id, contact_id: contact_id)
   end
 
   let!(:project_token) { token_for(project_report) }
@@ -78,7 +80,65 @@ RSpec.describe 'Data quality report token access', type: :request do
     end
   end
 
-  context 'when signed in without project or report access' do
+  context 'when signed in as a different user than the token contact' do
+    before { sign_in(other_user) }
+
+    [:show, :answers].each do |action|
+      it "returns 404 for #{action} of a project report token" do
+        get project_url(action, project_token, project_report)
+        expect(response).to have_http_status(:not_found)
+      end
+
+      it "returns 404 for #{action} of a project group report token" do
+        get group_url(action, group_token, group_report)
+        expect(response).to have_http_status(:not_found)
+      end
+    end
+
+    it 'returns 404 when the other user id matches a contact id on a requestor-style token' do
+      token = token_for(project_report, contact_id: other_user.id)
+      get project_url(:show, token, project_report)
+      expect(response).to have_http_status(:not_found)
+    end
+  end
+
+  context 'when the token contact is soft-deleted' do
+    before do
+      sign_in(user)
+      contact.destroy
+    end
+
+    it 'returns 404 for the contact user' do
+      get project_url(:show, project_token, project_report)
+      expect(response).to have_http_status(:not_found)
+    end
+  end
+
+  context 'with a requestor token' do
+    let!(:requested_report) { create(:data_quality_report_version_five, project: project, requestor_id: other_user.id) }
+    let!(:requestor_token) { token_for(requested_report, contact_id: other_user.id) }
+
+    it 'shows the report to the requestor' do
+      sign_in(other_user)
+      get project_url(:show, requestor_token, requested_report)
+      expect(response).to have_http_status(:ok)
+    end
+
+    it 'returns 404 for another user' do
+      sign_in(user)
+      get project_url(:show, requestor_token, requested_report)
+      expect(response).to have_http_status(:not_found)
+    end
+
+    it 'returns 404 for a user whose id is the token contact_id but who is not the report requestor' do
+      token = token_for(project_report, contact_id: other_user.id)
+      sign_in(other_user)
+      get project_url(:show, token, project_report)
+      expect(response).to have_http_status(:not_found)
+    end
+  end
+
+  context 'when signed in as the token contact without project or report access' do
     before { sign_in(user) }
 
     it 'shows the project report for its own token' do
