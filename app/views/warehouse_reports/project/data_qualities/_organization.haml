@@ -8,7 +8,7 @@
         .mt-2 All / None
       .data-source
         %em.ds.mr-4{class: "ds-color-#{projects.first.data_source_id}"}= data_source
-      %h3.mb-0.mt-0= organization.OrganizationName
+      %h3.mb-0.mt-0= projects.map { |project| project.organization_name(current_user) }.find { |name| name != organization.class.confidential_organization_name } || organization.class.confidential_organization_name
       %div.ml-auto.d-flex.align-items-center
         = link_to new_organization_contact_path(organization, remote_submit: true), data: {loads_in_pjax_modal: true}, class: 'btn btn-secondary mr-2 c-card__primary-action mr-0' do
           = "Manage contacts (#{organization.contacts.count})"

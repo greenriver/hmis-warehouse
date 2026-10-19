@@ -41,6 +41,7 @@ module WarehouseReports::Project
         order(id: :desc).
         preload(project: [:organization, :data_source])
       @pagy, @reports = pagy(@reports, items: 50)
+      current_user.policy_context.preload_project_dependencies(@reports.filter_map(&:project_id).uniq)
     end
 
     def create
@@ -190,9 +191,34 @@ module WarehouseReports::Project
     end
 
     def project_scope
-      scope = GrdaWarehouse::Hud::Project.where(id: report_policy_class.reportable_project_ids(current_user))
-      scope = scope.non_confidential unless current_user.can_view_confidential_project_names?
-      scope
+      reportable_scope.where.not(id: hidden_confidential_project_ids)
+    end
+
+    private def reportable_scope
+      GrdaWarehouse::Hud::Project.where(id: report_policy_class.reportable_project_ids(current_user))
+    end
+
+    # Organizations whose reportable projects are all hidden are left out of the filter choices.
+    private def organization_filter_options
+      hidden_organizations = reportable_scope.where(id: hidden_confidential_project_ids).joins(:organization).pluck(o_t[:id])
+      return @filter.organization_options_for_select(user: current_user) if hidden_organizations.empty?
+
+      shown_organizations = project_scope.joins(:organization).pluck(o_t[:id])
+      excluded_ids = hidden_organizations - shown_organizations
+      @filter.organization_options_for_select(user: current_user).transform_values do |options|
+        options.reject { |_name, id| excluded_ids.include?(id) }
+      end.reject { |_data_source, options| options.empty? }
+    end
+    helper_method :organization_filter_options
+
+    # The name policy is per project, so it can't be expressed in SQL. Only confidential projects
+    # are checked, and they are excluded by id so pagination stays correct.
+    private def hidden_confidential_project_ids
+      @hidden_confidential_project_ids ||= begin
+        confidential_projects = reportable_scope.confidential.to_a
+        current_user.policy_context.preload_project_dependencies(confidential_projects.map(&:id))
+        confidential_projects.reject { |project| current_user.policy_for(project).can_view_name? }.map(&:id)
+      end
     end
 
     def project_group_scope

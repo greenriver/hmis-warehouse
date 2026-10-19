@@ -127,6 +127,51 @@ RSpec.describe WarehouseReports::Project::DataQualitiesController, type: :reques
 
         expect(queued_rows).to contain_exactly([confidential_project.id, nil, user.id])
       end
+
+      context 'with can_view_confidential_project_names only on an unrelated collection' do
+        let!(:confidential_organization) { create(:hud_organization, data_source: data_source, OrganizationName: 'Secret Org Name') }
+        let!(:confidential_project) do
+          create(:hud_project, data_source: data_source, OrganizationID: confidential_organization.OrganizationID, ProjectName: 'Confidential Project', confidential: true)
+        end
+
+        before do
+          grant_confidential(confidential_role_attributes)
+          names_collection = create(:collection)
+          names_collection.set_viewables({ projects: [other_project.id] })
+          setup_access_control(user, create(:role, can_view_projects: true, can_view_confidential_project_names: true), names_collection)
+        end
+
+        it 'does not list the project or its organization name' do
+          get warehouse_reports_project_data_quality_path, params: { filters: { project_ids: [confidential_project.id, project.id] } }
+
+          expect(response.body).to include("project[#{project.id}]")
+          expect(response.body).not_to include("project[#{confidential_project.id}]")
+          expect(response.body).not_to include('Secret Org Name')
+        end
+
+        it 'does not queue the project' do
+          queue(project_ids: [confidential_project.id, project.id])
+
+          expect(queued_rows).to contain_exactly([project.id, nil, user.id])
+        end
+      end
+
+      context 'with can_view_confidential_project_names on the project collection' do
+        let!(:confidential_organization) { create(:hud_organization, data_source: data_source, OrganizationName: 'Secret Org Name') }
+        let!(:confidential_project) do
+          create(:hud_project, data_source: data_source, OrganizationID: confidential_organization.OrganizationID, ProjectName: 'Confidential Project', confidential: true)
+        end
+
+        it 'lists the project under its organization name' do
+          grant_confidential(confidential_role_attributes.merge(can_view_confidential_project_names: true))
+
+          get warehouse_reports_project_data_quality_path, params: { filters: { project_ids: [confidential_project.id] } }
+
+          expect(response.body).to include("project[#{confidential_project.id}]")
+          expect(response.body).to include('Secret Org Name')
+          expect(response.body).to include('Confidential Project')
+        end
+      end
     end
   end
 
@@ -148,6 +193,28 @@ RSpec.describe WarehouseReports::Project::DataQualitiesController, type: :reques
       get history_warehouse_reports_project_data_quality_path
 
       expect(report_links).to contain_exactly(project_data_quality_report_path(project_id: project.id, id: contact_report.id))
+    end
+
+    it 'omits organization and project names on a confidential project report row' do
+      confidential_organization = create(:hud_organization, data_source: data_source, OrganizationName: 'Secret Org Name')
+      confidential_project = create(
+        :hud_project,
+        data_source: data_source,
+        OrganizationID: confidential_organization.OrganizationID,
+        ProjectName: 'Secret Project Name',
+        confidential: true,
+      )
+      contact_collection = create(:collection)
+      contact_collection.set_viewables({ reports: [report_definition.id] })
+      setup_access_control(user, create(:role, can_view_assigned_reports: true), contact_collection)
+      create(:grda_warehouse_contact_project, entity: confidential_project, user: user)
+      contact_report = create(:data_quality_report_version_five, project: confidential_project, requestor_id: other_user.id, started_at: 1.day.ago)
+
+      get history_warehouse_reports_project_data_quality_path
+
+      expect(report_links).to contain_exactly(project_data_quality_report_path(project_id: confidential_project.id, id: contact_report.id))
+      expect(response.body).not_to include('Secret Org Name')
+      expect(response.body).not_to include('Secret Project Name')
     end
 
     it 'lists only the requestor own report for a user without can_view_all_reports' do
