@@ -414,22 +414,16 @@ RSpec.describe 'DataQualityReportsProjectGroupController', type: :request do
     expect(response).to have_http_status(:ok)
   end
 
-  it 'returns the report answers for a group in the user collections' do
-    report.update!(report: { 'total_clients' => 'Viewable group answer' })
+  it 'does not route the group answers action' do
+    get "/project_groups/#{project_group.id}/data_quality_reports/#{report.id}/answers"
 
-    get answers_project_group_data_quality_report_path(project_group, report)
-
-    expect(response).to have_http_status(:ok)
-    expect(JSON.parse(response.body)).to eq('total_clients' => 'Viewable group answer')
+    expect(response).to have_http_status(:not_found)
   end
 
-  it 'redirects answers for a report on a group outside the user collections without returning the report' do
-    other_report.update!(report: { 'total_clients' => 'Hidden group answer' })
+  it 'returns not found for group support without individual' do
+    get support_project_group_data_quality_report_path(project_group, report, method: 'test')
 
-    get answers_project_group_data_quality_report_path(other_project_group, other_report)
-
-    expect(response).to redirect_to(user.my_root_path)
-    expect(response.body).not_to include('Hidden group answer')
+    expect(response).to have_http_status(:not_found)
   end
 
   it 'redirects show when the user lacks the report definition' do

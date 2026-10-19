@@ -215,20 +215,15 @@ RSpec.describe 'DataQualityReportsController#support', type: :request do
       expect(response).to have_http_status(:ok)
     end
 
-    it 'redirects show and answers for a project contact without the report definition' do
+    it 'redirects show for a project contact without the report definition' do
       contact_user = create(:acl_user)
       setup_access_control(contact_user, create(:role, can_view_assigned_reports: true), create(:collection))
       create(:grda_warehouse_contact_project, entity: project, user: contact_user)
-      report.update!(report: { 'total_clients' => 'Contact-only answer' })
       sign_out(user)
       sign_in(contact_user)
 
       get project_data_quality_report_path(project, report)
       expect(response).to redirect_to(contact_user.my_root_path)
-
-      get answers_project_data_quality_report_path(project, report)
-      expect(response).to redirect_to(contact_user.my_root_path)
-      expect(response.body).not_to include('Contact-only answer')
     end
 
     it 'redirects index when the user has the project but not the report definition' do
@@ -293,24 +288,6 @@ RSpec.describe 'DataQualityReportsController#support', type: :request do
       end
     end
 
-    it 'returns the report answers for a project in the user collections' do
-      report.update!(report: { 'total_clients' => 'Viewable project answer' })
-
-      get answers_project_data_quality_report_path(project, report)
-
-      expect(response).to have_http_status(:ok)
-      expect(JSON.parse(response.body)).to eq('total_clients' => 'Viewable project answer')
-    end
-
-    it 'redirects answers for a report on a project outside the user collections without returning the report' do
-      other_report.update!(report: { 'total_clients' => 'Hidden project answer' })
-
-      get answers_project_data_quality_report_path(other_project, other_report)
-
-      expect(response).to redirect_to(user.my_root_path)
-      expect(response.body).not_to include('Hidden project answer')
-    end
-
     it 'returns not found when the report id belongs to a different project' do
       get support_project_data_quality_report_path(project, other_report, individual: true, method: 'test')
 
@@ -325,24 +302,10 @@ RSpec.describe 'DataQualityReportsController#support', type: :request do
       expect(response).to redirect_to(new_user_session_path)
     end
 
-    it 'redirects a logged-out request for answers to sign in', :devise_only do
-      sign_out(user)
-
-      get answers_project_data_quality_report_path(project, report)
-
-      expect(response).to redirect_to(new_user_session_path)
-    end
-
     it 'refuses a logged-out request for show', :jwt_only do
       sign_out(user)
 
       expect { get project_data_quality_report_path(project, report) }.to raise_error(Idp::UnauthenticatedRequestError)
-    end
-
-    it 'refuses a logged-out request for answers', :jwt_only do
-      sign_out(user)
-
-      expect { get answers_project_data_quality_report_path(project, report) }.to raise_error(Idp::UnauthenticatedRequestError)
     end
 
     it 'does not route the former notification path' do
@@ -448,14 +411,6 @@ RSpec.describe 'DataQualityReportsController#support', type: :request do
       end
     end
 
-    it 'returns the report answers' do
-      report.update!(report: { 'total_clients' => 'Contact answer' })
-
-      get answers_project_data_quality_report_path(project, report)
-
-      expect(response).to have_http_status(:ok)
-      expect(JSON.parse(response.body)).to eq('total_clients' => 'Contact answer')
-    end
   end
 
   context 'as a project contact on a confidential project' do
@@ -521,34 +476,32 @@ RSpec.describe 'DataQualityReportsController#support', type: :request do
     end
   end
 
-  describe 'legacy support on a version three report' do
+  describe 'removed legacy data paths' do
     let!(:legacy_report) do
-      create(
-        :data_quality_report_version_three,
-        project: project,
-        requestor_id: user.id,
-        completed_at: Time.current,
-        report: {},
-        support: { 'missing_dob' => { 'headers' => ['Client ID', 'First Name', 'Last Name'], 'counts' => [[open_destination_client.id, 'Open', 'Doe']] } },
-      )
+      create(:data_quality_report_version_three, project: project, requestor_id: user.id, completed_at: Time.current, report: {}, support: { 'missing_dob' => { 'headers' => ['Client ID', 'First Name', 'Last Name'], 'counts' => [[open_destination_client.id, 'Open', 'Doe']] } })
     end
 
-    it 'renders the rows for a known key' do
+    it 'does not route the answers action' do
+      get "/projects/#{project.id}/data_quality_reports/#{report.id}/answers"
+
+      expect(response).to have_http_status(:not_found)
+    end
+
+    it 'returns not found for support without individual' do
+      get support_project_data_quality_report_path(project, report, method: 'test')
+
+      expect(response).to have_http_status(:not_found)
+    end
+
+    it 'returns not found for support with only a key on a version three report' do
       get support_project_data_quality_report_path(project, legacy_report, key: 'missing_dob')
-
-      expect(response).to have_http_status(:ok)
-      expect(response.body).to include('Doe')
-    end
-
-    it 'returns not found without a key instead of the raw support payload' do
-      get support_project_data_quality_report_path(project, legacy_report)
 
       expect(response).to have_http_status(:not_found)
       expect(response.body).not_to include('Doe')
     end
 
-    it 'returns not found for an unknown key' do
-      get support_project_data_quality_report_path(project, legacy_report, key: 'unknown')
+    it 'does not route the queue page download' do
+      get '/warehouse_reports/project/data_quality/download'
 
       expect(response).to have_http_status(:not_found)
     end

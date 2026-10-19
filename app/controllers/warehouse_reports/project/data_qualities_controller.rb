@@ -97,28 +97,6 @@ module WarehouseReports::Project
       end
     end
 
-    def download
-      @report = []
-      @projects = project_scope.includes(:organization, :data_source).
-        joins(:organization).
-        preload(:contacts, :current_data_quality_report).
-        order(p_t[:data_source_id].asc, o_t[:OrganizationID].asc)
-
-      @project_groups = project_group_scope.includes(projects: [:organization, :data_source]).
-        joins(projects: :organization).
-        preload(:contacts, :current_data_quality_report).
-        order(p_t[:data_source_id].asc, o_t[:OrganizationID].asc)
-      @projects.each do |project|
-        last_report = project.current_data_quality_report
-        @report << last_report if last_report.present?
-      end
-      @project_groups.each do |project|
-        last_report = project.current_data_quality_report
-        @report << last_report if last_report.present?
-      end
-      render xlsx: 'download', filename: "project_data_quality_report #{Date.current}.xlsx"
-    end
-
     private def set_filter
       @filter = ::Filters::FilterBase.new(initial_filter_params.merge(user_id: current_user.id, project_type_codes: []))
     end

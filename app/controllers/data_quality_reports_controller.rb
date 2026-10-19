@@ -48,54 +48,35 @@ class DataQualityReportsController < ApplicationControllerV2
     @reports = viewable_subject_reports.order(started_at: :desc)
   end
 
-  def answers
-    @key = params[:key].to_s
-    @data = @report.report&.[](@key)
-    if @key.blank? || @data.blank?
-      render json: @report.report
-    else
-      respond_to do |format|
-        format.html do
-          render json: @data
-        end
-        format.js do
-          render json: @data
-        end
-      end
-    end
-  end
-
   def support
-    if params[:individual].present?
-      @data = @report.support_for(support_params)
+    return head(:not_found) if params[:individual].blank?
 
-      project_id_index = @data[:headers].find_index('Project ID')
-      preload_support_projects(project_id_index)
-      mask_project_names(project_id_index)
+    @data = @report.support_for(support_params)
 
-      @details_title = @data[:title] || 'Supporting Data'
-      @method = params[:method]
-      current_user.policy_context.preload_client_dependencies(@data[:counts].map { |row| row[0] })
-      respond_to do |format|
-        format.xlsx do
-          @data[:counts] = @data[:counts].map { |row| redact_pii_in_row(row, headers: @data[:headers], user: current_user, mode: :download, **support_row_pii_scope(row, project_id_index)) }
-          render support_render_path, filename: "support-#{@method}.xlsx"
-        end
-        format.html do
-          @data[:counts] = @data[:counts].map { |row| redact_pii_in_row(row, headers: @data[:headers], user: current_user, mode: :browse, **support_row_pii_scope(row, project_id_index)) }
-          set_client_path
-          # The view is versioned using the model name
-          layout = if request.xhr?
-            'ajax_modal_rails/content'
-          else
-            'application'
-          end
-          render support_render_path, layout: layout
-        end
-        format.js {}
+    project_id_index = @data[:headers].find_index('Project ID')
+    preload_support_projects(project_id_index)
+    mask_project_names(project_id_index)
+
+    @details_title = @data[:title] || 'Supporting Data'
+    @method = params[:method]
+    current_user.policy_context.preload_client_dependencies(@data[:counts].map { |row| row[0] })
+    respond_to do |format|
+      format.xlsx do
+        @data[:counts] = @data[:counts].map { |row| redact_pii_in_row(row, headers: @data[:headers], user: current_user, mode: :download, **support_row_pii_scope(row, project_id_index)) }
+        render support_render_path, filename: "support-#{@method}.xlsx"
       end
-    else
-      legacy_support
+      format.html do
+        @data[:counts] = @data[:counts].map { |row| redact_pii_in_row(row, headers: @data[:headers], user: current_user, mode: :browse, **support_row_pii_scope(row, project_id_index)) }
+        set_client_path
+        # The view is versioned using the model name
+        layout = if request.xhr?
+          'ajax_modal_rails/content'
+        else
+          'application'
+        end
+        render support_render_path, layout: layout
+      end
+      format.js {}
     end
   end
 
@@ -126,25 +107,6 @@ class DataQualityReportsController < ApplicationControllerV2
   def set_support_path
     @support_path = [:project, :data_quality_report]
     @support_path = [:support] + @support_path
-  end
-
-  def legacy_support
-    @key = params[:key].to_s
-    @data = @report.support&.[](@key)&.with_indifferent_access
-    return head(:not_found) if @data.blank?
-
-    current_user.policy_context.preload_client_dependencies(@data[:counts].map { |row| row[0] })
-    respond_to do |format|
-      format.xlsx do
-        @data[:counts] = @data[:counts].map { |row| redact_pii_in_row(row, headers: @data[:headers], user: current_user, mode: :download) }
-        render xlsx: 'index', filename: "support-#{@key}.xlsx"
-      end
-      format.html do
-        @data[:counts] = @data[:counts].map { |row| redact_pii_in_row(row, headers: @data[:headers], user: current_user, mode: :browse) }
-        render layout: 'ajax_modal_rails/content' if params[:layout].present? && params[:layout] == 'false'
-      end
-      format.js {}
-    end
   end
 
   def support_params
