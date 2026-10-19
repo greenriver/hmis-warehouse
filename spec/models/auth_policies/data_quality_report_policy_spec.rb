@@ -387,6 +387,23 @@ RSpec.describe GrdaWarehouse::AuthPolicies::DataQualityReportPolicy, type: :mode
       expect(can_view?(other_report)).to be true
     end
 
+    describe '#can_view_client_details?' do
+      before { access_group.add_viewable(project) }
+
+      it 'is false for the requestor without can_view_clients' do
+        expect(can_view?(project_report)).to be true
+        expect(user.policy_for(project_report).can_view_client_details?).to be false
+      end
+
+      context 'with can_view_clients' do
+        let(:role) { create(:role, can_view_assigned_reports: true, can_view_projects: true, can_view_clients: true) }
+
+        it 'is true for the requestor' do
+          expect(user.policy_for(project_report).can_view_client_details?).to be true
+        end
+      end
+    end
+
     context 'when the user did not request the report' do
       let(:requestor_id) { other_user.id }
 
