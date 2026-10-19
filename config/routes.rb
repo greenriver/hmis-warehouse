@@ -528,6 +528,13 @@ Rails.application.routes.draw do
     end
   end
 
+  # Old emailed report links; they redirect to the report page after sign-in.
+  scope 'notifications/:token', constraints: { token: /[^\/]+/ } do
+    ['projects/:project_id', 'project_groups/:project_group_id'].each do |subject|
+      get "#{subject}/data_quality_reports/:id(/:page)", to: 'data_quality_report_tokens#show', constraints: { page: /support|answers/ }
+    end
+  end
+
   resources :project_groups, except: [:show] do
     get :maintenance, on: :collection
     get :download, on: :collection

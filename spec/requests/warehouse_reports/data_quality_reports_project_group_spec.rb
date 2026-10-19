@@ -466,7 +466,7 @@ RSpec.describe 'DataQualityReportsProjectGroupController', type: :request do
     expect { get project_group_data_quality_report_path(project_group, report) }.to raise_error(Idp::UnauthenticatedRequestError)
   end
 
-  it 'does not route the former notification path' do
+  it 'returns not found for an unknown notification token' do
     get "/notifications/abc/project_groups/#{project_group.id}/data_quality_reports/#{report.id}"
 
     expect(response).to have_http_status(:not_found)
