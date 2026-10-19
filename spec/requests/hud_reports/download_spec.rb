@@ -12,8 +12,10 @@ RSpec.describe 'HUD report Excel download', type: :request do
   let(:user) { create(:acl_user) }
   let(:data_source) { create(:grda_warehouse_data_source) }
   let(:organization) { create(:hud_organization, data_source: data_source) }
-  let!(:chosen_project) { create(:hud_project, data_source: data_source, OrganizationID: organization.OrganizationID, ProjectType: 2, ProjectName: 'Chosen Project') }
-  let!(:other_project) { create(:hud_project, data_source: data_source, OrganizationID: organization.OrganizationID, ProjectType: 2, ProjectName: 'Other Project') }
+  # Pinned to a type the APR includes by default; the factory's random type could filter the project out.
+  let(:project_type) { HudHelper.util.project_type_number_from_code(:th).first }
+  let!(:chosen_project) { create(:hud_project, data_source: data_source, OrganizationID: organization.OrganizationID, ProjectType: project_type, ProjectName: 'Chosen Project') }
+  let!(:other_project) { create(:hud_project, data_source: data_source, OrganizationID: organization.OrganizationID, ProjectType: project_type, ProjectName: 'Other Project') }
   let(:report) do
     create(
       :hud_reports_report_instance,
@@ -56,7 +58,9 @@ RSpec.describe 'HUD report Excel download', type: :request do
     get download_hud_reports_apr_path(report, format: :xlsx)
 
     expect(response).to have_http_status(:ok)
-    projects = summary_rows.find { |(label, _)| label == 'Projects' }&.last
-    expect(projects).to eq('Chosen Project')
+    rows = summary_rows.to_h { |(label, value)| [label, value] }
+    # Without the CoC code the bug can't occur, so guard against it being dropped.
+    expect(rows['CoC Codes']).to eq('XX-500')
+    expect(rows['Projects']).to eq('Chosen Project')
   end
 end
