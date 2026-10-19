@@ -18,7 +18,14 @@ RSpec.describe GrdaWarehouse::ReportToken, type: :model do
     let!(:unrelated_project) { create(:hud_project, data_source: data_source, OrganizationID: create(:hud_organization, data_source: data_source).OrganizationID) }
     let!(:report) { create(:data_quality_report_version_five, project: project, requestor_id: user.id) }
     let!(:other_report) { create(:data_quality_report_version_five, project: project) }
-    let!(:contact) { create(:grda_warehouse_contact_project, user: user, entity: project) }
+    let!(:contact) { create(:grda_warehouse_contact_project, id: next_contact_id, user: user, entity: project) }
+
+    # Contact and user ids come from separate sequences and can match by chance, which would let a
+    # contact token pass the requestor check. Contacts get ids above every existing user and contact id.
+    def next_contact_id
+      @next_contact_id ||= [User.unscoped.maximum(:id), GrdaWarehouse::Contact::Base.unscoped.maximum(:id)].compact.max.to_i
+      @next_contact_id += 1
+    end
 
     let(:contact_token) { described_class.create!(report_id: report.id, contact_id: contact.id) }
     let(:requestor_token) { described_class.create!(report_id: report.id, contact_id: user.id) }
@@ -67,14 +74,14 @@ RSpec.describe GrdaWarehouse::ReportToken, type: :model do
     end
 
     it 'rejects a token whose contact_id is a contact of another user, for a requestor of the report' do
-      other_contact = create(:grda_warehouse_contact_project, user: other_user, entity: project)
+      other_contact = create(:grda_warehouse_contact_project, id: next_contact_id, user: other_user, entity: project)
       token = described_class.create!(report_id: report.id, contact_id: other_contact.id)
 
       expect(token.valid_for?(report_id: report.id, user: user)).to be(false)
     end
 
     it 'accepts an organization contact token for the contact user' do
-      org_contact = create(:grda_warehouse_contact_organization, user: other_user, entity: organization)
+      org_contact = create(:grda_warehouse_contact_organization, id: next_contact_id, user: other_user, entity: organization)
       token = described_class.create!(report_id: report.id, contact_id: org_contact.id)
 
       expect(token.valid_for?(report_id: report.id, user: other_user)).to be(true)

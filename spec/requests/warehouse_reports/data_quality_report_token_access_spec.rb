@@ -17,12 +17,19 @@ RSpec.describe 'Data quality report token access', type: :request do
   let!(:project) { create(:hud_project, data_source: data_source, OrganizationID: organization.OrganizationID) }
   let!(:other_project) { create(:hud_project, data_source: data_source, OrganizationID: organization.OrganizationID) }
   let!(:project_group) { create(:dq_project_group) }
-  let!(:contact) { create(:grda_warehouse_contact_project, user: user, entity: project) }
+  let!(:contact) { create(:grda_warehouse_contact_project, id: next_contact_id, user: user, entity: project) }
 
-  let!(:project_report) { create(:data_quality_report_version_five, project: project) }
+  # Contact and user ids come from separate sequences and can match by chance, which would let a
+  # contact token pass the requestor check. Contacts get ids above every existing user and contact id.
+  def next_contact_id
+    @next_contact_id ||= [User.unscoped.maximum(:id), GrdaWarehouse::Contact::Base.unscoped.maximum(:id)].compact.max.to_i
+    @next_contact_id += 1
+  end
+
+  let!(:project_report) { create(:data_quality_report_version_five, project: project, report: { 'source' => 'project report' }) }
   let!(:other_project_report) { create(:data_quality_report_version_five, project: other_project) }
   let!(:sibling_project_report) { create(:data_quality_report_version_five, project: project) }
-  let!(:group_report) { create(:data_quality_report_version_five, project_group: project_group) }
+  let!(:group_report) { create(:data_quality_report_version_five, project_group: project_group, report: { 'source' => 'group report' }) }
   let!(:other_group_report) { create(:data_quality_report_version_five, project_group: project_group) }
 
   def token_for(report, contact_id: contact.id)
@@ -172,14 +179,14 @@ RSpec.describe 'Data quality report token access', type: :request do
       get project_url(:answers, project_token, project_report)
 
       expect(response).to have_http_status(:ok)
-      expect(response.parsed_body).to eq(project_report.report.as_json)
+      expect(response.parsed_body).to eq('source' => 'project report')
     end
 
     it 'returns project group report answers for its own token' do
       get group_url(:answers, group_token, group_report)
 
       expect(response).to have_http_status(:ok)
-      expect(response.parsed_body).to eq(group_report.report.as_json)
+      expect(response.parsed_body).to eq('source' => 'group report')
     end
 
     [:show, :answers, :support].each do |action|
