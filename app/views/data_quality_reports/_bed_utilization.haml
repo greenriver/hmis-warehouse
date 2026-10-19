@@ -29,7 +29,7 @@
           - p_type = ::HudHelper.util.project_type_brief(project[:project_type])
           - p_class = "client__service_type_#{p_type}"
           %tr
-            %td= project[:name]
+            %td= dq_project_name(project[:id])
             %td
               %span{class: "client__service_type_#{project[:project_type]}"}
                 .enrollment__project_type{class: p_class}

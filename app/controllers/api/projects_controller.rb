@@ -142,7 +142,7 @@ module Api
         else
           project_source.viewable_by(current_user)
         end
-        scope = without_unnameable_confidential_projects(scope)
+        scope = without_unnameable_confidential_projects(scope) { |project| !project.confidential_for_user?(current_user) }
 
         scope = scope.joins(:data_source, :organization).with_project_type(project_types)
         scope = scope.merge(data_source_source.where(id: data_source_ids)) if data_source_ids.present?

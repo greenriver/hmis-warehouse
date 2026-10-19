@@ -35,4 +35,18 @@ FactoryBot.define do
     start { '2016-01-01'.to_date }
     add_attribute(:end) { '2016-12-31'.to_date }
   end
+
+  factory :data_quality_report_version_one, class: 'GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionOne' do
+    completed_at { Time.now }
+    start { '2016-01-01'.to_date }
+    add_attribute(:end) { '2016-12-31'.to_date }
+    report { {} }
+  end
+
+  factory :data_quality_report_version_two, class: 'GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionTwo' do
+    completed_at { Time.now }
+    start { '2016-01-01'.to_date }
+    add_attribute(:end) { '2016-12-31'.to_date }
+    report { {} }
+  end
 end

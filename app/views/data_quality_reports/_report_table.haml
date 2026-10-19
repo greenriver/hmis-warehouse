@@ -6,7 +6,7 @@
       %th Support
   %tbody
     - @report.report_columns.each do |key, info|
-      - value = @report.report.with_indifferent_access[key]
+      - value = dq_stored_name_value(key, @report.report.with_indifferent_access[key])
       - has_support = @report.support.with_indifferent_access[key].present? rescue false
       %tr
         %td

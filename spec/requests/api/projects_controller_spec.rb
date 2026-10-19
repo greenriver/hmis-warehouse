@@ -243,7 +243,6 @@ RSpec.describe Api::ProjectsController, type: :request do
       let(:role) do
         create(
           :role,
-          can_view_projects: true,
           can_view_assigned_reports: true,
           can_view_confidential_project_names: true,
           can_report_on_confidential_projects: true,
@@ -300,6 +299,55 @@ RSpec.describe Api::ProjectsController, type: :request do
 
       expect(returned_project_ids).to match_array(granted_project_ids + [confidential_project.id])
       expect(response.body).to include('Secret Picker Project')
+    end
+  end
+
+  context 'report-only role using can_view_assigned_reports' do
+    let(:user) { create(:acl_user) }
+    let!(:confidential_project) do
+      create(
+        :hud_project,
+        data_source_id: data_source.id,
+        OrganizationID: organization.OrganizationID,
+        ProjectName: 'Secret Report Project',
+        ProjectType: 4,
+        confidential: true,
+      )
+    end
+    let(:role) do
+      create(
+        :role,
+        can_view_assigned_reports: true,
+        can_report_on_confidential_projects: true,
+        can_view_confidential_project_names: true,
+      )
+    end
+
+    before { sign_in(user) }
+
+    it 'includes the project when the names permission is held on its collection' do
+      collection = create(:collection)
+      collection.set_viewables(projects: [confidential_project.id])
+      setup_access_control(user, role, collection)
+
+      post_projects(permission: 'can_view_assigned_reports')
+
+      expect(returned_project_ids).to contain_exactly(confidential_project.id)
+    end
+
+    it 'excludes the project when the names permission is held only on an unrelated collection' do
+      project_collection = create(:collection)
+      project_collection.set_viewables(projects: [confidential_project.id])
+      setup_access_control(user, create(:role, can_view_assigned_reports: true, can_report_on_confidential_projects: true), project_collection)
+      unrelated_project = create(:hud_project, data_source_id: data_source.id, OrganizationID: organization.OrganizationID)
+      unrelated_collection = create(:collection)
+      unrelated_collection.set_viewables(projects: [unrelated_project.id])
+      setup_access_control(user, role, unrelated_collection)
+
+      post_projects(permission: 'can_view_assigned_reports')
+
+      expect(returned_project_ids).to contain_exactly(unrelated_project.id)
+      expect(response.body).not_to include('Secret Report Project')
     end
   end
 end
