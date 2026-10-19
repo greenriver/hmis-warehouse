@@ -119,20 +119,12 @@ module Reporting::DataQualityReports
     end
 
     def safe_project_name(user)
-      return project_name if user&.can_view_confidential_project_names?
+      @safe_project_name ||= {}
+      return @safe_project_name[user&.id] if @safe_project_name.key?(user&.id)
 
-      if confidential_project_ids.include?(project_id)
-        GrdaWarehouse::Hud::Project.confidential_project_name
-      else
-        project_name
-      end
-    end
-
-    def confidential_project_ids
-      cached_confidential_project_ids = Rails.cache.fetch('report_project_confidential_project_ids', expires_in: 1.minute) do
-        GrdaWarehouse::Hud::Project.confidential.pluck(:id).to_set
-      end
-      cached_confidential_project_ids
+      hud_project = project || GrdaWarehouse::Hud::Project.with_deleted.find_by(id: project_id)
+      visible = hud_project.present? && (!hud_project.confidential? || user&.policy_for(hud_project)&.can_view_name?)
+      @safe_project_name[user&.id] = visible ? project_name : GrdaWarehouse::Hud::Project.confidential_project_name
     end
   end
 end

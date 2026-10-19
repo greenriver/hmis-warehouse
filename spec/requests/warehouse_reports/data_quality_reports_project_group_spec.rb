@@ -188,6 +188,76 @@ RSpec.describe 'DataQualityReportsProjectGroupController', type: :request do
     expect(response).to redirect_to(user.my_root_path)
   end
 
+  describe 'project names on the report page for a group with confidential projects' do
+    let!(:alpha) { create(:hud_project, data_source: data_source, OrganizationID: organization.OrganizationID, ProjectName: 'Hidden Alpha Shelter', confidential: true) }
+    let!(:beta) { create(:hud_project, data_source: data_source, OrganizationID: organization.OrganizationID, ProjectName: 'Hidden Beta Shelter', confidential: true) }
+    let(:names_role) { create(:role, can_view_confidential_project_names: true) }
+
+    before do
+      project.update!(ProjectName: 'Open Door Shelter')
+      project_group.update!(projects: [project, alpha, beta])
+      collection.set_viewables({ reports: [report_definition.id], project_groups: [project_group.id], projects: [project.id, alpha.id, beta.id] })
+      report.update!(completed_at: Time.current)
+      [project, alpha, beta].each do |p|
+        Reporting::DataQualityReports::Project.create!(
+          report_id: report.id,
+          project_id: p.id,
+          project_name: p.ProjectName,
+          project_type: 1,
+          bed_inventory: 10,
+          unit_inventory: 10,
+          average_bed_utilization: 0,
+          average_unit_utilization: 0,
+          nightly_client_census: {},
+          nightly_household_census: {},
+          calculated_at: Time.current,
+        )
+        Reporting::DataQualityReports::Enrollment.create!(report_id: report.id, project_id: p.id, client_id: p.id, enrolled: true, active: false, calculated_at: Time.current)
+      end
+      Reporting::DataQualityReports::ProjectGroup.create!(report_id: report.id, nightly_client_census: {}, nightly_household_census: {}, calculated_at: Time.current)
+    end
+
+    def list_text_under(heading)
+      Nokogiri::HTML(response.body).xpath("//h4[normalize-space()='#{heading}']/following-sibling::ul[1]").text
+    end
+
+    context 'when the confidential-name permission covers only an unrelated project' do
+      before do
+        names_collection = create(:collection)
+        names_collection.set_viewables({ projects: [other_project.id] })
+        setup_access_control(user, names_role, names_collection)
+      end
+
+      it 'shows the placeholder and the public name, never the confidential names' do
+        get project_group_data_quality_report_path(project_group, report)
+
+        expect(response).to have_http_status(:ok)
+        expect(response.body).not_to include('Hidden Alpha Shelter')
+        expect(response.body).not_to include('Hidden Beta Shelter')
+        expect(response.body).to include('Open Door Shelter')
+        expect(response.body).to include("#{GrdaWarehouse::Hud::Project.confidential_project_name} (2)")
+      end
+    end
+
+    context 'when the confidential-name permission covers the group projects' do
+      before do
+        names_collection = create(:collection)
+        names_collection.set_viewables({ projects: [alpha.id, beta.id] })
+        setup_access_control(user, names_role, names_collection)
+      end
+
+      it 'shows both confidential names in the summary and utilization lists' do
+        get project_group_data_quality_report_path(project_group, report)
+
+        expect(response).to have_http_status(:ok)
+        ['Percent of Enrolled Clients Active', 'Bed Utilization', 'Unit Utilization'].each do |heading|
+          expect(list_text_under(heading)).to include('Hidden Alpha Shelter', 'Hidden Beta Shelter', 'Open Door Shelter')
+        end
+        expect(response.body).not_to include(GrdaWarehouse::Hud::Project.confidential_project_name)
+      end
+    end
+  end
+
   it 'renders show for a report on a group in the user collections' do
     get project_group_data_quality_report_path(project_group, report)
 

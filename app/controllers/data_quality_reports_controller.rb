@@ -39,6 +39,7 @@ class DataQualityReportsController < ApplicationControllerV2
     @missing_grades = missing_grade_scope.
       order(percentage_low: :asc)
 
+    @report.preload_project_policies(current_user)
     # The view is versioned using the model name
     render @report.model_name.element.to_sym
   end

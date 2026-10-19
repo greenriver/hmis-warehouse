@@ -590,6 +590,11 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         where(Project: { id: projects.map(&:id) })
     end
 
+    def preload_project_policies(user)
+      ids = projects.map(&:id)
+      user&.policy_context&.preload_project_dependencies(ids) if ids.any?
+    end
+
     def projects
       @projects ||= if project_group_id.present?
         project_group.projects

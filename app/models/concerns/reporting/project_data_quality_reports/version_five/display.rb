@@ -12,6 +12,7 @@ module Reporting::ProjectDataQualityReports::VersionFive::Display
   include ActionView::Context
   include ActionDispatch::Routing::PolymorphicRoutes
   include Rails.application.routes.url_helpers
+  include Reporting::ProjectDataQualityReports::ProjectDisplayNames
   included do
     def self.length_of_stay_buckets
       {
@@ -690,7 +691,7 @@ module Reporting::ProjectDataQualityReports::VersionFive::Display
     end
 
     # formatted for billboardjs
-    def bed_census_data
+    def bed_census_data(user = nil)
       @bed_census_data ||= begin
         dates = report_range.range.to_a
         data = {}
@@ -701,7 +702,7 @@ module Reporting::ProjectDataQualityReports::VersionFive::Display
           dates.each do |date|
             counts << report_project.nightly_client_census[date.to_s] || 0
           end
-          data[projects.detect { |p| p.id == report_project.project_id }.ProjectName] = counts
+          data[project_display_name(report_project.project_id, user)] = counts
         end
         if report_type == :project_group
           counts = []
@@ -717,7 +718,7 @@ module Reporting::ProjectDataQualityReports::VersionFive::Display
       end
     end
 
-    def unit_census_data
+    def unit_census_data(user = nil)
       @unit_census_data ||= begin
         dates = report_range.range.to_a
         data = {}
@@ -728,7 +729,7 @@ module Reporting::ProjectDataQualityReports::VersionFive::Display
           dates.each do |date|
             counts << report_project.nightly_household_census[date.to_s] || 0
           end
-          data[projects.detect { |p| p.id == report_project.project_id }.ProjectName] = counts
+          data[project_display_name(report_project.project_id, user)] = counts
         end
         if report_type == :project_group
           counts = []
@@ -816,7 +817,7 @@ module Reporting::ProjectDataQualityReports::VersionFive::Display
         {
           labels: labels,
           data: data.merge('Goal' => goal),
-          projects: projects.map { |p| [p.name(user), p.id] }.to_h,
+          projects: project_display_names(user).invert,
         }
       end
     end
@@ -841,7 +842,7 @@ module Reporting::ProjectDataQualityReports::VersionFive::Display
         {
           labels: labels,
           data: data.merge('Goal' => goal),
-          projects: projects.map { |p| [p.name(user), p.id] }.to_h,
+          projects: project_display_names(user).invert,
         }
       end
     end
@@ -927,7 +928,7 @@ module Reporting::ProjectDataQualityReports::VersionFive::Display
     def re_key_on_project_name(data, user = nil)
       # To prevent duplicate names from being counted oddly, we key on id then replace for display
       data.map do |id, values|
-        [report_projects.find(id).project&.name(user), values]
+        [project_display_name(report_projects.detect { |rp| rp.id == id }&.project_id, user), values]
       end.to_h
     end
 
@@ -953,7 +954,7 @@ module Reporting::ProjectDataQualityReports::VersionFive::Display
           labels: labels,
           data: data.merge('Totals' => totals),
           ranges: self.class.length_of_stay_buckets,
-          projects: projects.map { |p| [p.name(user), p.id] }.to_h,
+          projects: project_display_names(user).invert,
         }
       end
     end
@@ -981,7 +982,7 @@ module Reporting::ProjectDataQualityReports::VersionFive::Display
         {
           labels: labels,
           data: data.merge('Goal' => goal),
-          projects: projects.map { |p| [p.name(user), p.id] }.to_h,
+          projects: project_display_names(user).invert,
         }
       end
     end

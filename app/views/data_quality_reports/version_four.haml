@@ -97,10 +97,10 @@
       %script{ nonce: content_security_policy_nonce }
         :plain
           (function($) {
-            var bed_census = new App.DataQualityReports.BedCensus(#{@report.bed_census_data.to_json.html_safe}, '.bed-census-chart',
+            var bed_census = new App.DataQualityReports.BedCensus(#{@report.bed_census_data(current_user).to_json.html_safe}, '.bed-census-chart',
             '#{dq_support_url(@support_path, @report_keys.merge({method: "bed_utilization"}))}');
             bed_census.build_chart();
-            var unit_census = new App.DataQualityReports.UnitCensus(#{@report.unit_census_data.to_json.html_safe}, '.unit-census-chart',
+            var unit_census = new App.DataQualityReports.UnitCensus(#{@report.unit_census_data(current_user).to_json.html_safe}, '.unit-census-chart',
             '#{dq_support_url(@support_path, @report_keys.merge({method: "unit_utilization"}))}');
             unit_census.build_chart();
           })(jQuery);

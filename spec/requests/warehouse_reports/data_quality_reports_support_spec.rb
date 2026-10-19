@@ -476,6 +476,35 @@ RSpec.describe 'DataQualityReportsController#support', type: :request do
     end
   end
 
+  context 'on a confidential project with can_edit_projects granted only on another project' do
+    let(:placeholder) { GrdaWarehouse::Hud::Project.confidential_project_name }
+
+    before do
+      project.update!(confidential: true, ProjectName: 'Secret Shelter')
+      role.update!(can_report_on_confidential_projects: true)
+      edit_collection = create(:collection)
+      edit_collection.set_viewables({ projects: [create(:hud_project, data_source: project_data_source).id] })
+      setup_access_control(user, create(:role, can_view_projects: true, can_edit_projects: true), edit_collection)
+    end
+
+    it 'hides the project name on the project report list' do
+      get project_data_quality_reports_path(project)
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).not_to include('Secret Shelter')
+      expect(response.body).to include(placeholder)
+    end
+
+    it 'shows the project name once can_edit_projects covers the project' do
+      collection.set_viewables({ reports: [report_definition.id], projects: [project.id] })
+      setup_access_control(user, create(:role, can_view_projects: true, can_edit_projects: true), collection)
+
+      get project_data_quality_reports_path(project)
+
+      expect(response.body).to include('Secret Shelter')
+    end
+  end
+
   describe 'legacy support on a version three report' do
     let!(:legacy_report) do
       create(
