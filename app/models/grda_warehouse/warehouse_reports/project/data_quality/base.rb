@@ -57,7 +57,7 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
 
     def title(user = nil)
       if projects.count == 1
-        "#{project&.name(user)} at #{project&.organization&.name(user)}"
+        "#{project&.name(user)} at #{project&.organization_name(user)}"
       else
         project_group.name
       end

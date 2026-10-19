@@ -332,4 +332,55 @@ RSpec.describe model, type: :model do
       end
     end
   end
+
+  describe 'organization names for a confidential project' do
+    let!(:secret_org) { create :hud_organization, data_source_id: ds1.id, OrganizationName: 'Zebra Org Secret' }
+    let!(:secret_project) { create :hud_project, data_source_id: ds1.id, OrganizationID: secret_org.OrganizationID, ProjectName: 'Zebra Project Secret', confidential: true }
+    let!(:other_project) { create :hud_project, data_source_id: ds1.id, OrganizationID: o1.OrganizationID }
+    let!(:names_role) { create :can_view_confidential_projects }
+    let!(:own_collection) { create :collection }
+    let!(:elsewhere_collection) { create :collection }
+
+    before do
+      own_collection.set_viewables({ projects: [secret_project.id] })
+      elsewhere_collection.set_viewables({ projects: [other_project.id] })
+      setup_access_control(user, can_view_projects_role, own_collection)
+    end
+
+    context 'when the name permission is held only on a collection without this project' do
+      before { setup_access_control(user, names_role, elsewhere_collection) }
+
+      it 'masks the organization name' do
+        expect(secret_project.organization_name(user)).to eq GrdaWarehouse::Hud::Organization.confidential_organization_name
+      end
+
+      it 'omits the organization name from organization_and_name' do
+        expect(secret_project.organization_and_name(user)).not_to include 'Zebra'
+      end
+    end
+
+    context 'when the name permission is held on a collection with this project' do
+      before { setup_access_control(user, names_role, own_collection) }
+
+      it 'returns the organization name' do
+        expect(secret_project.organization_name(user)).to eq 'Zebra Org Secret'
+      end
+
+      it 'includes the organization name in organization_and_name' do
+        expect(secret_project.organization_and_name(user)).to eq 'Zebra Org Secret / Zebra Project Secret'
+      end
+    end
+
+    it 'masks the organization name without a user' do
+      expect(secret_project.organization_name(nil)).to eq GrdaWarehouse::Hud::Organization.confidential_organization_name
+    end
+
+    it 'returns the names with ignore_confidential_status' do
+      expect(secret_project.organization_and_name(nil, ignore_confidential_status: true)).to eq 'Zebra Org Secret / Zebra Project Secret'
+    end
+
+    it 'returns the organization name of a non-confidential project to a user with no permissions' do
+      expect(p2.organization_name(create(:acl_user))).to eq o1.OrganizationName
+    end
+  end
 end
