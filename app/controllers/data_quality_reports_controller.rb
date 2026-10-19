@@ -187,7 +187,7 @@ class DataQualityReportsController < ApplicationController
     else
       set_report
       report_viewable = GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: 'warehouse_reports/project/data_quality').viewable_by(current_user).exists?
-      return true if report_viewable
+      return true if report_viewable && (can_view_all_reports? || @report.requestor_id == current_user.id)
 
       not_authorized!
       return
