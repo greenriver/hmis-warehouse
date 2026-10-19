@@ -15,8 +15,6 @@
         %hr
         %h3.text-center
           = pluralize(@report.describe_timeliness_entry_average_value, 'day')
-      .time-to-enter-chart.jChart
-        %p.jLoading Loading
     .col-sm-6
       %h3.text-center Time to Exit
       .col-sm-6
@@ -32,5 +30,3 @@
         %hr
         %h3.text-center
           = pluralize(@report.describe_timeliness_exit_average_value, 'day')
-      .time-to-exit-chart.jChart
-        %p.jLoading Loading

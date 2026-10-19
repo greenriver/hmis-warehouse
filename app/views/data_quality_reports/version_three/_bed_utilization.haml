@@ -15,8 +15,3 @@
 
 			%h3.text-center
 				= "#{@report.report['bed_utilization_totals']['counts']['average_daily_percentage']&.round}%"
-
-		.col-sm-9
-			%h3.text-center Nightly Client Census
-			.bed-census-chart.jChart
-				%p.jLoading Loading

@@ -325,15 +325,23 @@ RSpec.describe 'DataQualityReportsController#support', type: :request do
       expect(response.body).to include(ERB::Util.html_escape(path))
     end
 
-    factory_attributes.each do |factory, attributes|
-      it "links a #{factory} report to support" do
-        older_report = create(factory, project: project, requestor_id: user.id, completed_at: Time.current, **attributes)
+    it 'links a version four report to support' do
+      older_report = create(:data_quality_report_version_four, project: project, requestor_id: user.id, completed_at: Time.current, report: {})
 
-        get project_data_quality_report_path(project, older_report)
+      get project_data_quality_report_path(project, older_report)
 
-        expect(response).to have_http_status(:ok)
-        expect(response.body).to include("data_quality_reports/#{older_report.id}/support")
-      end
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include("data_quality_reports/#{older_report.id}/support")
+    end
+
+    it 'renders a version three report without key-style support links' do
+      older_report = create(:data_quality_report_version_three, project: project, requestor_id: user.id, completed_at: Time.current, report: version_three_report)
+
+      get project_data_quality_report_path(project, older_report)
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).not_to include("data_quality_reports/#{older_report.id}/support")
+      expect(response.body).not_to include('jLoading')
     end
   end
 
@@ -410,7 +418,6 @@ RSpec.describe 'DataQualityReportsController#support', type: :request do
         expect(response.body).not_to include("data_quality_reports/#{older_report.id}/support")
       end
     end
-
   end
 
   context 'as a project contact on a confidential project' do
@@ -478,7 +485,14 @@ RSpec.describe 'DataQualityReportsController#support', type: :request do
 
   describe 'removed legacy data paths' do
     let!(:legacy_report) do
-      create(:data_quality_report_version_three, project: project, requestor_id: user.id, completed_at: Time.current, report: {}, support: { 'missing_dob' => { 'headers' => ['Client ID', 'First Name', 'Last Name'], 'counts' => [[open_destination_client.id, 'Open', 'Doe']] } })
+      create(
+        :data_quality_report_version_three,
+        project: project,
+        requestor_id: user.id,
+        completed_at: Time.current,
+        report: {},
+        support: { 'missing_dob' => { 'headers' => ['Client ID', 'First Name', 'Last Name'], 'counts' => [[open_destination_client.id, 'Open', 'Doe']] } },
+      )
     end
 
     it 'does not route the answers action' do
