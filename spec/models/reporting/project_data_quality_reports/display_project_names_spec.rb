@@ -63,18 +63,25 @@ RSpec.describe 'Project data quality report chart keys', type: :model do
         expect(fresh.bed_census_data[:data].keys).to contain_exactly(*expected_names.keys, 'Total')
       end
 
-      it 'uses the viewing user by default and an explicit user over it' do
+      let(:viewer) do
         viewer = create(:acl_user)
         collection = create(:collection)
         collection.set_viewables({ projects: [alpha.id, beta.id, open_project.id] })
         setup_access_control(viewer, create(:role, can_view_projects: true, can_view_confidential_project_names: true), collection)
+        viewer
+      end
 
+      it 'uses the viewing user by default' do
         by_default = report.class.find(report.id)
         by_default.viewing_user = viewer
+
+        expect(by_default.bed_census_data[:data].keys).to contain_exactly('Hidden Alpha Shelter', 'Hidden Beta Shelter', 'Open Door Shelter', 'Total')
+      end
+
+      it 'prefers an explicit user over the viewing user' do
         overridden = report.class.find(report.id)
         overridden.viewing_user = viewer
 
-        expect(by_default.bed_census_data[:data].keys).to contain_exactly('Hidden Alpha Shelter', 'Hidden Beta Shelter', 'Open Door Shelter', 'Total')
         expect(overridden.bed_census_data(user: user)[:data].keys).to contain_exactly(*expected_names.keys, 'Total')
       end
 
