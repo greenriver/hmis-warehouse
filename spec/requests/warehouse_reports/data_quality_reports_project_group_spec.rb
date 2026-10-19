@@ -258,6 +258,110 @@ RSpec.describe 'DataQualityReportsProjectGroupController', type: :request do
     end
   end
 
+  describe 'support rows for a group with a confidential project' do
+    let!(:alpha) { create(:hud_project, data_source: data_source, OrganizationID: organization.OrganizationID, ProjectName: 'Hidden Alpha Shelter', confidential: true) }
+    let(:placeholder) { GrdaWarehouse::Hud::Project.confidential_project_name }
+    let(:headers) { ['Client ID', 'First Name', 'Last Name', 'DOB', 'SSN', 'Project ID', 'Project'] }
+    let(:support_data) do
+      {
+        headers: headers,
+        counts: [
+          [101, 'Casey', 'Example', '1980-01-01', '111223333', project.id, 'Open Door Shelter'],
+          [102, 'Dana', 'Hidden', '1975-02-02', '444556666', alpha.id, 'Hidden Alpha Shelter'],
+        ],
+        title: 'Clients',
+      }
+    end
+
+    def grant(permissions, projects)
+      grant_collection = create(:collection)
+      grant_collection.set_viewables({ projects: projects.map(&:id) })
+      setup_access_control(user, create(:role, **permissions), grant_collection)
+      user.clear_memery_cache!
+    end
+
+    def table_cells
+      Nokogiri::HTML(response.body).css('table.table-hover tbody td').map { |td| td.text.strip }
+    end
+
+    def xlsx_rows
+      file = Tempfile.new(['dq_group_support', '.xlsx'])
+      file.binmode
+      file.write(response.body)
+      file.close
+      sheet = Roo::Excelx.new(file.path).sheet(0)
+      (sheet.first_row + 1..sheet.last_row).map { |i| sheet.row(i) }
+    ensure
+      file&.unlink
+    end
+
+    before do
+      project.update!(ProjectName: 'Open Door Shelter')
+      project_group.update!(projects: [project, alpha])
+      collection.set_viewables({ reports: [report_definition.id], project_groups: [project_group.id], projects: [project.id, alpha.id] })
+      user.clear_memery_cache!
+    end
+
+    after { GrdaWarehouse::Config.invalidate_cache }
+
+    context 'when the confidential-name permission covers only the public project' do
+      before { grant({ can_view_confidential_project_names: true }, [project]) }
+
+      it 'masks the confidential project name and keeps the public one in HTML' do
+        get support_project_group_data_quality_report_path(project_group, report, individual: true, method: 'test')
+
+        expect(response).to have_http_status(:ok)
+        expect(table_cells).to include('Open Door Shelter', placeholder)
+        expect(response.body).not_to include('Hidden Alpha Shelter')
+      end
+
+      it 'masks the confidential project name in xlsx' do
+        get support_project_group_data_quality_report_path(project_group, report, individual: true, method: 'test', format: :xlsx)
+
+        expect(xlsx_rows.map { |r| r[6] }).to eq(['Open Door Shelter', placeholder])
+      end
+    end
+
+    context 'when the confidential-name permission covers the confidential project' do
+      before { grant({ can_view_confidential_project_names: true }, [alpha]) }
+
+      it 'shows the confidential project name' do
+        get support_project_group_data_quality_report_path(project_group, report, individual: true, method: 'test')
+
+        expect(table_cells).to include('Open Door Shelter', 'Hidden Alpha Shelter')
+        expect(response.body).not_to include(placeholder)
+      end
+    end
+
+    context 'when name, DOB, and SSN permissions cover only the public project' do
+      before { grant({ can_view_client_name: true, can_view_full_dob: true, can_view_full_ssn: true }, [project]) }
+
+      it 'redacts PII on the confidential project row only in HTML' do
+        get support_project_group_data_quality_report_path(project_group, report, individual: true, method: 'test')
+
+        cells = table_cells
+        expect(cells).to include('Casey', 'Example', '111-22-3333')
+        expect(cells.join(' ')).to include('1980')
+        expect(cells).not_to include('Dana', 'Hidden', '444-55-6666')
+        expect(cells.join(' ')).not_to include('1975')
+        expect(cells.count(GrdaWarehouse::PiiProvider::NAME_REDACTED)).to eq(2)
+      end
+
+      it 'redacts PII on the confidential project row only in xlsx' do
+        GrdaWarehouse::Config.first_or_create.update!(include_pii_in_detail_downloads: true)
+        GrdaWarehouse::Config.invalidate_cache
+
+        get support_project_group_data_quality_report_path(project_group, report, individual: true, method: 'test', format: :xlsx)
+
+        public_row, confidential_row = xlsx_rows
+        expect(public_row[1..2]).to eq(['Casey', 'Example'])
+        expect(public_row[4].to_s).to eq('111-22-3333')
+        expect(confidential_row[1..2]).to eq([GrdaWarehouse::PiiProvider::NAME_REDACTED] * 2)
+        expect(confidential_row[4].to_s).not_to eq('444-55-6666')
+      end
+    end
+  end
+
   it 'renders show for a report on a group in the user collections' do
     get project_group_data_quality_report_path(project_group, report)
 

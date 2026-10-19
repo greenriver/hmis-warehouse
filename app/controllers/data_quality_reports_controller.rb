@@ -69,24 +69,20 @@ class DataQualityReportsController < ApplicationControllerV2
     if params[:individual].present?
       @data = @report.support_for(support_params)
 
-      if !current_user.can_view_confidential_project_names? && @data[:headers].include?('Project ID')
-        project_id_col = @data[:headers].find_index('Project ID')
-        project_name_col = @data[:headers].find_index('Project')
-        @data[:counts].each_with_index do |row, i|
-          @data[:counts][i][project_name_col] = GrdaWarehouse::Hud::Project.confidential_project_name if confidential_project_ids.include?(row[project_id_col])
-        end
-      end
+      project_id_index = @data[:headers].find_index('Project ID')
+      preload_support_projects(project_id_index)
+      mask_project_names(project_id_index)
 
       @details_title = @data[:title] || 'Supporting Data'
       @method = params[:method]
       current_user.policy_context.preload_client_dependencies(@data[:counts].map { |row| row[0] })
       respond_to do |format|
         format.xlsx do
-          @data[:counts] = @data[:counts].map { |row| redact_pii_in_row(row, headers: @data[:headers], user: current_user, mode: :download) }
+          @data[:counts] = @data[:counts].map { |row| redact_pii_in_row(row, headers: @data[:headers], user: current_user, mode: :download, project_id: support_row_project_id(row, project_id_index)) }
           render support_render_path, filename: "support-#{@method}.xlsx"
         end
         format.html do
-          @data[:counts] = @data[:counts].map { |row| redact_pii_in_row(row, headers: @data[:headers], user: current_user, mode: :browse) }
+          @data[:counts] = @data[:counts].map { |row| redact_pii_in_row(row, headers: @data[:headers], user: current_user, mode: :browse, project_id: support_row_project_id(row, project_id_index)) }
           set_client_path
           # The view is versioned using the model name
           layout = if request.xhr?
@@ -211,10 +207,30 @@ class DataQualityReportsController < ApplicationControllerV2
     GrdaWarehouse::Grades::Utilization
   end
 
-  def confidential_project_ids
-    projects = Rails.cache.fetch('confidential_project_ids', expires_in: 2.minutes) do
-      GrdaWarehouse::Hud::Project.confidential.pluck(:id).to_set
+  private def support_project_ids(project_id_index)
+    ids = project_id_index ? @data[:counts].map { |row| row[project_id_index] } : [@project&.id]
+    ids.compact.uniq
+  end
+
+  private def preload_support_projects(project_id_index)
+    ids = support_project_ids(project_id_index)
+    current_user.policy_context.preload_project_dependencies(ids) if ids.any?
+  end
+
+  private def mask_project_names(project_id_index)
+    project_name_index = @data[:headers].find_index('Project')
+    return unless project_id_index && project_name_index
+
+    projects = GrdaWarehouse::Hud::Project.where(id: support_project_ids(project_id_index)).index_by(&:id)
+    @data[:counts] = @data[:counts].map do |row|
+      project = projects[row[project_id_index]]
+      next row unless project
+
+      row.dup.tap { |r| r[project_name_index] = project.name(current_user) }
     end
-    projects
+  end
+
+  private def support_row_project_id(row, project_id_index)
+    project_id_index ? row[project_id_index] : @project&.id
   end
 end

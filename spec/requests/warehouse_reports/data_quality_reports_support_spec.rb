@@ -36,7 +36,7 @@ RSpec.describe 'DataQualityReportsController#support', type: :request do
   }
 
   let!(:collection) { create(:collection) }
-  let!(:role) { create(:role, can_view_all_reports: true, can_view_assigned_reports: true, can_view_clients: true, can_view_client_name: true, can_view_projects: true) }
+  let!(:role) { create(:role, can_view_all_reports: true, can_view_assigned_reports: true, can_view_clients: true, can_view_client_name: true, can_view_full_dob: true, can_view_full_ssn: true, can_view_projects: true) }
   let!(:user) { create(:acl_user) }
 
   let!(:report_definition) do
