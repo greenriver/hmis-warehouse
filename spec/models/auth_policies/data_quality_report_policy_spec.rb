@@ -107,6 +107,26 @@ RSpec.describe GrdaWarehouse::AuthPolicies::DataQualityReportPolicy, type: :mode
 
         expect(can_view?(project_report)).to be false
       end
+
+      it 'is denied without can_view_all_reports while allowed on the user own report on the same project' do
+        grant(reporting_role, collection_with(projects: [project.id]))
+        own_report = create :data_quality_report_version_five, project: project, requestor_id: user.id
+
+        expect(can_view?(own_report)).to be true
+        expect(can_view?(project_report)).to be false
+      end
+
+      it 'is denied for a group report without can_view_all_reports when the collection holds the group' do
+        grant(reporting_role, collection_with(project_groups: [project_group.id]))
+
+        expect(can_view?(group_report)).to be false
+      end
+
+      it 'is allowed for a group report with can_view_all_reports when the collection holds the group' do
+        grant(all_reports_role, collection_with(project_groups: [project_group.id]))
+
+        expect(can_view?(group_report)).to be true
+      end
     end
 
     describe 'a contact with no access to the project' do
@@ -124,8 +144,22 @@ RSpec.describe GrdaWarehouse::AuthPolicies::DataQualityReportPolicy, type: :mode
         expect(can_view?(project_report)).to be true
       end
 
-      it 'is denied as a contact on a different project' do
+      it 'is denied as a contact on a different project while allowed on that project report' do
         create(:grda_warehouse_contact_project, entity: other_project, user: user)
+        other_project_report = create :data_quality_report_version_five, project: other_project, requestor_id: other_user.id
+
+        expect(can_view?(other_project_report)).to be true
+        expect(can_view?(project_report)).to be false
+      end
+
+      it 'is denied when another user is the project contact' do
+        create(:grda_warehouse_contact_project, entity: project, user: other_user)
+
+        expect(can_view?(project_report)).to be false
+      end
+
+      it 'is denied when another user is the organization contact' do
+        create(:grda_warehouse_contact_organization, entity: organization, user: other_user)
 
         expect(can_view?(project_report)).to be false
       end
@@ -217,6 +251,34 @@ RSpec.describe GrdaWarehouse::AuthPolicies::DataQualityReportPolicy, type: :mode
         end
       end
 
+      it 'is false for a user with can_view_clients on the project who cannot view the report' do
+        report = create :data_quality_report_version_five, project: project, requestor_id: other_user.id
+        grant(client_reporting_role, collection_with(projects: [project.id]))
+
+        expect(can_view?(report)).to be false
+        expect(can_view_client_details?(report)).to be false
+      end
+
+      context 'for a group report including a confidential project' do
+        let(:confidential_project) { create :hud_project, data_source: data_source, OrganizationID: organization.OrganizationID, confidential: true }
+        let(:project_group) { create :project_group, projects: [project, confidential_project] }
+
+        before { grant(reporting_role, collection_with(project_groups: [project_group.id])) }
+
+        it 'is false when can_view_clients covers only the non-confidential project' do
+          grant(client_role, collection_with(projects: [project.id]))
+
+          expect(can_view?(group_report)).to be true
+          expect(can_view_client_details?(group_report)).to be false
+        end
+
+        it 'is true when can_view_clients covers both projects' do
+          grant(client_role, collection_with(projects: [project.id, confidential_project.id]))
+
+          expect(can_view_client_details?(group_report)).to be true
+        end
+      end
+
       it 'is false for a group report on a group with no projects' do
         empty_group = create :project_group, projects: []
         grant(reporting_role, collection_with(project_groups: [empty_group.id]))
@@ -225,6 +287,31 @@ RSpec.describe GrdaWarehouse::AuthPolicies::DataQualityReportPolicy, type: :mode
 
         expect(can_view?(report)).to be true
         expect(can_view_client_details?(report)).to be false
+      end
+    end
+
+    describe 'a report on a confidential project' do
+      let(:project) { create :hud_project, data_source: data_source, OrganizationID: organization.OrganizationID, confidential: true }
+
+      it 'is not reportable without can_report_on_confidential_projects' do
+        grant(reporting_role, collection_with(projects: [project.id]))
+
+        expect(GrdaWarehouse::Hud::Project.where(id: described_class.reportable_project_ids(user))).to be_empty
+        expect(can_view?(project_report)).to be false
+      end
+
+      it 'is reportable with can_report_on_confidential_projects' do
+        grant(create(:role, can_view_assigned_reports: true, can_view_projects: true, can_report_on_confidential_projects: true), collection_with(projects: [project.id]))
+
+        expect(GrdaWarehouse::Hud::Project.where(id: described_class.reportable_project_ids(user))).to contain_exactly(project)
+        expect(can_view?(project_report)).to be true
+      end
+
+      it 'is viewable by a project contact with no access to the project' do
+        report = create :data_quality_report_version_five, project: project, requestor_id: other_user.id
+        create(:grda_warehouse_contact_project, entity: project, user: user)
+
+        expect(can_view?(report)).to be true
       end
     end
 
