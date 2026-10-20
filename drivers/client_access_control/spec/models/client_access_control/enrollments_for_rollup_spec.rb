@@ -188,6 +188,59 @@ RSpec.describe 'GrdaWarehouse::Hud::Client#enrollments_for_rollup', type: :model
     end
   end
 
+  describe 'caching' do
+    let(:cache) { ActiveSupport::Cache::MemoryStore.new }
+
+    before { allow(Rails).to receive(:cache).and_return(cache) }
+
+    def rollups_cached_during(&block)
+      keys = []
+      ActiveSupport::Notifications.subscribed(->(event) { keys << event.payload[:key] }, 'cache_write.active_support', &block)
+      keys.map { |key| cache.read(key) }.select { |value| value.inspect.include?('project_name:') }
+    end
+
+    it 'answers a repeat call by the same user from the cache without querying enrollments' do
+      first = residential_rollup(destination_client)
+      scope = destination_client.scope_for_residential_enrollments(user)
+
+      queries = count_database_queries do
+        expect(destination_client.enrollments_for_rollup(user: user, en_scope: scope)).to eq(first)
+      end
+
+      expect(queries).to eq(0)
+    end
+
+    it 'stores each rollup in a single cache entry' do
+      cached = rollups_cached_during { residential_rollup(destination_client) }
+
+      expect(cached.size).to eq(1)
+    end
+
+    context 'with a confidential project' do
+      let!(:confidential_project) { create_project('Secret Shelter', project_type: 0, confidential: true) }
+      let!(:confidential_enrollment) do
+        create_enrollment(source_client, confidential_project, entry: '2020-06-01', exit_date: '2020-06-05')
+      end
+      let(:other_user) { create_user_with_role(viewer_role) }
+
+      before do
+        rebuild_service_history!
+        role = create :role, name: 'confidential names', can_view_confidential_project_names: true
+        collection = create :collection, name: 'Confidential project'
+        collection.set_viewables({ projects: [confidential_project.id] })
+        setup_access_control(user, role, collection)
+      end
+
+      it 'does not serve one user the rollup cached for another' do
+        confidential_name = ->(rollup) { rollup.detect { |e| e[:ProjectID] == confidential_project.ProjectID }[:project_name] }
+
+        expect(confidential_name.call(residential_rollup(destination_client))).to eq('Secret Shelter < Test Org ')
+        other_rollup = destination_client.enrollments_for_rollup(user: other_user, en_scope: destination_client.scope_for_residential_enrollments(other_user))
+        expect(confidential_name.call(other_rollup)).to eq(GrdaWarehouse::Hud::Project.confidential_project_name)
+      end
+    end
+  end
+
   describe 'query scaling' do
     it 'issues the same number of queries for two enrollments as for eight' do
       few = build_client_with_es_enrollments(count: 2)
