@@ -454,7 +454,7 @@ class Role < ApplicationRecord
         sub_category: 'General Client Access',
       },
       can_generate_homeless_verification_pdfs: {
-        description: 'Allows access to generate and view homeless verification PDFs for any client for which the user has access',
+        description: 'Allows access to generate and view homeless verification PDFs for any client for which the user has access. Generating a PDF also requires "Access to the calendar view of client enrollments" for that client.',
         administrative: false,
         category: 'Client Extras',
         sub_category: 'General Client Access',

@@ -15,7 +15,11 @@ FactoryBot.define do
     current_living_situation { 1 }
     DateCreated { Date.parse('2019-01-01') }
     DateUpdated { Date.parse('2019-01-01') }
-    after(:create) do |cls|
+    transient do
+      definition { nil }
+    end
+    after(:create) do |cls, evaluator|
+      cls.form_processor = create(:hmis_form_processor, owner: cls, definition: evaluator.definition) if evaluator.definition
       cls.update(VerifiedBy: Hmis::Hud::Project.find(cls.verified_by_project_id).name) if cls.verified_by_project_id
     end
   end

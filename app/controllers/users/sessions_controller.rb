@@ -15,6 +15,8 @@ class Users::SessionsController < Devise::SessionsController
   # Wraps the entire :create callback chain (including authenticate_with_two_factor and Devise's
   # own filters), so the timing log always runs.
   prepend_around_action :time_login, only: :create
+  # The keepalive is an XHR, which skip_timeout would otherwise exclude from extending the session.
+  skip_before_action :skip_timeout, only: :keepalive
 
   # Minimum required login processing time for ALL login attempts (seconds)
   MIN_REQ_LOGIN_TIME = 2
@@ -66,8 +68,10 @@ class Users::SessionsController < Devise::SessionsController
     super
   end
 
+  # Reading the current user is what extends the session: Devise's timeoutable hook bumps
+  # last_request_at when Warden fetches the user (or signs them out if they've already timed out).
   def keepalive
-    head :ok
+    head(user_signed_in? ? :ok : :unauthorized)
   end
 
   def find_user

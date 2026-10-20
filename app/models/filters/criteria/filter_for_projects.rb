@@ -17,8 +17,9 @@ class Filters::Criteria::FilterForProjects < Filters::Criteria::Base
     return scope.none if project_ids.blank? && input.project_group_ids.present?
     return scope if project_ids.blank?
 
-    # seems to be order dependent (merge before in_project)
-    scope.merge(viewable_project_scope).in_project(project_ids)
+    # Viewable and selected projects in one merge; merging them separately lets the
+    # second `where` on the project id replace the first
+    scope.joins(:project).merge(viewable_project_scope.where(id: project_ids))
   end
 
   protected

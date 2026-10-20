@@ -31,7 +31,7 @@
       },
       client_history_path(@client) => {
         title: 'History',
-        permission: show_demographic,
+        permission: show_demographic && current_user.policy_for(@client).can_view_history_calendar?,
       },
     })
     hmis.merge!({
