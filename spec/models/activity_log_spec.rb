@@ -229,6 +229,25 @@ RSpec.describe ActivityLog do
         expect(entries.map { |e| e.reload.client_id }).to eq([70, 71, 72, 73])
       end
 
+      it 'backfills a row written after the backfill started' do
+        entries = Array.new(3) { |i| log(path: "/clients/#{70 + i}") }
+        described_class.where(id: entries.map(&:id)).update_all(client_id: nil)
+        late_entry = nil
+        # Right after the first max id read, insert a row with no client_id, as a pod on old code would.
+        allow(described_class).to receive(:maximum).and_wrap_original do |original, *args|
+          original.call(*args).tap do
+            next if late_entry
+
+            late_entry = log(path: '/clients/80')
+            late_entry.update_column(:client_id, nil)
+          end
+        end
+
+        described_class.backfill_client_id!(batch_size: 3)
+
+        expect(late_entry.reload.client_id).to eq(80)
+      end
+
       it 'leaves an already-set client_id unchanged' do
         entry = log(path: '/clients/52')
         entry.update_column(:client_id, 999)

@@ -71,7 +71,7 @@
   "app/models/access_control.rb": "aaa0b0e70eade5e011dd43065e3a82584c6899c0f458d28eee6a1098d808a720",
   "app/models/access_group.rb": "827b59e59846b1753a2e49089f726d25389feb202da5ed620f014aaec85d643f",
   "app/models/access_group_member.rb": "3a82283952e6439e5009595b8d7ef43e14d88085957df61ab99e5003c440fcba",
-  "app/models/activity_log.rb": "f104ef888d18b0ebdefb70872e1732e7e65d81989cef65b450e642b918f578e7",
+  "app/models/activity_log.rb": "2bf7cc46689a65fe19cdffd072e78286e00cf6f14d52f62a05fb01e8fd3356d6",
   "app/models/agencies_consent_limit.rb": "b63d4f36b76e811d3908bba671b1bbc098e7b1768503dc2caa1c412b1e0c5276",
   "app/models/agency.rb": "0028aa80facf38fa64aa2b8640a076a957e3c2beafa50944d26aa8cd4008ae62",
   "app/models/app_config_property.rb": "9b4ea2ded9bea9e4eba89d56ec9e81e00c199994f0bcb58f3d06ae72457545e7",

@@ -84,16 +84,18 @@ class ActivityLog < ApplicationRecord
   # Sets client_id for rows that predate it, in id ranges so each batch is a bounded index range
   # scan; run out of band via TaskQueue. Rows that don't match stay nil and aren't rewritten.
   def self.backfill_client_id!(batch_size: 10_000)
-    first_id = minimum(:id)
-    last_id = maximum(:id)
-    return unless first_id
+    batch_start = minimum(:id)
+    return unless batch_start
 
     # Named binds: a literal '?' in the SQL would be read as a positional placeholder.
     binds = { separator: '?', pattern: CLIENT_PATH_SQL_PATTERN }
-    (first_id..last_id).step(batch_size) do |batch_start|
+    # maximum is re-read each batch: during a rolling deploy, pods still on old code keep writing
+    # rows without client_id, and those land past whatever the max was when the backfill started.
+    while batch_start <= maximum(:id)
       where(id: batch_start...(batch_start + batch_size), client_id: nil).
         where('split_part(path, :separator, 1) ~ :pattern', binds).
         update_all(['client_id = substring(split_part(path, :separator, 1) from :pattern)::bigint', binds])
+      batch_start += batch_size
     end
   end
 
