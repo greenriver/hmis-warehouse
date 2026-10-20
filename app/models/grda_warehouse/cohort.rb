@@ -492,11 +492,11 @@ module GrdaWarehouse
     end
 
     private def sheltered_days_homeless_last_three_years(client)
-      client.sheltered_days_homeless_last_three_years
+      client.sheltered_days_homeless_last_three_years(on_date: effective_date || Date.current)
     end
 
     private def unsheltered_days_homeless_last_three_years(client)
-      client.unsheltered_days_homeless_last_three_years
+      client.unsheltered_days_homeless_last_three_years(on_date: effective_date || Date.current)
     end
 
     private def destination_from_homelessness(client)

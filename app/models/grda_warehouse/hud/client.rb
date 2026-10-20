@@ -2630,8 +2630,8 @@ module GrdaWarehouse::Hud
       end
     end
 
-    def sheltered_days_homeless_last_three_years
-      end_date = Date.current
+    def sheltered_days_homeless_last_three_years(on_date: Date.current)
+      end_date = on_date.to_date
       start_date = end_date - 3.years
       sheltered_homeless_dates(start_date: start_date, end_date: end_date).count
     end
@@ -2645,8 +2645,8 @@ module GrdaWarehouse::Hud
         distinct
     end
 
-    def unsheltered_days_homeless_last_three_years
-      end_date = Date.current
+    def unsheltered_days_homeless_last_three_years(on_date: Date.current)
+      end_date = on_date.to_date
       start_date = end_date - 3.years
       unsheltered_days_homeless(start_date: start_date, end_date: end_date).count
     end

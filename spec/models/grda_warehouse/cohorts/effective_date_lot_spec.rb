@@ -97,4 +97,24 @@ RSpec.describe 'Cohort length-of-time columns and the effective date', type: :mo
       expect(cohort_client.days_homeless_plus_overrides).to eq(11)
     end
   end
+
+  describe 'sheltered and unsheltered days' do
+    before do
+      # SO: one day before the effective date, three after
+      add_days([effective_date - 20.days] + (effective_date + 10.days..effective_date + 12.days).to_a, project_type: 4, homeless: true, literally_homeless: true)
+
+      cohort.refresh_time_dependant_client_data
+      cohort_client.reload
+    end
+
+    # The 10 ES days before the effective date
+    it 'calculates sheltered days in the last three years as of the effective date' do
+      expect(cohort_client.sheltered_days_homeless_last_three_years).to eq(10)
+    end
+
+    # The SO day before the effective date
+    it 'calculates unsheltered days in the last three years as of the effective date' do
+      expect(cohort_client.unsheltered_days_homeless_last_three_years).to eq(1)
+    end
+  end
 end
