@@ -106,11 +106,14 @@ class OneTimeScanCardMigration20261020
     return rows.size if @dry_run
 
     now = Time.current
-    rows.each_slice(@batch_size) do |slice|
-      Hmis::ScanCardCode.insert_all!(
-        slice.map { |row| { client_id: row.client_id, value: row.value, created_at: now, updated_at: now } },
-        returning: false,
-      )
+    # All-or-nothing, so a failure partway through leaves no partial migration.
+    Hmis::ScanCardCode.transaction do
+      rows.each_slice(@batch_size) do |slice|
+        Hmis::ScanCardCode.insert_all!(
+          slice.map { |row| { client_id: row.client_id, value: row.value, created_at: now, updated_at: now } },
+          returning: false,
+        )
+      end
     end
     rows.size
   end

@@ -114,6 +114,22 @@ RSpec.describe OneTimeScanCardMigration20261020 do
     expect(summary.created).to eq(1)
   end
 
+  it 'rolls back earlier batches when a later batch fails' do
+    add_value(client, '1')
+    add_value(other_client, '2')
+    calls = 0
+    allow(Hmis::ScanCardCode).to receive(:insert_all!).and_wrap_original do |original, *args, **kwargs|
+      calls += 1
+      raise ActiveRecord::RecordNotUnique, 'simulated' if calls == 2
+
+      original.call(*args, **kwargs)
+    end
+
+    expect { described_class.new(cded_key: cded.key, dry_run: false, batch_size: 1).run! }.to raise_error(ActiveRecord::RecordNotUnique)
+    expect(calls).to eq(2)
+    expect(Hmis::ScanCardCode.with_deleted.count).to eq(0)
+  end
+
   it 'raises when the custom data element definition does not exist' do
     expect { run!(cded_key: 'missing') }.to raise_error(ActiveRecord::RecordNotFound)
   end
