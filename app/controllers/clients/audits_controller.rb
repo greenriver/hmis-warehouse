@@ -14,11 +14,8 @@ class Clients::AuditsController < ApplicationController
   after_action :log_client
 
   def index
-    client_id = @client.id
-    al_t = ActivityLog.arel_table
-    @audit_log = ActivityLog.where(item_model: 'GrdaWarehouse::Hud::Client').
-      where(al_t[:path].matches("%clients/#{client_id}/%"). # contains client_id
-            or(al_t[:path].matches("%clients/#{client_id}"))). # ends with client_id
+    @audit_log = ActivityLog.where(item_model: 'GrdaWarehouse::Hud::Client', client_id: @client.id).
+      includes(:user).
       order(created_at: :desc)
     @pagy, @audit_log = pagy(@audit_log, items: 50)
   end

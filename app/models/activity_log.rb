@@ -19,7 +19,16 @@ class ActivityLog < ApplicationRecord
   # Report urls are always far shorter than this, so no report-matching condition is affected by it.
   REPORTING_PATH_LENGTH = 200
 
-  before_save :set_reporting_path
+  # The client a request was about, taken from the first `/clients/<id>` segment of the path
+  # (query string excluded). The leading `/` keeps `/source_clients/<id>` out; the trailing
+  # boundary keeps `/clients/1010` from matching client 101; the 18-digit cap keeps a bogus id
+  # from overflowing bigint and failing the save. CLIENT_PATH_SQL_PATTERN must stay equivalent:
+  # it backfills rows written before this column existed.
+  CLIENT_PATH_PATTERN = /\/clients\/(\d{1,18})(?:[\/.]|\z)/
+  CLIENT_PATH_SQL_PATTERN = '/clients/([0-9]{1,18})(?:[/.]|$)'
+  CLIENT_ID_INDEX_NAME = 'index_activity_logs_on_client_id_and_created_at'
+
+  before_save :set_reporting_path, :set_client_id
 
   # `range` is a Date..Date; created_at is stored as a UTC instant, so comparing it against bare
   # date literals drops rows created in the evening (US Eastern), whose UTC-stored date has already
@@ -70,6 +79,45 @@ class ActivityLog < ApplicationRecord
         update_all(reporting_path: Arel.sql("left(path, #{REPORTING_PATH_LENGTH})"))
       break if updated.zero?
     end
+  end
+
+  # Sets client_id for rows that predate it, in id ranges so each batch is a bounded index range
+  # scan; run out of band via TaskQueue. Rows that don't match stay nil and aren't rewritten.
+  def self.backfill_client_id!(batch_size: 10_000)
+    batch_start = minimum(:id)
+    return unless batch_start
+
+    # Named binds: a literal '?' in the SQL would be read as a positional placeholder.
+    binds = { separator: '?', pattern: CLIENT_PATH_SQL_PATTERN }
+    # maximum is re-read each batch: during a rolling deploy, pods still on old code keep writing
+    # rows without client_id, and those land past whatever the max was when the backfill started.
+    while batch_start <= maximum(:id)
+      where(id: batch_start...(batch_start + batch_size), client_id: nil).
+        where('split_part(path, :separator, 1) ~ :pattern', binds).
+        update_all(['client_id = substring(split_part(path, :separator, 1) from :pattern)::bigint', binds])
+      batch_start += batch_size
+    end
+  end
+
+  # Built from TaskQueue rather than a migration: activity_logs is written on every request, and
+  # a concurrent build inside a migration can fail to get its lock. Idempotent:
+  # If the index exists and is valid, do nothing
+  # If the index is invalid (a failed concurrent build), drop it and rebuild it
+  # If the index does not exist, create it
+  def self.ensure_client_id_index!
+    valid = connection.select_value(<<~SQL)
+      SELECT i.indisvalid FROM pg_index i JOIN pg_class c ON c.oid = i.indexrelid WHERE c.relname = #{connection.quote(CLIENT_ID_INDEX_NAME)}
+    SQL
+    return if valid == true
+
+    connection.remove_index(table_name, name: CLIENT_ID_INDEX_NAME, algorithm: :concurrently) if valid == false
+    connection.add_index(
+      table_name,
+      [:client_id, :created_at],
+      name: CLIENT_ID_INDEX_NAME,
+      where: 'client_id IS NOT NULL',
+      algorithm: :concurrently,
+    )
   end
 
   # increment can be: minute, hour, day, week, month, year
@@ -149,5 +197,9 @@ class ActivityLog < ApplicationRecord
 
   private def set_reporting_path
     self.reporting_path = path&.first(REPORTING_PATH_LENGTH)
+  end
+
+  private def set_client_id
+    self.client_id = path&.split('?', 2)&.first&.match(CLIENT_PATH_PATTERN)&.[](1)&.to_i
   end
 end
