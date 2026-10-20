@@ -19,7 +19,7 @@ module CohortColumns
     end
 
     def default_value(client_id)
-      GrdaWarehouse::WarehouseClientsProcessed::StatsCalculator.new(client_ids: [client_id], on_date: effective_date).all_homeless_in_last_three_years[client_id] || 0
+      GrdaWarehouse::Hud::Client.days_homeless_in_last_three_years(client_id: client_id, on_date: effective_date)
     end
   end
 end
