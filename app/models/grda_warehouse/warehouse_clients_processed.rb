@@ -260,8 +260,11 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
   class StatsCalculator
     include ArelHelper
 
-    def initialize(client_ids:)
+    # on_date bounds the length-of-time counts so they can be calculated as of a given date.
+    # Without it, counts include every service day on record, as the nightly cache always has.
+    def initialize(client_ids:, on_date: nil)
       @client_ids = client_ids
+      @on_date = on_date
     end
 
     def most_recent_homeless_dates
@@ -314,10 +317,12 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
           to_sql.
           sub("\"#{shsm_table_name}\"", "\"#{shsm_table_name}\" as a")
 
-        homeless_sql = GrdaWarehouse::ServiceHistoryServiceMaterialized.
+        homeless_scope = GrdaWarehouse::ServiceHistoryServiceMaterialized.
           where(shsm_b[:homeless].eq(true)).
           where(shsm_b[:project_type].in(HudHelper.util.homeless_project_types)). # for index hinting
-          where(shsm_b[:client_id].in(@client_ids)).
+          where(shsm_b[:client_id].in(@client_ids))
+        homeless_scope = homeless_scope.where(shsm_b[:date].lteq(@on_date)) if @on_date
+        homeless_sql = homeless_scope.
           where(non_homeless_sql).
           select(shsm_b[:client_id], shsm_b[:date]).
           to_sql.

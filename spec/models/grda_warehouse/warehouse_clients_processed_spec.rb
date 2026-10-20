@@ -172,4 +172,23 @@ RSpec.describe GrdaWarehouse::WarehouseClientsProcessed::StatsCalculator, type: 
       expect(flagged).to contain_exactly(rrh_housing, rrh_legacy, psh)
     end
   end
+
+  describe '#homeless_counts' do
+    let(:client) { create :hud_client }
+    let(:on_date) { Date.current - 1.year }
+
+    before do
+      she = create(:she_entry, client: client, project_type: 1)
+      # 10 ES days before on_date, 5 after
+      dates = (on_date - 10.days..on_date - 1.day).to_a + (on_date + 1.day..on_date + 5.days).to_a
+      dates.each do |date|
+        create(:service_history_service, client_id: client.id, service_history_enrollment_id: she.id, record_type: 'service', date: date, project_type: 1, homeless: true, literally_homeless: true)
+      end
+      GrdaWarehouse::ServiceHistoryServiceMaterialized.refresh!
+    end
+
+    it 'counts homeless days on or before on_date' do
+      expect(described_class.new(client_ids: [client.id], on_date: on_date).homeless_counts[client.id]).to eq(10)
+    end
+  end
 end
