@@ -35,6 +35,15 @@ module Import::ClientMatching
       end
   end
 
+  # Queued batches are processed in one loop that keeps every batch in memory until
+  # it finishes, so each batch releases its copy of the client list when done
+  private def clear_client_matching_data
+    @all_clients = nil
+    @clients_by_name = nil
+    @clients_by_ssn = nil
+    @clients_by_dob = nil
+  end
+
   private def clients_by_name
     @clients_by_name ||= all_clients.group_by { |row| [row[:first_name]&.downcase&.gsub(/\s+/, ''), row[:last_name]&.downcase&.gsub(/\s+/, '')] }
   end
