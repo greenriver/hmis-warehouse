@@ -191,4 +191,50 @@ RSpec.describe GrdaWarehouse::WarehouseClientsProcessed::StatsCalculator, type: 
       expect(described_class.new(client_ids: [client.id], on_date: on_date).homeless_counts[client.id]).to eq(10)
     end
   end
+
+  describe 'three-year counts' do
+    let(:client) { create :hud_client }
+    let(:on_date) { Date.current - 1.year }
+    # Inside the three years before on_date, but more than three years before today
+    let(:old_date) { on_date - 2.years - 30.days }
+
+    def add_days(dates, project_type:, literally_homeless:)
+      she = create(:she_entry, client: client, project_type: project_type)
+      dates.each do |date|
+        create(:service_history_service, client_id: client.id, service_history_enrollment_id: she.id, record_type: 'service', date: date, project_type: project_type, homeless: true, literally_homeless: literally_homeless)
+      end
+    end
+
+    before do
+      # ES: 10 days before on_date, 5 after, and two old days
+      es_dates = (on_date - 10.days..on_date - 1.day).to_a + (on_date + 1.day..on_date + 5.days).to_a + [old_date, old_date + 1.day]
+      add_days(es_dates, project_type: 1, literally_homeless: true)
+      # TH overlapping the first old ES day
+      add_days([old_date], project_type: 2, literally_homeless: false)
+      GrdaWarehouse::ServiceHistoryServiceMaterialized.refresh!
+    end
+
+    describe '#all_homeless_in_last_three_years' do
+      # The 10 days before on_date and both old days
+      it 'counts the three years before on_date' do
+        expect(described_class.new(client_ids: [client.id], on_date: on_date).all_homeless_in_last_three_years[client.id]).to eq(12)
+      end
+
+      # The 10 days before and 5 after on_date; the old days are more than three years ago
+      it 'counts the three years before today without on_date' do
+        expect(described_class.new(client_ids: [client.id]).all_homeless_in_last_three_years[client.id]).to eq(15)
+      end
+    end
+
+    describe '#all_literally_homeless_last_three_years' do
+      # The 10 days before on_date and the old day without TH
+      it 'counts the three years before on_date, excluding TH days in that window' do
+        expect(described_class.new(client_ids: [client.id], on_date: on_date).all_literally_homeless_last_three_years[client.id]).to eq(11)
+      end
+
+      it 'counts the three years before today without on_date' do
+        expect(described_class.new(client_ids: [client.id]).all_literally_homeless_last_three_years[client.id]).to eq(15)
+      end
+    end
+  end
 end

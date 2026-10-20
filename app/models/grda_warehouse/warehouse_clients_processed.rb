@@ -382,7 +382,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
       end
     end
 
-    # days in ES, SO, SH, or TH that don't overlap with PH
+    # days in ES, SO, or SH that don't overlap with TH or PH
     def all_literally_homeless_last_three_years
       @all_literally_homeless_last_three_years ||= begin
         shsm_table_name = GrdaWarehouse::ServiceHistoryServiceMaterialized.table_name
@@ -394,7 +394,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
         non_homeless_sql = GrdaWarehouse::ServiceHistoryServiceMaterialized.
           where(shsm_a[:literally_homeless].eq(false)).
           where(shsm_a[:project_type].in(HudHelper.util.residential_project_type_numbers_by_code[:ph] + HudHelper.util.residential_project_type_numbers_by_code[:th])). # for index hinting
-          where(shsm_a[:date].between(3.years.ago.to_date..Date.current)).
+          where(shsm_a[:date].between(three_year_range)).
           where(shsm_a[:client_id].in(@client_ids)).
           where(shsm_a[:date].eq(shsm_b[:date])).
           where(shsm_a[:client_id].eq(shsm_b[:client_id])).
@@ -406,7 +406,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
         homeless_sql = GrdaWarehouse::ServiceHistoryServiceMaterialized.
           where(shsm_b[:literally_homeless].eq(true)).
           where(shsm_b[:project_type].in(HudHelper.util.literally_homeless_project_types)). # for index hinting
-          where(shsm_b[:date].between(3.years.ago.to_date..Date.current)).
+          where(shsm_b[:date].between(three_year_range)).
           where(shsm_b[:client_id].in(@client_ids)).
           where(non_homeless_sql).
           select(shsm_b[:client_id], shsm_b[:date]).
@@ -421,7 +421,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
       end
     end
 
-    # days in ES, SO, or SH that don't overlap with TH or PH
+    # days in ES, SO, SH, or TH that don't overlap with PH
     def all_homeless_in_last_three_years
       @all_homeless_in_last_three_years ||= begin
         shsm_table_name = GrdaWarehouse::ServiceHistoryServiceMaterialized.table_name
@@ -433,7 +433,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
         non_homeless_sql = GrdaWarehouse::ServiceHistoryServiceMaterialized.
           where(shsm_a[:homeless].eq(false)).
           where(shsm_a[:project_type].in(HudHelper.util.residential_project_type_numbers_by_code[:ph])). # for index hinting
-          where(shsm_a[:date].between(3.years.ago.to_date..Date.current)).
+          where(shsm_a[:date].between(three_year_range)).
           where(shsm_a[:client_id].in(@client_ids)).
           where(shsm_a[:date].eq(shsm_b[:date])).
           where(shsm_a[:client_id].eq(shsm_b[:client_id])).
@@ -445,7 +445,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
         homeless_sql = GrdaWarehouse::ServiceHistoryServiceMaterialized.
           where(shsm_b[:homeless].eq(true)).
           where(shsm_b[:project_type].in(HudHelper.util.homeless_project_types)). # for index hinting
-          where(shsm_b[:date].between(3.years.ago.to_date..Date.current)).
+          where(shsm_b[:date].between(three_year_range)).
           where(shsm_b[:client_id].in(@client_ids)).
           where(non_homeless_sql).
           select(shsm_b[:client_id], shsm_b[:date]).
@@ -458,6 +458,12 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
           group(shsm_c[:client_id]).
           count('c.date')
       end
+    end
+
+    # The three years ending on on_date, or today when no on_date was given
+    private def three_year_range
+      end_date = @on_date || Date.current
+      (end_date - 3.years)..end_date
     end
 
     def most_recent_chronic_dates

@@ -463,13 +463,13 @@ module GrdaWarehouse
     private def length_of_time_counts
       {
         calculated_days_homeless_on_effective_date: :homeless_counts,
+        days_homeless_last_three_years_on_effective_date: :all_homeless_in_last_three_years,
+        days_literally_homeless_last_three_years_on_effective_date: :all_literally_homeless_last_three_years,
       }
     end
 
     private def time_dependent_methods
       {
-        days_homeless_last_three_years_on_effective_date: :days_homeless_last_three_years,
-        days_literally_homeless_last_three_years_on_effective_date: :days_literally_homeless_last_three_years,
         destination_from_homelessness: :destination_from_homelessness,
         related_users: :related_users,
         disability_verification_date: :disability_verification_date,
@@ -497,20 +497,6 @@ module GrdaWarehouse
 
     private def unsheltered_days_homeless_last_three_years(client)
       client.unsheltered_days_homeless_last_three_years
-    end
-
-    private def days_homeless_last_three_years(client)
-      client.days_homeless_in_last_three_years(on_date: effective_date || Date.current)
-
-      # TODO, make this work on a batch of clients
-      # Convert GrdaWarehouse::WarehouseClientsProcessed.all_homeless_in_last_three_years to accept client_ids and a date
-    end
-
-    private def days_literally_homeless_last_three_years(client)
-      client.literally_homeless_last_three_years(on_date: effective_date || Date.current)
-
-      # TODO, make this work on a batch of clients
-      # Convert GrdaWarehouse::WarehouseClientsProcessed.all_literally_homeless_last_three_years to accept client_ids and a date
     end
 
     private def destination_from_homelessness(client)
