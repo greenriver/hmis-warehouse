@@ -192,6 +192,39 @@ RSpec.describe GrdaWarehouse::WarehouseClientsProcessed::StatsCalculator, type: 
     end
   end
 
+  describe '#homeless_counts_plus_overrides' do
+    let(:client) { create :hud_client }
+    let(:on_date) { Date.current - 1.year }
+    let(:override_project) { create :hud_project, ProjectType: 6, include_in_days_homeless_override: true }
+
+    def add_days(dates, project_type:, homeless:, project: nil)
+      she_attrs = { client: client, project_type: project_type }
+      she_attrs.merge!(project_id: project.ProjectID, organization_id: project.OrganizationID, data_source_id: project.data_source_id) if project
+      she = create(:she_entry, **she_attrs)
+      dates.each do |date|
+        create(:service_history_service, client_id: client.id, service_history_enrollment_id: she.id, record_type: 'service', date: date, project_type: project_type, homeless: homeless, literally_homeless: homeless)
+      end
+    end
+
+    before do
+      # ES: 10 days before on_date, 5 after
+      add_days((on_date - 10.days..on_date - 1.day).to_a + (on_date + 1.day..on_date + 5.days).to_a, project_type: 1, homeless: true)
+      # Verified-days override project: one day before on_date, one after
+      add_days([on_date - 30.days, on_date + 30.days], project_type: 6, homeless: nil, project: override_project)
+      GrdaWarehouse::ServiceHistoryServiceMaterialized.refresh!
+    end
+
+    # The 10 ES days and the override day before on_date
+    it 'counts homeless and override days on or before on_date' do
+      expect(described_class.new(client_ids: [client.id], on_date: on_date).homeless_counts_plus_overrides[client.id]).to eq(11)
+    end
+
+    # All 15 ES days and both override days
+    it 'counts every homeless and override day without on_date' do
+      expect(described_class.new(client_ids: [client.id]).homeless_counts_plus_overrides[client.id]).to eq(17)
+    end
+  end
+
   describe 'three-year counts' do
     let(:client) { create :hud_client }
     let(:on_date) { Date.current - 1.year }

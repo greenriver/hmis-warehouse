@@ -465,6 +465,7 @@ module GrdaWarehouse
         calculated_days_homeless_on_effective_date: :homeless_counts,
         days_homeless_last_three_years_on_effective_date: :all_homeless_in_last_three_years,
         days_literally_homeless_last_three_years_on_effective_date: :all_literally_homeless_last_three_years,
+        days_homeless_plus_overrides: :homeless_counts_plus_overrides,
       }
     end
 
@@ -474,7 +475,6 @@ module GrdaWarehouse
         related_users: :related_users,
         disability_verification_date: :disability_verification_date,
         missing_documents: :missing_documents,
-        days_homeless_plus_overrides: :days_homeless_plus_overrides,
         individual_in_most_recent_homeless_enrollment: :individual_in_most_recent_homeless_enrollment,
         most_recent_date_to_street: :most_recent_date_to_street,
         sheltered_days_homeless_last_three_years: :sheltered_days_homeless_last_three_years,
@@ -544,10 +544,6 @@ module GrdaWarehouse
 
     private def disability_verification_date(client)
       client.most_recent_verification_of_disability&.created_at&.to_date
-    end
-
-    private def days_homeless_plus_overrides(client)
-      client.processed_service_history&.days_homeless_plus_overrides
     end
 
     private def most_recent_automaintained_data_item(scope, client)

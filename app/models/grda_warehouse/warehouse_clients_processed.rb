@@ -345,11 +345,13 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
         shsm_b = shsm_t.alias('b')
         shsm_c = shsm_t.alias('c')
 
-        override_sql = GrdaWarehouse::ServiceHistoryServiceMaterialized.
+        override_scope = GrdaWarehouse::ServiceHistoryServiceMaterialized.
           joins(shsm_t.join(she_t).on(shsm_o[:service_history_enrollment_id].eq(she_t[:id])).join_sources).
           joins(she_t.join(p_t).on(she_t[:data_source_id].eq(p_t[:data_source_id]).and(she_t[:project_id].eq(p_t[:ProjectID]))).join_sources).
           merge(GrdaWarehouse::Hud::Project.includes_verified_days_homeless).
-          where(shsm_o[:client_id].in(@client_ids)).
+          where(shsm_o[:client_id].in(@client_ids))
+        override_scope = override_scope.where(shsm_o[:date].lteq(@on_date)) if @on_date
+        override_sql = override_scope.
           select(shsm_o[:client_id], shsm_o[:date]).
           to_sql.
           sub("\"#{shsm_table_name}\"", "\"#{shsm_table_name}\" as o")
@@ -365,10 +367,12 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
           to_sql.
           sub("\"#{shsm_table_name}\"", "\"#{shsm_table_name}\" as a")
 
-        homeless_sql = GrdaWarehouse::ServiceHistoryServiceMaterialized.
+        homeless_scope = GrdaWarehouse::ServiceHistoryServiceMaterialized.
           where(shsm_b[:homeless].eq(true)).
           where(shsm_b[:project_type].in(HudHelper.util.homeless_project_types)). # for index hinting
-          where(shsm_b[:client_id].in(@client_ids)).
+          where(shsm_b[:client_id].in(@client_ids))
+        homeless_scope = homeless_scope.where(shsm_b[:date].lteq(@on_date)) if @on_date
+        homeless_sql = homeless_scope.
           where(non_homeless_sql).
           select(shsm_b[:client_id], shsm_b[:date]).
           to_sql.
