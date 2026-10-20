@@ -27,8 +27,6 @@ RSpec.describe 'oauth2-proxy skip_auth_routes', :jwt_only do
       /\A\/rails\/active_storage\// => 'Drawn only in the test environment; Rack::Attack blocks the prefix in every environment',
       /\A\/rails\/(conductor\/)?action_mailbox\// => 'Loaded by rails/all; the app receives no inbound email',
       /\A\/(404|422|500)\z/ => 'Rendered by exceptions_app inside the failing request',
-      /\A(\/notifications\/:notification_id)?\/(projects\/:project_id|project_groups\/:project_group_id)\/data_quality_reports\/:id(\/answers)?\z/ =>
-        'Legacy data quality reports, slated for removal; not opened at the proxy',
       /\A\/users\/sign_in\z/ => 'Only redirects to the oauth2-proxy sign-in, which the proxy does on its own',
       /\A\/(users\/sign_out|hmis\/logout)\z/ =>
         'Ends the IdP session with the access token oauth2-proxy forwards; skips user auth only so deactivated users can sign out',
