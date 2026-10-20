@@ -9,6 +9,8 @@
 # Option lists for the data source, organization, project, and CoC filters on
 # the access control admin pages. These lists are not limited to what the
 # current user can view, because admins assign access to entities they may not see.
+# Confidential names are shown unmasked, as in the access editors, so admins can
+# tell confidential entities apart.
 module AccessControlEntityFilterOptions
   extend ActiveSupport::Concern
   include ArelHelper
@@ -22,19 +24,13 @@ module AccessControlEntityFilterOptions
   end
 
   private def organization_filter_options
-    show_confidential = current_user.can_view_confidential_project_names?
     GrdaWarehouse::Hud::Organization.
       where(data_source_id: filter_data_source_scope.select(:id)).
       joins(:data_source).
       order(ds_t[:name].asc, o_t[:OrganizationName].asc).
-      pluck(ds_t[:name], o_t[:OrganizationName], o_t[:id], o_t[:confidential]).
+      pluck(ds_t[:name], o_t[:OrganizationName], o_t[:id]).
       group_by(&:first).
-      transform_values do |rows|
-        rows.map do |_, name, id, confidential|
-          name = GrdaWarehouse::Hud::Organization.confidential_organization_name if confidential && !show_confidential
-          [name, id]
-        end
-      end
+      transform_values { |rows| rows.map { |_, name, id| [name, id] } }
   end
 
   # Project lists can run to thousands of options, so the filter loads them
@@ -46,15 +42,12 @@ module AccessControlEntityFilterOptions
   end
 
   private def project_filter_option_groups(selected_project_ids)
-    show_confidential = current_user.can_view_confidential_project_names?
     GrdaWarehouse::Hud::Project.
       where(data_source_id: filter_data_source_scope.select(:id)).
       joins(:organization, :data_source).
       order(o_t[:OrganizationName].asc, p_t[:ProjectName].asc).
-      pluck(o_t[:id], o_t[:OrganizationName], ds_t[:short_name], p_t[:ProjectName], p_t[:id], p_t[:confidential], o_t[:confidential]).
-      each_with_object({}) do |(org_id, org_name, ds_name, name, id, project_confidential, org_confidential), groups|
-        org_name = GrdaWarehouse::Hud::Organization.confidential_organization_name if org_confidential && !show_confidential
-        name = GrdaWarehouse::Hud::Project.confidentialize_name(current_user, name, project_confidential || org_confidential)
+      pluck(o_t[:id], o_t[:OrganizationName], ds_t[:short_name], p_t[:ProjectName], p_t[:id]).
+      each_with_object({}) do |(org_id, org_name, ds_name, name, id), groups|
         (groups[[org_id, "#{org_name} (#{ds_name})"]] ||= []) << [name, id, selected_project_ids.include?(id)]
       end
   end

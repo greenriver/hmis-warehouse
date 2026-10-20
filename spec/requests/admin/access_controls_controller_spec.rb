@@ -75,13 +75,13 @@ RSpec.describe Admin::AccessControlsController, type: :request do
       expect(response).to redirect_to(root_path)
     end
 
-    it 'hides confidential organization names from users who cannot view them' do
+    it 'shows confidential project and organization names to users who cannot view confidential names' do
       confidential_organization = create(:grda_warehouse_hud_organization, OrganizationName: 'Secret Shelter Org', confidential: true)
-      create(:grda_warehouse_hud_project, organization: confidential_organization)
+      confidential_project = create(:grda_warehouse_hud_project, organization: confidential_organization, ProjectName: 'Secret Project', confidential: true)
       post project_options_admin_access_controls_path
       group_labels = Nokogiri::HTML(response.body).css('optgroup').map { |g| g['label'] }
-      expect(group_labels).to include(a_string_including('Confidential Organization'))
-      expect(response.body).not_to include('Secret Shelter Org')
+      expect(group_labels).to include(a_string_including('Secret Shelter Org'))
+      expect(options.to_h { |o| [o['value'].to_i, o.text] }).to include(confidential_project.id => 'Secret Project')
     end
   end
 
@@ -92,21 +92,12 @@ RSpec.describe Admin::AccessControlsController, type: :request do
       Nokogiri::HTML(response.body).css('#filter_organization_id option').to_h { |o| [o['value'].to_i, o.text] }
     end
 
-    it 'masks only confidential organization names for users who cannot view them' do
+    it 'shows confidential organization names to users who cannot view confidential names' do
       get admin_access_controls_path
       expect(organization_option_texts).to include(
-        confidential_organization.id => GrdaWarehouse::Hud::Organization.confidential_organization_name,
+        confidential_organization.id => 'Secret Shelter Org',
         organization.id => organization.OrganizationName,
       )
-      expect(response.body).not_to include('Secret Shelter Org')
-    end
-
-    it 'shows confidential organization names to users who can view them' do
-      viewer = create(:acl_user)
-      setup_access_control(viewer, create(:role, can_edit_users: true, can_view_confidential_project_names: true), create(:collection))
-      sign_in viewer
-      get admin_access_controls_path
-      expect(organization_option_texts).to include(confidential_organization.id => 'Secret Shelter Org')
     end
   end
 

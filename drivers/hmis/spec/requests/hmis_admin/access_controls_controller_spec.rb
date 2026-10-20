@@ -56,15 +56,14 @@ RSpec.describe HmisAdmin::AccessControlsController, type: :request do
     expect(options).not_to include('Warehouse Only Org')
   end
 
-  it 'masks only confidential organization names for users who cannot view them' do
+  it 'shows confidential organization names to users who cannot view confidential names' do
     confidential_organization = create(:hmis_hud_organization, data_source: data_source, OrganizationName: 'Secret Shelter Org', confidential: true)
     get hmis_admin_access_controls_path
     options = page.css('#filter_organization_id option').to_h { |o| [o['value'].to_i, o.text] }
     expect(options).to include(
-      confidential_organization.id => GrdaWarehouse::Hud::Organization.confidential_organization_name,
+      confidential_organization.id => 'Secret Shelter Org',
       project.organization.id => project.organization.OrganizationName,
     )
-    expect(response.body).not_to include('Secret Shelter Org')
   end
 
   it 'offers only CoC codes used by projects in HMIS data sources' do
@@ -105,15 +104,14 @@ RSpec.describe HmisAdmin::AccessControlsController, type: :request do
     expect(response).to redirect_to(root_path)
   end
 
-  it 'hides confidential project and organization names from users who cannot view them' do
+  it 'shows confidential project and organization names to users who cannot view confidential names' do
     confidential_organization = create(:hmis_hud_organization, data_source: data_source, OrganizationName: 'Secret Shelter Org', confidential: true)
     create(:hmis_hud_project, data_source: data_source, organization: confidential_organization, ProjectName: 'Project In Secret Org')
     create(:hmis_hud_project, data_source: data_source, ProjectName: 'Secret Project', confidential: true)
     post project_options_hmis_admin_access_controls_path
     group_labels = page.css('optgroup').map { |g| g['label'] }
     option_texts = page.css('option').map(&:text)
-    expect(group_labels).to include(a_string_including(GrdaWarehouse::Hud::Organization.confidential_organization_name))
-    expect(option_texts.count(GrdaWarehouse::Hud::Project.confidential_project_name)).to eq(2)
-    expect(response.body).not_to include('Secret Shelter Org', 'Project In Secret Org', 'Secret Project')
+    expect(group_labels).to include(a_string_including('Secret Shelter Org'))
+    expect(option_texts).to include('Project In Secret Org', 'Secret Project')
   end
 end
