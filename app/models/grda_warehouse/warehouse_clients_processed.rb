@@ -542,7 +542,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
     end
 
     def enrolled_permanent_housing(client_id)
-      @enrolled_permanent_housing ||= ongoing_enrollments.permanent_housing.pluck(:client_id).to_set
+      @enrolled_permanent_housing ||= ongoing_enrollments.permanent_housing.residential.pluck(:client_id).to_set
       @enrolled_permanent_housing.include?(client_id)
     end
 

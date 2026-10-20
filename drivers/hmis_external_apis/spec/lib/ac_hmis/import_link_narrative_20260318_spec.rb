@@ -26,7 +26,9 @@ RSpec.describe AcHmis::ImportLinkNarrative20260318 do
   let(:contact_date) { contact_date_time.to_date }
 
   def build_xlsx_file(rows)
-    path = Tempfile.new(['link_narrative', '.xlsx']).path
+    file = Tempfile.create(['link_narrative', '.xlsx'])
+    file.close
+    path = file.path
     Axlsx::Package.new do |package|
       package.workbook.add_worksheet(name: 'Sheet1') do |sheet|
         sheet.add_row ['MCI_UNIQ_ID', 'CONTACT_DATE', 'CONTACT_TYPE', 'NOTES']
@@ -85,7 +87,6 @@ RSpec.describe AcHmis::ImportLinkNarrative20260318 do
         and change(Hmis::Hud::CustomDataElement.of_type(contact_method_cded), :count).by(1)
 
       # Re-run same import, expect no changes
-      xlsx = build_xlsx_file(rows)
       expect do
         run_import!(xlsx)
       end.to not_change(Hmis::Hud::Enrollment, :count).

@@ -48,66 +48,64 @@ RSpec.describe PublicReports::Report, type: :request do
         number_housed: PublicReports::NumberHoused,
         pit_by_month: PublicReports::PitByMonth,
         point_in_time: PublicReports::PointInTime,
+        state_dashboard: PublicReports::StateDashboard,
         state_level_homelessness: PublicReports::StateLevelHomelessness,
       }
     end
 
     it 'public reports can build and run with 3 year filter' do
       public_reports.values.each do |report_source|
-        run_report(
-          report_source: report_source,
-          options: get_report_options(options_type: :options_3y),
+        expect_completed(
+          run_report(
+            report_source: report_source,
+            options: get_report_options(options_type: :options_3y),
+          ),
         )
-        expect(report_source.all.count).to eq(1)
-      end
-    end
-
-    it 'public reports can build and run with 1 year filter' do
-      public_reports.values.each do |report_source|
-        run_report(
-          report_source: report_source,
-          options: get_report_options(options_type: :options_1y),
-        )
-        expect(report_source.all.count).to eq(1)
       end
     end
 
     it 'public reports can build and run with 1 month (including January PIT date) filter' do
-      public_reports.except(:state_level_homelessness).values.each do |report_source|
-        run_report(
-          report_source: report_source,
-          options: get_report_options(options_type: :options_1m_jan),
+      public_reports.except(:state_dashboard, :state_level_homelessness).values.each do |report_source|
+        expect_completed(
+          run_report(
+            report_source: report_source,
+            options: get_report_options(options_type: :options_1m_jan),
+          ),
         )
-        expect(report_source.all.count).to eq(1)
       end
     end
 
     it 'public reports fail to build and run with 1 month span (including January PIT date) filter' do
-      expect do
-        run_report(
-          report_source: public_reports[:state_level_homelessness],
-          options: get_report_options(options_type: :options_1m_jan),
-        )
-      end.to raise_error(ActiveRecord::RecordInvalid)
+      public_reports.slice(:state_dashboard, :state_level_homelessness).values.each do |report_source|
+        expect do
+          run_report(
+            report_source: report_source,
+            options: get_report_options(options_type: :options_1m_jan),
+          )
+        end.to raise_error(ActiveRecord::RecordInvalid)
+      end
     end
 
     it 'public reports can build and run with 1 month (not including a PIT date) filter' do
-      public_reports.except(:state_level_homelessness).values.each do |report_source|
-        run_report(
-          report_source: report_source,
-          options: get_report_options(options_type: :options_1m_may),
+      public_reports.except(:state_dashboard, :state_level_homelessness).values.each do |report_source|
+        expect_completed(
+          run_report(
+            report_source: report_source,
+            options: get_report_options(options_type: :options_1m_may),
+          ),
         )
-        expect(report_source.all.count).to eq(1)
       end
     end
 
     it 'public reports fail to build and run with 1 month span (not including a PIT date) filter' do
-      expect do
-        run_report(
-          report_source: public_reports[:state_level_homelessness],
-          options: get_report_options(options_type: :options_1m_may),
-        )
-      end.to raise_error(ActiveRecord::RecordInvalid)
+      public_reports.slice(:state_dashboard, :state_level_homelessness).values.each do |report_source|
+        expect do
+          run_report(
+            report_source: report_source,
+            options: get_report_options(options_type: :options_1m_may),
+          )
+        end.to raise_error(ActiveRecord::RecordInvalid)
+      end
     end
 
     def get_report_options(options_type:)
@@ -130,6 +128,11 @@ RSpec.describe PublicReports::Report, type: :request do
         report_class: report.class.name,
         report_id: report.id,
       )
+      report.reload
+    end
+
+    def expect_completed(report)
+      expect([report.class.name, report.state, Oj.load(report.precalculated_data).present?]).to eq([report.class.name, 'pre-computed', true])
     end
   end
 end

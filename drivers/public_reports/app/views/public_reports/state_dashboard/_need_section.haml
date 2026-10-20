@@ -1,0 +1,7 @@
+%section.section{ 'aria-labelledby' => 'need-heading' }
+  %h2#need-heading= Translation.translate('Where is the need?')
+  - if data['map']['map_type'] == @report.settings.map_type
+    = render 'public_reports/state_dashboard/town_map', map: data['map'], svg: @report.map_svg
+  - else
+    %p.town-map-stale The map type changed after this report ran. Re-run this report to view the map.
+  = render 'public_reports/state_dashboard/data_note'

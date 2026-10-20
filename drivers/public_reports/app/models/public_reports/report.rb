@@ -17,8 +17,15 @@ module PublicReports
     include ::WarehouseReports::Publish
 
     MIN_THRESHOLD = 11
+    SUPPRESS_TOTALS_AT_OR_BELOW = 100
 
     belongs_to :user, optional: true
+
+    # The slug is part of the S3 key, the public URL and the embed code. Keys use File.join,
+    # which drops extra slashes, but URLs are interpolated, so only single inner slashes match.
+    # A first folder starting with _staging_ is reserved for publish staging.
+    normalizes :version_slug, with: lambda(&:strip)
+    validates :version_slug, format: { with: /\A(?!_staging_)(?:[A-Za-z0-9_-]+(?:\/[A-Za-z0-9_-]+)*)?\z/, message: 'must be folder names of letters, numbers, dashes and underscores, separated by single slashes, and not start with _staging_' }, if: :will_save_change_to_version_slug?
     scope :viewable_by, ->(user) do
       return current_scope if user.can_view_all_reports?
 
@@ -37,13 +44,9 @@ module PublicReports
       settings.color_pattern(category).to_json.html_safe
     end
 
-    def chart_color_shades(category = nil)
-      (settings.color_shades(category) + ['#FFFFFF']).reverse
-    end
-
     def filter_object
       @filter_object ||= begin
-        f = ::Filters::FilterBase.new(user_id: user.id).set_from_params(filter['filters'].merge(enforce_one_year_range: false).with_indifferent_access)
+        f = ::Filters::FilterBase.new(user: owner).set_from_params(filter['filters'].merge(enforce_one_year_range: false).with_indifferent_access)
         # Enforce that public reports can't be run for partial months
         # Always move the end date back to the end of last month if it's beyond that date
         # Enforce that the start date is always the beginning of the month
@@ -57,6 +60,11 @@ module PublicReports
         f.start = f.start.beginning_of_month
         f
       end
+    end
+
+    # The filter scopes report data to this user's access, so never substitute another user.
+    def owner
+      User.with_deleted.find(user_id)
     end
 
     def known_params
@@ -97,7 +105,7 @@ module PublicReports
       update(completed_at: Time.current, state: 'pre-computed')
     end
 
-    def enforce_min_threshold(data, key) # rubocop:disable Metrics/PerceivedComplexity, Metrics/CyclomaticComplexity
+    def enforce_min_threshold(data, key)
       case key
       when 'min_threshold'
         data = MIN_THRESHOLD if data.positive? && data < MIN_THRESHOLD
@@ -105,25 +113,27 @@ module PublicReports
       when 'homeless_households', 'homeless_clients'
         value = data[key]
         return 0 if value.zero?
-        return number_with_delimiter(value) if value > 100
+        return number_with_delimiter(value) if value > self.class::SUPPRESS_TOTALS_AT_OR_BELOW
 
-        under_threshold
+        "#{self.class::SUPPRESS_TOTALS_AT_OR_BELOW} or fewer"
       when 'unsheltered_percent'
-        unsheltered_count = data['unsheltered_clients'].to_f || 0.0
-        sheltered_count = data['homeless_clients'] || 0
-        percent = if unsheltered_count.zero? || sheltered_count.zero?
-          0
-        elsif unsheltered_count > 100 && sheltered_count > 100
-          ((unsheltered_count / sheltered_count) * 100).round
+        total = data['homeless_clients'].to_i
+        unsheltered = data['unsheltered_clients'].to_i
+        return '0%' if total.zero?
+        return 'Not reported' if [total - unsheltered, unsheltered].any? { |m| m.positive? && m < self.class::MIN_THRESHOLD }
+
+        percent = unsheltered * 100.0 / total
+        percent = if unsheltered > self.class::SUPPRESS_TOTALS_AT_OR_BELOW && total > self.class::SUPPRESS_TOTALS_AT_OR_BELOW
+          percent.round
         else
-          ((unsheltered_count / sheltered_count) * 100).round(-1)
+          percent.round(-1)
         end
         "#{percent}%"
       when 'pit_chart', 'inflow_outflow'
         return data if data.zero?
-        return data if data > 100
+        return data if data > self.class::SUPPRESS_TOTALS_AT_OR_BELOW
 
-        100
+        self.class::SUPPRESS_TOTALS_AT_OR_BELOW
       when 'hoh_pit_chart'
         return data if data.zero?
         return data if data > 20
@@ -133,7 +143,7 @@ module PublicReports
         # return percentages for each instead of raw counts
         (sheltered, unsheltered) = data
         total = sheltered + unsheltered
-        return [0, 0] if total.zero? || (total < 100 && data.any? { |m| m < 11 })
+        return [0, 0] if total.zero? || (total <= self.class::SUPPRESS_TOTALS_AT_OR_BELOW && data.any? { |m| m < self.class::MIN_THRESHOLD })
 
         sheltered = ((sheltered.to_f / total) * 100).round
         unsheltered = ((unsheltered.to_f / total) * 100).round
@@ -152,7 +162,7 @@ module PublicReports
       when 'donut', 'household_type'
         # return percentages for each instead of raw counts
         total = data.sum
-        return data.map { |_| 0 } if total.zero? || (total < 100 && data.any? { |m| m < 11 })
+        return data.map { |_| 0 } if total.zero? || (total <= self.class::SUPPRESS_TOTALS_AT_OR_BELOW && data.any? { |m| m < self.class::MIN_THRESHOLD })
 
         # convert counts to percents
         data.map! do |count|
@@ -175,28 +185,6 @@ module PublicReports
           end
         end
         data
-      when 'need_map'
-        # Convert all rates to the upper limit of the range of map_colors the rate falls into
-        # ensure overall population is at least 100
-        # {"homeless_map"=>{"2018-01-01"=>{"ROCKPORT"=>{"count"=>62, "overall_population"=>500, "rate"=>12.4}, "COLRAIN"=>{"count"=>95, "overall_population"=>500, "rate"=>19.0}...
-        data.each do |_, date_data|
-          date_data.each do |_, count_data|
-            count_data.each do |_, c_data|
-              c_data[:count] = 'less than 100' if c_data[:count].positive? && c_data[:count] < 100
-              top_of_range = map_colors.values.detect { |bucket| bucket[:range].cover?(c_data[:rate]) }.try(:[], :range)&.last
-              c_data[:rate] = top_of_range || 0 unless top_of_range == 100
-            end
-          end
-        end
-      when 'homeless_row'
-        data.each do |_, chart_data|
-          next unless chart_data['data'].map(&:last).any? { |count| count < MIN_THRESHOLD }
-
-          chart_data['data'].each do |row|
-            row[1] = 0
-          end
-          chart_data['data'] << ['Redacted', 100]
-        end
       when 'chronic_percents'
         (chronic_count, total_count) = data
         return 0 unless total_count.positive?
@@ -206,14 +194,7 @@ module PublicReports
 
         percent.round(-1)
       when 'race'
-        # Collapse any where the count of the bucket is < 100 into the None
-        data['None'] ||= Set.new
-        data.each do |k, ids|
-          next unless ids.count < 100
-
-          data['None'] += ids
-          data[k] = Set.new
-        end
+        collapse_small_race_buckets(data)
       else
         # Default case is simply to return a formatted number
         number_with_delimiter(data[key])
@@ -222,6 +203,27 @@ module PublicReports
 
     private def under_threshold
       'Under 100'
+    end
+
+    # Race percents are published next to their total, so any bucket, "None" included,
+    # must hold 0 or more than SUPPRESS_TOTALS_AT_OR_BELOW people.
+    private def collapse_small_race_buckets(data)
+      floor = self.class::SUPPRESS_TOTALS_AT_OR_BELOW
+      data['None'] ||= Set.new
+      data.each do |k, ids|
+        next if k == 'None' || ids.count > floor
+
+        data['None'] += ids
+        data[k] = Set.new
+      end
+      while data['None'].count.between?(1, floor)
+        smallest, smallest_ids = data.reject { |k, v| k == 'None' || v.empty? }.min_by { |_, v| v.count }
+        break unless smallest
+
+        data['None'] += smallest_ids
+        data[smallest] = Set.new
+      end
+      data
     end
 
     # Overrides for standard publishing methods
@@ -235,8 +237,13 @@ module PublicReports
       updated_at
     end
 
+    # STI types that publish to the same location and so replace each other.
+    def self.publication_types
+      [name]
+    end
+
     def self.published(version_slug)
-      where(version_slug: version_slug).where.not(published_url: nil).first
+      PublicReports::Report.where(type: publication_types, version_slug: version_slug, deleted_at: nil).where.not(published_url: nil).first
     end
 
     def publish_warning
@@ -291,11 +298,10 @@ module PublicReports
     end
 
     private def unpublish_similar
-      self.class.
-        where(version_slug: version_slug).
+      PublicReports::Report.
+        where(type: self.class.publication_types, version_slug: version_slug, deleted_at: nil).
         where.not(id: id).
         update_all(
-          type: type,
           published_url: nil,
           embed_code: nil,
           html: nil,
