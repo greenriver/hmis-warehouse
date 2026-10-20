@@ -65,6 +65,7 @@ RSpec.describe GrdaWarehouse::AuthPolicies::UserLegacyContext do
       before do
         create(:grda_warehouse_group_viewable_entity,
                access_group: access_group,
+               collection: nil,
                entity: data_source)
       end
 
@@ -90,6 +91,7 @@ RSpec.describe GrdaWarehouse::AuthPolicies::UserLegacyContext do
       before do
         create(:grda_warehouse_group_viewable_entity,
                access_group: access_group,
+               collection: nil,
                entity: client_data_source)
       end
 
