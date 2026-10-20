@@ -279,14 +279,16 @@ explicit `email_verified: false` blocks the email update.
 
 ### Routes that bypass oauth2-proxy
 
-`skip_auth_routes` in `docker/auth/dev.oauth2-proxy-warehouse.cfg` matches a deployed oauth2-proxy
-config. `spec/lib/oauth2_proxy/skip_auth_routes_spec.rb` (JWT arm) fails when:
+`skip_auth_routes` in `docker/auth/dev.oauth2-proxy-warehouse.cfg` and
+`docker/auth/dev.oauth2-proxy-hmis-backend.cfg` match the deployed oauth2-proxy configs. The HMIS
+backend config covers `/hmis/` routes; the warehouse config covers the rest.
+`spec/lib/oauth2_proxy/skip_auth_routes_spec.rb` (JWT arm) fails when:
 
 - an action skips `authenticate_user!` / `authenticate_hmis_user!`, or authenticates with its own
-  token, and no skip entry matches its route, or
-- a skip entry matches a route that requires a user session.
+  token, and no skip entry in its host's config matches its route, or
+- a skip entry in either config matches a route that requires a user session.
 
-To make a route public, add the skip entry to the local config and to the deployed configs. To
+To make a route public, add the skip entry to the matching local config and to the deployed configs. To
 keep a public action behind the proxy, add it to `behind_proxy` in the spec with the reason.
 
 ## Notes
