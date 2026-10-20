@@ -419,10 +419,14 @@ module GrdaWarehouse
       scope = cohort_clients
       scope = scope.where(id: cohort_client_ids) if cohort_client_ids.present?
       scope.joins(:client).preload(client: :processed_service_history).find_in_batches do |batch|
+        stats = GrdaWarehouse::WarehouseClientsProcessed::StatsCalculator.new(client_ids: batch.map(&:client_id), on_date: effective_date || Date.current)
         rows = []
         batch.each do |cc|
           time_dependent_methods.each do |column, meth|
             cc[column] = send(meth, cc.client)
+          end
+          length_of_time_counts.each do |column, count|
+            cc[column] = stats.public_send(count)[cc.client_id] || 0
           end
           rows << cc
         end
@@ -431,7 +435,7 @@ module GrdaWarehouse
             rows,
             on_duplicate_key_update: {
               conflict_target: [:id],
-              columns: time_dependent_methods.keys,
+              columns: time_dependent_methods.keys + length_of_time_counts.keys,
             },
           )
         end
@@ -455,9 +459,15 @@ module GrdaWarehouse
       acquired
     end
 
+    # Length-of-time columns, counted for a whole batch of clients at once as of the effective date
+    private def length_of_time_counts
+      {
+        calculated_days_homeless_on_effective_date: :homeless_counts,
+      }
+    end
+
     private def time_dependent_methods
       {
-        calculated_days_homeless_on_effective_date: :calculated_days_homeless,
         days_homeless_last_three_years_on_effective_date: :days_homeless_last_three_years,
         days_literally_homeless_last_three_years_on_effective_date: :days_literally_homeless_last_three_years,
         destination_from_homelessness: :destination_from_homelessness,
@@ -479,13 +489,6 @@ module GrdaWarehouse
 
     private def inactive_date
       Date.current - days_of_inactivity.days
-    end
-
-    private def calculated_days_homeless(client)
-      client.days_homeless(on_date: effective_date || Date.current)
-
-      # TODO, make this work on a batch of clients
-      # Convert GrdaWarehouse::WarehouseClientsProcessed.homeless_counts to accept client_ids and a date
     end
 
     private def sheltered_days_homeless_last_three_years(client)
