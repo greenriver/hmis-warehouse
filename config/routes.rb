@@ -33,7 +33,7 @@ Rails.application.routes.draw do
 
     devise_scope :user do
       match 'session_keepalive' => 'users/sessions#keepalive', via: :post
-      match 'users/invitations/confirm', via: :post
+      match 'users/invitations/confirm', via: :post, as: :confirm_users_invitations
       match 'logout_talentlms' => 'users/sessions#destroy', via: :get
       if ENV['OKTA_DOMAIN'].present?
         get '/users/auth/okta/callback' => 'users/omniauth_callbacks#okta' if ENV['OKTA_CLIENT_ID']
@@ -50,11 +50,6 @@ Rails.application.routes.draw do
   end
 
   namespace :users do
-    resources :invitations do
-      collection do
-        post :confirm
-      end
-    end
     resources :account_requests, only: [:new, :create]
   end
 
