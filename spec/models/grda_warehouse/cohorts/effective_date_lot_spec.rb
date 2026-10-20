@@ -117,4 +117,40 @@ RSpec.describe 'Cohort length-of-time columns and the effective date', type: :mo
       expect(cohort_client.unsheltered_days_homeless_last_three_years).to eq(1)
     end
   end
+
+  describe 'static columns' do
+    def static_value(klass)
+      column = klass.new
+      column.cohort = cohort
+      column.default_value(client.id)
+    end
+
+    # The 10 ES days before the effective date
+    it 'calculates static days homeless as of the effective date' do
+      expect(static_value(CohortColumns::AdjustedDaysHomeless)).to eq(10)
+    end
+
+    context 'when the cohort has no effective date' do
+      let(:cohort) { create :cohort, effective_date: nil }
+
+      before do
+        # Last night's values, from before this client's service history was imported
+        GrdaWarehouse::WarehouseClientsProcessed.where(client_id: client.id).
+          update_all(homeless_days: 0, days_homeless_last_three_years: 0, literally_homeless_last_three_years: 0)
+      end
+
+      # All 15 ES days are on or before today and within the last three years
+      it 'calculates static days homeless from service history, not the nightly cache' do
+        expect(static_value(CohortColumns::AdjustedDaysHomeless)).to eq(15)
+      end
+
+      it 'calculates static days homeless in the last three years from service history' do
+        expect(static_value(CohortColumns::AdjustedDaysHomelessLastThreeYears)).to eq(15)
+      end
+
+      it 'calculates static days literally homeless in the last three years from service history' do
+        expect(static_value(CohortColumns::AdjustedDaysLiterallyHomelessLastThreeYears)).to eq(15)
+      end
+    end
+  end
 end

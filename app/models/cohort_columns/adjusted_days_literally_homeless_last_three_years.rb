@@ -19,13 +19,7 @@ module CohortColumns
     end
 
     def default_value(client_id)
-      effective_date = cohort.effective_date || Date.current
-      # Use the pre-calculated value if we're looking at today
-      if effective_date == Date.current
-        GrdaWarehouse::WarehouseClientsProcessed.service_history.find_by(client_id: client_id)&.literally_homeless_last_three_years || GrdaWarehouse::Hud::Client.literally_homeless_last_three_years(client_id: client_id, on_date: effective_date)
-      else
-        GrdaWarehouse::Hud::Client.literally_homeless_last_three_years(client_id: client_id, on_date: effective_date)
-      end
+      GrdaWarehouse::WarehouseClientsProcessed::StatsCalculator.new(client_ids: [client_id], on_date: effective_date).all_literally_homeless_last_three_years[client_id] || 0
     end
   end
 end
