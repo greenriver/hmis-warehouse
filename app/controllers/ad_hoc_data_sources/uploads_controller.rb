@@ -41,8 +41,10 @@ class AdHocDataSources::UploadsController < ApplicationController
   def download
     if params[:matched]
       @clients = @upload.ad_hoc_clients.where.not(client_id: nil)
+      filename = "#{@upload.sanitized_name} - Matched Clients"
     elsif params[:all]
       @clients = @upload.ad_hoc_clients
+      filename = "#{@upload.sanitized_name} - All Clients"
     else
       if @upload.batch_file.attached?
         filename = @upload.batch_file.filename.to_s
@@ -54,7 +56,7 @@ class AdHocDataSources::UploadsController < ApplicationController
       return
     end
     # Use the default render
-    headers['Content-Disposition'] = "attachment; filename=#{filename}.xlsx"
+    headers['Content-Disposition'] = ActionDispatch::Http::ContentDisposition.format(disposition: 'attachment', filename: "#{filename}.xlsx")
   end
 
   def destroy

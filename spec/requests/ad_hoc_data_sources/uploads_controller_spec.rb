@@ -94,6 +94,20 @@ RSpec.describe 'AdHocDataSources::UploadsController', type: :request do
     end
   end
 
+  describe 'GET download' do
+    it 'names the matched clients export after the batch' do
+      get download_ad_hoc_data_source_upload_path(data_source, batch, matched: true, format: :xlsx)
+
+      expect(response.headers['Content-Disposition']).to start_with('attachment; filename="Ad-Hoc Batch - Matched Clients.xlsx"')
+    end
+
+    it 'names the all clients export after the batch' do
+      get download_ad_hoc_data_source_upload_path(data_source, batch, all: true, format: :xlsx)
+
+      expect(response.headers['Content-Disposition']).to start_with('attachment; filename="Ad-Hoc Batch - All Clients.xlsx"')
+    end
+  end
+
   context 'when the user lacks client PII view permissions' do
     let!(:role) { create(:role, can_manage_ad_hoc_data_sources: true) }
 
