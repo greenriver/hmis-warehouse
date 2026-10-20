@@ -38,6 +38,15 @@ module HmisDataQualityTool
       project_ids.first
     end
 
+    # Why an SSN reported as "Full SSN reported" (1) fails the ssn_issues check; blank when it
+    # passes. Any other SSN Data Quality fails on its own and the SSN Data Quality column says why.
+    def ssn_issue_reason
+      return unless ssn_data_quality == 1
+      return 'SSN is blank.' if ssn.blank?
+
+      HudHelper.util.invalid_social_reasons(ssn).join(' ')
+    end
+
     def project_ids
       # Projects are preloaded in client_scope (source_enrollments: [:exit, :project]) which is used to build enrollments
       @project_ids ||= if enrollments.blank?
@@ -100,6 +109,7 @@ module HmisDataQualityTool
         sex: { title: 'Sex', translator: ->(v) { v.blank? ? '' : "#{HudHelper.util.sex(v)} (#{v})" } },
         ssn: { title: 'SSN', translator: ->(v) { masked_ssn(v) } },
         ssn_data_quality: { title: 'SSN Data Quality', translator: ->(v) { "#{HudHelper.util.ssn_data_quality(v)} (#{v})" } },
+        ssn_issue_reason: { title: 'Invalid SSN Reason' },
         overlapping_entry_exit: { title: 'Overlapping Entry/Exit enrollments in ES, SH, and TH' },
         overlapping_entry_exit_details: { title: 'Overlapping Entry/Exit enrollments in ES, SH, and TH Details' },
         overlapping_nbn: { title: 'Overlapping Night-by-Night ES enrollments with other ES, SH, and TH' },
@@ -122,7 +132,8 @@ module HmisDataQualityTool
     def self.detail_headers_for_export
       return detail_headers if GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
 
-      detail_headers.except(:first_name, :last_name, :dob, :ssn)
+      # ssn_issue_reason describes the SSN's digits, so it is hidden wherever the SSN is
+      detail_headers.except(:first_name, :last_name, :dob, :ssn, :ssn_issue_reason)
     end
 
     def self.detail_headers_for(slug, report, export:)
@@ -520,7 +531,7 @@ module HmisDataQualityTool
         },
         ssn_issues: {
           title: 'Social Security Number',
-          description: 'SSN is blank, SSN Data Quality is not "Full SSN reported" (1), or the value is not a valid Social Security Number',
+          description: 'SSN is blank, SSN Data Quality is not "Full SSN reported" (1), or the SSN breaks a HUD validity rule',
           required_for: 'All',
           detail_columns: [
             :destination_client_id,
@@ -531,17 +542,16 @@ module HmisDataQualityTool
             :sex,
             :ssn,
             :ssn_data_quality,
+            :ssn_issue_reason,
           ],
           denominator: ->(_item) { true },
           limiter: ->(item) {
-            # SSN is blank; the APR counts these regardless of SSN Data Quality
-            return true if item.ssn.blank?
-            # Any response other than "Full SSN reported" is an error when an SSN is present
+            # Any response other than "Full SSN reported" is an error, including when the SSN is
+            # blank; the APR counts blank SSNs regardless of SSN Data Quality
             return true unless item.ssn_data_quality == 1
-            # Full SSN reported, but the value isn't one
-            return true unless HudHelper.util.valid_social?(item.ssn)
 
-            false
+            # Full SSN reported, but the SSN is blank or the value isn't one
+            item.ssn_issue_reason.present?
           },
         },
         name_issues: {
