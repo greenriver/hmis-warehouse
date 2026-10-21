@@ -34,17 +34,20 @@ class BackgroundRenderJob < BaseJob
   # The browser subscribes before it requests the render, so no subscriber means the page
   # was closed or reloaded. Jobs share a worker, so skip the render rather than wait.
   # The short wait covers the subscription reaching Redis just after the job starts.
+  # Adapters other than Redis (async in test) can't report subscribers, so always render.
   private def subscriber_waiting?(render_id)
-    cable = ActionCable.server.config.cable.deep_symbolize_keys
-    channel = [cable[:channel_prefix], BackgroundRenderChannel.stream_name(render_id)].compact.join(':')
-    redis = Redis.new(cable.except(:adapter, :channel_prefix))
-    deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + SUBSCRIBER_WAIT_SECONDS
-    loop do
-      return true if redis.pubsub('numsub', channel).last.to_i.positive?
-      return false if Process.clock_gettime(Process::CLOCK_MONOTONIC) >= deadline
+    pubsub = ActionCable.server.pubsub
+    return true unless pubsub.respond_to?(:redis_connection_for_subscriptions)
 
-      sleep SUBSCRIBER_POLL_SECONDS
+    # Same channel name ActionCable::SubscriptionAdapter::ChannelPrefix subscribes to.
+    channel = [ActionCable.server.config.cable[:channel_prefix], BackgroundRenderChannel.stream_name(render_id)].compact.join(':')
+    redis = pubsub.redis_connection_for_subscriptions
+    checks = (SUBSCRIBER_WAIT_SECONDS / SUBSCRIBER_POLL_SECONDS).round + 1
+    checks.times do |check|
+      sleep SUBSCRIBER_POLL_SECONDS if check.positive?
+      return true if redis.pubsub('numsub', channel).last.to_i.positive?
     end
+    false
   ensure
     redis&.close
   end
