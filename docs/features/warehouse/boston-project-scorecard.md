@@ -114,6 +114,16 @@ The `total_score_weighted_score` method calculates the final score as a percenta
 
 Project and project group selection is filtered by viewability permissions.
 
+## Access
+
+Every controller action and the PDF export require the scorecard report definition to be assigned to the user (`WarehouseReportAuthorization`). Scorecard records are then limited by `Report.viewable_by(user)`:
+
+- `can_view_all_reports`: every scorecard.
+- `can_view_assigned_reports`: scorecards the user created or is the `secondary_reviewer` on.
+- Neither permission: none.
+
+Being the secondary reviewer is enough; the user does not also need access to the project. The index, history, member actions, and `ScorecardExport` all use this scope. Any user who passes it can run every workflow step; per-role step rules are not enforced.
+
 ## Background Processing
 
 Report generation runs via `WarehouseReports::GenericReportJob` which invokes `run_and_save!`. APR generation is synchronous within the job (not queued separately).

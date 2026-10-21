@@ -88,12 +88,11 @@ module PerformanceMeasurement::WarehouseReports
     end
 
     def details
-      @report = report_class.find(params[:report_id].to_i)
+      @report = report_scope.find(params[:report_id].to_i)
       @key = params[:key].to_sym
     end
 
     def clients
-      @report = report_class.find(params[:report_id].to_i)
       @key = params[:key].to_sym
       respond_to do |format|
         format.html {}
@@ -115,7 +114,6 @@ module PerformanceMeasurement::WarehouseReports
     end
 
     def provider_comparisons
-      @report = report_class.find(params[:id].to_i)
       active_project_list = params[:active_project_list]&.to_sym || :my_projects
       @provider_comparison = PerformanceMeasurement::ProviderComparison.new(@report, current_user, active_project_list: active_project_list)
       respond_to do |format|
@@ -139,7 +137,7 @@ module PerformanceMeasurement::WarehouseReports
     helper_method :details_params
 
     private def set_report
-      @report = report_class.find(params[:id].to_i)
+      @report = report_scope.find(params[:id].to_i)
     end
 
     private def report_scope
@@ -176,7 +174,7 @@ module PerformanceMeasurement::WarehouseReports
     end
 
     private def require_my_project!
-      @report = report_class.find(params[:report_id].to_i)
+      @report = report_scope.find(params[:report_id].to_i)
       @key = params[:key].to_sym
       @project = @report.my_projects(current_user, @key)[params[:project_id].to_i]
 

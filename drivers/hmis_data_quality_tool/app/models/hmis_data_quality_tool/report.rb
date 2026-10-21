@@ -28,9 +28,11 @@ module HmisDataQualityTool
     alias_attribute :result_cache, :build_for_questions
 
     # NOTE: this differs from viewable_by which looks at the report definitions
+    # HUD report instances share one table and are identified by report_name, not the STI type column
     scope :visible_to, ->(user) do
-      return all if user.can_view_all_reports?
-      return where(user_id: user.id) if user.can_view_assigned_reports?
+      scope = where(report_name: untranslated_title)
+      return scope if user.can_view_all_reports?
+      return scope.where(user_id: user.id) if user.can_view_assigned_reports?
 
       none
     end

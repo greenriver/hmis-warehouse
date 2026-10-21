@@ -202,7 +202,7 @@ After a file is created or destroyed, `Clients::FilesController` calls
 
 ### Visibility and access
 
-`ClientFile.visible_by?(user)` is the single visibility scope for warehouse files and every
+`ClientFile.visible_by?(user, client:)` is the single visibility scope for warehouse files and every
 `Clients::FilesController` scope starts from it. `can_manage_client_files?` sees everything.
 Otherwise the SQL is built up from: the user's own uploads; all verified homeless histories
 when `verified_homeless_history_visible_to_all`; all consent forms when
@@ -210,8 +210,10 @@ when `verified_homeless_history_visible_to_all`; all consent forms when
 full housing release (`Hud::Client.full_housing_release_on_file`), restricted to
 `visible_in_window` rows and, under `verified_homeless_history_method == :release`, to
 verified histories for clients consented in the user's CoCs. `can_see_own_file_uploads?` and
-`can_use_separated_consent?` see only their own uploads; `can_generate_homeless_verification_pdfs?`
-sees verified histories (own, or all when the config allows).
+`can_use_separated_consent?` see only their own uploads. The scope takes a required `client:` and,
+when `user.policy_for(client).can_generate_homeless_verification_pdfs?` is true, returns that
+client's verified histories only (own, or all when the config allows); a user who reaches this
+branch with a PDF permission that comes only from a project the client is not enrolled in sees none.
 
 `visible_in_window` is set at upload (`window_visible?` defaults it to true when absent) and
 the controller appends `.window` unless the user `can_manage_client_files?`.

@@ -46,6 +46,7 @@ RSpec.describe GrdaWarehouse::AuthPolicies::ProjectPolicy, type: :model do
       expect(policy.can_edit?).to be false
       expect(policy.can_destroy?).to be false
       expect(policy.can_view_imports?).to be false
+      expect(policy.can_edit_contacts?).to be false
       expect(policy.can_view_project_locations?).to be false
     end
   end
@@ -57,6 +58,7 @@ RSpec.describe GrdaWarehouse::AuthPolicies::ProjectPolicy, type: :model do
       expect(policy.can_edit?).to be false
       expect(policy.can_destroy?).to be false
       expect(policy.can_view_imports?).to be false
+      expect(policy.can_edit_contacts?).to be false
       expect(policy.can_view_project_locations?).to be false
     end
   end
@@ -209,6 +211,61 @@ RSpec.describe GrdaWarehouse::AuthPolicies::ProjectPolicy, type: :model do
     context 'with system collection access' do
       let(:collection) { Collection.system_collection(:data_sources) }
       include_examples 'permission checks with access'
+    end
+  end
+
+  describe '#can_edit_contacts?' do
+    let(:imports_role) { create(:role, can_view_imports: true) }
+    let(:view_only_role) { create(:role, can_view_projects: true) }
+    let(:other_project) { create :grda_warehouse_hud_project, data_source: create(:grda_warehouse_data_source) }
+
+    context 'with access control permissions' do
+      let(:user) { create(:acl_user) }
+      let(:policy) { user.policy_for(project) }
+
+      def grant(role, viewables)
+        collection = create(:collection)
+        collection.set_viewables(viewables)
+        user_group = create(:user_group)
+        user_group.add(user)
+        create(:access_control, role: role, collection: collection, user_group: user_group)
+      end
+
+      it 'is true when Can View Imports is granted on a collection that includes the project' do
+        grant(imports_role, projects: [project.id])
+
+        expect(policy.can_edit_contacts?).to be true
+      end
+
+      it 'is false when Can View Imports is granted only on a collection without the project' do
+        grant(imports_role, projects: [other_project.id])
+        grant(view_only_role, projects: [project.id])
+
+        expect(policy.can_edit_contacts?).to be false
+      end
+    end
+
+    context 'with legacy role permissions' do
+      let(:user) { create(:user) }
+      let(:access_group) { create(:access_group) }
+      let(:policy) { user.policy_for(project) }
+
+      before do
+        imports_role.add(user)
+        access_group.add(user)
+      end
+
+      it 'is true when an access group includes the project' do
+        access_group.add_viewable(project)
+
+        expect(policy.can_edit_contacts?).to be true
+      end
+
+      it 'is false when no access group includes the project' do
+        access_group.add_viewable(other_project)
+
+        expect(policy.can_edit_contacts?).to be false
+      end
     end
   end
 end

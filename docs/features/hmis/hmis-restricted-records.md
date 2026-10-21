@@ -43,6 +43,8 @@ This is deliberately stricter than the rest of the permission system. `UserConte
 
 `Hmis::Hud::Client.searchable_to` drops restricted clients the user can't find. This covers both `clientSearch` and `clientOmniSearch`, including lookup by ID and by PersonalID, since those go through the same scope. `visible_to` is unchanged, so the `client(id:)` query and any navigation from an enrollment or project still resolves the record.
 
+Search passes the matched client ids to `searchable_to` as `client_ids:` (`searchable_to_matching`), and the restricted-record check runs on those ids like any others. `client_ids: []` returns no clients.
+
 ### Redacted PII
 
 The PII predicates on `HmisClientPolicy::Instance` (e.g. `can_view_name?`) each fold redaction into the underlying permission. When a restricted client is resolved by a user without the permission `can_view_restricted_clients`:
@@ -59,6 +61,22 @@ Not redacted: `age`, alerts, and any associated records to the client that the u
 Restricting an HMIS client also redacts their name, SSN, DOB, photo, and HIV status on the warehouse side — the client dashboard, HUD report drilldowns and detail exports, and cohort grids — for every warehouse user, regardless of role, with no override permission, and excludes them from every warehouse-side client search path by name or SSN (DOB and exact-ID/PersonalID lookup still work). See [Warehouse Auth Policies → PII Redaction](../warehouse/warehouse-auth-policies.md#pii-redaction) for how redaction is implemented and its documented coverage limitations, and [Warehouse Auth Policies → Search](../warehouse/warehouse-auth-policies.md#search) for the search exclusion (several warehouse reports and exports are not mediated by either mechanism and will continue to show the client's real PII). The Superset `analytics.client_piis` view redacts name and SSN fields through a separate SQL-level mechanism, described there.
 
 The warehouse applies the same redaction and search exclusion to clients whose identity has aged out under [Client Data Retention](../warehouse/client-data-retention.md); HMIS itself does not yet honour those marks (see that document's limitations).
+
+## Audit Trail
+
+Restricting and unrestricting a client appear on that client's Audit History page as a **Record Restriction** row reading `Restricted: No → Yes` (or the reverse), attributed to the user who performed it. "Record Restriction" is also a Record Type filter option on that page. The same rows show up on the Audit History page for the acting user.
+
+The change shown there is synthesized rather than read off the row. Every column on `hmis_restricted_records` is a foreign key or a timestamp, and Paranoia leaves `deleted_at` nil on both sides of the destroy, so the raw PaperTrail changeset carries no restriction signal at all. `Types::BaseAuditEvent` reports these versions as an `update` to the restrictable's own `restricted` field instead: a `create` version becomes `false → true`, a `destroy` becomes `true → false`. Reporting the restrictable's GraphQL type rather than the restriction's is what lets the front-end resolve the synthesized change against the real `Client.restricted` boolean and render it as Yes/No.
+
+`RestrictedRecord.mark!` creates a new row per restriction rather than reviving a soft-deleted one. That is a requirement of the audit trail, not a preference: Paranoia's `restore` writes through `update_columns`, which bypasses PaperTrail, so the revive itself produced no version. The unique index is scoped to `deleted_at IS NULL`, so the accumulated rows are safe.
+
+Data written before this was in place is patchier. `mark!` used to follow the revive with `update!(created_by: user)`, so what reached the audit trail depended on who acted:
+
+- **Re-restricted by a different user.** `created_by_id` changed, so the `update!` wrote an `update` version. These are on the audit trail and render as `No → Yes`, which is correct.
+- **Re-restricted by the same user.** `update!` had nothing to save and wrote no version. These restrictions are unrecoverable.
+- **`mark!` called on an already-active row by a different user.** This restricted nothing but still wrote an `update` version, indistinguishable from the first case. It renders as a restrict on a client who was already restricted.
+
+So a legacy `update` version means "a different user called `mark!`". It does not reliably mean "the client became restricted", and nothing on the version narrows it further.
 
 ## Architecture
 
