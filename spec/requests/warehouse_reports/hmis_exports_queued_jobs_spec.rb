@@ -15,6 +15,9 @@ RSpec.describe 'HMIS export queued jobs', type: :request do
   let(:report) { create :hmis_export_report }
   let(:export_user) { user_with_role(can_export_hmis_data: true, can_view_assigned_reports: true) }
   let(:all_reports_user) { user_with_role(can_export_hmis_data: true, can_view_assigned_reports: true, can_view_all_reports: true) }
+  # Distinct start dates identify each user's queued row.
+  let(:own_start_date) { Date.new(2021, 2, 3) }
+  let(:others_start_date) { Date.new(2020, 4, 5) }
 
   # The test environment uses the :test adapter; queue real Delayed::Job rows for the controller to read.
   around do |example|
@@ -30,8 +33,8 @@ RSpec.describe 'HMIS export queued jobs', type: :request do
     collection.set_viewables({ reports: [report.id] })
     # Queued rows render inside the finished-export list, which renders only when it has a row.
     create(:grda_warehouse_hmis_export, user_id: export_user.id, completed_at: Time.current, options: {})
-    queue_export(export_user)
-    queue_export(all_reports_user)
+    queue_export(export_user, start_date: own_start_date)
+    queue_export(all_reports_user, start_date: others_start_date)
   end
 
   it "lists only the user's own queued export" do
@@ -39,6 +42,8 @@ RSpec.describe 'HMIS export queued jobs', type: :request do
     get warehouse_reports_hmis_exports_path
 
     expect(queued_row_count).to eq(1)
+    expect(response.body).to include(own_start_date.to_s)
+    expect(response.body).not_to include(others_start_date.to_s)
   end
 
   it 'lists every queued export for a user who can view all reports' do
@@ -46,6 +51,7 @@ RSpec.describe 'HMIS export queued jobs', type: :request do
     get warehouse_reports_hmis_exports_path
 
     expect(queued_row_count).to eq(2)
+    expect(response.body).to include(own_start_date.to_s, others_start_date.to_s)
   end
 
   def user_with_role(**permissions)
@@ -54,8 +60,8 @@ RSpec.describe 'HMIS export queued jobs', type: :request do
     user
   end
 
-  def queue_export(user)
-    Filters::HmisExport.new(user_id: user.id, start_date: 1.year.ago.to_date, end_date: Date.current).schedule_job(report_url: nil)
+  def queue_export(user, start_date:)
+    Filters::HmisExport.new(user_id: user.id, start_date: start_date, end_date: Date.current).schedule_job(report_url: nil)
   end
 
   def queued_row_count

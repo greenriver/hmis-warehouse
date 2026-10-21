@@ -16,6 +16,13 @@ RSpec.describe 'Legacy warehouse report visibility', type: :request do
     'disabilities' => { filter: { start: '2024-01-01', end: '2024-12-31', sub_population: 'clients', disabilities: ['6'], project_types: ['1'] } },
     'active_veterans' => { range: {} },
   }
+  # Parameters for a queued run whose rendered row shows `label`, so specs can tell runs apart.
+  queued_run_parameters = {
+    'chronic' => ->(label) { { filter: { label: label } } },
+    'hud_chronics' => ->(label) { { filter: { label: label } } },
+    'disabilities' => ->(label) { report_parameters['disabilities'].deep_merge(filter: { start: label }) },
+    'active_veterans' => ->(label) { { range: { label: label } } },
+  }
 
   {
     'chronic' => [GrdaWarehouse::WarehouseReports::ChronicReport, :warehouse_reports_chronic_path, :warehouse_reports_chronic_index_path, :running_warehouse_reports_chronic_index_path, WarehouseReports::RunChronicJob],
@@ -55,20 +62,24 @@ RSpec.describe 'Legacy warehouse report visibility', type: :request do
 
         context 'with a queued run from each user' do
           before do
-            enqueue_report_job(job_class.new(report_parameters.fetch(slug).merge(current_user_id: own_reports_user.id).with_indifferent_access))
-            enqueue_report_job(job_class.new(report_parameters.fetch(slug).merge(current_user_id: all_reports_user.id).with_indifferent_access))
+            enqueue_report_job(job_class.new(queued_run_parameters.fetch(slug).call('own-queued-run').merge(current_user_id: own_reports_user.id).with_indifferent_access))
+            enqueue_report_job(job_class.new(queued_run_parameters.fetch(slug).call('others-queued-run').merge(current_user_id: all_reports_user.id).with_indifferent_access))
           end
 
           it "lists only the user's own queued run" do
             get public_send(index_helper)
 
             expect(queued_row_count).to eq(1)
+            expect(response.body).to include('own-queued-run')
+            expect(response.body).not_to include('others-queued-run')
           end
 
           it "lists only the user's own queued run when polling running reports" do
             get public_send(running_helper, format: :js), xhr: true
 
             expect(queued_row_count).to eq(1)
+            expect(response.body).to include('own-queued-run')
+            expect(response.body).not_to include('others-queued-run')
           end
 
           it 'lists every queued run for a user who can view all reports' do
@@ -76,6 +87,7 @@ RSpec.describe 'Legacy warehouse report visibility', type: :request do
             get public_send(index_helper)
 
             expect(queued_row_count).to eq(2)
+            expect(response.body).to include('own-queued-run', 'others-queued-run')
           end
 
           if slug == 'hud_chronics'
