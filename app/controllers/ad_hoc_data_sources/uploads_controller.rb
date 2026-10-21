@@ -96,12 +96,20 @@ class AdHocDataSources::UploadsController < ApplicationController
 
   private def update_client_ids
     to_update = update_params[:clients].select { |_, opts| opts[:client_id].present? }
-    existing_client_ids = GrdaWarehouse::Hud::Client.where(id: to_update.values.map { |opts| opts[:client_id] }).pluck(:id)
+    assignable_ids = assignable_client_ids(to_update.values.map { |opts| opts[:client_id].to_i })
     to_update.each do |id, opts|
-      next unless existing_client_ids.include?(opts[:client_id].to_i)
+      next unless assignable_ids.include?(opts[:client_id].to_i)
 
       GrdaWarehouse::AdHocClient.where(id: id, ad_hoc_data_source_id: @data_source.id, batch_id: @upload.id).update_all(client_id: opts[:client_id])
     end
+  end
+
+  # Destination clients the user can find through client search or view directly. A row's
+  # client_id also feeds upload_client_ids, which gates health prioritization.
+  private def assignable_client_ids(client_ids)
+    searchable = GrdaWarehouse::Hud::Client.destination_from_searchable_to(current_user).where(id: client_ids).pluck(:id)
+    visible = GrdaWarehouse::Hud::Client.destination_visible_to(current_user).where(id: client_ids).pluck(:id)
+    searchable | visible
   end
 
   private def update_params

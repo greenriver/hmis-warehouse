@@ -80,6 +80,11 @@ RSpec.describe 'AdHocDataSources::UploadsController', type: :request do
 
   describe 'PATCH update' do
     let!(:unmatched_row) { GrdaWarehouse::AdHocClient.create!(batch_id: batch.id, ad_hoc_data_source_id: data_source.id, first_name: 'Unmatched', last_name: 'Row') }
+    # A row can only be linked to a client the user can search for or view; the enrollment
+    # puts the source client in a project the user's data source collection covers.
+    let!(:project) { create(:grda_warehouse_hud_project, data_source: hmis_ds) }
+    let!(:enrollment) { create(:hud_enrollment, client: GrdaWarehouse::Hud::Client.find(unrestricted_source_client.id), data_source: hmis_ds, project: project) }
+    let!(:hidden_client) { create(:grda_warehouse_hud_client, FirstName: 'Hidden', LastName: 'Client') }
 
     it 'links the row to an existing client' do
       patch ad_hoc_data_source_upload_path(data_source, batch), params: { clients: { unmatched_row.id => { client_id: unrestricted_destination_client.id } } }
@@ -89,6 +94,12 @@ RSpec.describe 'AdHocDataSources::UploadsController', type: :request do
 
     it 'ignores a client id that no client has' do
       patch ad_hoc_data_source_upload_path(data_source, batch), params: { clients: { unmatched_row.id => { client_id: 999_999_999 } } }
+
+      expect(unmatched_row.reload.client_id).to be_nil
+    end
+
+    it 'ignores a client the user can neither search for nor view' do
+      patch ad_hoc_data_source_upload_path(data_source, batch), params: { clients: { unmatched_row.id => { client_id: hidden_client.id } } }
 
       expect(unmatched_row.reload.client_id).to be_nil
     end
