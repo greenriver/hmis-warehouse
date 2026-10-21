@@ -130,6 +130,28 @@ RSpec.describe 'Cohort length-of-time columns and the effective date', type: :mo
       expect(static_value(CohortColumns::AdjustedDaysHomeless)).to eq(10)
     end
 
+    context 'with days more than three years before today' do
+      # Inside the three years before the effective date, but more than three years before today
+      let(:old_date) { effective_date - 2.years - 30.days }
+
+      before do
+        add_days([old_date, old_date + 1.day], project_type: 1, homeless: true, literally_homeless: true)
+        # TH overlapping the first old ES day
+        add_days([old_date], project_type: 2, homeless: true, literally_homeless: false)
+        GrdaWarehouse::ServiceHistoryServiceMaterialized.refresh!
+      end
+
+      # The 10 days before the effective date and both old days
+      it 'calculates static days homeless in the last three years as of the effective date' do
+        expect(static_value(CohortColumns::AdjustedDaysHomelessLastThreeYears)).to eq(12)
+      end
+
+      # The 10 days before the effective date and the old day without TH
+      it 'calculates static days literally homeless in the last three years as of the effective date' do
+        expect(static_value(CohortColumns::AdjustedDaysLiterallyHomelessLastThreeYears)).to eq(11)
+      end
+    end
+
     context 'when the cohort has no effective date' do
       let(:cohort) { create :cohort, effective_date: nil }
 
