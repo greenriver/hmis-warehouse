@@ -91,7 +91,7 @@ class AdHocDataSources::UploadsController < ApplicationController
 
   # Warehouse clients tied to this upload: each row's matched client and its possible matches.
   private def upload_client_ids
-    @upload_client_ids ||= (@upload.ad_hoc_clients.pluck(:client_id) + @upload.ad_hoc_clients.pluck(:matching_client_ids).flatten).compact.uniq
+    @upload_client_ids ||= @upload.ad_hoc_clients.pluck(:client_id, :matching_client_ids).flatten.compact.uniq
   end
 
   private def update_client_ids

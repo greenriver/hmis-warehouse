@@ -196,6 +196,7 @@ RSpec.describe 'AdHocDataSources::UploadsController', type: :request do
     it 'is not deleted through the user\'s own data source' do
       expect { delete ad_hoc_data_source_upload_path(own_source, batch) }.
         not_to(change { GrdaWarehouse::AdHocBatch.where(id: batch.id).count })
+      expect(response).to have_http_status(:not_found)
     end
 
     it 'is not updated through the user\'s own data source' do
