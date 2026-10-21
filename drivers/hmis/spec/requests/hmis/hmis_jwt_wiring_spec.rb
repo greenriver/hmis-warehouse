@@ -146,6 +146,9 @@ RSpec.describe 'HMIS JWT wiring', :jwt_only, type: :request do
       # these two keys. A regression that let current_hmis_user resolve would surface the holder's
       # full current_user_api_values here, and a partial matcher would still pass.
       expect(JSON.parse(response.body)).to eq('impersonating' => false, 'accountError' => 'account_deactivated')
+      # The token is present and unexpired, so this is the case the current_hmis_user guard in
+      # session_remaining_seconds exists for; the tokenless example above never reaches it.
+      expect(response.headers).not_to have_key('X-app-session-remaining-secs')
     end
 
     it 'answers 200 with an accountError for a good token whose holder has no warehouse account' do
