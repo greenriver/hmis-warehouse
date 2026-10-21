@@ -256,7 +256,7 @@ RSpec.describe WarehouseReports::HmisExportsController, type: :request do
         },
       )
     end
-    let!(:hmis_export) { create(:grda_warehouse_hmis_export) }
+    let!(:hmis_export) { create(:grda_warehouse_hmis_export, user_id: user.id) }
     let!(:export_link) { create(:recurring_hmis_export_link, recurring_hmis_export: recurring_export, hmis_export: hmis_export) }
 
     it 'loads the edit form with filter options' do
@@ -281,7 +281,7 @@ RSpec.describe WarehouseReports::HmisExportsController, type: :request do
 
   describe 'PATCH #update' do
     let!(:recurring_export) { create(:recurring_hmis_export, user: user) }
-    let!(:hmis_export) { create(:grda_warehouse_hmis_export) }
+    let!(:hmis_export) { create(:grda_warehouse_hmis_export, user_id: user.id) }
     let!(:export_link) { create(:recurring_hmis_export_link, recurring_hmis_export: recurring_export, hmis_export: hmis_export) }
 
     context 'with valid parameters' do

@@ -145,7 +145,7 @@ module WarehouseReports
     helper_method :can_cancel?
 
     def set_export
-      @export = export_source.find(params[:id].to_i)
+      @export = export_scope.find(params[:id].to_i)
     end
 
     def export_source
