@@ -12,7 +12,8 @@ module UserDirectoryReport::DocumentExports
     include UserDirectoryReport::DirectoryUsers
 
     def authorized?
-      user.can_view_any_reports?
+      user.can_view_any_reports? &&
+        GrdaWarehouse::WarehouseReports::ReportDefinition.url_viewable_by?(REPORT_DEFINITION_URL, user)
     end
 
     def perform

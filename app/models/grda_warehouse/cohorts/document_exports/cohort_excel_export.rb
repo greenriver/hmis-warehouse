@@ -19,7 +19,7 @@ module GrdaWarehouse::Cohorts::DocumentExports
   class CohortExcelExport < ::GrdaWarehouse::DocumentExport
     include ApplicationHelper
     def authorized?
-      user.can_download_cohorts?
+      user.can_download_cohorts? && cohort_class.viewable_by(user).where(id: params['id']).exists?
     end
 
     protected def cohort

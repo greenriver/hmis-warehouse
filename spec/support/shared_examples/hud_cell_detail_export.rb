@@ -57,6 +57,24 @@ RSpec.shared_examples 'a hud cell detail export' do
       report.update!(user_id: user.id)
       expect(export.authorized?).to be false
     end
+
+    it 'is not authorized for a report from a different HUD report family' do
+      grant(can_view_all_hud_reports: true)
+      report.update!(user_id: user.id, report_name: 'Some Other Report - FY 2026')
+      expect(export.authorized?).to be false
+    end
+
+    it 'is not authorized when the request has no report id' do
+      grant(can_view_all_hud_reports: true)
+      missing = described_class.new(user: user, query_string: export.query_string.sub("report_id=#{report.id}&", '').sub("&report_id=#{report.id}", ''))
+      expect(missing.authorized?).to be false
+    end
+
+    it 'is not authorized for a report id that does not exist' do
+      grant(can_view_all_hud_reports: true)
+      missing = described_class.new(user: user, query_string: export.query_string.sub("report_id=#{report.id}", 'report_id=0'))
+      expect(missing.authorized?).to be false
+    end
   end
 
   describe '#download_title' do

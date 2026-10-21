@@ -136,4 +136,52 @@ RSpec.describe Admin::AccessControlsController, type: :request do
       a_string_including('Other Project Collection'),
     )
   end
+
+  describe 'audit history' do
+    let(:auditor) { create :acl_user }
+    let(:editor) { create :acl_user }
+
+    def history_links
+      Nokogiri::HTML(response.body).css("a[href='#{audits_admin_access_controls_path}']")
+    end
+
+    before do
+      setup_access_control(auditor, create(:role, can_audit_users: true), create(:collection))
+      setup_access_control(editor, create(:role, can_edit_users: true), create(:collection))
+    end
+
+    it 'shows the history page to a user who can audit users but not edit them' do
+      sign_in auditor
+      get audits_admin_access_controls_path
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('Access Controls Audit History')
+    end
+
+    it 'queues the history render for a user who can audit users but not edit them' do
+      sign_in auditor
+      expect do
+        post render_audits_admin_access_controls_path, params: { render_id: 'history' }
+      end.to have_enqueued_job(BackgroundRender::AccessControlsAuditsJob)
+    end
+
+    it 'refuses the history page to a user who can edit users but not audit them' do
+      sign_in editor
+      get audits_admin_access_controls_path
+      expect(response).to redirect_to(editor.my_root_path)
+    end
+
+    it 'hides the History button from a user who can edit users but not audit them' do
+      sign_in editor
+      get admin_access_controls_path
+      expect(response).to have_http_status(:ok)
+      expect(history_links.size).to eq(0)
+    end
+
+    it 'shows the History button to a user who can edit and audit users' do
+      setup_access_control(editor, create(:role, can_audit_users: true), create(:collection))
+      sign_in editor
+      get admin_access_controls_path
+      expect(history_links.size).to eq(1)
+    end
+  end
 end

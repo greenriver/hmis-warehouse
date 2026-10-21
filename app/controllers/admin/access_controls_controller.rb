@@ -13,7 +13,10 @@ class Admin::AccessControlsController < ApplicationController
   include AccessControlEntityFilterOptions
   extend BackgroundRenderAction
 
-  before_action :require_can_edit_users!
+  AUDIT_ACTIONS = [:audits, :render_audits].freeze
+
+  before_action :require_can_edit_users!, except: AUDIT_ACTIONS
+  before_action :require_can_audit_users!, only: AUDIT_ACTIONS
   before_action :set_access_control, only: [:edit, :update, :destroy]
 
   background_render_action(:render_audits, ::BackgroundRender::AccessControlsAuditsJob) do

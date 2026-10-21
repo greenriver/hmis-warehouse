@@ -30,18 +30,37 @@ RSpec.describe GrdaWarehouse::Cohorts::DocumentExports::CohortExcelExport, type:
   end
 
   describe '#authorized?' do
+    def export_for(cohort_id)
+      described_class.new(user_id: user.id, query_string: { id: cohort_id }.to_query)
+    end
+
     context 'when user can download cohorts' do
       it 'returns true' do
-        export = GrdaWarehouse::Cohorts::DocumentExports::CohortExcelExport.new(user_id: user.id)
-        expect(export.authorized?).to be true
+        expect(export_for(cohort.id).authorized?).to be true
       end
     end
 
     context 'when user cannot download cohorts' do
       it 'returns false' do
         role.update(can_download_cohorts: false)
-        export = GrdaWarehouse::Cohorts::DocumentExports::CohortExcelExport.new(user_id: user.id)
-        expect(export.authorized?).to be false
+        expect(export_for(cohort.id).authorized?).to be false
+      end
+    end
+
+    context 'when the user can download cohorts but cannot view this cohort' do
+      let(:other_cohort) { create(:cohort) }
+
+      it 'returns false' do
+        expect(export_for(other_cohort.id).authorized?).to be false
+      end
+    end
+
+    context 'when the cohort is removed from the user\'s collection after the export was built' do
+      it 'returns false' do
+        expect(export_for(cohort.id).authorized?).to be true
+
+        cohort_collection.set_viewables({ cohorts: [] })
+        expect(export_for(cohort.id).authorized?).to be false
       end
     end
   end
