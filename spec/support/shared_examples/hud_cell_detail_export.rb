@@ -70,6 +70,12 @@ RSpec.shared_examples 'a hud cell detail export' do
       expect(missing.authorized?).to be false
     end
 
+    it 'is not authorized when the request has no cell id' do
+      grant(can_view_all_hud_reports: true)
+      query = Rack::Utils.parse_query(export.query_string).except('cell_id').to_query
+      expect(described_class.new(user: user, query_string: query).authorized?).to be false
+    end
+
     it 'is not authorized for a report id that does not exist' do
       grant(can_view_all_hud_reports: true)
       missing = described_class.new(user: user, query_string: export.query_string.sub("report_id=#{report.id}", 'report_id=0'))

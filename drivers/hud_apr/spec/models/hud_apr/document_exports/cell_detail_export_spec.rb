@@ -28,16 +28,10 @@ RSpec.describe HudApr::DocumentExports::CellDetailExport, type: :model do
 
   it_behaves_like 'a hud cell detail export'
 
-  describe 'a report_type that does not match the report' do
+  describe 'request parameters that do not identify the report' do
     let(:caper_definition) do
       GrdaWarehouse::WarehouseReports::ReportDefinition.maintain_report_definitions
       GrdaWarehouse::WarehouseReports::ReportDefinition.find_by!(url: 'hud_reports/capers')
-    end
-    let(:caper_export) do
-      described_class.new(
-        user: user,
-        query_string: { report_id: report.id, measure_id: 'Question 5', cell_id: 'B2', table: '5a', report_type: 'caper' }.to_query,
-      )
     end
 
     def export_with(query)
@@ -63,7 +57,7 @@ RSpec.describe HudApr::DocumentExports::CellDetailExport, type: :model do
     it 'refuses an APR report requested as a CAPER by a user who holds only the CAPER definition' do
       user.legacy_roles << create(:role, can_view_assigned_reports: true)
       user.add_viewable(caper_definition)
-      expect(caper_export.authorized?).to be false
+      expect(export_with(report_type: 'caper').authorized?).to be false
     end
   end
 

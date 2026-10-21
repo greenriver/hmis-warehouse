@@ -27,20 +27,34 @@ RSpec.describe DocumentExportsController, type: :request do
     expect([log.item_model, log.item_id, log.title]).to eq([export_type, user.document_exports.last.id, export_type])
   end
 
-  it 'logs which export was downloaded' do
-    export = GrdaWarehouse::Cohorts::DocumentExports::CohortExcelExport.create!(
+  def completed_export_for(cohort_id)
+    GrdaWarehouse::Cohorts::DocumentExports::CohortExcelExport.create!(
       user: user,
-      query_string: { id: cohort.id }.to_query,
+      query_string: { id: cohort_id }.to_query,
       status: DocumentExportBehavior::COMPLETED_STATUS,
       filename: 'cohort.xlsx',
       mime_type: DocumentExportBehavior::EXCEL_MIME_TYPE,
       file_data: 'xlsx-bytes',
     )
+  end
+
+  it 'logs which export was downloaded' do
+    export = completed_export_for(cohort.id)
 
     get download_document_export_path(export)
 
     log = ActivityLog.where(user_id: user.id, action_name: 'download').last
     expect([log.item_model, log.item_id, log.title]).to eq([export_type, export.id, export_type])
+  end
+
+  it 'refuses to download a completed export for a cohort the user cannot view' do
+    export = completed_export_for(create(:cohort).id)
+
+    get download_document_export_path(export)
+
+    expect(response).to redirect_to(user.my_root_path)
+    expect(response.body).not_to include('xlsx-bytes')
+    expect(ActivityLog.where(user_id: user.id, action_name: 'download').count).to eq(0)
   end
 
   it 'rejects the abstract performance export type' do

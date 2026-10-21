@@ -14,6 +14,7 @@ module HudReports
   # - builder: Returns a CellDetailExportBuilder instance
   class CellDetailExportBase < ::GrdaWarehouse::DocumentExport
     def authorized?
+      return false unless required_params.all? { |key| params[key].present? }
       return false unless report
       return false unless report.user_id == user_id || user.can_view_all_hud_reports?
 
@@ -60,11 +61,14 @@ module HudReports
       @report ||= ::HudReports::ReportInstance.find_by(id: params['report_id'])
     end
 
-    # Builders raise KeyError for a missing required param and ArgumentError for an
-    # unknown report type or a version with no generator.
+    # The params `builder` reads with `fetch`.
+    def required_params
+      ['report_id', 'table', 'cell_id']
+    end
+
     def requested_generator
       builder.generator_for_report
-    rescue KeyError, ArgumentError
+    rescue HudReports::CellDetailExportBuilderBase::UnsupportedReportError
       nil
     end
   end

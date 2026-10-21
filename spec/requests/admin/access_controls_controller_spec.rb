@@ -145,6 +145,10 @@ RSpec.describe Admin::AccessControlsController, type: :request do
       Nokogiri::HTML(response.body).css("a[href='#{audits_admin_access_controls_path}']")
     end
 
+    def crumb_links
+      Nokogiri::HTML(response.body).css(".crumbs a[href='#{admin_access_controls_path}']")
+    end
+
     before do
       setup_access_control(auditor, create(:role, can_audit_users: true), create(:collection))
       setup_access_control(editor, create(:role, can_edit_users: true), create(:collection))
@@ -155,6 +159,19 @@ RSpec.describe Admin::AccessControlsController, type: :request do
       get audits_admin_access_controls_path
       expect(response).to have_http_status(:ok)
       expect(response.body).to include('Access Controls Audit History')
+    end
+
+    it 'omits the link back to access control administration for a user who can audit users but not edit them' do
+      sign_in auditor
+      get audits_admin_access_controls_path
+      expect(crumb_links.size).to eq(0)
+    end
+
+    it 'links back to access control administration for a user who can edit and audit users' do
+      setup_access_control(editor, create(:role, can_audit_users: true), create(:collection))
+      sign_in editor
+      get audits_admin_access_controls_path
+      expect(crumb_links.size).to eq(1)
     end
 
     it 'queues the history render for a user who can audit users but not edit them' do
