@@ -107,6 +107,59 @@ RSpec.describe 'Users::InvitationsController', :devise_only, type: :request do
         invited_user = User.find_by!(email: 'john.doe@example.com')
         expect(response).to redirect_to(edit_admin_user_path(invited_user))
       end
+
+      describe 'granting user groups' do
+        let(:password) { Digest::SHA256.hexdigest('abcd1234abcd1234') }
+        let(:admin_group) { admin_user.user_groups.first }
+        let(:basic_role) { create(:role, can_view_clients: true) }
+        let(:basic_group) do
+          create(:user_group).tap do |group|
+            create(:access_control, role: basic_role, collection: no_data_source_collection, user_group: group)
+          end
+        end
+
+        def acl_invite_params(**overrides)
+          invite_params.deep_merge(user: { permission_context: 'acls', user_group_ids: [] }.merge(overrides))
+        end
+
+        def invited_user
+          User.find_by(email: 'john.doe@example.com')
+        end
+
+        it 'invites through POST /users/invitations/confirm with non-administrative groups' do
+          post confirm_users_invitations_path, params: acl_invite_params(user_group_ids: [basic_group.id])
+
+          expect(invited_user.user_groups).to contain_exactly(basic_group)
+          expect(response).to redirect_to(edit_admin_user_path(invited_user))
+        end
+
+        it 'requires password confirmation to grant an administrative group through user_group_ids' do
+          post confirm_users_invitations_path, params: acl_invite_params(user_group_ids: [admin_group.id])
+
+          expect(invited_user).to be_nil
+          expect(response).to render_template(:confirm)
+        end
+
+        it 'requires password confirmation to copy administrative groups through copy_form_id' do
+          post confirm_users_invitations_path, params: acl_invite_params(copy_form_id: admin_user.id)
+
+          expect(invited_user).to be_nil
+          expect(response).to render_template(:confirm)
+        end
+
+        it 'does not grant administrative groups with an incorrect password' do
+          post user_invitation_path, params: acl_invite_params(copy_form_id: admin_user.id, confirmation_password: 'wrong')
+
+          expect(invited_user).to be_nil
+          expect(flash[:error]).to eq('User not updated. Incorrect password')
+        end
+
+        it 'grants administrative groups once the password is confirmed' do
+          post user_invitation_path, params: acl_invite_params(copy_form_id: admin_user.id, confirmation_password: password)
+
+          expect(invited_user.user_groups).to include(admin_group)
+        end
+      end
     end
   end
 
