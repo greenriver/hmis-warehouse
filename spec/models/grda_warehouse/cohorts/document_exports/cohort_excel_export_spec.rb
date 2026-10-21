@@ -63,6 +63,20 @@ RSpec.describe GrdaWarehouse::Cohorts::DocumentExports::CohortExcelExport, type:
         expect(export_for(cohort.id).authorized?).to be false
       end
     end
+
+    context 'when the request names the cohort with cohort_id, as the cohort report page does' do
+      def report_page_export_for(cohort_id)
+        described_class.new(user_id: user.id, query_string: { cohort_id: cohort_id }.to_query)
+      end
+
+      it 'returns true for a cohort the user can view' do
+        expect(report_page_export_for(cohort.id).authorized?).to be true
+      end
+
+      it 'returns false for a cohort the user cannot view' do
+        expect(report_page_export_for(create(:cohort).id).authorized?).to be false
+      end
+    end
   end
 
   describe '#perform' do
@@ -99,6 +113,14 @@ RSpec.describe GrdaWarehouse::Cohorts::DocumentExports::CohortExcelExport, type:
       ensure
         excel_file.unlink
       end
+    end
+
+    it 'exports the cohort named by cohort_id' do
+      export = described_class.new(user_id: user.id, query_string: { cohort_id: cohort.id, population: 'Active Clients' }.to_query)
+      export.perform
+
+      expect(export.status).to eq(GrdaWarehouse::DocumentExport::COMPLETED_STATUS)
+      expect(export.filename).to start_with("Cohort - #{cohort.name} - Active Clients - ")
     end
   end
 end
