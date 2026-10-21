@@ -418,8 +418,8 @@ module GrdaWarehouse
     def refresh_time_dependant_client_data(cohort_client_ids: nil)
       scope = cohort_clients
       scope = scope.where(id: cohort_client_ids) if cohort_client_ids.present?
-      scope.joins(:client).preload(client: :processed_service_history).find_in_batches do |batch|
-        stats = GrdaWarehouse::WarehouseClientsProcessed::StatsCalculator.new(client_ids: batch.map(&:client_id), on_date: effective_date || Date.current)
+      scope.joins(:client).preload(:client).find_in_batches do |batch|
+        stats = GrdaWarehouse::WarehouseClientsProcessed::StatsCalculator.new(client_ids: batch.map(&:client_id), on_date: effective_date_or_today)
         rows = []
         batch.each do |cc|
           time_dependent_methods.each do |column, meth|
@@ -491,12 +491,17 @@ module GrdaWarehouse
       Date.current - days_of_inactivity.days
     end
 
+    # Length-of-time columns are calculated as of the effective date, or today when none is set
+    private def effective_date_or_today
+      effective_date || Date.current
+    end
+
     private def sheltered_days_homeless_last_three_years(client)
-      client.sheltered_days_homeless_last_three_years(on_date: effective_date || Date.current)
+      client.sheltered_days_homeless_last_three_years(on_date: effective_date_or_today)
     end
 
     private def unsheltered_days_homeless_last_three_years(client)
-      client.unsheltered_days_homeless_last_three_years(on_date: effective_date || Date.current)
+      client.unsheltered_days_homeless_last_three_years(on_date: effective_date_or_today)
     end
 
     private def destination_from_homelessness(client)
