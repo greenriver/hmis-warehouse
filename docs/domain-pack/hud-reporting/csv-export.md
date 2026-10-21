@@ -131,6 +131,8 @@ project. `enforce_project_date_scope` then keeps only projects `active_during` t
 `period_type == 1` (updated-period exports need deleted rows). `Filters::HmisExport.job_classes`
 returns registered job class names plus the string `'HmisTwentyTwentyExportJob'`, a class that
 no longer exists, so the controller's `set_jobs` can still read old queued jobs.
+`set_jobs` keeps a queued export only when the user `can_view_all_reports?` or the job's
+`user_id` is theirs, the same rule `export_scope` applies to finished exports.
 
 ### Exporter pipeline
 
