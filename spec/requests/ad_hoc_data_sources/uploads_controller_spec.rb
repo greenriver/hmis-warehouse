@@ -187,6 +187,15 @@ RSpec.describe 'AdHocDataSources::UploadsController', type: :request do
         not_to(change { GrdaWarehouse::AdHocBatch.where(id: batch.id).count })
     end
 
+    it 'is not updated through the user\'s own data source' do
+      patch ad_hoc_data_source_upload_path(own_source, batch), params: {
+        clients: { unrestricted_destination_client.id.to_s => { health_prioritized: '1' } },
+      }
+
+      expect(response).to have_http_status(:not_found)
+      expect(unrestricted_destination_client.reload.health_prioritized).to be_nil
+    end
+
     it 'still shows the user\'s own upload' do
       get ad_hoc_data_source_upload_path(own_source, own_batch)
 
