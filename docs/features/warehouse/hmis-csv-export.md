@@ -72,6 +72,8 @@ After CSV generation completes:
 
 Users download exports through `HmisExportsController#show`, which serves the zip file via `send_data` from the ActiveStorage attachment.
 
+`show`, `destroy`, `edit`, `update`, and `cancel` load the export through `export_scope`, the same scope as the export list: users with `can_view_all_reports` reach any export, and other users reach only exports they ran. Any other export returns 404. The hashed-only controller narrows `export_scope` to hashed exports, so its pages can't load an unhashed export.
+
 ## Data Scoping
 
 The exporter includes three main scoping methods:

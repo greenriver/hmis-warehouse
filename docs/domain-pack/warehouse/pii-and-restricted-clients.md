@@ -224,7 +224,7 @@ submission, ad hoc upload review, aggregate HIV gates, `non_hmis_clients`).
 Hidden means HMIS-restricted or retention-inactive, as defined by `GrdaWarehouse::HiddenClients`.
 
 **Search.** A hidden client is excluded from search by name or SSN, not from search by DOB,
-warehouse id, or `PersonalID`. `ClientSearch.text_searcher` takes `name_and_ssn_filter:` (an
+warehouse id, `PersonalID`, or HMIS scan card code. `ClientSearch.text_searcher` takes `name_and_ssn_filter:` (an
 Arel predicate) and applies it to the SSN-exact and free-text name branches only.
 `Client.text_search` always passes `HiddenClients.not_hidden(arel_table[:id])`, and
 `potential_matches` goes through it. `Client.strict_search` (3-of-4 match on name, DOB, SSN)

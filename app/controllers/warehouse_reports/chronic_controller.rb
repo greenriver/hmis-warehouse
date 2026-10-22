@@ -11,6 +11,7 @@ module WarehouseReports
     include ArelHelper
     include Chronic
     include WarehouseReportAuthorization
+    include WarehouseReports::QueuedReportJobs
     before_action :load_filter
     before_action :set_sort, except: [:index, :show, :running]
 
@@ -19,8 +20,8 @@ module WarehouseReports
         # Comment to prevent rubocop trailing if
         WarehouseReports::RunChronicJob.perform_later(filter_params.merge(current_user_id: current_user.id))
       end
-      @jobs = Delayed::Job.jobs_for_class('RunChronicJob').order(run_at: :desc)
-      @reports = report_source.ordered.
+      @job_reports = queued_reports('RunChronicJob')
+      @reports = report_scope.ordered.
         select(report_source.column_names - ['data']).
         limit(50)
       # Set default filter to prior run
@@ -32,13 +33,13 @@ module WarehouseReports
     end
 
     def destroy
-      @report = report_source.find(params[:id].to_i)
+      @report = report_scope.find(params[:id].to_i)
       @report.destroy
       respond_with(@report, location: warehouse_reports_chronic_index_path)
     end
 
     def show
-      @report = report_source.find(params[:id].to_i)
+      @report = report_scope.find(params[:id].to_i)
       @clients = @report.data
       @sort_options = sort_options
 
@@ -56,8 +57,8 @@ module WarehouseReports
     end
 
     def running
-      @jobs = Delayed::Job.jobs_for_class('RunChronicJob').order(run_at: :desc)
-      @reports = report_source.ordered.
+      @job_reports = queued_reports('RunChronicJob')
+      @reports = report_scope.ordered.
         select(report_source.column_names - ['data']).
         limit(50)
     end
@@ -87,6 +88,10 @@ module WarehouseReports
     end
 
     private
+
+    def report_scope
+      report_source.visible_to(current_user)
+    end
 
     def sort_clients
       @column, @direction = params.slice(:column, :direction).values

@@ -85,7 +85,7 @@ module ProjectPassFail::WarehouseReports
 
     private def set_report
       @report = if params[:id]
-        report_class.find(params[:id].to_i)
+        report_scope.find(params[:id].to_i)
       else
         report_class.new(options: @filter.for_params)
       end

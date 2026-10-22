@@ -1,11 +1,6 @@
-- @jobs.each do |job|
-  - parameters = YAML.load(job.handler, permitted_classes: [ActiveJob::QueueAdapters::DelayedJobAdapter::JobWrapper]).job_data['arguments'].first
-  - # ignore jobs that are re-calculating the chronic list
-  - next unless parameters.is_a?(Hash)
-  - parameters['filter'].delete('_aj_hash_with_indifferent_access')
-  - report = GrdaWarehouse::WarehouseReports::ChronicReport.new(parameters: parameters)
+- @job_reports.each do |run_at, report|
   %tr{class: 'jIncompleteReport'}
-    %td= job.run_at
+    %td= run_at
     %td= render 'spinner'
     %td= render 'parameters', report: report
 - @reports.each do |report|
