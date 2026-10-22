@@ -509,7 +509,7 @@ Rails.application.routes.draw do
   # over this catch-all shape.
   get 'data_sources/:id/:coc_code', to: 'data_sources#show', as: :data_source_with_coc_code
   resources :ad_hoc_data_sources do
-    resources :uploads, except: [:edit], controller: 'ad_hoc_data_sources/uploads' do
+    resources :uploads, except: [:edit, :index], controller: 'ad_hoc_data_sources/uploads' do
       get :download, on: :member
     end
     get :download, on: :collection
@@ -690,6 +690,7 @@ Rails.application.routes.draw do
         get :export, on: :member
       end
       post :assign, on: :collection
+      post :project_options, on: :collection
       get :audits, on: :collection, to: 'access_controls#audits', as: :audits
       post :render_audits, on: :collection, to: 'access_controls#render_audits', as: :render_audits
     end

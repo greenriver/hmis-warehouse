@@ -11,7 +11,8 @@ module HudReports
   # Base class for building Excel exports of HUD report cell details.
   #
   # Subclasses must implement:
-  # - generator_for_report: returns a generator class (not an instance)
+  # - generator_for_report: returns a generator class (not an instance), raising
+  #   UnsupportedReportError when the report type or version has no generator
   #
   # Subclasses can optionally override:
   # - scoped_clients: returns an ActiveRecord relation of clients for the cell
@@ -24,6 +25,7 @@ module HudReports
   # - pii_columns (optional, for filtering PII)
   class CellDetailExportBuilderBase
     Result = Struct.new(:name, :filename, :data, keyword_init: true)
+    UnsupportedReportError = Class.new(ArgumentError)
 
     def initialize(user:, report: nil, measure_id: nil, cell_id: nil, table: nil, drilldown: nil, report_type: nil, **_kwargs)
       @user = user

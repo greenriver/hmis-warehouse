@@ -121,7 +121,10 @@ Access logging:
   and `after_action :log_activity` for every action except `poll`, `active`, `rollup`, `image`.
   Controllers call `log_item(record)` or `log_client` to attach the record.
 - `ActivityLog.export_rows(user_id:, range:, limit:)`, `.warehouse_reports`,
-  `.created_in_range(range:)`, `.warehouse_report_conditions`.
+  `.created_in_range(range:)`, `.warehouse_report_conditions`, `.backfill_client_id!`,
+  `.ensure_client_id_index!`.
+- `Clients::AuditsController#index` (the client "Audit" tab) lists `ActivityLog` rows with
+  `item_model: 'GrdaWarehouse::Hud::Client'` and `client_id` equal to the destination client.
 - `AccessLogs::WarehouseReports::ReportsController` (`index`, `create`, `report_usage`,
   `user_summary`), `AccessLogs::Report#as_excel`, `AccessLogs::WarehouseReports::UsageSummary.new(range:).call`,
   `UserSummary.new(range:).call`, `WarehouseReports::AccessLogsExportJob`.
@@ -303,7 +306,12 @@ Titles are stored at visit time, so a row logged before a client was restricted 
 pages `item_id` is the nested record) and calls `preload_client_restrictions` for the page.
 
 `ActivityLog` (`app/models/activity_log.rb`) keeps `reporting_path`, a 200-character mirror of
-`path` set in `before_save`, because `path` is unbounded and cannot be indexed.
+`path` set in `before_save`, because `path` is unbounded and cannot be indexed. It also keeps
+`client_id`, set in `before_save` from the first `/clients/<id>` segment of `path` before any
+query string (`CLIENT_PATH_PATTERN`), so `/source_clients/<id>` and `?return_to=/clients/<id>`
+don't match. `CLIENT_PATH_SQL_PATTERN` is the Postgres equivalent used by `backfill_client_id!`
+for older rows. The `:activity_log_client_id` TaskQueue task runs that backfill and then
+`ensure_client_id_index!`, which builds the partial `(client_id, created_at)` index concurrently.
 `warehouse_report_conditions` maps every `ReportDefinition.report_list` url to an Arel condition
 on `reporting_path` (exact, `/url/%`, or `/url?%`, or a per-report `reporting_query` override).
 `created_in_range(range:)` expands a `Date..Date` to full days because `created_at` is a UTC
@@ -428,8 +436,9 @@ not built; the ADR (still status Proposed) lists them as later phases or open de
 - `drivers/client_access_control/README.md`: the four sources of client search and view access.
 - `app/controllers/concerns/activity_logger.rb`: `compose_activity`; `log_item`;
   `log_activity`; `title_for_show`.
-- `app/models/activity_log.rb`: `REPORTING_PATH_LENGTH`; `created_in_range`;
-  `warehouse_report_conditions`; `export_rows`; `scrub`; `CLIENT_PATH_ID`;
+- `app/models/activity_log.rb`: `REPORTING_PATH_LENGTH`; `CLIENT_PATH_PATTERN`;
+  `CLIENT_PATH_SQL_PATTERN`; `created_in_range`; `warehouse_report_conditions`;
+  `backfill_client_id!`; `ensure_client_id_index!`; `export_rows`; `scrub`; `CLIENT_PATH_ID`;
   `client_id_from_path`; `display_title`.
 - `drivers/hmis/app/models/hmis/activity_log.rb`: header comment documents every column and
   the `resolved_fields` key format.

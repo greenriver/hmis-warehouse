@@ -26,7 +26,7 @@ module HudApr
       when 'caper' then HudApr::Caper::CaperConcern
       when 'ce_apr' then HudApr::CeApr::CeAprConcern
       when 'dq' then HudApr::Dq::DqConcern
-      else raise ArgumentError, "Unknown report type: #{report_type}"
+      else raise UnsupportedReportError, "Unknown report type: #{report_type}"
       end
 
       options_version = @report.options&.dig('report_version').presence || 'fy2020'
@@ -38,7 +38,7 @@ module HudApr
       klass ||= generator_classes[options_version.to_sym]
       klass ||= generator_classes[options_version.to_s]
 
-      raise ArgumentError, "Unsupported version #{options_version} for #{report_type}" unless klass
+      raise UnsupportedReportError, "Unsupported version #{options_version} for #{report_type}" unless klass
 
       klass
     end

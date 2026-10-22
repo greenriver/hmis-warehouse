@@ -12,6 +12,8 @@
 module UserDirectoryReport::DirectoryUsers
   extend ActiveSupport::Concern
 
+  REPORT_DEFINITION_URL = 'user_directory_report/warehouse_reports/users/warehouse'
+
   # `active` is a warehouse-only distinction. CasAccess::User has no active/inactive
   # scopes -- so the CAS listing gets its directory unfiltered.
   private def directory_users(user_model, active: true)

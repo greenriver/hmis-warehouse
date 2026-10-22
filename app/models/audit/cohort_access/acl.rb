@@ -113,7 +113,7 @@ module Audit
       end
 
       def candidate_gves
-        @candidate_gves ||= cohort.group_viewable_entities.with_deleted.where.not(collection_id: nil).to_a
+        @candidate_gves ||= cohort.group_viewable_entities.with_deleted.using_acls.to_a
       end
 
       def acl_gves

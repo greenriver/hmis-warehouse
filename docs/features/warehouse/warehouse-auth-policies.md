@@ -179,7 +179,7 @@ Hashed and faked exports are **not** redacted. A hash of a restricted client's n
 Redaction only covers code that goes through `PiiProvider` or the `reporting_policy_for_*` methods. These still show a hidden client's real PII:
 
 - CSG Engage state submission — a product decision on how, or whether, to redact there is pending.
-- Ad hoc upload review, for rows that haven't been matched — staff need the real name, SSN, and DOB to match a row by hand.
+- Ad hoc upload review, for rows that haven't been matched — staff need the real name, SSN, and DOB to match a row by hand. The possible matches listed for those rows (warehouse clients sharing the row's name, SSN, or DOB) also show their real name and id.
 - Aggregate HIV-status permission checks in reports and filters — they gate counts, not a named client's row. The per-client disability views and CAS readiness forms do honor restriction.
 - The CAS non-HMIS clients report — its rows come from a CAS import and aren't linked to a warehouse client yet, so there's no restriction to check.
 
