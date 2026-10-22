@@ -76,6 +76,23 @@ RSpec.describe 'Cohort length-of-time columns and the effective date', type: :mo
     it 'calculates days literally homeless in the last three years as of the effective date' do
       expect(cohort_client.days_literally_homeless_last_three_years_on_effective_date).to eq(11)
     end
+
+    context 'with service added after the materialized view was refreshed' do
+      before do
+        add_days(effective_date - 15.days, project_type: 1, homeless: true, literally_homeless: true)
+
+        cohort.refresh_time_dependant_client_data
+        cohort_client.reload
+      end
+
+      it 'counts days homeless in the last three years from live service history' do
+        expect(cohort_client.days_homeless_last_three_years_on_effective_date).to eq(13)
+      end
+
+      it 'counts days literally homeless in the last three years from live service history' do
+        expect(cohort_client.days_literally_homeless_last_three_years_on_effective_date).to eq(12)
+      end
+    end
   end
 
   describe 'days homeless plus overrides' do

@@ -419,7 +419,7 @@ module GrdaWarehouse
       scope = cohort_clients
       scope = scope.where(id: cohort_client_ids) if cohort_client_ids.present?
       scope.joins(:client).preload(:client).find_in_batches do |batch|
-        stats = GrdaWarehouse::WarehouseClientsProcessed::StatsCalculator.new(client_ids: batch.map(&:client_id), on_date: effective_date_or_today)
+        stats = GrdaWarehouse::WarehouseClientsProcessed::StatsCalculator.new(client_ids: batch.map(&:client_id), on_date: effective_date_or_today, live: true)
         rows = []
         batch.each do |cc|
           time_dependent_methods.each do |column, meth|
@@ -466,6 +466,8 @@ module GrdaWarehouse
         days_homeless_last_three_years_on_effective_date: :all_homeless_in_last_three_years,
         days_literally_homeless_last_three_years_on_effective_date: :all_literally_homeless_last_three_years,
         days_homeless_plus_overrides: :homeless_counts_plus_overrides,
+        sheltered_days_homeless_last_three_years: :sheltered_homeless_last_three_years,
+        unsheltered_days_homeless_last_three_years: :unsheltered_homeless_last_three_years,
       }
     end
 
@@ -477,8 +479,6 @@ module GrdaWarehouse
         missing_documents: :missing_documents,
         individual_in_most_recent_homeless_enrollment: :individual_in_most_recent_homeless_enrollment,
         most_recent_date_to_street: :most_recent_date_to_street,
-        sheltered_days_homeless_last_three_years: :sheltered_days_homeless_last_three_years,
-        unsheltered_days_homeless_last_three_years: :unsheltered_days_homeless_last_three_years,
         most_recent_cls: :calculated_most_recent_cls,
         most_recent_prior_living_situation: :calculated_most_recent_prior_living_situation,
         most_recent_household_type: :calculated_most_recent_household_type,
@@ -494,14 +494,6 @@ module GrdaWarehouse
     # Length-of-time columns are calculated as of the effective date, or today when none is set
     private def effective_date_or_today
       effective_date || Date.current
-    end
-
-    private def sheltered_days_homeless_last_three_years(client)
-      client.sheltered_days_homeless_last_three_years(on_date: effective_date_or_today)
-    end
-
-    private def unsheltered_days_homeless_last_three_years(client)
-      client.unsheltered_days_homeless_last_three_years(on_date: effective_date_or_today)
     end
 
     private def destination_from_homelessness(client)

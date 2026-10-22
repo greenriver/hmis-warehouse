@@ -270,4 +270,36 @@ RSpec.describe GrdaWarehouse::WarehouseClientsProcessed::StatsCalculator, type: 
       end
     end
   end
+
+  describe 'sheltered and unsheltered counts' do
+    let(:client) { create :hud_client }
+    let(:on_date) { Date.current - 1.year }
+    let(:calculator) { described_class.new(client_ids: [client.id], on_date: on_date, live: true) }
+
+    def add_days(dates, project_type:, homeless:)
+      she = create(:she_entry, client: client, project_type: project_type)
+      Array.wrap(dates).each do |date|
+        create(:service_history_service, client_id: client.id, service_history_enrollment_id: she.id, record_type: 'service', date: date, project_type: project_type, homeless: homeless, literally_homeless: homeless)
+      end
+    end
+
+    before do
+      # ES: 10 days before on_date, 3 after
+      add_days((on_date - 10.days..on_date - 1.day).to_a + (on_date + 1.day..on_date + 3.days).to_a, project_type: 1, homeless: true)
+      # SO: on the first ES day, two days before the ES stay, and one after on_date
+      add_days([on_date - 10.days, on_date - 21.days, on_date - 20.days, on_date + 5.days], project_type: 4, homeless: true)
+      # PH after move-in: on the last ES day before on_date and on one SO day
+      add_days([on_date - 1.day, on_date - 21.days], project_type: 3, homeless: false)
+    end
+
+    # The 10 ES days before on_date, less the PH day
+    it 'counts sheltered days, excluding PH days and days after on_date' do
+      expect(calculator.sheltered_homeless_last_three_years[client.id]).to eq(9)
+    end
+
+    # The two SO days before the ES stay, less the PH day; the SO day on an ES day is sheltered
+    it 'counts unsheltered days, excluding sheltered days, PH days, and days after on_date' do
+      expect(calculator.unsheltered_homeless_last_three_years[client.id]).to eq(1)
+    end
+  end
 end
