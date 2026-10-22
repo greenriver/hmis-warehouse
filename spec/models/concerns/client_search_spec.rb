@@ -77,6 +77,13 @@ RSpec.describe ClientSearch do
       expect(search('9999999999')).to contain_exactly(card_client)
     end
 
+    it 'matches a scan card code with leading zeros only on the exact value' do
+      create(:hmis_scan_card_code, client: card_client, value: '00123456789')
+
+      expect(search('00123456789')).to include(card_client)
+      expect(search('123456789')).not_to include(card_client)
+    end
+
     it 'ignores an expired scan card code' do
       create(:hmis_scan_card_code, client: card_client, value: id_client.id.to_s, expires_at: Date.current - 2.days)
 
