@@ -159,6 +159,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     let!(:deactivated_scan_code) { create(:hmis_scan_card_code, client: client, value: 'P5678', deleted_at: Time.current - 2.days) }
     let!(:expired_scan_code) { create(:hmis_scan_card_code, client: client, value: 'P6666', expires_at: Date.current - 2.days) }
     let!(:other_scan_code) { create(:hmis_scan_card_code, value: 'P9999') }
+    let!(:numeric_scan_code) { create(:hmis_scan_card_code, client: client, value: '1234567') }
 
     it 'should search' do
       [
@@ -182,6 +183,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           ['text: deactivated scan card code', 'P5678', false],
           ['text: expired scan card code', 'P6666', false],
           ['text: scan card code for another client', 'P9999', false],
+          ['text: numeric scan card code', '1234567', true],
           ['text: enrollment id', "enrollment:#{e1.id}", true],
           ['text: enrollment id with extra space', " enrollment:#{e1.id} ", true],
           ['text: enrollment id with extra space after colon', "enrollment: #{e1.id} ", true],
