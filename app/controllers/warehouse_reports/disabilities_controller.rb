@@ -9,6 +9,7 @@
 module WarehouseReports
   class DisabilitiesController < ApplicationController
     include WarehouseReportAuthorization
+    include WarehouseReports::QueuedReportJobs
 
     before_action :set_jobs, only: [:index, :running]
     before_action :set_report, only: [:show, :destroy]
@@ -66,7 +67,7 @@ module WarehouseReports
     end
 
     def set_jobs
-      @jobs = Delayed::Job.jobs_for_class('RunEnrolledDisabledJob').order(run_at: :desc)
+      @job_reports = queued_reports('RunEnrolledDisabledJob')
     end
 
     def set_report

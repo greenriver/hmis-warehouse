@@ -90,6 +90,10 @@ class Hmis::BaseController < ActionController::Base
 
   def set_app_user_header
     response.headers['X-app-user-id'] = current_hmis_user&.id
+    # The SPA re-anchors its inactivity countdown on this, since any request can refresh the token.
+    # Absent on the Devise arm, whose countdown rolls forward from X-app-user-id alone.
+    remaining_secs = session_remaining_seconds
+    response.headers['X-app-session-remaining-secs'] = remaining_secs.to_s if remaining_secs
   end
 
   def set_git_revision_header

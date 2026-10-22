@@ -18,6 +18,11 @@ module Hmis::Concerns::DeviseHmisCurrentUser
       Devise.timeout_in.in_seconds
     end
 
+    # Devise's timeout restarts on every request, so there is no fixed expiry to report.
+    def session_remaining_seconds
+      nil
+    end
+
     # Defined only because Hmis::UsersController#show calls it on both arms.
     def terminal_account_error
       nil

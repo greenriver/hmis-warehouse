@@ -120,6 +120,22 @@ RSpec.describe 'HMIS JWT wiring', :jwt_only, type: :request do
       expect(response.headers['X-app-user-id']).to be_blank
     end
 
+    # The SPA re-anchors its inactivity countdown from this header on every response.
+    it 'reports the forwarded token\'s remaining seconds' do
+      freeze_time do
+        sign_in(create(:hmis_user), expires_at: 20.minutes.from_now)
+        get hmis_user_path, headers: headers
+
+        expect(response.headers['X-app-session-remaining-secs']).to eq(20.minutes.to_i.to_s)
+      end
+    end
+
+    it 'omits the remaining seconds for a tokenless request' do
+      get hmis_user_path, headers: headers
+
+      expect(response.headers).not_to have_key('X-app-session-remaining-secs')
+    end
+
     it 'answers 200 with an accountError for a deactivated holder' do
       sign_in(create(:hmis_user, active: false))
 
@@ -130,6 +146,9 @@ RSpec.describe 'HMIS JWT wiring', :jwt_only, type: :request do
       # these two keys. A regression that let current_hmis_user resolve would surface the holder's
       # full current_user_api_values here, and a partial matcher would still pass.
       expect(JSON.parse(response.body)).to eq('impersonating' => false, 'accountError' => 'account_deactivated')
+      # The token is present and unexpired, so this is the case the current_hmis_user guard in
+      # session_remaining_seconds exists for; the tokenless example above never reaches it.
+      expect(response.headers).not_to have_key('X-app-session-remaining-secs')
     end
 
     it 'answers 200 with an accountError for a good token whose holder has no warehouse account' do
