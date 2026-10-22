@@ -93,7 +93,7 @@
   "app/models/concerns/cas_client_data.rb": "bd18d72fc3dbe4007b267819bc9f678685fdb584b6f0ee58a036554da2dfe7e4",
   "app/models/concerns/client_file_base.rb": "fbdeac39e463c6613648d6aed4abf8e73276d9cceb302627b183575643b1fb24",
   "app/models/concerns/client_image_consumer.rb": "9078ee515ba69bc6f083dab0dd8240a23120abf0a912f5f1fffbce05bdb60581",
-  "app/models/concerns/client_search.rb": "da25f860f8bb62d66dd3ff57689d585ea06497841d5f1a870260511367ce8a3c",
+  "app/models/concerns/client_search.rb": "1960c97183f4fcc230c32cc5ae2635b8b63723472201262e025274b3eb62759a",
   "app/models/concerns/default_file_types.rb": "6687cb67993e9cc315b76899950a5029c137cd75fd851285315b0c385904efde",
   "app/models/concerns/document_export_behavior.rb": "8ffe9fac1401f3c3ed819d8c5144c95f0918044d81d7585852f6fd000d4daeab",
   "app/models/concerns/entity_access.rb": "5a4fbfae9306040613ec99a9594e34f61d978a718c983da520e392951b25f7d8",
