@@ -89,5 +89,42 @@ RSpec.describe ClientSearch do
 
       expect(search(id_client.id.to_s)).to contain_exactly(id_client)
     end
+
+    it 'returns both clients when a scan card code matches a merged client id' do
+      deleted_client = create(:hmis_hud_client)
+      Hmis::ClientMergeHistory.create!(retained_client: id_client, deleted_client: deleted_client, client_merge_audit: create(:hmis_client_merge_audit, actor: create(:hmis_user)))
+      deleted_client.destroy!
+      create(:hmis_scan_card_code, client: card_client, value: deleted_client.id.to_s)
+
+      expect(search(deleted_client.id.to_s)).to contain_exactly(id_client, card_client)
+    end
+
+    it 'returns both clients when a scan card code matches a warehouse destination id' do
+      warehouse_client = create(:hmis_warehouse_client, source: id_client, data_source: id_client.data_source)
+      create(:hmis_scan_card_code, client: card_client, value: warehouse_client.destination_id.to_s)
+
+      expect(search(warehouse_client.destination_id.to_s)).to include(id_client, card_client)
+    end
+
+    it 'returns only the scan card client for a dashed code' do
+      create(:hmis_scan_card_code, client: card_client, value: "#{id_client.id}-99")
+
+      expect(search("#{id_client.id}-99")).to contain_exactly(card_client)
+    end
+
+    it 'returns both clients through GrdaWarehouse::Hud::Client as a join query' do
+      create(:hmis_scan_card_code, client: card_client, value: id_client.id.to_s)
+
+      results = GrdaWarehouse::Hud::Client.text_searcher(id_client.id.to_s, sorted: false, resolve_for_join_query: true)
+
+      expect(results.map { |row| row['client_id'] }).to contain_exactly(id_client.id, card_client.id)
+    end
+
+    it 'ignores scan card codes when HMIS is disabled' do
+      allow(HmisEnforcement).to receive(:hmis_enabled?).and_return(false)
+      create(:hmis_scan_card_code, client: card_client, value: id_client.id.to_s)
+
+      expect(search(id_client.id.to_s)).to contain_exactly(id_client)
+    end
   end
 end
