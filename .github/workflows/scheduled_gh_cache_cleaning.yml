@@ -8,6 +8,7 @@ on:
 
 jobs:
   delete-cache-job:
+    if: vars.CI_AUTO_RUN == 'true' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     permissions:
       actions: write # Required to delete caches
