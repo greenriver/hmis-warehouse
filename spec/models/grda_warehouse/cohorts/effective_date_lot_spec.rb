@@ -139,7 +139,7 @@ RSpec.describe 'Cohort length-of-time columns and the effective date', type: :mo
     def static_value(klass)
       column = klass.new
       column.cohort = cohort
-      column.default_value(client.id)
+      column.default_values([client.id])[client.id]
     end
 
     context 'when clients are added by AddCohortClientsJob' do
@@ -147,7 +147,12 @@ RSpec.describe 'Cohort length-of-time columns and the effective date', type: :mo
       let(:other_client) { create :hud_client }
 
       before do
+        allow(GrdaWarehouse::WarehouseClientsProcessed::StatsCalculator).to receive(:new).and_call_original
         AddCohortClientsJob.new.perform(cohort.id, "#{client.id},#{other_client.id}", user.id)
+      end
+
+      it 'calculates static columns for all added clients at once' do
+        expect(GrdaWarehouse::WarehouseClientsProcessed::StatsCalculator).not_to have_received(:new).with(hash_including(client_ids: [client.id]))
       end
 
       # The 10 ES days before the effective date

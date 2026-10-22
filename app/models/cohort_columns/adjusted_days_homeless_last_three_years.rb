@@ -18,8 +18,9 @@ module CohortColumns
       true
     end
 
-    def default_value(client_id)
-      cohort.length_of_time_stats([client_id]).all_homeless_in_last_three_years[client_id] || 0
+    def default_values(client_ids)
+      counts = cohort.length_of_time_stats(client_ids).all_homeless_in_last_three_years
+      client_ids.index_with { |client_id| counts[client_id] || 0 }
     end
   end
 end

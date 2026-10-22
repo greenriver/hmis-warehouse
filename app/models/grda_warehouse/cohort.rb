@@ -753,20 +753,23 @@ module GrdaWarehouse
       client_ids -= cohort_clients.pluck(:client_id) # Do not touch existing clients
       cohort_clients_by_client_id = cohort_clients.only_deleted.where(client_id: client_ids).index_by(&:client_id)
       cohort_client_batch = []
-      client_ids.uniq.each do |client_id|
+      client_ids = client_ids.uniq
+      # Calculate default columns for all added clients at once
+      defaults = self.class.available_columns.select(&:default_value?).to_h do |column|
+        column.cohort = self
+        [column.column, column.default_values(client_ids)]
+      end
+      client_ids.each do |client_id|
         # Create (or resurrect) added clients
         cohort_client = cohort_clients_by_client_id[client_id] || GrdaWarehouse::CohortClient.new(cohort_id: id, client_id: client_id)
         cohort_client.deleted_at = nil
 
         # Set any default columns
-        self.class.available_columns.each do |column|
-          if column.default_value?
-            column.cohort = self
-            cohort_client[column.column] = column.default_value(client_id)
-          end
-          # Enforce that we added the client on the processing date
-          cohort_client[:date_added_to_cohort] = @processing_date
+        defaults.each do |column, values|
+          cohort_client[column] = values[client_id]
         end
+        # Enforce that we added the client on the processing date
+        cohort_client[:date_added_to_cohort] = @processing_date
 
         cohort_client_batch << cohort_client
       end
