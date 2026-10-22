@@ -12,6 +12,7 @@ sources:
   - app/controllers/concerns/warehouse_report_authorization.rb
   - app/controllers/concerns/background_render_action.rb
   - app/controllers/warehouse_reports/chronic_controller.rb
+  - app/controllers/concerns/warehouse_reports/queued_report_jobs.rb
   - app/controllers/warehouse_reports/client_details/entries_controller.rb
   - app/controllers/document_exports_controller_base.rb
   - app/jobs/warehouse_reports/generic_report_job.rb
@@ -235,8 +236,15 @@ The older shape is a bespoke job writing a `GrdaWarehouse::WarehouseReports::Bas
 everything except `data` and `support`; `completed?`, `status`, and `completed_in` derive from
 the timestamps. `WarehouseReports::ChronicController#index` enqueues
 `WarehouseReports::RunChronicJob.perform_later(filter_params.merge(current_user_id:
-current_user.id))` when the form was submitted, lists `Delayed::Job.jobs_for_class('RunChronicJob')`
-as pending runs, and pre-fills the filter from the previous run's `parameters['filter']`.
+current_user.id))` when the form was submitted, lists finished runs through
+`report_scope` (`ChronicReport.visible_to(current_user)`: every row for `can_view_all_reports?`,
+the user's own rows for `can_view_assigned_reports?`, else none), lists pending runs through
+`WarehouseReports::QueuedReportJobs#queued_reports('RunChronicJob')`, and pre-fills the filter
+from the previous run's `parameters['filter']`. `queued_reports` deserializes each queued job's
+arguments into an unsaved report with `user_id` from `current_user_id`, skips non-hash arguments
+(chronic recalculation jobs share the handler match), and keeps only the user's own jobs unless
+they `can_view_all_reports?`; the hud_chronics, active_veterans, and disabilities controllers
+use it the same way.
 `RunChronicJob#perform` shims `permit` onto the incoming hash so the controller's `load_filter`
 works, builds one `ChronicReport`, stores an array of client attribute hashes (including
 `chronic_project_names` and joined disability text) in `data`, and sends
@@ -372,7 +380,8 @@ flashes counts or errors, and redirects to `reload_from_csv_redirect_path`. A sh
 - `app/controllers/warehouse_reports/client_details/entries_controller.rb`: usage.
 - `app/jobs/background_render/entry_clients_report_job.rb`: `render_html`;
   `visible_projects`.
-- `app/controllers/warehouse_reports/chronic_controller.rb`: `index` enqueue; `show`.
+- `app/controllers/warehouse_reports/chronic_controller.rb`: `index` enqueue; `report_scope`; `show`.
+- `app/controllers/concerns/warehouse_reports/queued_report_jobs.rb`: `queued_reports`.
 - `app/jobs/warehouse_reports/run_chronic_job.rb`: `perform`; `report.data =`.
 - `app/models/grda_warehouse/warehouse_reports/base.rb`: `for_list`; `completed?`.
 - `app/models/simple_reports/report_instance.rb`: `viewable_by`; `purge_eligible`;
