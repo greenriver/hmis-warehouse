@@ -55,11 +55,12 @@ pii_policy.can_view_full_ssn?
 
 ### Client feature permissions
 
-The client History page and the homeless verification PDF are authorized per client through the destination client policy:
+Client features are authorized per client through the destination client policy:
 
 - `policy.can_view_history_calendar?` requires `can_view_clients` (or ROI view access) and `can_view_client_history_calendar` from a role that covers one of the client's projects.
 - `policy.can_generate_homeless_verification_pdfs?` requires everything `can_view_history_calendar?` requires, plus `can_generate_homeless_verification_pdfs`. The PDF contains the client's history, so the PDF permission alone is not enough.
 - `GrdaWarehouse::ClientFile.visible_by?(user, client:)` uses the same predicate to decide whether a generated verification PDF appears on the client's Files tab.
+- `policy.can_mark_restricted?` requires `can_mark_clients_as_restricted`. It is client-level and delegated to source clients like the PII permissions. Restriction does not affect it, so the marking user can always unrestrict.
 
 A role that grants these permissions on a project the client is not enrolled in does not grant them for that client.
 
@@ -121,14 +122,33 @@ The masked SSN (`XXX-XX-1234`) is a separate permission from the full SSN. Every
 
 ### Client restriction
 
-Two states hide a client's PII in the warehouse:
+Three states hide a client's PII in the warehouse:
 
-- An HMIS client marked restricted (see [HMIS Restricted Records](../hmis/hmis-restricted-records.md)).
+- An HMIS source client marked restricted in HMIS (see [HMIS Restricted Records](../hmis/hmis-restricted-records.md)).
+- A destination client marked restricted in the warehouse by a user with `can_mark_clients_as_restricted` (`DestinationClientRestriction`, stored as an `Hmis::RestrictedRecord` on the destination id).
 - A client whose warehouse identity has aged out under [Client Data Retention](client-data-retention.md).
 
-Either one blocks PII for every warehouse user, regardless of role or permissions; there is no warehouse-side override. `current_user.policy_context.client_restricted?(client_id)` answers for both states. Visibility returns when HMIS staff unmark the client, or when the identity has new activity and the next retention run clears it.
+Any of these blocks PII for every warehouse user, regardless of role or permissions; there is no warehouse-side override. `can_mark_clients_as_restricted` marks and unmarks a client. It never grants viewing, so a user with it sees the same redacted PII as everyone else while the client is restricted, with one exception: the removal confirmation shows the last name the user would see once the warehouse row is gone, subject to their name permission, an HMIS restriction, and an inactive identity. The name lets the user confirm they are unrestricting the right client, and it is a name they will see anyway once the restriction is removed. The warehouse has no equivalent of the HMIS `can_view_restricted_clients` permission; that parity was deferred on purpose and may be added as follow-up work. `current_user.policy_context.client_restricted?(client_id)` answers for all states. Visibility returns when every restriction on the identity is removed, or when the identity has new activity and the next retention run clears it. The warehouse removes only its own destination row. HMIS rows are removed in HMIS.
 
 Restriction applies to the whole warehouse identity. HMIS restriction is limited to a single data source on the HMIS front end, but in the warehouse a restriction on any source client hides the destination and every other source merged into it.
+
+Warehouse restrictions reuse `hmis_restricted_records` and its HMIS classes. The row's `restrictable_type` is `Hmis::Hud::Client` and its `created_by` is an `Hmis::User`, which read the same rows as `GrdaWarehouse::Hud::Client` and `User`. Every reader of the table matches on the `Hmis::Hud::Client` type string, including `GrdaWarehouse::HiddenClients` (redaction and search exclusion) and the `analytics.client_piis` view. A separate warehouse model or type string would mean updating each of them, and PaperTrail history would split across two item types. The HMIS driver's models load whether or not `ENABLE_HMIS_API` is set, so this works with HMIS disabled. Convert a `User` with `Hmis::User.find(user.id)`, not `as_hmis_user`, which returns nil when HMIS is disabled.
+
+Merges and splits:
+
+- Warehouse merges (`merge_from`) and HMIS client merges (`Hmis::MergeClientsJob`) carry a warehouse restriction to the surviving destination.
+- Both merges remove the restriction row from a merged-away destination that has no sources left. A destination that keeps other sources keeps its row.
+- When a restriction needs to carry over and the kept client has no warehouse destination yet, the HMIS merge links it first (`IdentifyDuplicates#ensure_source_client_linked!`) and fails only if that cannot be done. Linking waits only a few seconds for the `identify_duplicates` lock, so while a full IdentifyDuplicates run holds it the merge fails and must be retried after the run finishes. This is a known gap.
+- A warehouse merge into a client outside a destination data source fails and rolls back when the merged-away destination is restricted.
+- Undoing an HMIS merge (`Hmis::UndoMergeClientsJob`) does not move a warehouse restriction back. This is a known gap. The retained destination stays restricted, and the restored client is unrestricted if duplicate identification puts it under a different destination.
+- A split keeps a warehouse restriction on both sides.
+- A split carries only warehouse rows. An HMIS restriction stays with its source client, so the side without that source becomes visible.
+
+Restriction changes record the acting user as the PaperTrail `whodunnit` when no request has set one, so changes made by merge jobs are attributed on the audit page.
+
+The client audit page's Restriction History lists versions on the destination's own id and its current sources' ids. After a merge, the survivor's history starts with the carried restriction; the merged-away destination's history, including the removal of its row, is not shown. Rows on the destination are labeled Warehouse and rows on a source are labeled HMIS.
+
+Both the client audit page and a user's audit page (`admin/audits`) show `Name Redacted` in place of the name logged in an access-history title when the client is restricted at view time, since titles are stored at visit time. The user's audit page finds the client from the logged path and preloads restriction for the page (`ActivityLog#client_id_from_path`, `#display_title`).
 
 Hidden status is looked up a page of clients at a time, never loaded whole, so code that checks restriction for a list of clients must preload first (see [Preloading](#preloading)).
 

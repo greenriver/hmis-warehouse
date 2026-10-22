@@ -67,6 +67,29 @@ class ActivityLog < ApplicationRecord
     item_model&.gsub('GrdaWarehouse::Hud::', '')
   end
 
+  CLIENT_PATH_ID = /(?:\A|\/)clients\/(\d+)(?:[\/?]|\z)/
+
+  # item_id holds the nested resource's id on pages like clients/:client_id/files/:id, so the
+  # client id comes from the path.
+  # @return [Integer, nil]
+  def client_id_from_path
+    return unless item_model == 'GrdaWarehouse::Hud::Client'
+
+    path&.match(CLIENT_PATH_ID)&.[](1)&.to_i
+  end
+
+  # Client page titles are stored at visit time as "<name>" or "<name> - <page>", so a row logged
+  # before the client was restricted still carries the client's name.
+  # @param name_redacted [Boolean]
+  def display_title(name_redacted: false)
+    return title || controller_name unless title && name_redacted
+
+    redacted = GrdaWarehouse::PiiProvider::NAME_REDACTED
+    return redacted unless title.include?(' - ')
+
+    "#{redacted} - #{title.rpartition(' - ').last}"
+  end
+
   # Backfills reporting_path for rows that predate it (see
   # db/migrate/20260827150000_add_reporting_path_to_activity_logs.rb); run out of band via
   # TaskQueue rather than in that migration, since activity_logs is too large to backfill within a
