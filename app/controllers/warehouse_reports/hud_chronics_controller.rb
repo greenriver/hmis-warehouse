@@ -11,6 +11,7 @@ module WarehouseReports
     include ArelHelper
     include HudChronic
     include WarehouseReportAuthorization
+    include WarehouseReports::QueuedReportJobs
 
     before_action :load_filter
     before_action :set_sort, except: [:index, :show, :running]
@@ -21,7 +22,7 @@ module WarehouseReports
         # Comment to prevent rubocop trailing if
         WarehouseReports::RunHudChronicJob.perform_later(filter_params.merge(current_user_id: current_user.id))
       end
-      @jobs = Delayed::Job.jobs_for_class('RunHudChronicJob').order(run_at: :desc)
+      @job_reports = queued_reports('RunHudChronicJob')
       @reports = report_scope.ordered.limit(50)
 
       # Set default filter to prior run
@@ -55,7 +56,7 @@ module WarehouseReports
     end
 
     def running
-      @jobs = Delayed::Job.jobs_for_class('RunHudChronicJob').order(run_at: :desc)
+      @job_reports = queued_reports('RunHudChronicJob')
       @reports = report_scope.ordered.limit(50)
     end
 
