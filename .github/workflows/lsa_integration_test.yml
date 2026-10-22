@@ -77,6 +77,7 @@ env:
 
 jobs:
   lsa_integration_test:
+    if: vars.CI_AUTO_RUN == 'true' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-24.04
     container: ruby:3.4.9-slim-trixie
 

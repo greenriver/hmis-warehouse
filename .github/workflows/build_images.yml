@@ -10,6 +10,7 @@ on:
     branches:
       - "*"
       - "**/*"
+  workflow_dispatch:
 
 # Branch pushes will cancel any running jobs to the same branch
 concurrency:
@@ -19,6 +20,7 @@ concurrency:
 jobs:
   build:
     name: Build
+    if: vars.CI_AUTO_RUN == 'true' || github.event_name == 'workflow_dispatch'
 
     runs-on: ubuntu-24.04
 

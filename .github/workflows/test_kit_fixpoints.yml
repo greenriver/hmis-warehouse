@@ -4,6 +4,7 @@ on:
     branches:
       - "*"
       - "**/*"
+  workflow_dispatch:
 concurrency:
   group: ${{ github.ref }}-test_kit_fixpoints
   cancel-in-progress: true
@@ -12,7 +13,10 @@ jobs:
   rebuild_fixpoints:
     runs-on: ubuntu-24.04
     container: ruby:3.4.9-slim-trixie
-    if: contains(github.event.head_commit.message, '[gh:rebuild_fixpoints]')
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (vars.CI_AUTO_RUN == 'true' &&
+      contains(github.event.head_commit.message, '[gh:rebuild_fixpoints]'))
 
     permissions:
       contents: read
