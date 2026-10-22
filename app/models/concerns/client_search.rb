@@ -30,8 +30,11 @@ module ClientSearch
       max_pk = 2_147_483_648 # PK is a 4 byte signed INT (2 ** ((4 * 8) - 1))
       term_is_possibly_pk = numeric ? text.to_i < max_pk : false
 
+      # Numeric IDs can collide with migrated-in Scan Card codes, so the numeric branch matches both
+      numeric_id_search = numeric && !social && [32, 36].exclude?(text.size)
+
       # If alphanumeric search term matches a Scan Card code, return immediately
-      if alpha_numeric && HmisEnforcement.hmis_enabled?
+      if alpha_numeric && !numeric_id_search && HmisEnforcement.hmis_enabled?
         matching_scan_card = Hmis::ScanCardCode.active.find_by(value: text)
         return where(sa[:id].eq(matching_scan_card.client_id)) if matching_scan_card
       end
@@ -46,6 +49,8 @@ module ClientSearch
         where = sa[:DOB].eq("#{year}-#{month}-#{day}")
       elsif numeric
         where = sa[:PersonalID].eq(text)
+        # Migrated-in Scan Card codes can be numeric and collide with an ID or PersonalID, so return all matching clients
+        where = where.or(sa[:id].in(Hmis::ScanCardCode.active.where(value: text).select(:client_id).arel)) if HmisEnforcement.hmis_enabled?
         if term_is_possibly_pk
           conditions = [where, sa[:id].eq(text)]
 
