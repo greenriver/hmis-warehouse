@@ -19,7 +19,7 @@ module CohortColumns
     end
 
     def default_value(client_id)
-      GrdaWarehouse::Hud::Client.days_homeless(client_id: client_id, on_date: effective_date)
+      cohort.length_of_time_stats([client_id]).homeless_counts[client_id] || 0
     end
   end
 end

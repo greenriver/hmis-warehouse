@@ -19,7 +19,7 @@ module CohortColumns
     end
 
     def default_value(client_id)
-      GrdaWarehouse::Hud::Client.literally_homeless_last_three_years(client_id: client_id, on_date: effective_date)
+      cohort.length_of_time_stats([client_id]).all_literally_homeless_last_three_years[client_id] || 0
     end
   end
 end

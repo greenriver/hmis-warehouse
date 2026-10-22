@@ -419,7 +419,7 @@ module GrdaWarehouse
       scope = cohort_clients
       scope = scope.where(id: cohort_client_ids) if cohort_client_ids.present?
       scope.joins(:client).preload(:client).find_in_batches do |batch|
-        stats = GrdaWarehouse::WarehouseClientsProcessed::StatsCalculator.new(client_ids: batch.map(&:client_id), on_date: effective_date_or_today, live: true)
+        stats = length_of_time_stats(batch.map(&:client_id))
         rows = []
         batch.each do |cc|
           time_dependent_methods.each do |column, meth|
@@ -457,6 +457,11 @@ module GrdaWarehouse
         yield
       end
       acquired
+    end
+
+    # Length-of-time counts for a batch of clients as of the effective date, or today when none is set
+    def length_of_time_stats(client_ids)
+      GrdaWarehouse::WarehouseClientsProcessed::StatsCalculator.new(client_ids: client_ids, on_date: effective_date_or_today, live: true)
     end
 
     # Length-of-time columns, counted for a whole batch of clients at once as of the effective date

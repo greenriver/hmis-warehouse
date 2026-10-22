@@ -142,6 +142,24 @@ RSpec.describe 'Cohort length-of-time columns and the effective date', type: :mo
       column.default_value(client.id)
     end
 
+    context 'when clients are added by AddCohortClientsJob' do
+      let(:user) { create :user }
+      let(:other_client) { create :hud_client }
+
+      before do
+        AddCohortClientsJob.new.perform(cohort.id, "#{client.id},#{other_client.id}", user.id)
+      end
+
+      # The 10 ES days before the effective date
+      it 'calculates static days homeless as of the effective date' do
+        expect(cohort.cohort_clients.find_by(client_id: client.id).adjusted_days_homeless).to eq(10)
+      end
+
+      it 'calculates zero static days homeless for a client without service' do
+        expect(cohort.cohort_clients.find_by(client_id: other_client.id).adjusted_days_homeless).to eq(0)
+      end
+    end
+
     # The 10 ES days before the effective date
     it 'calculates static days homeless as of the effective date' do
       expect(static_value(CohortColumns::AdjustedDaysHomeless)).to eq(10)
