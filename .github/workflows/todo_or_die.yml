@@ -5,12 +5,14 @@ on:
     branches:
       - '*'
       - '**/*'
+  workflow_dispatch:
 concurrency:
   group: ${{ github.ref }}-todo-or-die
   cancel-in-progress: true
 
 jobs:
   todo_or_die_check:
+    if: vars.CI_AUTO_RUN == 'true' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-24.04
     container: ruby:3.4.9-slim-trixie
     permissions:

@@ -4,6 +4,7 @@ on:
     branches:
       - '*'
       - '**/*'
+  workflow_dispatch:
 concurrency:
   group: ${{ github.ref }}-audit
   cancel-in-progress: true
@@ -11,6 +12,7 @@ concurrency:
 jobs:
   # Label of the container job
   audit:
+    if: vars.CI_AUTO_RUN == 'true' || github.event_name == 'workflow_dispatch'
     # Containers must run in Linux based operating systems
     runs-on: ubuntu-24.04
     container: ruby:3.4.9-slim-trixie
