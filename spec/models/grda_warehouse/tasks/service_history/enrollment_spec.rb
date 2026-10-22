@@ -302,6 +302,29 @@ RSpec.describe GrdaWarehouse::Tasks::ServiceHistory::Enrollment, type: :model do
         expect(service_dates.last).to eq Date.current
       end
     end
+
+    context 'with a PH enrollment and a move-in date' do
+      let(:project) { create :grda_warehouse_hud_project, data_source: data_source, organization: organization, project_type: 3 } # PSH
+      let!(:exit) { create :hud_exit, data_source_id: data_source.id, EnrollmentID: enrollment.EnrollmentID, PersonalID: client.PersonalID, ExitDate: '2023-01-04' }
+
+      before { enrollment.update_column(:MoveInDate, '2023-01-02') }
+
+      it 'marks the move-in date and later days not homeless' do
+        enrollment.rebuild_service_history!
+
+        days = GrdaWarehouse::ServiceHistoryService.joins(:service_history_enrollment).where(
+          service_history_enrollments: { enrollment_group_id: enrollment.EnrollmentID },
+        ).order(:date).pluck(:date, :homeless, :literally_homeless)
+
+        expect(days).to eq(
+          [
+            ['2023-01-01'.to_date, nil, nil],
+            ['2023-01-02'.to_date, false, false],
+            ['2023-01-03'.to_date, false, false],
+          ],
+        )
+      end
+    end
   end
 
   describe '#rebuild_service_history! for SO enrollments with extrapolation' do

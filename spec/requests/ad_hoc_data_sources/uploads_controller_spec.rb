@@ -22,7 +22,7 @@ RSpec.describe 'AdHocDataSources::UploadsController', type: :request do
   end
   let!(:collection) { Collection.system_collection(:data_sources) }
   let!(:data_source) { create(:ad_hoc_data_source) }
-  let!(:batch) { create(:ad_hoc_batch_valid) }
+  let!(:batch) { create(:ad_hoc_batch_valid, ad_hoc_data_source: data_source) }
 
   let!(:hmis_ds) { create(:hmis_primary_data_source) }
   let!(:hmis_user) { create(:hmis_user, data_source: hmis_ds) }
@@ -80,6 +80,11 @@ RSpec.describe 'AdHocDataSources::UploadsController', type: :request do
 
   describe 'PATCH update' do
     let!(:unmatched_row) { GrdaWarehouse::AdHocClient.create!(batch_id: batch.id, ad_hoc_data_source_id: data_source.id, first_name: 'Unmatched', last_name: 'Row') }
+    # A row can only be linked to a client the user can search for or view; the enrollment
+    # puts the source client in a project the user's data source collection covers.
+    let!(:project) { create(:grda_warehouse_hud_project, data_source: hmis_ds) }
+    let!(:enrollment) { create(:hud_enrollment, client: GrdaWarehouse::Hud::Client.find(unrestricted_source_client.id), data_source: hmis_ds, project: project) }
+    let!(:hidden_client) { create(:grda_warehouse_hud_client, FirstName: 'Hidden', LastName: 'Client') }
 
     it 'links the row to an existing client' do
       patch ad_hoc_data_source_upload_path(data_source, batch), params: { clients: { unmatched_row.id => { client_id: unrestricted_destination_client.id } } }
@@ -92,6 +97,26 @@ RSpec.describe 'AdHocDataSources::UploadsController', type: :request do
 
       expect(unmatched_row.reload.client_id).to be_nil
     end
+
+    it 'ignores a client the user can neither search for nor view' do
+      patch ad_hoc_data_source_upload_path(data_source, batch), params: { clients: { unmatched_row.id => { client_id: hidden_client.id } } }
+
+      expect(unmatched_row.reload.client_id).to be_nil
+    end
+  end
+
+  describe 'GET download' do
+    it 'names the matched clients export after the batch' do
+      get download_ad_hoc_data_source_upload_path(data_source, batch, matched: true, format: :xlsx)
+
+      expect(response.headers['Content-Disposition']).to start_with('attachment; filename="Ad-Hoc Batch - Matched Clients.xlsx"')
+    end
+
+    it 'names the all clients export after the batch' do
+      get download_ad_hoc_data_source_upload_path(data_source, batch, all: true, format: :xlsx)
+
+      expect(response.headers['Content-Disposition']).to start_with('attachment; filename="Ad-Hoc Batch - All Clients.xlsx"')
+    end
   end
 
   context 'when the user lacks client PII view permissions' do
@@ -102,6 +127,96 @@ RSpec.describe 'AdHocDataSources::UploadsController', type: :request do
 
       expect(response.body).to include('Name Redacted')
       expect(response.body).not_to include('1999-12-01')
+    end
+  end
+
+  it 'does not route GET to the upload list' do
+    expect { Rails.application.routes.recognize_path("/ad_hoc_data_sources/#{data_source.id}/uploads", method: :get) }.
+      to raise_error(ActionController::RoutingError)
+  end
+
+  describe 'health priority' do
+    let!(:outside_client) { create(:grda_warehouse_hud_client, FirstName: 'Outside', LastName: 'Client') }
+    let!(:possible_client) { create(:grda_warehouse_hud_client, FirstName: 'Possible', LastName: 'Match') }
+
+    before { open_row.update!(matching_client_ids: [possible_client.id]) }
+
+    def prioritize(client_ids)
+      patch ad_hoc_data_source_upload_path(data_source, batch), params: {
+        clients: client_ids.to_h { |id| [id.to_s, { health_prioritized: '1' }] },
+      }
+    end
+
+    it 'prioritizes a matched client and a possible match from this upload' do
+      prioritize([unrestricted_destination_client.id, possible_client.id])
+
+      expect([unrestricted_destination_client.reload.health_prioritized, possible_client.reload.health_prioritized]).to eq(['Yes', 'Yes'])
+    end
+
+    it 'ignores a client who is not in this upload' do
+      prioritize([outside_client.id])
+
+      expect(outside_client.reload.health_prioritized).to be_nil
+    end
+
+    it 'clears priority for a client in this upload but not for one outside it' do
+      unrestricted_destination_client.update!(health_prioritized: 'Yes')
+      outside_client.update!(health_prioritized: 'Yes')
+
+      patch ad_hoc_data_source_upload_path(data_source, batch), params: {
+        clients: [unrestricted_destination_client.id, outside_client.id].to_h { |id| [id.to_s, { health_prioritized: '0' }] },
+      }
+
+      expect([unrestricted_destination_client.reload.health_prioritized, outside_client.reload.health_prioritized]).to eq([nil, 'Yes'])
+    end
+  end
+
+  describe 'an upload from another data source' do
+    let(:owner) { create(:acl_user) }
+    let(:own_source) { create(:ad_hoc_data_source, user_id: owner.id) }
+    let!(:own_batch) { create(:ad_hoc_batch_valid, ad_hoc_data_source: own_source, user_id: owner.id) }
+
+    before do
+      setup_access_control(owner, create(:role, can_manage_own_ad_hoc_data_sources: true), create(:collection))
+      sign_in owner
+    end
+
+    it 'is not found when shown through the user\'s own data source' do
+      get ad_hoc_data_source_upload_path(own_source, batch)
+
+      expect(response).to have_http_status(:not_found)
+    end
+
+    it 'is not found when its original file is downloaded through the user\'s own data source' do
+      get download_ad_hoc_data_source_upload_path(own_source, batch)
+
+      expect(response).to have_http_status(:not_found)
+    end
+
+    it 'is not deleted through the user\'s own data source' do
+      expect { delete ad_hoc_data_source_upload_path(own_source, batch) }.
+        not_to(change { GrdaWarehouse::AdHocBatch.where(id: batch.id).count })
+      expect(response).to have_http_status(:not_found)
+    end
+
+    it 'is not updated through the user\'s own data source' do
+      patch ad_hoc_data_source_upload_path(own_source, batch), params: {
+        clients: { unrestricted_destination_client.id.to_s => { health_prioritized: '1' } },
+      }
+
+      expect(response).to have_http_status(:not_found)
+      expect(unrestricted_destination_client.reload.health_prioritized).to be_nil
+    end
+
+    it 'still shows the user\'s own upload' do
+      get ad_hoc_data_source_upload_path(own_source, own_batch)
+
+      expect(response).to have_http_status(:ok)
+    end
+
+    it 'still deletes the user\'s own upload' do
+      expect { delete ad_hoc_data_source_upload_path(own_source, own_batch) }.
+        to change { GrdaWarehouse::AdHocBatch.where(id: own_batch.id).count }.from(1).to(0)
     end
   end
 end

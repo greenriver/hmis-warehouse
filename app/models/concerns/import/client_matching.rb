@@ -7,8 +7,6 @@
 # frozen_string_literal: true
 
 module Import::ClientMatching
-  CACHE_EXPIRY = if Rails.env.production? then 20.hours else 20.seconds end
-
   # match name, case insensitive, ignoring all whitespace
   private def name_matches(client)
     return [] unless client.first_name && client.last_name
@@ -30,13 +28,20 @@ module Import::ClientMatching
   end
 
   def all_clients
-    Rails.cache.fetch('all_clients_for_matching', expires_in: CACHE_EXPIRY) do
-      GrdaWarehouse::Hud::Client.source.joins(:warehouse_client_source).
-        distinct.
-        pluck(*client_columns.values).map do |row|
-          Hash[client_columns.keys.zip(row)]
-        end
-    end
+    @all_clients ||= GrdaWarehouse::Hud::Client.source.joins(:warehouse_client_source).
+      distinct.
+      pluck(*client_columns.values).map do |row|
+        Hash[client_columns.keys.zip(row)]
+      end
+  end
+
+  # Queued batches are processed in one loop that keeps every batch in memory until
+  # it finishes, so each batch releases its copy of the client list when done
+  private def clear_client_matching_data
+    @all_clients = nil
+    @clients_by_name = nil
+    @clients_by_ssn = nil
+    @clients_by_dob = nil
   end
 
   private def clients_by_name

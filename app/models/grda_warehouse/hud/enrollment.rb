@@ -178,7 +178,8 @@ module GrdaWarehouse::Hud
     end
 
     scope :housed, ->(range) do
-      residential_non_homeless.where(MoveInDate: range)
+      with_project_type(HudHelper.util.residential_project_type_numbers_by_code.values_at(:ph, :th).flatten).
+        where(MoveInDate: range)
     end
 
     scope :heads_of_households, -> do
