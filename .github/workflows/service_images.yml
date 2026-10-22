@@ -13,6 +13,7 @@ concurrency:
 
 jobs:
   build:
+    if: vars.CI_AUTO_RUN == 'true'
     runs-on: ubuntu-24.04
 
     permissions:
