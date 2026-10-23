@@ -59,12 +59,21 @@ RSpec.describe HmisUtil::MigratedFileAttachmentLoader do
     file = Hmis::File.find_by!(client_id: client.id)
     blob = file.client_file.blob
     expect(file).to have_attributes(
-      enrollment_id: enrollment.id, user_id: user.id, updated_by_id: user.id, name: 'ROI.pdf', note: 'ROI',
-      confidential: false, created_at: row[:created_at],
+      enrollment_id: enrollment.id,
+      user_id: user.id,
+      updated_by_id: user.id,
+      name: 'ROI.pdf',
+      note: 'ROI',
+      confidential: false,
+      created_at: row[:created_at],
     )
     expect(blob).to have_attributes(
-      key: row[:s3_key], filename: ActiveStorage::Filename.new('ROI.pdf'), content_type: 'application/pdf',
-      byte_size: 4_389_645, checksum: 'h1B+rsMhta5QIRYTLrRk4A==', service_name: ActiveStorage::Blob.service.name.to_s,
+      key: row[:s3_key],
+      filename: ActiveStorage::Filename.new('ROI.pdf'),
+      content_type: 'application/pdf',
+      byte_size: 4_389_645,
+      checksum: 'h1B+rsMhta5QIRYTLrRk4A==',
+      service_name: ActiveStorage::Blob.service.name.to_s,
     )
     expect(file.tags).to contain_exactly(roi_tag, migrated_tag)
     expect(status(row[:s3_key])).to include('active_storage_blob_id' => blob.id, 'errors' => nil)
@@ -190,7 +199,7 @@ RSpec.describe HmisUtil::MigratedFileAttachmentLoader do
   end
 
   it 'moves past an errored row in the middle of a batch' do
-    keys = %w[a b c].map { |k| "migration/mar/#{k}" }
+    keys = ['a', 'b', 'c'].map { |k| "migration/mar/#{k}" }
     add_row(s3_key: keys[0])
     add_row(s3_key: keys[1], type: 'GrdaWarehouse::Upload')
     add_row(s3_key: keys[2])
