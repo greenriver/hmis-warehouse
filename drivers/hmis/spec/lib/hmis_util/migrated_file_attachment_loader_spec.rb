@@ -241,4 +241,72 @@ RSpec.describe HmisUtil::MigratedFileAttachmentLoader do
 
     expect(Hmis::File.pluck(:user_id)).to contain_exactly(deleted_user.id)
   end
+
+  it 'records an error for a row with no name and still loads the rest of its batch' do
+    nameless = add_row(name: '  ')
+    good = add_row
+
+    loader.run!
+
+    expect(status(nameless[:s3_key])).to include('errors' => 'no name', 'active_storage_completed_at' => nil)
+    expect(ActiveStorage::Blob.pluck(:key)).to contain_exactly(good[:s3_key])
+  end
+
+  it 'reports only its own work when one instance runs twice' do
+    add_row
+    instance = loader
+    instance.run!
+    add_row
+
+    summary = instance.run!
+
+    expect(summary.loaded).to eq(1)
+  end
+
+  it 'refuses to start while another run holds the loader lock' do
+    add_row
+    # A separate session: transactional tests hand every pool checkout the same one.
+    config = GrdaWarehouseBase.connection_db_config.configuration_hash
+    other = PG.connect(host: config[:host], port: config[:port], dbname: config[:database], user: config[:username], password: config[:password])
+    other.exec_params('SELECT pg_advisory_lock(hashtext($1))', [described_class::LOCK_NAME])
+
+    expect { loader.run! }.to raise_error(described_class::AlreadyRunning)
+    expect(GrdaWarehouse::File.count).to eq(0)
+  ensure
+    other&.close
+  end
+
+  describe described_class::S3ObjectStat do
+    let(:s3_client) { Aws::S3::Client.new(stub_responses: true, region: 'us-east-1', credentials: Aws::Credentials.new('key', 'secret')) }
+    let(:body) { 'sample migrated file' }
+    let(:body_md5) { Digest::MD5.base64digest(body) }
+    let(:stat) { described_class.new(client: s3_client, bucket_name: 'bucket') }
+
+    def stub_head(etag:, server_side_encryption: nil)
+      s3_client.stub_responses(:head_object, content_length: body.bytesize, etag: etag, server_side_encryption: server_side_encryption)
+      s3_client.stub_responses(:get_object, body: body)
+    end
+
+    it 'takes the checksum from a single-part ETag on an unencrypted or SSE-S3 object' do
+      stub_head(etag: %("#{Digest::MD5.hexdigest('etag content')}"), server_side_encryption: 'AES256')
+
+      expect(stat.call('k')).to eq(HmisUtil::MigratedFileAttachmentLoader::ObjectStat.new(byte_size: body.bytesize, checksum: Digest::MD5.base64digest('etag content')))
+    end
+
+    it 'computes the checksum from the content when the ETag is not an MD5' do
+      stub_head(etag: %("#{Digest::MD5.hexdigest('kms etag')}"), server_side_encryption: 'aws:kms')
+      expect(stat.call('k').checksum).to eq(body_md5)
+
+      stub_head(etag: %("#{Digest::MD5.hexdigest('parts')}-3"))
+      expect(stat.call('k').checksum).to eq(body_md5)
+    end
+
+    it 'returns nil when the object is missing or not readable' do
+      s3_client.stub_responses(:head_object, 'NotFound')
+      expect(stat.call('k')).to be_nil
+
+      s3_client.stub_responses(:head_object, 'Forbidden')
+      expect(stat.call('k')).to be_nil
+    end
+  end
 end

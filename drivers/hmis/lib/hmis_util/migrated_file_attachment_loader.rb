@@ -29,6 +29,7 @@ module HmisUtil
     DEFAULT_TRACKING_TABLE = 'hmis_migration.migrated_file_attachment_load_statuses'
     BATCH_SIZE = 1_000
     MAX_ERROR_LENGTH = 1_000
+    LOCK_NAME = 'HmisUtil::MigratedFileAttachmentLoader'
 
     REGULAR_TYPE = 'Hmis::File'
     HEADSHOT_TYPE = 'GrdaWarehouse::ClientFile'
@@ -50,6 +51,7 @@ module HmisUtil
 
     class MissingAvailableFileTags < StandardError; end
     class DuplicateSourceKeys < StandardError; end
+    class AlreadyRunning < StandardError; end
 
     ObjectStat = Data.define(:byte_size, :checksum)
     Summary = Data.define(:loaded, :headshots, :already_loaded, :errored, :warned, :dry_run)
@@ -65,17 +67,42 @@ module HmisUtil
       end
     end
 
-    # Reads size and checksum with one HEAD request. Active Storage checksums are the base64 MD5 of the
-    # content; an S3 ETag is that MD5 in hex only for single-part uploads, so multipart ETags give no checksum.
+    # Active Storage checksums are the base64 MD5 of the content, and Blob#open (variants, analysis)
+    # raises IntegrityError when it doesn't match. An S3 ETag is that MD5 in hex only for a single-part
+    # upload stored unencrypted or with SSE-S3 (AES256); otherwise the content is read to compute it.
+    # A 403 is treated like a 404: without s3:ListBucket, S3 answers 403 for a missing key.
     class S3ObjectStat
       MD5_ETAG = /\A"?(\h{32})"?\z/
+      ETAG_MD5_ENCRYPTION = [nil, 'AES256'].freeze
+
+      def initialize(client: nil, bucket_name: nil)
+        @client = client
+        @bucket_name = bucket_name
+      end
 
       def call(key)
-        response = ActiveStorage::Blob.service.bucket.client.head_object(bucket: ActiveStorage::Blob.service.bucket.name, key: key)
-        md5 = response.etag.to_s[MD5_ETAG, 1]
-        ObjectStat.new(byte_size: response.content_length, checksum: md5 && Base64.strict_encode64([md5].pack('H*')))
-      rescue Aws::S3::Errors::NotFound
+        head = client.head_object(bucket: bucket_name, key: key)
+        md5_hex = head.etag.to_s[MD5_ETAG, 1] if head.server_side_encryption.in?(ETAG_MD5_ENCRYPTION) && head.sse_customer_algorithm.nil?
+        checksum = md5_hex ? Base64.strict_encode64([md5_hex].pack('H*')) : content_md5(key)
+        ObjectStat.new(byte_size: head.content_length, checksum: checksum)
+      rescue Aws::S3::Errors::NotFound, Aws::S3::Errors::Forbidden
         nil
+      end
+
+      private
+
+      def content_md5(key)
+        digest = Digest::MD5.new
+        client.get_object(bucket: bucket_name, key: key) { |chunk| digest << chunk }
+        digest.base64digest
+      end
+
+      def client
+        @client ||= ActiveStorage::Blob.service.bucket.client
+      end
+
+      def bucket_name
+        @bucket_name ||= ActiveStorage::Blob.service.bucket.name
       end
     end
 
@@ -95,26 +122,28 @@ module HmisUtil
       @batch_size = batch_size
       @dry_run = dry_run
       @object_stat = object_stat
-      @counts = { loaded: 0, headshots: 0, already_loaded: 0, warned: 0 }
-      @errored = Hash.new(0)
-      @touched_tag_ids = Set.new
     end
 
     def run!
-      create_tracking_table
-      load_available_tags!
-      check_duplicate_keys!
+      @counts = { loaded: 0, headshots: 0, already_loaded: 0, warned: 0 }
+      @errored = Hash.new(0)
 
-      cursor = ''
-      loop do
-        rows = fetch_batch(cursor)
-        break if rows.empty?
+      with_run_lock do
+        create_tracking_table
+        load_available_tags!
+        check_duplicate_keys!
 
-        cursor = rows.last['s3_key']
-        process_batch(rows)
-        puts "#{prefix}Through #{cursor}: #{@counts.map { |k, v| "#{k} #{v}" }.join(', ')}, errored #{@errored.values.sum}"
+        cursor = ''
+        loop do
+          rows = fetch_batch(cursor)
+          break if rows.empty?
+
+          cursor = rows.last['s3_key']
+          process_batch(rows)
+          puts "#{prefix}Through #{cursor}: #{@counts.map { |k, v| "#{k} #{v}" }.join(', ')}, errored #{@errored.values.sum}"
+        end
+        reset_tag_counts unless @dry_run
       end
-      reset_tag_counts unless @dry_run
 
       summary = Summary.new(**@counts, errored: @errored.to_h, dry_run: @dry_run)
       puts "#{prefix}#{summary.inspect}"
@@ -131,6 +160,19 @@ module HmisUtil
     def tracking = connection.quote_table_name(@tracking_table)
     def q(value) = connection.quote(value)
     def prefix = @dry_run ? '[DRY RUN] ' : ''
+
+    # A second run started while one is in its warehouse transaction would see the first run's
+    # attachments without their files, treat them as orphans, and load the rows again.
+    def with_run_lock
+      lock_key = "hashtext(#{q(LOCK_NAME)})"
+      raise AlreadyRunning, "Another #{self.class.name} run holds the lock" unless connection.select_value("SELECT pg_try_advisory_lock(#{lock_key})")
+
+      begin
+        yield
+      ensure
+        connection.select_value("SELECT pg_advisory_unlock(#{lock_key})")
+      end
+    end
 
     def create_tracking_table
       connection.execute(<<~SQL)
@@ -149,6 +191,11 @@ module HmisUtil
       @available_tags = GrdaWarehouse::AvailableFileTag.where(name: names).index_by(&:name)
       missing = names - @available_tags.keys
       raise MissingAvailableFileTags, "Missing available file tags: #{missing.join(', ')}" if missing.any?
+
+      # Created here, outside the write transactions, so a rolled-back batch can't leave a cached id
+      # for a tag row that was never committed.
+      tag_names = @available_tags.values.map { |tag| tag.id.to_s } + [HEADSHOT_TAG]
+      @tag_ids = tag_names.index_with { |name| ActsAsTaggableOn::Tag.find_or_create_by!(name: name).id }
     end
 
     def check_duplicate_keys!
@@ -198,6 +245,7 @@ module HmisUtil
       candidates.each do |candidate|
         row = candidate.row
         candidate.errors << "unknown type #{candidate.type}" unless candidate.type.in?([REGULAR_TYPE, HEADSHOT_TYPE])
+        candidate.errors << 'no name' if row['name'].blank?
         if !row['client_id'].in?(hmis_client_ids)
           candidate.errors << "client #{row['client_id']} not in HMIS data source"
         elsif !candidate.headshot?
@@ -355,16 +403,13 @@ module HmisUtil
     end
 
     def tag_id(name)
-      @tag_ids ||= {}
-      @tag_ids[name] ||= ActsAsTaggableOn::Tag.find_or_create_by!(name: name).id.tap { |id| @touched_tag_ids << id }
+      @tag_ids.fetch(name)
     end
 
     def reset_tag_counts
-      return if @touched_tag_ids.empty?
-
       tags = ActsAsTaggableOn::Tag.arel_table
       taggings = ActsAsTaggableOn::Tagging.arel_table
-      ActsAsTaggableOn::Tag.where(id: @touched_tag_ids.to_a).update_all(
+      ActsAsTaggableOn::Tag.where(id: @tag_ids.values).update_all(
         taggings_count: Arel::Nodes::Grouping.new(
           taggings.project(Arel.star.count).where(taggings[:tag_id].eq(tags[:id])),
         ),
