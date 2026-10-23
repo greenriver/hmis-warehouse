@@ -204,6 +204,36 @@ RSpec.describe HmisUtil::MigratedFileAttachmentLoader do
     expect(status(row[:s3_key])['errors']).to be_nil
   end
 
+  it 'takes the content type from the source content_type column when it has a value' do
+    connection.execute("ALTER TABLE #{source} ADD COLUMN content_type text")
+    declared = add_row(content_type: ' image/tiff ')
+    blank = add_row(content_type: '')
+
+    loader.run!
+
+    expect(ActiveStorage::Blob.find_by!(key: declared[:s3_key]).content_type).to eq('image/tiff')
+    expect(ActiveStorage::Blob.find_by!(key: blank[:s3_key]).content_type).to eq('application/pdf')
+  end
+
+  it 'identifies a file whose name has no extension from its first bytes in storage' do
+    row = add_row(name: 'ID scan')
+    ActiveStorage::Blob.service.upload(row[:s3_key], StringIO.new("\x89PNG\r\n\x1A\n#{'0' * 5_000}".b))
+
+    loader.run!
+
+    expect(ActiveStorage::Blob.find_by!(key: row[:s3_key]).content_type).to eq('image/png')
+  end
+
+  it 'records a missing S3 object when a file with no extension cannot be read' do
+    missing = add_row(name: 'ID scan')
+    good = add_row
+
+    loader.run!
+
+    expect(status(missing[:s3_key])).to include('errors' => 'S3 object not found', 'active_storage_completed_at' => nil)
+    expect(ActiveStorage::Blob.pluck(:key)).to contain_exactly(good[:s3_key])
+  end
+
   it 'leaves rows with no checksum out of the run' do
     no_checksum = add_row(checksum: nil, size: nil)
     blank_checksum = add_row(checksum: ' ')

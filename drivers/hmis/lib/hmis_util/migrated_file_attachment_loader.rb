@@ -31,6 +31,7 @@ module HmisUtil
     DEFAULT_TRACKING_TABLE = 'hmis_migration.migrated_file_attachment_load_statuses'
     BATCH_SIZE = 1_000
     MAX_ERROR_LENGTH = 1_000
+    IDENTIFY_BYTES = 4.kilobytes
     LOCK_NAME = 'HmisUtil::MigratedFileAttachmentLoader'
 
     REGULAR_TYPE = 'Hmis::File'
@@ -58,7 +59,7 @@ module HmisUtil
     ObjectStat = Data.define(:byte_size)
     Summary = Data.define(:loaded, :headshots, :already_loaded, :errored, :warned, :dry_run)
 
-    Candidate = Struct.new(:row, :errors, :warnings, :user_id, :updated_by_id, :byte_size, keyword_init: true) do
+    Candidate = Struct.new(:row, :errors, :warnings, :user_id, :updated_by_id, :byte_size, :content_type, keyword_init: true) do
       def key = row['s3_key']
       def type = row['type']
       def headshot? = type == HEADSHOT_TYPE
@@ -214,6 +215,7 @@ module HmisUtil
       started_at = Time.current
       upsert_tracking(candidates.select(&:valid?).map { |c| { s3_key: c.key, active_storage_started_at: started_at, errors: nil } })
       fill_object_stats(candidates.select(&:valid?))
+      identify_content_types(candidates.select(&:valid?))
       errored = candidates.reject(&:valid?)
       upsert_tracking(errored.map { |c| { s3_key: c.key, errors: c.errors.join('; ') } })
       errored.each { |candidate| count(candidate) }
@@ -263,6 +265,24 @@ module HmisUtil
       end
     end
 
+    # The source content_type wins, then the file name's extension, then the file's first bytes (the
+    # same 4 KB Active Storage reads to identify an upload).
+    def identify_content_types(candidates)
+      candidates.each do |candidate|
+        name = candidate.row['name'].to_s
+        candidate.content_type = candidate.row['content_type'].to_s.strip.presence ||
+          (Marcel::MimeType.for(name: name) if File.extname(name).delete_prefix('.').present?) ||
+          content_type_from_storage(candidate)
+      end
+    end
+
+    def content_type_from_storage(candidate)
+      Marcel::MimeType.for(ActiveStorage::Blob.service.download_chunk(candidate.key, 0...IDENTIFY_BYTES))
+    rescue ActiveStorage::FileNotFoundError, Aws::S3::Errors::Forbidden
+      candidate.errors << 'S3 object not found'
+      nil
+    end
+
     def count(candidate)
       if !candidate.valid?
         @errored[candidate.errors.join('; ').gsub(/ \d+/, '')] += 1
@@ -301,7 +321,7 @@ module HmisUtil
           {
             key: candidate.key,
             filename: candidate.row['name'],
-            content_type: Marcel::MimeType.for(name: candidate.row['name'].to_s),
+            content_type: candidate.content_type,
             metadata: { identified: true }.to_json,
             service_name: ActiveStorage::Blob.service.name.to_s,
             byte_size: candidate.byte_size,
