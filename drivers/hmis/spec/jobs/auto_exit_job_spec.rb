@@ -191,6 +191,26 @@ RSpec.describe Hmis::AutoExitJob, type: :model do
       expect(e1.custom_assessments).to contain_exactly(ca1, have_attributes(assessment_date: ca1.assessment_date, data_collection_stage: 3))
     end
 
+    it 'should exit correctly for a case note' do
+      e1 = create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1, entry_date: Date.current - 2.months
+      cn1 = create :hmis_hud_custom_case_note, data_source: ds1, client: c1, enrollment: e1, user: u1, information_date: Date.current - 31.days
+
+      Hmis::AutoExitJob.perform_now
+
+      expect(Hmis::Hud::Enrollment.exited).to include(e1)
+      expect(e1.exit).to have_attributes(auto_exited: be_present, exit_date: cn1.information_date, destination: 30)
+      expect(e1.custom_assessments).to contain_exactly(have_attributes(assessment_date: cn1.information_date, data_collection_stage: 3))
+    end
+
+    it 'should not exit if client has a recent case note' do
+      e1 = create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1, entry_date: Date.current - 2.months
+      create :hmis_hud_custom_case_note, data_source: ds1, client: c1, enrollment: e1, user: u1, information_date: Date.current - 10.days
+
+      Hmis::AutoExitJob.perform_now
+
+      expect(Hmis::Hud::Enrollment.exited).not_to include(e1)
+    end
+
     it 'should pick the latest exit date for all entities considered as contacts' do
       e1 = create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1, entry_date: Date.current - 2.months
       create :hmis_hud_service, data_source: ds1, client: c1, enrollment: e1, user: u1, record_type: 141, type_provided: 1, date_provided: Date.current - 33.days
