@@ -69,6 +69,15 @@ jobs:
             -v $(pwd)/${{ matrix.dockerfile }}:/Dockerfile \
             --rm -i ghcr.io/hadolint/hadolint:latest-alpine hadolint /Dockerfile
 
+      # The image build (buildkit state + load tarball + local layer cache) can exhaust
+      # the runner's disk. Remove preinstalled toolchains we don't use to make room.
+      - name: Free disk space
+        run: |
+          df -h /
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
+          sudo docker image prune -af
+          df -h /
+
       - name: Set up Docker Buildx
         id: buildx
         uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
