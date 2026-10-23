@@ -13,9 +13,14 @@ class AddCohortClientsJob < BaseJob
     client_ids = client_ids.split(',').map(&:strip).compact.map(&:to_i)
     cohort = cohort_source.find(cohort_id)
     cohort_client_ids = []
+    # Calculate default columns for all clients at once
+    defaults = cohort_source.available_columns.select(&:default_value?).to_h do |column|
+      column.cohort = cohort
+      [column.column, column.default_values(client_ids)]
+    end
     # Add clients to cohort as quickly as possible so they show up in the UI
     client_ids.each do |id|
-      cohort_client = create_cohort_client(cohort, id, user_id)
+      cohort_client = create_cohort_client(cohort, id, user_id, defaults)
       cohort_client_ids << cohort_client.id
     end
     # calculate any cached per-client values
@@ -24,15 +29,12 @@ class AddCohortClientsJob < BaseJob
     cohort.refresh_time_dependant_client_data(cohort_client_ids: cohort_client_ids)
   end
 
-  def create_cohort_client(cohort, client_id, user_id)
+  def create_cohort_client(cohort, client_id, user_id, defaults)
     cohort_client = cohort_client_source.with_deleted.
       where(cohort_id: cohort.id, client_id: client_id).first_or_initialize
     cohort_client.deleted_at = nil
-    cohort_source.available_columns.each do |column|
-      if column.default_value?
-        column.cohort = cohort
-        cohort_client[column.column] = column.default_value(client_id)
-      end
+    defaults.each do |column, values|
+      cohort_client[column] = values[client_id]
     end
     if cohort_client.changed? || cohort_client.new_record?
       cohort_client.save
