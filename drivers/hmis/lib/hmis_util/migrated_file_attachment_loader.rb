@@ -23,8 +23,9 @@
 #     WHERE src.s3_key > '' AND t.active_storage_completed_at IS NULL AND NULLIF(TRIM(src.checksum), '') IS NOT NULL
 #     ORDER BY src.s3_key LIMIT 1000;
 #
-# Usage from a console:
+# Usage from a console (or see the driver:hmis:load_migrated_file_attachments rake task):
 #   HmisUtil::MigratedFileAttachmentLoader.new(source_table: 'hmis_migration.mar_file_attachments_to_load', dry_run: true).run!
+# `limit:` caps the source rows a run examines, errored rows included; a later run continues after them.
 module HmisUtil
   class MigratedFileAttachmentLoader
     DEFAULT_SOURCE_TABLE = 'hmis_migration.mar_file_attachments_to_load'
@@ -101,14 +102,18 @@ module HmisUtil
       required_tags: REQUIRED_TAGS,
       migration_tag: MIGRATION_TAG,
       batch_size: BATCH_SIZE,
+      limit: nil,
       dry_run: true,
       object_stat: S3ObjectStat.new
     )
+      raise ArgumentError, 'limit must be a positive integer' unless limit.nil? || (limit.is_a?(Integer) && limit.positive?)
+
       @source_table = source_table
       @tracking_table = tracking_table
       @required_tags = required_tags
       @migration_tag = migration_tag
       @batch_size = batch_size
+      @limit = limit
       @dry_run = dry_run
       @object_stat = object_stat
     end
@@ -123,10 +128,14 @@ module HmisUtil
         check_duplicate_keys!
 
         cursor = ''
+        remaining = @limit
         loop do
-          rows = fetch_batch(cursor)
+          break if remaining&.zero?
+
+          rows = fetch_batch(cursor, [@batch_size, remaining].compact.min)
           break if rows.empty?
 
+          remaining -= rows.size if remaining
           cursor = rows.last['s3_key']
           process_batch(rows)
           puts "#{prefix}Through #{cursor}: #{@counts.map { |k, v| "#{k} #{v}" }.join(', ')}, errored #{@errored.values.sum}"
@@ -194,14 +203,14 @@ module HmisUtil
       raise DuplicateSourceKeys, "#{count} s3_keys appear more than once in #{@source_table}" if count.positive?
     end
 
-    def fetch_batch(cursor)
+    def fetch_batch(cursor, size)
       connection.select_all(<<~SQL).to_a
         SELECT src.* FROM #{source} src
         LEFT JOIN #{tracking} t ON t.s3_key = src.s3_key
         WHERE src.s3_key > #{q(cursor)} AND t.active_storage_completed_at IS NULL
           AND NULLIF(TRIM(src.checksum), '') IS NOT NULL
         ORDER BY src.s3_key
-        LIMIT #{@batch_size.to_i}
+        LIMIT #{size.to_i}
       SQL
     end
 

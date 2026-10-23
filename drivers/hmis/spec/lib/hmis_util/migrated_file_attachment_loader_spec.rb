@@ -260,6 +260,23 @@ RSpec.describe HmisUtil::MigratedFileAttachmentLoader do
     expect(ActiveStorage::Blob.pluck(:key)).to contain_exactly(keys[0], keys[2])
   end
 
+  it 'stops after limit source rows, counting errored rows, and picks up from there on the next run' do
+    keys = ['a', 'b', 'c', 'd'].map { |k| "migration/mar/#{k}" }
+    add_row(s3_key: keys[0], type: 'GrdaWarehouse::Upload')
+    keys.drop(1).each { |key| add_row(s3_key: key) }
+
+    first = loader(limit: 2, batch_size: 1).run!
+    expect(first.loaded).to eq(1)
+    expect(ActiveStorage::Blob.pluck(:key)).to contain_exactly(keys[1])
+
+    loader(limit: 2).run!
+    expect(ActiveStorage::Blob.pluck(:key)).to contain_exactly(keys[1], keys[2])
+  end
+
+  it 'rejects a limit that is not a positive integer' do
+    expect { loader(limit: 0) }.to raise_error(ArgumentError, 'limit must be a positive integer')
+  end
+
   it 'writes nothing in a dry run but reports what it would load' do
     add_row
     no_enrollment = add_row(enrollment_id: nil)
