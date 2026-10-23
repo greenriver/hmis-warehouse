@@ -211,6 +211,14 @@ RSpec.describe Hmis::AutoExitJob, type: :model do
       expect(Hmis::Hud::Enrollment.exited).not_to include(e1)
     end
 
+    it 'should ignore Case Note that is missing InformationDate' do
+      e1 = create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1, entry_date: Date.current - 2.months
+      create :hmis_hud_custom_case_note, data_source: ds1, client: c1, enrollment: e1, user: u1, information_date: nil
+
+      Hmis::AutoExitJob.perform_now
+      expect(e1.exit).to have_attributes(auto_exited: be_present, exit_date: e1.entry_date, destination: 30)
+    end
+
     it 'should pick the latest exit date for all entities considered as contacts' do
       e1 = create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1, entry_date: Date.current - 2.months
       create :hmis_hud_service, data_source: ds1, client: c1, enrollment: e1, user: u1, record_type: 141, type_provided: 1, date_provided: Date.current - 33.days
