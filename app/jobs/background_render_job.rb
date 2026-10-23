@@ -42,14 +42,19 @@ class BackgroundRenderJob < BaseJob
     # Same channel name ActionCable::SubscriptionAdapter::ChannelPrefix subscribes to.
     channel = [ActionCable.server.config.cable[:channel_prefix], BackgroundRenderChannel.stream_name(render_id)].compact.join(':')
     redis = pubsub.redis_connection_for_subscriptions
-    checks = (SUBSCRIBER_WAIT_SECONDS / SUBSCRIBER_POLL_SECONDS).round + 1
-    checks.times do |check|
-      sleep SUBSCRIBER_POLL_SECONDS if check.positive?
-      return true if redis.pubsub('numsub', channel).last.to_i.positive?
+    started_at = monotonic_now
+    until redis.pubsub('numsub', channel).last.to_i.positive?
+      return false if monotonic_now - started_at >= SUBSCRIBER_WAIT_SECONDS
+
+      sleep SUBSCRIBER_POLL_SECONDS
     end
-    false
+    true
   ensure
     redis&.close
+  end
+
+  private def monotonic_now
+    Process.clock_gettime(Process::CLOCK_MONOTONIC)
   end
 
   private def handle_error(render_id, error)

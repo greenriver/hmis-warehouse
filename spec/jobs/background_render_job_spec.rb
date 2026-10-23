@@ -26,6 +26,7 @@ RSpec.describe BackgroundRenderJob do
   before do
     allow(ActionCable.server).to receive(:broadcast) { |name, data| broadcasts << [name, data] }
     allow(job).to receive(:sleep) { |seconds| slept << seconds }
+    allow(job).to receive(:monotonic_now) { slept.sum }
   end
 
   def broadcast_html
@@ -34,9 +35,10 @@ RSpec.describe BackgroundRenderJob do
 
   context 'with the Redis subscription adapter' do
     let(:redis) { instance_double(Redis, close: nil) }
+    let(:pubsub) { ActionCable::SubscriptionAdapter::Redis.new(ActionCable.server) }
 
     before do
-      allow(ActionCable.server).to receive(:pubsub).and_return(ActionCable::SubscriptionAdapter::Redis.new(ActionCable.server))
+      allow(ActionCable.server).to receive(:pubsub).and_return(pubsub)
       allow(ActionCable::SubscriptionAdapter::Redis).to receive(:redis_connector).and_return(->(_config) { redis })
       allow(redis).to receive(:pubsub).with('numsub', anything) { |_, channel| [channel, 0] }
     end
@@ -73,12 +75,15 @@ RSpec.describe BackgroundRenderJob do
       expect(broadcast_html).to eq(['<p>Rendered section</p>'])
     end
 
-    it 'counts subscribers on the stream name with the cable channel prefix' do
+    it 'counts subscribers on the channel name the Redis adapter subscribes to' do
       # Same shape as config/cable.yml once loaded: string keys with indifferent access.
       allow(ActionCable.server.config).to receive(:cable).and_return(
         ActiveSupport::HashWithIndifferentAccess.new(adapter: 'redis', url: 'redis://cache.example.test:6379/1', channel_prefix: 'hmis_test'),
       )
-      subscriber_counts("hmis_test:#{stream}", 1)
+      # channel_with_prefix is private in ActionCable; the job builds the same name itself.
+      subscribed_channel = pubsub.send(:channel_with_prefix, stream)
+      expect(subscribed_channel).to start_with('hmis_test')
+      subscriber_counts(subscribed_channel, 1)
 
       job.perform(render_id)
 
