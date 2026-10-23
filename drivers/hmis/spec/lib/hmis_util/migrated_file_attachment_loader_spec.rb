@@ -20,7 +20,13 @@ RSpec.describe HmisUtil::MigratedFileAttachmentLoader do
   let!(:client) { create(:hmis_hud_client, data_source: data_source) }
   let!(:enrollment) { create(:hmis_hud_enrollment, data_source: data_source, client: client) }
   let(:stats) { {} }
-  let(:object_stat) { ->(key) { stats[key] } }
+  let(:stat_calls) { [] }
+  let(:object_stat) do
+    lambda do |key|
+      stat_calls << key
+      stats[key]
+    end
+  end
 
   before do
     connection.execute(<<~SQL)
@@ -187,15 +193,29 @@ RSpec.describe HmisUtil::MigratedFileAttachmentLoader do
   end
 
   it 'records a missing S3 object, then loads and clears the error once the object exists' do
-    row = add_row(checksum: nil, size: nil)
+    row = add_row(size: nil)
     loader.run!
     expect(status(row[:s3_key])).to include('errors' => 'S3 object not found', 'active_storage_completed_at' => nil)
 
-    stats[row[:s3_key]] = described_class::ObjectStat.new(byte_size: 789, checksum: 'wJISUv6QMw3j0GGZcIyV2g==')
+    stats[row[:s3_key]] = described_class::ObjectStat.new(byte_size: 789)
     loader.run!
 
-    expect(ActiveStorage::Blob.find_by!(key: row[:s3_key])).to have_attributes(byte_size: 789, checksum: 'wJISUv6QMw3j0GGZcIyV2g==')
+    expect(ActiveStorage::Blob.find_by!(key: row[:s3_key])).to have_attributes(byte_size: 789, checksum: row[:checksum])
     expect(status(row[:s3_key])['errors']).to be_nil
+  end
+
+  it 'leaves rows with no checksum out of the run' do
+    no_checksum = add_row(checksum: nil, size: nil)
+    blank_checksum = add_row(checksum: ' ')
+    good = add_row
+    stats[no_checksum[:s3_key]] = described_class::ObjectStat.new(byte_size: 789)
+
+    summary = loader.run!
+
+    expect(ActiveStorage::Blob.pluck(:key)).to contain_exactly(good[:s3_key])
+    expect([status(no_checksum[:s3_key]), status(blank_checksum[:s3_key])]).to eq([nil, nil])
+    expect(stat_calls).to be_empty
+    expect(summary).to have_attributes(loaded: 1, errored: {})
   end
 
   it 'moves past an errored row in the middle of a batch' do
@@ -278,27 +298,12 @@ RSpec.describe HmisUtil::MigratedFileAttachmentLoader do
 
   describe described_class::S3ObjectStat do
     let(:s3_client) { Aws::S3::Client.new(stub_responses: true, region: 'us-east-1', credentials: Aws::Credentials.new('key', 'secret')) }
-    let(:body) { 'sample migrated file' }
-    let(:body_md5) { Digest::MD5.base64digest(body) }
     let(:stat) { described_class.new(client: s3_client, bucket_name: 'bucket') }
 
-    def stub_head(etag:, server_side_encryption: nil)
-      s3_client.stub_responses(:head_object, content_length: body.bytesize, etag: etag, server_side_encryption: server_side_encryption)
-      s3_client.stub_responses(:get_object, body: body)
-    end
+    it 'returns the object size' do
+      s3_client.stub_responses(:head_object, content_length: 4_389_645)
 
-    it 'takes the checksum from a single-part ETag on an unencrypted or SSE-S3 object' do
-      stub_head(etag: %("#{Digest::MD5.hexdigest('etag content')}"), server_side_encryption: 'AES256')
-
-      expect(stat.call('k')).to eq(HmisUtil::MigratedFileAttachmentLoader::ObjectStat.new(byte_size: body.bytesize, checksum: Digest::MD5.base64digest('etag content')))
-    end
-
-    it 'computes the checksum from the content when the ETag is not an MD5' do
-      stub_head(etag: %("#{Digest::MD5.hexdigest('kms etag')}"), server_side_encryption: 'aws:kms')
-      expect(stat.call('k').checksum).to eq(body_md5)
-
-      stub_head(etag: %("#{Digest::MD5.hexdigest('parts')}-3"))
-      expect(stat.call('k').checksum).to eq(body_md5)
+      expect(stat.call('k')).to eq(HmisUtil::MigratedFileAttachmentLoader::ObjectStat.new(byte_size: 4_389_645))
     end
 
     it 'returns nil when the object is missing or not readable' do

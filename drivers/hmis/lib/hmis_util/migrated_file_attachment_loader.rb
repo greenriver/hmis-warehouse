@@ -11,15 +11,17 @@
 # (warehouse database), shaped like a file uploaded through the HMIS file screen. Rows with type
 # GrdaWarehouse::ClientFile become client headshots instead.
 #
-# Progress lives in a tracking table keyed by s3_key, so a run can stop and resume. Rows that fail a
-# check get a short message in its `errors` column and are retried on the next run.
+# Rows without a checksum are not processed. Progress lives in a tracking table keyed by s3_key, so a
+# run can stop and resume. Rows that fail a check get a short message in its `errors` column and are
+# retried on the next run.
 #
 # The source must be a table, or a UNION ALL view whose backing tables each have a unique index on
 # s3_key; batches page through it in s3_key order. Before a production run, confirm the batch query
 # uses those indexes (an Index Scan or Merge Append per backing table, and no Sort over the whole view):
 #   EXPLAIN SELECT src.* FROM hmis_migration.mar_file_attachments_to_load src
 #     LEFT JOIN hmis_migration.migrated_file_attachment_load_statuses t ON t.s3_key = src.s3_key
-#     WHERE src.s3_key > '' AND t.active_storage_completed_at IS NULL ORDER BY src.s3_key LIMIT 1000;
+#     WHERE src.s3_key > '' AND t.active_storage_completed_at IS NULL AND NULLIF(TRIM(src.checksum), '') IS NOT NULL
+#     ORDER BY src.s3_key LIMIT 1000;
 #
 # Usage from a console:
 #   HmisUtil::MigratedFileAttachmentLoader.new(source_table: 'hmis_migration.mar_file_attachments_to_load', dry_run: true).run!
@@ -53,10 +55,10 @@ module HmisUtil
     class DuplicateSourceKeys < StandardError; end
     class AlreadyRunning < StandardError; end
 
-    ObjectStat = Data.define(:byte_size, :checksum)
+    ObjectStat = Data.define(:byte_size)
     Summary = Data.define(:loaded, :headshots, :already_loaded, :errored, :warned, :dry_run)
 
-    Candidate = Struct.new(:row, :errors, :warnings, :user_id, :updated_by_id, :byte_size, :checksum, keyword_init: true) do
+    Candidate = Struct.new(:row, :errors, :warnings, :user_id, :updated_by_id, :byte_size, keyword_init: true) do
       def key = row['s3_key']
       def type = row['type']
       def headshot? = type == HEADSHOT_TYPE
@@ -67,35 +69,21 @@ module HmisUtil
       end
     end
 
-    # Active Storage checksums are the base64 MD5 of the content, and Blob#open (variants, analysis)
-    # raises IntegrityError when it doesn't match. An S3 ETag is that MD5 in hex only for a single-part
-    # upload stored unencrypted or with SSE-S3 (AES256); otherwise the content is read to compute it.
-    # A 403 is treated like a 404: without s3:ListBucket, S3 answers 403 for a missing key.
+    # Reads the object size with one HEAD request. A 403 is treated like a 404: without s3:ListBucket,
+    # S3 answers 403 for a missing key.
     class S3ObjectStat
-      MD5_ETAG = /\A"?(\h{32})"?\z/
-      ETAG_MD5_ENCRYPTION = [nil, 'AES256'].freeze
-
       def initialize(client: nil, bucket_name: nil)
         @client = client
         @bucket_name = bucket_name
       end
 
       def call(key)
-        head = client.head_object(bucket: bucket_name, key: key)
-        md5_hex = head.etag.to_s[MD5_ETAG, 1] if head.server_side_encryption.in?(ETAG_MD5_ENCRYPTION) && head.sse_customer_algorithm.nil?
-        checksum = md5_hex ? Base64.strict_encode64([md5_hex].pack('H*')) : content_md5(key)
-        ObjectStat.new(byte_size: head.content_length, checksum: checksum)
+        ObjectStat.new(byte_size: client.head_object(bucket: bucket_name, key: key).content_length)
       rescue Aws::S3::Errors::NotFound, Aws::S3::Errors::Forbidden
         nil
       end
 
       private
-
-      def content_md5(key)
-        digest = Digest::MD5.new
-        client.get_object(bucket: bucket_name, key: key) { |chunk| digest << chunk }
-        digest.base64digest
-      end
 
       def client
         @client ||= ActiveStorage::Blob.service.bucket.client
@@ -210,6 +198,7 @@ module HmisUtil
         SELECT src.* FROM #{source} src
         LEFT JOIN #{tracking} t ON t.s3_key = src.s3_key
         WHERE src.s3_key > #{q(cursor)} AND t.active_storage_completed_at IS NULL
+          AND NULLIF(TRIM(src.checksum), '') IS NOT NULL
         ORDER BY src.s3_key
         LIMIT #{@batch_size.to_i}
       SQL
@@ -235,7 +224,7 @@ module HmisUtil
 
     def validate(rows)
       candidates = rows.map do |row|
-        Candidate.new(row: row, errors: [], warnings: [], byte_size: row['size'], checksum: row['checksum'])
+        Candidate.new(row: row, errors: [], warnings: [], byte_size: row['size'])
       end
       hmis_client_ids = Hmis::Hud::Client.where(data_source_id: hmis_data_source.id, id: candidates.map { |c| c.row['client_id'] }).pluck(:id).to_set
       enrollment_owners = Hmis::Hud::Enrollment.where(data_source_id: hmis_data_source.id, id: candidates.map { |c| c.row['enrollment_id'] }.compact).
@@ -264,11 +253,10 @@ module HmisUtil
     end
 
     def fill_object_stats(candidates)
-      candidates.reject { |c| c.byte_size && c.checksum }.each do |candidate|
+      candidates.reject(&:byte_size).each do |candidate|
         stat = @object_stat.call(candidate.key)
         if stat
-          candidate.byte_size ||= stat.byte_size
-          candidate.checksum ||= stat.checksum
+          candidate.byte_size = stat.byte_size
         else
           candidate.errors << 'S3 object not found'
         end
@@ -317,7 +305,7 @@ module HmisUtil
             metadata: { identified: true }.to_json,
             service_name: ActiveStorage::Blob.service.name.to_s,
             byte_size: candidate.byte_size,
-            checksum: candidate.checksum,
+            checksum: candidate.row['checksum'],
             created_at: candidate.row['created_at'] || now,
           }
         end,
