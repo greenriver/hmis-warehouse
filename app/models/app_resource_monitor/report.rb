@@ -41,6 +41,7 @@ class AppResourceMonitor::Report
       'postgres_table_stats' => AppResourceMonitor::PostgresInspector.flat_map(&:table_stats),
       'postgres_toast_stats' => AppResourceMonitor::PostgresInspector.flat_map(&:toast_stats),
       'postgres_index_stats' => AppResourceMonitor::PostgresInspector.flat_map(&:index_stats),
+      'postgres_sequence_stats' => AppResourceMonitor::PostgresInspector.flat_map(&:sequence_stats),
       'app_record_stats' => AppResourceMonitor::AppInspector.utilization_stats,
       'app_activity' => AppResourceMonitor::AppInspector.activity_stats(range: ((now - 1.day)...now)),
       'hud_client_references' => AppResourceMonitor::HudReferencesInspector.client_references,
