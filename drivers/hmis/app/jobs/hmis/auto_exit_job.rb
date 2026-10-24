@@ -31,6 +31,8 @@ module Hmis
     # - Creates an Exit Assessment on the exit_date.
     # - Releases any assigned unit and closes any external legacy referral.
     # - Skips enrollments that already have an exit record.
+    #
+    # @see docs/features/hmis/hmis-auto-exit.md End-user documentation for Auto-Exit behavior and exit date rules
     include NotifierConfig
 
     queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
