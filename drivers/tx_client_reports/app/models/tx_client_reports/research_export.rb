@@ -96,12 +96,14 @@ module TxClientReports
     end
 
     def format_demographic_value(value, index)
+      util = ::HudHelper.util
       case demographic_headers[index]
-        # TODO: This needs to be updated in the receiving system before we update here
-      when *::HudHelper.util('legacy').races.values, *::HudHelper.util('legacy').genders.values
-        ::HudHelper.util('legacy').no_yes_missing(value)
-      when 'Ethnicity'
-        ::HudHelper.util('legacy').ethnicity(value)
+      when util.race_field_name_to_description['RaceNone']
+        util.race_nones[value]
+      when *util.races.values, *util.gender_field_name_label.values
+        util.no_yes_missing(value)
+      when 'Sex'
+        util.sex(value)
       else
         value
       end
@@ -148,10 +150,10 @@ module TxClientReports
           'Warehouse ID',
           'Reporting Age', # NOTE: this is age at the latter of report start or entry
         ]
-        # TODO: DEPRECATED_FY2024 This needs to be updated in the receiving system before we update here
-        headers += ::HudHelper.util('legacy').genders.values
-        headers += ::HudHelper.util('legacy').races.values
-        headers << 'Ethnicity'
+        util = ::HudHelper.util
+        headers += util.gender_fields.map { |f| util.gender_field_name_label[f] }
+        headers << 'Sex'
+        headers += util.races.values
         headers
       end
     end
@@ -166,10 +168,9 @@ module TxClientReports
       [
         :client_id,
         age_calculation,
-        # TODO: DEPRECATED_FY2024 This needs to be updated in the receiving system before we update here
-        *::HudHelper.util('legacy').gender_fields.map { |k| c_t[k] },
-        *::HudHelper.util('legacy').races.keys.map { |k| c_t[k] },
-        c_t[:Ethnicity],
+        *::HudHelper.util.gender_fields.map { |k| c_t[k] },
+        c_t[:Sex],
+        *::HudHelper.util.races.keys.map { |k| c_t[k] },
       ]
     end
 
