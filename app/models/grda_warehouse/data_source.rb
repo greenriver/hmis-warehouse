@@ -929,12 +929,14 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     hmis? || external_hmis_configuration&.active?
   end
 
-  def hmis_url_for(entity, user: nil)
+  # subpath: optional page under the entity's path (e.g. 'external-form-submissions' for
+  # /projects/:id/external-form-submissions). Only applies to the Open Path HMIS.
+  def hmis_url_for(entity, user: nil, subpath: nil)
     # Ignore any entity that isn't in this data source
     return unless entity&.data_source_id == id
 
     # Handle the Open Path HMIS natively
-    return open_path_hmis_url(entity, user: user) if hmis? && HmisEnforcement.hmis_enabled?
+    return open_path_hmis_url(entity, user: user, subpath: subpath) if hmis? && HmisEnforcement.hmis_enabled?
 
     external_hmis_configuration&.url(entity)
   end
@@ -963,7 +965,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     self.service_scannable = false   # not applicable, clients are not created in the warehouse for OP HMIS
   end
 
-  private def open_path_hmis_url(entity, user: nil)
+  private def open_path_hmis_url(entity, user: nil, subpath: nil)
     base = "https://#{hmis}"
     base += ':5173' if Rails.env.development? # port used by hmis vite dev server
 
@@ -985,6 +987,8 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     # For any other Enrollment-related record, link to the enrollment page
     path ||= "/client/#{entity.client&.id}/enrollments/#{entity.enrollment&.id}" if entity.respond_to?(:enrollment) && entity.respond_to?(:client)
     return unless path.present?
+
+    path += "/#{subpath}" if subpath.present?
 
     # If we don't have the HMIS driver we probably aren't here, but we need to check for the next section
     # If we don't have a user, just return the URl (backwards compatibility)

@@ -208,15 +208,26 @@ module Types
 
     def self.project_config_types_picklist
       # Project config types for selection on the Admin Project Config page.
-      # Hide Coordinated Entry options if CE is not enabled in the installation.
+      # Hide options for features that aren't enabled in the installation.
       Types::HmisSchema::Enums::ProjectConfigType.values.map do |key, enum|
-        next if ['COORDINATED_ENTRY', 'SENDS_DIRECT_CE_REFERRALS'].include?(key) && !Hmis::Ce.configuration.enabled?
+        next unless project_config_type_available?(key)
 
         {
           code: key,
           label: enum.description,
         }
       end.compact
+    end
+
+    def self.project_config_type_available?(key)
+      case key
+      when 'COORDINATED_ENTRY', 'SENDS_DIRECT_CE_REFERRALS'
+        Hmis::Ce.configuration.enabled?
+      when 'EXTERNAL_FORM_SUBMISSION_NOTIFICATIONS'
+        HmisExternalApis::ConsumeExternalFormSubmissionsJob.enabled?
+      else
+        true
+      end
     end
 
     def self.ce_referral_statuses_picklist(user:)

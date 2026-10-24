@@ -4022,7 +4022,8 @@ CREATE TABLE public.hmis_external_form_submissions (
     object_key character varying NOT NULL,
     raw_data jsonb NOT NULL,
     notes text,
-    enrollment_id bigint
+    enrollment_id bigint,
+    reviewers_notified_at timestamp(6) without time zone
 );
 
 
@@ -360293,6 +360294,7 @@ ALTER TABLE ONLY public.import_logs
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261015120000'),
 ('20261014140000'),
 ('20260921142542'),
 ('20260918121000'),
