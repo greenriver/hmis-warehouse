@@ -106,8 +106,8 @@
       :plain
         window.CSP_NONCE = #{content_security_policy_nonce.to_json};
     = javascript_include_tag "cable_ready.umd.js", "data-turbo-track": "reload"
-    = javascript_include_tag 'application'
     = javascript_include_tag 'application_esbuild'
+    = javascript_include_tag 'application'
     - if @per_page_js.present?
       - @per_page_js.each do |js_file|
         = javascript_include_tag js_file
