@@ -8,7 +8,7 @@
       .col-3
         = f.input :project_type_codes, label: 'Project Types', collection: HudHelper.util.project_type_group_titles.invert, as: :select_two, input_html: { multiple: true, placeholder: 'Choose Project Types' }
       .col-3
-        = f.input :project_ids, collection: [], as: :select_two, input_html: { data: { 'collection-path' => api_projects_path(selected_project_ids: @filter.project_ids) }, multiple: true, placeholder: 'Any Project'}, label: 'Projects'
+        = f.input :project_ids, collection: [], as: :select_two, input_html: { data: { 'collection-path' => report_filter_projects_path(selected_project_ids: @filter.project_ids) }, multiple: true, placeholder: 'Any Project'}, label: 'Projects'
     .row
       .col-sm-12
         Clients are included in the report if they are recorded as currently fleeing domestic violence in the reporting range.

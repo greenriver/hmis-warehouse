@@ -410,6 +410,12 @@ module ApplicationHelper
     user.report_filter_visible?(key)
   end
 
+  # Project picker URL for report filter forms. Scoped by the same permission
+  # report results use, so the picker offers the projects the report includes.
+  def report_filter_projects_path(**params)
+    api_projects_path(permission: :can_view_assigned_reports, **params)
+  end
+
   # Added here to replace wicked_pdf_stylesheet_link_tag when we removed WickedPdf
   def inline_stylesheet_link_tag(*sources)
     AssetHelper.wicked_pdf_stylesheet_link_tag(*sources)

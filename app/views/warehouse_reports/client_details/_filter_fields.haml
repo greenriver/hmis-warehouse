@@ -13,7 +13,7 @@
     = f.input :project_type_codes, collection: project_types, placeholder: 'Any Project Type', label: 'Project Types', as: :select_two, input_html: { multiple: true, class: 'jProjectTypes' }, required: true
   - if report_filter_visible?(:project_ids, current_user)
     .col-sm
-      = f.input :project_ids, label: 'Projects', collection: [], as: :select_two, input_html: {multiple: true, placeholder: 'Any Project', data: {'collection-path' => api_projects_path(selected_project_ids: @filter.project_ids)}}, include_blank: false, placeholder: 'Any Project'
+      = f.input :project_ids, label: 'Projects', collection: [], as: :select_two, input_html: {multiple: true, placeholder: 'Any Project', data: {'collection-path' => report_filter_projects_path(selected_project_ids: @filter.project_ids)}}, include_blank: false, placeholder: 'Any Project'
 .row
   - if report_filter_visible?(:organization_ids, current_user)
     .col-sm
