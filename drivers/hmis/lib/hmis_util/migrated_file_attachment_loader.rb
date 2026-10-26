@@ -33,6 +33,9 @@ module HmisUtil
     BATCH_SIZE = 1_000
     MAX_ERROR_LENGTH = 1_000
     IDENTIFY_BYTES = 4.kilobytes
+    # Active Storage compares a downloaded file to the blob checksum as a base64 MD5 digest
+    # (ActiveStorage::Downloader); any other form makes Blob#open raise ActiveStorage::IntegrityError.
+    CHECKSUM_FORMAT = /\A[A-Za-z0-9+\/]{22}==\z/
     LOCK_NAME = 'HmisUtil::MigratedFileAttachmentLoader'
 
     REGULAR_TYPE = 'Hmis::File'
@@ -246,6 +249,7 @@ module HmisUtil
         row = candidate.row
         candidate.errors << "unknown type #{candidate.type}" unless candidate.type.in?([REGULAR_TYPE, HEADSHOT_TYPE])
         candidate.errors << 'no name' if row['name'].blank?
+        candidate.errors << 'checksum is not a base64 MD5' unless row['checksum'].to_s.match?(CHECKSUM_FORMAT)
         if !row['client_id'].in?(hmis_client_ids)
           candidate.errors << "client #{row['client_id']} not in HMIS data source"
         elsif !candidate.headshot?

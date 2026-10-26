@@ -248,6 +248,17 @@ RSpec.describe HmisUtil::MigratedFileAttachmentLoader do
     expect(summary).to have_attributes(loaded: 1, errored: {})
   end
 
+  it 'records an error for a checksum that is not a base64 MD5 and still loads the rest of its batch' do
+    hex = add_row(checksum: '87507eaec321b5ae4021162d2eb464e0')
+    good = add_row
+
+    summary = loader.run!
+
+    expect(status(hex[:s3_key])).to include('errors' => 'checksum is not a base64 MD5', 'active_storage_completed_at' => nil)
+    expect(ActiveStorage::Blob.pluck(:key)).to contain_exactly(good[:s3_key])
+    expect(summary).to have_attributes(loaded: 1, errored: { 'checksum is not a base64 MD5' => 1 })
+  end
+
   it 'moves past an errored row in the middle of a batch' do
     keys = ['a', 'b', 'c'].map { |k| "migration/mar/#{k}" }
     add_row(s3_key: keys[0])
@@ -286,6 +297,16 @@ RSpec.describe HmisUtil::MigratedFileAttachmentLoader do
     expect([GrdaWarehouse::File.count, ActiveStorage::Blob.count]).to eq([0, 0])
     expect(status(no_enrollment[:s3_key])).to be_nil
     expect(summary).to have_attributes(loaded: 1, dry_run: true, errored: { 'no enrollment_id' => 1 })
+  end
+
+  it 'does not check S3 in a dry run, so a row whose object is missing counts as loaded' do
+    add_row(size: nil)
+    add_row(name: 'ID scan')
+
+    summary = loader(dry_run: true).run!
+
+    expect(stat_calls).to be_empty
+    expect(summary).to have_attributes(loaded: 2, errored: {})
   end
 
   it 'loads with a blank user and a warning when the user does not exist' do
