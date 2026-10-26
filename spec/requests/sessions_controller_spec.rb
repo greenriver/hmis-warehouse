@@ -274,6 +274,53 @@ RSpec.describe 'Users::SessionsController', :devise_only, type: :request do
     end
   end
 
+  describe 'Login from a remembered 2FA device' do
+    # Builds the device row and encrypted cookie directly instead of running the remember flow.
+    before do
+      GrdaWarehouse::Config.first_or_create!.update!(bypass_2fa_duration: 30)
+      GrdaWarehouse::Config.invalidate_cache
+
+      device = user_2fa.two_factors_memorized_devices.create!(
+        uuid: SecureRandom.uuid,
+        name: 'Test',
+        session_id: 'x',
+        log_in_ip: '127.0.0.1',
+        expires_at: 30.days.from_now,
+      )
+      jar = ActionDispatch::Request.new(Rails.application.env_config.deep_dup).cookie_jar
+      jar.encrypted[:memorized_device] = device.uuid
+      cookies[:memorized_device] = jar[:memorized_device]
+    end
+
+    after do
+      GrdaWarehouse::Config.delete_all
+      GrdaWarehouse::Config.invalidate_cache
+    end
+
+    it 'rejects a wrong password and creates no session' do
+      post user_session_path(user: { email: user_2fa.email, password: 'incorrect' })
+
+      expect(response).to render_template('devise/sessions/new')
+      expect(response.body).to include 'Invalid email or password.'
+      # be_positive rather than an exact count; see the double increment bug noted above
+      expect(user_2fa.reload.failed_attempts).to be_positive
+
+      # root_path renders the sign-in page for anonymous visitors, so the keepalive is the session check
+      post session_keepalive_path, xhr: true
+      expect(response).to have_http_status(:unauthorized)
+    end
+
+    it 'signs in with the correct password without an OTP prompt' do
+      post user_session_path(user: { email: user_2fa.email, password: user_2fa.password })
+
+      expect(response).to_not render_template('devise/sessions/two_factor')
+      expect(response).to have_http_status(:redirect)
+
+      post session_keepalive_path, xhr: true
+      expect(response).to have_http_status(:ok)
+    end
+  end
+
   describe 'Login with 2FA enabled, prompting for a 2fa code' do
     it 'runs end_time_log' do
       expect_any_instance_of(Users::SessionsController).to receive(:end_time_log)
