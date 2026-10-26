@@ -291,7 +291,8 @@ RSpec.describe HmisUtil::MigratedFileAttachmentLoader do
     add_row
     no_enrollment = add_row(enrollment_id: nil)
 
-    summary = loader(dry_run: true).run!
+    summary = nil
+    expect { summary = loader(dry_run: true).run! }.not_to change(ActsAsTaggableOn::Tag, :count)
 
     expect([GrdaWarehouse::File.count, ActiveStorage::Blob.count]).to eq([0, 0])
     expect(status(no_enrollment[:s3_key])).to be_nil

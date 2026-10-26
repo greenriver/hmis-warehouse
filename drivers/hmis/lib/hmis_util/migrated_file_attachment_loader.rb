@@ -192,6 +192,7 @@ module HmisUtil
       @available_tags = GrdaWarehouse::AvailableFileTag.where(name: names).index_by(&:name)
       missing = names - @available_tags.keys
       raise MissingAvailableFileTags, "Missing available file tags: #{missing.join(', ')}" if missing.any?
+      return if @dry_run
 
       # Created here, outside the write transactions, so a rolled-back batch can't leave a cached id
       # for a tag row that was never committed.
