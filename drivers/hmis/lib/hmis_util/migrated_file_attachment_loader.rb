@@ -268,6 +268,7 @@ module HmisUtil
     end
 
     def fill_object_stats(candidates)
+      # determine the file size for any row where we don't already have it.
       candidates.reject(&:byte_size).each do |candidate|
         stat = @object_stat.call(candidate.key)
         if stat
@@ -278,12 +279,12 @@ module HmisUtil
       end
     end
 
-    # The source content_type wins, then the file name's extension, then the file's first bytes (the
+    # The source mime_type wins, then the file name's extension, then the file's first bytes (the
     # same 4 KB Active Storage reads to identify an upload).
     def identify_content_types(candidates)
       candidates.each do |candidate|
         name = candidate.row['name'].to_s
-        candidate.content_type = candidate.row['content_type'].to_s.strip.presence ||
+        candidate.content_type = candidate.row['mime_type'].to_s.strip.presence ||
           (Marcel::MimeType.for(name: name) if File.extname(name).delete_prefix('.').present?) ||
           content_type_from_storage(candidate)
       end

@@ -33,7 +33,7 @@ RSpec.describe HmisUtil::MigratedFileAttachmentLoader do
       CREATE TEMP TABLE #{source} (
         client_id bigint NOT NULL, enrollment_id bigint, name varchar, note text, s3_key text,
         entity_name text, type text, user_id bigint, updated_by_id bigint, checksum text, size bigint,
-        created_at timestamp, updated_at timestamp
+        mime_type text, created_at timestamp, updated_at timestamp
       )
     SQL
   end
@@ -204,10 +204,9 @@ RSpec.describe HmisUtil::MigratedFileAttachmentLoader do
     expect(status(row[:s3_key])['errors']).to be_nil
   end
 
-  it 'takes the content type from the source content_type column when it has a value' do
-    connection.execute("ALTER TABLE #{source} ADD COLUMN content_type text")
-    declared = add_row(content_type: ' image/tiff ')
-    blank = add_row(content_type: '')
+  it 'takes the content type from the source mime_type column when it has a value' do
+    declared = add_row(mime_type: ' image/tiff ')
+    blank = add_row(mime_type: '')
 
     loader.run!
 
