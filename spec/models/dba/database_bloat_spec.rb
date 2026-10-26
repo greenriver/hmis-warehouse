@@ -55,6 +55,7 @@ RSpec.describe Dba::DatabaseBloat, type: :model do
     allow(db).to receive(:binary_available_on_container?).and_return(true)
     allow(db).to receive(:adjust_autovacuum_for)
     allow(db).to receive(:run_system_command).and_return(true)
+    allow(db).to receive(:leftover_repack_objects).and_return([])
     stub_const('Dba::DatabaseBloat::MAX_PER_RUN', 100)
   end
 
@@ -114,13 +115,51 @@ RSpec.describe Dba::DatabaseBloat, type: :model do
       end
     end
 
+    context 'when an oversized table is skipped at the MAX_PER_RUN position' do
+      before do
+        rows = [small_row, large_row, small_row.merge('tblname' => 'small_b'), small_row.merge('tblname' => 'small_c')]
+        allow(db).to receive(:bloated_tables).and_return(rows)
+        stub_repack_prerequisites
+        stub_const('Dba::DatabaseBloat::MAX_PER_RUN', 2)
+      end
+
+      it 'stops after MAX_PER_RUN repacks' do
+        allow(Rails.logger).to receive(:warn)
+        expect(db).to receive(:run_system_command).twice
+        db.repack!
+      end
+    end
+
+    context 'when an earlier run left pg_repack objects behind' do
+      before do
+        allow(db).to receive(:bloated_tables).and_return([small_row])
+        stub_repack_prerequisites
+        allow(db).to receive(:leftover_repack_objects).and_return(['log_16384'])
+      end
+
+      it 'raises without repacking anything' do
+        expect(db).not_to receive(:run_system_command)
+        expect { db.repack! }.to raise_error(/log_16384/)
+      end
+    end
+
     context 'when there are no bloated tables' do
-      before { allow(db).to receive(:bloated_tables).and_return([]) }
+      before do
+        allow(db).to receive(:bloated_tables).and_return([])
+        allow(db).to receive(:leftover_repack_objects).and_return([])
+      end
 
       it 'does nothing' do
         expect(db).not_to receive(:run_system_command)
         db.repack!
       end
+    end
+  end
+
+  # Run the real SQL so a broken query fails here rather than on the Sunday run
+  describe '#leftover_repack_objects' do
+    it 'finds nothing on a clean database' do
+      expect(db.send(:leftover_repack_objects)).to eq([])
     end
   end
 
