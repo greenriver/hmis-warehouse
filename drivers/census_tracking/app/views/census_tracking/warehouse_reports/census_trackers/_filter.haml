@@ -17,7 +17,7 @@
           = f.input :organization_ids, collection: GrdaWarehouse::Hud::Organization.options_for_select(user: current_user), placeholder: 'Any Organization', as: :grouped_select_two, group_method: :last, input_html: {multiple: true}, label: 'Organizations'
       - if report_filter_visible?(:project_ids, current_user)
         .col-4
-          = f.input :project_ids, collection: [], as: :select_two, input_html: {multiple: true, placeholder: 'Any Project', data: {'collection-path' => report_filter_projects_path(selected_project_ids: @filter.project_ids)}}, include_blank: false, label: 'Projects'
+          = f.input :project_ids, collection: [], as: :select_two, input_html: {multiple: true, placeholder: 'Any Project', data: {'collection-path' => report_filter_projects_api_path_helper(selected_project_ids: @filter.project_ids)}}, include_blank: false, label: 'Projects'
       .col-4
         = f.input :project_group_ids, collection: GrdaWarehouse::ProjectGroup.viewable_by(current_user), placeholder: 'None', as: :select_two, input_html: { multiple: true }, label: 'Project Groups'
     .row

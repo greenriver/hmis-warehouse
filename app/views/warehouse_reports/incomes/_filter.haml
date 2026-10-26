@@ -3,7 +3,7 @@
     = render 'warehouse_reports/date_range_filters', f:f
     .row.mt-4
       .col-sm-6.mb-4
-        = f.input :project_ids, label: 'Projects', collection: [], as: :select_two, input_html: {multiple: true, placeholder: 'Any Project', data: {'collection-path' => report_filter_projects_path(selected_project_ids: @filter.project_ids)}}, include_blank: false
+        = f.input :project_ids, label: 'Projects', collection: [], as: :select_two, input_html: {multiple: true, placeholder: 'Any Project', data: {'collection-path' => report_filter_projects_api_path_helper(selected_project_ids: @filter.project_ids)}}, include_blank: false
       - if can_edit_project_groups?
         .col-sm-6.mb-4
           = f.input :project_group_ids, collection: GrdaWarehouse::ProjectGroup.viewable_by(current_user).pluck(:name, :id), placeholder: 'Any Project Group', input_html: {multiple: true}, label: 'Project Groups', as: :select_two

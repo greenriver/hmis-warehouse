@@ -9,7 +9,7 @@
         = f.input :organization_ids, collection: filter.organization_options_for_select(user: current_user), as: :grouped_select_two, group_method: :last, input_html: {multiple: true, data: { 'stimulus-select-target' => 'organizations', action: 'change->stimulus-select#updateDependentProjectList' }, placeholder: 'Any Organization'}, label: 'Organizations', required: false
     .row
       .col
-        = f.input :project_ids, collection: filter.project_options_for_select(user: current_user), as: :grouped_select_two, group_method: :last, input_html: { multiple: true, data: {'stimulus-select-target' => 'projects', project_url: report_filter_projects_path() }, placeholder: 'Any Project' }, label: 'Projects', required: false
+        = f.input :project_ids, collection: filter.project_options_for_select(user: current_user), as: :grouped_select_two, group_method: :last, input_html: { multiple: true, data: {'stimulus-select-target' => 'projects', project_url: report_filter_projects_api_path_helper() }, placeholder: 'Any Project' }, label: 'Projects', required: false
       .col
         = f.input :project_group_ids, collection: filter.project_groups_options_for_select(user: current_user), input_html: { multiple: true, placeholder: 'Any Project Group' }, label: 'Project Groups', as: :select_two, placeholder: 'Any Project Group'
     .row

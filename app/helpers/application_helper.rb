@@ -410,9 +410,10 @@ module ApplicationHelper
     user.report_filter_visible?(key)
   end
 
-  # Project picker URL for report filter forms. Scoped by the same permission
-  # report results use, so the picker offers the projects the report includes.
-  def report_filter_projects_path(**params)
+  # Project picker URL for report filter forms; wraps api_projects_path. Scoped
+  # by the same permission report results use, so the picker offers the projects
+  # the report includes.
+  def report_filter_projects_api_path_helper(**params)
     api_projects_path(permission: :can_view_assigned_reports, **params)
   end
 
