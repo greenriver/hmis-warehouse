@@ -171,4 +171,23 @@ RSpec.describe Hmis::File, type: :model do
       end
     end
   end
+
+  describe 'file size validation' do
+    def build_file_with_size(byte_size)
+      blob.update_column(:byte_size, byte_size)
+      file = build(:file, client: c1, enrollment: e1)
+      file.client_file.attach(blob)
+      file
+    end
+
+    it 'accepts a file at the 12 MB limit' do
+      expect(build_file_with_size(12.megabytes)).to be_valid
+    end
+
+    it 'rejects a file over the 12 MB limit' do
+      file = build_file_with_size(12.megabytes + 1)
+      expect(file).not_to be_valid
+      expect(file.errors.where(:client_file).map { |e| e.options[:full_message] }).to include('File size should be less than 12 MB')
+    end
+  end
 end
