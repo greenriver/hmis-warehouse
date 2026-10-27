@@ -11,6 +11,11 @@ module ClientFileBase
   include ArelHelper
   include HasPiiAttributes
 
+  # Matches the 12 MB limit in GrdaWarehouse::ClientFile#file_exists_and_not_too_large.
+  # Also enforced by the HMIS CreateDirectUpload mutation, and client-side by the hmis-frontend
+  # Uploader (DEFAULT_MAX_BYTES in Uploader.tsx), which must be kept in sync by hand.
+  MAX_FILE_SIZE = 12.megabytes
+
   included do
     pii_attr :note, as: :free_text
     pii_attr :name, as: :full_name
@@ -67,7 +72,7 @@ module ClientFileBase
 
     def file_exists_and_not_too_large
       errors.add :client_file, full_message: 'No uploaded file found.' if (client_file.byte_size || 0) < 100
-      errors.add :client_file, full_message: 'File size should be less than 4 MB' if (client_file.byte_size || 0) > 4.megabytes
+      errors.add :client_file, full_message: 'File size should be less than 12 MB' if (client_file.byte_size || 0) > ClientFileBase::MAX_FILE_SIZE
     end
 
     def note_if_other
