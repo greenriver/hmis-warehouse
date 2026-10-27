@@ -305,9 +305,8 @@ RSpec.describe 'Users::SessionsController', :devise_only, type: :request do
       # be_positive rather than an exact count; see the double increment bug noted above
       expect(user_2fa.reload.failed_attempts).to be_positive
 
-      # root_path renders the sign-in page for anonymous visitors, so the keepalive is the session check
-      post session_keepalive_path, xhr: true
-      expect(response).to have_http_status(:unauthorized)
+      # keepalive and root_path both return 200 when signed out, so check the Warden session directly
+      expect(session['warden.user.user.key']).to be_nil
     end
 
     it 'signs in with the correct password without an OTP prompt' do
@@ -315,9 +314,7 @@ RSpec.describe 'Users::SessionsController', :devise_only, type: :request do
 
       expect(response).to_not render_template('devise/sessions/two_factor')
       expect(response).to have_http_status(:redirect)
-
-      post session_keepalive_path, xhr: true
-      expect(response).to have_http_status(:ok)
+      expect(session['warden.user.user.key']).to be_present
     end
   end
 
