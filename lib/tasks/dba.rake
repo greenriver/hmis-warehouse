@@ -32,7 +32,7 @@ namespace :dba do
     puts db.send(:unused_indexes_sql)
   end
 
-  task :unbloat, [] => [:unbloat_indexes, :repack_tables, :index_drops, :show_cache_hits]
+  task :unbloat, [] => [:unbloat_indexes, :repack_tables, :show_cache_hits]
 
   task :unbloat_indexes, [] => :environment do
     Dba::DatabaseBloat.all_databases!(:reindex!, dry_run: @dry_run)
