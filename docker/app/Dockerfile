@@ -36,7 +36,7 @@ ARG BUNDLER_VERSION=2.7.2
 ARG PG_MAJOR=17
 
 LABEL "app"=open-path-warehouse
-LABEL "ruby-version"=3.4.9
+LABEL "ruby-version"=3.4.12
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV LANG=C.UTF-8
@@ -171,16 +171,13 @@ ENV RUBYOPT="-r/usr/local/lib/ruby/has_rdoc_patch.rb ${RUBYOPT}"
 
 # rexml: CVE-2025-58767, rack: CVE in system gem shipped with base image — both must be explicitly updated since they're bundled with ruby
 # gem cleanup removes old gemspecs that vulnerability scanners (e.g. Trivy) would otherwise flag
-# net-imap and resolv are default gems baked into the Ruby install; Bundler pinning a newer
-# version in the Gemfile doesn't remove the old default-gem copy, so Trivy keeps flagging it.
-# RubyGems refuses `gem uninstall` for resolv ("cannot be uninstalled because it is a default
-# gem"), so its gemspec is removed directly instead -- the actual stdlib source stays on disk
-# but is shadowed by the Bundler-pinned version at load time, same as net-imap/rexml/rack above
+# net-imap is a bundled gem baked into the Ruby install; the app loads the Gemfile.lock version
+# instead, so the bundled copy (whatever version this Ruby ships) is removed to keep Trivy from
+# flagging it.
 RUN gem update --system \
   && gem update rexml rack erb \
   && gem cleanup rexml rack erb \
-  && gem uninstall -i /usr/local/lib/ruby/gems/3.4.0 net-imap -v 0.5.8 \
-  && rm -f /usr/local/lib/ruby/gems/3.4.0/specifications/default/resolv-0.6.2.gemspec \
+  && gem uninstall -i /usr/local/lib/ruby/gems/3.4.0 net-imap --all --executables \
   && gem install bundler --version=${BUNDLER_VERSION} \
   && bundle config set --local path /bundle \
   && chown -R app-user:app-user /bundle \

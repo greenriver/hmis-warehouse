@@ -15,7 +15,7 @@ jobs:
   domain_pack_check:
     name: Domain pack manifest is current
     runs-on: ubuntu-24.04
-    container: ruby:3.4.9-slim-trixie
+    container: ruby:3.4.12-slim-trixie
     permissions:
       contents: read
     steps:
