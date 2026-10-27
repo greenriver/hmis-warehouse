@@ -127,18 +127,76 @@ RSpec.describe HmisUtil::MigratedFileAttachmentLoader do
     expect(GrdaWarehouse::File.count).to eq(0)
   end
 
-  it 'records an error and loads nothing for an enrollment belonging to another client or a missing enrollment' do
+  it 'records an error and loads nothing for an enrollment belonging to another client' do
     other_enrollment = create(:hmis_hud_enrollment, data_source: data_source, client: create(:hmis_hud_client, data_source: data_source))
     good = add_row
     wrong_person = add_row(enrollment_id: other_enrollment.id)
-    no_enrollment = add_row(enrollment_id: nil)
 
     loader.run!
 
     expect(Hmis::File.pluck(:client_id, :enrollment_id)).to contain_exactly([client.id, enrollment.id])
     expect(status(wrong_person[:s3_key])).to include('errors' => "enrollment #{other_enrollment.id} not found for client #{client.id}", 'active_storage_completed_at' => nil)
-    expect(status(no_enrollment[:s3_key])).to include('errors' => 'no enrollment_id', 'active_storage_completed_at' => nil)
     expect(status(good[:s3_key])['errors']).to be_nil
+  end
+
+  it 'leaves non-headshot rows with no enrollment_id out of the run' do
+    no_enrollment = add_row(enrollment_id: nil)
+    headshot = add_row(type: 'GrdaWarehouse::ClientFile', name: 'photo.jpg', enrollment_id: nil)
+
+    summary = loader.run!
+
+    expect(status(no_enrollment[:s3_key])).to be_nil
+    expect(ActiveStorage::Blob.pluck(:key)).to contain_exactly(headshot[:s3_key])
+    expect(summary).to have_attributes(loaded: 0, headshots: 1, errored: {})
+  end
+
+  it 'loads only headshot rows when headshots_only is set' do
+    add_row
+    headshot = add_row(type: 'GrdaWarehouse::ClientFile', name: 'photo.jpg')
+
+    summary = loader(headshots_only: true).run!
+
+    expect(ActiveStorage::Blob.pluck(:key)).to contain_exactly(headshot[:s3_key])
+    expect(summary).to have_attributes(loaded: 0, headshots: 1)
+  end
+
+  it 'processes rows newest updated_at first, then by s3_key descending' do
+    jan = Time.zone.parse('2026-01-01 08:00:00.123456')
+    mar = Time.zone.parse('2026-03-01')
+    keys = ['a', 'b', 'c'].map { |k| "migration/mar/#{k}" }
+    add_row(s3_key: keys[0], updated_at: mar)
+    add_row(s3_key: keys[1], updated_at: jan)
+    add_row(s3_key: keys[2], updated_at: mar)
+
+    loaded = 3.times.map do
+      before = ActiveStorage::Blob.pluck(:key)
+      loader(batch_size: 1, limit: 1).run!
+      ActiveStorage::Blob.pluck(:key) - before
+    end
+
+    expect(loaded).to eq([[keys[2]], [keys[0]], [keys[1]]])
+  end
+
+  it 'pages across batches in updated_at order, past rows that share a timestamp' do
+    mar = Time.zone.parse('2026-03-01')
+    keys = ['a', 'b', 'c', 'd'].map { |k| "migration/mar/#{k}" }
+    add_row(s3_key: keys[0], updated_at: mar, type: 'GrdaWarehouse::Upload')
+    add_row(s3_key: keys[1], updated_at: mar - 1.day)
+    add_row(s3_key: keys[2], updated_at: mar)
+    add_row(s3_key: keys[3], updated_at: mar - 2.days)
+
+    summary = loader(batch_size: 1).run!
+
+    expect(summary).to have_attributes(loaded: 3, errored: { 'unknown type GrdaWarehouse::Upload' => 1 })
+    expect(ActiveStorage::Blob.pluck(:key)).to contain_exactly(keys[1], keys[2], keys[3])
+  end
+
+  it 'raises before writing anything when a source row has no updated_at' do
+    add_row
+    add_row(updated_at: nil)
+
+    expect { loader.run! }.to raise_error(described_class::MissingUpdatedAt, "1 rows in #{source} have no updated_at")
+    expect(GrdaWarehouse::File.count).to eq(0)
   end
 
   it 'records an error for a client id that is not in the HMIS data source' do
@@ -272,15 +330,15 @@ RSpec.describe HmisUtil::MigratedFileAttachmentLoader do
 
   it 'stops after limit source rows, counting errored rows, and picks up from there on the next run' do
     keys = ['a', 'b', 'c', 'd'].map { |k| "migration/mar/#{k}" }
-    add_row(s3_key: keys[0], type: 'GrdaWarehouse::Upload')
-    keys.drop(1).each { |key| add_row(s3_key: key) }
+    add_row(s3_key: keys[3], type: 'GrdaWarehouse::Upload')
+    keys.take(3).each { |key| add_row(s3_key: key) }
 
     first = loader(limit: 2, batch_size: 1).run!
     expect(first.loaded).to eq(1)
-    expect(ActiveStorage::Blob.pluck(:key)).to contain_exactly(keys[1])
+    expect(ActiveStorage::Blob.pluck(:key)).to contain_exactly(keys[2])
 
     loader(limit: 2).run!
-    expect(ActiveStorage::Blob.pluck(:key)).to contain_exactly(keys[1], keys[2])
+    expect(ActiveStorage::Blob.pluck(:key)).to contain_exactly(keys[2], keys[1])
   end
 
   it 'rejects a limit that is not a positive integer' do
@@ -289,14 +347,14 @@ RSpec.describe HmisUtil::MigratedFileAttachmentLoader do
 
   it 'writes nothing in a dry run but reports what it would load' do
     add_row
-    no_enrollment = add_row(enrollment_id: nil)
+    no_name = add_row(name: ' ')
 
     summary = nil
     expect { summary = loader(dry_run: true).run! }.not_to change(ActsAsTaggableOn::Tag, :count)
 
     expect([GrdaWarehouse::File.count, ActiveStorage::Blob.count]).to eq([0, 0])
-    expect(status(no_enrollment[:s3_key])).to be_nil
-    expect(summary).to have_attributes(loaded: 1, dry_run: true, errored: { 'no enrollment_id' => 1 })
+    expect(status(no_name[:s3_key])).to be_nil
+    expect(summary).to have_attributes(loaded: 1, dry_run: true, errored: { 'no name' => 1 })
   end
 
   it 'does not check S3 in a dry run, so a row whose object is missing counts as loaded' do

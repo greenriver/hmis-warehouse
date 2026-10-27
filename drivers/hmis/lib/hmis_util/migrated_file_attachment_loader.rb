@@ -11,21 +11,19 @@
 # (warehouse database), shaped like a file uploaded through the HMIS file screen. Rows with type
 # GrdaWarehouse::ClientFile become client headshots instead.
 #
-# Rows without a checksum are not processed. Progress lives in a tracking table keyed by s3_key, so a
-# run can stop and resume. Rows that fail a check get a short message in its `errors` column and are
-# retried on the next run.
+# Rows without a checksum are not processed, nor are non-headshot rows without an enrollment_id.
+# `headshots_only: true` limits the run to headshot rows. Progress lives in a tracking table keyed by
+# s3_key, so a run can stop and resume. Rows that fail a check get a short message in its `errors`
+# column and are retried on the next run.
 #
-# The source must be a table, or a UNION ALL view whose backing tables each have a unique index on
-# s3_key; batches page through it in s3_key order. Before a production run, confirm the batch query
-# uses those indexes (an Index Scan or Merge Append per backing table, and no Sort over the whole view):
-#   EXPLAIN SELECT src.* FROM hmis_migration.mar_file_attachments_to_load src
-#     LEFT JOIN hmis_migration.migrated_file_attachment_load_statuses t ON t.s3_key = src.s3_key
-#     WHERE src.s3_key > '' AND t.active_storage_completed_at IS NULL AND NULLIF(TRIM(src.checksum), '') IS NOT NULL
-#     ORDER BY src.s3_key LIMIT 1000;
+# Batches page through the source newest updated_at first, then by s3_key descending, so every source
+# row needs an updated_at and a unique s3_key. An index on updated_at lets each batch start from the
+# previous batch's last row instead of sorting the whole source.
 #
 # Usage from a console (or see the driver:hmis:load_migrated_file_attachments rake task):
 #   HmisUtil::MigratedFileAttachmentLoader.new(source_table: 'hmis_migration.mar_file_attachments_to_load', dry_run: true).run!
-# `limit:` caps the source rows a run examines, errored rows included; a later run continues after them.
+# `limit:` caps the source rows a run examines, errored rows included; a later run starts again from the
+# newest unloaded row, so errored rows count against each run's limit.
 module HmisUtil
   class MigratedFileAttachmentLoader
     DEFAULT_SOURCE_TABLE = 'hmis_migration.mar_file_attachments_to_load'
@@ -58,6 +56,7 @@ module HmisUtil
 
     class MissingAvailableFileTags < StandardError; end
     class DuplicateSourceKeys < StandardError; end
+    class MissingUpdatedAt < StandardError; end
     class AlreadyRunning < StandardError; end
 
     ObjectStat = Data.define(:byte_size)
@@ -106,6 +105,7 @@ module HmisUtil
       migration_tag: MIGRATION_TAG,
       batch_size: BATCH_SIZE,
       limit: nil,
+      headshots_only: false,
       dry_run: true,
       object_stat: S3ObjectStat.new
     )
@@ -117,6 +117,7 @@ module HmisUtil
       @migration_tag = migration_tag
       @batch_size = batch_size
       @limit = limit
+      @headshots_only = headshots_only
       @dry_run = dry_run
       @object_stat = object_stat
     end
@@ -129,8 +130,9 @@ module HmisUtil
         create_tracking_table
         load_available_tags!
         check_duplicate_keys!
+        check_updated_at!
 
-        cursor = ''
+        cursor = nil
         remaining = @limit
         loop do
           break if remaining&.zero?
@@ -139,9 +141,9 @@ module HmisUtil
           break if rows.empty?
 
           remaining -= rows.size if remaining
-          cursor = rows.last['s3_key']
+          cursor = rows.last.values_at('load_order_at', 's3_key')
           process_batch(rows)
-          puts "#{prefix}Through #{cursor}: #{@counts.map { |k, v| "#{k} #{v}" }.join(', ')}, errored #{@errored.values.sum}"
+          puts "#{prefix}Through #{cursor.join(' ')}: #{@counts.map { |k, v| "#{k} #{v}" }.join(', ')}, errored #{@errored.values.sum}"
         end
         reset_tag_counts unless @dry_run
       end
@@ -176,6 +178,9 @@ module HmisUtil
     end
 
     def create_tracking_table
+      # Permissions don't allow us to create this table.  Created manually
+      return true if Rails.env.production?
+
       connection.execute(<<~SQL)
         CREATE TABLE IF NOT EXISTS #{tracking} (
           s3_key text NOT NULL PRIMARY KEY,
@@ -207,13 +212,24 @@ module HmisUtil
       raise DuplicateSourceKeys, "#{count} s3_keys appear more than once in #{@source_table}" if count.positive?
     end
 
+    def check_updated_at!
+      count = connection.select_value("SELECT count(*) FROM #{source} WHERE updated_at IS NULL").to_i
+      raise MissingUpdatedAt, "#{count} rows in #{@source_table} have no updated_at" if count.positive?
+    end
+
+    # cursor: [load_order_at, s3_key] of the previous batch's last row, or nil for the first batch.
+    # load_order_at is selected as text so it compares exactly, whatever the updated_at column type.
     def fetch_batch(cursor, size)
+      after_cursor = cursor ? "AND (src.updated_at, src.s3_key) < (#{cursor.map { |value| q(value) }.join(', ')})" : ''
+      type_filter = @headshots_only ? "src.type = #{q(HEADSHOT_TYPE)}" : "(src.type = #{q(HEADSHOT_TYPE)} OR src.enrollment_id IS NOT NULL)"
       connection.select_all(<<~SQL).to_a
-        SELECT src.* FROM #{source} src
+        SELECT src.*, src.updated_at::text AS load_order_at FROM #{source} src
         LEFT JOIN #{tracking} t ON t.s3_key = src.s3_key
-        WHERE src.s3_key > #{q(cursor)} AND t.active_storage_completed_at IS NULL
+        WHERE t.active_storage_completed_at IS NULL
           AND NULLIF(TRIM(src.checksum), '') IS NOT NULL
-        ORDER BY src.s3_key
+          AND #{type_filter}
+          #{after_cursor}
+        ORDER BY src.updated_at DESC, src.s3_key DESC
         LIMIT #{size.to_i}
       SQL
     end
