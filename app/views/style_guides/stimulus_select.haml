@@ -54,8 +54,8 @@
 
           %h4 Dependent Ajax Loaded Select
           = f.input :project_type_codes, collection: HudHelper.util.homeless_type_titles.invert, as: :select_two, input_html: { multiple: true, data: { 'stimulus-select-target' => 'projectTypes', action: 'change->stimulus-select#updateDependentProjectList' }}
-          = f.input :organization_ids, collection: GrdaWarehouse::Hud::Organization.options_for_select(user: current_user), as: :grouped_select_two, group_method: :last, input_html: { multiple: true, data: { 'stimulus-select-target' => 'organizations', action: 'change->stimulus-select#updateDependentProjectList' }, placeholder: 'Any Organization'}, label: 'Organizations', required: false
-          = f.input :project_ids, collection: GrdaWarehouse::Hud::Project.options_for_select(user: current_user), as: :grouped_select_two, group_method: :last, input_html: { multiple: true, data: {'stimulus-select-target' => 'projects', project_url: report_filter_projects_api_path_helper() }, placeholder: 'Any Project'}, label: 'Projects', required: false
+          = f.input :organization_ids, collection: GrdaWarehouse::Hud::Organization.options_for_select(user: current_user, permission: :can_view_assigned_reports), as: :grouped_select_two, group_method: :last, input_html: { multiple: true, data: { 'stimulus-select-target' => 'organizations', action: 'change->stimulus-select#updateDependentProjectList' }, placeholder: 'Any Organization'}, label: 'Organizations', required: false
+          = f.input :project_ids, collection: GrdaWarehouse::Hud::Project.options_for_select(user: current_user, permission: :can_view_assigned_reports), as: :grouped_select_two, group_method: :last, input_html: { multiple: true, data: {'stimulus-select-target' => 'projects', project_url: report_filter_projects_api_path_helper() }, placeholder: 'Any Project'}, label: 'Projects', required: false
 
           .c-filters.c-card
             .c-card__content
