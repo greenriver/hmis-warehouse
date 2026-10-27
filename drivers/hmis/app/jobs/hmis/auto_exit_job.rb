@@ -23,7 +23,8 @@ module Hmis
     # Most recent contact (used to compute exit_date)
     # - ES Night-by-Night: latest bed night with non-nil date_provided; if missing/invalid, enrollment entry.
     # - Other project types: latest of Service.date_provided, CustomService.date_provided,
-    #   CurrentLivingSituation.information_date, CustomAssessment.assessment_date, or Enrollment (entry).
+    #   CurrentLivingSituation.information_date, CustomAssessment.assessment_date,
+    #   CustomCaseNote.information_date, or Enrollment (entry).
     #
     # Exit Creation (delegated to Hmis::EnrollmentExitCreator)
     # - Creates Hmis::Hud::Exit with destination "No exit interview completed" and timestamps auto_exited.
@@ -147,6 +148,7 @@ module Hmis
           enrollment.custom_services.order(:date_provided).last,
           enrollment.current_living_situations.order(:information_date).last,
           enrollment.custom_assessments.order(:assessment_date).last,
+          enrollment.custom_case_notes.where.not(information_date: nil).order(:information_date).last,
           enrollment,
         ].compact.
           max_by { |entity| Hmis::Hud::Enrollment.contact_date_for_entity(entity) }
