@@ -42,8 +42,9 @@ module AuthenticatesWithTwoFactor
     user = resource
     return locked_user_redirect(user) unless user.active?
 
-    # bypass 2fa if user has device
-    if using_memorized_device?(user) && bypass_2fa_enabled?
+    # bypass 2fa if user has device; the password is still required. A wrong password
+    # falls through to the Devise strategies, which handle the failure and lockout.
+    if using_memorized_device?(user) && bypass_2fa_enabled? && user.valid_password?(user_params[:password])
       two_factor_successful(user)
     elsif user_params[:otp_attempt].present? && session[:otp_user_id].present?
       authenticate_with_two_factor_via_otp(user)
