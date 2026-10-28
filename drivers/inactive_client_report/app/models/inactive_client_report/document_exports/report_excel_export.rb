@@ -9,6 +9,9 @@
 module InactiveClientReport::DocumentExports
   class ReportExcelExport < ::GrdaWarehouse::DocumentExport
     include ApplicationHelper
+
+    BATCH_SIZE = 1_000
+
     def authorized?
       user.can_view_any_reports? && report_class.viewable_by(user)
     end
@@ -54,9 +57,13 @@ module InactiveClientReport::DocumentExports
           ]
 
           sheet.add_row(header, style: header_style)
-          report.clients.find_in_batches do |batch|
-            user.policy_context.preload_client_dependencies(batch.map(&:id))
-            batch.each do |client|
+          # Evaluate the report scope once; each batch gets its own report so activity
+          # lookups use that batch's IDs instead of re-running the scope as a subquery.
+          report.clients.order(:id).pluck(:id).each_slice(BATCH_SIZE) do |ids|
+            batch_report = report_class.new(filter)
+            batch_report.client_ids = ids
+            user.policy_context.preload_client_dependencies(ids)
+            batch_report.clients_for(ids).order(:id).each do |client|
               projects = client.last_intentional_contacts(user, include_confidential_names: false, include_dates: true).select(&:present?)
               pii = GrdaWarehouse::PiiProvider.new(client, policy: user.reporting_policy_for_client(client: client, mode: :download))
               row = [client.id]
@@ -66,12 +73,12 @@ module InactiveClientReport::DocumentExports
               row << projects.join('; ')
               row << client.service_history_entry_ongoing.map { |en| en&.project&.name(user, include_project_type: true) }.compact.join('; ')
               row << client.processed_service_history&.days_homeless_last_three_years
-              row << report.days_since_most_recent_contact(client)
-              row << report.max_entry_date(client)
-              row << report.most_recent_cls(client)
-              row << report.most_recent_bed_night(client)
-              row << report.most_recent_ce_assessment(client)&.dig(:assessment_date)
-              row << report.most_recent_ce_assessment(client)&.dig(:assessor)
+              row << batch_report.days_since_most_recent_contact(client)
+              row << batch_report.max_entry_date(client)
+              row << batch_report.most_recent_cls(client)
+              row << batch_report.most_recent_bed_night(client)
+              row << batch_report.most_recent_ce_assessment(client)&.dig(:assessment_date)
+              row << batch_report.most_recent_ce_assessment(client)&.dig(:assessor)
 
               sheet.add_row(row)
             end

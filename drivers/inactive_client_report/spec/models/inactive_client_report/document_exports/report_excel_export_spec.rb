@@ -87,4 +87,45 @@ RSpec.describe InactiveClientReport::DocumentExports::ReportExcelExport, type: :
     expect(open_row.keys).not_to include('Last Name', 'First Name', 'DOB')
     expect(open_row.keys).to include('Warehouse ID', 'Age', 'Last Seen', 'Ongoing Enrollments')
   end
+
+  describe 'with the days-since-contact filter on and one client per batch' do
+    let(:query_string) do
+      {
+        filters: {
+          on: on_date.to_s,
+          project_ids: [project.id],
+          require_service_during_range: 'false',
+          days_since_contact_min: 0,
+          days_since_contact_max: 10_000,
+        },
+      }.to_query
+    end
+    let(:restricted_service_date) { 10.days.ago.to_date }
+    let(:open_service_date) { 20.days.ago.to_date }
+
+    before do
+      stub_const("#{described_class}::BATCH_SIZE", 1)
+      # The days-since-contact filter keeps only clients with an assessment, a service, and a CLS.
+      { restricted_destination_client => restricted_service_date, open_destination_client => open_service_date }.each do |client, service_date|
+        create_enrollment_record(:hud_assessment, client, AssessmentDate: 30.days.ago.to_date)
+        create_enrollment_record(:hud_service, client, DateProvided: service_date)
+        create_enrollment_record(:hud_current_living_situation, client, InformationDate: 30.days.ago.to_date)
+      end
+    end
+
+    it 'runs the days-since-contact query once for the whole export' do
+      contact_queries = []
+      callback = ->(*, payload) { contact_queries << payload[:sql] if payload[:sql].include?('assessment_dates') }
+      ActiveSupport::Notifications.subscribed(callback, 'sql.active_record') { generated_sheet }
+
+      expect(contact_queries.size).to eq(1)
+    end
+
+    it 'writes each client its own most-recent bed night' do
+      sheet = generated_sheet
+
+      expect(sheet_row_by_header(sheet, key: restricted_destination_client.id)['Most-Recent Bed Night'].to_date).to eq(restricted_service_date)
+      expect(sheet_row_by_header(sheet, key: open_destination_client.id)['Most-Recent Bed Night'].to_date).to eq(open_service_date)
+    end
+  end
 end

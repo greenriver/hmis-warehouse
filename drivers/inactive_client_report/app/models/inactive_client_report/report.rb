@@ -74,7 +74,11 @@ module InactiveClientReport
     end
 
     def clients
-      GrdaWarehouse::Hud::Client.where(id: report_scope.select(:client_id)).
+      clients_for(report_scope.select(:client_id))
+    end
+
+    def clients_for(ids)
+      GrdaWarehouse::Hud::Client.where(id: ids).
         preload(
           :processed_service_history,
           service_history_entry_ongoing: :project,

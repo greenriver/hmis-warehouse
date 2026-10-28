@@ -26,16 +26,8 @@ module InactiveClientReport::WarehouseReports
 
     def index
       @excel_export = ::InactiveClientReport::DocumentExports::ReportExcelExport.new
-      respond_to do |format|
-        format.html do
-          # This needs to be set here so that the pagy data is accessible when the render_inline functionality is utilized
-          set_pagy_data if params[:render_inline] == '1'
-        end
-        format.xlsx do
-          filename = "#{@report.name} - #{Time.current.to_fs(:db)}.xlsx"
-          headers['Content-Disposition'] = "attachment; filename=#{filename}"
-        end
-      end
+      # This needs to be set here so that the pagy data is accessible when the render_inline functionality is utilized
+      set_pagy_data if params[:render_inline] == '1'
     end
 
     private def set_pagy_data
