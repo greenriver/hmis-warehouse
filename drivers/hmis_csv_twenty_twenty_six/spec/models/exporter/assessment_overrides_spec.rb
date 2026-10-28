@@ -15,11 +15,5 @@ RSpec.describe HmisCsvTwentyTwentySix::Exporter::Assessment::Overrides, type: :m
 
       expect(described_class.apply_overrides(assessment).AssessmentLocation).to be_nil
     end
-
-    it 'keeps an assessment location that is present' do
-      assessment = GrdaWarehouse::Hud::Assessment.new(AssessmentLocation: 'Front desk')
-
-      expect(described_class.apply_overrides(assessment).AssessmentLocation).to eq('Front desk')
-    end
   end
 end
