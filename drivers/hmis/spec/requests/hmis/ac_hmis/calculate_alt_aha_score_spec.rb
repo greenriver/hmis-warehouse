@@ -111,6 +111,53 @@ RSpec.describe Mutations::AcHmis::CalculateAltAhaScore, type: :request do
         end
       end
     end
+
+    context 'when the model version is 2' do
+      let!(:form_definition) do
+        definition = {
+          "item": [
+            { "link_id": 'assessment_date', "type": 'DATE', "text": 'Assessment Date', "assessment_date": true },
+            { "link_id": 'q1', "type": 'INTEGER', "text": 'Question 1' },
+          ],
+        }
+        create(:hmis_form_definition, role: :CUSTOM_ASSESSMENT, definition: definition, identifier: 'test_aha_form', status: :published, data_source: ds1)
+      end
+
+      # A weight of 0 leaves each algorithm at its intercept, which scores 3 overall
+      let!(:rules) do
+        ['alt_aha_1', 'alt_aha_2', 'alt_aha_3', 'alt_aha_4'].map do |algorithm|
+          create(:hmis_scoring_rule, :v2, link_id: 'q1', form_definition_identifier: 'test_aha_form', weight: 0, algorithm: algorithm)
+        end
+      end
+
+      before do
+        AppConfigProperty.create!(key: 'ac_hmis/alt_aha_model_version', value_input: '2')
+      end
+
+      it 'returns the v2 score' do
+        input = { enrollmentId: e1.id, formDefinitionIdentifier: 'test_aha_form', valuesByLinkId: { 'assessment_date' => '2026-10-28', 'q1' => 5 } }
+
+        expect do
+          response, result = post_graphql(input) { mutation }
+          expect(response.status).to eq(200), result.inspect
+          expect(result.dig('data', 'calculateAltAhaScore', 'errors')).to be_empty
+          expect(result.dig('data', 'calculateAltAhaScore', 'score')).to eq(3)
+        end.to change(Hmis::Scoring::CalculationLog, :count).by(1)
+
+        expect(Hmis::Scoring::CalculationLog.last.calculation_details['model_version']).to eq(2)
+      end
+
+      it 'returns the generic error when the assessment date is blank' do
+        input = { enrollmentId: e1.id, formDefinitionIdentifier: 'test_aha_form', valuesByLinkId: { 'assessment_date' => nil, 'q1' => 5 } }
+
+        expect do
+          response, result = post_graphql(input) { mutation }
+          expect(response.status).to eq(200), result.inspect
+          expect(result.dig('data', 'calculateAltAhaScore', 'score')).to be_nil
+          expect(result.dig('data', 'calculateAltAhaScore', 'errors', 0, 'fullMessage')).to eq('Unable to calculate score. Please finish entering responses.')
+        end.not_to change(Hmis::Scoring::CalculationLog, :count)
+      end
+    end
   end
 end
 

@@ -43007,9 +43007,13 @@ CREATE TABLE public.hmis_scoring_rules (
     algorithm character varying NOT NULL,
     criteria_type character varying NOT NULL,
     criteria_config json DEFAULT '{}'::json NOT NULL,
-    weight numeric(14,12) NOT NULL,
+    weight numeric(30,24) NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    model_version integer NOT NULL,
+    secondary_link_id character varying,
+    secondary_criteria_type character varying,
+    secondary_criteria_config jsonb
 );
 
 
@@ -360279,6 +360283,7 @@ ALTER TABLE ONLY public.import_logs
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261027120000'),
 ('20260918121000'),
 ('20260918120000'),
 ('20260916122000'),
@@ -360287,7 +360292,6 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20260911120000'),
 ('20260908122000'),
 ('20260908121000'),
-('20260908120000'),
 ('20260831120000'),
 ('20260827120000'),
 ('20260825120000'),
