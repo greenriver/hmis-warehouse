@@ -549,8 +549,9 @@ module ApplicationHelper
     return super unless custom_url
 
     uri = URI.parse(custom_url)
-    base_params = Rack::Utils.parse_query(uri.query)
-    merged_params = base_params.merge(request.query_parameters)
+    # nested parsing keeps `filter[x][]` arrays intact through `to_query`
+    base_params = Rack::Utils.parse_nested_query(uri.query)
+    merged_params = base_params.deep_merge(request.query_parameters.deep_stringify_keys)
     page_key = pagy.vars[:page_param].to_s
 
     if page == 1

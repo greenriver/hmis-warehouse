@@ -19,9 +19,15 @@ class Filters::Criteria::FilterForCocs < Filters::Criteria::Base
 
   protected
 
+  # EXISTS rather than a join: projects can have several ProjectCoC rows in the same CoC, and
+  # joining them repeats each enrollment once per row. Not a `where(id:)` on Project either,
+  # because merging a later `where(id:)` (user access, project filters) would replace it.
   def filter_for_project_cocs(scope)
-    scope.joins(project: :project_cocs).
-      merge(GrdaWarehouse::Hud::ProjectCoc.in_coc(coc_code: input.coc_codes))
+    p_t = GrdaWarehouse::Hud::Project.arel_table
+    pc_t = GrdaWarehouse::Hud::ProjectCoc.arel_table
+    matching_project_cocs = GrdaWarehouse::Hud::ProjectCoc.in_coc(coc_code: input.coc_codes).
+      where(pc_t[:data_source_id].eq(p_t[:data_source_id]).and(pc_t[:ProjectID].eq(p_t[:ProjectID])))
+    scope.joins(:project).where(matching_project_cocs.arel.exists)
   end
 
   def filter_for_enrollment_cocs(scope)

@@ -620,8 +620,10 @@ module PublicReports
       scope = filter_for_range(report_scope)
 
       @coc_codes ||= begin
-        result = scope.joins(project: :project_cocs).distinct.
-          pluck(pc_t[:CoCCode])
+        scope = scope.joins(project: :project_cocs)
+        # filter_for_cocs only checks that a ProjectCoC matches; without this, the map includes the project's other CoCs
+        scope = scope.merge(GrdaWarehouse::Hud::ProjectCoc.in_coc(coc_code: filter_object.coc_codes)) if filter_object.coc_codes.present?
+        result = scope.distinct.pluck(pc_t[:CoCCode])
         reasonable_cocs_count = GrdaWarehouse::Shape::Coc.my_states.where(cocnum: result).count
         result = GrdaWarehouse::Shape::Coc.my_states.map(&:cocnum) if reasonable_cocs_count.zero? && !Rails.env.production?
 

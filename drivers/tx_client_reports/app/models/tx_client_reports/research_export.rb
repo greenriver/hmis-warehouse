@@ -175,6 +175,8 @@ module TxClientReports
 
     private def report_scope
       scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.joins(:client, project: :project_cocs)
+      # filter_for_cocs only checks that a ProjectCoC matches; this join returns every ProjectCoC for the project, so limit it to the selected CoCs
+      scope = scope.merge(GrdaWarehouse::Hud::ProjectCoc.in_coc(coc_code: filter.coc_codes)) if filter.coc_codes.present?
       scope = filter_for_user_access(scope)
       scope = filter_for_range(scope)
       scope = filter_for_cocs(scope)

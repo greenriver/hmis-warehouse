@@ -13,8 +13,16 @@ module WarehouseReports::ClientDetails
     extend BackgroundRenderAction
     before_action :set_pdf_export
 
-    before_action :set_limited, only: [:index]
+    before_action :set_limited, only: [:index, :section]
     before_action :set_filter
+
+    background_render_action :render_section, ::BackgroundRender::ActiveClientsReportJob do
+      {
+        filter: @filter.for_params.to_json,
+        user_id: current_user.id,
+        page: params[:page],
+      }
+    end
 
     def index
       @report = report_source.new(filter: @filter, user: current_user)
@@ -30,6 +38,7 @@ module WarehouseReports::ClientDetails
 
     def section
       @report = report_source.new(filter: @filter, user: current_user)
+      @page = params[:page]
     end
 
     def report_source
