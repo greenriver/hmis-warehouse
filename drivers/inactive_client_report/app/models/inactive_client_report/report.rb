@@ -14,8 +14,10 @@ module InactiveClientReport
     include ArelHelper
     include Memery
 
+    BATCH_SIZE = 500
+
     attr_accessor :filter
-    attr_accessor :client_ids # used to speed up calculations when paginated
+    attr_accessor :client_ids # limits activity lookups to these clients (one page); nil means every report client
 
     def initialize(filter)
       @filter = filter
@@ -123,7 +125,7 @@ module InactiveClientReport
     # Clients the user can see an enrollment for who are also in the report scope
     # This ignores report scope to look for contacts at any project viewable by the user
     def client_scope
-      c_ids = client_ids.presence || report_scope.select(:client_id)
+      c_ids = client_ids.nil? ? report_scope.select(:client_id) : client_ids
       GrdaWarehouse::Hud::Client.
         where(id: c_ids).
         joins(service_history_entries: :enrollment).
@@ -132,27 +134,29 @@ module InactiveClientReport
 
     # For performance, we'll need to fetch max IDs in batches.
     # We want a client's dates to be fetched in a single batch, and dates
-    # are tied to enrollments, so we'll generate a hash in the format { client_id => [enrollment_ids] }
-    # that can be used to batch fetch all enrollments for a batch of clients
-    private def client_enrollment_ids
-      @client_enrollment_ids ||= client_scope.pluck(:id, e_t[:id]).
-        group_by(&:shift).
-        transform_values(&:flatten)
+    # are tied to enrollments, so we'll generate a hash in the format
+    # { client_id => [[enrollment_id, personal_id], ...] } that can be used to batch fetch
+    # all enrollments for a batch of clients
+    private def client_enrollments
+      @client_enrollments ||= client_scope.distinct.pluck(:id, e_t[:id], e_t[:PersonalID]).
+        group_by(&:shift)
     end
 
-    # For performance, we need to hint some subqueries, so we'll limit queries to the relevant personal IDs
-    private def personal_ids
-      # Pulling personal IDs from the Enrollment table since the clients are destination clients
-      @personal_ids ||= client_scope.distinct.pluck(e_t[:PersonalID])
+    private def each_enrollment_batch
+      client_enrollments.each_slice(BATCH_SIZE) do |slice|
+        enrollments = slice.flat_map(&:last)
+        yield enrollments.map(&:first), enrollments.map(&:last).uniq
+      end
     end
 
+    # `merge` receives the batch's PersonalIDs, which hint the subqueries for performance
     private def batch_fetch_items(join:, column:, merge:)
       {}.tap do |items|
-        client_enrollment_ids.each_slice(500) do |slice|
+        each_enrollment_batch do |enrollment_ids, personal_ids|
           items.merge!(GrdaWarehouse::Hud::Client.destination.
             joins(**join).
-            where(e_t[:id].in(slice.flat_map(&:last))).
-            merge(merge).
+            where(e_t[:id].in(enrollment_ids)).
+            merge(merge.call(personal_ids)).
             group(c_t[:id]).
             maximum(column))
         end
@@ -163,7 +167,7 @@ module InactiveClientReport
       @max_current_living_situation_by_client_id ||= batch_fetch_items(
         join: { source_enrollments: :current_living_situations },
         column: cls_t[:InformationDate],
-        merge: GrdaWarehouse::Hud::CurrentLivingSituation.where(PersonalID: personal_ids),
+        merge: ->(personal_ids) { GrdaWarehouse::Hud::CurrentLivingSituation.where(PersonalID: personal_ids) },
       )
     end
 
@@ -171,17 +175,17 @@ module InactiveClientReport
       @max_bed_night_by_client_id ||= batch_fetch_items(
         join: { source_enrollments: :services },
         column: s_t[:DateProvided],
-        merge: GrdaWarehouse::Hud::Service.where(PersonalID: personal_ids),
+        merge: ->(personal_ids) { GrdaWarehouse::Hud::Service.where(PersonalID: personal_ids) },
       )
     end
 
     def max_assessment_by_client_id
       @max_assessment_by_client_id ||= {}.tap do |items|
         u_t = GrdaWarehouse::Hud::User.arel_table
-        client_enrollment_ids.each_slice(500) do |slice|
+        each_enrollment_batch do |enrollment_ids, _personal_ids|
           items.merge!(
             GrdaWarehouse::Hud::Client.destination.
-              where(e_t[:id].in(slice.flat_map(&:last))).
+              where(e_t[:id].in(enrollment_ids)).
               joins(source_enrollments: [assessments: :user]).
               pluck(c_t[:id], u_t[:UserFirstName], u_t[:UserLastName], as_t[:AssessmentDate]).
               uniq.
@@ -194,7 +198,7 @@ module InactiveClientReport
                   assessment_date: latest_assessment.last,
                 } }
               end.
-              reduce(:merge),
+              reduce({}, :merge),
           )
         end
       end
@@ -204,11 +208,18 @@ module InactiveClientReport
       @max_entries_by_client_id ||= batch_fetch_items(
         join: { source_enrollments: :project },
         column: e_t[:EntryDate],
-        merge: GrdaWarehouse::Hud::Enrollment.where(PersonalID: personal_ids),
+        merge: ->(personal_ids) { GrdaWarehouse::Hud::Enrollment.where(PersonalID: personal_ids) },
       )
     end
 
     def report_scope
+      @report_scope ||= build_report_scope
+    end
+
+    private def build_report_scope
+      # An empty hint makes the days-since-contact filter scan every warehouse client
+      return report_scope_base.none if possible_destination_client_ids.empty?
+
       filter.destination_client_ids_for_days_since_contact_calculations = possible_destination_client_ids
       scope = filter.apply(report_scope_base, report_scope_base, include_date_range: false)
       # Apply a single date filter
@@ -219,7 +230,7 @@ module InactiveClientReport
     # in the effective projects for the filter.
     # This is only used to hint the sub queries for performance, no permission check is done.
     private def possible_destination_client_ids
-      filter.apply_criteria(report_scope_base, tags: [:project], include_date_range: false).
+      @possible_destination_client_ids ||= filter.apply_criteria(report_scope_base, tags: [:project], include_date_range: false).
         ongoing(on_date: filter.on).
         pluck(:client_id)
     end

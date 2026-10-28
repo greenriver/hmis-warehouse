@@ -26,7 +26,6 @@ module InactiveClientReport::WarehouseReports
 
     def index
       @excel_export = ::InactiveClientReport::DocumentExports::ReportExcelExport.new
-      @report.client_ids = @report.clients.map(&:id)
       respond_to do |format|
         format.html do
           # This needs to be set here so that the pagy data is accessible when the render_inline functionality is utilized
@@ -41,6 +40,7 @@ module InactiveClientReport::WarehouseReports
 
     private def set_pagy_data
       @pagy, @clients = pagy(@report.clients.order(:last_name, :first_name))
+      @report.client_ids = @clients.map(&:id)
       current_user.policy_context.preload_client_dependencies(@clients.map(&:id))
     end
 
