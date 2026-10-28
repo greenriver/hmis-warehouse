@@ -22,7 +22,7 @@ RSpec.describe TxClientReports::ResearchExport, type: :model do
       project_type_codes: HudHelper.util.homeless_project_type_codes,
     )
   end
-  let(:export) { described_class.new(user_id: user.id).tap { |e| e.instance_variable_set(:@filter, filter) } }
+  let(:export) { described_class.new(user_id: user.id, options: JSON.parse(filter.for_params.to_json)) }
 
   before do
     create(:hud_project_coc, project: project, CoCCode: 'MA-500', data_source: data_source)

@@ -93,6 +93,7 @@ RSpec.describe BackgroundRender::ActiveClientsReportJob do
       page_one_href = doc.css('a[href*="client_details/actives"]').map { |a| a['href'] }.detect { |href| href.include?('page=1') }
       link_filter = Rack::Utils.parse_nested_query(URI(page_one_href).query)['filter']
       expect(link_filter).to include('start' => filter_params[:start].iso8601, 'project_type_codes' => ['es', 'so'])
+      expect(link_filter.keys - ClientDetailReports.permitted_filter_keys.map(&:to_s)).to eq([])
     end
   end
 

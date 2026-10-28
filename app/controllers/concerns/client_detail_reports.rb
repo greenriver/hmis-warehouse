@@ -9,6 +9,28 @@
 module ClientDetailReports
   extend ActiveSupport::Concern
 
+  PERMITTED_FILTER_PARAMS = [
+    :start,
+    :end,
+    :sub_population,
+    :hoh_only,
+    :ph,
+    {
+      genders: [],
+      races: [],
+      age_ranges: [],
+      organization_ids: [],
+      project_ids: [],
+      project_group_ids: [],
+      project_type_codes: [],
+      coc_codes: [],
+    },
+  ].freeze
+
+  def self.permitted_filter_keys
+    PERMITTED_FILTER_PARAMS.flat_map { |param| param.is_a?(Hash) ? param.keys : param }
+  end
+
   included do
     private def service_history_source
       GrdaWarehouse::ServiceHistoryEnrollment.joins(:project).
@@ -23,21 +45,7 @@ module ClientDetailReports
       # default to homeless project types, but don't set it if we have any sort of filter set
       return { project_type_codes: HudHelper.util.homeless_project_type_codes } unless params[:filter].present?
 
-      params.require(:filter).permit(
-        :start,
-        :end,
-        :sub_population,
-        :hoh_only,
-        :ph,
-        genders: [],
-        races: [],
-        age_ranges: [],
-        organization_ids: [],
-        project_ids: [],
-        project_group_ids: [],
-        project_type_codes: [],
-        coc_codes: [],
-      )
+      params.require(:filter).permit(*PERMITTED_FILTER_PARAMS)
     end
 
     private def set_filter

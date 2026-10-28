@@ -5,5 +5,5 @@
 .my-5= render 'warehouse_reports/limited_by_project_note'
 - pagy, list = controller.send(:pagy, @report.enrollment_scope, count: counts[:enrollments], page: @page)
 -# page links go to the index, which reads params[:filter]; the job render has no request params to carry over
-- link_filter = @filter.for_params[:filters].reject { |_, value| value.blank? }.transform_values { |value| value.is_a?(Date) ? value.iso8601 : value }
+- link_filter = @filter.for_params[:filters].slice(*ClientDetailReports.permitted_filter_keys).reject { |_, value| value.blank? }.transform_values { |value| value.is_a?(Date) ? value.iso8601 : value }
 = render_paginated_list_with_explicit_pagy(pagy: pagy, list: list, item_name: 'data set', list_partial: 'list', list_locals: { current_user: current_user }, url: warehouse_reports_client_details_actives_path(filter: link_filter))

@@ -621,7 +621,7 @@ module PublicReports
 
       @coc_codes ||= begin
         scope = scope.joins(project: :project_cocs)
-        # filter_for_cocs only checks that a ProjectCoC matches; without this, the map includes the project's other CoCs
+        # filter_for_cocs only checks that a ProjectCoC matches; without this, census totals include the project's other CoCs
         scope = scope.merge(GrdaWarehouse::Hud::ProjectCoc.in_coc(coc_code: filter_object.coc_codes)) if filter_object.coc_codes.present?
         result = scope.distinct.pluck(pc_t[:CoCCode])
         reasonable_cocs_count = GrdaWarehouse::Shape::Coc.my_states.where(cocnum: result).count
