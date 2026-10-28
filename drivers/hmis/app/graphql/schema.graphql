@@ -746,7 +746,7 @@ HUD Coordinated Entry Assessment
 type CeAssessment {
   assessmentDate: ISO8601Date!
   assessmentLevel: AssessmentLevel
-  assessmentLocation: String!
+  assessmentLocation: String
   assessmentType: AssessmentType
   client: Client!
   createdBy: ApplicationUser
