@@ -237,6 +237,8 @@ date. An RRH: Services Only enrollment without a move-in date never counts as in
   move-in date. RRH: Services Only nights never count, because HUD says those projects have no bed inventory.
 - The "Enrolled in PH" cohort column reports enrollment in a housing project, so it excludes
   RRH: Services Only regardless of move-in date.
+- The "Ongoing RRH Enrollments" cohort column lists RRH with housing only, so it excludes RRH: Services Only
+  regardless of move-in date.
 - Logic that requires a move-in date for any PH project type follows the rule and treats the move-in date as
   the first housed day: CAS `enrolled_in_rrh` and `moved_in_with_ph?`, the Currently Homeless cohort, the
   `ServiceHistoryEnrollment` scopes `currently_homeless` and `hud_currently_homeless`, chronic calculations,
