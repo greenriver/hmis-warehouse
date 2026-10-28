@@ -39,11 +39,18 @@ RSpec.describe 'Validate import files', type: :model do
 
   # Assessments
   it 'includes expected assessments' do
-    expect(GrdaWarehouse::Hud::Assessment.count).to eq(2)
+    expect(GrdaWarehouse::Hud::Assessment.pluck(:AssessmentID)).to contain_exactly('VALID', 'VALIDATION', 'NULLABLE')
   end
 
   it 'includes expected assessments failures' do
-    expect(HmisCsvImporter::HmisCsvValidation::NonBlank.where("source_type LIKE '%Assessment'").count).to eq(6)
+    failures = HmisCsvImporter::HmisCsvValidation::NonBlank.where("source_type LIKE '%Assessment'")
+    expect(failures.pluck(:validated_column)).to contain_exactly('EnrollmentID', 'PersonalID', 'AssessmentDate')
+  end
+
+  it 'imports an assessment with blank location, type, level, and prioritization status' do
+    assessment = GrdaWarehouse::Hud::Assessment.find_by!(AssessmentID: 'NULLABLE')
+    expect(assessment.attributes.slice('AssessmentLocation', 'AssessmentType', 'AssessmentLevel', 'PrioritizationStatus')).
+      to eq('AssessmentLocation' => nil, 'AssessmentType' => nil, 'AssessmentLevel' => nil, 'PrioritizationStatus' => nil)
   end
 
   it 'includes expected assessments validations' do
