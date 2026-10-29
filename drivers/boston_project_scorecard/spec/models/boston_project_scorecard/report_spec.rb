@@ -667,4 +667,20 @@ RSpec.describe BostonProjectScorecard::Report, type: :model do
       expect(apr).to be_completed
     end
   end
+
+  describe '.started_between' do
+    # 9pm Eastern is already tomorrow in UTC; the history filter defaults end_date to Date.tomorrow
+    it 'includes a scorecard started after 8pm Eastern today' do
+      travel_to Time.zone.local(2026, 10, 16, 21, 0) do
+        report.update!(started_at: Time.current)
+
+        scope = described_class.started_between(
+          start_date: Date.current - 3.months,
+          end_date: Date.tomorrow,
+        )
+
+        expect(scope).to include(report)
+      end
+    end
+  end
 end

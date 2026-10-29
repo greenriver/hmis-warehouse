@@ -14,7 +14,7 @@ jobs:
     name: Eager Load Check
 
     runs-on: ubuntu-24.04
-    container: ruby:3.4.9-slim-trixie
+    container: ruby:3.4.12-slim-trixie
 
     permissions:
       contents: read
@@ -71,8 +71,8 @@ jobs:
 
     env:
       CLIENT: test
-      # Boot the whole app eagerly (like production) so zeitwerk:check below catches
-      # load-time errors app-wide once. Other CI jobs stay lazy to save memory.
+      # Boot the whole app eagerly (like production) so zeitwerk:check below reports load-time
+      # errors in one fast job, whether or not the matrix router schedules the unit test buckets.
       EAGER_LOAD: true
       DATABASE_ADAPTER: postgresql
       DATABASE_APP_DB_TEST: warehouse_app_test

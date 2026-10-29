@@ -542,7 +542,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
     end
 
     def enrolled_permanent_housing(client_id)
-      @enrolled_permanent_housing ||= ongoing_enrollments.permanent_housing.pluck(:client_id).to_set
+      @enrolled_permanent_housing ||= ongoing_enrollments.permanent_housing.residential.pluck(:client_id).to_set
       @enrolled_permanent_housing.include?(client_id)
     end
 
@@ -642,7 +642,8 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
     end
 
     def last_rrh_visit(client_id)
-      @last_rrh_visit ||= last_seen_in_type(:rrh)
+      # RRH: Services Only is not a housing resource
+      @last_rrh_visit ||= last_seen_in_type(:rrh, GrdaWarehouse::ServiceHistoryEnrollment.residential)
       @last_rrh_visit[client_id] || []
     end
 
@@ -652,10 +653,11 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
     end
 
     # NOTE: this should be cached in the calling method since this will return different results based on type provided
-    private def last_seen_in_type(type)
+    private def last_seen_in_type(type, she_scope = GrdaWarehouse::ServiceHistoryEnrollment.all)
       lsit = {}
       GrdaWarehouse::ServiceHistoryEnrollment.entry.ongoing.
         merge(GrdaWarehouse::Hud::Project.public_send(type)).
+        merge(she_scope).
         where(client_id: @client_ids).
         joins(:service_history_services, :project, :organization).
         group(:client_id, :project_name, p_t[:id], bool_or(p_t[:confidential], o_t[:confidential])).

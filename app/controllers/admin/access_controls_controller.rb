@@ -10,9 +10,13 @@ class Admin::AccessControlsController < ApplicationController
   include ViewableEntities
   include ArelHelper
   include AccessControlAuditData
+  include AccessControlEntityFilterOptions
   extend BackgroundRenderAction
 
-  before_action :require_can_edit_users!
+  AUDIT_ACTIONS = [:audits, :render_audits].freeze
+
+  before_action :require_can_edit_users!, except: AUDIT_ACTIONS
+  before_action :require_can_audit_users!, only: AUDIT_ACTIONS
   before_action :set_access_control, only: [:edit, :update, :destroy]
 
   background_render_action(:render_audits, ::BackgroundRender::AccessControlsAuditsJob) do
@@ -24,7 +28,7 @@ class Admin::AccessControlsController < ApplicationController
   def index
     @access_controls = access_control_scope.
       order(r_t[:name].asc, collection_t[:name].asc).
-      filtered(params[:filter])
+      filtered(filter_params[:filter])
     @pagy, @access_controls = pagy(@access_controls)
     @active_filter = filter_params[:filter]&.values&.any?(&:present?)
   end
@@ -75,11 +79,27 @@ class Admin::AccessControlsController < ApplicationController
     params.permit(
       filter: [
         :user_group_id,
-        :collection_id,
-        :role_id,
         :user_id,
+        :role_id,
+        :collection_id,
+        :data_source_id,
+        :organization_id,
+        :project_id,
+        :coc_code,
       ],
     )
+  end
+
+  private def filter_data_source_scope
+    GrdaWarehouse::DataSource.source
+  end
+
+  # Warehouse collections can list CoC codes that no project uses
+  private def coc_code_filter_options
+    collection_coc_codes = GrdaWarehouse::Lookups::CocCode.where(
+      id: GrdaWarehouse::GroupViewableEntity.using_acls.where(entity_type: GrdaWarehouse::Lookups::CocCode.sti_name).select(:entity_id),
+    ).pluck(:coc_code)
+    (super + collection_coc_codes).uniq.sort
   end
 
   private def access_control_params

@@ -203,7 +203,7 @@ module EntityAccess
   #   The unique list of users who have the specified type of access.
   #
   def users_with_access(access_type:)
-    collection_ids = group_viewable_entities.where.not(collection_id: nil).pluck(:collection_id)
+    collection_ids = group_viewable_entities.using_acls.pluck(:collection_id)
     return [] unless collection_ids
 
     permissions = case access_type
