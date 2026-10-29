@@ -79,6 +79,21 @@ RSpec.describe Filters::Criteria::FilterForCocs do
         to raise_error(guard_error)
     end
 
+    context 'in production' do
+      before do
+        allow(Rails.env).to receive(:production?).and_return(true)
+        allow(Sentry).to receive(:capture_exception)
+      end
+
+      it 'reports the join to Sentry with the call site and returns the joined scope' do
+        joined = criteria.apply(scope).joins(project: :project_cocs)
+
+        expect(Sentry).to have_received(:capture_exception).
+          with(an_instance_of(guard_error).and(having_attributes(backtrace: include(a_string_including(__FILE__)))))
+        expect(joined.joins_values).to include(project: :project_cocs)
+      end
+    end
+
     it 'allows other joins' do
       expect(criteria.apply(scope).joins(:project, :client).pluck(:id)).to eq([selected_enrollment.id])
     end

@@ -13,7 +13,7 @@ module WarehouseReports::ClientDetails
     extend BackgroundRenderAction
     before_action :set_pdf_export
 
-    before_action :set_limited, only: [:index, :section]
+    before_action :set_limited, only: [:section]
     before_action :set_filter
 
     background_render_action :render_section, ::BackgroundRender::ActiveClientsReportJob do

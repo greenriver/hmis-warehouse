@@ -43,9 +43,15 @@ class Filters::Criteria::FilterForCocs < Filters::Criteria::Base
     private def check_project_coc_joins!(joins)
       return unless joins.any? { |join| project_coc_join?(join) }
 
-      raise UnlimitedProjectCocJoin,
-            'Joining project: :project_cocs after filter_for_cocs returns every CoC the project is in. ' \
-            'Use joins_project_cocs(coc_codes:) instead; see Filters::Criteria::FilterForCocs::ProjectCocJoinGuard.'
+      error = UnlimitedProjectCocJoin.new(
+        'Joining project: :project_cocs after filter_for_cocs returns every CoC the project is in. ' \
+        'Use joins_project_cocs(coc_codes:) instead; see Filters::Criteria::FilterForCocs::ProjectCocJoinGuard.',
+      )
+      raise error unless Rails.env.production?
+
+      # In production the report still renders (with repeated rows); Sentry gets the call site.
+      error.set_backtrace(caller)
+      Sentry.capture_exception(error)
     end
 
     private def project_coc_join?(join)

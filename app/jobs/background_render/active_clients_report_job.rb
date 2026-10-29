@@ -9,12 +9,10 @@
 class BackgroundRender::ActiveClientsReportJob < BackgroundRenderJob
   def render_html(filter:, user_id:, page: nil)
     current_user = User.find(user_id)
-    # matches ClientDetailReports#set_filter so the counts agree with the page's filter
-    @filter = ::Filters::FilterBase.new(
+    @filter = ClientDetailReports.build_filter(
       user_id: user_id,
-      enforce_one_year_range: false,
-      project_type_codes: [],
-    ).set_from_params(JSON.parse(filter).with_indifferent_access[:filters])
+      filter_params: JSON.parse(filter).with_indifferent_access[:filters],
+    )
     @report = report_source.new(filter: @filter, user: current_user)
     WarehouseReports::ClientDetails::ActivesController.render(
       partial: 'report',
