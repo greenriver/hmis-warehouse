@@ -5,6 +5,7 @@ area: authorization
 tags: [authorization, hmis, Hmis::AccessControl, Hmis::Role, Hmis::AccessGroup, Collection, Hmis::UserGroup, UserContext, ResourcePolicy, viewable_by, hmis_data_source_id, permission-requirements]
 sources:
   - drivers/hmis/app/models/hmis/access_control.rb
+  - app/models/concerns/access_control_filtering.rb
   - drivers/hmis/app/models/hmis/role.rb
   - drivers/hmis/app/models/hmis/access_group.rb
   - drivers/hmis/app/models/hmis/user_group.rb
@@ -112,9 +113,9 @@ access_denied! unless record && current_user.policy_for(record, policy_type: :hm
 
 ## Key files
 
-- `drivers/hmis/app/models/hmis/access_control.rb`: the grant; `entity_name`, `describe_changes`, `filtered` scope.
+- `drivers/hmis/app/models/hmis/access_control.rb`: the grant; `entity_name`, `describe_changes`; `filtered` scope from `app/models/concerns/access_control_filtering.rb`.
 - `drivers/hmis/app/models/hmis/role.rb`: `permissions_with_descriptions`, `grants?`, `required_permissions_for`, `ensure_permissions_exist`, `with_permissions` scope.
-- `drivers/hmis/app/models/hmis/access_group.rb`: Collection; `set_viewables`, `add_viewable`, `contains_with_inherited`.
+- `drivers/hmis/app/models/hmis/access_group.rb`: Collection; `set_viewables`, `add_viewable`, `contains_with_inherited`, `contains_coc_code_with_inherited`.
 - `drivers/hmis/app/models/hmis/user_group.rb`, `user_group_member.rb`: who receives a grant; `add`/`remove` keep paper_trail rows.
 - `drivers/hmis/app/models/hmis/group_viewable_entity.rb`: `includes_entity`, `includes_any_entity_in_data_source`.
 - `drivers/hmis/app/models/hmis/project_access_group_member.rb`: DB view of project to access group, direct and inherited.

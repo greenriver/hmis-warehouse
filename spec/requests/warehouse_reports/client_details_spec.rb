@@ -217,4 +217,19 @@ RSpec.describe 'WarehouseReports::ClientDetails', type: :request do
       expect(open_row[2]).to eq('Name Redacted')
     end
   end
+
+  describe 'Actives' do
+    let!(:report) { create(:touch_point_report, url: 'warehouse_reports/client_details/actives', name: 'Actives') }
+    # Report access without can_view_projects: the picker must not fall back to
+    # the projects API's can_view_projects default, or it comes back empty.
+    let!(:role) { create(:role, can_view_assigned_reports: true, can_view_project_related_filters: true) }
+
+    it 'scopes the Projects picker by the permission report results use' do
+      get warehouse_reports_client_details_actives_path
+
+      expect(response).to have_http_status(:ok)
+      picker = Nokogiri::HTML(response.body).at_css('select[name="filter[project_ids][]"]')
+      expect(picker['data-collection-path']).to include('permission=can_view_assigned_reports')
+    end
+  end
 end

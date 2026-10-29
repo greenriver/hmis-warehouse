@@ -108,7 +108,8 @@ RSpec.describe Idp::Keycloak::UserImporter, type: :model do
     end
   end
 
-  describe '.deactivate_expired_users!' do
+  # Requires Devise's expirable module (User.expire_after, the date-based User.inactive).
+  describe '.deactivate_expired_users!', :devise_only do
     around do |example|
       PaperTrail.enabled = true
       example.run

@@ -364,7 +364,8 @@ CREATE TABLE public.activity_logs (
     referrer text,
     created_at timestamp without time zone,
     updated_at timestamp without time zone,
-    reporting_path character varying
+    reporting_path character varying,
+    client_id bigint
 );
 
 
@@ -1879,7 +1880,8 @@ CREATE TABLE public.roles (
     can_view_supplemental_client_data boolean DEFAULT false,
     can_edit_cohort_columns boolean DEFAULT false,
     can_receive_cohort_note_notifications boolean DEFAULT false,
-    can_download_lsa_source_data boolean DEFAULT false
+    can_download_lsa_source_data boolean DEFAULT false,
+    can_mark_clients_as_restricted boolean DEFAULT false
 );
 
 
@@ -4183,6 +4185,8 @@ ALTER TABLE ONLY public.oauth_access_tokens
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261015120000'),
+('20261014120000'),
 ('20260917120000'),
 ('20260908120000'),
 ('20260827151000'),

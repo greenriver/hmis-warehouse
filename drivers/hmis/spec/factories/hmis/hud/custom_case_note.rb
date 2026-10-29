@@ -17,5 +17,13 @@ FactoryBot.define do
     date_created { Time.current }
     date_updated { Time.current }
     content { 'test note' }
+    transient do
+      definition { nil }
+    end
+    after(:create) do |note, evaluator|
+      next unless evaluator.definition
+
+      note.form_processor = create(:hmis_form_processor, owner: note, definition: evaluator.definition)
+    end
   end
 end

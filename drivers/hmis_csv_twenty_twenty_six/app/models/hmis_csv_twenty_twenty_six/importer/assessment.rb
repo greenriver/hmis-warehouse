@@ -28,13 +28,7 @@ module HmisCsvTwentyTwentySix::Importer
         AssessmentDate: [
           class: HmisCsvImporter::HmisCsvValidation::NonBlank,
         ],
-        AssessmentLocation: [
-          class: HmisCsvImporter::HmisCsvValidation::NonBlank,
-        ],
         AssessmentType: [
-          {
-            class: HmisCsvImporter::HmisCsvValidation::NonBlank,
-          },
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
             arguments: { valid_options: HudHelper.util('2026').assessment_types.keys.map(&:to_s).freeze },
@@ -42,17 +36,11 @@ module HmisCsvTwentyTwentySix::Importer
         ],
         AssessmentLevel: [
           {
-            class: HmisCsvImporter::HmisCsvValidation::NonBlank,
-          },
-          {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
             arguments: { valid_options: HudHelper.util('2026').assessment_levels.keys.map(&:to_s).freeze },
           },
         ],
         PrioritizationStatus: [
-          {
-            class: HmisCsvImporter::HmisCsvValidation::NonBlank,
-          },
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,
             arguments: { valid_options: HudHelper.util('2026').prioritization_statuses.keys.map(&:to_s).freeze },

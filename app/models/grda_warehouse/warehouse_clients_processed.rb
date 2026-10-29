@@ -260,8 +260,14 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
   class StatsCalculator
     include ArelHelper
 
-    def initialize(client_ids:)
+    # on_date bounds the length-of-time counts so they can be calculated as of a given date.
+    # Without it, counts include every service day on record, as the nightly cache always has.
+    # live counts the three-year columns from service_history_services instead of the materialized
+    # view, which is only refreshed by the nightly import.
+    def initialize(client_ids:, on_date: nil, live: false)
       @client_ids = client_ids
+      @on_date = on_date
+      @live = live
     end
 
     def most_recent_homeless_dates
@@ -314,10 +320,12 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
           to_sql.
           sub("\"#{shsm_table_name}\"", "\"#{shsm_table_name}\" as a")
 
-        homeless_sql = GrdaWarehouse::ServiceHistoryServiceMaterialized.
+        homeless_scope = GrdaWarehouse::ServiceHistoryServiceMaterialized.
           where(shsm_b[:homeless].eq(true)).
           where(shsm_b[:project_type].in(HudHelper.util.homeless_project_types)). # for index hinting
-          where(shsm_b[:client_id].in(@client_ids)).
+          where(shsm_b[:client_id].in(@client_ids))
+        homeless_scope = homeless_scope.where(shsm_b[:date].lteq(@on_date)) if @on_date
+        homeless_sql = homeless_scope.
           where(non_homeless_sql).
           select(shsm_b[:client_id], shsm_b[:date]).
           to_sql.
@@ -340,11 +348,13 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
         shsm_b = shsm_t.alias('b')
         shsm_c = shsm_t.alias('c')
 
-        override_sql = GrdaWarehouse::ServiceHistoryServiceMaterialized.
+        override_scope = GrdaWarehouse::ServiceHistoryServiceMaterialized.
           joins(shsm_t.join(she_t).on(shsm_o[:service_history_enrollment_id].eq(she_t[:id])).join_sources).
           joins(she_t.join(p_t).on(she_t[:data_source_id].eq(p_t[:data_source_id]).and(she_t[:project_id].eq(p_t[:ProjectID]))).join_sources).
           merge(GrdaWarehouse::Hud::Project.includes_verified_days_homeless).
-          where(shsm_o[:client_id].in(@client_ids)).
+          where(shsm_o[:client_id].in(@client_ids))
+        override_scope = override_scope.where(shsm_o[:date].lteq(@on_date)) if @on_date
+        override_sql = override_scope.
           select(shsm_o[:client_id], shsm_o[:date]).
           to_sql.
           sub("\"#{shsm_table_name}\"", "\"#{shsm_table_name}\" as o")
@@ -360,10 +370,12 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
           to_sql.
           sub("\"#{shsm_table_name}\"", "\"#{shsm_table_name}\" as a")
 
-        homeless_sql = GrdaWarehouse::ServiceHistoryServiceMaterialized.
+        homeless_scope = GrdaWarehouse::ServiceHistoryServiceMaterialized.
           where(shsm_b[:homeless].eq(true)).
           where(shsm_b[:project_type].in(HudHelper.util.homeless_project_types)). # for index hinting
-          where(shsm_b[:client_id].in(@client_ids)).
+          where(shsm_b[:client_id].in(@client_ids))
+        homeless_scope = homeless_scope.where(shsm_b[:date].lteq(@on_date)) if @on_date
+        homeless_sql = homeless_scope.
           where(non_homeless_sql).
           select(shsm_b[:client_id], shsm_b[:date]).
           to_sql.
@@ -377,19 +389,20 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
       end
     end
 
-    # days in ES, SO, SH, or TH that don't overlap with PH
+    # days in ES, SO, or SH that don't overlap with TH or PH
     def all_literally_homeless_last_three_years
       @all_literally_homeless_last_three_years ||= begin
-        shsm_table_name = GrdaWarehouse::ServiceHistoryServiceMaterialized.table_name
-        shsm = GrdaWarehouse::ServiceHistoryServiceMaterialized.arel_table
+        source = three_year_source
+        shsm_table_name = source.table_name
+        shsm = source.arel_table
         shsm_a = shsm.alias('a')
         shsm_b = shsm.alias('b')
         shsm_c = shsm.alias('c')
 
-        non_homeless_sql = GrdaWarehouse::ServiceHistoryServiceMaterialized.
+        non_homeless_sql = source.
           where(shsm_a[:literally_homeless].eq(false)).
           where(shsm_a[:project_type].in(HudHelper.util.residential_project_type_numbers_by_code[:ph] + HudHelper.util.residential_project_type_numbers_by_code[:th])). # for index hinting
-          where(shsm_a[:date].between(3.years.ago.to_date..Date.current)).
+          where(shsm_a[:date].between(three_year_range)).
           where(shsm_a[:client_id].in(@client_ids)).
           where(shsm_a[:date].eq(shsm_b[:date])).
           where(shsm_a[:client_id].eq(shsm_b[:client_id])).
@@ -398,17 +411,17 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
           to_sql.
           sub("\"#{shsm_table_name}\"", "\"#{shsm_table_name}\" as a")
 
-        homeless_sql = GrdaWarehouse::ServiceHistoryServiceMaterialized.
+        homeless_sql = source.
           where(shsm_b[:literally_homeless].eq(true)).
           where(shsm_b[:project_type].in(HudHelper.util.literally_homeless_project_types)). # for index hinting
-          where(shsm_b[:date].between(3.years.ago.to_date..Date.current)).
+          where(shsm_b[:date].between(three_year_range)).
           where(shsm_b[:client_id].in(@client_ids)).
           where(non_homeless_sql).
           select(shsm_b[:client_id], shsm_b[:date]).
           to_sql.
           sub("\"#{shsm_table_name}\"", "\"#{shsm_table_name}\" as b")
 
-        GrdaWarehouse::ServiceHistoryServiceMaterialized.
+        source.
           from("(#{homeless_sql}) as c").
           distinct.
           group(shsm_c[:client_id]).
@@ -416,19 +429,20 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
       end
     end
 
-    # days in ES, SO, or SH that don't overlap with TH or PH
+    # days in ES, SO, SH, or TH that don't overlap with PH
     def all_homeless_in_last_three_years
       @all_homeless_in_last_three_years ||= begin
-        shsm_table_name = GrdaWarehouse::ServiceHistoryServiceMaterialized.table_name
-        shsm = GrdaWarehouse::ServiceHistoryServiceMaterialized.arel_table
+        source = three_year_source
+        shsm_table_name = source.table_name
+        shsm = source.arel_table
         shsm_a = shsm.alias('a')
         shsm_b = shsm.alias('b')
         shsm_c = shsm.alias('c')
 
-        non_homeless_sql = GrdaWarehouse::ServiceHistoryServiceMaterialized.
+        non_homeless_sql = source.
           where(shsm_a[:homeless].eq(false)).
           where(shsm_a[:project_type].in(HudHelper.util.residential_project_type_numbers_by_code[:ph])). # for index hinting
-          where(shsm_a[:date].between(3.years.ago.to_date..Date.current)).
+          where(shsm_a[:date].between(three_year_range)).
           where(shsm_a[:client_id].in(@client_ids)).
           where(shsm_a[:date].eq(shsm_b[:date])).
           where(shsm_a[:client_id].eq(shsm_b[:client_id])).
@@ -437,22 +451,62 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
           to_sql.
           sub("\"#{shsm_table_name}\"", "\"#{shsm_table_name}\" as a")
 
-        homeless_sql = GrdaWarehouse::ServiceHistoryServiceMaterialized.
+        homeless_sql = source.
           where(shsm_b[:homeless].eq(true)).
           where(shsm_b[:project_type].in(HudHelper.util.homeless_project_types)). # for index hinting
-          where(shsm_b[:date].between(3.years.ago.to_date..Date.current)).
+          where(shsm_b[:date].between(three_year_range)).
           where(shsm_b[:client_id].in(@client_ids)).
           where(non_homeless_sql).
           select(shsm_b[:client_id], shsm_b[:date]).
           to_sql.
           sub("\"#{shsm_table_name}\"", "\"#{shsm_table_name}\" as b")
 
-        GrdaWarehouse::ServiceHistoryServiceMaterialized.
+        source.
           from("(#{homeless_sql}) as c").
           distinct.
           group(shsm_c[:client_id]).
           count('c.date')
       end
+    end
+
+    # Days in ES, SH, or TH (sheltered) and SO (unsheltered) in the three years ending on on_date,
+    # excluding days housed in PH. A day with both sheltered and unsheltered service is sheltered.
+    def sheltered_homeless_last_three_years
+      sheltered_and_unsheltered_last_three_years.transform_values(&:first)
+    end
+
+    def unsheltered_homeless_last_three_years
+      sheltered_and_unsheltered_last_three_years.transform_values(&:last)
+    end
+
+    private def sheltered_and_unsheltered_last_three_years
+      @sheltered_and_unsheltered_last_three_years ||= begin
+        # homeless IS FALSE: homeless is NULL for non-homeless, non-PH days, and those are not housed
+        per_day = three_year_source.
+          where(client_id: @client_ids, date: three_year_range).
+          group(:client_id, :date).
+          select(
+            :client_id,
+            Arel.sql("bool_or(project_type IN (#{HudHelper.util.homeless_sheltered_project_types.join(',')})) AS sheltered"),
+            Arel.sql("bool_or(project_type IN (#{HudHelper.util.homeless_unsheltered_project_types.join(',')})) AS unsheltered"),
+            Arel.sql('bool_or(homeless IS FALSE) AS housed'),
+          )
+        three_year_source.from(per_day, :d).group('d.client_id').pluck(
+          Arel.sql('d.client_id'),
+          Arel.sql('count(*) FILTER (WHERE sheltered AND NOT housed)'),
+          Arel.sql('count(*) FILTER (WHERE unsheltered AND NOT sheltered AND NOT housed)'),
+        ).to_h { |client_id, sheltered, unsheltered| [client_id, [sheltered, unsheltered]] }
+      end
+    end
+
+    # The three years ending on on_date, or today when no on_date was given
+    private def three_year_range
+      end_date = @on_date || Date.current
+      (end_date - 3.years)..end_date
+    end
+
+    private def three_year_source
+      @live ? GrdaWarehouse::ServiceHistoryService : GrdaWarehouse::ServiceHistoryServiceMaterialized
     end
 
     def most_recent_chronic_dates
@@ -542,7 +596,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
     end
 
     def enrolled_permanent_housing(client_id)
-      @enrolled_permanent_housing ||= ongoing_enrollments.permanent_housing.pluck(:client_id).to_set
+      @enrolled_permanent_housing ||= ongoing_enrollments.permanent_housing.residential.pluck(:client_id).to_set
       @enrolled_permanent_housing.include?(client_id)
     end
 
@@ -642,7 +696,8 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
     end
 
     def last_rrh_visit(client_id)
-      @last_rrh_visit ||= last_seen_in_type(:rrh)
+      # RRH: Services Only is not a housing resource
+      @last_rrh_visit ||= last_seen_in_type(:rrh, GrdaWarehouse::ServiceHistoryEnrollment.residential)
       @last_rrh_visit[client_id] || []
     end
 
@@ -652,10 +707,11 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
     end
 
     # NOTE: this should be cached in the calling method since this will return different results based on type provided
-    private def last_seen_in_type(type)
+    private def last_seen_in_type(type, she_scope = GrdaWarehouse::ServiceHistoryEnrollment.all)
       lsit = {}
       GrdaWarehouse::ServiceHistoryEnrollment.entry.ongoing.
         merge(GrdaWarehouse::Hud::Project.public_send(type)).
+        merge(she_scope).
         where(client_id: @client_ids).
         joins(:service_history_services, :project, :organization).
         group(:client_id, :project_name, p_t[:id], bool_or(p_t[:confidential], o_t[:confidential])).

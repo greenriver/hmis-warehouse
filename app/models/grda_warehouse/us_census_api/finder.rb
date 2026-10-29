@@ -29,7 +29,7 @@ module GrdaWarehouse
         this_year = Date.today.year
         if year > max_year && (this_year - year < 5)
           Rails.logger.debug { "Using #{max_year} instead of #{year} for census values" }
-          year = max_year
+          self.year = max_year
         end
 
         raise "You must specify a valid year for #{geometry.name}: #{year}" if Array.wrap(year).any? { |y| y.to_i < 2009 || y.to_i > max_year }

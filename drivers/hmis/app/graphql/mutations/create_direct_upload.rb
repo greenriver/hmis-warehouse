@@ -19,6 +19,10 @@ module Mutations
       # separately (e.g. submitForm, updateClientImage). Additional check here just to be safe.
       access_denied! unless authorized_for_direct_upload?
 
+      # Reject oversized files before any bytes are uploaded. The declared byte_size is enforced by
+      # storage: the S3 presigned URL signs content-length and checksum.
+      raise 'file is too large' if input.byte_size > ClientFileBase::MAX_FILE_SIZE # unexpected, frontend enforces size limit in Uploader.tsx
+
       blob = ActiveStorage::Blob.create_before_direct_upload!(**input.to_h)
       {
         url: blob.service_url_for_direct_upload,

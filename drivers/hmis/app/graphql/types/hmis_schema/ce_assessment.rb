@@ -14,7 +14,7 @@ module Types
     field :id, ID, null: false
     field :enrollment, HmisSchema::Enrollment, null: false
     field :assessment_date, GraphQL::Types::ISO8601Date, null: false
-    field :assessment_location, String, null: false
+    field :assessment_location, String, null: true
     field :assessment_type, HmisSchema::Enums::Hud::AssessmentType, null: true
     field :assessment_level, HmisSchema::Enums::Hud::AssessmentLevel, null: true
     field :prioritization_status, HmisSchema::Enums::Hud::PrioritizationStatus, null: true
