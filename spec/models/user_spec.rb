@@ -110,8 +110,9 @@ RSpec.describe User, type: :model do
     end
 
     it 'finds a user by a short id' do
-      user4 = create(:user, id: 42)
-      expect(User.text_search('42')).to eq([user4])
+      # any free id under 100 keeps the query below 3 characters
+      user4 = create(:user, id: (1..99).find { |i| !User.with_deleted.exists?(id: i) })
+      expect(User.text_search(user4.id.to_s)).to eq([user4])
     end
 
     it 'matches a short number by id only, not by email' do
