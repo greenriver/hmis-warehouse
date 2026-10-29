@@ -481,14 +481,15 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
 
     private def sheltered_and_unsheltered_last_three_years
       @sheltered_and_unsheltered_last_three_years ||= begin
-        # homeless IS FALSE: homeless is NULL for non-homeless, non-PH days, and those are not housed
+        project_type = three_year_source.arel_table[:project_type]
         per_day = three_year_source.
           where(client_id: @client_ids, date: three_year_range).
           group(:client_id, :date).
           select(
             :client_id,
-            Arel.sql("bool_or(project_type IN (#{HudHelper.util.homeless_sheltered_project_types.join(',')})) AS sheltered"),
-            Arel.sql("bool_or(project_type IN (#{HudHelper.util.homeless_unsheltered_project_types.join(',')})) AS unsheltered"),
+            nf('bool_or', [project_type.in(HudHelper.util.homeless_sheltered_project_types)], 'sheltered'),
+            nf('bool_or', [project_type.in(HudHelper.util.homeless_unsheltered_project_types)], 'unsheltered'),
+            # homeless IS FALSE: homeless is NULL for non-homeless, non-PH days, and those are not housed
             Arel.sql('bool_or(homeless IS FALSE) AS housed'),
           )
         three_year_source.from(per_day, :d).group('d.client_id').pluck(
