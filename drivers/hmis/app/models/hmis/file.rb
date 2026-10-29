@@ -72,7 +72,8 @@ class Hmis::File < GrdaWarehouse::File
     # you can manage your own files on any client you can view (even if you don't have it in any of that client's projects).
     if user.policy_for(Hmis::File, policy_type: :hmis_file).can_manage_own_client_files?
       # Use a subquery rather than joining Client; a join forces Postgres to hash the entire Client table.
-      own_client_scope = Hmis::Hud::Client.viewable_by(user, client_ids: client_ids)
+      # presence: visible_to treats [] as "no clients", but this scope treats blank client_ids as "no filter"
+      own_client_scope = Hmis::Hud::Client.viewable_by(user, client_ids: client_ids.presence)
       own_scope = Hmis::File.where(user_id: user.id, client_id: own_client_scope.select(:id))
       viewable_scope = viewable_scope.or(own_scope)
     end

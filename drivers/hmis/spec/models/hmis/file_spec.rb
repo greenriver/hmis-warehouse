@@ -153,6 +153,33 @@ RSpec.describe Hmis::File, type: :model do
       it 'does not return files from a different data source' do
         expect(Hmis::File.viewable_by(hmis_user)).not_to include(file_ds2)
       end
+
+      it 'does not return files from a different data source when its client is requested' do
+        expect(Hmis::File.viewable_by(hmis_user, client_ids: [c_ds2.id])).to be_empty
+      end
+    end
+
+    context 'user has can_manage_own_client_files but cannot view the client' do
+      let!(:hidden_project) { create :hmis_hud_project, data_source: ds1 }
+      let!(:hidden_client) { create :hmis_hud_client, data_source: ds1 }
+      let!(:hidden_enrollment) { create :hmis_hud_enrollment, client: hidden_client, data_source: ds1, project: hidden_project }
+      let!(:own_file_on_hidden_client) { create :file, client: hidden_client, blob: blob, user: hmis_user }
+      let!(:own_enrollment_file_on_hidden_client) { create :file, client: hidden_client, enrollment: hidden_enrollment, blob: blob, user: hmis_user }
+      let!(:own_file_on_visible_client) { create :file, client: c1, blob: blob, user: hmis_user }
+
+      before do
+        # Can view clients only at p1, so hidden_client (enrolled only at hidden_project) is not viewable
+        create_access_control(hmis_user, p1, with_permission: [:can_manage_own_client_files, :can_view_clients])
+      end
+
+      it 'returns own files only on clients the user can view' do
+        expect(Hmis::File.viewable_by(hmis_user)).to include(own_file_on_visible_client)
+        expect(Hmis::File.viewable_by(hmis_user)).not_to include(own_file_on_hidden_client, own_enrollment_file_on_hidden_client)
+      end
+
+      it 'does not return own files on a client the user cannot view when that client is requested' do
+        expect(Hmis::File.viewable_by(hmis_user, client_ids: [hidden_client.id])).to be_empty
+      end
     end
 
     context 'with client_ids' do
@@ -178,7 +205,11 @@ RSpec.describe Hmis::File, type: :model do
       end
 
       it 'returns files for every requested client' do
-        expect(Hmis::File.viewable_by(hmis_user, client_ids: [c1.id, c2.id])).to include(c1_own_file_at_p2, c2_file)
+        expect(Hmis::File.viewable_by(hmis_user, client_ids: [c1.id, c2.id])).to contain_exactly(c1_client_file, c1_enrollment_file, c1_own_file_at_p2, c2_file)
+      end
+
+      it 'treats empty client_ids as no client filter' do
+        expect(Hmis::File.viewable_by(hmis_user, client_ids: [])).to match_array(Hmis::File.viewable_by(hmis_user))
       end
     end
 
