@@ -100,7 +100,7 @@ jobs:
   determine_matrix:
     if: vars.CI_AUTO_RUN == 'true' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-24.04
-    container: ruby:3.4.9-slim-trixie
+    container: ruby:3.4.12-slim-trixie
 
     outputs:
       unit_matrix: ${{ steps.set-matrix.outputs.unit_matrix }}
@@ -149,7 +149,7 @@ jobs:
 
     # Containers must run in Linux based operating systems
     runs-on: ubuntu-24.04
-    container: ruby:3.4.9-slim-trixie
+    container: ruby:3.4.12-slim-trixie
 
     # Docker Hub image that the job executes in
     # $RUBY_VERSION
@@ -267,6 +267,7 @@ jobs:
       - name: Run tests
         if: matrix.test_group.tag || matrix.test_group.test_path
         env:
+          EAGER_LOAD: true
           MAX_FAILURES: 60
           AWS_ACCESS_KEY_ID: local_access_key
           AWS_SECRET_ACCESS_KEY: local_secret_key
@@ -298,6 +299,7 @@ jobs:
       - name: Run okta tests
         if: matrix.test_group.auth || needs.determine_matrix.outputs.okta == 'true'
         env:
+          EAGER_LOAD: true
           MAX_FAILURES: 60
           AWS_ACCESS_KEY_ID: local_access_key
           AWS_SECRET_ACCESS_KEY: local_secret_key
@@ -312,6 +314,7 @@ jobs:
       - name: Run AUTH_METHOD=devise tests
         if: matrix.test_group.auth
         env:
+          EAGER_LOAD: true
           MAX_FAILURES: 60
           AWS_ACCESS_KEY_ID: local_access_key
           AWS_SECRET_ACCESS_KEY: local_secret_key
@@ -363,7 +366,7 @@ jobs:
       id-token: write
       pull-requests: read
     runs-on: ubuntu-24.04
-    container: ruby:3.4.9-slim-trixie
+    container: ruby:3.4.12-slim-trixie
 
     services:
       postgres: *postgres
@@ -439,7 +442,7 @@ jobs:
       id-token: write
       pull-requests: read
     runs-on: ubuntu-24.04
-    container: ruby:3.4.9-slim-trixie
+    container: ruby:3.4.12-slim-trixie
 
     services:
       postgres: *postgres

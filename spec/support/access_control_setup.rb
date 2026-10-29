@@ -19,4 +19,19 @@ module AccessControlSetup
     user.clear_memery_cache!
     access_control
   end
+
+  # Grants `role` on `projects` through ACLs (`:acl`) or legacy roles and access groups (`:legacy`)
+  def grant_project_access(user, role, projects, mode:)
+    if mode == :acl
+      collection = create(:collection)
+      collection.set_viewables({ projects: projects.map(&:id) })
+      return setup_access_control(user, role, collection)
+    end
+
+    role.add(user)
+    access_group = create(:access_group)
+    access_group.add(user)
+    projects.each { |project| access_group.add_viewable(project) }
+    user.clear_memery_cache!
+  end
 end

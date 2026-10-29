@@ -41,6 +41,15 @@
           }
         },
         {
+          "type": "TEXT",
+          "required": false,
+          "link_id": "file_note",
+          "text": "Note",
+          "mapping": {
+            "field_name": "note"
+          }
+        },
+        {
           "type": "CHOICE",
           "required": false,
           "link_id": "file_enrollment",

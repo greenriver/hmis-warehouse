@@ -7,11 +7,11 @@ x-app: &app
     dockerfile: docker/app/Dockerfile
     target: dev-build
     args:
-      RUBY_VERSION: 3.4.9
+      RUBY_VERSION: 3.4.12
       BUNDLER_VERSION: "2.7.2"
       USER_ID: ${USER_ID:-1001}
       GROUP_ID: ${GROUP_ID:-1001}
-      BUILD_TAG: 3.4.9-slim-trixie
+      BUILD_TAG: 3.4.12-slim-trixie
   environment: &env
     AWS_REGION: ${AWS_REGION:-us-east-1}
     AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
@@ -105,6 +105,20 @@ services:
   dj:
     <<: *backend
     command: ./bin/rake jobs:work
+    entrypoint: ""
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      s3:
+        condition: service_healthy
+
+  # Production runs dedicated short_running workers, so background renders don't wait behind long jobs.
+  dj-short:
+    <<: *backend
+    # $$ defers expansion to the container shell, which sees the env_file values.
+    command: sh -c './bin/rake jobs:work QUEUES=$${DJ_SHORT_QUEUE_NAME:-short_running}'
     entrypoint: ""
     depends_on:
       db:

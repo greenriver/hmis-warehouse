@@ -500,10 +500,10 @@ CREATE TABLE public."Assessment" (
     "EnrollmentID" character varying NOT NULL,
     "PersonalID" character varying NOT NULL,
     "AssessmentDate" date NOT NULL,
-    "AssessmentLocation" character varying NOT NULL,
-    "AssessmentType" integer NOT NULL,
-    "AssessmentLevel" integer NOT NULL,
-    "PrioritizationStatus" integer NOT NULL,
+    "AssessmentLocation" character varying,
+    "AssessmentType" integer,
+    "AssessmentLevel" integer,
+    "PrioritizationStatus" integer,
     "DateCreated" timestamp without time zone NOT NULL,
     "DateUpdated" timestamp without time zone NOT NULL,
     "UserID" character varying(32) NOT NULL,
@@ -49387,7 +49387,14 @@ CREATE TABLE public.public_report_settings (
     veterans_primary_color character varying,
     map_type character varying DEFAULT 'coc'::character varying NOT NULL,
     map_overall_population_method character varying DEFAULT 'state'::character varying NOT NULL,
-    iteration_type character varying DEFAULT 'quarter'::character varying NOT NULL
+    iteration_type character varying DEFAULT 'quarter'::character varying NOT NULL,
+    secondary_color character varying,
+    heading_color character varying,
+    text_color character varying,
+    border_color character varying,
+    surface_tint_color character varying,
+    focus_color character varying,
+    map_not_reporting_color character varying
 );
 
 
@@ -213881,6 +213888,13 @@ CREATE INDEX idx_client_ssn ON public."Client" USING btree ("SSN");
 
 
 --
+-- Name: idx_custom_assessments_on_en_id_p_id_ds_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_custom_assessments_on_en_id_p_id_ds_id ON public."CustomAssessments" USING btree ("EnrollmentID", "PersonalID", data_source_id) WHERE ("DateDeleted" IS NULL);
+
+
+--
 -- Name: idx_custom_data_element_definitions_id_ds; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -214620,13 +214634,6 @@ CREATE INDEX "index_CurrentLivingSituation_on_pending_date_deleted" ON public."C
 --
 
 CREATE INDEX "index_CurrentLivingSituation_on_verified_by_project_id" ON public."CurrentLivingSituation" USING btree (verified_by_project_id);
-
-
---
--- Name: idx_custom_assessments_on_en_id_p_id_ds_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_custom_assessments_on_en_id_p_id_ds_id ON public."CustomAssessments" USING btree ("EnrollmentID", "PersonalID", data_source_id) WHERE ("DateDeleted" IS NULL);
 
 
 --
@@ -360286,7 +360293,9 @@ ALTER TABLE ONLY public.import_logs
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261028120000'),
 ('20261014140000'),
+('20260921142542'),
 ('20260918121000'),
 ('20260918120000'),
 ('20260916122000'),

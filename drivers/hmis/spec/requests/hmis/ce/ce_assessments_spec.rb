@@ -98,6 +98,31 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         ],
       )
     end
+
+    it 'returns a null assessment location' do
+      newer_assessment.update_columns(AssessmentLocation: nil)
+      location_query = <<~GRAPHQL
+        query GetEnrollmentCeAssessments($id: ID!) {
+          enrollment(id: $id) {
+            ceAssessments {
+              nodes {
+                id
+                assessmentLocation
+              }
+            }
+          }
+        }
+      GRAPHQL
+
+      response, result = post_graphql(id: enrollment.id.to_s) { location_query }
+
+      expect(response.status).to eq(200)
+      locations = result.dig('data', 'enrollment', 'ceAssessments', 'nodes').to_h { |node| [node['id'], node['assessmentLocation']] }
+      expect(locations).to eq(
+        newer_assessment.id.to_s => nil,
+        recently_updated_assessment.id.to_s => recently_updated_assessment.AssessmentLocation,
+      )
+    end
   end
 end
 

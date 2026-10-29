@@ -8,6 +8,7 @@
 
 require 'rails_helper'
 require 'shared_contexts/enrollment_rollup_context'
+require 'shared_contexts/hud_enrollment_builders'
 include ActiveJob::TestHelper
 
 RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
@@ -865,6 +866,25 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
     end
   end
 
+  describe '#moved_in_with_ph?' do
+    include_context 'HUD enrollment builders'
+
+    let(:psh) { create_project(project_type: 3) }
+    let(:source_client) { create_client_with_warehouse_link }
+
+    it 'is true on the move-in date' do
+      create_enrollment(client: source_client, project: psh, entry_date: Date.current - 30.days, move_in_date: Date.current)
+
+      expect(source_client.moved_in_with_ph?).to be(true)
+    end
+
+    it 'is false before the move-in date' do
+      create_enrollment(client: source_client, project: psh, entry_date: Date.current - 30.days, move_in_date: Date.tomorrow)
+
+      expect(source_client.moved_in_with_ph?).to be(false)
+    end
+  end
+
   describe '#pii_provider' do
     let!(:hmis_ds) { create(:hmis_primary_data_source) }
     let!(:hmis_user) { create(:hmis_user, data_source: hmis_ds) }
@@ -927,6 +947,39 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
         provider = unlinked_destination_client.pii_provider(user: user)
         expect(provider.first_name).to eq('Name Redacted')
       end
+    end
+  end
+
+  describe '.literally_homeless_last_three_years' do
+    let(:homeless_client) { create :hud_client }
+    let(:on_date) { Date.current - 2.years }
+
+    def add_days(dates, project_type:, literally_homeless:)
+      she = create(:she_entry, client: homeless_client, project_type: project_type)
+      Array.wrap(dates).each do |date|
+        create(
+          :service_history_service,
+          client_id: homeless_client.id,
+          service_history_enrollment_id: she.id,
+          record_type: 'service',
+          date: date,
+          project_type: project_type,
+          homeless: true,
+          literally_homeless: literally_homeless,
+        )
+      end
+    end
+
+    before do
+      # 10 ES days just before on_date
+      add_days((on_date - 10.days..on_date - 1.day).to_a, project_type: 1, literally_homeless: true)
+      # An ES day overlapped by TH: inside on_date's three-year window, but more than three years before today
+      add_days(on_date - 2.years, project_type: 1, literally_homeless: true)
+      add_days(on_date - 2.years, project_type: 2, literally_homeless: false)
+    end
+
+    it 'excludes TH days inside the three years before on_date' do
+      expect(described_class.literally_homeless_last_three_years(client_id: homeless_client.id, on_date: on_date)).to eq(10)
     end
   end
 end

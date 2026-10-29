@@ -104,7 +104,7 @@ module Audit
 
       # All cohort GVEs that point at an access group (legacy side), before filtering to real groups.
       def candidate_gves
-        @candidate_gves ||= cohort.group_viewable_entities.with_deleted.where.not(access_group_id: nil).to_a
+        @candidate_gves ||= cohort.group_viewable_entities.with_deleted.legacy.to_a
       end
 
       # Only the GVEs that belong to a real, non-system access group we actually audit.

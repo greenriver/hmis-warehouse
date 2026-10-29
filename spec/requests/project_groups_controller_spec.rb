@@ -248,5 +248,14 @@ RSpec.describe ProjectGroupsController, type: :request do
       expect(doc.at_css('select[name="filters[organization_ids][]"]').css('option')).not_to be_empty
       expect(doc.at_css('select[name="filters[data_source_ids][]"]').css('option')).not_to be_empty
     end
+
+    it 'scopes the Projects pickers by can_view_projects' do
+      get new_project_group_path
+      doc = Nokogiri::HTML(response.body)
+      paths = ['project_ids', 'excluded_project_ids'].map do |field|
+        doc.at_css("select[name=\"filters[#{field}][]\"]")['data-collection-path']
+      end
+      expect(paths).to all(include('permission=can_view_projects'))
+    end
   end
 end

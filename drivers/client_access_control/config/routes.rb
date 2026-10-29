@@ -16,7 +16,6 @@ OpenPath::Application.routes.draw do
       get :from_source
     end
     resource :history, only: [:show], controller: 'client_access_control/history' do
-      get :pdf, on: :collection
       post :queue, on: :collection
     end
   end

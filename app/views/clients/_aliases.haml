@@ -27,6 +27,8 @@
         Client ID:
         %strong= @client.id
     = render 'clients/external_sharing_flag', client: @client
+    - if @client.destination?(strict: true)
+      = render 'clients/restriction_flag', client: @client
   - if show_second_column
     .col-sm-3
       = render 'clients/header_actions'

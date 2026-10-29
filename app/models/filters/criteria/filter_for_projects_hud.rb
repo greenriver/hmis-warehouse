@@ -11,6 +11,8 @@ class Filters::Criteria::FilterForProjectsHud < Filters::Criteria::Base
 
   def apply(scope)
     scope = super(scope)
-    scope.merge(viewable_project_scope).in_project(input.project_ids)
+    # Viewable and selected projects in one merge; merging them separately lets the
+    # second `where` on the project id replace the first
+    scope.joins(:project).merge(viewable_project_scope.where(id: input.project_ids))
   end
 end

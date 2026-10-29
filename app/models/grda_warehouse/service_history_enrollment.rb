@@ -153,7 +153,7 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
 
     housed_scope = entry.ongoing(on_date: date).
       in_project_type(residential_project_types).
-      with_move_in_date_before(date)
+      with_move_in_date_on_or_before(date)
 
     where(id: homeless_scope).
       where.not(client_id: housed_scope.select(:client_id))
@@ -171,7 +171,7 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
 
     housed_scope = entry.ongoing(on_date: date).
       hud_project_type(residential_project_types).
-      with_move_in_date_before(date)
+      with_move_in_date_on_or_before(date)
 
     where(id: homeless_scope).
       where.not(client_id: housed_scope.select(:client_id))
@@ -353,12 +353,8 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
     joins(:enrollment).merge(GrdaWarehouse::Hud::Enrollment.visible_to(user))
   end
 
-  scope :with_move_in_date_before, ->(date) do
-    where(she_t[:move_in_date].lt(date))
-  end
-
-  scope :with_move_in_date_after_or_blank, ->(date) do
-    where(she_t[:move_in_date].gteq(date).or(she_t[:move_in_date].eq(nil)))
+  scope :with_move_in_date_on_or_before, ->(date) do
+    where(she_t[:move_in_date].lteq(date))
   end
 
   scope :in_age_ranges, ->(age_ranges, on_date: Date.current) do

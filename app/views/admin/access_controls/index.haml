@@ -1,11 +1,12 @@
 - content_for :title, 'Access Control Administration'
 .d-flex
   %h1= content_for :title
-  .ml-auto
-    = link_to audits_admin_access_controls_path, class: 'btn btn-info mb-3' do
-      %i.fa.fa-history
-      %span.icon-eye
-      History
+  - if can_audit_users?
+    .ml-auto
+      = link_to audits_admin_access_controls_path, class: 'btn btn-info mb-3' do
+        %i.fa.fa-history
+        %span.icon-eye
+        History
 = render 'menus/admin_tabs'
 
 = render 'admin/access_controls/description', entity_type: 'warehouse'

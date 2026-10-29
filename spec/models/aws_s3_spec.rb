@@ -25,16 +25,65 @@ RSpec.describe AwsS3 do
     allow(bucket).to receive(:object).and_return(object)
   end
 
-  describe '#initialize' do
-    it 'initializes with given bucket name and region' do
-      expect(aws_s3.bucket_name).to eq('test-bucket')
+  describe 'region' do
+    def region_for(env, shared_config_region: nil)
+      stub_const('ENV', ENV.to_h.except('AWS_REGION', 'AMAZON_REGION', 'AWS_DEFAULT_REGION', 'AWS_PROFILE').merge(env))
+      allow(Aws.shared_config).to receive(:region).with(profile: 'default').and_return(shared_config_region)
+      AwsS3.new(bucket_name: 'test-bucket')
+      region = nil
+      expect(Aws::S3::Client).to have_received(:new) { |options| region = options[:region] }
+      region
+    end
+
+    it 'uses AWS_REGION over AWS_DEFAULT_REGION' do
+      expect(region_for({ 'AWS_REGION' => 'us-east-2', 'AWS_DEFAULT_REGION' => 'us-west-2' })).to eq('us-east-2')
+    end
+
+    it 'uses AWS_DEFAULT_REGION when AWS_REGION is blank' do
+      expect(region_for({ 'AWS_REGION' => '', 'AWS_DEFAULT_REGION' => 'us-west-2' })).to eq('us-west-2')
+    end
+
+    it 'prefers a region variable over the shared config profile' do
+      expect(region_for({ 'AWS_DEFAULT_REGION' => 'eu-west-1' }, shared_config_region: 'us-west-2')).to eq('eu-west-1')
+    end
+
+    it 'uses the shared config profile region when no region variable is set' do
+      expect(region_for({}, shared_config_region: 'us-west-2')).to eq('us-west-2')
+    end
+
+    it 'falls back to us-east-1 when neither a variable nor the shared config has a region' do
+      expect(region_for({})).to eq('us-east-1')
+    end
+  end
+
+  describe '.local_endpoint?' do
+    def local_endpoint_with(env)
+      stub_const('ENV', ENV.to_h.except('USE_LOCAL_S3_ENDPOINT', 'LOCAL_S3_ENDPOINT').merge(env))
+      AwsS3.local_endpoint?
+    end
+
+    it 'is true only when the flag is "true" and an endpoint is set' do
+      expect(
+        [
+          local_endpoint_with('USE_LOCAL_S3_ENDPOINT' => 'true', 'LOCAL_S3_ENDPOINT' => 'http://minio:9000'),
+          local_endpoint_with('USE_LOCAL_S3_ENDPOINT' => 'true', 'LOCAL_S3_ENDPOINT' => ''),
+          local_endpoint_with('USE_LOCAL_S3_ENDPOINT' => 'false', 'LOCAL_S3_ENDPOINT' => 'http://minio:9000'),
+        ],
+      ).to eq([true, false, false])
     end
   end
 
   describe '#exists?' do
-    it 'returns true if bucket exists' do
-      allow(bucket).to receive(:exists?).and_return(true)
-      expect(aws_s3.exists?).to be true
+    it 'returns what the bucket check reports' do
+      allow(bucket).to receive(:exists?).and_return(true, false)
+
+      expect([aws_s3.exists?, aws_s3.exists?]).to eq([true, false])
+    end
+
+    it 'returns false when the bucket check raises' do
+      allow(bucket).to receive(:exists?).and_raise(Aws::S3::Errors::ServiceError.new(nil, 'Forbidden'))
+
+      expect(aws_s3.exists?).to be(false)
     end
   end
 

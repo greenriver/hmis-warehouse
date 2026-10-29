@@ -32,6 +32,15 @@ OpenPath::Application.routes.draw do
         get :adults_with_children, on: :member
         get :veterans, on: :member
       end
+      resources :state_dashboard do
+        get :raw, on: :member
+        get :pit, on: :member
+        get :summary, on: :member
+        get :entering_exiting, on: :member
+        get :map, on: :member
+        get :who, on: :member
+        get :race, on: :member
+      end
       resources :state_level_homelessness do
         get :raw, on: :member
         get :pit, on: :member

@@ -1,0 +1,6 @@
+- if @report.renderable?
+  - data = @report.parsed_pre_calculated_data
+  = render 'public_reports/state_dashboard/summary_section', data: data, standalone: true
+  = render 'public_reports/state_dashboard/glossary'
+- else
+  = render 'public_reports/state_dashboard/stale'
