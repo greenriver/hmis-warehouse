@@ -310,7 +310,9 @@ RSpec.describe GrdaWarehouse::WarehouseClientsProcessed::StatsCalculator, type: 
     # The two SO days before the ES stay, less the PH day; the SO day on an ES day is sheltered
     it 'counts unsheltered days, excluding sheltered days, PH days, and days after on_date' do
       expect(calculator.unsheltered_homeless_last_three_years[client.id]).to eq(1)
-  
+    end
+  end
+
   describe '#last_rrh_visit' do
     let!(:sso_moved_in) { enrollment_in(project_type: 13, rrh_sub_type: 1, move_in_date: Date.current - 5.days) }
     let!(:sso_not_moved_in) { enrollment_in(project_type: 13, rrh_sub_type: 1) }
