@@ -81,4 +81,32 @@ RSpec.describe 'Password expired with pending account setup', :devise_only, type
       expect(response).to redirect_to(edit_account_two_factor_path)
     end
   end
+
+  context 'with required training' do
+    let!(:role) { create(:admin_role, training_required: true) }
+    let(:lms) { instance_double(Talentlms::Facade, any_training_required?: true) }
+
+    before do
+      allow(Talentlms::Facade).to receive(:new).and_return(lms)
+      user.need_change_password!
+      sign_in user
+    end
+
+    it 'renders the password change page instead of redirecting to training' do
+      get user_password_expired_path
+      expect(response).to have_http_status(:ok)
+      expect(response).to render_template('devise/password_expired/show')
+    end
+
+    it 'accepts the new password, then still requires training' do
+      put user_password_expired_path, params: {
+        user: { current_password: user.password, password: new_password, password_confirmation: new_password },
+      }
+      expect(response).to redirect_to(root_path)
+      expect(user.reload.valid_password?(new_password)).to be(true)
+
+      get root_path
+      expect(response).to redirect_to(user_training_path)
+    end
+  end
 end
