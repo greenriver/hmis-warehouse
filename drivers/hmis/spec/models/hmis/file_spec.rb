@@ -155,6 +155,33 @@ RSpec.describe Hmis::File, type: :model do
       end
     end
 
+    context 'with client_ids' do
+      let!(:c2) { create :hmis_hud_client, data_source: ds1 }
+      let!(:e2) { create :hmis_hud_enrollment, client: c2, data_source: ds1, project: p1 }
+      let!(:p2) { create :hmis_hud_project, data_source: ds1 }
+      let!(:e3) { create :hmis_hud_enrollment, client: c1, data_source: ds1, project: p2 }
+      let!(:other_user) { create(:user).related_hmis_user(ds1) }
+      let!(:c1_client_file) { create :file, client: c1, blob: blob, user: other_user }
+      let!(:c1_enrollment_file) { create :file, client: c1, enrollment: e1, blob: blob, user: other_user }
+      # hmis_user has no file permissions at p2, so these are only visible via can_manage_own_client_files
+      let!(:c1_own_file_at_p2) { create :file, client: c1, enrollment: e3, blob: blob, user: hmis_user }
+      let!(:c1_other_file_at_p2) { create :file, client: c1, enrollment: e3, blob: blob, user: other_user }
+      let!(:c2_file) { create :file, client: c2, enrollment: e2, blob: blob, user: hmis_user }
+
+      before do
+        create_access_control(hmis_user, ds1, with_permission: [:can_manage_own_client_files, :can_view_clients])
+      end
+
+      it 'returns the same files as the unfiltered scope, limited to those clients' do
+        expect(Hmis::File.viewable_by(hmis_user, client_ids: [c1.id])).to contain_exactly(c1_client_file, c1_enrollment_file, c1_own_file_at_p2)
+        expect(Hmis::File.viewable_by(hmis_user).where(client_id: c1.id)).to contain_exactly(c1_client_file, c1_enrollment_file, c1_own_file_at_p2)
+      end
+
+      it 'returns files for every requested client' do
+        expect(Hmis::File.viewable_by(hmis_user, client_ids: [c1.id, c2.id])).to include(c1_own_file_at_p2, c2_file)
+      end
+    end
+
     context 'with many files' do
       before do
         30.times do

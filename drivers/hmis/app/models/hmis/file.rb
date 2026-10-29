@@ -65,22 +65,20 @@ class Hmis::File < GrdaWarehouse::File
       then(arel_table[:enrollment_id].in(enrollment_scope.select(:id).arel)).
       else(arel_table[:client_id].in(client_scope.select(:id).arel))
 
-    viewable_scope = Hmis::File.
-      left_outer_joins(:client).
-      left_outer_joins(:enrollment).
-      where(case_statement)
+    viewable_scope = Hmis::File.where(case_statement)
 
     # Users can see files they uploaded if they have can_manage_own_client_files, even if they lack broader permissions.
     # can_manage_own_client_files is a global permission. If you have it anywhere in the data source,
     # you can manage your own files on any client you can view (even if you don't have it in any of that client's projects).
     if user.policy_for(Hmis::File, policy_type: :hmis_file).can_manage_own_client_files?
-      own_scope = Hmis::File.
-        left_outer_joins(:client). # same left_outer_joins as above, in order to pass structurally compatible relationship to #or
-        left_outer_joins(:enrollment).
-        merge(Hmis::Hud::Client.viewable_by(user)).
-        where(user_id: user.id)
+      # Use a subquery rather than joining Client; a join forces Postgres to hash the entire Client table.
+      own_client_scope = Hmis::Hud::Client.viewable_by(user, client_ids: client_ids)
+      own_scope = Hmis::File.where(user_id: user.id, client_id: own_client_scope.select(:id))
       viewable_scope = viewable_scope.or(own_scope)
     end
+
+    # Filter on files.client_id so the subquery can use index_files_on_client_id instead of scanning all files
+    viewable_scope = viewable_scope.where(client_id: client_ids) if client_ids.present?
 
     where(id: viewable_scope.select(:id))
   end
