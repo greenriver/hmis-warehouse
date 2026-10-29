@@ -49,17 +49,21 @@ module Types
       !!redacted?
     end
 
+    def enrollment
+      load_ar_association(object, :enrollment)
+    end
+
     def file_blob_id
-      unless_redacted { object.client_file&.blob&.id }
+      unless_redacted { client_file_blob&.id }
     end
 
     def content_type
-      object.client_file.content_type
+      client_file_blob&.content_type
     end
 
     def url
       unless_redacted do
-        return unless object.client_file.attached?
+        return unless client_file_attachment.present?
 
         Rails.application.routes.url_helpers.hmis_client_file_path(client_id: object.client_id, id: object.id)
       end
@@ -74,7 +78,12 @@ module Types
     end
 
     def tags
-      unless_redacted([]) { object.tags.map(&:id) }
+      unless_redacted([]) do
+        # Equivalent to ClientFileBase#tags, which queries per file; batch-load through the taggings instead
+        taggings = load_ar_association(object, :tag_taggings).select { |tagging| tagging.tagger_id.nil? }
+        tag_names = dataloader.with(Sources::ActiveRecordAssociation, :tag).load_all(taggings).compact.map(&:name)
+        dataloader.with(Sources::ActiveRecordScope, GrdaWarehouse::AvailableFileTag).load_all(tag_names).compact.map(&:id)
+      end
     end
 
     def date_created
@@ -89,16 +98,16 @@ module Types
     def user
       return if redacted?
 
-      object.updated_by || object.user
+      updated_by_user || uploaded_by_user
     end
 
     # Application user that uploaded the file
     def uploaded_by
-      unless_redacted { object.user }
+      unless_redacted { uploaded_by_user }
     end
 
     def updated_by
-      unless_redacted { object.updated_by }
+      unless_redacted { updated_by_user }
     end
 
     def own_file
@@ -106,6 +115,23 @@ module Types
     end
 
     protected
+
+    def client_file_attachment
+      load_ar_association(object, :client_file_attachment)
+    end
+
+    def client_file_blob
+      attachment = client_file_attachment
+      load_ar_association(attachment, :blob) if attachment
+    end
+
+    def uploaded_by_user
+      load_ar_association(object, :user)
+    end
+
+    def updated_by_user
+      load_ar_association(object, :updated_by)
+    end
 
     def unless_redacted(fallback = nil)
       return fallback if redacted?
