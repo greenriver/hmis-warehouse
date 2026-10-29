@@ -194,11 +194,12 @@ class ApplicationController < ActionController::Base
     portal_controllers = ['user_training', 'compliance_agreements', 'content_pages']
 
     # Without the sessions controllers, a user held in the portal, which links to no other
-    # route, can never sign out.
+    # route, can never sign out. While a password is expired, devise-security redirects every
+    # non-Devise page to devise/password_expired, so blocking that page loops forever.
     account_controllers = if AuthMethod.jwt?
       ['idp/sessions', 'idp/accounts', 'idp/account_emails']
     else
-      ['users/sessions', 'accounts', 'account_two_factors', 'account_emails', 'account_passwords']
+      ['users/sessions', 'accounts', 'account_two_factors', 'account_emails', 'account_passwords', 'devise/password_expired']
     end
 
     return true if controller_path.in?(portal_controllers + account_controllers)
