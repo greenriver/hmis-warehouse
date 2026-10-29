@@ -105,7 +105,6 @@ bower.json
 *.sublime-workspace
 
 # Ignore themes
-app/assets/stylesheets/theme/styles
 app/assets/stylesheets/application/_custom/theme/*
 !app/assets/stylesheets/application/_custom/theme/.keep
 app/assets/images/theme/logo

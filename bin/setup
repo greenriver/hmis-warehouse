@@ -57,12 +57,6 @@ FileUtils.chdir APP_ROOT do
   puts "\n== Removing old logs and tempfiles =="
   system! 'bin/rails log:clear tmp:clear'
 
-  puts "\n== Creating styles/_variables.scss =="
-  styles = File.join ['app', 'assets', 'stylesheets', 'theme', 'styles']
-  FileUtils.mkdir(styles) unless File.directory?(styles)
-  variables = File.join styles, '_variables.scss'
-  FileUtils.touch variables unless File.exist?(variables)
-
   puts "\n== Creating System User =="
   system! "bundle exec rails runner 'User.setup_system_user'"
 
