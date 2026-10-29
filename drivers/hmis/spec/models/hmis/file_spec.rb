@@ -180,6 +180,12 @@ RSpec.describe Hmis::File, type: :model do
       it 'does not return own files on a client the user cannot view when that client is requested' do
         expect(Hmis::File.viewable_by(hmis_user, client_ids: [hidden_client.id])).to be_empty
       end
+
+      it 'does not return own files on a soft-deleted client' do
+        c1.update_columns(DateDeleted: Time.current)
+        expect(Hmis::File.viewable_by(hmis_user)).not_to include(own_file_on_visible_client)
+        expect(Hmis::File.viewable_by(hmis_user, client_ids: [c1.id])).not_to include(own_file_on_visible_client)
+      end
     end
 
     context 'with client_ids' do
