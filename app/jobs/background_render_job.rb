@@ -10,23 +10,11 @@ class BackgroundRenderJob < BaseJob
   include CableReady::Broadcaster
   queue_as ENV.fetch('DJ_SHORT_QUEUE_NAME', :short_running)
 
+  SUBSCRIBER_WAIT_SECONDS = 1
+  SUBSCRIBER_POLL_SECONDS = 0.2
+
   def perform(render_id, **options)
-    # Before we run this, let's make sure someone still wants it.
-    pubsub = ActionCable.server.pubsub
-    channels = pubsub.send(:redis_connection).pubsub('channels', '*')
-    # Give this some time to find the stream
-    found_stream = nil
-    timeout = 15
-    while found_stream.blank?
-      found_stream = channels.detect { |stream| stream.include?(render_id) }
-      break if found_stream.present?
-
-      sleep 1 if found_stream.blank?
-      timeout -= 1
-      break if timeout <= 0
-    end
-
-    return unless found_stream
+    return unless subscriber_waiting?(render_id)
 
     html = render_html(**options)
     payload = cable_ready[BackgroundRenderChannel.stream_name(render_id)].
@@ -41,6 +29,32 @@ class BackgroundRenderJob < BaseJob
 
   private def render_html(**_options)
     raise 'abstract method not implemented'
+  end
+
+  # The browser subscribes before it requests the render, so no subscriber means the page
+  # was closed or reloaded. Jobs share a worker, so skip the render rather than wait.
+  # The short wait covers the subscription reaching Redis just after the job starts.
+  # Adapters other than Redis (async in test) can't report subscribers, so always render.
+  private def subscriber_waiting?(render_id)
+    pubsub = ActionCable.server.pubsub
+    return true unless pubsub.respond_to?(:redis_connection_for_subscriptions)
+
+    # Same channel name ActionCable::SubscriptionAdapter::ChannelPrefix subscribes to.
+    channel = [ActionCable.server.config.cable[:channel_prefix], BackgroundRenderChannel.stream_name(render_id)].compact.join(':')
+    redis = pubsub.redis_connection_for_subscriptions
+    started_at = monotonic_now
+    until redis.pubsub('numsub', channel).last.to_i.positive?
+      return false if monotonic_now - started_at >= SUBSCRIBER_WAIT_SECONDS
+
+      sleep SUBSCRIBER_POLL_SECONDS
+    end
+    true
+  ensure
+    redis&.close
+  end
+
+  private def monotonic_now
+    Process.clock_gettime(Process::CLOCK_MONOTONIC)
   end
 
   private def handle_error(render_id, error)

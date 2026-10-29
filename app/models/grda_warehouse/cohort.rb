@@ -418,11 +418,15 @@ module GrdaWarehouse
     def refresh_time_dependant_client_data(cohort_client_ids: nil)
       scope = cohort_clients
       scope = scope.where(id: cohort_client_ids) if cohort_client_ids.present?
-      scope.joins(:client).preload(client: :processed_service_history).find_in_batches do |batch|
+      scope.joins(:client).preload(:client).find_in_batches do |batch|
+        stats = length_of_time_stats(batch.map(&:client_id))
         rows = []
         batch.each do |cc|
           time_dependent_methods.each do |column, meth|
             cc[column] = send(meth, cc.client)
+          end
+          length_of_time_counts.each do |column, count|
+            cc[column] = stats.public_send(count)[cc.client_id] || 0
           end
           rows << cc
         end
@@ -431,7 +435,7 @@ module GrdaWarehouse
             rows,
             on_duplicate_key_update: {
               conflict_target: [:id],
-              columns: time_dependent_methods.keys,
+              columns: time_dependent_methods.keys + length_of_time_counts.keys,
             },
           )
         end
@@ -455,20 +459,31 @@ module GrdaWarehouse
       acquired
     end
 
+    # Length-of-time counts for a batch of clients as of the effective date, or today when none is set
+    def length_of_time_stats(client_ids)
+      GrdaWarehouse::WarehouseClientsProcessed::StatsCalculator.new(client_ids: client_ids, on_date: effective_date_or_today, live: true)
+    end
+
+    # Length-of-time columns, counted for a whole batch of clients at once as of the effective date
+    private def length_of_time_counts
+      {
+        calculated_days_homeless_on_effective_date: :homeless_counts,
+        days_homeless_last_three_years_on_effective_date: :all_homeless_in_last_three_years,
+        days_literally_homeless_last_three_years_on_effective_date: :all_literally_homeless_last_three_years,
+        days_homeless_plus_overrides: :homeless_counts_plus_overrides,
+        sheltered_days_homeless_last_three_years: :sheltered_homeless_last_three_years,
+        unsheltered_days_homeless_last_three_years: :unsheltered_homeless_last_three_years,
+      }
+    end
+
     private def time_dependent_methods
       {
-        calculated_days_homeless_on_effective_date: :calculated_days_homeless,
-        days_homeless_last_three_years_on_effective_date: :days_homeless_last_three_years,
-        days_literally_homeless_last_three_years_on_effective_date: :days_literally_homeless_last_three_years,
         destination_from_homelessness: :destination_from_homelessness,
         related_users: :related_users,
         disability_verification_date: :disability_verification_date,
         missing_documents: :missing_documents,
-        days_homeless_plus_overrides: :days_homeless_plus_overrides,
         individual_in_most_recent_homeless_enrollment: :individual_in_most_recent_homeless_enrollment,
         most_recent_date_to_street: :most_recent_date_to_street,
-        sheltered_days_homeless_last_three_years: :sheltered_days_homeless_last_three_years,
-        unsheltered_days_homeless_last_three_years: :unsheltered_days_homeless_last_three_years,
         most_recent_cls: :calculated_most_recent_cls,
         most_recent_prior_living_situation: :calculated_most_recent_prior_living_situation,
         most_recent_household_type: :calculated_most_recent_household_type,
@@ -481,33 +496,9 @@ module GrdaWarehouse
       Date.current - days_of_inactivity.days
     end
 
-    private def calculated_days_homeless(client)
-      client.days_homeless(on_date: effective_date || Date.current)
-
-      # TODO, make this work on a batch of clients
-      # Convert GrdaWarehouse::WarehouseClientsProcessed.homeless_counts to accept client_ids and a date
-    end
-
-    private def sheltered_days_homeless_last_three_years(client)
-      client.sheltered_days_homeless_last_three_years
-    end
-
-    private def unsheltered_days_homeless_last_three_years(client)
-      client.unsheltered_days_homeless_last_three_years
-    end
-
-    private def days_homeless_last_three_years(client)
-      client.days_homeless_in_last_three_years(on_date: effective_date || Date.current)
-
-      # TODO, make this work on a batch of clients
-      # Convert GrdaWarehouse::WarehouseClientsProcessed.all_homeless_in_last_three_years to accept client_ids and a date
-    end
-
-    private def days_literally_homeless_last_three_years(client)
-      client.literally_homeless_last_three_years(on_date: effective_date || Date.current)
-
-      # TODO, make this work on a batch of clients
-      # Convert GrdaWarehouse::WarehouseClientsProcessed.all_literally_homeless_last_three_years to accept client_ids and a date
+    # Length-of-time columns are calculated as of the effective date, or today when none is set
+    private def effective_date_or_today
+      effective_date || Date.current
     end
 
     private def destination_from_homelessness(client)
@@ -555,10 +546,6 @@ module GrdaWarehouse
 
     private def disability_verification_date(client)
       client.most_recent_verification_of_disability&.created_at&.to_date
-    end
-
-    private def days_homeless_plus_overrides(client)
-      client.processed_service_history&.days_homeless_plus_overrides
     end
 
     private def most_recent_automaintained_data_item(scope, client)
@@ -766,20 +753,23 @@ module GrdaWarehouse
       client_ids -= cohort_clients.pluck(:client_id) # Do not touch existing clients
       cohort_clients_by_client_id = cohort_clients.only_deleted.where(client_id: client_ids).index_by(&:client_id)
       cohort_client_batch = []
-      client_ids.uniq.each do |client_id|
+      client_ids = client_ids.uniq
+      # Calculate default columns for all added clients at once
+      defaults = self.class.available_columns.select(&:default_value?).to_h do |column|
+        column.cohort = self
+        [column.column, column.default_values(client_ids)]
+      end
+      client_ids.each do |client_id|
         # Create (or resurrect) added clients
         cohort_client = cohort_clients_by_client_id[client_id] || GrdaWarehouse::CohortClient.new(cohort_id: id, client_id: client_id)
         cohort_client.deleted_at = nil
 
         # Set any default columns
-        self.class.available_columns.each do |column|
-          if column.default_value?
-            column.cohort = self
-            cohort_client[column.column] = column.default_value(client_id)
-          end
-          # Enforce that we added the client on the processing date
-          cohort_client[:date_added_to_cohort] = @processing_date
+        defaults.each do |column, values|
+          cohort_client[column] = values[client_id]
         end
+        # Enforce that we added the client on the processing date
+        cohort_client[:date_added_to_cohort] = @processing_date
 
         cohort_client_batch << cohort_client
       end

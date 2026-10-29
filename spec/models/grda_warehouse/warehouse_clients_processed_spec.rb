@@ -183,6 +183,134 @@ RSpec.describe GrdaWarehouse::WarehouseClientsProcessed::StatsCalculator, type: 
     end
   end
 
+  describe '#homeless_counts' do
+    let(:client) { create :hud_client }
+    let(:on_date) { Date.current - 1.year }
+
+    before do
+      she = create(:she_entry, client: client, project_type: 1)
+      # 10 ES days before on_date, 5 after
+      dates = (on_date - 10.days..on_date - 1.day).to_a + (on_date + 1.day..on_date + 5.days).to_a
+      dates.each do |date|
+        create(:service_history_service, client_id: client.id, service_history_enrollment_id: she.id, record_type: 'service', date: date, project_type: 1, homeless: true, literally_homeless: true)
+      end
+      GrdaWarehouse::ServiceHistoryServiceMaterialized.refresh!
+    end
+
+    it 'counts homeless days on or before on_date' do
+      expect(described_class.new(client_ids: [client.id], on_date: on_date).homeless_counts[client.id]).to eq(10)
+    end
+  end
+
+  describe '#homeless_counts_plus_overrides' do
+    let(:client) { create :hud_client }
+    let(:on_date) { Date.current - 1.year }
+    let(:override_project) { create :hud_project, ProjectType: 6, include_in_days_homeless_override: true }
+
+    def add_days(dates, project_type:, homeless:, project: nil)
+      she_attrs = { client: client, project_type: project_type }
+      she_attrs.merge!(project_id: project.ProjectID, organization_id: project.OrganizationID, data_source_id: project.data_source_id) if project
+      she = create(:she_entry, **she_attrs)
+      dates.each do |date|
+        create(:service_history_service, client_id: client.id, service_history_enrollment_id: she.id, record_type: 'service', date: date, project_type: project_type, homeless: homeless, literally_homeless: homeless)
+      end
+    end
+
+    before do
+      # ES: 10 days before on_date, 5 after
+      add_days((on_date - 10.days..on_date - 1.day).to_a + (on_date + 1.day..on_date + 5.days).to_a, project_type: 1, homeless: true)
+      # Verified-days override project: one day before on_date, one after
+      add_days([on_date - 30.days, on_date + 30.days], project_type: 6, homeless: nil, project: override_project)
+      GrdaWarehouse::ServiceHistoryServiceMaterialized.refresh!
+    end
+
+    # The 10 ES days and the override day before on_date
+    it 'counts homeless and override days on or before on_date' do
+      expect(described_class.new(client_ids: [client.id], on_date: on_date).homeless_counts_plus_overrides[client.id]).to eq(11)
+    end
+
+    # All 15 ES days and both override days
+    it 'counts every homeless and override day without on_date' do
+      expect(described_class.new(client_ids: [client.id]).homeless_counts_plus_overrides[client.id]).to eq(17)
+    end
+  end
+
+  describe 'three-year counts' do
+    let(:client) { create :hud_client }
+    let(:on_date) { Date.current - 1.year }
+    # Inside the three years before on_date, but more than three years before today
+    let(:old_date) { on_date - 2.years - 30.days }
+
+    def add_days(dates, project_type:, literally_homeless:)
+      she = create(:she_entry, client: client, project_type: project_type)
+      dates.each do |date|
+        create(:service_history_service, client_id: client.id, service_history_enrollment_id: she.id, record_type: 'service', date: date, project_type: project_type, homeless: true, literally_homeless: literally_homeless)
+      end
+    end
+
+    before do
+      # ES: 10 days before on_date, 5 after, and two old days
+      es_dates = (on_date - 10.days..on_date - 1.day).to_a + (on_date + 1.day..on_date + 5.days).to_a + [old_date, old_date + 1.day]
+      add_days(es_dates, project_type: 1, literally_homeless: true)
+      # TH overlapping the first old ES day
+      add_days([old_date], project_type: 2, literally_homeless: false)
+      GrdaWarehouse::ServiceHistoryServiceMaterialized.refresh!
+    end
+
+    describe '#all_homeless_in_last_three_years' do
+      # The 10 days before on_date and both old days
+      it 'counts the three years before on_date' do
+        expect(described_class.new(client_ids: [client.id], on_date: on_date).all_homeless_in_last_three_years[client.id]).to eq(12)
+      end
+
+      # The 10 days before and 5 after on_date; the old days are more than three years ago
+      it 'counts the three years before today without on_date' do
+        expect(described_class.new(client_ids: [client.id]).all_homeless_in_last_three_years[client.id]).to eq(15)
+      end
+    end
+
+    describe '#all_literally_homeless_last_three_years' do
+      # The 10 days before on_date and the old day without TH
+      it 'counts the three years before on_date, excluding TH days in that window' do
+        expect(described_class.new(client_ids: [client.id], on_date: on_date).all_literally_homeless_last_three_years[client.id]).to eq(11)
+      end
+
+      it 'counts the three years before today without on_date' do
+        expect(described_class.new(client_ids: [client.id]).all_literally_homeless_last_three_years[client.id]).to eq(15)
+      end
+    end
+  end
+
+  describe 'sheltered and unsheltered counts' do
+    let(:client) { create :hud_client }
+    let(:on_date) { Date.current - 1.year }
+    let(:calculator) { described_class.new(client_ids: [client.id], on_date: on_date, live: true) }
+
+    def add_days(dates, project_type:, homeless:)
+      she = create(:she_entry, client: client, project_type: project_type)
+      Array.wrap(dates).each do |date|
+        create(:service_history_service, client_id: client.id, service_history_enrollment_id: she.id, record_type: 'service', date: date, project_type: project_type, homeless: homeless, literally_homeless: homeless)
+      end
+    end
+
+    before do
+      # ES: 10 days before on_date, 3 after
+      add_days((on_date - 10.days..on_date - 1.day).to_a + (on_date + 1.day..on_date + 3.days).to_a, project_type: 1, homeless: true)
+      # SO: on the first ES day, two days before the ES stay, and one after on_date
+      add_days([on_date - 10.days, on_date - 21.days, on_date - 20.days, on_date + 5.days], project_type: 4, homeless: true)
+      # PH after move-in: on the last ES day before on_date and on one SO day
+      add_days([on_date - 1.day, on_date - 21.days], project_type: 3, homeless: false)
+    end
+
+    # The 10 ES days before on_date, less the PH day
+    it 'counts sheltered days, excluding PH days and days after on_date' do
+      expect(calculator.sheltered_homeless_last_three_years[client.id]).to eq(9)
+    end
+
+    # The two SO days before the ES stay, less the PH day; the SO day on an ES day is sheltered
+    it 'counts unsheltered days, excluding sheltered days, PH days, and days after on_date' do
+      expect(calculator.unsheltered_homeless_last_three_years[client.id]).to eq(1)
+  
   describe '#last_rrh_visit' do
     let!(:sso_moved_in) { enrollment_in(project_type: 13, rrh_sub_type: 1, move_in_date: Date.current - 5.days) }
     let!(:sso_not_moved_in) { enrollment_in(project_type: 13, rrh_sub_type: 1) }
