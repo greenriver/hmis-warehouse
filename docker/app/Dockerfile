@@ -251,8 +251,10 @@ RUN mkdir -p app/assets/stylesheets/theme/styles \
   && touch app/assets/stylesheets/theme/styles/_variables.scss \
   && SECRET_KEY_BASE=dummysecretdummysecretdummysecretdummysecretdummysecret RAILS_ENV=production CLIENT=warehouse DATABASE_ADAPTER=postgresql DATABASE_HOST=postgres DATABASE_PASS=postgres DATABASE_USER=postgres DEFAULT_FROM=greenriver.testing@mailinator.com ENCRYPTION_KEY=strongEncryptionstrongEncryptionstrongEncryption HEALTH_DATABASE_ADAPTER=postgresql HEALTH_DATABASE_HOST=postgres HEALTH_DATABASE_PASS=postgres HEALTH_DATABASE_USER=postgres REPORTING_DATABASE_ADAPTER=postgresql REPORTING_DATABASE_HOST=postgres REPORTING_DATABASE_PASS=postgres REPORTING_DATABASE_USER=postgres WAREHOUSE_DATABASE_ADAPTER=postgis WAREHOUSE_DATABASE_HOST=postgres WAREHOUSE_DATABASE_PASS=postgres WAREHOUSE_DATABASE_USER=postgres WAREHOUSE_DATABASE_DB=warehouse_db HEALTH_DATABASE_DB=health_db REPORTING_DATABASE_DB=reporting_db DISABLE_SPRING=1 bundle exec rails assets:precompile
 
+# Bake bootsnap's cache (tmp/cache) into the image so pods don't boot cold
 RUN rm -rf tmp/* \
-  && mkdir -p tmp/pids
+  && mkdir -p tmp/pids \
+  && bundle exec bootsnap precompile --gemfile app/ lib/ config/ drivers/
 
 # Remove npm and yarn — they're only needed during asset compilation.
 # Node itself is kept for puppeteer (PDF generation via grover).
