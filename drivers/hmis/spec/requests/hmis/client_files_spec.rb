@@ -176,6 +176,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         'uploadedBy' => { 'id' => other_user.id.to_s, 'name' => other_user.name },
         'updatedBy' => { 'id' => hmis_user.id.to_s, 'name' => hmis_user.name },
         'user' => include('id' => hmis_user.id.to_s),
+        'access' => { 'canEditFile' => true, 'canDeleteFile' => true },
       )
     end
 
@@ -206,7 +207,22 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           'uploadedBy' => nil,
           'updatedBy' => nil,
           'user' => nil,
+          'access' => { 'canEditFile' => false, 'canDeleteFile' => false },
         )
+      end
+    end
+
+    context 'with confidential files at projects with different confidential permissions' do
+      let!(:confidential_file_at_p1) { create :file, client: c1, enrollment: e1, blob: blob, user: other_user, confidential: true, note: 'P1 note' }
+      let!(:confidential_file_at_p2) { create :file, client: c1, enrollment: e2, blob: blob, user: other_user, confidential: true, note: 'P2 note' }
+
+      # Confidential access at p1 only; p2 grants non-confidential file access so its files are listed but redacted
+      before { add_permissions(p2_access_control, :can_view_any_nonconfidential_client_files) }
+
+      it 'redacts each file based on its own project' do
+        nodes = fetch_file_nodes(c1).index_by { |node| node['id'] }
+        expect(nodes.fetch(confidential_file_at_p1.id.to_s)).to include('redacted' => false, 'note' => 'P1 note')
+        expect(nodes.fetch(confidential_file_at_p2.id.to_s)).to include('redacted' => true, 'name' => 'Confidential File', 'note' => nil, 'url' => nil)
       end
     end
 
@@ -226,16 +242,24 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     # which is independent of how many files the client has.
     let!(:shared_access_control) { create_access_control(hmis_user, p1) }
 
-    # Each enrollment file is at a different project and organization so that per-project policy
-    # checks and organizationName are exercised, and each file has a different uploader.
+    # Every file has its own project, organization, users, and tag. Per-file queries with identical
+    # parameters are served by the query cache and not counted, so shared values would hide an N+1.
     def create_files(count)
       count.times do
         project = create :hmis_hud_project, data_source: ds1, organization: create(:hmis_hud_organization, data_source: ds1)
         assign_viewable(shared_access_control, project)
         enrollment = create :hmis_hud_enrollment, data_source: ds1, project: project, client: c1
-        uploader = create(:user).related_hmis_user(ds1)
-        create :file, client: c1, enrollment: enrollment, blob: blob, user: uploader, updated_by: hmis_user, tags: [tag, tag2]
-        create :file, client: c1, blob: blob, user: uploader, tags: [tag]
+        2.times do |i|
+          create(
+            :file,
+            client: c1,
+            enrollment: i.zero? ? enrollment : nil,
+            blob: blob,
+            user: create(:user).related_hmis_user(ds1),
+            updated_by: create(:user).related_hmis_user(ds1),
+            tags: [GrdaWarehouse::AvailableFileTag.create!(name: "Tag #{SecureRandom.hex(4)}")],
+          )
+        end
       end
     end
 
