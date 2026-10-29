@@ -30,9 +30,6 @@ module WarehouseReports::ClientDetails
 
       respond_to do |format|
         format.html {}
-        format.xlsx do
-          require_can_view_clients!
-        end
       end
     end
 
@@ -47,6 +44,7 @@ module WarehouseReports::ClientDetails
 
     private def set_pdf_export
       @pdf_export = GrdaWarehouse::WarehouseReports::DocumentExports::ActiveClientReportExport.new
+      @excel_export = GrdaWarehouse::WarehouseReports::DocumentExports::ActiveClientReportExcelExport.new
     end
   end
 end
