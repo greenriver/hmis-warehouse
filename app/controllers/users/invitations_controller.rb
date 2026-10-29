@@ -78,9 +78,8 @@ class Users::InvitationsController < Devise::InvitationsController
 
   private def copy_user_groups(user:)
     return unless user
-    return unless invite_params[:copy_form_id].present?
 
-    source_user = User.active.not_system.find(invite_params[:copy_form_id].to_i)
+    source_user = copy_source_user
     return unless source_user
 
     source_user.user_groups.each do |group|
@@ -157,17 +156,25 @@ class Users::InvitationsController < Devise::InvitationsController
     )
   end
 
-  private def assigned_acl_ids
-    invite_params[:access_control_ids]&.reject(&:blank?)&.map(&:to_i) || []
+  # User groups the new account will join, either assigned directly or copied from another user
+  private def assigned_user_group_ids
+    direct_ids = invite_params[:user_group_ids]&.reject(&:blank?)&.map(&:to_i) || []
+    copied_ids = copy_source_user&.user_groups&.pluck(:id) || []
+    (direct_ids + copied_ids).uniq
+  end
+
+  private def copy_source_user
+    return unless invite_params[:copy_form_id].present?
+
+    User.active.not_system.find(invite_params[:copy_form_id].to_i)
   end
 
   private def creating_admin?
     @creating_admin ||= begin
       adming_admin = false
-      # If we don't already have a role granting an admin permission, and we're assigning some
-      # ACLs (with associated roles)
-      if assigned_acl_ids.present?
-        assigned_roles = AccessControl.where(id: assigned_acl_ids).joins(:role).distinct.pluck(Role.arel_table[:id])
+      # If we're assigning some user groups (with ACLs and associated roles)
+      if assigned_user_group_ids.present?
+        assigned_roles = AccessControl.where(user_group_id: assigned_user_group_ids).joins(:role).distinct.pluck(Role.arel_table[:id])
         Role.where(id: assigned_roles).find_each do |role|
           # If any role we're adding is administrative, make note, and present the confirmation page
           if role.administrative?

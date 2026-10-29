@@ -10,7 +10,7 @@ require 'rails_helper'
 
 RSpec.describe HudSpmReport::DocumentExports::CellDetailExport, type: :model do
   let(:user) { create(:user) }
-  let(:report) { create(:hud_reports_report_instance, user: user, options: { 'report_version' => 'fy2026' }, report_name: 'SPM - FY 2026') }
+  let(:report) { create(:hud_reports_report_instance, user: user, options: { 'report_version' => 'fy2026' }, report_name: HudSpmReport::Generators::Fy2026::Generator.title) }
   let(:export) do
     described_class.new(
       user: user,

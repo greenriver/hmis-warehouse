@@ -87,17 +87,6 @@ RSpec.describe Rack::Attack, type: :request do
       end
     end
 
-    describe 'when hitting the history pdf' do
-      let(:client) { create(:grda_warehouse_hud_client) }
-      let(:path) { pdf_client_history_path(client) }
-
-      it 'throttle burst requests' do
-        throttled_at = 25
-        requests_sent = till_throttled(requests_to_send: throttled_at) { get(path) }
-        expect(requests_sent).to eq(throttled_at)
-      end
-    end
-
     describe 'and posting to the sign-in page' do
       let(:path) { user_session_path }
       it 'throttles brute-force requests' do

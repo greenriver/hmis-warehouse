@@ -386,6 +386,11 @@ definitions are initialized through `TaskQueue` is stale, the collector seeds th
   `maintain_cohort_intermediate_data`, and `driver:hmis:auto_exit` do.
 - A migration that rewrites application data in Ruby. Register a `TaskQueue` lambda so it runs
   once on a worker with retry and reporting (example: `backfill_activity_log_reporting_path`).
+- An `algorithm: :concurrently` index migration on a large or heavily written table. The build
+  can fail to get its lock during a deploy. Add an idempotent `ensure_*_index!` class method
+  (valid: no-op; invalid: drop and rebuild; missing: create) and call it from a `TaskQueue`
+  lambda, as `ActivityLog.ensure_client_id_index!` and
+  `Hmis::ActivityLog.ensure_user_summary_index!` do.
 - Saving a `Translation` without calling `invalidate_cache`, or calling `_()` on a string that
   is not a fixed key in `known_translations`.
 

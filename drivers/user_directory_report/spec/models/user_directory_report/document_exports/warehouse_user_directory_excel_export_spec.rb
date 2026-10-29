@@ -78,13 +78,30 @@ RSpec.describe UserDirectoryReport::DocumentExports::WarehouseUserDirectoryExcel
   end
 
   describe '#authorized?' do
-    it 'is true for a reader who can view reports' do
+    let(:definition) do
+      GrdaWarehouse::WarehouseReports::ReportDefinition.maintain_report_definitions
+      GrdaWarehouse::WarehouseReports::ReportDefinition.find_by!(url: 'user_directory_report/warehouse_reports/users/warehouse')
+    end
+    let(:other_definition) do
+      GrdaWarehouse::WarehouseReports::ReportDefinition.where.not(id: definition.id).order(:url).first!
+    end
+
+    it 'is true when the reader has been assigned the user directory report' do
+      collection.set_viewables(reports: [definition.id])
       setup_access_control(reader, create(:role, can_view_assigned_reports: true), collection)
 
       expect(export.authorized?).to eq(true)
     end
 
+    it 'is false when the reader can view reports but not the user directory report' do
+      collection.set_viewables(reports: [other_definition.id])
+      setup_access_control(reader, create(:role, can_view_assigned_reports: true), collection)
+
+      expect(export.authorized?).to eq(false)
+    end
+
     it 'is false for a reader with no report permission' do
+      collection.set_viewables(reports: [definition.id])
       setup_access_control(reader, create(:role, can_view_clients: true), collection)
 
       expect(export.authorized?).to eq(false)
