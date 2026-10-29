@@ -49,8 +49,14 @@ module Types
       !!redacted?
     end
 
+    # Users with can_manage_own_client_files can see their own files on enrollments they can't view.
+    # Resolve null in that case; an unauthorized Enrollment object would fail the whole query.
     def enrollment
-      load_ar_association(object, :enrollment)
+      enrollment = load_ar_association(object, :enrollment)
+      return unless enrollment
+      return unless Types::HmisSchema::Enrollment.authorized?(enrollment, context)
+
+      enrollment
     end
 
     def file_blob_id

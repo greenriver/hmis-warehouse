@@ -125,10 +125,19 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     GRAPHQL
   end
 
-  def resolved_file_ids(client)
+  def fetch_file_nodes(client)
     response, result = post_graphql(id: client.id, limit: 50) { query }
     expect(response.status).to eq(200), result.inspect
-    result.dig('data', 'client', 'files', 'nodes').map { |node| node['id'].to_i }
+    expect(result['errors']).to be_nil
+    result.dig('data', 'client', 'files', 'nodes')
+  end
+
+  def resolved_file_ids(client)
+    fetch_file_nodes(client).map { |node| node['id'].to_i }
+  end
+
+  def file_node(client, file)
+    fetch_file_nodes(client).find { |node| node['id'] == file.id.to_s }
   end
 
   describe 'client files' do
@@ -152,6 +161,63 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     it 'does not return own files without can_manage_own_client_files' do
       remove_permissions(access_control, :can_manage_own_client_files)
       expect(resolved_file_ids(c1)).to contain_exactly(client_file.id, enrollment_file.id)
+    end
+
+    it 'resolves file fields for an enrollment file' do
+      enrollment_file.update!(updated_by: hmis_user)
+      expect(file_node(c1, enrollment_file)).to include(
+        'name' => enrollment_file.name,
+        'contentType' => blob.content_type,
+        'url' => hmis_client_file_path(client_id: c1.id, id: enrollment_file.id),
+        'tags' => [tag.id.to_s],
+        'redacted' => false,
+        'enrollmentId' => e1.id.to_s,
+        'enrollment' => include('id' => e1.id.to_s, 'entryDate' => e1.entry_date.strftime('%Y-%m-%d')),
+        'uploadedBy' => { 'id' => other_user.id.to_s, 'name' => other_user.name },
+        'updatedBy' => { 'id' => hmis_user.id.to_s, 'name' => hmis_user.name },
+        'user' => include('id' => hmis_user.id.to_s),
+      )
+    end
+
+    it 'resolves file fields for a client-level file' do
+      expect(file_node(c1, client_file)).to include(
+        'url' => hmis_client_file_path(client_id: c1.id, id: client_file.id),
+        'tags' => [tag.id.to_s],
+        'enrollmentId' => nil,
+        'enrollment' => nil,
+        'uploadedBy' => { 'id' => other_user.id.to_s, 'name' => other_user.name },
+        'updatedBy' => nil,
+        'user' => include('id' => other_user.id.to_s),
+      )
+    end
+
+    context 'with a confidential file the user cannot view' do
+      let!(:confidential_file) { create :file, client: c1, blob: blob, user: other_user, tags: [tag], confidential: true, note: 'Secret note' }
+
+      before { remove_permissions(access_control, :can_view_any_confidential_client_files) }
+
+      it 'redacts the file contents' do
+        expect(file_node(c1, confidential_file)).to include(
+          'redacted' => true,
+          'name' => 'Confidential File',
+          'note' => nil,
+          'url' => nil,
+          'tags' => [],
+          'uploadedBy' => nil,
+          'updatedBy' => nil,
+          'user' => nil,
+        )
+      end
+    end
+
+    context 'with an own file on an enrollment the user cannot view' do
+      let!(:p3) { create :hmis_hud_project, data_source: ds1 }
+      let!(:e3) { create :hmis_hud_enrollment, data_source: ds1, project: p3, client: c1 }
+      let!(:own_file_at_p3) { create :file, client: c1, enrollment: e3, blob: blob, user: hmis_user }
+
+      it 'returns the file with a null enrollment instead of failing the query' do
+        expect(file_node(c1, own_file_at_p3)).to include('enrollmentId' => e3.id.to_s, 'enrollment' => nil)
+      end
     end
   end
 
@@ -192,7 +258,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(queries_for_30_files).to eq(queries_for_10_files)
     end
 
-    it 'makes a reasonable number of queries' do
+    it 'stays under 40 queries for 30 files' do
       create_files(15)
       expect do
         response, result = post_graphql(id: c1.id, limit: 100, include_organization_name: true) { query }
