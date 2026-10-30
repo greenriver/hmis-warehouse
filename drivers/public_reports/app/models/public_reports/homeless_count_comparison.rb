@@ -95,6 +95,7 @@ module PublicReports
       @filter = filter_object.to_comparison
       @project_types = @filter.project_type_numbers
       scope = GrdaWarehouse::ServiceHistoryEnrollment.entry
+      scope = filter_for_user_access(scope)
       scope = filter_for_range(scope)
       scope = filter_for_cocs(scope)
       scope = filter_for_project_type(scope)

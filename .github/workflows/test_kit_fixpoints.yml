@@ -12,7 +12,7 @@ concurrency:
 jobs:
   rebuild_fixpoints:
     runs-on: ubuntu-24.04
-    container: ruby:3.4.9-slim-trixie
+    container: ruby:3.4.12-slim-trixie
     if: >-
       github.event_name == 'workflow_dispatch' ||
       (vars.CI_AUTO_RUN == 'true' &&

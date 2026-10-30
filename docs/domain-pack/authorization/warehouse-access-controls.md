@@ -5,6 +5,7 @@ area: authorization
 tags: [authorization, acl, AccessControl, Collection, UserGroup, GroupViewableEntity, EntityAccess, EnrollmentArbiter, viewable_by, permission-cache]
 sources:
   - app/models/access_control.rb
+  - app/models/concerns/access_control_filtering.rb
   - app/models/collection.rb
   - app/models/user_group.rb
   - app/models/user_group_member.rb
@@ -116,16 +117,20 @@ environment. `UserPermissionCache` (`app/models/concerns/user_permission_cache.r
 
 ## Key files
 
-- `app/models/access_control.rb`: the grant; `system`, `user_managed`, `not_system`, `filtered`
-  scopes; `system?`, `name`.
+- `app/models/access_control.rb`: the grant; `system`, `user_managed`, `not_system` scopes;
+  `system?`, `name`. The admin page's `filtered` scope comes from
+  `app/models/concerns/access_control_filtering.rb`, shared with `Hmis::AccessControl`.
 - `app/models/collection.rb`: entity associations through `group_viewable_entities`,
   `collection_type` rules, `set_viewables`, `add_viewable`, `remove_viewable`,
-  `maintain_system_groups`, `system_collections`, `destroy_with_associated_records!`.
+  `maintain_system_groups`, `system_collections`, `destroy_with_associated_records!`;
+  `contains_with_inherited` and `contains_coc_code_with_inherited` find collections that cover an
+  entity directly, through a parent, or through a CoC code.
 - `app/models/user_group.rb`: `system_user_group`, `add`/`remove` (one query per user for
   paper_trail; queues `populate_external_reporting_permissions!`).
 - `app/models/user_group_member.rb`: join row; `describe_changes` for audit history.
 - `app/models/grda_warehouse/group_viewable_entity.rb`: polymorphic join; `collection_id` on the
   ACL path, `access_group_id` on the legacy path (`set_viewables` writes `access_group_id = 0`).
+  The `legacy` and `using_acls` scopes split rows on `collection_id`.
 - `app/models/concerns/entity_access.rb`: `replace_access`, `system_collection`,
   `viewable_access_control`, `editable_access_control`, `users_with_access`,
   `remove_system_collections!`.

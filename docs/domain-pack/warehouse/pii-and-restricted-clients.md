@@ -1,8 +1,8 @@
 ---
 title: PII handling, restricted clients, access logging, and retention
-summary: "How the warehouse catalogs and protects client PII. pii_attr declarations via HasPiiAttributes, PiiProvider display decisions, HMIS-restricted client redaction and search exclusion on the warehouse side, ActivityLog records of who viewed which client and the AccessLogs audit report, PII scrubbing for non-production copies, and client data retention, whose nightly job marks inactive clients that are then hidden like restricted ones."
+summary: "How the warehouse catalogs and protects client PII. pii_attr declarations via HasPiiAttributes, PiiProvider display decisions, restricted client redaction and search exclusion on the warehouse side (restricted in HMIS or by DestinationClientRestriction), ActivityLog records of who viewed which client and the AccessLogs audit report, PII scrubbing for non-production copies, and client data retention, whose nightly job marks inactive clients that are then hidden like restricted ones."
 area: warehouse
-tags: [pii, HasPiiAttributes, pii_attr, PII_TYPES, PiiProvider, RestrictedPolicy, PiiDisplay, restricted-client, redaction, RestrictedClientLoader, HiddenClients, not_hidden, restricted_subset, hidden_ids_in, text_search, strict_search, name_and_ssn_filter, ClientRetentionMark, ClientRetentionJob, access_logs, ActivityLog, ActivityLogger, AccessLogs::Report, UsageSummary, UserSummary, ScrubClientPiiTask, ScrubAllPiiTask, ScrubModelPii, retention, ADR-0002, ADR-0009]
+tags: [pii, HasPiiAttributes, pii_attr, PII_TYPES, PiiProvider, RestrictedPolicy, PiiDisplay, restricted-client, redaction, DestinationClientRestriction, can_mark_clients_as_restricted, can_mark_restricted?, display_title, client_id_from_path, RestrictedClientLoader, HiddenClients, not_hidden, restricted_subset, hidden_ids_in, text_search, strict_search, name_and_ssn_filter, ClientRetentionMark, ClientRetentionJob, access_logs, ActivityLog, ActivityLogger, AccessLogs::Report, UsageSummary, UserSummary, ScrubClientPiiTask, ScrubAllPiiTask, ScrubModelPii, retention, ADR-0002, ADR-0009]
 sources:
   - docs/adr/0002-pii-management-strategy.md
   - docs/adr/0009-client-data-retention-and-removal.md
@@ -14,6 +14,10 @@ sources:
   - app/models/grda_warehouse/client_retention_mark.rb
   - app/jobs/client_retention_job.rb
   - app/models/grda_warehouse/hud/client.rb
+  - app/services/destination_client_restriction.rb
+  - app/controllers/clients/restrictions_controller.rb
+  - app/controllers/clients/audits_controller.rb
+  - app/controllers/admin/audits_controller.rb
   - app/models/concerns/client_search.rb
   - app/models/hud_reports/report_client_base.rb
   - app/controllers/clients_controller.rb
@@ -52,7 +56,7 @@ four mechanisms that share one catalog:
   sensitivity level. Many models declare PII this way, from `GrdaWarehouse::Hud::Client`
   to per-report snapshot tables. This is Phase 1 of `docs/adr/0002-pii-management-strategy.md`.
 - **Display.** `GrdaWarehouse::PiiProvider` decides per field whether a value is shown, masked,
-  or replaced with `Redacted`, given a policy object. HMIS client restriction is folded in by
+  or replaced with `Redacted`, given a policy object. Client restriction is folded in by
   `PiiProvider.restrict`, which forces every PII predicate false. The policy classes and the
   `PiiProvider` API are documented in `authorization/warehouse-policies.md`; this doc covers the
   restriction sources, search exclusion, and the surfaces that do and do not honor them.
@@ -91,6 +95,9 @@ Display:
 
 Restriction:
 
+- `DestinationClientRestriction.new(destination).restrict!(user:)`, `#unrestrict!(user:)`,
+  `#restricted_in_warehouse?`, `#restricted_in_hmis?`, `#versions`;
+  `Clients::RestrictionsController` (`GET`/`PATCH /clients/:client_id/restriction`).
 - `user.policy_context.client_restricted?(client_id)`.
 - `user.policy_context.preload_client_restrictions(ids)` or `preload_client_dependencies(ids)`
   before checking a list of clients; see `authorization/warehouse-policies.md`.
@@ -114,7 +121,10 @@ Access logging:
   and `after_action :log_activity` for every action except `poll`, `active`, `rollup`, `image`.
   Controllers call `log_item(record)` or `log_client` to attach the record.
 - `ActivityLog.export_rows(user_id:, range:, limit:)`, `.warehouse_reports`,
-  `.created_in_range(range:)`, `.warehouse_report_conditions`.
+  `.created_in_range(range:)`, `.warehouse_report_conditions`, `.backfill_client_id!`,
+  `.ensure_client_id_index!`.
+- `Clients::AuditsController#index` (the client "Audit" tab) lists `ActivityLog` rows with
+  `item_model: 'GrdaWarehouse::Hud::Client'` and `client_id` equal to the destination client.
 - `AccessLogs::WarehouseReports::ReportsController` (`index`, `create`, `report_usage`,
   `user_summary`), `AccessLogs::Report#as_excel`, `AccessLogs::WarehouseReports::UsageSummary.new(range:).call`,
   `UserSummary.new(range:).call`, `WarehouseReports::AccessLogsExportJob`.
@@ -190,10 +200,11 @@ marking, or unmarking a client busts only that client's fragments.
 
 ### Restricted clients on the warehouse side
 
-Restriction is set in HMIS (`Hmis::RestrictedRecord`, see
-`hmis/restricted-records-and-multi-hmis.md`). The warehouse treats it as an absolute PII block
-with no override permission: the only way to restore visibility is for HMIS staff to unmark the
-client. A retention-inactive client gets the same treatment until a later run unmarks it.
+A restriction is an active `Hmis::RestrictedRecord` row, set in HMIS on a source client (see
+`hmis/restricted-records-and-multi-hmis.md`) or in the warehouse on a destination client (see
+Warehouse-side restriction in this doc). The warehouse treats either as an absolute PII block
+with no override permission: visibility returns only when every row on the identity is removed.
+A retention-inactive client gets the same treatment until a later run unmarks it.
 
 **Hidden sets.** `GrdaWarehouse::HiddenClients` defines both in Arel. The restricted set is the
 directly restricted ids, the destinations linked to them through live `WarehouseClient` rows
@@ -218,6 +229,34 @@ redacts name, SSN (no partial mask), DOB, photo, and HIV status. `age` and `dob_
 only) still render. Paths that do not resolve a policy show real PII; the human doc
 `docs/features/warehouse/warehouse-auth-policies.md` lists the known ones (CSG Engage
 submission, ad hoc upload review, aggregate HIV gates, `non_hmis_clients`).
+
+### Warehouse-side restriction
+
+`DestinationClientRestriction` (`app/services/destination_client_restriction.rb`) takes a
+destination that passes `destination?(strict: true)` and writes or removes an
+`Hmis::RestrictedRecord` on the destination id, typed `Hmis::Hud::Client`, with an `Hmis::User`
+as `created_by` (`Hmis::User.find(user.id)`, not `as_hmis_user`, which is nil when HMIS is
+disabled). Reusing the HMIS table and type string is what lets `HiddenClients` and
+`analytics.client_piis` hide the identity unchanged. HMIS checks only rows on its own client ids,
+so a warehouse row does not restrict the client in HMIS. `unrestrict!` removes only the
+destination row; rows on sources belong to HMIS.
+
+`Clients::RestrictionsController` authorizes with `policy_for(client).can_mark_restricted?`,
+backed by the role permission `can_mark_clients_as_restricted` on a project the client is
+enrolled in. It grants no viewing. The removal modal shows the last name the user would see once
+the warehouse row is gone (`pii_provider_without_warehouse_restriction`).
+
+`Hud::Client#merge_from` restricts the receiver when the previous destination had a warehouse
+row, and removes that row before destroying a previous destination left without sources
+(`unrestrict_merged_away!`). The receiver must pass `destination?(strict: true)`, so a merge
+into a client outside a destination data source raises and rolls back. `Hud::Client#split`
+restricts every new destination when the original has a warehouse row; HMIS rows stay with their
+source. `Hmis::MergeClientsJob` carries the row too; see
+`hmis/restricted-records-and-multi-hmis.md`.
+
+`as_actor` sets the PaperTrail `whodunnit` to the acting user when no request has set one.
+`Clients::AuditsController#index` lists `#versions` (rows on the destination and its current
+sources) as Restriction History, labeling destination rows Warehouse and source rows HMIS.
 
 ### Hidden clients in search and exports
 
@@ -260,8 +299,19 @@ and saves when `user_id` is present. `ClientsController` and
 `edit`, `merge`, `unmerge`, the latter for `show`. Dashboard `rollup` and `image` requests are
 excluded from logging entirely.
 
+Titles are stored at visit time, so a row logged before a client was restricted holds the name.
+`ActivityLog#display_title(name_redacted:)` swaps the name for `Name Redacted` and keeps a
+` - <page>` suffix. `Clients::AuditsController#index` passes the client's restriction;
+`Admin::AuditsController#show` reads each row's client from `#client_id_from_path` (on nested
+pages `item_id` is the nested record) and calls `preload_client_restrictions` for the page.
+
 `ActivityLog` (`app/models/activity_log.rb`) keeps `reporting_path`, a 200-character mirror of
-`path` set in `before_save`, because `path` is unbounded and cannot be indexed.
+`path` set in `before_save`, because `path` is unbounded and cannot be indexed. It also keeps
+`client_id`, set in `before_save` from the first `/clients/<id>` segment of `path` before any
+query string (`CLIENT_PATH_PATTERN`), so `/source_clients/<id>` and `?return_to=/clients/<id>`
+don't match. `CLIENT_PATH_SQL_PATTERN` is the Postgres equivalent used by `backfill_client_id!`
+for older rows. The `:activity_log_client_id` TaskQueue task runs that backfill and then
+`ensure_client_id_index!`, which builds the partial `(client_id, created_at)` index concurrently.
 `warehouse_report_conditions` maps every `ReportDefinition.report_list` url to an Arel condition
 on `reporting_path` (exact, `/url/%`, or `/url?%`, or a per-report `reporting_query` override).
 `created_in_range(range:)` expands a `Date..Date` to full days because `created_at` is a UTC
@@ -362,7 +412,15 @@ not built; the ADR (still status Proposed) lists them as later phases or open de
   logic.
 - `app/models/grda_warehouse/hud/client.rb`: `pii_provider`;
   `project_pii_provider`; `pii_restricted?`; deprecated `name`;
-  `text_search`; `strict_search`; `potential_matches`.
+  `text_search`; `strict_search`; `potential_matches`; restriction carry-over in `merge_from`
+  and `split`.
+- `app/services/destination_client_restriction.rb`: `restrict!`; `unrestrict!`;
+  `unrestrict_merged_away!`; `as_actor`; `versions`; `pii_provider_without_warehouse_restriction`.
+- `app/controllers/clients/restrictions_controller.rb`: `can_mark_restricted?` gate; `update`
+  messages for a client also restricted in HMIS.
+- `app/controllers/clients/audits_controller.rb`: Restriction History; title redaction.
+- `app/controllers/admin/audits_controller.rb`: per-user audit log; restriction preload;
+  `activity_title`.
 - `app/models/concerns/client_search.rb`: `text_searcher`; `name_and_ssn_filter` on the SSN
   and name branches.
 - `app/models/hud_reports/report_client_base.rb`: `restricted_condition`.
@@ -378,8 +436,10 @@ not built; the ADR (still status Proposed) lists them as later phases or open de
 - `drivers/client_access_control/README.md`: the four sources of client search and view access.
 - `app/controllers/concerns/activity_logger.rb`: `compose_activity`; `log_item`;
   `log_activity`; `title_for_show`.
-- `app/models/activity_log.rb`: `REPORTING_PATH_LENGTH`; `created_in_range`;
-  `warehouse_report_conditions`; `export_rows`; `scrub`.
+- `app/models/activity_log.rb`: `REPORTING_PATH_LENGTH`; `CLIENT_PATH_PATTERN`;
+  `CLIENT_PATH_SQL_PATTERN`; `created_in_range`; `warehouse_report_conditions`;
+  `backfill_client_id!`; `ensure_client_id_index!`; `export_rows`; `scrub`; `CLIENT_PATH_ID`;
+  `client_id_from_path`; `display_title`.
 - `drivers/hmis/app/models/hmis/activity_log.rb`: header comment documents every column and
   the `resolved_fields` key format.
 - `drivers/access_logs/README.md`: tab list and definitions.
@@ -409,7 +469,8 @@ not built; the ADR (still status Proposed) lists them as later phases or open de
 - `ActivityLog.path` is the full request path with query string, and `title` for a client page
   is the client's name as the logging user saw it. Activity logs are therefore not id-only;
   ADR 0009 lists them as a secondary PII store. `export_rows` strips query strings on the way
-  out, but the table keeps them.
+  out, but the table keeps them. A page that renders `title` for client rows must go through
+  `ActivityLog#display_title` with the client's current restriction.
 - `compose_activity` and `log_activity` skip `rollup` and `image`, so a client dashboard visit
   produces one row for `show`, not one per lazily loaded section.
 - The Report Usage and User Access Summary tabs read the log tables with no join to `users` or
@@ -472,7 +533,8 @@ not built; the ADR (still status Proposed) lists them as later phases or open de
   `reporting_policy_for_project`, and the `RestrictedClientLoader` memoization on
   `User#policy_context`.
 - `hmis/restricted-records-and-multi-hmis.md`: `Hmis::RestrictedRecord`, `mark_as_restricted!`,
-  `pii_redacted_for_client?`, and `Hmis::Hud::Client.searchable_to`, the HMIS half of restriction.
+  `pii_redacted_for_client?`, and `Hmis::Hud::Client.searchable_to`, the HMIS half of restriction;
+  `Hmis::MergeClientsJob#carry_warehouse_restriction`.
 - `hud-reporting/csv-export.md`: `Export::RestrictedClientPiiTransform` and when hashed or faked
   exports bypass it.
 - `warehouse/client-identity.md`: `WarehouseClient` links that `HiddenClients` follows and that
