@@ -46,6 +46,63 @@ RSpec.describe HmisCsvImporter::Loader::Loader, type: :model do
       end
     end
 
+    it 'regenerates CLS IDs after filtering unlinked records and before remapping HUD keys' do
+      data_source = create(
+        :grda_warehouse_data_source,
+        pre_process_hooks: {
+          'HmisCsvImporter::Loader::UnlinkedRecordFilter' => true,
+          'HmisCsvImporter::Loader::CurrentLivingSitIdRegenerator' => true,
+          'HmisCsvImporter::Loader::HudKeyRemapper' => true,
+        },
+      )
+
+      Dir.mktmpdir do |dir|
+        write_export_csv(dir)
+        loader = described_class.new(
+          data_source_id: data_source.id,
+          file_path: dir,
+          remove_files: false,
+        )
+        loader.instance_variable_set(:@export, { SourceID: 'SRC-1' })
+        allow(loader).to receive(:loadable_files).and_return({})
+        allow(Importers::HmisAutoMigrate).to receive(:apply_migrations).and_return('2026')
+
+        call_order = []
+        allow(HmisCsvImporter::Loader::UnlinkedRecordFilter).to receive(:filter!) { call_order << :unlinked }
+        allow(HmisCsvImporter::Loader::CurrentLivingSitIdRegenerator).to receive(:regenerate!) { call_order << :regenerate }
+        allow(HmisCsvImporter::Loader::HudKeyRemapper).to receive(:remap!) { call_order << :remap }
+
+        loader.send(:load_source_files!)
+
+        expect(call_order).to eq([:unlinked, :regenerate, :remap])
+        expect(HmisCsvImporter::Loader::CurrentLivingSitIdRegenerator).to have_received(:regenerate!).with(dir, {}, loader.instance_variable_get(:@loader_log))
+      end
+    end
+
+    it 'does not regenerate CLS IDs when CurrentLivingSitIdRegenerator is not enabled for the data source' do
+      data_source = create(:grda_warehouse_data_source, pre_process_hooks: { 'HmisCsvImporter::Loader::HudKeyRemapper' => true })
+
+      Dir.mktmpdir do |dir|
+        write_export_csv(dir)
+        loader = described_class.new(
+          data_source_id: data_source.id,
+          file_path: dir,
+          remove_files: false,
+        )
+        loader.instance_variable_set(:@export, { SourceID: 'SRC-1' })
+        allow(loader).to receive(:loadable_files).and_return({})
+        allow(Importers::HmisAutoMigrate).to receive(:apply_migrations).and_return('2026')
+
+        allow(HmisCsvImporter::Loader::CurrentLivingSitIdRegenerator).to receive(:regenerate!)
+        allow(HmisCsvImporter::Loader::HudKeyRemapper).to receive(:remap!)
+
+        loader.send(:load_source_files!)
+
+        expect(HmisCsvImporter::Loader::CurrentLivingSitIdRegenerator).not_to have_received(:regenerate!)
+        expect(HmisCsvImporter::Loader::HudKeyRemapper).to have_received(:remap!).with(dir, {}, 'SRC-1')
+      end
+    end
+
     it 'does not remap or pass a remap source id when HudKeyRemapper is not enabled for the data source' do
       data_source = create(:grda_warehouse_data_source)
 

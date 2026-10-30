@@ -179,6 +179,10 @@ module HmisCsvImporter::Loader
       # PersonalID/ProjectID values, not the ones HudKeyRemapper hashes.
       UnlinkedRecordFilter.filter!(@file_path, loadable_files, @loader_log) if UnlinkedRecordFilter.checked?(data_source)
 
+      # Digests the vendor's EnrollmentID/PersonalID, so it must run before HudKeyRemapper
+      # hashes them; HudKeyRemapper then hashes the new CurrentLivingSitID like any hud_key.
+      CurrentLivingSitIdRegenerator.regenerate!(@file_path, loadable_files, @loader_log) if CurrentLivingSitIdRegenerator.checked?(data_source)
+
       # ProjectFilter must run against the same PersonalID/ProjectID values already in the
       # warehouse, so it has to see the CSVs after HudKeyRemapper hashes them, not before.
       remap_source_id = @export[:SourceID] if HudKeyRemapper.checked?(data_source)

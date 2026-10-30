@@ -228,6 +228,36 @@ RSpec.describe HmisCsvImporter::Loader::UnlinkedRecordFilter, type: :model do
     end
   end
 
+  it 'reads Windows-1252 Client and Enrollment files and writes Enrollment back as UTF-8' do
+    Dir.mktmpdir do |dir|
+      File.binwrite(File.join(dir, 'Client.csv'), "PersonalID,FirstName\nC-1,José\n".encode('Windows-1252'))
+      write_csv(dir, 'Project.csv', ['ProjectID'], ['P-1'])
+      File.binwrite(
+        File.join(dir, 'Enrollment.csv'),
+        "EnrollmentID,PersonalID,ProjectID,UserID\nE-1,C-1,P-1,Zoë\nE-2,C-MISSING,P-1,Zoë\n".encode('Windows-1252'),
+      )
+
+      described_class.filter!(dir, loadable_files, loader_log)
+
+      rows = CSV.read(File.join(dir, 'Enrollment.csv'), headers: true).map(&:to_h)
+      expect(rows).to eq([{ 'EnrollmentID' => 'E-1', 'PersonalID' => 'C-1', 'ProjectID' => 'P-1', 'UserID' => 'Zoë' }])
+    end
+  end
+
+  it 'tolerates a stray quote inside an unquoted field of a dependent file' do
+    Dir.mktmpdir do |dir|
+      write_csv(dir, 'Client.csv', ['PersonalID'], ['C-1'])
+      write_csv(dir, 'Project.csv', ['ProjectID'], ['P-1'])
+      write_csv(dir, 'Enrollment.csv', ['EnrollmentID', 'PersonalID', 'ProjectID'], ['E-1', 'C-1', 'P-1'])
+      File.write(File.join(dir, 'Exit.csv'), "EnrollmentID,ExitDate,OtherDestination\nE-1,2020-01-01,Moved under 5th St \"bridge\"\nE-9,2020-01-02,x\n")
+
+      described_class.filter!(dir, loadable_files, loader_log)
+
+      rows = CSV.read(File.join(dir, 'Exit.csv'), headers: true).map(&:to_h)
+      expect(rows).to eq([{ 'EnrollmentID' => 'E-1', 'ExitDate' => '2020-01-01', 'OtherDestination' => 'Moved under 5th St "bridge"' }])
+    end
+  end
+
   describe 'the admin-extension interface' do
     it 'is checked only when pre_process_hooks[strip_unlinked_records] is set' do
       data_source = create(:grda_warehouse_data_source, pre_process_hooks: { 'HmisCsvImporter::Loader::UnlinkedRecordFilter' => true })

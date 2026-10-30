@@ -83,6 +83,36 @@ RSpec.describe HmisCsvImporter::Loader::HudKeyRemapper, type: :model do
     end
   end
 
+  it 'reads a Windows-1252 file and writes it back as UTF-8' do
+    Dir.mktmpdir do |dir|
+      File.binwrite(File.join(dir, 'Client.csv'), "PersonalID,FirstName\nC-1,José\n".encode('Windows-1252'))
+
+      described_class.remap!(dir, loadable_files, 'SRC-1')
+
+      expect(read_rows(dir, 'Client.csv')).to eq([{ 'PersonalID' => Digest::MD5.hexdigest('PersonalID--SRC-1--C-1'), 'FirstName' => 'José' }])
+    end
+  end
+
+  it 'reads a UTF-8 file with a byte order mark' do
+    Dir.mktmpdir do |dir|
+      File.binwrite(File.join(dir, 'Client.csv'), "\xEF\xBB\xBF".b + "PersonalID,FirstName\nC-1,José\n".b)
+
+      described_class.remap!(dir, loadable_files, 'SRC-1')
+
+      expect(read_rows(dir, 'Client.csv')).to eq([{ 'PersonalID' => Digest::MD5.hexdigest('PersonalID--SRC-1--C-1'), 'FirstName' => 'José' }])
+    end
+  end
+
+  it 'tolerates a stray quote inside an unquoted field' do
+    Dir.mktmpdir do |dir|
+      File.write(File.join(dir, 'Client.csv'), "PersonalID,FirstName\nC-1,Pat \"PJ\"\n")
+
+      described_class.remap!(dir, loadable_files, 'SRC-1')
+
+      expect(read_rows(dir, 'Client.csv')).to eq([{ 'PersonalID' => Digest::MD5.hexdigest('PersonalID--SRC-1--C-1'), 'FirstName' => 'Pat "PJ"' }])
+    end
+  end
+
   describe 'the admin-extension interface' do
     it 'is checked only when pre_process_hooks[described_class.name] is set' do
       data_source = create(:grda_warehouse_data_source, pre_process_hooks: { 'HmisCsvImporter::Loader::HudKeyRemapper' => true })
