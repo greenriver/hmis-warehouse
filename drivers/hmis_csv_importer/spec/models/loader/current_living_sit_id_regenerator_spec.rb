@@ -138,8 +138,8 @@ RSpec.describe HmisCsvImporter::Loader::CurrentLivingSitIdRegenerator, type: :mo
       HmisCsvImporter::Loader::HudKeyRemapper.remap!(dir, loadable_files, 'SRC-1')
 
       row = read_rows(dir, 'CurrentLivingSituation.csv').first
-      expect(row['CurrentLivingSitID']).to eq(HmisCsvImporter::Loader::HudKeyRemapper.remap_value('CurrentLivingSitID', 'SRC-1', expected_id))
-      expect(row['EnrollmentID']).to eq(HmisCsvImporter::Loader::HudKeyRemapper.remap_value('EnrollmentID', 'SRC-1', 'E-1'))
+      expect(row['CurrentLivingSitID']).to eq(Digest::MD5.hexdigest("CurrentLivingSitID--SRC-1--#{expected_id}"))
+      expect(row['EnrollmentID']).to eq(Digest::MD5.hexdigest('EnrollmentID--SRC-1--E-1'))
     end
   end
 
@@ -171,19 +171,48 @@ RSpec.describe HmisCsvImporter::Loader::CurrentLivingSitIdRegenerator, type: :mo
     end
   end
 
-  it 'computes the same digest as Postgres md5 over concat_ws' do
-    sql_value = GrdaWarehouseBase.connection.select_value(
-      "SELECT md5(concat_ws('--', 'CurrentLivingSitID', 'E-1', 'C-1', '2026-01-15', '101', '2026-01-15 09:30:00'))",
-    )
-    ruby_value = described_class.digest(
-      enrollment_id: 'E-1',
-      personal_id: 'C-1',
-      information_date: '2026-01-15',
-      current_living_situation: '101',
-      date_created: '2026-01-15 09:30:00',
-    )
+  describe '.digest compared with the documented SQL' do
+    let(:sql) do
+      <<~'SQL'
+        SELECT md5(concat_ws('--', 'CurrentLivingSitID',
+          coalesce(btrim(?::text, E' \t\n\013\f\r'), ''),
+          coalesce(btrim(?::text, E' \t\n\013\f\r'), ''),
+          coalesce(btrim(?::text, E' \t\n\013\f\r'), ''),
+          coalesce(btrim(?::text, E' \t\n\013\f\r'), ''),
+          coalesce(btrim(?::text, E' \t\n\013\f\r'), '')))
+      SQL
+    end
 
-    expect(ruby_value).to eq(sql_value)
+    def ruby_digest(enrollment_id, personal_id, information_date, current_living_situation, date_created)
+      described_class.digest(
+        enrollment_id: enrollment_id,
+        personal_id: personal_id,
+        information_date: information_date,
+        current_living_situation: current_living_situation,
+        date_created: date_created,
+      )
+    end
+
+    def sql_digest(*values)
+      GrdaWarehouseBase.connection.select_value(GrdaWarehouseBase.sanitize_sql_array([sql, *values]))
+    end
+
+    {
+      'surrounding spaces' => [' E-1 ', ' C-1', '2026-01-15 ', '101', ' 2026-01-15 09:30:00 '],
+      'tabs and line breaks' => ["E-1\t", "\tC-1", "2026-01-15\r\n", "101\n", "\f2026-01-15 09:30:00\v"],
+    }.each do |label, padded_values|
+      it "strips #{label} so Ruby and SQL both produce the unpadded ID" do
+        expect(ruby_digest(*padded_values)).to eq(expected_id)
+        expect(sql_digest(*padded_values)).to eq(expected_id)
+      end
+    end
+
+    it 'treats a blank field as an empty string in both Ruby and SQL' do
+      blank_date_created_id = Digest::MD5.hexdigest('CurrentLivingSitID--E-1--C-1--2026-01-15--101--')
+
+      expect(ruby_digest('E-1', 'C-1', '2026-01-15', '101', nil)).to eq(blank_date_created_id)
+      expect(sql_digest('E-1', 'C-1', '2026-01-15', '101', nil)).to eq(blank_date_created_id)
+    end
   end
 
   describe 'the admin-extension interface' do

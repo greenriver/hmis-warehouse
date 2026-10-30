@@ -56,7 +56,10 @@ module HmisCsvImporter::Loader
     end
 
     # Must stay reproducible in SQL for the DBT pipeline, over the raw CSV strings (not
-    # type-cast dates): md5(concat_ws('--', 'CurrentLivingSitID', coalesce(btrim(...), ''), ...)).
+    # type-cast dates):
+    #   md5(concat_ws('--', 'CurrentLivingSitID', coalesce(btrim(value, E' \t\n\013\f\r'), ''), ...))
+    # String#strip removes tabs and line breaks as well as spaces, so btrim needs that
+    # character list; Postgres E'' strings have no \v escape, hence \013.
     # Rows sharing all five values get the same ID and only the first is kept, even if
     # other columns differ.
     def self.digest(enrollment_id:, personal_id:, information_date:, current_living_situation:, date_created:)

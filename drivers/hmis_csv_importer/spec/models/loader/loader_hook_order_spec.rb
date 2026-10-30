@@ -79,6 +79,62 @@ RSpec.describe HmisCsvImporter::Loader::Loader, type: :model do
       end
     end
 
+    it 'loads the regenerated CurrentLivingSitID hashed again with the SourceID when both hooks are enabled' do
+      data_source = create(
+        :grda_warehouse_data_source,
+        pre_process_hooks: {
+          'HmisCsvImporter::Loader::CurrentLivingSitIdRegenerator' => true,
+          'HmisCsvImporter::Loader::HudKeyRemapper' => true,
+        },
+      )
+      klass = HmisCsvTwentyTwentySix::Loader::CurrentLivingSituation
+      values = {
+        'CurrentLivingSitID' => '1',
+        'EnrollmentID' => 'E-1',
+        'PersonalID' => 'C-1',
+        'InformationDate' => '2026-01-15',
+        'CurrentLivingSituation' => '101',
+        'DateCreated' => '2026-01-15 09:30:00',
+        'DateUpdated' => '2026-01-15 09:30:00',
+        'UserID' => 'U-1',
+        'ExportID' => 'EX-1',
+      }
+
+      Dir.mktmpdir do |dir|
+        write_export_csv(dir)
+        headers = klass.hud_csv_headers.map(&:to_s)
+        File.write(File.join(dir, 'CurrentLivingSituation.csv'), headers.to_csv + headers.map { |header| values[header] }.to_csv)
+        loader = described_class.new(
+          data_source_id: data_source.id,
+          file_path: dir,
+          remove_files: false,
+        )
+        loader.instance_variable_set(:@export, { SourceID: 'SRC-1' })
+        loader.instance_variable_set(:@loaded_at, Time.current)
+        allow(loader).to receive(:loadable_files).and_return(
+          {
+            'Client.csv' => HmisCsvTwentyTwentySix::Loader::Client,
+            'Enrollment.csv' => HmisCsvTwentyTwentySix::Loader::Enrollment,
+            'CurrentLivingSituation.csv' => klass,
+          },
+        )
+        allow(Importers::HmisAutoMigrate).to receive(:apply_migrations).and_return('2026')
+
+        loader.send(:load_source_files!)
+
+        regenerated_id = Digest::MD5.hexdigest('CurrentLivingSitID--E-1--C-1--2026-01-15--101--2026-01-15 09:30:00')
+        expect(klass.where(loader_id: loader.loader_log.id).pluck(:CurrentLivingSitID, :EnrollmentID, :PersonalID)).to eq(
+          [
+            [
+              Digest::MD5.hexdigest("CurrentLivingSitID--SRC-1--#{regenerated_id}"),
+              Digest::MD5.hexdigest('EnrollmentID--SRC-1--E-1'),
+              Digest::MD5.hexdigest('PersonalID--SRC-1--C-1'),
+            ],
+          ],
+        )
+      end
+    end
+
     it 'does not regenerate CLS IDs when CurrentLivingSitIdRegenerator is not enabled for the data source' do
       data_source = create(:grda_warehouse_data_source, pre_process_hooks: { 'HmisCsvImporter::Loader::HudKeyRemapper' => true })
 
