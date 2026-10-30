@@ -13,6 +13,7 @@ class HmisExternalApis::ExternalFormsController < ActionController::Base
   before_action do
     # Only allow calling the controller directly in development. See PublishExternalFormsJob for production usage
     # Dev usage: https://hmis-warehouse.dev.test/hmis_external_api/external_forms/<external_form_object_key>
+    # See "Local development" in docs/features/hmis/hmis-external-forms.md
     raise unless Rails.env.development?
   end
 

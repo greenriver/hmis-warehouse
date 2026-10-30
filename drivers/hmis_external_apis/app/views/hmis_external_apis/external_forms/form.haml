@@ -14,6 +14,7 @@
 -#
 -# If this link_id is NOT present, none of the household-specific JS will be loaded.
 -# If this link id IS present, the form will generate `householdId` for each submission, and link future submissions to previous submissions as specified by the user.
+-# See "Gotchas" in docs/features/hmis/hmis-external-forms.md
 - individual_or_family_node = @form_definition.link_id_item_hash['individual_or_family']
 - if individual_or_family_node
   - raise 'individual_or_family item doesnt match expectation' unless individual_or_family_node['type'] == 'CHOICE' && individual_or_family_node['pick_list_options'].find { |o| o['code'] == 'Family' }
