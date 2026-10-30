@@ -7,6 +7,7 @@
 # frozen_string_literal: true
 
 # track external publication of a form definition
+# See docs/features/hmis/hmis-external-forms.md for more details.
 module HmisExternalApis::ExternalForms
   class FormPublication < ::HmisExternalApis::HmisExternalApisBase
     self.table_name = 'hmis_external_form_publications'

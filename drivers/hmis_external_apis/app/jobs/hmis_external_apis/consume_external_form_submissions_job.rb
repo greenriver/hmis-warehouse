@@ -7,6 +7,7 @@
 # frozen_string_literal: true
 
 # retrieve and process external form submissions
+# See docs/features/hmis/hmis-external-forms.md for more details.
 class HmisExternalApis::ConsumeExternalFormSubmissionsJob < BaseJob
   queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
 
