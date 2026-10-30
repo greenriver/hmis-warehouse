@@ -93,12 +93,10 @@ The AWS pieces live outside this repository: the presign Lambda and its API Gate
 
 `FormGenerator` covers a subset of the definition schema and raises on anything else at publish time:
 
-- **Item types:** `STRING` (including `PHONE` and `EMAIL` input types), `TEXT`, `DATE`, `INTEGER`, `BOOLEAN`, `CHOICE`, `GROUP`, `DISPLAY` and `GEOLOCATION`.
+- **Item types:** `STRING`, `TEXT`, `DATE`, `INTEGER`, `BOOLEAN`, `CHOICE`, `GROUP`, `DISPLAY` and `GEOLOCATION`.
 - **`CHOICE` components:** `DROPDOWN` (the default) and `RADIO_BUTTONS`.
 - **`enable_when`:** only `question` plus `answer_code` with the `EQUAL` operator.
 - **`pick_list_reference`:** only HUD enums (`Types::HmisSchema::Enums::Hud::*`) and `Types::HmisSchema::Enums::*`. Anything else needs `pick_list_options`.
-
-Publishing also runs `Hmis::Form::DefinitionValidator`, and refuses a definition that isn't published.
 
 ## Gotchas
 
