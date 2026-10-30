@@ -7,9 +7,12 @@
 # frozen_string_literal: true
 
 class BackgroundRender::ActiveClientsReportJob < BackgroundRenderJob
-  def render_html(filter:, user_id:)
+  def render_html(filter:, user_id:, page: nil)
     current_user = User.find(user_id)
-    @filter = ::Filters::FilterBase.new(user_id: user_id).set_from_params(JSON.parse(filter).with_indifferent_access[:filters])
+    @filter = ClientDetailReports.build_filter(
+      user_id: user_id,
+      filter_params: JSON.parse(filter).with_indifferent_access[:filters],
+    )
     @report = report_source.new(filter: @filter, user: current_user)
     WarehouseReports::ClientDetails::ActivesController.render(
       partial: 'report',
@@ -18,6 +21,7 @@ class BackgroundRender::ActiveClientsReportJob < BackgroundRenderJob
         report: @report,
         limited: limited(current_user),
         visible_projects: visible_projects(current_user),
+        page: page,
       },
       locals: {
         current_user: current_user,

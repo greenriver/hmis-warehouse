@@ -13,8 +13,16 @@ module WarehouseReports::ClientDetails
     extend BackgroundRenderAction
     before_action :set_pdf_export
 
-    before_action :set_limited, only: [:index]
+    before_action :set_limited, only: [:section]
     before_action :set_filter
+
+    background_render_action :render_section, ::BackgroundRender::ActiveClientsReportJob do
+      {
+        filter: @filter.for_params.to_json,
+        user_id: current_user.id,
+        page: params[:page],
+      }
+    end
 
     def index
       @report = report_source.new(filter: @filter, user: current_user)
@@ -22,14 +30,12 @@ module WarehouseReports::ClientDetails
 
       respond_to do |format|
         format.html {}
-        format.xlsx do
-          require_can_view_clients!
-        end
       end
     end
 
     def section
       @report = report_source.new(filter: @filter, user: current_user)
+      @page = params[:page]
     end
 
     def report_source
@@ -38,6 +44,7 @@ module WarehouseReports::ClientDetails
 
     private def set_pdf_export
       @pdf_export = GrdaWarehouse::WarehouseReports::DocumentExports::ActiveClientReportExport.new
+      @excel_export = GrdaWarehouse::WarehouseReports::DocumentExports::ActiveClientReportExcelExport.new
     end
   end
 end

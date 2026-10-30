@@ -174,7 +174,7 @@ module TxClientReports
     end
 
     private def report_scope
-      scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.joins(:client, project: :project_cocs)
+      scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.joins(:client).joins_project_cocs(coc_codes: filter.coc_codes)
       scope = filter_for_user_access(scope)
       scope = filter_for_range(scope)
       scope = filter_for_cocs(scope)
