@@ -148,6 +148,22 @@ jobs:
           cache-from: type=local,src=/tmp/.buildx-cache/${{ matrix.cache_key }}
           cache-to: type=local,dest=/tmp/.buildx-cache/${{ matrix.cache_key }},mode=max
 
+      - name: Check for image changes
+        id: changes
+        uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
+        with:
+          base: main
+          filters: |
+            image:
+              - 'docker/app/**'
+              - 'Gemfile'
+              - 'Gemfile.lock'
+              - '.dockerignore'
+
+      - name: Smoke test image
+        if: steps.changes.outputs.image == 'true'
+        run: docker/app/smoke/run.sh ${{ secrets.ECR_REPOSITORY_URI }}
+
       - name: Push image with tags
         env:
           image: ${{ secrets.ECR_REPOSITORY_URI }}

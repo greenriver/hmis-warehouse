@@ -1,0 +1,28 @@
+# Production image smoke test; see run.sh
+services:
+  postgres:
+    image: index.docker.io/postgis/postgis@sha256:1d7869b7f4dc799835cc8106061f10bcde94377da4704cd508511b78b9005c02 # 17-3.5-alpine
+    platform: linux/amd64 # no arm64 build; emulated on arm hosts
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    healthcheck:
+      test: pg_isready -U postgres
+      interval: 2s
+      retries: 30
+
+  redis:
+    image: index.docker.io/library/redis@sha256:02419de7eddf55aa5bcf49efb74e88fa8d931b4d77c07eff8a6b2144472b6952 # alpine
+
+  app:
+    image: ${SMOKE_IMAGE:?set SMOKE_IMAGE}
+    platform: linux/amd64
+    env_file: smoke.env
+    command: [puma, -b, tcp://0.0.0.0:3000]
+    ports:
+      - 127.0.0.1:${SMOKE_PORT:-3999}:3000
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
