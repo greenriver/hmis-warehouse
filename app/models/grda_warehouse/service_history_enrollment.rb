@@ -226,8 +226,19 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
 
   # Takes advantage of the HUD reporting override for CoC code
   scope :in_coc, ->(coc_code:) do
-    joins(project: :project_cocs).
+    joins_project_cocs.
       merge(GrdaWarehouse::Hud::ProjectCoc.in_coc(coc_code: coc_code))
+  end
+
+  # Joins every ProjectCoC row for the enrollment's project, limited to coc_codes when given. Uses an
+  # Arel join so it passes Filters::Criteria::FilterForCocs::ProjectCocJoinGuard.
+  scope :joins_project_cocs, ->(coc_codes: nil) do
+    project_coc_join = p_t.join(pc_t).
+      on(pc_t[:data_source_id].eq(p_t[:data_source_id]).and(pc_t[:ProjectID].eq(p_t[:ProjectID]))).
+      join_sources
+    project_cocs = coc_codes.present? ? GrdaWarehouse::Hud::ProjectCoc.in_coc(coc_code: coc_codes) : GrdaWarehouse::Hud::ProjectCoc.all
+    # merge brings in ProjectCoc's soft-delete condition, which the Arel join doesn't have
+    joins(:project).joins(project_coc_join).merge(project_cocs)
   end
 
   scope :in_enrollment_coc, ->(coc_code:) do
@@ -240,17 +251,17 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
   end
 
   scope :in_zip, ->(zip_code:) do
-    joins(project: :project_cocs).
+    joins_project_cocs.
       merge(GrdaWarehouse::Hud::ProjectCoc.in_zip(zip_code: zip_code))
   end
 
   scope :in_place, ->(place:) do
-    joins(project: :project_cocs).
+    joins_project_cocs.
       merge(GrdaWarehouse::Hud::ProjectCoc.in_place(place: place))
   end
 
   scope :in_county, ->(county:) do
-    joins(project: :project_cocs).
+    joins_project_cocs.
       merge(GrdaWarehouse::Hud::ProjectCoc.in_county(county: county))
   end
 

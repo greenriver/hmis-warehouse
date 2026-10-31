@@ -139,7 +139,7 @@ module DisabilitySummary
         # race_cache_client = GrdaWarehouse::Hud::Client.new
         data = {}
         # binding.pry
-        report_scope.joins(:client, enrollment: :disabilities, project: :project_cocs).
+        report_scope.joins(:client, enrollment: :disabilities).joins_project_cocs(coc_codes: filter.coc_codes).
           order(:CoCCode, d_t[:InformationDate].desc).
           pluck(*columns.values).each do |row|
             row = Hash[columns.keys.zip(row)]
