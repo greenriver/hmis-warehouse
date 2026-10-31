@@ -13,10 +13,6 @@
     = stylesheet_link_tag 'application', media: 'all'
     = stylesheet_link_tag 'print', media: 'print'
 
-    - Dir.glob('app/assets/stylesheets/theme/styles/*.scss') do |stylesheet|
-      - theme_styles = "theme/styles/#{File.basename(stylesheet, '.scss')}"
-      = stylesheet_link_tag(theme_styles, media: 'all')
-
     = render 'layouts/favicon'
     = csrf_meta_tags
   - data = {}
