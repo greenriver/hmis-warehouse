@@ -31,8 +31,8 @@ class App.ChartsScatterByDate.Base
       axis:
         x:
           type: 'timeseries'
-          min: new Date(@start_date)
-          max: new Date(@end_date)
+          min: if @start_date then new Date(@start_date)
+          max: if @end_date then new Date(@end_date)
           tick:
             fit: true
         y:

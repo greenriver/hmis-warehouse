@@ -3,39 +3,41 @@
 class App.ChartsScatterByDate.FirstTimeHomeless extends App.ChartsScatterByDate.Base
   _build_chart: () ->
     id = 0
-    scatter_data = $.map @data, (count,date) ->
-      {x: date, y: count}
-    data = {
-        datasets: [{
-            label: 'Client count',
-            data: scatter_data
-        }],
-        title: {display: true, text: 'Counts by day'}
-    }
+    scatter_data = $.map @data, (count, date) ->
+      {x: date, 'Client count': count}
 
-    util = window.App.util.new
-    for i of data.datasets
-      hash = window.App.util.hashCode(data.title.text)
-      color = window.App.util.intToRGB(hash + i * 200)
-      data.datasets[i].borderColor = "\##{color}"
-      data.datasets[i].backgroundColor = "transparent"
-      data.datasets[i].lineTension = 0
-      data.datasets[i].borderWidth = 1
+    data = {
+      json: scatter_data,
+      keys: {
+        x: 'x',
+        value: ['Client count']
+      },
+      type: 'scatter',
+      color: -> '#4cab90'
+      onclick: (d, element) => @_follow_link(d)
+      onover: (d, element) => @_process_hover(d)
+      onout: (d, element) => @_process_hover_out(d)
+    }
     options =
-      tooltips:
-        callbacks:
-          label: @_format_tooltip_label
+      axis:
+        y:
+          tick:
+            count: 2
+            format: (v) -> Math.round(v)
+      point:
+        r: 3
+      tooltip:
+        contents: (d) => @_format_tooltip_contents(d)
+
     @_individual_chart(data, id, options)
 
-  _follow_link: (event) =>
-    chart = @charts[event.target.id.replace('chart-chart-', '')]
+  _follow_link: (d) =>
+    date = d.x.toISOString().substring(0, 10)
+    $('#filter_start, #filter_end').val(date)
+    $('.jFilter').submit()
 
-    # If we clicked on a point, send us to the list of associated clients
-    if point = chart.getElementAtEvent(event)[0]
-      date = chart.config.data.datasets[point._datasetIndex].data[point._index].x
-      $('.jStart, .jEnd').val(date)
-      $('.jFilter').submit()
-      #
-      # params = {type: @type, date: date, project: project}
-      # url = @url.replace('date_range', 'details') + '?' + $.param(params)
-      # window.open url
+  _process_hover: (d) =>
+    @element.css('cursor', 'pointer')
+
+  _process_hover_out: (d) =>
+    @element.css('cursor', 'default')
