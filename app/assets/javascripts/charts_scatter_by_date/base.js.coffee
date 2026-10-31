@@ -46,6 +46,14 @@ class App.ChartsScatterByDate.Base
     final_options = $.extend(true, default_options, options)
     @charts[id] = window.bb.generate(final_options)
 
+  # Formats as YYYY-MM-DD in the browser's timezone. toISOString() converts to UTC
+  # first, which shifts local midnight to the previous day east of UTC.
+  _local_iso_date: (date) =>
+    year = date.getFullYear()
+    month = String(date.getMonth() + 1).padStart(2, '0')
+    day = String(date.getDate()).padStart(2, '0')
+    "#{year}-#{month}-#{day}"
+
   # Override as necessary
   _follow_link: (d) =>
     return

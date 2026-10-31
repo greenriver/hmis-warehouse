@@ -32,7 +32,7 @@ class App.ChartsScatterByDate.FirstTimeHomeless extends App.ChartsScatterByDate.
     @_individual_chart(data, id, options)
 
   _follow_link: (d) =>
-    date = d.x.toISOString().substring(0, 10)
+    date = @_local_iso_date(d.x)
     $('#filter_start, #filter_end').val(date)
     $('.jFilter').submit()
 
