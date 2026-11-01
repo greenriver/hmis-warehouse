@@ -77,7 +77,7 @@ class App.ChartsScatterByDate.Base
 
 
   _process_hover: (d) =>
-    return
+    @element.css('cursor', 'pointer')
 
   _process_hover_out: (d) =>
-    return
+    @element.css('cursor', 'default')

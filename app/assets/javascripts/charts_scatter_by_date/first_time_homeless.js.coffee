@@ -35,9 +35,3 @@ class App.ChartsScatterByDate.FirstTimeHomeless extends App.ChartsScatterByDate.
     date = @_local_iso_date(d.x)
     $('#filter_start, #filter_end').val(date)
     $('.jFilter').submit()
-
-  _process_hover: (d) =>
-    @element.css('cursor', 'pointer')
-
-  _process_hover_out: (d) =>
-    @element.css('cursor', 'default')

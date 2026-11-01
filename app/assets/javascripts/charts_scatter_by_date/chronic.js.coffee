@@ -36,9 +36,3 @@ class App.ChartsScatterByDate.Chronic extends App.ChartsScatterByDate.Base
     date = @_local_iso_date(d.x)
     $('.jFilterOn').val(date)
     $('.jFilter').submit()
-
-  _process_hover: (d) =>
-    @element.css('cursor', 'pointer')
-
-  _process_hover_out: (d) =>
-    @element.css('cursor', 'default')
