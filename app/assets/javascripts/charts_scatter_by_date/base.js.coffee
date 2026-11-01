@@ -62,8 +62,7 @@ class App.ChartsScatterByDate.Base
     return unless d && d.length > 0
 
     point = d[0]
-    date = point.x
-    date_string = new Date(date.getTime() + (date.getTimezoneOffset() * 60000)).toDateString()
+    date_string = point.x.toDateString()
     value = point.value
 
     html = """
