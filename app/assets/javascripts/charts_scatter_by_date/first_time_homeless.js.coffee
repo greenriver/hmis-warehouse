@@ -19,11 +19,6 @@ class App.ChartsScatterByDate.FirstTimeHomeless extends App.ChartsScatterByDate.
       onout: (d, element) => @_process_hover_out(d)
     }
     options =
-      axis:
-        y:
-          tick:
-            count: 2
-            format: (v) -> Math.round(v)
       point:
         r: 3
       tooltip:

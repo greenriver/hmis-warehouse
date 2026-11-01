@@ -38,6 +38,9 @@ class App.ChartsScatterByDate.Base
         y:
           padding: { bottom: 0 }
           min: 0
+          tick:
+            count: 2
+            format: (v) -> Math.round(v)
       legend:
         show: false
       point:
