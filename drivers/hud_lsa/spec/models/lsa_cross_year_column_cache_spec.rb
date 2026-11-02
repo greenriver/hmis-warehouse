@@ -71,4 +71,17 @@ RSpec.describe 'LSA generators run back to back in one process', type: :model do
     expect(LsaSqlServer::LSAReport.pluck(:ReportCoC)).to eq(['XX-501'])
     expect(LsaSqlServer::LSAReport.column_names).not_to include('SSN4Digit')
   end
+
+  # FY2027 adds lsa_Report.SSN4Digit and drops tlsa_HHID.PITOctober.
+  it 'creates the FY2027 LSAReport row after an FY2026 run cached the FY2026 columns' do
+    prepared_generator(HudLsa::Generators::Fy2026::Lsa).setup_lsa_report
+    expect(LsaSqlServer::LSAReport.column_names).not_to include('SSN4Digit')
+    expect(LsaSqlServer::TlsaHHID.column_names).to include('PITOctober')
+
+    prepared_generator(HudLsa::Generators::Fy2027::Lsa).setup_lsa_report
+
+    expect(LsaSqlServer::LSAReport.pluck(:ReportCoC)).to eq(['XX-501'])
+    expect(LsaSqlServer::LSAReport.column_names).to include('SSN4Digit')
+    expect(LsaSqlServer::TlsaHHID.column_names).not_to include('PITOctober')
+  end
 end
