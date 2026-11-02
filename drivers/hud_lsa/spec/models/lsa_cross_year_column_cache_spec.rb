@@ -34,15 +34,16 @@ RSpec.describe 'LSA generators run back to back in one process', type: :model do
     end
   end
 
-  def prepared_generator(klass)
+  # Each year gets its own CoC so ReportCoC shows which database the query read.
+  def prepared_generator(klass, coc_code:)
     generator = klass.new(
       id: SecureRandom.random_number(1_000_000_000),
       user_id: @user.id,
-      options: { start: '2025-10-01', end: '2026-09-30', coc_code: 'XX-501', lsa_scope: 1 },
+      options: { start: '2025-10-01', end: '2026-09-30', coc_code: coc_code, lsa_scope: 1 },
     )
     # The filter drops CoC codes the user can't access; Lsa#calculate makes the
     # same override in test mode.
-    generator.filter.coc_code = 'XX-501'
+    generator.filter.coc_code = coc_code
     @databases << generator.sql_server_database
     generator.setup_temporary_rds
     generator.setup_lsa_table_structure
@@ -63,10 +64,10 @@ RSpec.describe 'LSA generators run back to back in one process', type: :model do
   end
 
   it 'creates the FY2026 LSAReport row after an FY2027 run cached the FY2027 columns' do
-    prepared_generator(HudLsa::Generators::Fy2027::Lsa).setup_lsa_report
+    prepared_generator(HudLsa::Generators::Fy2027::Lsa, coc_code: 'XX-502').setup_lsa_report
     expect(LsaSqlServer::LSAReport.column_names).to include('SSN4Digit')
 
-    prepared_generator(HudLsa::Generators::Fy2026::Lsa).setup_lsa_report
+    prepared_generator(HudLsa::Generators::Fy2026::Lsa, coc_code: 'XX-501').setup_lsa_report
 
     expect(LsaSqlServer::LSAReport.pluck(:ReportCoC)).to eq(['XX-501'])
     expect(LsaSqlServer::LSAReport.column_names).not_to include('SSN4Digit')
@@ -74,13 +75,13 @@ RSpec.describe 'LSA generators run back to back in one process', type: :model do
 
   # FY2027 adds lsa_Report.SSN4Digit and drops tlsa_HHID.PITOctober.
   it 'creates the FY2027 LSAReport row after an FY2026 run cached the FY2026 columns' do
-    prepared_generator(HudLsa::Generators::Fy2026::Lsa).setup_lsa_report
+    prepared_generator(HudLsa::Generators::Fy2026::Lsa, coc_code: 'XX-501').setup_lsa_report
     expect(LsaSqlServer::LSAReport.column_names).not_to include('SSN4Digit')
     expect(LsaSqlServer::TlsaHHID.column_names).to include('PITOctober')
 
-    prepared_generator(HudLsa::Generators::Fy2027::Lsa).setup_lsa_report
+    prepared_generator(HudLsa::Generators::Fy2027::Lsa, coc_code: 'XX-502').setup_lsa_report
 
-    expect(LsaSqlServer::LSAReport.pluck(:ReportCoC)).to eq(['XX-501'])
+    expect(LsaSqlServer::LSAReport.pluck(:ReportCoC)).to eq(['XX-502'])
     expect(LsaSqlServer::LSAReport.column_names).to include('SSN4Digit')
     expect(LsaSqlServer::TlsaHHID.column_names).not_to include('PITOctober')
   end
