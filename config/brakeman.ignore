@@ -1,6 +1,29 @@
 {
   "ignored_warnings": [
     {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "04d4bebc0a6d4457de18240ef9f844b350de0f2a36f0bbe613700faa3014ba46",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "drivers/public_reports/app/models/public_reports/state_dashboard/geography.rb",
+      "line": 151,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "Arel.sql(\"ST_Extent(ST_Transform(#{geom}, 3857))::text\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "PublicReports::StateDashboard::Geography",
+        "method": "calculate_svg"
+      },
+      "user_input": "geom",
+      "confidence": "Medium",
+      "cwe_id": [
+        89
+      ],
+      "note": "geom is built only from shape_class.table_name (a model table name), not user input."
+    },
+    {
       "warning_type": "HTTP Verb Confusion",
       "warning_code": 118,
       "fingerprint": "05a3960f7236c0da86510f0fb7338b584ba226de1b321eaefe4ef493408c38dc",

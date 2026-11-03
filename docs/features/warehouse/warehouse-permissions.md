@@ -117,7 +117,11 @@ class MyController < ApplicationControllerV2
 end
 ```
 
-`ControllerAuthorizationV2` raises `AuthorizationNotPerformedError` in an `after_action` if no authorization block ran, preventing accidental unprotected actions.
+Rules for `authorize_with`:
+
+- **Every action must be covered by at least one `authorize_with`.** A request to an uncovered action raises `AuthorizationNotPerformedError`.
+- **The block must return `true` or `false`.** `true` authorizes, `false` calls `not_authorized!`, and anything else raises.
+- **`only:`/`except:` must name actions that exist.** A misspelled name raises `ArgumentError` on every request that reaches the authorize_with check.
 
 ## EntityAccess Concern
 

@@ -303,6 +303,10 @@ module GrdaWarehouse::Hud
       select(:OrganizationID, :OrganizationName).distinct.pluck(:OrganizationName, :OrganizationID)
     end
 
+    def policy_class
+      GrdaWarehouse::AuthPolicies::OrganizationPolicy
+    end
+
     def project_names
       projects.order(ProjectName: :asc).pluck(:ProjectName)
     end

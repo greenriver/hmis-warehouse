@@ -500,10 +500,10 @@ CREATE TABLE public."Assessment" (
     "EnrollmentID" character varying NOT NULL,
     "PersonalID" character varying NOT NULL,
     "AssessmentDate" date NOT NULL,
-    "AssessmentLocation" character varying NOT NULL,
-    "AssessmentType" integer NOT NULL,
-    "AssessmentLevel" integer NOT NULL,
-    "PrioritizationStatus" integer NOT NULL,
+    "AssessmentLocation" character varying,
+    "AssessmentType" integer,
+    "AssessmentLevel" integer,
+    "PrioritizationStatus" integer,
     "DateCreated" timestamp without time zone NOT NULL,
     "DateUpdated" timestamp without time zone NOT NULL,
     "UserID" character varying(32) NOT NULL,
@@ -43007,13 +43007,9 @@ CREATE TABLE public.hmis_scoring_rules (
     algorithm character varying NOT NULL,
     criteria_type character varying NOT NULL,
     criteria_config json DEFAULT '{}'::json NOT NULL,
-    weight numeric(30,24) NOT NULL,
+    weight numeric(14,12) NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL,
-    model_version integer NOT NULL,
-    secondary_link_id character varying,
-    secondary_criteria_type character varying,
-    secondary_criteria_config jsonb
+    updated_at timestamp(6) without time zone NOT NULL
 );
 
 
@@ -49391,7 +49387,14 @@ CREATE TABLE public.public_report_settings (
     veterans_primary_color character varying,
     map_type character varying DEFAULT 'coc'::character varying NOT NULL,
     map_overall_population_method character varying DEFAULT 'state'::character varying NOT NULL,
-    iteration_type character varying DEFAULT 'quarter'::character varying NOT NULL
+    iteration_type character varying DEFAULT 'quarter'::character varying NOT NULL,
+    secondary_color character varying,
+    heading_color character varying,
+    text_color character varying,
+    border_color character varying,
+    surface_tint_color character varying,
+    focus_color character varying,
+    map_not_reporting_color character varying
 );
 
 
@@ -213885,6 +213888,13 @@ CREATE INDEX idx_client_ssn ON public."Client" USING btree ("SSN");
 
 
 --
+-- Name: idx_custom_assessments_on_en_id_p_id_ds_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_custom_assessments_on_en_id_p_id_ds_id ON public."CustomAssessments" USING btree ("EnrollmentID", "PersonalID", data_source_id) WHERE ("DateDeleted" IS NULL);
+
+
+--
 -- Name: idx_custom_data_element_definitions_id_ds; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -360283,7 +360293,9 @@ ALTER TABLE ONLY public.import_logs
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
-('20261027120000'),
+('20261028120000'),
+('20261014140000'),
+('20260921142542'),
 ('20260918121000'),
 ('20260918120000'),
 ('20260916122000'),
@@ -360292,6 +360304,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20260911120000'),
 ('20260908122000'),
 ('20260908121000'),
+('20260908120000'),
 ('20260831120000'),
 ('20260827120000'),
 ('20260825120000'),

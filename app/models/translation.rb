@@ -1588,6 +1588,7 @@ class Translation < ApplicationRecord
       'Stabilization Project',
       'State-Level Homelessness Report',
       'State-Level Homelessness Report Generator',
+      'State Dashboard Report Generator',
       'Static Days Homeless',
       'Static Days Homeless Last 3 Years',
       'Static Days Literally Homeless Last 3 Years',

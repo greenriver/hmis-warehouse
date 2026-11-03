@@ -1,0 +1,4 @@
+%section.section{ 'aria-labelledby' => 'who-heading' }
+  %h2#who-heading= Translation.translate('Who is experiencing homelessness?')
+  = render 'public_reports/state_dashboard/who_section', who: who, include_breakdown: include_breakdown
+  = render 'public_reports/state_dashboard/data_note'

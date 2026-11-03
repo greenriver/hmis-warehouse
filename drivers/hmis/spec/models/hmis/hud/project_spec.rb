@@ -73,6 +73,25 @@ RSpec.describe Hmis::Hud::Project, type: :model do
     end
   end
 
+  describe '#allows_same_day_exit?' do
+    [
+      [0, nil, false, 'ES Entry/Exit'],
+      [1, nil, false, 'ES NbN'],
+      [2, nil, false, 'TH'],
+      [3, nil, false, 'PSH'],
+      [4, nil, true, 'Street Outreach'],
+      [6, nil, true, 'Services Only'],
+      [8, nil, false, 'Safe Haven'],
+      [13, 1, true, 'RRH Services Only'],
+      [13, 2, false, 'RRH Housing with or without services'],
+    ].each do |project_type, rrh_sub_type, expected, label|
+      it "is #{expected} for #{label}" do
+        project = build(:hmis_hud_project, data_source: data_source, project_type: project_type, rrh_sub_type: rrh_sub_type)
+        expect(project.allows_same_day_exit?).to eq(expected)
+      end
+    end
+  end
+
   describe 'data_collection_features' do
     let(:role) { :CURRENT_LIVING_SITUATION }
 

@@ -23,10 +23,7 @@ RSpec.describe AssetHelper, type: :helper do
     # failure output small.
 
     # Stylesheets named literally in a call to inline_stylesheet_link_tag. The example
-    # below fails if this list drifts from the call sites. layouts/pdf_with_map also
-    # inlines theme/styles/*.scss through a local variable, which cannot be derived
-    # statically; that glob currently matches only a sass partial, which sprockets does
-    # not serve.
+    # below fails if this list drifts from the call sites.
     inlined_for_pdf = ['dashboard_pdf', 'application', 'print', 'roi_pdf'].freeze
 
     it 'covers every stylesheet named literally in a call to inline_stylesheet_link_tag' do

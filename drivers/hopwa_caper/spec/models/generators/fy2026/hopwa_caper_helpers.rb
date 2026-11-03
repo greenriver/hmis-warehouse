@@ -34,7 +34,7 @@ module HopwaCaperHelpers
 
   def create_hopwa_project(funder:)
     project = create(:hud_project, data_source: data_source, organization: organization)
-    report_group.set_viewables({ projects: [project.id] })
+    report_group.add_viewable(project)
     create(:hud_project_coc, project: project, ProjectID: project.ProjectID, data_source: data_source, CoCCode: coc_code)
     create(:hud_funder, project: project, ProjectID: project.ProjectID, funder: funder, data_source: data_source)
     project

@@ -29,8 +29,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     create(:hmis_hud_custom_client_address, data_source: ds1, client: c1, line1: '999 Test Ave')
   end
 
-  let!(:f1) { create :file, client: c1, blob: blob, user: hmis_user, tags: [tag] }
-  let!(:f2) { create :file, client: c1, blob: blob, user: hmis_user, tags: [tag], confidential: true }
+  let!(:f1) { create :file, client: c1, blob: blob, user: hmis_user, tags: [tag], note: 'Visible note' }
+  let!(:f2) { create :file, client: c1, blob: blob, user: hmis_user, tags: [tag], confidential: true, note: 'Confidential note' }
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1 }
   let!(:photo_tag) { create :available_file_tag, consent_form: false, name: GrdaWarehouse::ClientFile.headshot_tag_name }
   let!(:photo) { create :client_file, client: c1.as_warehouse, name: 'Client Headshot Cache', tags: [photo_tag] }
@@ -80,6 +80,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             nodes {
               id
               name
+              note
               confidential
               redacted
               tags
@@ -255,11 +256,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     expect(result.dig('data', 'client')).to include(
       'files' => {
         'nodes' => contain_exactly(
-          include('id' => f1.id.to_s),
+          include('id' => f1.id.to_s, 'note' => 'Visible note'),
           include(
             'id' => f2.id.to_s,
             'redacted' => true,
             'name' => 'Confidential File',
+            'note' => nil,
             'confidential' => true,
             'tags' => [],
             'updatedBy' => nil,

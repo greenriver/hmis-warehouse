@@ -16,7 +16,7 @@
           %th IP Address
       %tbody
         - @activity_log.each do |i|
-          - title = i.title || i.controller_name
+          - title = activity_title(i)
           %tr
             %td
               - tooltip = "Method: #{i.method}"

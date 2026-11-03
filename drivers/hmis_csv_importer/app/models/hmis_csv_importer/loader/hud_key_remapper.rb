@@ -44,19 +44,13 @@ module HmisCsvImporter::Loader
         file = File.join(source_dir, file_name)
         next unless File.exist?(file)
 
-        Tempfile.create do |clean_file|
-          CSV.open(clean_file, 'wb') do |csv|
-            csv << CSV.parse_line(File.open(file, &:readline))
-            CSV.foreach(file, headers: true, header_converters: :downcase) do |row|
-              columns.each do |column|
-                key = column.downcase
-                value = row[key]
-                row[key] = remap_value(ALIASED_COLUMNS.fetch(column, column), source_id, value) if value.present?
-              end
-              csv << row
-            end
+        PreProcessCsv.rewrite!(file) do |row, csv|
+          columns.each do |column|
+            key = column.downcase
+            value = row[key]
+            row[key] = remap_value(ALIASED_COLUMNS.fetch(column, column), source_id, value) if value.present?
           end
-          FileUtils.mv(clean_file, file)
+          csv << row
         end
       end
     end

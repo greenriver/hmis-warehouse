@@ -108,7 +108,7 @@ module GrdaWarehouse::Hud
 
     def self.zip_code_shapes
       joins(<<~SQL)
-        INNER JOIN shape_zip_codes ON ( shape_zip_codes.zcta5ce10 = "ProjectCoC"."Zip" OR shape_zip_codes.zcta5ce10 = "ProjectCoC"."zip_override")
+        INNER JOIN shape_zip_codes ON shape_zip_codes.zcta5ce10 = "ProjectCoC"."Zip"
       SQL
     end
 

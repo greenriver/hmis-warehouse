@@ -41,7 +41,8 @@ module Admin
         extra_columns: [
           {
             header: 'Project Count',
-            content: ->(entity) { ActionController::Base.helpers.number_with_delimiter(entity.projects.count) },
+            preload: -> { GrdaWarehouse::ProjectGroup.joins(:projects).group(:id).count },
+            content: ->(entity, preloaded:, **) { ActionController::Base.helpers.number_with_delimiter(preloaded[entity.id] || 0) },
           },
         ],
       ),
@@ -57,15 +58,23 @@ module Admin
         extra_columns: [
           {
             header: 'Client Records',
-            content: ->(entity) { ActionController::Base.helpers.number_with_delimiter(entity.clients.count) },
+            preload: -> do
+              GrdaWarehouse::Hud::Client.
+                where(data_source_id: GrdaWarehouse::DataSource.source.select(:id)).
+                group(:data_source_id).
+                count
+            end,
+            content: ->(entity, preloaded:, **) { ActionController::Base.helpers.number_with_delimiter(preloaded[entity.id] || 0) },
           },
           {
             header: 'Project Count',
-            content: ->(entity) { ActionController::Base.helpers.number_with_delimiter(entity.projects.count) },
+            preload: -> { GrdaWarehouse::Hud::Project.group(:data_source_id).count },
+            content: ->(entity, preloaded:, **) { ActionController::Base.helpers.number_with_delimiter(preloaded[entity.id] || 0) },
           },
           {
             header: 'Last Import',
-            content: ->(entity) { entity.import_logs.maximum(:completed_at)&.localtime },
+            preload: -> { GrdaWarehouse::ImportLog.group(:data_source_id).maximum(:completed_at) },
+            content: ->(entity, preloaded:, **) { preloaded[entity.id]&.localtime },
           },
         ],
       ),
@@ -76,9 +85,10 @@ module Admin
         name_method: ->(org) { org.name(ignore_confidential_status: true) },
         collection_scope: -> do
           GrdaWarehouse::Hud::Organization.
+            joins(:data_source).
             order(:name).
             preload(:data_source).
-            group_by { |o| o.data_source&.name }
+            group_by { |o| o.data_source.name }
         end,
         placeholder: 'Organization',
         css_class: 'jUserViewable jOrganizations',
@@ -89,15 +99,14 @@ module Admin
         extra_columns: [
           {
             header: 'Data Source',
-            content: ->(_entity, group_name) { group_name },
-          },
-          {
-            header: 'Client Records',
-            content: ->(entity, _group_name) { ActionController::Base.helpers.number_with_delimiter(entity.clients.count) },
+            content: ->(_entity, group_name:, **) { group_name },
           },
           {
             header: 'Project Count',
-            content: ->(entity, _group_name) { ActionController::Base.helpers.number_with_delimiter(entity.projects.count) },
+            preload: -> { GrdaWarehouse::Hud::Project.group(:data_source_id, :OrganizationID).count },
+            content: ->(entity, preloaded:, **) do
+              ActionController::Base.helpers.number_with_delimiter(preloaded[[entity.data_source_id, entity.OrganizationID]] || 0)
+            end,
           },
         ],
       ),
@@ -121,7 +130,7 @@ module Admin
         extra_columns: [
           {
             header: 'Data Source / Organization',
-            content: ->(_entity, group_name) { group_name },
+            content: ->(_entity, group_name:, **) { group_name },
           },
         ],
       ),
@@ -137,7 +146,8 @@ module Admin
         extra_columns: [
           {
             header: 'Project Count',
-            content: ->(entity) { ActionController::Base.helpers.number_with_delimiter(entity.projects.count) },
+            preload: -> { GrdaWarehouse::ProjectAccessGroup.joins(:projects).group(:id).count },
+            content: ->(entity, preloaded:, **) { ActionController::Base.helpers.number_with_delimiter(preloaded[entity.id] || 0) },
           },
         ],
       ),
@@ -154,11 +164,12 @@ module Admin
         extra_columns: [
           {
             header: 'CoC Name',
-            content: lambda(&:official_name),
+            content: ->(entity, **) { entity.official_name },
           },
           {
             header: 'Project Count',
-            content: ->(entity) { ActionController::Base.helpers.number_with_delimiter(entity.projects.count) },
+            preload: -> { GrdaWarehouse::Lookups::CocCode.joins(:projects).group(:id).count },
+            content: ->(entity, preloaded:, **) { ActionController::Base.helpers.number_with_delimiter(preloaded[entity.id] || 0) },
           },
         ],
       ),

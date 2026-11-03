@@ -58,6 +58,16 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
   end
 
+  context 'when the file exceeds the max file size' do
+    let(:upload_input) { super().merge(byte_size: ClientFileBase::MAX_FILE_SIZE + 1) }
+
+    it 'rejects the upload without creating a blob' do
+      expect do
+        expect_gql_error(perform_mutation, message: 'file is too large')
+      end.not_to change(ActiveStorage::Blob, :count)
+    end
+  end
+
   context 'when the user can edit clients but not upload files' do
     let!(:access_control) { create_access_control(hmis_user, ds1, with_permission: [:can_view_clients, :can_edit_clients]) }
 

@@ -20,6 +20,9 @@
 # - Does not restore legacy ReferralHouseholdMember rows
 # - Does not manually restore WarehouseClient links; warehouse_identify_duplicate_clients (queued below)
 #   re-establishes destination client assignments.
+# - Does not move a warehouse restriction back (known gap). MergeClientsJob carried it to the
+#   retained client's destination, which stays restricted. The restored client is unrestricted if
+#   duplicate identification puts it under a different destination.
 # - Destroys the ClientMergeHistory row on success so clients no longer appear linked in search;
 #   the ClientMergeAudit is retained for audit purposes.
 module Hmis

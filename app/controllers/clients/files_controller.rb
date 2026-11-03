@@ -289,14 +289,14 @@ module Clients
     end
 
     def all_file_scope
-      scope = file_source.visible_by?(current_user).
+      scope = file_source.visible_by?(current_user, client: @client).
         where(client_id: @client.id)
       scope = scope.window unless can_manage_client_files?
       scope
     end
 
     def file_scope
-      scope = file_source.visible_by?(current_user).
+      scope = file_source.visible_by?(current_user, client: @client).
         non_consent.
         non_cache.
         where(client_id: @client.id)
@@ -305,7 +305,7 @@ module Clients
     end
 
     def consent_scope
-      scope = file_source.visible_by?(current_user).
+      scope = file_source.visible_by?(current_user, client: @client).
         consent_forms.
         where(client_id: @client.id).
         order(

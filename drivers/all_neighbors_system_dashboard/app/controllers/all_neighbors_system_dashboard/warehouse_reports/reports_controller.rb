@@ -168,7 +168,7 @@ module AllNeighborsSystemDashboard::WarehouseReports
     end
 
     private def set_report
-      @report = report_class.find(params[:id].to_i)
+      @report = report_scope.find(params[:id].to_i)
     end
 
     private def report_class

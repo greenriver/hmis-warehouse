@@ -12,6 +12,7 @@ sources:
   - app/controllers/concerns/warehouse_report_authorization.rb
   - app/controllers/concerns/background_render_action.rb
   - app/controllers/warehouse_reports/chronic_controller.rb
+  - app/controllers/concerns/warehouse_reports/queued_report_jobs.rb
   - app/controllers/warehouse_reports/client_details/entries_controller.rb
   - app/controllers/document_exports_controller_base.rb
   - app/jobs/warehouse_reports/generic_report_job.rb
@@ -28,6 +29,7 @@ sources:
   - app/models/concerns/warehouse_reports/export.rb
   - app/models/concerns/warehouse_reports/publish.rb
   - app/models/concerns/warehouse_reports/s3_toolset.rb
+  - app/models/aws_s3.rb
   - app/models/concerns/warehouse_reports/pii_detail_rows.rb
   - app/models/concerns/report_archival.rb
   - app/models/grda_warehouse/document_exports/base_performance_export.rb
@@ -235,8 +237,15 @@ The older shape is a bespoke job writing a `GrdaWarehouse::WarehouseReports::Bas
 everything except `data` and `support`; `completed?`, `status`, and `completed_in` derive from
 the timestamps. `WarehouseReports::ChronicController#index` enqueues
 `WarehouseReports::RunChronicJob.perform_later(filter_params.merge(current_user_id:
-current_user.id))` when the form was submitted, lists `Delayed::Job.jobs_for_class('RunChronicJob')`
-as pending runs, and pre-fills the filter from the previous run's `parameters['filter']`.
+current_user.id))` when the form was submitted, lists finished runs through
+`report_scope` (`ChronicReport.visible_to(current_user)`: every row for `can_view_all_reports?`,
+the user's own rows for `can_view_assigned_reports?`, else none), lists pending runs through
+`WarehouseReports::QueuedReportJobs#queued_reports('RunChronicJob')`, and pre-fills the filter
+from the previous run's `parameters['filter']`. `queued_reports` deserializes each queued job's
+arguments into an unsaved report with `user_id` from `current_user_id`, skips non-hash arguments
+(chronic recalculation jobs share the handler match), and keeps only the user's own jobs unless
+they `can_view_all_reports?`; the hud_chronics, active_veterans, and disabilities controllers
+use it the same way.
 `RunChronicJob#perform` shims `permit` onto the incoming hash so the controller's `load_filter`
 works, builds one `ChronicReport`, stores an array of client attribute hashes (including
 `chronic_project_names` and joined disability text) in `data`, and sends
@@ -305,10 +314,18 @@ Policy detail: `authorization/warehouse-policies.md`.
 with section markers when `view_template` is an array), inlines CSS with Premailer, saves
 `published_url` and an iframe `embed_code`, then `push_all_to_s3` uploads each `publish_files`
 entry with `acl: 'public-read'`. `unpublish!` deletes the objects and clears the row.
-`S3Toolset` supplies `ready_public_s3_bucket!` (creates the bucket and website configuration),
-the bucket name (`S3_PUBLIC_BUCKET` or `<CLIENT>-<env>-public`), the client (explicit
-`S3_PUBLIC_ACCESS_KEY_ID`/`S3_PUBLIC_ACCESS_KEY_SECRET` or the default credential chain), and
-`S3_PUBLIC_URL` as the base for `generate_publish_url`.
+`PublicReports::Report.publication_types` lists the types that share a published slot:
+`PublicReports::StateDashboard` and the deprecated `PublicReports::StateLevelHomelessness`
+share one S3 directory, so publishing either unpublishes the other.
+`S3Toolset` supplies `ready_public_s3_bucket!` (creates whichever of the bucket and its website
+configuration is missing, so an existing bucket without a website gets one;
+when `AwsS3.local_endpoint?` is true it only ensures the bucket, since the local S3 has no
+website API), the bucket name (`S3_PUBLIC_BUCKET` when present, else `<CLIENT>-<env>-public`),
+the client (built by `AwsS3.new` with `S3_PUBLIC_ACCESS_KEY_ID`/`S3_PUBLIC_ACCESS_KEY_SECRET`,
+so it gets `AwsS3.default_region` (the first non-blank of `AWS_REGION`, `AMAZON_REGION` and
+`AWS_DEFAULT_REGION`, then the shared config profile's region, then `us-east-1`),
+local-endpoint setup, and default credential chain when the keys are blank), and `S3_PUBLIC_URL`
+as the base for `generate_publish_url`.
 
 ### Archival
 
@@ -372,7 +389,8 @@ flashes counts or errors, and redirects to `reload_from_csv_redirect_path`. A sh
 - `app/controllers/warehouse_reports/client_details/entries_controller.rb`: usage.
 - `app/jobs/background_render/entry_clients_report_job.rb`: `render_html`;
   `visible_projects`.
-- `app/controllers/warehouse_reports/chronic_controller.rb`: `index` enqueue; `show`.
+- `app/controllers/warehouse_reports/chronic_controller.rb`: `index` enqueue; `report_scope`; `show`.
+- `app/controllers/concerns/warehouse_reports/queued_report_jobs.rb`: `queued_reports`.
 - `app/jobs/warehouse_reports/run_chronic_job.rb`: `perform`; `report.data =`.
 - `app/models/grda_warehouse/warehouse_reports/base.rb`: `for_list`; `completed?`.
 - `app/models/simple_reports/report_instance.rb`: `viewable_by`; `purge_eligible`;
@@ -388,7 +406,9 @@ flashes counts or errors, and redirects to `reload_from_csv_redirect_path`. A sh
 - `app/models/concerns/warehouse_reports/publish.rb`: `publish!`; `unpublish!`;
   `as_html`.
 - `app/models/concerns/warehouse_reports/s3_toolset.rb`: `ready_public_s3_bucket!`;
-  `s3_bucket`; `push_all_to_s3`.
+  `s3_bucket`; `s3_client`; `push_all_to_s3`.
+- `app/models/aws_s3.rb`: `AwsS3.local_endpoint?`; `AwsS3.default_region`; `initialize` (region default, local endpoint,
+  explicit keys or the default credential chain).
 - `app/models/concerns/warehouse_reports/pii_detail_rows.rb`: `redact_pii_in_row`.
 - `app/models/concerns/report_archival.rb`: `register_report_type`;
   `archival_csv_config`; `purge_eligible?`; `archive_and_purge!`.

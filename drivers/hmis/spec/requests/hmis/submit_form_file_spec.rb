@@ -48,6 +48,19 @@ RSpec.describe 'SubmitForm for File', type: :request do
     expect(file.tags).to eq([tag])
   end
 
+  it 'saves a note on a new file' do
+    record, = submit_form(input.merge(hud_values: hud_values.merge('note' => 'Signed by client')))
+    expect(Hmis::File.find(record['id']).note).to eq('Signed by client')
+  end
+
+  it 'clears the note on an existing file' do
+    file1.update!(note: 'Old note')
+    expect do
+      submit_form(input.merge(record_id: file1.id, hud_values: hud_values.merge('note' => nil)))
+      file1.reload
+    end.to change(file1, :note).from('Old note').to(nil)
+  end
+
   it 'persists submitted form values to an existing file' do
     expect do
       submit_form(input.merge(record_id: file1.id, hud_values: hud_values.merge('enrollmentId' => e1.id)))

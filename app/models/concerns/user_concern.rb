@@ -269,7 +269,7 @@ module UserConcern
       root_path
     end
 
-    # Search for users by name (prefix) or email (substring, e.g. domain).
+    # Search for users by name (prefix), email (substring, e.g. domain), or exact user ID.
     #
     # @param text [String] the search query
     # @param sort_by_best_match [Boolean] whether to order results by similarity to query
@@ -280,7 +280,14 @@ module UserConcern
     #   User.text_search('john')
     def self.text_search(text, sort_by_best_match: false)
       text = text.strip
-      return none if text.length < 3 # require at least 3 characters for meaningful search
+      # A bare number may also be a user ID (support often has only the ID from an error report)
+      numeric = text.match?(/\A\d+\z/)
+      # require at least 3 characters for meaningful search; shorter numbers only match by ID
+      if text.length < 3
+        return where(id: text) if numeric
+
+        return none
+      end
 
       terms = text.split(/[\s,]+/).map(&:strip).reject(&:blank?)
       return none if terms.empty?
@@ -293,7 +300,11 @@ module UserConcern
 
         where(prefix_condition)
       end.inject(&:or)
+      scope = scope.or(where(id: text)) if numeric
       if sort_by_best_match
+        # An ID match has no text similarity, so rank it first explicitly.
+        # Compared as text so a number wider than bigint can't raise.
+        scope = scope.order(Arel.sql(sanitize_sql_array(["#{quoted_table_name}.id::text = ? DESC", text.to_i.to_s]))) if numeric
         sql = <<-SQL.squish
           similarity(
             CONCAT_WS(' ', first_name, last_name, email),

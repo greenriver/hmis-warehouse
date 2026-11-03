@@ -22,6 +22,13 @@ module GrdaWarehouse::WarehouseReports
       where(user_id: user.id)
     end
 
+    scope :visible_to, ->(user) do
+      return all if user.can_view_all_reports?
+      return where(user_id: user.id) if user.can_view_assigned_reports?
+
+      none
+    end
+
     def completed_in
       if completed?
         seconds = ((finished_at - started_at) / 1.minute).round * 60

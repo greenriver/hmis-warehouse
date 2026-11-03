@@ -10,6 +10,8 @@
 # @see docs/features/hmis/hmis-permissions.md
 
 class Hmis::AccessControl < ApplicationRecord
+  include AccessControlFiltering
+
   acts_as_paranoid
   has_paper_trail
 
@@ -59,31 +61,12 @@ class Hmis::AccessControl < ApplicationRecord
       )
   end
 
-  # filter for access controls that somehow interact with the following
-  # User, UserGroup, Role, AccessGroup
-  scope :filtered, ->(filter_params) do
-    return current_scope unless filter_params
-    return current_scope if filter_params[:user_id].blank? && filter_params[:user_group_id].blank? && filter_params[:role_id].blank? && filter_params[:access_group_id].blank?
-
-    ids = []
-    if filter_params[:user_id].present?
-      user_scope = Hmis::UserGroup.with_user_id(filter_params[:user_id].to_i)
-      ids += joins(:user_group).
-        merge(user_scope).pluck(:id)
-    end
-    if filter_params[:user_group_id].present?
-      user_group_scope = where(user_group_id: filter_params[:user_group_id].to_i)
-      ids += user_group_scope.pluck(:id)
-    end
-    if filter_params[:role_id].present?
-      role_scope = where(role_id: filter_params[:role_id].to_i)
-      ids += role_scope.pluck(:id)
-    end
-    if filter_params[:access_group_id].present?
-      entity_group_scope = where(access_group_id: filter_params[:access_group_id].to_i)
-      ids += entity_group_scope.pluck(:id)
-    end
-
-    where(id: ids)
-  end
+  filterable_by(
+    collection_association: :access_group,
+    entity_class_names: {
+      data_source_id: 'GrdaWarehouse::DataSource',
+      organization_id: 'Hmis::Hud::Organization',
+      project_id: 'Hmis::Hud::Project',
+    },
+  )
 end

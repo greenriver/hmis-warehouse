@@ -73,7 +73,8 @@ re-run the same job, and optionally push a password-protected archive to S3.
   falls back to the legacy `content` column. `edit`, `update`, and `cancel` act on the
   recurring definition linked to an export. Access: `require_can_export_hmis_data!` plus
   report assignment through `WarehouseReportAuthorization`; users without
-  `can_view_all_reports?` see only their own exports.
+  `can_view_all_reports?` see only their own exports. `set_export` loads through
+  `export_scope`, so member actions return 404 for any export outside the list.
 - `WarehouseReports::HashedOnlyHmisExportsController`
   (`app/controllers/warehouse_reports/hashed_only_hmis_exports_controller.rb`) subclasses
   `WarehouseReports::HmisExportsController`, forces `hash_status: '4'`, permits a reduced parameter set (no `hash_status`,
@@ -131,6 +132,8 @@ project. `enforce_project_date_scope` then keeps only projects `active_during` t
 `period_type == 1` (updated-period exports need deleted rows). `Filters::HmisExport.job_classes`
 returns registered job class names plus the string `'HmisTwentyTwentyExportJob'`, a class that
 no longer exists, so the controller's `set_jobs` can still read old queued jobs.
+`set_jobs` keeps a queued export only when the user `can_view_all_reports?` or the job's
+`user_id` is theirs, the same rule `export_scope` applies to finished exports.
 
 ### Exporter pipeline
 
@@ -256,7 +259,8 @@ messages when `RecurringHmisExport.create` fails to persist (e.g. a `zip_passwor
   creation, `adjust_reporting_period`, S3 validation, `schedule_job`); `show` streams the
   zip; `report_params`.
 - `app/controllers/warehouse_reports/hashed_only_hmis_exports_controller.rb`: forces
-  `hash_status: '4'`; `export_scope` limited to hashed exports; reduced params.
+  `hash_status: '4'`; `export_scope` limited to hashed exports, which also limits the
+  inherited `set_export`; reduced params.
 - `app/models/filters/hmis_export.rb`: `register_version`;
   `schedule_or_execute_job`; `effective_project_ids`; `adjust_reporting_period`.
 - `app/models/grda_warehouse/hmis_export.rb`: `has_one_attached :hmis_zip`;

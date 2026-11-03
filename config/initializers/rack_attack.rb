@@ -39,11 +39,6 @@ module RackAttackRequestHelpers
     path.include?('rollup') || path.include?('cohort') || path.include?('core_demographics')
   end
 
-  # Seems to be client history path `pdf_client_history`. Unsure if this needs to be a relative path
-  def history_pdf_path?
-    path.include?('history/pdf')
-  end
-
   # returns the x-forward-for ip if we think the sending ip is trusted. Depends the RemoteIp rails middleware installed higher in the stack
   memoize def request_ip
     result = env['action_dispatch.remote_ip']&.to_s
@@ -129,27 +124,13 @@ Rack::Attack.tap do |config|
     end
   end
 
-  # Goal: Prevent excessive requests to generate PDFs since that endpoint does not require authentication.
-  config.throttle(
-    'per-ip limit on unauthenticated requests for history pdf',
-    limit: 25,
-    period: 10.seconds,
-  ) do |request|
-    if request.tracking_enabled? && request.anonymous? && request.history_pdf_path?
-      request.request_ip
-    end
-  end
-
   # Goal: limit burst requests from unauthenticated clients, such as spiders
   config.throttle(
     'General per-ip limit on unauthenticated requests',
     limit: 10,
     period: 1.second,
   ) do |request|
-    if request.tracking_enabled? && request.anonymous?
-      # there's a more restrictive throttle on the pdf
-      request.request_ip unless request.history_pdf_path?
-    end
+    request.request_ip if request.tracking_enabled? && request.anonymous?
   end
 
   # Goal: prevent scripts run through authenticated user accounts from harvesting data or excessive use of the site, with an allowance for known poor behavior for cohorts, roll-ups, and other pages that load more than one request per page.

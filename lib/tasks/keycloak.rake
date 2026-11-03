@@ -94,6 +94,9 @@ namespace :keycloak do
     importer = keycloak_importer
     keycloak_ensure_groups(importer)
 
+    deactivated = Idp::Keycloak::UserImporter.deactivate_expired_users!
+    puts "Deactivated #{deactivated} users Devise considers expired"
+
     users_scope = Idp::Keycloak::UserImporter.migration_scope(connector_id: keycloak_connector_id, since: since)
     users_scope = users_scope.limit(limit) if limit
 
@@ -140,6 +143,9 @@ namespace :keycloak do
 
     keycloak_assert_devise!
     importer = keycloak_importer
+
+    deactivated = Idp::Keycloak::UserImporter.deactivate_expired_users!
+    puts "Deactivated #{deactivated} users Devise considers expired"
 
     users_scope = Idp::Keycloak::UserImporter.migration_scope(connector_id: keycloak_connector_id, since: since)
     users_scope = users_scope.limit(limit) if limit

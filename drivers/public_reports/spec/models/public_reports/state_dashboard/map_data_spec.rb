@@ -1,0 +1,370 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+# frozen_string_literal: true
+
+require 'rails_helper'
+
+RSpec.describe PublicReports::StateDashboard::MapData, type: :model do
+  subject(:map_data) { described_class.new(report) }
+
+  let(:user) { create(:acl_user) }
+  let(:role) { create(:role, can_view_assigned_reports: true) }
+  let(:settings) { PublicReports::Setting.first_or_create }
+  let(:report) do
+    PublicReports::StateDashboard.new(
+      user: user,
+      filter: { filters: { start: Date.parse('2025-01-01'), end: Date.parse('2025-12-31'), project_type_numbers: [1] } },
+    )
+  end
+
+  before do
+    travel_to(Date.parse('2026-06-15'))
+    setup_access_control(user, role, Collection.system_collection(:data_sources))
+    settings.update!(map_type: 'place')
+  end
+
+  after { travel_back }
+
+  describe '#snap_rate' do
+    context 'with percentage-of-homeless-population bands' do
+      before { settings.update!(map_overall_population_method: 'state') }
+
+      it 'snaps each rate to the top of its band' do
+        snapped = [0, 0.1, 10.0, 10.1, 25.0, 25.1].map { |rate| map_data.snap_rate(rate) }
+
+        expect(snapped).to eq([0, 10.0, 10.0, 15.0, 25.0, 100.0])
+      end
+
+      it 'snaps a rate above every band to the top band' do
+        expect(map_data.snap_rate(150.0)).to eq(100.0)
+      end
+    end
+
+    context 'with census rate-per-10,000 bands' do
+      before { settings.update!(map_overall_population_method: 'geography') }
+
+      it 'snaps each rate to the top of its band' do
+        snapped = [3.0, 3.1, 18.0, 18.1].map { |rate| map_data.snap_rate(rate) }
+
+        expect(snapped).to eq([3.0, 6.0, 18.0, 100.0])
+      end
+    end
+
+    context 'when two band colors are the same' do
+      before { settings.update!(map_overall_population_method: 'state', color_0: '#003d79', color_1: '#003d79') }
+
+      it 'keeps every band and snaps a rate to its own band' do
+        expect([map_data.snap_rate(5.0), map_data.to_h[:bands].map { |band| band[:max] }]).to eq([10.0, [0, 10.0, 15.0, 20.0, 25.0, 100.0]])
+      end
+    end
+  end
+
+  # town_map.js and _town_map.haml string-match these keys, the `Percentage` prefix of
+  # `unit`, and band `max`/`color`/`label`; renaming any of them breaks the published page.
+  describe '#to_h' do
+    it 'emits the keys, percent unit and percent bands the town map reads' do
+      settings.update!(map_overall_population_method: 'state')
+
+      data = map_data.to_h
+
+      expect(data.keys).to eq([:towns, :periods, :groups, :values, :populations, :statewideTotals, :bands, :notReportingColor, :unit, :map_type])
+      expect(data[:bands].map(&:keys).uniq).to eq([[:max, :color, :label]])
+      expect(data[:bands].map { |band| band.values_at(:max, :label) }).to eq(
+        [
+          [0, '0%'],
+          [10.0, 'Over 0% to 10%'],
+          [15.0, 'Over 10% to 15%'],
+          [20.0, 'Over 15% to 20%'],
+          [25.0, 'Over 20% to 25%'],
+          [100.0, 'Over 25%'],
+        ],
+      )
+      expect(data.values_at(:unit, :notReportingColor, :map_type)).to eq(['Percentage of homeless population', '#EDEDED', 'place'])
+      expect([data[:values].size, data[:statewideTotals].size, data[:periods]]).to eq([4, 4, ['2025 Q1', '2025 Q2', '2025 Q3', '2025 Q4']])
+    end
+
+    it 'emits the per-10,000 unit and census bands in census mode' do
+      settings.update!(map_overall_population_method: 'geography')
+
+      data = map_data.to_h
+
+      expect(data[:unit]).to eq('Rate per 10,000 population')
+      expect(data[:bands].map { |band| band.values_at(:max, :label) }).to eq(
+        [
+          [0, 'None'],
+          [3.0, 'Over 0 to 3 per 10,000'],
+          [6.0, 'Over 3 to 6 per 10,000'],
+          [9.0, 'Over 6 to 9 per 10,000'],
+          [12.0, 'Over 9 to 12 per 10,000'],
+          [15.0, 'Over 12 to 15 per 10,000'],
+          [18.0, 'Over 15 to 18 per 10,000'],
+          [100.0, 'Over 18 per 10,000'],
+        ],
+      )
+    end
+  end
+
+  describe '#to_h with town shapes and enrollments' do
+    let!(:state) { GrdaWarehouse::Shape::State.create!(stusps: 'MA', geoid: '25') }
+    let(:data_source) { create(:data_source_fixed_id) }
+    let(:organization) { create(:hud_organization, data_source_id: data_source.id) }
+    let(:total_population_variable) do
+      GrdaWarehouse::UsCensusApi::CensusVariable.create!(
+        year: 2024, dataset: 'acs5', name: 'B01003_001E', label: 'POP::TOTAL', concept: 'Total Population',
+        census_group: 'B01003', census_attributes: 'B01003_001EA', internal_name: 'POP::TOTAL', created_on: Date.current
+      )
+    end
+
+    # These tests check counting and bands, so no group total is suppressed.
+    before { stub_const('PublicReports::StateDashboard::SUPPRESS_TOTALS_AT_OR_BELOW', 0) }
+
+    # Geography#population reads the town's census value, so every shape needs one.
+    def create_town(name, west:, population:)
+      GrdaWarehouse::Shape::Town.create!(
+        town: name,
+        statefp: state.geoid,
+        full_geoid: "CUSTOMTOWNUS#{name}",
+        geom: "SRID=4326;MULTIPOLYGON(((#{west} 42.0, #{west + 0.1} 42.0, #{west + 0.1} 42.1, #{west} 42.1, #{west} 42.0)))",
+      )
+      GrdaWarehouse::UsCensusApi::CensusValue.create!(
+        census_variable: total_population_variable, value: population, full_geoid: "CUSTOMTOWNUS#{name}", census_level: 'CUSTOM', created_on: Date.current,
+      )
+    end
+
+    def square(west, south = 42.0, size = 0.1)
+      "SRID=4326;MULTIPOLYGON(((#{west} #{south}, #{west + size} #{south}, #{west + size} #{south + size}, #{west} #{south + size}, #{west} #{south})))"
+    end
+
+    def census_population(full_geoid, population)
+      GrdaWarehouse::UsCensusApi::CensusValue.create!(
+        census_variable: total_population_variable, value: population, full_geoid: full_geoid, census_level: 'CUSTOM', created_on: Date.current,
+      )
+    end
+
+    def create_zip(zcta, west:)
+      GrdaWarehouse::Shape::ZipCode.create!(zcta5ce10: zcta, st_geoid: state.geoid, full_geoid: "CUSTOMZIPUS#{zcta}", geom: square(west, 42.02, 0.05))
+      census_population("CUSTOMZIPUS#{zcta}", 10_000)
+    end
+
+    def create_county(name, west:)
+      GrdaWarehouse::Shape::County.create!(namelsad: name, statefp: state.geoid, full_geoid: "CUSTOMCOUNTYUS#{name}", geom: square(west))
+      census_population("CUSTOMCOUNTYUS#{name}", 10_000)
+    end
+
+    # One ES project whose ProjectCoC principal site is `city`, with `count` clients each served once in Q4 2025.
+    def enroll_clients(count, city:, coc_code: 'MA-500', zip: nil, veteran: false)
+      project = create(:hud_project, data_source_id: data_source.id, OrganizationID: organization.OrganizationID, ProjectType: 1)
+      create(:hud_project_coc, data_source: data_source, ProjectID: project.ProjectID, City: city, CoCCode: coc_code, Zip: zip)
+      count.times do |i|
+        client = create(:hud_client, data_source_id: data_source.id, VeteranStatus: veteran ? 1 : 0)
+        she = create(
+          :she_entry,
+          client: client,
+          data_source_id: data_source.id,
+          project_id: project.project_id,
+          organization_id: project.organization_id,
+          project_type: 1,
+          date: Date.parse('2025-10-15'),
+          first_date_in_program: Date.parse('2025-10-15'),
+          last_date_in_program: Date.parse('2025-12-31'),
+          household_id: "#{city}-#{i}",
+          head_of_household: true,
+        )
+        create(
+          :service_history_service,
+          service_history_enrollment_id: she.id,
+          client_id: client.id,
+          record_type: 'service',
+          date: Date.parse('2025-10-15'),
+          project_type: 1,
+          age: 30,
+        )
+      end
+    end
+
+    it 'counts each period and each group from its own clients' do
+      settings.update!(map_overall_population_method: 'state')
+      create_town('OTHERTOWN', west: -71.5, population: 10_000)
+      create_town('TESTVILLE', west: -71.0, population: 10_000)
+      enroll_clients(48, city: 'Othertown')
+      enroll_clients(12, city: 'Testville', veteran: true)
+
+      data = map_data.to_h
+
+      # All service is in Q4, so Q1-Q3 are empty in all 5 groups. Veterans are Testville's 12 of 12 (100%, the 26%+ band);
+      # counting everyone it would be Othertown 48 of 60 (100.0) and Testville 12 of 60 (20%).
+      expect(data[:values].first(3)).to eq(Array.new(3) { Array.new(5) { [0, 0] } })
+      expect(data[:values].last[4]).to eq([0, 100.0])
+    end
+
+    it 'floors a small town count to 11 before taking its share and leaves a town with no one at 0' do
+      settings.update!(map_overall_population_method: 'state')
+      create_town('EMPTYVILLE', west: -71.5, population: 10_000)
+      create_town('TESTVILLE', west: -71.0, population: 10_000)
+      enroll_clients(2, city: 'Testville')
+      enroll_clients(48, city: 'Othertown')
+
+      data = map_data.to_h
+
+      # Testville: 2 of 50 statewide, floored to 11 -> 22% -> the 21%-25% band (25.0).
+      # Without the floor it is 4% (10.0); counting enrollments regardless of city it is 100% (100.0).
+      expect(data[:towns]).to eq(['EMPTYVILLE', 'TESTVILLE'])
+      expect(data[:values].last.first).to eq([0, 25.0])
+    end
+
+    it 'reports nil for a town with no census population and a per-10,000 rate elsewhere in census mode' do
+      settings.update!(map_overall_population_method: 'geography')
+      create_town('OTHERTOWN', west: -71.5, population: 100_000)
+      create_town('TESTVILLE', west: -71.0, population: 0)
+      enroll_clients(48, city: 'Othertown')
+      enroll_clients(2, city: 'Testville')
+
+      data = map_data.to_h
+
+      # Othertown: 48 people / (100,000 / 10,000) = 4.8 per 10,000 -> the 4-6 band (6.0). Testville has
+      # people but no denominator, so it must be nil rather than 0.
+      expect(data[:populations]).to eq([100_000, 0])
+      expect(data[:values].last.first).to eq([6.0, nil])
+    end
+
+    it 'reports nil for a town with no census value and a per-10,000 rate elsewhere in census mode' do
+      settings.update!(map_overall_population_method: 'geography')
+      create_town('OTHERTOWN', west: -71.5, population: 100_000)
+      GrdaWarehouse::Shape::Town.create!(town: 'TESTVILLE', statefp: state.geoid, full_geoid: 'CUSTOMTOWNUSTESTVILLE', geom: square(-71.0))
+      enroll_clients(48, city: 'Othertown')
+      enroll_clients(2, city: 'Testville')
+
+      data = map_data.to_h
+
+      expect(data[:populations]).to eq([100_000, nil])
+      expect(data[:values].last.first).to eq([6.0, nil])
+    end
+
+    # One client served in Q1 and Q4 2025, with the age recorded on each service.
+    def enroll_aging_client(q1_age:, q4_age:)
+      project = create(:hud_project, data_source_id: data_source.id, OrganizationID: organization.OrganizationID, ProjectType: 1)
+      create(:hud_project_coc, data_source: data_source, ProjectID: project.ProjectID, City: 'Testville', CoCCode: 'MA-500')
+      client = create(:hud_client, data_source_id: data_source.id)
+      she = create(
+        :she_entry,
+        client: client,
+        data_source_id: data_source.id,
+        project_id: project.project_id,
+        organization_id: project.organization_id,
+        project_type: 1,
+        date: Date.parse('2025-02-01'),
+        first_date_in_program: Date.parse('2025-02-01'),
+        last_date_in_program: Date.parse('2025-12-31'),
+        household_id: "aging-#{q1_age}",
+        head_of_household: true,
+      )
+      { Date.parse('2025-02-01') => q1_age, Date.parse('2025-11-01') => q4_age }.each do |date, age|
+        create(:service_history_service, service_history_enrollment_id: she.id, client_id: client.id, record_type: 'service', date: date, project_type: 1, age: age)
+      end
+    end
+
+    it 'counts a client in the youth group for each period they were served at age 18 to 24' do
+      settings.update!(map_overall_population_method: 'state')
+      create_town('TESTVILLE', west: -71.0, population: 10_000)
+      enroll_aging_client(q1_age: 16, q4_age: 18)
+      enroll_aging_client(q1_age: 24, q4_age: 25)
+
+      data = map_data.to_h
+
+      # Q1: only the 24-year-old; Q4: only the client who turned 18.
+      expect(data[:statewideTotals].map { |totals| totals[1] }).to eq([1, 0, 0, 1])
+    end
+
+    it 'counts each CoC from its own ProjectCoC code in CoC mode' do
+      settings.update!(map_type: 'coc', map_overall_population_method: 'state')
+      ['MA-500', 'MA-501', 'MA-502'].each_with_index do |cocnum, i|
+        west = -72.0 + (i * 0.5)
+        GrdaWarehouse::Shape::Coc.create!(
+          st: 'MA', cocnum: cocnum, cocname: cocnum, full_geoid: "CUSTOMCOCUS#{cocnum}",
+          geom: "SRID=4326;MULTIPOLYGON(((#{west} 42.0, #{west + 0.1} 42.0, #{west + 0.1} 42.1, #{west} 42.1, #{west} 42.0)))"
+        )
+        GrdaWarehouse::UsCensusApi::CensusValue.create!(
+          census_variable: total_population_variable, value: 10_000, full_geoid: "CUSTOMCOCUS#{cocnum}", census_level: 'CUSTOM', created_on: Date.current,
+        )
+      end
+      enroll_clients(12, city: 'Boston', coc_code: 'MA-500')
+      enroll_clients(38, city: 'Worcester', coc_code: 'MA-501')
+
+      data = map_data.to_h
+
+      # 12 of 50 is 24% (the 21%-25% band, 25.0); 38 of 50 is 76% (the 26%+ band, 100.0); MA-502 has no one.
+      expect(data[:values].last.first).to eq([25.0, 100.0, 0])
+    end
+
+    it 'floors small town counts to 11 in census mode so they share one band and leaves a town with no one at 0' do
+      settings.update!(map_overall_population_method: 'geography')
+      create_town('EMPTYVILLE', west: -72.0, population: 10_000)
+      create_town('OTHERTOWN', west: -71.5, population: 10_000)
+      create_town('TESTVILLE', west: -71.0, population: 10_000)
+      enroll_clients(9, city: 'Othertown')
+      enroll_clients(2, city: 'Testville')
+
+      data = map_data.to_h
+
+      # Population 10,000 makes each person 1 per 10,000. Floored to 11, both towns land in the 10-12 band (12.0);
+      # unfloored, 9 lands in 7-9 (9.0) and 2 in Any-3 (3.0).
+      expect(data[:towns]).to eq(['EMPTYVILLE', 'OTHERTOWN', 'TESTVILLE'])
+      expect(data[:values].last.first).to eq([0, 12.0, 12.0])
+    end
+
+    it 'counts each county from the zips calculate_counties assigned to it in county mode' do
+      settings.update!(map_type: 'county', map_overall_population_method: 'state')
+      create_county('Testcounty County', west: -71.5)
+      create_county('Othercounty County', west: -71.0)
+      create_zip('01001', west: -71.48)
+      create_zip('01002', west: -70.98)
+      GrdaWarehouse::Shape::ZipCode.calculate_counties
+      enroll_clients(12, city: 'Anywhere', zip: '01001')
+      enroll_clients(38, city: 'Anywhere', zip: '01002')
+
+      data = map_data.to_h
+
+      # Codes sort by name: Othercounty (38 of 50 = 76%, the 26%+ band, 100.0), Testcounty (12 of 50 = 24%, 25.0).
+      expect(data[:towns]).to eq(['Othercounty County', 'Testcounty County'])
+      expect(data[:values].last.first).to eq([100.0, 25.0])
+    end
+
+    it 'counts each zip from its ProjectCoC zip in zip mode' do
+      settings.update!(map_type: 'zip', map_overall_population_method: 'state')
+      create_zip('01001', west: -71.5)
+      create_zip('01002', west: -71.0)
+      create_zip('01003', west: -70.5)
+      enroll_clients(12, city: 'Anywhere', zip: '01001')
+      enroll_clients(38, city: 'Anywhere', zip: '01002')
+
+      data = map_data.to_h
+
+      expect(data[:towns]).to eq(['01001', '01002', '01003'])
+      expect(data[:values].last.first).to eq([25.0, 100.0, 0])
+    end
+
+    context 'when a group total is suppressed' do
+      before { stub_const('PublicReports::StateDashboard::SUPPRESS_TOTALS_AT_OR_BELOW', 20) }
+
+      it 'publishes no town rates for that group and keeps the rates of a group above the threshold' do
+        settings.update!(map_overall_population_method: 'state')
+        create_town('OTHERTOWN', west: -71.5, population: 10_000)
+        create_town('TESTVILLE', west: -71.0, population: 10_000)
+        enroll_clients(48, city: 'Othertown')
+        enroll_clients(12, city: 'Testville', veteran: true)
+
+        data = map_data.to_h
+
+        # Group 0 is everyone (60 people, published); group 4 is veterans (12, suppressed at 20).
+        # Q1-Q3 have no one, and a total of 0 is not suppressed.
+        expect(data[:statewideTotals].last.values_at(0, 4)).to eq([60, nil])
+        expect(data[:values].last.values_at(0, 4)).to eq([[100.0, 20.0], [nil, nil]])
+        expect(data[:values].first(3)).to eq(Array.new(3) { Array.new(5) { [0, 0] } })
+      end
+    end
+  end
+end

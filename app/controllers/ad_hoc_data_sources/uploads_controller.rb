@@ -11,12 +11,6 @@ class AdHocDataSources::UploadsController < ApplicationController
   before_action :set_data_source
   before_action :set_upload, only: [:show, :destroy, :download, :update]
 
-  def index
-    attributes = upload_source.column_names - ['content', 'file']
-    @uploads = @data_source.ad_hoc_batches.select(*attributes).order(created_at: :desc)
-    @pagy, @uploads = pagy(@uploads)
-  end
-
   def new
     @upload = upload_source.new
   end
@@ -41,8 +35,10 @@ class AdHocDataSources::UploadsController < ApplicationController
   def download
     if params[:matched]
       @clients = @upload.ad_hoc_clients.where.not(client_id: nil)
+      filename = "#{@upload.sanitized_name} - Matched Clients"
     elsif params[:all]
       @clients = @upload.ad_hoc_clients
+      filename = "#{@upload.sanitized_name} - All Clients"
     else
       if @upload.batch_file.attached?
         filename = @upload.batch_file.filename.to_s
@@ -54,7 +50,7 @@ class AdHocDataSources::UploadsController < ApplicationController
       return
     end
     # Use the default render
-    headers['Content-Disposition'] = "attachment; filename=#{filename}.xlsx"
+    headers['Content-Disposition'] = ActionDispatch::Http::ContentDisposition.format(disposition: 'attachment', filename: "#{filename}.xlsx")
   end
 
   def destroy
@@ -87,20 +83,33 @@ class AdHocDataSources::UploadsController < ApplicationController
   end
 
   private def update_health_prioritization
-    prioritized_client_ids = update_params[:clients].select { |_, opts| opts[:health_prioritized] == '1' }.keys
-    un_prioritized_client_ids = update_params[:clients].select { |_, opts| opts[:health_prioritized] == '0' }.keys
+    prioritized_client_ids = update_params[:clients].select { |_, opts| opts[:health_prioritized] == '1' }.keys.map(&:to_i) & upload_client_ids
+    un_prioritized_client_ids = update_params[:clients].select { |_, opts| opts[:health_prioritized] == '0' }.keys.map(&:to_i) & upload_client_ids
     GrdaWarehouse::Hud::Client.where(id: prioritized_client_ids).update_all(health_prioritized: 'Yes')
     GrdaWarehouse::Hud::Client.where(id: un_prioritized_client_ids).update_all(health_prioritized: nil)
   end
 
+  # Warehouse clients tied to this upload: each row's matched client and its possible matches.
+  private def upload_client_ids
+    @upload_client_ids ||= @upload.ad_hoc_clients.pluck(:client_id, :matching_client_ids).flatten.compact.uniq
+  end
+
   private def update_client_ids
     to_update = update_params[:clients].select { |_, opts| opts[:client_id].present? }
-    existing_client_ids = GrdaWarehouse::Hud::Client.where(id: to_update.values.map { |opts| opts[:client_id] }).pluck(:id)
+    assignable_ids = assignable_client_ids(to_update.values.map { |opts| opts[:client_id].to_i })
     to_update.each do |id, opts|
-      next unless existing_client_ids.include?(opts[:client_id].to_i)
+      next unless assignable_ids.include?(opts[:client_id].to_i)
 
       GrdaWarehouse::AdHocClient.where(id: id, ad_hoc_data_source_id: @data_source.id, batch_id: @upload.id).update_all(client_id: opts[:client_id])
     end
+  end
+
+  # Destination clients the user can find through client search or view directly. A row's
+  # client_id also feeds upload_client_ids, which gates health prioritization.
+  private def assignable_client_ids(client_ids)
+    searchable = GrdaWarehouse::Hud::Client.destination_from_searchable_to(current_user).where(id: client_ids).pluck(:id)
+    visible = GrdaWarehouse::Hud::Client.destination_visible_to(current_user).where(id: client_ids).pluck(:id)
+    searchable | visible
   end
 
   private def update_params
@@ -125,7 +134,7 @@ class AdHocDataSources::UploadsController < ApplicationController
   end
 
   private def set_upload
-    @upload = upload_source.find(params[:id].to_i)
+    @upload = @data_source.ad_hoc_batches.find(params[:id].to_i)
   end
 
   def upload_source

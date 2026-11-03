@@ -10,12 +10,13 @@ module ProjectScorecard::DocumentExports
   class ScorecardExport < ::GrdaWarehouse::DocumentExport
     include ApplicationHelper
     def authorized?
-      # TODO: What are the access rules?
-      true
+      user.can_view_any_reports? &&
+        GrdaWarehouse::WarehouseReports::ReportDefinition.url_viewable_by?('project_scorecard/warehouse_reports/scorecards', user) &&
+        report.present?
     end
 
     protected def report
-      @report ||= report_class.find(params['report_id'].to_i)
+      @report ||= report_class.viewable_by(user).find_by(id: params['report_id'].to_i)
     end
 
     protected def view_assigns

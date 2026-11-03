@@ -316,7 +316,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
     end
 
     # Builds SHS attribute hashes for each date. PH enrollments flip homeless
-    # flags to false after the move-in date; all other project types are constant.
+    # flags to false starting on the move-in date; all other project types are constant.
     private def build_service_days(date_pairs, record_type_value = :service)
       dob = destination_client.attributes['DOB']&.to_date
       pt = project.project_type
@@ -327,13 +327,13 @@ module GrdaWarehouse::Tasks::ServiceHistory
 
       if PH_PROJECT_TYPES.include?(pt) && mid.present?
         date_pairs.map do |date, service_type|
-          after_move_in = date > mid
+          moved_in = date >= mid
           base.merge(
             date: date,
             age: dob ? GrdaWarehouse::Hud::Client.age(date: date, dob: dob) : nil,
             service_type: service_type,
-            homeless: after_move_in ? false : homeless,
-            literally_homeless: after_move_in ? false : literally_homeless,
+            homeless: moved_in ? false : homeless,
+            literally_homeless: moved_in ? false : literally_homeless,
           )
         end
       else

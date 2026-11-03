@@ -46,8 +46,10 @@ below; they are personal (user-level) and not shipped in this repo.
 ## Manual workflow
 
 ```sh
-# 1. Create the worktree (runs the pre-start hook: copies + rewrites env/compose files)
-wt switch --create ea-1234-my-feature --yes
+# 1. Create the worktree (runs the pre-start hook: copies + rewrites env/compose files).
+#    OVERCOMMIT_DISABLE=1 skips overcommit's post-checkout signature check, which runs
+#    before pre-start has copied .local-overcommit.yml and would abort the switch.
+OVERCOMMIT_DISABLE=1 wt switch --create ea-1234-my-feature --yes
 
 # 2. Allow the worktree's direnv (loads COMPOSE_PROJECT_NAME / TRAEFIK_ENABLED=false)
 direnv allow

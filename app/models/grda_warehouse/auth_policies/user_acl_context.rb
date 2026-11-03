@@ -30,6 +30,11 @@ class GrdaWarehouse::AuthPolicies::UserAclContext < GrdaWarehouse::AuthPolicies:
     permissions_for_collection_ids(collection_ids)
   end
 
+  memoize def organization_role_permissions(organization_id, data_source_id)
+    collection_ids = organization_collection_ids(organization_id, data_source_id)
+    permissions_for_collection_ids(collection_ids)
+  end
+
   memoize def direct_client_role_permissions(client_id)
     collection_ids = direct_client_collection_ids(client_id)
     permissions_for_collection_ids(collection_ids)
@@ -115,13 +120,25 @@ class GrdaWarehouse::AuthPolicies::UserAclContext < GrdaWarehouse::AuthPolicies:
       flat_map(&:granted_permissions).to_set.freeze
   end
 
-  def data_source_collection_ids(data_source_id)
+  memoize def data_source_collection_ids(data_source_id)
     ids = GrdaWarehouse::GroupViewableEntity.
       where(entity_type: GrdaWarehouse::DataSource.sti_name).
       where(entity_id: data_source_id).
-      where.not(collection_id: nil).
+      using_acls.
       pluck(:collection_id)
     (active_collection_ids & ids).to_a.sort
+  end
+
+  # Returns the collection ids that include this organization or its data source
+  def organization_collection_ids(organization_id, data_source_id)
+    return [] if data_source_id.blank?
+
+    ids = GrdaWarehouse::GroupViewableEntity.
+      where(entity_type: GrdaWarehouse::Hud::Organization.sti_name).
+      where(entity_id: organization_id).
+      using_acls.
+      pluck(:collection_id)
+    ((active_collection_ids & ids).to_a + data_source_collection_ids(data_source_id)).uniq.sort
   end
 
   # Returns the collection ids that include this project id
@@ -146,7 +163,7 @@ class GrdaWarehouse::AuthPolicies::UserAclContext < GrdaWarehouse::AuthPolicies:
     gve_t = GrdaWarehouse::GroupViewableEntity.arel_table
     results = GrdaWarehouse::DataSource.authoritative.not_hmis.
       joins(:group_viewable_entities, :clients).
-      where(gve_t[:collection_id].not_eq(nil)).
+      merge(GrdaWarehouse::GroupViewableEntity.using_acls).
       where(c_t[:id].in(client_ids)).
       pluck(c_t[:id], gve_t[:collection_id]).
       group_by(&:shift).

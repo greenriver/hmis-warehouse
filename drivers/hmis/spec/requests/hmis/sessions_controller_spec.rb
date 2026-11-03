@@ -345,6 +345,52 @@ RSpec.describe 'Hmis::SessionsController', :devise_only, type: :request do
     end
   end
 
+  describe 'Login from a remembered 2FA device' do
+    # Builds the device row and encrypted cookie directly instead of running the remember flow,
+    # which is skipped above for CI flakiness.
+    before do
+      GrdaWarehouse::Config.first_or_create!.update!(bypass_2fa_duration: 30)
+      GrdaWarehouse::Config.invalidate_cache
+
+      device = user_2fa.two_factors_memorized_devices.create!(
+        uuid: SecureRandom.uuid,
+        name: 'Test',
+        session_id: 'x',
+        log_in_ip: '127.0.0.1',
+        expires_at: 30.days.from_now,
+      )
+      jar = ActionDispatch::Request.new(Rails.application.env_config.deep_dup).cookie_jar
+      jar.encrypted[:memorized_device] = device.uuid
+      cookies[:memorized_device] = jar[:memorized_device]
+    end
+
+    after do
+      GrdaWarehouse::Config.delete_all
+      GrdaWarehouse::Config.invalidate_cache
+    end
+
+    it 'rejects a wrong password and creates no session' do
+      post hmis_user_session_path(hmis_user: { email: user_2fa.email, password: 'incorrect' }), headers: { 'HOST' => GraphqlHelpers::HMIS_HOSTNAME }
+
+      aggregate_failures 'checking response' do
+        expect(response.status).to eq 401
+        expect(JSON.parse(response.body).dig('error', 'type')).to eq('invalid')
+        expect(api_query_response.status).to eq 401
+        expect(user_2fa.reload.failed_attempts).to be_positive
+      end
+    end
+
+    it 'signs in with the correct password without an OTP prompt' do
+      post hmis_user_session_path(hmis_user: { email: user_2fa.email, password: user_2fa.password }), headers: { 'HOST' => GraphqlHelpers::HMIS_HOSTNAME }
+
+      aggregate_failures 'checking response' do
+        expect(response.status).to eq 200
+        expect(response.body).to_not include 'mfa_required'
+        expect(api_query_response.status).to eq 200
+      end
+    end
+  end
+
   def api_query_response
     query = <<~GRAPHQL
       query ClientSearch($input: ClientSearchInput!) {

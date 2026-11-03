@@ -126,7 +126,7 @@ module GrdaWarehouse::SystemCohorts
     end
 
     private def remove_housed_clients
-      # Housed (received a move-in date in a PH project prior to the processing date,
+      # Housed (received a move-in date in a PH project on or before the processing date,
       #   or exited to a Permanent destination from one of their homeless projects).
       housed_service_on_processing_date = service_history_source.on_date(@processing_date).
         where(
@@ -136,9 +136,9 @@ module GrdaWarehouse::SystemCohorts
         distinct.
         pluck(:client_id)
 
-      # moved-in to PH - anyone with a move-in date prior to processing date and an SHS homeless false on the processing date
+      # moved-in to PH - anyone with a move-in date on or before the processing date and an SHS homeless false on the processing date
       moved_in = cohort_clients.joins(client: :service_history_enrollments).
-        merge(enrollment_source.ph.where(she_t[:move_in_date].lt(@processing_date))).
+        merge(enrollment_source.ph.where(she_t[:move_in_date].lteq(@processing_date))).
         pluck(:client_id) & housed_service_on_processing_date
 
       # Most-recent exit was to a permanent destination, and no open homeless enrollments on the processing date with # SHS homeless true within 90 days of the processing date
@@ -228,7 +228,7 @@ module GrdaWarehouse::SystemCohorts
 
       currently_moved_in_ph = enrollment_source.ongoing(on_date: @processing_date).ph.
         where(client_id: cohort_clients.select(:client_id)).
-        where(she_t[:move_in_date].lt(@processing_date)).
+        where(she_t[:move_in_date].lteq(@processing_date)).
         pluck(:client_id)
       remove_clients(no_ongoing | currently_moved_in_ph, 'No longer meets criteria')
     end

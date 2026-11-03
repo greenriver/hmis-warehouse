@@ -53,12 +53,13 @@ Values are from the dev stack. Each customer has its own Dex, backed by Keycloak
 | Keycloak | `ssoSessionIdleTimeout` / `clientSessionIdleTimeout` | 1800s | `docker/keycloak/realm-import.json` |
 | Keycloak | `ssoSessionMaxLifespan` | 28800s (8h) | same |
 | Modal | `WARNING_WHEN_REMAINING_SECS` | 5m | `inactive_session_modal_controller.js` |
+| HMIS frontend | `promptToExtendBefore` | 5m | `hmis-frontend` repo, `src/routes/AppRoutes.tsx` |
 
 Constraints:
 
 - `idTokens` ≤ the IdP's idle timeout (Keycloak in dev). Otherwise the countdown outlives the real session.
 - `idTokens` > `cookie_refresh`. Otherwise a token can expire before oauth2-proxy will refresh it.
-- Warning window ≤ `idTokens` − `cookie_refresh` (5m ≤ 30m − 5m). Otherwise "I'm still here" can arrive before the cookie is old enough to refresh, and the keepalive fails.
+- Each warning window (`WARNING_WHEN_REMAINING_SECS`, and the HMIS `promptToExtendBefore`) ≤ `idTokens` − `cookie_refresh` (5m ≤ 30m − 5m). Otherwise "I'm still here" or the HMIS "Keep me signed-in" can arrive before the cookie is old enough to refresh, and the keepalive fails. In the HMIS that failure shows as "Your session can't be extended" during a healthy session.
 - Dex `absoluteLifetime` > `cookie_expire`. Otherwise the refresh token dies before the cookie does.
 - The IdP must reject a refresh once the session has been idle for the timeout (Keycloak `ssoSessionIdleTimeout`, or Okta's refresh-token idle expiry). Otherwise the modal clears the page at 0, but the next request refreshes and the user is signed back in.
 
@@ -67,7 +68,7 @@ Constraints:
 - In JWT, a page that polls via XHR/fetch can extend extend the lifetime up to the max (8h). Audit and removal of polling is planned.
 - Within Dex's 30s `reuseInterval`, a refresh reuses the last result and doesn't contact the IdP.
 - The IdP's max session lifespan (Keycloak `ssoSessionMaxLifespan`, 8h in dev) ends the session however active the user is, which is earlier than `cookie_expire` (12h).
-- The HMIS frontend keeps its own countdown in the `hmis-frontend` repo. Its idle behaviour, and whether it shares the warehouse's IdP session, are not documented here yet.
+- The HMIS frontend keeps its own countdown in the `hmis-frontend` repo (`src/modules/auth/hooks/README.md`). Under JWT it follows the same token expiry, read from the `X-app-session-remaining-secs` header that `Hmis::BaseController#set_app_user_header` sends on every response. A plain header is enough there because every HMIS request goes through `fetch`, which can read it. Whether the HMIS shares the warehouse's IdP session is not documented here yet.
 
 ## Key Files
 

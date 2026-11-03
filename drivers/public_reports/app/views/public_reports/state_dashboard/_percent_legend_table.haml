@@ -1,0 +1,14 @@
+.chart-data.chart-data--legend
+  %table
+    %caption.visually-hidden= "#{title} — data table"
+    %thead
+      %tr
+        %th{ scope: 'col' } Category
+        %th{ scope: 'col' } Percentage
+    %tbody
+      - rows.each do |row|
+        %tr
+          %th{ scope: 'row' }
+            %span.swatch{ style: "background:#{row[:color]};#{PublicReports::StateDashboard::WhoCharts.contrast_ring_style(row[:color])}" }
+            = PublicReports::StateDashboard::WhoCharts.row_label(row[:label], unit)
+          %td= "#{PublicReports::StateDashboard::WhoCharts.js_number(row[:value])}%"

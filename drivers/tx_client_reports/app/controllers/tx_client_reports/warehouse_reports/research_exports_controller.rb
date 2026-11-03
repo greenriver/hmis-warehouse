@@ -72,7 +72,7 @@ module TxClientReports::WarehouseReports
     end
 
     private def report
-      @report ||= report_class.find(params[:id].to_i)
+      @report ||= report_class.viewable_by(current_user).find(params[:id].to_i)
     end
 
     private def report_class
