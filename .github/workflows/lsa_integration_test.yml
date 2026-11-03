@@ -167,6 +167,14 @@ jobs:
           DESTINATION: ./drivers/hud_lsa/spec/fixtures/files/lsa/fy2027/
         run: aws s3 cp --no-progress "$SOURCE" "$DESTINATION" --recursive --region us-east-1
 
+      # Specs that need SQL Server; the main rspec workflow skips them.
+      - name: Run LSA SQL Server specs
+        env:
+          AWS_ACCESS_KEY_ID: local_access_key
+          AWS_SECRET_ACCESS_KEY: local_secret_key
+          AWS_REGION: us-east-1
+        run: bundle exec rspec drivers/hud_lsa/spec/models/lsa_cross_year_column_cache_spec.rb
+
       - name: Run LSA integration test
         env:
           # Local S3 placeholder creds for the app's own S3-backed storage; scoped to
