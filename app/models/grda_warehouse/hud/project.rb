@@ -1012,7 +1012,6 @@ module GrdaWarehouse::Hud
       # FIXME: this should delete HMIS-related records, too
       # delete Hmis::Unit
       # delete Hmis::UnitOccupancyPeriod
-      # delete Hmis::ProjectUnitTypeMapping
 
       # Client enrollment related
       income_benefits.update_all(DateDeleted: deleted_timestamp, source_hash: nil)
