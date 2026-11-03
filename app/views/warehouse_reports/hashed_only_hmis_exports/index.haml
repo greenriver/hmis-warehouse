@@ -6,7 +6,7 @@
 = render '/warehouse_reports/breadcrumbs', tab: 'exports'
 = render 'filter'
 
-.report-listing= render_paginated_list(scope: @exports, item_name: 'export', list_partial: 'list')
+.report-listing= render 'report_listing'
 - if params[:page].blank? || params[:page].to_i == 1
   = link_to 'Reports', running_warehouse_reports_hashed_only_hmis_exports_path(skip_trackable: true), class: 'jReportBlock', remote: true
 
