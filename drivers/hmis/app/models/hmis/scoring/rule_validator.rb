@@ -83,8 +83,7 @@ module Hmis
 
       def answer_option_issues
         invalid = matched_criteria.select do |link_id, value, _|
-          allowed = allowed_values(items[link_id])
-          allowed && allowed.exclude?(value.to_s)
+          allowed_values(items[link_id])&.exclude?(value.to_s)
         end
 
         group_rule_ids(invalid) do |link_id, value|

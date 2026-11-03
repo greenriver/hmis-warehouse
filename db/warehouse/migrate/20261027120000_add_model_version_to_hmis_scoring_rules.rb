@@ -27,9 +27,7 @@ class AddModelVersionToHmisScoringRules < ActiveRecord::Migration[7.2]
 
   def down
     # Without model_version, the v1 calculator would load newer-version rules as its own.
-    if select_value('SELECT 1 FROM hmis_scoring_rules WHERE model_version <> 1 LIMIT 1')
-      raise ActiveRecord::IrreversibleMigration, 'hmis_scoring_rules has rows for model versions other than 1. Delete them before rolling back.'
-    end
+    raise ActiveRecord::IrreversibleMigration, 'hmis_scoring_rules has rows for model versions other than 1. Delete them before rolling back.' if select_value('SELECT 1 FROM hmis_scoring_rules WHERE model_version <> 1 LIMIT 1')
 
     safety_assured { change_column :hmis_scoring_rules, :weight, :decimal, precision: 14, scale: 12, null: false }
     remove_column :hmis_scoring_rules, :secondary_criteria_config

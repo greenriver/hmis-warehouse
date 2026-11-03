@@ -31,7 +31,7 @@ RSpec.describe HmisExternalApis::AcHmis::AltAhaCalculatorFactory, type: :model d
     described_class.build(definition: definition, values_by_link_id: {}, client: client, user: user, owner: owner)
   end
 
-  def set_model_version(value_input)
+  def configure_model_version(value_input)
     AppConfigProperty.create!(key: 'ac_hmis/alt_aha_model_version', value_input: value_input)
   end
 
@@ -41,7 +41,7 @@ RSpec.describe HmisExternalApis::AcHmis::AltAhaCalculatorFactory, type: :model d
     end
 
     it 'builds the version 2 calculator when the property is 2' do
-      set_model_version('2')
+      configure_model_version('2')
       expect(build).to be_a(HmisExternalApis::AcHmis::AltAhaV2Calculator)
     end
   end
@@ -54,7 +54,7 @@ RSpec.describe HmisExternalApis::AcHmis::AltAhaCalculatorFactory, type: :model d
     end
 
     context 'when the property is 2' do
-      before { set_model_version('2') }
+      before { configure_model_version('2') }
 
       it 'allows rules whose questions are on the definition, plus client demographics' do
         create(:hmis_scoring_rule, :v2, link_id: 'question_a', algorithm: 'alt_aha_1')
