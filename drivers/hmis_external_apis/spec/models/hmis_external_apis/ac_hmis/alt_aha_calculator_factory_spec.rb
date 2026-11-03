@@ -47,27 +47,27 @@ RSpec.describe HmisExternalApis::AcHmis::AltAhaCalculatorFactory, type: :model d
   end
 
   describe 'checking rules against the definition' do
-    it 'allows rules whose questions are on the definition, plus client demographics' do
-      create(:hmis_scoring_rule, :v1, link_id: 'question_a', algorithm: 'alt_aha_1')
-      create(:hmis_scoring_rule, :v1, link_id: 'client_demographics_age', algorithm: 'alt_aha_1')
-      create(:hmis_scoring_rule, :v1, link_id: 'client_demographics_gender', algorithm: 'alt_aha_1')
-
-      expect { build }.not_to raise_error
-    end
-
-    it 'raises for a version 1 rule whose question is not on the definition' do
+    it 'does not check version 1 rules, so version 1 scoring is unchanged' do
       create(:hmis_scoring_rule, :v1, link_id: 'retired_question', algorithm: 'alt_aha_1')
 
-      expect { build }.to raise_error(/model version 1 .* not on form definition #{definition.id}: retired_question/)
+      expect { build }.not_to raise_error
     end
 
     context 'when the property is 2' do
       before { set_model_version('2') }
 
+      it 'allows rules whose questions are on the definition, plus client demographics' do
+        create(:hmis_scoring_rule, :v2, link_id: 'question_a', algorithm: 'alt_aha_1')
+        create(:hmis_scoring_rule, :v2, link_id: 'client_demographics_age', algorithm: 'alt_aha_1')
+        create(:hmis_scoring_rule, :v2, link_id: 'client_demographics_gender', algorithm: 'alt_aha_1')
+
+        expect { build }.not_to raise_error
+      end
+
       it 'raises for a version 2 rule whose question is not on the definition' do
         create(:hmis_scoring_rule, :v2, link_id: 'new_question', algorithm: 'alt_aha_1')
 
-        expect { build }.to raise_error(/model version 2 .*: new_question/)
+        expect { build }.to raise_error(/model version 2 .* not on form definition #{definition.id}: new_question/)
       end
 
       it 'raises for a version 2 rule whose secondary question is not on the definition' do
@@ -91,12 +91,12 @@ RSpec.describe HmisExternalApis::AcHmis::AltAhaCalculatorFactory, type: :model d
 
         expect { build }.not_to raise_error
       end
-    end
 
-    it 'ignores rules for other forms' do
-      create(:hmis_scoring_rule, :v1, link_id: 'retired_question', form_definition_identifier: 'other_form', algorithm: 'alt_aha_1')
+      it 'ignores rules for other forms' do
+        create(:hmis_scoring_rule, :v2, link_id: 'new_question', form_definition_identifier: 'other_form', algorithm: 'alt_aha_1')
 
-      expect { build }.not_to raise_error
+        expect { build }.not_to raise_error
+      end
     end
   end
 end

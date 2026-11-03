@@ -151,11 +151,12 @@ module Hmis
         end
       end
 
-      # Form values carry dates as ISO 8601 strings
+      # Form values carry dates as YYYY-MM-DD strings. Parsed the same way as the assessment date, so an
+      # unparseable answer scores as unanswered.
       def convert_to_date(value)
         case value
         when Date then value
-        when String then Date.iso8601(value) if value.present?
+        when String then HmisUtil::Dates.safe_parse_date(date_string: value) if value.present?
         end
       end
 

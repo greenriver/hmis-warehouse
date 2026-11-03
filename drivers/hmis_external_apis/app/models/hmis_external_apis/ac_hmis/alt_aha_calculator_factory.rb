@@ -13,9 +13,9 @@ module HmisExternalApis::AcHmis
   class AltAhaCalculatorFactory
     def self.build(definition:, values_by_link_id:, client:, user: nil, owner: nil)
       model_version = HmisExternalApis::AcHmis.configuration.alt_aha_model_version
-      check_rules_fit_definition!(model_version, definition)
 
       if calculator_class(model_version) == AltAhaV2Calculator
+        check_rules_fit_definition!(model_version, definition)
         AltAhaV2Calculator.new(values_by_link_id: values_by_link_id, client: client, definition: definition, user: user, owner: owner)
       else
         AltAhaCalculator.new(values_by_link_id: values_by_link_id, client: client, user: user, owner: owner, form_definition_identifier: definition.identifier)
@@ -41,6 +41,7 @@ module HmisExternalApis::AcHmis
     # Rules for questions missing from the form would score silently wrong: validate_form_values skips required
     # link_ids that are not on the definition, and the calculator treats them as unanswered. This happens when the
     # configured model version and the published form disagree, such as between publishing a form and switching the version.
+    # Only version 2 is checked: version 1 must keep scoring assessments started on older form versions that lack a rule's question.
     def self.check_rules_fit_definition!(model_version, definition)
       missing = rule_validator(model_version, definition).missing_link_ids
       return if missing.empty?

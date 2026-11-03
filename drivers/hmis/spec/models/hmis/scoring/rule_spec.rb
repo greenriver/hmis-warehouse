@@ -78,6 +78,11 @@ RSpec.describe Hmis::Scoring::Rule, type: :model do
         expect(days_diff_rule({ 'match_value' => 0 }).evaluate_values({}, assessment_date: assessment_date)).to eq(0)
       end
 
+      it 'contributes zero when the date cannot be parsed' do
+        expect(days_diff_rule({}).evaluate_values({ 'episode_start' => 'not a date' }, assessment_date: assessment_date)).to eq(0)
+        expect(days_diff_rule({ 'match_value' => 0 }).evaluate_values({ 'episode_start' => '2026-02-30' }, assessment_date: assessment_date)).to eq(0)
+      end
+
       it 'raises without an assessment date' do
         expect { days_diff_rule({}).evaluate_values(values) }.to raise_error(/requires an assessment date/)
       end
