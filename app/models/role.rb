@@ -263,6 +263,12 @@ class Role < ApplicationRecord
         category: 'Client Access',
         sub_category: 'Administrative',
       },
+      can_mark_clients_as_restricted: {
+        description: 'Ability to mark and unmark clients as restricted. A restricted client\'s name, SSN, date of birth, photo, and HIV status are hidden from every warehouse user. Applies to clients enrolled at projects the user can access. When removing a restriction, the confirmation shows the client\'s last name, subject to the user\'s name permission, so they can confirm the right client.',
+        administrative: true,
+        category: 'Client Access',
+        sub_category: 'Administrative',
+      },
       can_edit_users: {
         description: 'Ability to add and edit user accounts for all users',
         administrative: true,
@@ -454,7 +460,7 @@ class Role < ApplicationRecord
         sub_category: 'General Client Access',
       },
       can_generate_homeless_verification_pdfs: {
-        description: 'Allows access to generate and view homeless verification PDFs for any client for which the user has access',
+        description: 'Allows access to generate and view homeless verification PDFs for any client for which the user has access. Generating a PDF also requires "Access to the calendar view of client enrollments" for that client.',
         administrative: false,
         category: 'Client Extras',
         sub_category: 'General Client Access',
@@ -761,7 +767,7 @@ class Role < ApplicationRecord
         sub_category: 'Report Administration',
       },
       can_view_project_related_filters: {
-        description: 'Ability to specify filters of project, organization, funding source and data sources for report universes. Most single CoC installations will want this enabled for anyone with reporting access. NOTE: This only provides access to the report filters. The filters are populated with data made accessible to the user through other permissions (e.g. the "Can view projects" permission).',
+        description: 'Ability to specify filters of project, organization, funding source and data sources for report universes. Most single CoC installations will want this enabled for anyone with reporting access. NOTE: This only provides access to the report filters. The filters are populated with data made accessible to the user through other permissions (e.g. the "Can view assigned reports" permission).',
         administrative: false,
         category: 'Reporting',
         sub_category: 'Data Access',

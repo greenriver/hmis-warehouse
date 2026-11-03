@@ -668,6 +668,124 @@ RSpec.describe Hmis::MergeClientsJob, type: :model do
     end
   end
 
+  describe 'warehouse restrictions' do
+    let(:client1) { create(:hmis_hud_client_with_warehouse_client, data_source: data_source, date_created: Date.current - 1.week) }
+    let(:client2) { create(:hmis_hud_client_with_warehouse_client, data_source: data_source, date_created: Date.current - 1.day) }
+    let(:retained_destination) { GrdaWarehouse::Hud::Client.find(client1.warehouse_id) }
+    let(:merged_destination) { GrdaWarehouse::Hud::Client.find(client2.warehouse_id) }
+
+    it 'restricts the kept client destination when a merged-away client destination was restricted in the warehouse' do
+      DestinationClientRestriction.new(merged_destination).restrict!(user: actor)
+
+      Hmis::MergeClientsJob.perform_now(client_ids: client_ids, actor_id: actor.id)
+
+      expect(Hmis::RestrictedRecord.for_clients.where(restrictable_id: retained_destination.id).pluck(:created_by_id)).to eq([actor.id])
+      expect(GrdaWarehouse::HiddenClients.restricted_subset([retained_destination.id, client1.id])).to eq(Set[retained_destination.id, client1.id])
+    end
+
+    it 'leaves the kept client destination unrestricted when no destination was restricted' do
+      Hmis::MergeClientsJob.perform_now(client_ids: client_ids, actor_id: actor.id)
+
+      expect(Hmis::RestrictedRecord.for_clients.where(restrictable_id: retained_destination.id).count).to eq(0)
+    end
+
+    context 'when the kept client has no warehouse destination yet' do
+      before do
+        DestinationClientRestriction.new(merged_destination).restrict!(user: actor)
+        client1.warehouse_client_source.destroy!
+      end
+
+      it 'links the kept client to a destination and restricts it' do
+        Hmis::MergeClientsJob.perform_now(client_ids: client_ids, actor_id: actor.id)
+
+        new_destination_id = GrdaWarehouse::WarehouseClient.where(source_id: client1.id, deleted_at: nil).pick(:destination_id)
+        expect(new_destination_id).to be_present
+        expect(Hmis::RestrictedRecord.for_clients.where(restrictable_id: new_destination_id).pluck(:created_by_id)).to eq([actor.id])
+      end
+
+      it 'fails the merge when the kept client cannot be linked' do
+        linker = instance_double(GrdaWarehouse::Tasks::IdentifyDuplicates, ensure_source_client_linked!: nil)
+        allow(GrdaWarehouse::Tasks::IdentifyDuplicates).to receive(:new).and_return(linker)
+
+        expect do
+          Hmis::MergeClientsJob.perform_now(client_ids: client_ids, actor_id: actor.id)
+        end.to raise_error(RuntimeError, /could not be linked to a warehouse destination/)
+        expect(linker).to have_received(:ensure_source_client_linked!).with(client1.id)
+        expect(client2.reload.deleted?).to be false
+      end
+    end
+
+    it 'ignores a soft-deleted link from a merged client to a restricted destination' do
+      DestinationClientRestriction.new(merged_destination).restrict!(user: actor)
+      client2.warehouse_client_source.update!(deleted_at: 1.day.ago)
+      merged_destination.update_columns(DateDeleted: Time.current)
+
+      Hmis::MergeClientsJob.perform_now(client_ids: client_ids, actor_id: actor.id)
+
+      expect(Hmis::RestrictedRecord.for_clients.where(restrictable_id: retained_destination.id).count).to eq(0)
+      expect(Hmis::RestrictedRecord.for_clients.where(restrictable_id: merged_destination.id).count).to eq(1)
+      expect(client2.reload.deleted?).to be true
+    end
+
+    it 'attributes the carried restriction to the actor in the version history' do
+      DestinationClientRestriction.new(merged_destination).restrict!(user: create(:user))
+      PaperTrail.enabled = true
+
+      Hmis::MergeClientsJob.perform_now(client_ids: client_ids, actor_id: actor.id)
+
+      expect(DestinationClientRestriction.new(retained_destination).versions.where(client_id: retained_destination.id).pluck(:event, :whodunnit)).to eq([['create', actor.id.to_s]])
+    ensure
+      PaperTrail.enabled = false
+    end
+
+    it 'removes the row from a merged-away destination left without sources' do
+      DestinationClientRestriction.new(merged_destination).restrict!(user: actor)
+
+      Hmis::MergeClientsJob.perform_now(client_ids: client_ids, actor_id: actor.id)
+
+      expect(Hmis::RestrictedRecord.for_clients.where(restrictable_id: merged_destination.id).count).to eq(0)
+    end
+
+    it 'keeps the row on a merged-away destination that still has a source from another data source' do
+      other_source = create(:hud_client, data_source: create(:source_data_source))
+      GrdaWarehouse::WarehouseClient.create!(
+        id_in_source: other_source.PersonalID,
+        data_source_id: other_source.data_source_id,
+        source_id: other_source.id,
+        destination_id: merged_destination.id,
+      )
+      DestinationClientRestriction.new(merged_destination).restrict!(user: actor)
+
+      Hmis::MergeClientsJob.perform_now(client_ids: client_ids, actor_id: actor.id)
+
+      expect(Hmis::RestrictedRecord.for_clients.where(restrictable_id: merged_destination.id).count).to eq(1)
+    end
+
+    context 'when both clients share one restricted destination' do
+      let(:client2) { create(:hmis_hud_client_complete, data_source: data_source, date_created: Date.current - 1.day) }
+      let(:restricting_user) { create(:user) }
+
+      before do
+        GrdaWarehouse::WarehouseClient.create!(
+          id_in_source: client2.PersonalID,
+          data_source_id: data_source.id,
+          source_id: client2.id,
+          destination_id: retained_destination.id,
+        )
+        DestinationClientRestriction.new(retained_destination).restrict!(user: restricting_user)
+      end
+
+      it 'keeps the original row and its restricting user' do
+        original = Hmis::RestrictedRecord.for_clients.where(restrictable_id: retained_destination.id).pluck(:id, :created_by_id)
+
+        Hmis::MergeClientsJob.perform_now(client_ids: client_ids, actor_id: actor.id)
+
+        expect(Hmis::RestrictedRecord.for_clients.where(restrictable_id: retained_destination.id).pluck(:id, :created_by_id)).to eq(original)
+        expect(original.map(&:last)).to eq([restricting_user.id])
+      end
+    end
+  end
+
   describe 'client name special cases' do
     let!(:c1_without_custom_name) { create(:hmis_hud_client_complete, date_created: Time.current - 3.days, data_source: data_source) }
     let!(:c2_without_custom_name) { create(:hmis_hud_client_complete, date_created: Time.current, data_source: data_source) }

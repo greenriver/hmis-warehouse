@@ -38,7 +38,7 @@ RSpec.describe 'Client dashboard enrollment rollups', type: :request do
       expect(rows.size).to eq(3)
       expect(rows.map { |r| r.css('td')[1].text.strip }).to eq(['Housing < Test Org', 'Shelter B < Test Org', 'Shelter A < Test Org'])
       totals = doc.css('thead tr').last.css('th.num-cell').map { |th| th.text.strip.squish }
-      expect(totals).to eq(['41', '18 / 37', '1'])
+      expect(totals).to eq(['41', '17 / 37', '1'])
     end
 
     it 'renders household member names for a user who may view client names' do

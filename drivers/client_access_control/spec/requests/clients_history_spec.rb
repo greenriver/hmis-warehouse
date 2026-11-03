@@ -41,23 +41,6 @@ RSpec.describe ClientAccessControl::HistoryController, type: :request do
         post queue_client_history_path(destination)
       end
     end
-
-    it 'does not allow pdf if client not set to generate pdf' do
-      get pdf_client_history_path(destination)
-      aggregate_failures 'validating' do
-        expect(response).to have_http_status(302)
-        expect(destination.client_files.count).to eq(0)
-      end
-    end
-
-    it 'allows pdf if client set to generate pdf' do
-      destination.update(generate_history_pdf: true)
-      get pdf_client_history_path(destination)
-      aggregate_failures 'validating' do
-        expect(response).to have_http_status(200)
-        expect(destination.client_files.count).to eq(1)
-      end
-    end
   end
 
   describe 'logged in' do

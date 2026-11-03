@@ -1,5 +1,5 @@
 - filter_class = if @active_filter then 'client__filter-active' else 'client__filter' end
-.dropdown.o-filtration{class: filter_class}
+.dropdown.o-filtration.o-filtration--lg{class: filter_class}
   %button.btn.btn-secondary.dropdown-toggle{ type: 'button', data: { 'bs-toggle' => 'dropdown', 'bs-auto-close' => 'outside' }, aria: { haspopup: 'true', expanded: 'false' }}
     %span Filter
     %span.caret
@@ -9,14 +9,17 @@
 
     = simple_form_for :filter, method: :get do |f|
       .o-filtration__option.row
-        .col-12
-          = f.input :user_id, as: :select_two, collection: User.active.not_system.order(:first_name, :last_name), selected: params.dig(:filter, :user_id).to_i, required: false, include_blank: 'Any user'
-        .col-12
+        .col-12.col-md-6
           = f.input :user_group_id, as: :select_two, collection: Hmis::UserGroup.where(id: Hmis::AccessControl.select(:user_group_id)).order(:name), selected: params.dig(:filter, :user_group_id).to_i, required: false, include_blank: 'Any user group'
-        .col-12
-          = f.input :access_group_id, as: :select_two, label: 'Collection', collection: Hmis::AccessGroup.where(id: Hmis::AccessControl.select(:access_group_id)).order(:name), selected: params.dig(:filter, :access_group_id).to_i, required: false, include_blank: 'Any collection'
-        .col-12
           = f.input :role_id, as: :select_two, collection: Hmis::Role.where(id: Hmis::AccessControl.select(:role_id)).order(:name), selected: params.dig(:filter, :role_id).to_i, required: false, include_blank: 'Any role'
+          = f.input :access_group_id, as: :select_two, label: 'Collection', collection: Hmis::AccessGroup.where(id: Hmis::AccessControl.select(:access_group_id)).order(:name), selected: params.dig(:filter, :access_group_id).to_i, required: false, include_blank: 'Any collection'
+        .col-12.col-md-6
+          = f.input :user_id, as: :select_two, collection: User.active.not_system.order(:first_name, :last_name), selected: params.dig(:filter, :user_id).to_i, required: false, include_blank: 'Any user'
+          = f.input :data_source_id, as: :select_two, label: 'Data Source', collection: data_source_filter_options, selected: params.dig(:filter, :data_source_id).to_i, required: false, include_blank: 'Any data source'
+          = f.input :organization_id, as: :grouped_select_two, group_method: :last, label: 'Organization', collection: organization_filter_options, selected: params.dig(:filter, :organization_id).to_i, required: false, include_blank: 'Any organization'
+          - selected_project_ids = params.dig(:filter, :project_id).presence&.then { |id| [id] }
+          = f.input :project_id, as: :select_two, label: 'Project', collection: [], required: false, include_blank: 'Any project', input_html: { data: { 'collection-path' => project_options_hmis_admin_access_controls_path(selected_project_ids: selected_project_ids) } }
+          = f.input :coc_code, as: :select_two, label: 'CoC', collection: coc_code_filter_options, selected: params.dig(:filter, :coc_code), required: false, include_blank: 'Any CoC'
 
       .o-filtration__actions.form__actions.d-flex
         = link_to 'Reset Filter', hmis_admin_access_controls_path, class: 'btn btn-secondary mr-auto'

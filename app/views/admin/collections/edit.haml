@@ -4,6 +4,9 @@
 = content_for :crumbs do
   = link_to admin_collections_path do
     &laquo; Manage Collections
+  = link_to admin_collection_path(@collection) do
+    &laquo;
+    = @collection.name
 
 .o-page
   .o-page__title

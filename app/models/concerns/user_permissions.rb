@@ -33,7 +33,6 @@ module UserPermissions
         :can_edit_window_client_notes_or_own_window_client_notes,
         :can_view_any_reports,
         :can_view_user_audit_report,
-        :can_view_client_and_history,
         :can_view_imports_projects_or_organizations,
         :can_view_some_secure_files,
         :can_access_some_version_of_clients,
@@ -138,10 +137,6 @@ module UserPermissions
 
     def can_manage_an_agency
       can_manage_agency? || can_manage_all_agencies?
-    end
-
-    def can_view_client_and_history
-      can_view_clients? && can_view_client_history_calendar?
     end
 
     def can_view_imports_projects_or_organizations

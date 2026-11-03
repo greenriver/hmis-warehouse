@@ -67,6 +67,8 @@ module Types
     # User-friendly display name for item_type
     def record_name
       case object.item_type
+      when 'Hmis::RestrictedRecord'
+        'Record Restriction'
       when 'Hmis::Hud::Assessment'
         'CE Assessment'
       when 'Hmis::Hud::Event'
@@ -98,13 +100,61 @@ module Types
     end
 
     def graphql_type
+      # For a restriction version, return the restricted record's type (e.g. 'Client'), not
+      # 'RestrictedRecord'. The frontend looks the changed field up on this type to decide how to
+      # display the value: `Client.restricted` is a Boolean, so the audit row reads
+      # "Restricted: No → Yes" instead of "Restricted: false → true".
+      # `record_id` still points at the restriction row.
+      return graphql_type_for(restrictable_type) if restriction? && restrictable_type
+
+      graphql_type_for(object.item_type)
+    end
+
+    private def graphql_type_for(item_type)
       # maybe there's a way to map these from codegen?
-      case object.item_type
+      case item_type
       when 'Hmis::Hud::Assessment'
         'CeAssessment'
       else
-        object.item_type.demodulize.gsub(/^Custom/, '')
+        item_type.demodulize.gsub(/^Custom/, '')
       end
+    end
+
+    # nil if the version payload lacks it, in which case graphql_type reports the restriction itself.
+    private def restrictable_type
+      item_attributes&.dig('restrictable_type')
+    end
+
+    def event
+      # Show restrict/unrestrict actions as an update to `restricted` value (not create/destroy)
+      return 'update' if restriction?
+
+      object.event
+    end
+
+    private def restriction?
+      object.item_type == 'Hmis::RestrictedRecord'
+    end
+
+    private def restriction_object_changes
+      # Restricting writes a create and unrestricting writes a destroy, so a destroy is the only
+      # version that means "no longer restricted".
+      #
+      # Versions written before RestrictedRecord.mark! stopped reusing rows can also be updates.
+      # Those come from the created_by re-stamp that followed the revive, so they exist only when
+      # a different user acted. Most were genuine restrictions, but mark! re-stamped created_by on
+      # an already-active row too, which restricted nothing; those render as a second restrict row
+      # on a client that was already restricted, and nothing on the version tells the two apart.
+      # See docs/features/hmis/hmis-restricted-records.md#audit-trail.
+      restricted = object.event != 'destroy'
+
+      {
+        'restricted' => {
+          'fieldName' => 'restricted',
+          'displayName' => 'Restricted',
+          'values' => [!restricted, restricted],
+        },
+      }
     end
 
     private def custom_assessment_title
@@ -151,6 +201,8 @@ module Types
     ].freeze
 
     def object_changes
+      return restriction_object_changes if restriction?
+
       result = object.object_changes
       return unless result.present?
 

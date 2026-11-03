@@ -11,8 +11,6 @@ module BostonProjectScorecard::WarehouseReports
   class ScorecardsController < ApplicationController
     include WarehouseReportAuthorization
     include ArelHelper
-    # TODO: what are the access rules?
-    # Maybe: "you've been granted access to the report and you have access to the projects or project groups included."
     before_action :set_filter, only: [:index, :create]
     before_action :set_projects_and_groups, :set_current_reports, only: [:index]
     before_action :set_report, only: [:show, :edit, :rewind, :complete, :update]
@@ -141,7 +139,7 @@ module BostonProjectScorecard::WarehouseReports
 
     private def generate_for_projects(ids, range, user)
       ids.each do |id|
-        report = reports_scope.create(project_id: id, user_id: user.id, start_date: range.first, end_date: range.last)
+        report = report_class.create(project_id: id, user_id: user.id, start_date: range.first, end_date: range.last)
         ::WarehouseReports::GenericReportJob.perform_later(
           user_id: user.id,
           report_class: report.class.name,
@@ -152,7 +150,7 @@ module BostonProjectScorecard::WarehouseReports
 
     private def generate_for_groups(ids, range, user)
       ids.each do |id|
-        report = reports_scope.create(project_group_id: id, user_id: user.id, start_date: range.first, end_date: range.last)
+        report = report_class.create(project_group_id: id, user_id: user.id, start_date: range.first, end_date: range.last)
         ::WarehouseReports::GenericReportJob.perform_later(
           user_id: user.id,
           report_class: report.class.name,
@@ -206,6 +204,10 @@ module BostonProjectScorecard::WarehouseReports
     end
 
     private def reports_scope
+      report_class.viewable_by(current_user)
+    end
+
+    private def report_class
       BostonProjectScorecard::Report
     end
 
@@ -225,16 +227,11 @@ module BostonProjectScorecard::WarehouseReports
 
     private def filtered_reports_scope
       scope = reports_scope.started_between(start_date: @history_filter.start, end_date: @history_filter.end)
+      scope = scope.where(project_id: GrdaWarehouse::Hud::Project.select(:id)).
+        or(scope.where(project_group_id: GrdaWarehouse::ProjectGroup.select(:id)))
 
-      scope = scope.where(project_id: project_scope.select(:id)).
-        or(scope.where(project_group_id: project_group_scope.select(:id)))
-
-      if can_view_all_reports?
-        creator_user_id = @history_filter.creator_id.presence
-        scope = scope.where(user_id: creator_user_id) if creator_user_id
-      else
-        scope = scope.where(user_id: current_user.id)
-      end
+      creator_user_id = @history_filter.creator_id.presence if can_view_all_reports?
+      scope = scope.where(user_id: creator_user_id) if creator_user_id
 
       project_ids = @history_filter.project_ids
       scope = scope.where(project_id: project_ids.uniq) if project_ids&.any?

@@ -316,6 +316,7 @@ module Types
         [Hmis::Hud::Client],
         [Hmis::Hud::CustomClientAddress],
         [Hmis::Hud::CustomClientContactPoint, 'Contact Information'],
+        [Hmis::RestrictedRecord, 'Record Restriction'],
       ]
       # If installation has any custom client fields, include a general filter option for them
       has_client_cdes = Hmis::Hud::CustomDataElementDefinition.for_type(Hmis::Hud::Client.sti_name).exists?

@@ -950,7 +950,7 @@ module GrdaWarehouse::Hud
       enrollments.
         open_on_date.
         with_project_type(HudHelper.util.residential_project_type_numbers_by_code[:ph]).
-        where(GrdaWarehouse::Hud::Enrollment.arel_table[:MoveInDate].lt(Date.current)).exists?
+        where(GrdaWarehouse::Hud::Enrollment.arel_table[:MoveInDate].lteq(Date.current)).exists?
     end
 
     def self.show_last_seen_info?
@@ -2058,8 +2058,9 @@ module GrdaWarehouse::Hud
 
     # call this on GrdaWarehouse::Hud::Client.new() instead of self, to take
     # advantage of caching
-    def race_string(destination_id:, include_none_reason: false, scope_limit: self.class.destination)
-      @limited_scope ||= self.class.destination.merge(scope_limit)
+    def race_string(destination_id:, include_none_reason: false, scope_limit: nil)
+      # A default of self.class.destination would query data_sources on every call.
+      @limited_scope ||= scope_limit ? self.class.destination.merge(scope_limit) : self.class.destination
 
       @race_am_ind_ak_native ||= @limited_scope.where(id: self.class.race_am_ind_ak_native.select(:id)).distinct.pluck(:id).to_set
       @race_asian ||= @limited_scope.where(id: self.class.race_asian.select(:id)).distinct.pluck(:id).to_set
@@ -2290,6 +2291,8 @@ module GrdaWarehouse::Hud
       to_clean = [id]
       dnd_warehouse_data_source = GrdaWarehouse::DataSource.destination.first
 
+      carry_restriction = Hmis::RestrictedRecord.for_clients.where(restrictable_id: id).exists?
+
       GrdaWarehouse::Hud::Base.transaction do
         client_ids.each do |client_id|
           Rails.logger.info "Processing split for client: #{client_id}"
@@ -2336,6 +2339,8 @@ module GrdaWarehouse::Hud
           # external data sharing, all split-off destinations inherit that exclusion.
           ClientExternalDataSharing.new(destination_client).set_exclusion!(value: true) if ClientExternalDataSharing.new(self).excluded?
 
+          DestinationClientRestriction.new(destination_client).restrict!(user: current_user) if carry_restriction
+
           to_clean << destination_client.id
           to_clean << client_id
 
@@ -2369,6 +2374,7 @@ module GrdaWarehouse::Hud
           to_clean << other_client.id
           other_client
         end
+        carry_restriction = prev_destination_client.present? && Hmis::RestrictedRecord.for_clients.where(restrictable_id: prev_destination_client.id).exists?
         # if it had sources then move those over to us
         # and say who made the decision and when
         other_client.source_clients.each do |m|
@@ -2399,6 +2405,10 @@ module GrdaWarehouse::Hud
           update(current_cas_columns)
           save!
 
+          # Sources that moved here would show PII under this destination otherwise. Raises, rolling
+          # back the merge, when this client is outside a destination data source.
+          DestinationClientRestriction.new(self).restrict!(user: reviewed_by) if carry_restriction
+
           prev_destination_client.force_full_service_history_rebuild
           prev_destination_client.source_clients.reload
           if prev_destination_client.source_clients.empty?
@@ -2407,6 +2417,7 @@ module GrdaWarehouse::Hud
             # Carry-forward: if the merged-away client was excluded from external data sharing,
             # ensure the surviving client is also excluded.
             ClientExternalDataSharing.new(self).set_exclusion!(value: true) if ClientExternalDataSharing.new(prev_destination_client).excluded?
+            DestinationClientRestriction.unrestrict_merged_away!(prev_destination_client.id, user: reviewed_by) if carry_restriction
             prev_destination_client.destroy
           end
 
@@ -2598,7 +2609,7 @@ module GrdaWarehouse::Hud
         GrdaWarehouse::ServiceHistoryService.where(client_id: client_id).
           literally_homeless.
           where(date: start_date..end_date).
-          where.not(date: dates_hud_non_chronic_residential_last_three_years_scope(client_id: client_id)).
+          where.not(date: dates_hud_non_chronic_residential_last_three_years_scope(client_id: client_id, on_date: on_date)).
           select(:date).distinct
       end
     end
@@ -2624,13 +2635,13 @@ module GrdaWarehouse::Hud
         GrdaWarehouse::ServiceHistoryService.where(client_id: client_id).
           homeless.
           where(date: start_date..end_date).
-          where.not(date: dates_hud_non_chronic_residential_last_three_years_scope(client_id: client_id)).
+          where.not(date: dates_hud_non_chronic_residential_last_three_years_scope(client_id: client_id, on_date: on_date)).
           select(:date).distinct
       end
     end
 
-    def sheltered_days_homeless_last_three_years
-      end_date = Date.current
+    def sheltered_days_homeless_last_three_years(on_date: Date.current)
+      end_date = on_date.to_date
       start_date = end_date - 3.years
       sheltered_homeless_dates(start_date: start_date, end_date: end_date).count
     end
@@ -2644,8 +2655,8 @@ module GrdaWarehouse::Hud
         distinct
     end
 
-    def unsheltered_days_homeless_last_three_years
-      end_date = Date.current
+    def unsheltered_days_homeless_last_three_years(on_date: Date.current)
+      end_date = on_date.to_date
       start_date = end_date - 3.years
       unsheltered_days_homeless(start_date: start_date, end_date: end_date).count
     end
@@ -2661,7 +2672,7 @@ module GrdaWarehouse::Hud
     end
 
     # TH or PH
-    def self.dates_hud_non_chronic_residential_last_three_years_scope client_id:, on_date: Date.current
+    def self.dates_hud_non_chronic_residential_last_three_years_scope client_id:, on_date:
       end_date = on_date.to_date
       start_date = end_date - 3.years
 

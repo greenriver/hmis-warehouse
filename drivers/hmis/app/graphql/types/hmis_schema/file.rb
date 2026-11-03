@@ -21,6 +21,7 @@ module Types
     field :uploaded_by, Types::Application::User, null: true
     field :url, String, null: true
     field :name, String, null: false
+    field :note, String, null: true
     field :tags, [String], null: false
     field :own_file, Boolean, null: false
     field :redacted, Boolean, null: false
@@ -38,6 +39,10 @@ module Types
 
     def name
       unless_redacted('Confidential File') { object.name || "File #{object.id}" }
+    end
+
+    def note
+      unless_redacted { object.note }
     end
 
     def redacted

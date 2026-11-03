@@ -162,21 +162,21 @@ Each `ServiceHistoryService` row carries `homeless` and `literally_homeless`, se
 |---|---|---|
 | `HudHelper.util.chronic_project_types` | `true` | `true` |
 | TH | `true` | `false` |
-| PH with `MoveInDate`, day strictly after move-in | `false` | `false` |
-| PH with `MoveInDate`, day on or before move-in | `nil` | `nil` |
+| PH with `MoveInDate`, move-in day or later | `false` | `false` |
+| PH with `MoveInDate`, day before move-in | `nil` | `nil` |
 | PH without `MoveInDate` | `nil` | `nil` |
 | Services Only, Other, Day Shelter, HP, CE, anything else | `nil` | `nil` |
 
 `homeless` is `true` for `HudHelper.util.homeless_project_types`, else `nil`.
 `literally_homeless` is `true` for `chronic_project_types`, `false` for TH, else `nil`. The
-membership of both lists is version-specific and lives in the HUD utility class. The PH flip uses `date > self.MoveInDate`, the enrollment's own `MoveInDate`, not
+membership of both lists is version-specific and lives in the HUD utility class. The PH flip uses `date >= self.MoveInDate`, the enrollment's own `MoveInDate`, not
 the household-derived `move_in_date` written to the `ServiceHistoryEnrollment` row. The
-move-in day itself stays `nil`.
+move-in day is the first `false` day.
 
 The `ServiceHistoryEnrollment` scopes `currently_homeless` and `hud_currently_homeless` do not
 read these flags. They take ongoing `entry` rows in homeless types and exclude clients who also
 have an ongoing PH (or PH and TH, for `chronic_types_only`) enrollment with `move_in_date`
-before the date.
+on or before the date.
 
 `GrdaWarehouse::Tasks::ProjectCleanup#homeless_mismatch?` checks the last two years of service
 rows per project: a homeless-type project must have no rows with `homeless` not `true`; any
@@ -263,7 +263,9 @@ inline.
 `days_homeless_last_three_years`, `literally_homeless_last_three_years`,
 `days_homeless_plus_overrides`, `last_intentional_contacts`, `last_exit_destination`) and
 `extra_data` (clients on an active cohort or `cas_active`, who also get ongoing-enrollment
-flags, household members, VI-SPDAT scores, CAS match fields, and per-type last visits). Rows
+flags, household members, VI-SPDAT scores, CAS match fields, and per-type last visits). The RRH
+last visit (`last_rrh_visit`, the "Ongoing RRH Enrollments" cohort column) leaves out RRH:
+Services Only regardless of move-in date. Rows
 are upserted with `import` on `(client_id, routine)` under the `WarehouseClientsProcessed#upsert`
 advisory lock, then `Hud::Client.destination.clear_view_cache(client_id)`.
 

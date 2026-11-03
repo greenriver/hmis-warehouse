@@ -12,6 +12,9 @@ require_relative '../../../../../spec/shared_contexts/hud_enrollment_builders'
 RSpec.describe 'Performance Measurement and SPM Alignment', type: :model do
   include_context 'HUD enrollment builders'
 
+  # The PM filter keeps only CoC codes its user can see; the system user sees all of them.
+  let(:user) { User.system_user }
+
   # Common variables
   let(:test_start_date) { '2022-10-01'.to_date }
   let(:test_end_date) { '2023-09-30'.to_date }
@@ -23,6 +26,7 @@ RSpec.describe 'Performance Measurement and SPM Alignment', type: :model do
       user_id: user.id,
       start: test_start_date,
       end: test_end_date,
+      coc_code: test_coc_code,
       coc_codes: [test_coc_code],
       enforce_one_year_range: false,
     )
@@ -60,8 +64,8 @@ RSpec.describe 'Performance Measurement and SPM Alignment', type: :model do
     # Create PM report
     PerformanceMeasurement::Goal.ensure_default
     pm_report = PerformanceMeasurement::Report.new(user_id: user.id)
-    pm_report.filter = default_filter.dup
-    pm_report.filter.update(project_ids: projects.map(&:id))
+    # Report#filter= serializes the filter, so project_ids must be set before assignment.
+    pm_report.filter = default_filter.dup.tap { |filter| filter.project_ids = projects.map(&:id) }
     pm_report.update_goal_configuration!
     pm_report.save!
     pm_report.run_and_save!
@@ -303,7 +307,9 @@ RSpec.describe 'Performance Measurement and SPM Alignment', type: :model do
         exit_date: test_start_date + 150.days,
       )
 
-      @spm_report, @pm_report = setup_reports(projects: [@es_project, @so_project])
+      # SPM 3.2 counts sheltered clients only, while PM's homeless count includes SO. Leaving the SO project
+      # out of the report keeps the two comparable.
+      @spm_report, @pm_report = setup_reports(projects: [@es_project])
     end
 
     it 'has the same count of homeless clients in both reports' do
@@ -314,7 +320,7 @@ RSpec.describe 'Performance Measurement and SPM Alignment', type: :model do
       pm_result = @pm_report.result_for(:count_of_homeless_clients_in_range)
       pm_count = pm_result.primary_value
 
-      # 3 total homeless clients but only 2 in ES
+      # 3 total homeless clients but only 2 in the ES project the report includes
       compare_spm_and_pm_values(spm_count, pm_count, 2)
     end
 

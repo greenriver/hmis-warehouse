@@ -229,4 +229,24 @@ RSpec.describe model, type: :model do
       end
     end
   end
+
+  describe '.housed' do
+    let(:data_source) { create :grda_warehouse_data_source }
+    let(:range) { (Date.current - 30.days)..Date.current }
+
+    def enrollment_in(project_type:, rrh_sub_type: nil, move_in_date: nil)
+      project = create(:hud_project, data_source: data_source, ProjectType: project_type, RRHSubType: rrh_sub_type)
+      create(:hud_enrollment, data_source: data_source, ProjectID: project.ProjectID, MoveInDate: move_in_date)
+    end
+
+    let!(:sso_moved_in) { enrollment_in(project_type: 13, rrh_sub_type: 1, move_in_date: Date.current - 5.days) }
+    let!(:sso_not_moved_in) { enrollment_in(project_type: 13, rrh_sub_type: 1) }
+    let!(:psh_moved_in) { enrollment_in(project_type: 3, move_in_date: Date.current - 5.days) }
+    let!(:psh_moved_in_before_range) { enrollment_in(project_type: 3, move_in_date: Date.current - 60.days) }
+    let!(:es_with_move_in) { enrollment_in(project_type: 0, move_in_date: Date.current - 5.days) }
+
+    it 'returns PH enrollments, including RRH: Services Only, with a move-in date in range' do
+      expect(described_class.housed(range)).to contain_exactly(sso_moved_in, psh_moved_in)
+    end
+  end
 end

@@ -32,7 +32,7 @@ RSpec.describe ClientHistory::Calculator, type: :model do
 
   describe '#residential_dates' do
     it 'returns only housed nights from permanent housing, starting at move-in' do
-      expect(calculator.residential_dates).to match_array((Date.new(2021, 1, 19)..Date.new(2021, 1, 31)).to_a)
+      expect(calculator.residential_dates).to match_array((Date.new(2021, 1, 18)..Date.new(2021, 1, 31)).to_a)
     end
   end
 
@@ -50,7 +50,7 @@ RSpec.describe ClientHistory::Calculator, type: :model do
     end
 
     # The shared fixture's last homeless night is 2021-01-19 (Shelter B, exited 01-20);
-    # Housing is occupied 01-19..01-31 after its 01-18 move-in.
+    # Housing is occupied 01-18..01-31, starting on its 01-18 move-in.
     def new_episode_for_entry(destination, entry_date)
       rebuild_service_history!
       entries = destination.service_history_enrollments.entry.to_a

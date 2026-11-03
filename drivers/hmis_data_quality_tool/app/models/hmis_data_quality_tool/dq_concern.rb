@@ -59,7 +59,7 @@ module HmisDataQualityTool::DqConcern
         GrdaWarehouse::PiiProvider.viewable_name(value, policy: pii_policy)
       when /^dob$/
         GrdaWarehouse::PiiProvider.viewable_dob(value, policy: pii_policy)
-      when /^ssn$/
+      when /^ssn$/, /^ssn_issue_reason$/
         GrdaWarehouse::PiiProvider.viewable_ssn(value, policy: pii_policy)
       when /.*hiv_aids/
         GrdaWarehouse::PiiProvider.viewable_hiv_status(value, policy: pii_policy)

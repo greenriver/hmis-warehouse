@@ -33,7 +33,7 @@ Rails.application.routes.draw do
 
     devise_scope :user do
       match 'session_keepalive' => 'users/sessions#keepalive', via: :post
-      match 'users/invitations/confirm', via: :post
+      match 'users/invitations/confirm', via: :post, as: :confirm_users_invitations
       match 'logout_talentlms' => 'users/sessions#destroy', via: :get
       if ENV['OKTA_DOMAIN'].present?
         get '/users/auth/okta/callback' => 'users/omniauth_callbacks#okta' if ENV['OKTA_CLIENT_ID']
@@ -50,11 +50,6 @@ Rails.application.routes.draw do
   end
 
   namespace :users do
-    resources :invitations do
-      collection do
-        post :confirm
-      end
-    end
     resources :account_requests, only: [:new, :create]
   end
 
@@ -339,6 +334,7 @@ Rails.application.routes.draw do
     #   post :queue, on: :collection
     # end
     resource :external_data_sharing, only: [:show, :update], controller: 'clients/external_data_sharing'
+    resource :restriction, only: [:show, :update], controller: 'clients/restrictions'
     resource :cas_readiness, only: [:edit, :update], controller: 'clients/cas_readiness' do
       post :render_content, on: :member
       get :render_content, on: :member if Rails.env.development?
@@ -513,7 +509,7 @@ Rails.application.routes.draw do
   # over this catch-all shape.
   get 'data_sources/:id/:coc_code', to: 'data_sources#show', as: :data_source_with_coc_code
   resources :ad_hoc_data_sources do
-    resources :uploads, except: [:edit], controller: 'ad_hoc_data_sources/uploads' do
+    resources :uploads, except: [:edit, :index], controller: 'ad_hoc_data_sources/uploads' do
       get :download, on: :member
     end
     get :download, on: :collection
@@ -694,6 +690,7 @@ Rails.application.routes.draw do
         get :export, on: :member
       end
       post :assign, on: :collection
+      post :project_options, on: :collection
       get :audits, on: :collection, to: 'access_controls#audits', as: :audits
       post :render_audits, on: :collection, to: 'access_controls#render_audits', as: :render_audits
     end

@@ -123,6 +123,11 @@ RSpec.describe Api::ProjectsController, type: :request do
       expect(returned_project_ids).to eq([])
     end
 
+    it 'returns no projects when permission=can_view_projects' do
+      post_projects(permission: 'can_view_projects')
+      expect(returned_project_ids).to eq([])
+    end
+
     it 'returns granted projects when permission=can_view_assigned_reports' do
       post_projects(permission: 'can_view_assigned_reports')
       expect(returned_project_ids).to match_array(granted_project_ids)
@@ -179,6 +184,12 @@ RSpec.describe Api::ProjectsController, type: :request do
 
     it 'returns granted projects with the default permission' do
       post_projects
+      expect(returned_project_ids).to match_array(granted_project_ids)
+      expect(returned_project_ids).not_to include(ungranted_project.id)
+    end
+
+    it 'returns granted projects when permission=can_view_projects' do
+      post_projects(permission: 'can_view_projects')
       expect(returned_project_ids).to match_array(granted_project_ids)
       expect(returned_project_ids).not_to include(ungranted_project.id)
     end

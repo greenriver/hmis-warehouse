@@ -135,6 +135,8 @@ class ProjectsController < ApplicationControllerV2
   end
 ```
 
+The block must return `true` or `false`, and every action must be covered by some `authorize_with`. See [Controller authorization](features/warehouse/warehouse-permissions.md#controller-authorization).
+
 Note, the deprecated legacy pattern uses "require_can_*" helpers. However these do not provide granular enough checks going forward
 
 ```ruby

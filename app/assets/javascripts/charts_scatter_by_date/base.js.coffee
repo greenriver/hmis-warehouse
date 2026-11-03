@@ -31,13 +31,16 @@ class App.ChartsScatterByDate.Base
       axis:
         x:
           type: 'timeseries'
-          min: new Date(@start_date)
-          max: new Date(@end_date)
+          min: if @start_date then new Date(@start_date)
+          max: if @end_date then new Date(@end_date)
           tick:
             fit: true
         y:
           padding: { bottom: 0 }
           min: 0
+          tick:
+            count: 2
+            format: (v) -> Math.round(v)
       legend:
         show: false
       point:
@@ -45,6 +48,14 @@ class App.ChartsScatterByDate.Base
 
     final_options = $.extend(true, default_options, options)
     @charts[id] = window.bb.generate(final_options)
+
+  # Formats as YYYY-MM-DD in the browser's timezone. toISOString() converts to UTC
+  # first, which shifts local midnight to the previous day east of UTC.
+  _local_iso_date: (date) =>
+    year = date.getFullYear()
+    month = String(date.getMonth() + 1).padStart(2, '0')
+    day = String(date.getDate()).padStart(2, '0')
+    "#{year}-#{month}-#{day}"
 
   # Override as necessary
   _follow_link: (d) =>
@@ -54,8 +65,7 @@ class App.ChartsScatterByDate.Base
     return unless d && d.length > 0
 
     point = d[0]
-    date = point.x
-    date_string = new Date(date.getTime() + (date.getTimezoneOffset() * 60000)).toDateString()
+    date_string = point.x.toDateString()
     value = point.value
 
     html = """
@@ -70,7 +80,7 @@ class App.ChartsScatterByDate.Base
 
 
   _process_hover: (d) =>
-    return
+    @element.css('cursor', 'pointer')
 
   _process_hover_out: (d) =>
-    return
+    @element.css('cursor', 'default')

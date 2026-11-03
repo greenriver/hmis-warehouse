@@ -9,12 +9,13 @@
 module WarehouseReports
   class DisabilitiesController < ApplicationController
     include WarehouseReportAuthorization
+    include WarehouseReports::QueuedReportJobs
 
     before_action :set_jobs, only: [:index, :running]
     before_action :set_report, only: [:show, :destroy]
 
     def index
-      @reports = report_source.ordered.limit(50)
+      @reports = report_scope.ordered.limit(50)
 
       # Set default filter to prior run
       options = if filter_params.present?
@@ -62,15 +63,15 @@ module WarehouseReports
     helper_method :yes_no
 
     def running
-      @reports = report_source.ordered.limit(50)
+      @reports = report_scope.ordered.limit(50)
     end
 
     def set_jobs
-      @jobs = Delayed::Job.jobs_for_class('RunEnrolledDisabledJob').order(run_at: :desc)
+      @job_reports = queued_reports('RunEnrolledDisabledJob')
     end
 
     def set_report
-      @report = report_source.find params[:id].to_i
+      @report = report_scope.find params[:id].to_i
     end
 
     def job_params
@@ -101,6 +102,10 @@ module WarehouseReports
       f_params
     rescue StandardError
       {}
+    end
+
+    private def report_scope
+      report_source.visible_to(current_user)
     end
 
     def report_source

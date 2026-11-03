@@ -10,6 +10,7 @@ class HmisAdmin::AccessControlsController < ApplicationController
   include ViewableEntities
   include EnforceHmisEnabled
   include HmisAccessControlAuditData
+  include AccessControlEntityFilterOptions
   extend BackgroundRenderAction
 
   before_action :require_hmis_admin_access!
@@ -24,9 +25,10 @@ class HmisAdmin::AccessControlsController < ApplicationController
   def index
     @access_controls = access_control_scope.
       ordered.
-      filtered(params[:filter])
+      filtered(filter_params[:filter])
 
     @pagy, @access_controls = pagy(@access_controls)
+    @active_filter = filter_params[:filter]&.values&.any?(&:present?)
   end
 
   def new
@@ -63,6 +65,25 @@ class HmisAdmin::AccessControlsController < ApplicationController
 
   private def access_control_scope
     Hmis::AccessControl
+  end
+
+  private def filter_params
+    params.permit(
+      filter: [
+        :user_group_id,
+        :user_id,
+        :role_id,
+        :access_group_id,
+        :data_source_id,
+        :organization_id,
+        :project_id,
+        :coc_code,
+      ],
+    )
+  end
+
+  private def filter_data_source_scope
+    GrdaWarehouse::DataSource.hmis
   end
 
   private def access_control_params

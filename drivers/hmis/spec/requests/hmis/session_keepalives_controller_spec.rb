@@ -32,4 +32,11 @@ RSpec.describe Hmis::SessionKeepalivesController, type: :request do
       expect(JSON.parse(response.body)).to eq('success' => true)
     end
   end
+
+  # Devise's timeout restarts on every request, so the SPA counts down from X-app-user-id instead.
+  it 'omits the remaining seconds on the Devise arm', :devise_only do
+    get hmis_session_keepalive_path
+
+    expect(response.headers).not_to have_key('X-app-session-remaining-secs')
+  end
 end

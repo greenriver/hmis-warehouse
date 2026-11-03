@@ -14,6 +14,7 @@ class GrdaWarehouse::AuthPolicies::SourceClientPolicy < GrdaWarehouse::AuthPolic
     [:can_view_full_dob],
     [:can_view_full_ssn],
     [:can_view_hiv_status],
+    [:can_mark_clients_as_restricted, :can_mark_restricted?],
   ].each do |permission, method_name|
     method_name ||= :"#{permission}?"
     define_method(method_name) do
@@ -33,6 +34,14 @@ class GrdaWarehouse::AuthPolicies::SourceClientPolicy < GrdaWarehouse::AuthPolic
     return roi_authorized? if resource_permissions.include?(:can_view_client_enrollments_with_roi)
 
     false
+  end
+
+  memoize def can_view_history_calendar?
+    can_view? && resource_permissions.include?(:can_view_client_history_calendar)
+  end
+
+  memoize def can_generate_homeless_verification_pdfs?
+    can_view_history_calendar? && resource_permissions.include?(:can_generate_homeless_verification_pdfs)
   end
 
   def can_view_supplemental_data?

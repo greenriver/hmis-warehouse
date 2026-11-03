@@ -13,6 +13,7 @@ class GrdaWarehouse::AuthPolicies::ProjectPolicy < GrdaWarehouse::AuthPolicies::
     [:can_delete_projects, :can_destroy?],
     [:can_view_projects, :can_view?],
     [:can_view_imports],
+    [:can_view_imports, :can_edit_contacts?],
     [:can_view_clients],
   ].each do |permission, method_name|
     method_name ||= :"#{permission}?"

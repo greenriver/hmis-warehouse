@@ -19,11 +19,17 @@ module GrdaWarehouse::Cohorts::DocumentExports
   class CohortExcelExport < ::GrdaWarehouse::DocumentExport
     include ApplicationHelper
     def authorized?
-      user.can_download_cohorts?
+      user.can_download_cohorts? && cohort_class.viewable_by(user).where(id: cohort_id).exists?
     end
 
     protected def cohort
-      @cohort ||= cohort_class.viewable_by(user).find(params['id'])
+      @cohort ||= cohort_class.viewable_by(user).find(cohort_id)
+    end
+
+    # The cohort page (/cohorts/:id) sends `id`; the cohort report page
+    # (/cohorts/:cohort_id/report) sends `cohort_id`.
+    protected def cohort_id
+      params['cohort_id'].presence || params['id']
     end
 
     protected def cohort_clients

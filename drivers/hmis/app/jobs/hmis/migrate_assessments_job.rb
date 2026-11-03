@@ -20,6 +20,9 @@ module Hmis
     attr_accessor :data_source_id, :soft_delete_datetime, :delete_dangling_records, :preferred_source_hash, :project_ids, :enrollment_ids, :generate_empty_intakes, :upsert
 
     queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
+    # The import post-process enqueues this with every involved enrollment pk (hundreds of thousands),
+    # and ActiveJob/DelayedJob would write that array into each enqueue/run/complete log line.
+    self.log_arguments = false
 
     EXIT_STAGE = 3
     ENTRY_EXIT = [1, 3].freeze # entry, exit

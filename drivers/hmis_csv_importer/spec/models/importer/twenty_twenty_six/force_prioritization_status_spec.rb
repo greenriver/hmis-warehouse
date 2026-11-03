@@ -62,6 +62,24 @@ RSpec.describe 'Force Assessment Prioritization Status', type: :model do
     end
   end
 
+  describe 'cleanup with an earlier import present' do
+    before(:all) do
+      clear
+      setup(with_cleanup: false)
+      @earlier_importer_log_id = HmisCsvImporter::Importer::ImporterLog.maximum(:id)
+      setup(with_cleanup: true)
+    end
+
+    it 'leaves blank prioritization status on the earlier import rows' do
+      earlier_rows = HmisCsvTwentyTwentySix::Importer::Assessment.where(importer_log_id: @earlier_importer_log_id, AssessmentID: '2')
+      expect(earlier_rows.pluck(:PrioritizationStatus)).to eq([nil])
+    end
+
+    it 'sets prioritization status to 1 on the current import' do
+      expect(GrdaWarehouse::Hud::Assessment.find_by!(AssessmentID: '2').PrioritizationStatus).to eq(1)
+    end
+  end
+
   def clear
     GrdaWarehouse::Utility.clear!
     HmisCsvImporter::Utility.clear!

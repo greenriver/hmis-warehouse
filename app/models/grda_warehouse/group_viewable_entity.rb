@@ -20,6 +20,15 @@ module GrdaWarehouse
     belongs_to :entity, polymorphic: true
     belongs_to :collection, optional: true
 
+    # Collection rows store access_group_id = 0 (the column is NOT NULL), so only collection_id tells the two apart.
+    scope :legacy, -> do
+      where(collection_id: nil)
+    end
+
+    scope :using_acls, -> do
+      where.not(collection_id: nil)
+    end
+
     scope :viewable_by, ->(user) do
       where(access_group_id: user.access_groups.pluck(:id))
     end

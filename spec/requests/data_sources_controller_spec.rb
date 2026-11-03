@@ -158,6 +158,32 @@ RSpec.describe DataSourcesController, type: :request do
       end
     end
 
+    context 'with an organization contacts link' do
+      let!(:org) { create(:hud_organization, data_source: data_source, OrganizationName: 'Contacts Link Org') }
+      let!(:project) { create(:hud_project, data_source: data_source, OrganizationID: org.OrganizationID) }
+
+      context 'when the role can edit organizations but cannot view imports' do
+        let(:role) { create(:role, can_view_projects: true, can_edit_organizations: true) }
+
+        it 'hides the link' do
+          get data_source_path(data_source)
+
+          expect(response.body).to include('Contacts Link Org')
+          expect(response.body).not_to include(organization_contacts_path(org))
+        end
+      end
+
+      context 'when the role can view imports on the data source' do
+        let(:role) { create(:role, can_view_projects: true, can_view_imports: true) }
+
+        it 'shows the link' do
+          get data_source_path(data_source)
+
+          expect(response.body).to include(organization_contacts_path(org))
+        end
+      end
+    end
+
     context 'when one CoC holds the dominance share' do
       let!(:org) { create(:hud_organization, data_source: data_source, OrganizationName: 'Dominant Coc Org') }
       let!(:project_one) do

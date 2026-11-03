@@ -283,6 +283,46 @@ RSpec.describe GrdaWarehouse::AdHocBatch, type: :model do
       end
     end
 
+    context 'with existing warehouse clients' do
+      let(:batch) { create(:ad_hoc_batch_valid, ad_hoc_data_source: data_source) }
+      let(:source_data_source) { create(:source_data_source) }
+      let(:destination_data_source) { create(:destination_data_source) }
+      let!(:matching_destination) do
+        source = create(:grda_warehouse_hud_client, data_source: source_data_source, FirstName: 'Faker', LastName: 'Fakerson', SSN: '123334444', DOB: '2010-12-01')
+        destination = create(:grda_warehouse_hud_client, data_source: destination_data_source)
+        create(:warehouse_client, source: source, destination: destination, data_source: source_data_source)
+        destination
+      end
+
+      before do
+        source = create(:grda_warehouse_hud_client, data_source: source_data_source, FirstName: 'Other', LastName: 'Person', SSN: '555667777', DOB: '1980-01-01')
+        destination = create(:grda_warehouse_hud_client, data_source: destination_data_source)
+        create(:warehouse_client, source: source, destination: destination, data_source: source_data_source)
+      end
+
+      it 'links only the uploaded row that matches a source client to its destination client' do
+        batch.process!
+
+        expect(batch.matched_count).to eq(1)
+        expect(batch.ad_hoc_clients.pluck(:first_name, :client_id)).to contain_exactly(
+          ['Faker', matching_destination.id],
+          ['Jury', nil],
+        )
+      end
+
+      it 'keeps source client names and SSNs out of the Rails cache' do
+        cache = ActiveSupport::Cache::MemoryStore.new
+        allow(Rails).to receive(:cache).and_return(cache)
+        cache_keys = []
+        ActiveSupport::Notifications.subscribed(->(event) { cache_keys << event.payload[:key] }, 'cache_write.active_support') do
+          batch.process!
+        end
+
+        cached_values = cache_keys.map { |key| cache.read(key).inspect }
+        expect(cached_values.grep(/123334444|Fakerson/)).to eq([])
+      end
+    end
+
     context 'with valid Excel file' do
       let(:batch) { create(:ad_hoc_batch_valid_excel, ad_hoc_data_source: data_source) }
 

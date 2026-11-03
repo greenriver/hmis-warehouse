@@ -746,7 +746,7 @@ HUD Coordinated Entry Assessment
 type CeAssessment {
   assessmentDate: ISO8601Date!
   assessmentLevel: AssessmentLevel
-  assessmentLocation: String!
+  assessmentLocation: String
   assessmentType: AssessmentType
   client: Client!
   createdBy: ApplicationUser
@@ -5057,6 +5057,7 @@ type File {
   expirationDate: ISO8601Date
   id: ID!
   name: String!
+  note: String
   ownFile: Boolean!
   redacted: Boolean!
   tags: [String!]!

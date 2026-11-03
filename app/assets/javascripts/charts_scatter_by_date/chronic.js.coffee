@@ -15,7 +15,7 @@ class App.ChartsScatterByDate.Chronic extends App.ChartsScatterByDate.Base
       type: 'scatter',
       color: (color, d) =>
         # d.x is a date object from the timeseries axis
-        if d.x.toISOString().substring(0, 10) == @current_date
+        if @_local_iso_date(d.x) == @current_date
           'black'
         else
           '#4cab90' # Default color
@@ -33,12 +33,6 @@ class App.ChartsScatterByDate.Chronic extends App.ChartsScatterByDate.Base
 
   _follow_link: (d) =>
     # d.x is a date object
-    date = d.x.toISOString().substring(0,10)
+    date = @_local_iso_date(d.x)
     $('.jFilterOn').val(date)
     $('.jFilter').submit()
-
-  _process_hover: (d) =>
-    @element.css('cursor', 'pointer')
-
-  _process_hover_out: (d) =>
-    @element.css('cursor', 'default')
