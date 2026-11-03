@@ -969,6 +969,28 @@ RSpec.describe model, type: :model do
     end
   end
 
+  describe '#ever_pause_imports_with_record_changes?' do
+    def data_source_with_threshold(pause_on_record_count_threshold:, pause_on_error_threshold:)
+      create(
+        :import_threshold,
+        record_count_change_min_threshold: 10,
+        record_count_change_percent_threshold: 5,
+        pause_on_record_count_threshold: pause_on_record_count_threshold,
+        pause_on_error_threshold: pause_on_error_threshold,
+      ).data_source
+    end
+
+    it 'is true when only the record-count pause is enabled' do
+      data_source = data_source_with_threshold(pause_on_record_count_threshold: true, pause_on_error_threshold: false)
+      expect(data_source.ever_pause_imports_with_record_changes?).to eq(true)
+    end
+
+    it 'is false when only the error pause is enabled' do
+      data_source = data_source_with_threshold(pause_on_record_count_threshold: false, pause_on_error_threshold: true)
+      expect(data_source.ever_pause_imports_with_record_changes?).to eq(false)
+    end
+  end
+
   describe 'PaperTrail' do
     it 'creates a version on update' do
       PaperTrailHelper.with_paper_trail do
