@@ -989,6 +989,16 @@ RSpec.describe model, type: :model do
       data_source = data_source_with_threshold(pause_on_record_count_threshold: false, pause_on_error_threshold: true)
       expect(data_source.ever_pause_imports_with_record_changes?).to eq(false)
     end
+
+    it 'is false when the record-count pause is enabled but the percent threshold is blank' do
+      data_source = create(
+        :import_threshold,
+        record_count_change_min_threshold: 10,
+        record_count_change_percent_threshold: nil,
+        pause_on_record_count_threshold: true,
+      ).data_source
+      expect(data_source.ever_pause_imports_with_record_changes?).to eq(false)
+    end
   end
 
   describe 'PaperTrail' do
