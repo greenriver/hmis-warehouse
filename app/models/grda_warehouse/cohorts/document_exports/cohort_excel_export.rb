@@ -6,8 +6,6 @@
 
 # frozen_string_literal: true
 
-# frozen_string_literal: true
-
 module GrdaWarehouse::Cohorts::DocumentExports
   # Handles export of cohort data to Excel files (.xlsx) format
   #
@@ -56,6 +54,7 @@ module GrdaWarehouse::Cohorts::DocumentExports
     end
 
     private def excel_package
+      user.policy_context.preload_client_restrictions(cohort_clients.map(&:client_id))
       Axlsx::Package.new do |package|
         wb = package.workbook
         wb.add_worksheet(name: cohort.sanitized_name.slice(0, 30)) do |sheet|
