@@ -123,7 +123,6 @@ RSpec.describe GrdaWarehouse::HudChronic, type: :model do
   context 'if homeless all of last 12 months' do
     before(:each) do
       # force the chronic calculation, which sets the triggers
-      Rails.cache.delete('chronically_disabled_clients')
       enrollment_12_months_homeless.update(PersonalID: source_client.PersonalID)
       @is_chronic = client.hud_chronic?(on_date: april_1_2016)
     end
@@ -139,7 +138,6 @@ RSpec.describe GrdaWarehouse::HudChronic, type: :model do
   context 'when 4+ episodes of homelessness in last 3 years' do
     context 'and 12+ months homeless' do
       before(:each) do
-        Rails.cache.delete('chronically_disabled_clients')
         enrollment_11_months_homeless.update(PersonalID: source_client.PersonalID)
         @is_chronic = client.hud_chronic? on_date: april_1_2016
       end
@@ -154,7 +152,6 @@ RSpec.describe GrdaWarehouse::HudChronic, type: :model do
 
     context 'and 12+ months on the street or in ES/SH' do
       before(:each) do
-        Rails.cache.delete('chronically_disabled_clients')
         # return an enrollment that has a date to street
         enrollment_12_months_on_street.update(PersonalID: source_client.PersonalID)
         @is_chronic = client.hud_chronic? on_date: april_1_2016
