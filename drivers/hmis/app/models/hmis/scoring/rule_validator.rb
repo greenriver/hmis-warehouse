@@ -9,8 +9,8 @@
 module Hmis
   module Scoring
     # Checks that a set of scoring rules fits a form definition: every question a rule reads is on the form,
-    # and every answer a rule matches is one the question can store. A rule that fails either check never
-    # raises at scoring time; it just contributes 0, so this is the only place the mismatch shows up.
+    # and every answer a rule matches is one the question can store. A matched answer the question cannot
+    # store never raises at scoring time; it just contributes 0, so this is the only place that shows up.
     #
     # Read-only, so it can run against a draft, published, or retired definition as often as needed.
     # Reports every problem rather than stopping at the first, since the output is the list of form fixes.

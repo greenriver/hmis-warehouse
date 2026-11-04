@@ -22,8 +22,7 @@ module HmisExternalApis::AcHmis
       end
     end
 
-    # Checks a model version's rules for the definition's identifier against that definition.
-    # Also used by the validate_alt_aha_rules task.
+    # Checks a model version's rules for the definition's identifier against that definition
     def self.rule_validator(model_version, definition)
       calculator_class = calculator_class(model_version)
       Hmis::Scoring::RuleValidator.new(
@@ -38,10 +37,9 @@ module HmisExternalApis::AcHmis
     end
     private_class_method :calculator_class
 
-    # Rules for questions missing from the form would score silently wrong: validate_form_values skips required
-    # link_ids that are not on the definition, and the calculator treats them as unanswered. This happens when the
-    # configured model version and the published form disagree, such as between publishing a form and switching the version.
-    # Only version 2 is checked: version 1 must keep scoring assessments started on older form versions that lack a rule's question.
+    # Rules for questions missing from the form would score silently wrong, since validate_form_values skips
+    # link_ids that are not on the definition and the calculator treats them as unanswered.
+    # Version 1 is not checked: it must keep scoring assessments on older form versions that lack a rule's question.
     def self.check_rules_fit_definition!(model_version, definition)
       missing = rule_validator(model_version, definition).missing_link_ids
       return if missing.empty?

@@ -57,7 +57,7 @@ class HmisExternalApis::AcHmis::Importers::AltAhaV2ScorecardImporter
   ANSWER_VALUES = {
     # The calculator injects gender as 0 or 1; see AltAhaV2Calculator#determine_gender
     CALCULATOR::CLIENT_GENDER_LINK_ID => { 'Female' => 0, 'Male' => 1 },
-    # The scorecards use another question's labels for this one; pending Allegheny's confirmation (A1)
+    # The scorecards use duration_since_stable_housing's labels for this question; not yet confirmed by Allegheny
     'homeless_duration' => { 'Less than a year' => 'Less than 365', 'More than a year' => 'A year or more' },
   }.freeze
 

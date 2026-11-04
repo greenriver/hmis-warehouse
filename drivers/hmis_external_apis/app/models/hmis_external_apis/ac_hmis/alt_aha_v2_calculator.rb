@@ -57,8 +57,6 @@ module HmisExternalApis::AcHmis
         CLIENT_AGE_LINK_ID => client.age,
         CLIENT_GENDER_LINK_ID => determine_gender(client),
       )
-      # The form being scored: its identifier selects the rules, and its assessment date item says
-      # which submitted value holds the date that days_diff rules count from
       @definition = definition
       @user = user
       @owner = owner
@@ -108,7 +106,6 @@ module HmisExternalApis::AcHmis
       end
     end
 
-    # days_diff rules count days elapsed up to the assessment date, so recalculating later gives the same score
     def find_assessment_date
       item = @definition.assessment_date_item
       raise "Form #{@definition.identifier} has no assessment date item" unless item

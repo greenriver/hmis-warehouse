@@ -15,7 +15,7 @@ class AddModelVersionToHmisScoringRules < ActiveRecord::Migration[7.2]
       change_column_null :hmis_scoring_rules, :model_version, false
     end
 
-    # Optional second criterion; when present, the rule contributes only when both criteria match.
+    # Optional second criterion; when present, the weight applies to the product of both criteria's terms.
     add_column :hmis_scoring_rules, :secondary_link_id, :string
     add_column :hmis_scoring_rules, :secondary_criteria_type, :string
     add_column :hmis_scoring_rules, :secondary_criteria_config, :jsonb

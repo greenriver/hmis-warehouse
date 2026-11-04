@@ -80,17 +80,15 @@ module Hmis
         end
       end
 
-      # Days elapsed between a date answer and the assessment date: the scorecards' `CURRENT_DATE - x`,
-      # used for terms like "when did your current homeless episode begin?"
-      # An unanswered date contributes 0, both as a number and as a match.
+      # The scorecards' `CURRENT_DATE - x`, counted to the assessment date rather than today so that
+      # recalculating later gives the same score. An unanswered date question contributes 0, as a number or a match.
       def days_diff_term(config, value, assessment_date)
-        # A missing date is a caller bug, not a missing answer, so fail rather than score 0
+        # A missing assessment date is a caller bug, not a missing answer, so fail rather than score 0
         raise "Scoring rule #{id} counts days elapsed and requires an assessment date" if assessment_date.nil?
 
         date = convert_to_date(value)
         return 0 if date.nil?
 
-        # Counted to the assessment date rather than today, so recalculating later gives the same score
         days = (assessment_date.to_date - date).to_i
         # Some terms ask whether the count is exactly 0 or 1 days (began that day or the day before)
         return exact_match?(config, days) ? 1 : 0 if config.key?('match_value')
