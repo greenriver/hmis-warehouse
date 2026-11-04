@@ -23,13 +23,9 @@ echo "Preparing worktree $worktree_path (branch $branch)"
 
 # Files/dirs that are gitignored (so absent in a fresh worktree) but required to
 # boot and to isolate the worktree. .env.test and docker-compose.yml are tracked.
-#   .pgpass                             - the spec container's entrypoint copies
-#                                          this rather than generating it; without
-#                                          it, spec/test-db commands fail.
-#   app/assets/stylesheets/theme/styles - the asset manifest link_directory's this
-#                                          unconditionally; without it, a fresh
-#                                          worktree 500s on first request.
-for f in .env.local .env.development.local .envrc docker-compose.override.yml .pgpass app/assets/stylesheets/theme/styles; do
+#   .pgpass - the spec container's entrypoint copies this rather than generating
+#             it; without it, spec/test-db commands fail.
+for f in .env.local .env.development.local .envrc docker-compose.override.yml .pgpass; do
   if [ ! -e "$primary_path/$f" ]; then
     echo "  WARNING: $primary_path/$f not found; skipping"
   elif [ -e "$worktree_path/$f" ]; then

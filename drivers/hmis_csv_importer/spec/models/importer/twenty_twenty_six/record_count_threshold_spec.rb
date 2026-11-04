@@ -54,14 +54,13 @@ RSpec.describe 'Import record-count change thresholds', type: :model do
     end
   end
 
-  describe 'pauses when record-count thresholds are exceeded' do
-    before(:all) do
+  describe 'pausing on record-count changes' do
+    def import_twice_with_threshold(fixture_path, **threshold_attrs)
       HmisCsvImporter::Utility.clear!
       GrdaWarehouse::Utility.clear!
 
-      # First import establishes baseline data in the warehouse
       travel_to Time.local(2017, 10, 3) do
-        @data_source = GrdaWarehouse::DataSource.where(
+        data_source = GrdaWarehouse::DataSource.where(
           name: 'Green River',
           short_name: 'GR',
           source_type: :sftp,
@@ -73,36 +72,28 @@ RSpec.describe 'Import record-count change thresholds', type: :model do
 
         import_hmis_csv_fixture(
           fixture_path,
-          data_source: @data_source,
+          data_source: data_source,
           version: 'AutoMigrate',
           run_jobs: false,
           stop_version: '2026',
         )
-      end
 
-      # Now configure aggressive record-count thresholds that will trigger
-      # on the second (identical) import. The second import sees all existing
-      # warehouse rows as "existing" and all incoming rows as "new" until
-      # reconciliation, so the precalculated added count is non-zero on a
-      # first-ever import against an empty warehouse for that scope.
-      threshold = FactoryBot.create(
-        :import_threshold,
-        data_source: @data_source,
-        pause_on_error_threshold: true,
-        pause_on_record_count_threshold: true,
-        error_percent_threshold: 1,
-        error_count_min_threshold: 1,
-        record_count_change_min_threshold: 1,
-        record_count_change_percent_threshold: 1,
-      )
-      @user = FactoryBot.create(:user)
-      FactoryBot.create(:notification_configuration_import_threshold, :record_count_change_notification_event, user: @user, source: threshold)
+        # Re-importing these fixture files still counts one new Enrollment out of three,
+        # which crosses the 1-record / 1% threshold. Blank error thresholds keep error
+        # counts from pausing the import.
+        FactoryBot.create(
+          :import_threshold,
+          data_source: data_source,
+          error_count_min_threshold: nil,
+          error_percent_threshold: nil,
+          record_count_change_min_threshold: 1,
+          record_count_change_percent_threshold: 1,
+          **threshold_attrs,
+        )
 
-      # Second import with thresholds active
-      travel_to Time.local(2017, 10, 3) do
-        @loader = import_hmis_csv_fixture(
+        import_hmis_csv_fixture(
           fixture_path,
-          data_source: @data_source,
+          data_source: data_source,
           version: 'AutoMigrate',
           run_jobs: false,
           stop_version: '2026',
@@ -115,10 +106,32 @@ RSpec.describe 'Import record-count change thresholds', type: :model do
       GrdaWarehouse::Utility.clear!
     end
 
-    it 'exercises precalculate_change_counts and populates the summary' do
-      summary = @loader.importer_log.summary
-      files_with_counts = summary.select { |_, data| data.key?('added') || data.key?('removed') }
-      expect(files_with_counts).to be_present
+    context 'when only the record-count pause is enabled' do
+      before(:all) do
+        @loader = import_twice_with_threshold(
+          fixture_path,
+          pause_on_record_count_threshold: true,
+          pause_on_error_threshold: false,
+        )
+      end
+
+      it 'pauses the import' do
+        expect(@loader.importer_log.status).to eq('paused')
+      end
+    end
+
+    context 'when only the error pause is enabled' do
+      before(:all) do
+        @loader = import_twice_with_threshold(
+          fixture_path,
+          pause_on_record_count_threshold: false,
+          pause_on_error_threshold: true,
+        )
+      end
+
+      it 'completes the import' do
+        expect(@loader.importer_log.status).to eq('complete')
+      end
     end
   end
 end
