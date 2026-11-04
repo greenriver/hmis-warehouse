@@ -129,23 +129,7 @@ module Importing
         @notifier.ping('Done Pre-calculating Chronically Homeless at Entry')
 
         # Only run the chronic calculator on the 1st and 15th
-        # but run it for the past 2 of each
-        if @start_time.to_date.day.in?([1, 15])
-          months_to_build = 6
-          dates = []
-          months_to_build.times do |i|
-            dates << i.months.ago.change(day: 15).to_date
-            dates << i.months.ago.change(day: 1).to_date
-          end
-          dates.select! { |m| m <= Date.current }
-
-          dates.each do |date|
-            GrdaWarehouse::Tasks::ChronicallyHomeless.new(date: date).run!
-            GrdaWarehouse::Tasks::DmhChronicallyHomeless.new(date: date).run!
-            GrdaWarehouse::Tasks::HudChronicallyHomeless.new(date: date).run!
-          end
-          @notifier.ping('Chronically homeless calculated')
-        end
+        calculate_chronic_backfill if @start_time.to_date.day.in?([1, 15])
       end
 
       run_maintenance_task('Finalize client history') do
@@ -206,6 +190,28 @@ module Importing
         generate_logging_info
         shs_debugging_counts
       end
+    end
+
+    # Recalculate chronic status for the 1st and 15th of each of the last
+    # `months_to_build` months (including the current one), skipping future dates.
+    def calculate_chronic_backfill
+      # Staff-managed setting; 0 disables the backfill
+      configured_months = AppConfigProperty.find_by(key: 'chronic_backfill/months_to_build')&.value
+      months_to_build = Integer(configured_months || 6)
+
+      dates = []
+      months_to_build.times do |i|
+        dates << i.months.ago.change(day: 15).to_date
+        dates << i.months.ago.change(day: 1).to_date
+      end
+      dates.select! { |m| m <= Date.current }
+
+      dates.each do |date|
+        GrdaWarehouse::Tasks::ChronicallyHomeless.new(date: date).run!
+        GrdaWarehouse::Tasks::DmhChronicallyHomeless.new(date: date).run!
+        GrdaWarehouse::Tasks::HudChronicallyHomeless.new(date: date).run!
+      end
+      @notifier.ping('Chronically homeless calculated')
     end
 
     def destination_client_ids
