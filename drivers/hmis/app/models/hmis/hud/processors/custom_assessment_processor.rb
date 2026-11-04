@@ -45,12 +45,12 @@ module Hmis::Hud::Processors
       return if value == HIDDEN_FIELD_VALUE
 
       # Recalculate score to confirm that it is unchanged
-      aha_calculator = HmisExternalApis::AcHmis::AltAhaCalculator.new(
+      aha_calculator = HmisExternalApis::AcHmis::AltAhaCalculatorFactory.build(
+        definition: @processor.definition,
         values_by_link_id: @processor.values,
         client: @processor.client_factory,
         user: @processor.current_user,
         owner: @processor.enrollment_factory,
-        form_definition_identifier: @processor.definition.identifier,
       )
       score, = aha_calculator.calculate_score
 

@@ -13,5 +13,14 @@ FactoryBot.define do
     algorithm { 'test_algorithm' }
     criteria_type { Hmis::Scoring::Rule::VALUE }
     weight { 0.5 }
+
+    # No default model_version, so every spec states which model its rules belong to
+    trait :v1 do
+      model_version { 1 }
+    end
+
+    trait :v2 do
+      model_version { 2 }
+    end
   end
 end
