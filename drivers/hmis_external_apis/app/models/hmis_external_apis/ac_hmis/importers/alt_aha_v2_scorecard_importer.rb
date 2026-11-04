@@ -8,14 +8,14 @@
 
 require 'csv'
 
-# Loads Allegheny's version 2 Alt-AHA scorecards as Hmis::Scoring::Rule records for one form identifier.
+# Loads AC's version 2 Alt-AHA scorecards as Hmis::Scoring::Rule records for one form identifier.
 #
 # Each scorecard CSV holds one algorithm's terms, one per row, with up to two criteria slots (suffixed 1 and 2).
 # The import replaces every model_version 2 rule for the identifier in one transaction, so a corrected scorecard
 # is just a rerun. It checks only what the files can answer on their own; whether the rules fit a form is the
 # rule validator's job.
 #
-# The algorithm_description column is never read: Allegheny considers the algorithm names sensitive.
+# The algorithm_description column is never read: AC considers the algorithm names sensitive.
 class HmisExternalApis::AcHmis::Importers::AltAhaV2ScorecardImporter
   class InvalidScorecardError < StandardError; end
 
@@ -57,7 +57,7 @@ class HmisExternalApis::AcHmis::Importers::AltAhaV2ScorecardImporter
   ANSWER_VALUES = {
     # The calculator injects gender as 0 or 1; see AltAhaV2Calculator#determine_gender
     CALCULATOR::CLIENT_GENDER_LINK_ID => { 'Female' => 0, 'Male' => 1 },
-    # The scorecards use duration_since_stable_housing's labels for this question; not yet confirmed by Allegheny
+    # The scorecards use duration_since_stable_housing's labels for this question; not yet confirmed by AC
     'homeless_duration' => { 'Less than a year' => 'Less than 365', 'More than a year' => 'A year or more' },
   }.freeze
 

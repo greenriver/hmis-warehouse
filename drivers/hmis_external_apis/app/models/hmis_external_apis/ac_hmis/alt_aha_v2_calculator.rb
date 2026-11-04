@@ -7,7 +7,7 @@
 # frozen_string_literal: true
 
 module HmisExternalApis::AcHmis
-  # Calculates the Alt-AHA score with version 2 of Allegheny's model. Used instead of AltAhaCalculator
+  # Calculates the Alt-AHA score with version 2 of AC's model. Used instead of AltAhaCalculator
   # when HmisExternalApis::AcHmis::Configuration#alt_aha_model_version is 2; build it through AltAhaCalculatorFactory.
   #
   # How scoring works:
@@ -26,7 +26,7 @@ module HmisExternalApis::AcHmis
     CLIENT_AGE_LINK_ID = 'client_demographics_age'
     CLIENT_GENDER_LINK_ID = 'client_demographics_gender'
 
-    # Intercepts must match the __INTERCEPT__ rows in Allegheny's scorecards; the scorecard import checks them.
+    # Intercepts must match the __INTERCEPT__ rows in AC's scorecards; the scorecard import checks them.
     ALGORITHMS = {
       'alt_aha_1' => {
         intercept: -1.4572595885139406,

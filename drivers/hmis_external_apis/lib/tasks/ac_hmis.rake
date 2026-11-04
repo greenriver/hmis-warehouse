@@ -25,7 +25,7 @@ namespace :ac_hmis do
     end
   end
 
-  # Replaces the version 2 Alt-AHA scoring rules for one form identifier with Allegheny's scorecard CSVs.
+  # Replaces the version 2 Alt-AHA scoring rules for one form identifier with AC's scorecard CSVs.
   # Safe to run at any time: the rules are unused until ac_hmis/alt_aha_model_version is set to 2.
   # rails "driver:hmis_external_apis:ac_hmis:import_alt_aha_v2_scorecards[housing_needs_assessment]" SCORECARD_CSVS=/path/one.csv,/path/two.csv,/path/three.csv,/path/four.csv
   task :import_alt_aha_v2_scorecards, [:form_definition_identifier] => :environment do |_task, args|
