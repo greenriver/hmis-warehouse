@@ -1,0 +1,17 @@
+.card.warehouse-reports__queued.warehouse-reports__hmis_export.mb-4
+  %table.table
+    %thead
+      %tr
+        %th Run At
+        %th Run By
+        %th Version
+        %th Status
+        %th Parameters
+    %tbody
+      - @job_reports.each do |run_at, report|
+        %tr{class: 'jIncompleteReport'}
+          %td.text-nowrap= run_at
+          %td.text-nowrap= report.user&.name
+          %td= report.version
+          %td= render 'spinner'
+          %td= render 'parameters', report: report
