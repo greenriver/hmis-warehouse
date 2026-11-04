@@ -75,8 +75,8 @@ The AWS pieces live outside this repository: the presign Lambda and its API Gate
 
 1. **Build the form** in the Form Builder with role `EXTERNAL_FORM`, and publish it there. To start from an existing form, such as last year's PIT, see the last item under Gotchas.
 2. **Set the object key** in the console. The Form Builder displays it but can't set it:
-   `Hmis::Form::Definition.find(id).update!(external_form_object_key: '<folder>/<form_name>')`
-   Each form identifier needs its own key; one can't be reused across identifiers.
+   `Hmis::Form::Definition.find(id).update!(external_form_object_key: '<form_name>')`
+   The key is the form's path in the public S3 bucket, so it can include a prefix (`pit/<form_name>`) if needed. Each form identifier needs its own key; one can't be reused across identifiers.
 3. **Add one active form rule** for the project that will review submissions.
 4. **Publish the HTML:** `HmisExternalApis::PublishExternalFormsJob.new.perform(definition_id)`. The form is then live at `https://<public bucket>.s3.amazonaws.com/<external_form_object_key>`. The first publish can take a few minutes to become reachable.
 5. **Test the whole pipeline** (see Gotchas).
