@@ -39,6 +39,9 @@ class AccountTwoFactorsController < ApplicationController
   def destroy
     @user.disable_2fa!
     redirect_to edit_account_two_factor_path
+  rescue ActiveRecord::RecordInvalid => e
+    flash[:error] = "Two-factor authentication was not turned off because your account has information that needs to be corrected first: #{e.record.errors.full_messages.to_sentence}. Please contact your administrator for help."
+    redirect_to edit_account_two_factor_path
   end
 
   def users_warehouse_path

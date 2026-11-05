@@ -78,6 +78,24 @@ RSpec.describe AccountTwoFactorsController, :devise_only, type: :request do
       expect(TwoFactorsMemorizedDevice.where(id: device.id)).not_to exist
       expect(TwoFactorsMemorizedDevice.where(id: other_device.id)).to exist
     end
+
+    context 'when the user record fails validation' do
+      before { user.update_columns(last_name: 'x' * 41) }
+
+      it 'leaves 2FA on and explains why in the flash' do
+        delete account_two_factor_path
+
+        expect(response).to redirect_to(edit_account_two_factor_path)
+        expect(flash[:error]).to eq(
+          'Two-factor authentication was not turned off because your account has information that needs to be corrected first: ' \
+          'Last name is too long (maximum is 40 characters). Please contact your administrator for help.',
+        )
+        user.reload
+        expect(user.otp_required_for_login).to be(true)
+        expect(user.otp_secret).to eq(old_secret)
+        expect(TwoFactorsMemorizedDevice.where(id: device.id)).to exist
+      end
+    end
   end
 
   describe 'PATCH update' do

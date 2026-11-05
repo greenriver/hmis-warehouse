@@ -51,6 +51,23 @@ RSpec.describe User, :devise_only, type: :model do
       expect(enabled.confirmed_2fa).to eq(2)
     end
 
+    it 'records a system-user version for each user it clears, without the plaintext secret' do
+      already_clear = create(:user)
+      disabled_secret = disabled.otp_secret
+      max_version_id = GrPaperTrail::Version.maximum(:id) || 0
+
+      PaperTrailHelper.with_paper_trail do
+        described_class.revoke_stale_two_factor_state!
+      end
+
+      versions = GrPaperTrail::Version.where(id: (max_version_id + 1)..., item_type: 'User')
+      expect(versions.pluck(:item_id)).to contain_exactly(disabled.id, param_off.id)
+      expect(versions.pluck(:whodunnit).uniq).to eq([User.system_user.id.to_s])
+      expect(versions.find_by(item_id: disabled.id).object_changes).to include('otp_secret')
+      expect(versions.find_by(item_id: disabled.id).object_changes).not_to include(disabled_secret)
+      expect(versions.pluck(:item_id)).not_to include(already_clear.id)
+    end
+
     it 'deletes remembered devices only for 2FA-off users' do
       described_class.revoke_stale_two_factor_state!
 

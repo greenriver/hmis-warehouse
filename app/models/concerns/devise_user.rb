@@ -16,17 +16,25 @@ module DeviseUser
     # from before disable_2fa! cleared them. Users mid-setup (confirmed_2fa == 1) keep their secret.
     def revoke_stale_two_factor_state!
       two_factor_off = with_deleted.where(otp_required_for_login: false)
+      cleared = {
+        otp_secret: nil,
+        encrypted_otp_secret: nil,
+        encrypted_otp_secret_iv: nil,
+        encrypted_otp_secret_salt: nil,
+        otp_backup_codes: nil,
+        confirmed_2fa: 0,
+      }
 
-      transaction do
-        TwoFactorsMemorizedDevice.where(user_id: two_factor_off.select(:id)).delete_all
-        two_factor_off.where.not(confirmed_2fa: 1).update_all(
-          otp_secret: nil,
-          encrypted_otp_secret: nil,
-          encrypted_otp_secret_iv: nil,
-          encrypted_otp_secret_salt: nil,
-          otp_backup_codes: nil,
-          confirmed_2fa: 0,
-        )
+      PaperTrail.request(whodunnit: system_user.id.to_s) do
+        transaction do
+          TwoFactorsMemorizedDevice.where(user_id: two_factor_off.select(:id)).delete_all
+          two_factor_off.where.not(confirmed_2fa: 1).find_each do |user|
+            next if cleared.all? { |column, value| user[column] == value }
+
+            # paper_trail.update_columns records a version without running validations or callbacks.
+            user.paper_trail.update_columns(cleared)
+          end
+        end
       end
     end
 
