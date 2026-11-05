@@ -128,8 +128,8 @@ module Importing
         GrdaWarehouse::ChEnrollment.maintain!
         @notifier.ping('Done Pre-calculating Chronically Homeless at Entry')
 
-        # Only run the chronic calculator on the 1st and 15th
-        calculate_chronic_backfill if @start_time.to_date.day.in?([1, 15])
+        # Only run the chronic calculator on the configured days of the month
+        calculate_chronic_backfill if @start_time.to_date.day.in?(chronic_backfill_days)
       end
 
       run_maintenance_task('Finalize client history') do
@@ -192,17 +192,20 @@ module Importing
       end
     end
 
-    # Recalculate chronic status for the 1st and 15th of each of the last
+    # Recalculate chronic status for each configured day of each of the last
     # `months_to_build` months (including the current one), skipping future dates.
     def calculate_chronic_backfill
-      # Staff-managed setting; 0 disables the backfill
+      # Staff-managed setting; 0 disables the backfill.
+      # Only admins (engineers) set this, so it is intentionally not validated.
       configured_months = AppConfigProperty.find_by(key: 'chronic_backfill/months_to_build')&.value
       months_to_build = Integer(configured_months || 6)
 
       dates = []
       months_to_build.times do |i|
-        dates << i.months.ago.change(day: 15).to_date
-        dates << i.months.ago.change(day: 1).to_date
+        month = i.months.ago.to_date
+        chronic_backfill_days.each do |day|
+          dates << month.change(day: day)
+        end
       end
       dates.select! { |m| m <= Date.current }
 
@@ -212,6 +215,16 @@ module Importing
         GrdaWarehouse::Tasks::HudChronicallyHomeless.new(date: date).run!
       end
       @notifier.ping('Chronically homeless calculated')
+    end
+
+    # Staff-managed setting: days of the month (1-28) on which the backfill runs,
+    # and which it recalculates, e.g. [10, 25]. Intentionally kept simple and not
+    # validated, like `months_to_build` above.
+    def chronic_backfill_days
+      @chronic_backfill_days ||= begin
+        configured_days = AppConfigProperty.find_by(key: 'chronic_backfill/days_of_month')&.value
+        Array(configured_days || [1, 15]).map { |day| Integer(day) }
+      end
     end
 
     def destination_client_ids

@@ -200,6 +200,41 @@ RSpec.describe Importing::RunDailyImportsJob, type: :job do
           end
         end
 
+        context 'with days of the month configured' do
+          before do
+            create(:app_config_property, key: 'chronic_backfill/days_of_month', value: [10, 25])
+            configure_months_to_build(2)
+          end
+
+          context 'on a configured day' do
+            let(:run_date) { Date.new(2026, 11, 25) }
+
+            it 'recalculates the configured days' do
+              job.perform
+
+              expected_dates = [
+                Date.new(2026, 11, 25),
+                Date.new(2026, 11, 10),
+                Date.new(2026, 10, 25),
+                Date.new(2026, 10, 10),
+              ]
+              chronic_dates_calculated.each do |dates|
+                expect(dates).to match_array(expected_dates)
+              end
+            end
+          end
+
+          context 'on the 15th' do
+            let(:run_date) { Date.new(2026, 11, 15) }
+
+            it 'does not recalculate' do
+              job.perform
+
+              expect(GrdaWarehouse::Tasks::ChronicallyHomeless).not_to have_received(:new)
+            end
+          end
+        end
+
         context 'on the 1st with one month configured' do
           let(:run_date) { Date.new(2026, 11, 1) }
 
