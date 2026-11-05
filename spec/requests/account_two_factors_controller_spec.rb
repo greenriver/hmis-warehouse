@@ -10,6 +10,8 @@ require 'rails_helper'
 
 # Devise-only: account_two_factor routes are drawn only on the Devise arm.
 RSpec.describe AccountTwoFactorsController, :devise_only, type: :request do
+  include LegacyOtpSecretWriter
+
   let(:user) { create(:user_2fa) }
 
   before(:each) { sign_in(user) }
@@ -44,6 +46,30 @@ RSpec.describe AccountTwoFactorsController, :devise_only, type: :request do
 
       expect(flash[:error]).to eq('The code submitted was invalid')
       expect(user.reload.confirmed_2fa).to eq(0)
+    end
+
+    context 'when the secret is stored only in the legacy columns' do
+      let(:legacy_secret) { User.generate_otp_secret }
+
+      before do
+        write_legacy_otp_secret(user, legacy_secret)
+      end
+
+      it 'clears the legacy columns and rejects a code from the legacy secret' do
+        expect(user.otp_secret).to eq(legacy_secret)
+
+        delete account_two_factor_path
+        get edit_account_two_factor_path
+
+        user.reload
+        expect([user.encrypted_otp_secret, user.encrypted_otp_secret_iv, user.encrypted_otp_secret_salt]).to all(be_nil)
+        expect(user.otp_secret).not_to eq(legacy_secret)
+
+        patch account_two_factor_path, params: { user: { otp_attempt: ROTP::TOTP.new(legacy_secret).now } }
+
+        expect(flash[:error]).to eq('The code submitted was invalid')
+        expect(user.reload.confirmed_2fa).to eq(0)
+      end
     end
 
     it 'deletes only this user’s remembered devices' do

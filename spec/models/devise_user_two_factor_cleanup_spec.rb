@@ -20,6 +20,23 @@ RSpec.describe User, :devise_only, type: :model do
       end
     end
 
+    it 'clears legacy secret columns and backup codes for 2FA-off users only' do
+      [disabled, enabled].each do |u|
+        u.update_columns(
+          encrypted_otp_secret: 'x',
+          encrypted_otp_secret_iv: 'y',
+          encrypted_otp_secret_salt: 'z',
+          otp_backup_codes: ['code'],
+        )
+      end
+
+      described_class.revoke_stale_two_factor_state!
+
+      legacy_columns = [:encrypted_otp_secret, :encrypted_otp_secret_iv, :encrypted_otp_secret_salt, :otp_backup_codes]
+      expect(disabled.reload.slice(*legacy_columns).values).to all(be_nil)
+      expect(enabled.reload.slice(*legacy_columns).values).to eq(['x', 'y', 'z', ['code']])
+    end
+
     it 'clears secrets for 2FA-off users except those mid-setup' do
       enabled_secret = enabled.otp_secret
       mid_secret = mid_setup.otp_secret
