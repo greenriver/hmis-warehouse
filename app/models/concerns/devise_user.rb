@@ -12,6 +12,24 @@ module DeviseUser
   extend ActiveSupport::Concern
 
   class_methods do
+    # One-time cleanup for users whose 2FA is off but who still hold a secret or remembered devices
+    # from before disable_2fa! cleared them. Users mid-setup (confirmed_2fa == 1) keep their secret.
+    def revoke_stale_two_factor_state!
+      two_factor_off = with_deleted.where(otp_required_for_login: false)
+
+      transaction do
+        TwoFactorsMemorizedDevice.where(user_id: two_factor_off.select(:id)).delete_all
+        two_factor_off.where.not(confirmed_2fa: 1).update_all(
+          otp_secret: nil,
+          encrypted_otp_secret: nil,
+          encrypted_otp_secret_iv: nil,
+          encrypted_otp_secret_salt: nil,
+          otp_backup_codes: nil,
+          confirmed_2fa: 0,
+        )
+      end
+    end
+
     def setup_system_user
       user = find_by(email: 'noreply@greenriver.com')
       return user if user.present?
