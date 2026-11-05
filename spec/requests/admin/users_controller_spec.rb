@@ -89,6 +89,22 @@ RSpec.describe Admin::UsersController, type: :request do
       end
     end
 
+    context 'when the admin saves a user who is partway through 2FA setup', :devise_only do
+      let!(:mid_setup) do
+        create(:user_2fa, otp_required_for_login: false, confirmed_2fa: 1)
+      end
+      let!(:secret) { mid_setup.otp_secret }
+
+      it 'keeps the in-progress secret' do
+        patch admin_user_path(mid_setup), params: { user: { first_name: 'Renamed', otp_required_for_login: 'false' } }
+
+        mid_setup.reload
+        expect(mid_setup.first_name).to eq('Renamed')
+        expect(mid_setup.otp_secret).to eq(secret)
+        expect(mid_setup.confirmed_2fa).to eq(1)
+      end
+    end
+
     context 'when updating vi-spdat notifications' do
       let(:updated_user) { User.not_system.first }
       before(:each) do
