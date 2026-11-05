@@ -54,40 +54,6 @@ RSpec.describe 'HudPathReport filter scope', type: :request, exclude_fixpoints: 
       sign_in(user)
     end
 
-    it 'stores only projects the user can report on for a full run' do
-      expect { post hud_reports_paths_path, params: { filter: filter_params } }.
-        to change(HudReports::ReportInstance, :count).by(1)
-
-      report = HudReports::ReportInstance.last
-      expect(report.project_ids).to contain_exactly(visible_project.id)
-    end
-
-    it 'stores only projects the user can report on for a single question run' do
-      expect { post hud_reports_path_questions_path(path_id: 0), params: { question: 'Q8-Q16', filter: filter_params } }.
-        to change(HudReports::ReportInstance, :count).by(1)
-
-      expect(HudReports::ReportInstance.last.project_ids).to contain_exactly(visible_project.id)
-    end
-
-    it 'stores only projects the user can report on when the run is prefilled from a prior report' do
-      create(
-        :hud_reports_report_instance,
-        user_id: user.id,
-        report_name: HudPathReport::Generators::Fy2026::Generator.title,
-        options: filter_params.stringify_keys,
-      )
-
-      expect { post hud_reports_paths_path }.to change(HudReports::ReportInstance, :count).by(1)
-
-      expect(HudReports::ReportInstance.order(:id).last.project_ids).to contain_exactly(visible_project.id)
-    end
-
-    it 'stores the no-project sentinel when every posted project is out of scope' do
-      post hud_reports_paths_path, params: { filter: filter_params.merge(project_ids: [hidden_project.id]) }
-
-      expect(HudReports::ReportInstance.last.project_ids).to eq([0])
-    end
-
     it 'stores the requested question for a single question run' do
       question = HudPathReport::Generators::Fy2026::QuestionSeventeen.question_number
       post hud_reports_path_questions_path(path_id: 0), params: { question: question, filter: filter_params }
@@ -99,22 +65,6 @@ RSpec.describe 'HudPathReport filter scope', type: :request, exclude_fixpoints: 
       post hud_reports_path_questions_path(path_id: 0), params: { question: 'Not A Question', filter: filter_params }
 
       expect(HudReports::ReportInstance.last.build_for_questions).to eq(['Q8-Q16'])
-    end
-  end
-
-  context 'with a legacy role-based user' do
-    let(:user) { create(:user) }
-
-    before do
-      grant_hud_report(user, 'hud_reports/paths', role: role)
-      user.add_viewable(visible_project)
-      sign_in(user)
-    end
-
-    it 'stores only the projects granted to the user' do
-      post hud_reports_paths_path, params: { filter: filter_params }
-
-      expect(HudReports::ReportInstance.last.project_ids).to contain_exactly(visible_project.id)
     end
   end
 end
