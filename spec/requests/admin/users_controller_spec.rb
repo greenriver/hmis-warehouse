@@ -72,6 +72,23 @@ RSpec.describe Admin::UsersController, type: :request do
     before do
       sign_in admin_user
     end
+    context 'when the admin turns off 2FA for a user who has it', :devise_only do
+      let!(:user_2fa) { create(:user_2fa) }
+      let!(:device) do
+        user_2fa.two_factors_memorized_devices.create!(uuid: SecureRandom.uuid, name: 'Laptop', expires_at: 1.week.from_now)
+      end
+
+      it 'clears the OTP secret and deletes remembered devices' do
+        patch admin_user_path(user_2fa), params: { user: { otp_required_for_login: 'false' } }
+
+        user_2fa.reload
+        expect(user_2fa.otp_secret).to be_nil
+        expect(user_2fa.otp_required_for_login).to be(false)
+        expect(user_2fa.confirmed_2fa).to eq(0)
+        expect(TwoFactorsMemorizedDevice.where(id: device.id)).not_to exist
+      end
+    end
+
     context 'when updating vi-spdat notifications' do
       let(:updated_user) { User.not_system.first }
       before(:each) do

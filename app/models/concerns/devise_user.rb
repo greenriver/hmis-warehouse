@@ -226,11 +226,11 @@ module DeviseUser
     end
 
     def disable_2fa!
-      update(
-        confirmed_2fa: 0,
-        otp_required_for_login: false,
-        otp_backup_codes: nil,
-      )
+      transaction do
+        reset_two_factor_model_attrs
+        save!
+        two_factors_memorized_devices.destroy_all
+      end
     end
 
     def record_failure_and_lock_access_if_exceeded!
