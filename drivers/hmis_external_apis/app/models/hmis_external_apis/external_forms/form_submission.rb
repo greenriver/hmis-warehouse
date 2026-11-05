@@ -6,6 +6,9 @@
 
 # frozen_string_literal: true
 
+# A public submission of an external form, consumed from S3 by ConsumeExternalFormSubmissionsJob.
+# Marking it reviewed runs the form processor, which may create a Client and Enrollment.
+# See docs/features/hmis/hmis-external-forms.md for more details.
 module HmisExternalApis::ExternalForms
   class FormSubmission < ::HmisExternalApis::HmisExternalApisBase
     include ::Hmis::Hud::Concerns::FormSubmittable
