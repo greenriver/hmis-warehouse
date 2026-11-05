@@ -85,10 +85,10 @@ module Types
 
     def tags
       unless_redacted([]) do
-        # Equivalent to ClientFileBase#tags, which queries per file; batch-load through the taggings instead
-        taggings = load_ar_association(object, :tag_taggings).select { |tagging| tagging.tagger_id.nil? }
-        tag_names = dataloader.with(Sources::ActiveRecordAssociation, :tag).load_all(taggings).compact.map(&:name)
-        dataloader.with(Sources::ActiveRecordScope, GrdaWarehouse::AvailableFileTag).load_all(tag_names).compact.map(&:id)
+        # Equivalent to ClientFileBase#tags, which queries per file; batch-load through the taggings instead.
+        # tag_list stores AvailableFileTag ids as tag names. tag_taggings already includes(:tag).
+        tag_ids = load_ar_association(object, :tag_taggings).filter_map { |tagging| tagging.tag&.name if tagging.tagger_id.nil? }
+        dataloader.with(Sources::ActiveRecordScope, GrdaWarehouse::AvailableFileTag).load_all(tag_ids).compact.map(&:id)
       end
     end
 

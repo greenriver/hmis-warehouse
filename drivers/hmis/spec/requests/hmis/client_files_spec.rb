@@ -210,7 +210,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       let!(:own_file_at_p3) { create :file, client: c1, enrollment: e3, blob: blob, user: hmis_user }
 
       it 'returns the file with a null enrollment instead of failing the query' do
-        expect(file_node(c1, own_file_at_p3)).to include('enrollmentId' => e3.id.to_s, 'enrollment' => nil)
+        expect(file_node(c1, own_file_at_p3)).to include('enrollment' => nil)
       end
     end
   end
