@@ -39,12 +39,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   # Matches GetClientFiles in hmis-frontend (src/api/operations/client.queries.graphql), including its fragments
   let(:query) do
     <<~GRAPHQL
-      query GetClientFiles(
-        $id: ID!
-        $limit: Int = 10
-        $offset: Int = 0
-        $includeOrganizationName: Boolean = false
-      ) {
+      query GetClientFiles($id: ID!, $limit: Int = 10, $offset: Int = 0) {
         client(id: $id) {
           id
           files(limit: $limit, offset: $offset) {
@@ -54,7 +49,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             nodes {
               ...FileFields
               enrollment {
-                ...ClientEnrollmentFields
+                id
+                projectName
+                organizationName
               }
             }
           }
@@ -92,25 +89,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         dateUpdated
         user {
           ...UserFields
-        }
-      }
-
-      fragment ClientEnrollmentFields on Enrollment {
-        id
-        lockVersion
-        entryDate
-        exitDate
-        autoExited
-        moveInDate
-        lastBedNightDate
-        projectName
-        organizationName @include(if: $includeOrganizationName)
-        projectType
-        inProgress
-        relationshipToHoH
-        access {
-          id
-          canViewEnrollmentDetails
         }
       }
 
@@ -172,7 +150,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         'tags' => [tag.id.to_s],
         'redacted' => false,
         'enrollmentId' => e1.id.to_s,
-        'enrollment' => include('id' => e1.id.to_s, 'entryDate' => e1.entry_date.strftime('%Y-%m-%d')),
+        'enrollment' => { 'id' => e1.id.to_s, 'projectName' => p1.project_name, 'organizationName' => o1.organization_name },
         'uploadedBy' => { 'id' => other_user.id.to_s, 'name' => other_user.name },
         'updatedBy' => { 'id' => hmis_user.id.to_s, 'name' => hmis_user.name },
         'user' => include('id' => hmis_user.id.to_s),
@@ -265,7 +243,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     def fetch_files(expected_count)
       count_database_queries do
-        response, result = post_graphql(id: c1.id, limit: 100, include_organization_name: true) { query }
+        response, result = post_graphql(id: c1.id, limit: 100) { query }
         expect(response.status).to eq(200), result.inspect
         expect(result.dig('data', 'client', 'files', 'nodes').size).to eq(expected_count)
       end
@@ -282,13 +260,13 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(queries_for_30_files).to eq(queries_for_10_files)
     end
 
-    it 'stays under 40 queries for 30 files' do
+    it 'stays under 37 queries for 30 files' do
       create_files(15)
       expect do
-        response, result = post_graphql(id: c1.id, limit: 100, include_organization_name: true) { query }
+        response, result = post_graphql(id: c1.id, limit: 100) { query }
         expect(response.status).to eq(200), result.inspect
         expect(result.dig('data', 'client', 'files', 'nodes').size).to eq(30)
-      end.to make_database_queries(count: 15..40)
+      end.to make_database_queries(count: 15..37)
     end
   end
 end
