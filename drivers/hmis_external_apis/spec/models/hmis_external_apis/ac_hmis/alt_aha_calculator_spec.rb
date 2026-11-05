@@ -14,14 +14,15 @@ RSpec.describe HmisExternalApis::AcHmis::AltAhaCalculator, type: :model do
   let(:client) { create(:hmis_hud_client, dob: Date.current - 42.years, Woman: 1) }
 
   describe '#calculate_score' do
-    let!(:baseline_rule_1) { create(:hmis_scoring_rule, algorithm: 'alt_aha_1') }
-    let!(:baseline_rule_2) { create(:hmis_scoring_rule, algorithm: 'alt_aha_2') }
-    let!(:baseline_rule_3) { create(:hmis_scoring_rule, algorithm: 'alt_aha_3') }
+    let!(:baseline_rule_1) { create(:hmis_scoring_rule, :v1, algorithm: 'alt_aha_1') }
+    let!(:baseline_rule_2) { create(:hmis_scoring_rule, :v1, algorithm: 'alt_aha_2') }
+    let!(:baseline_rule_3) { create(:hmis_scoring_rule, :v1, algorithm: 'alt_aha_3') }
 
     describe 'exact match rule' do
       let!(:exact_match_rule) do
         create(
           :hmis_scoring_rule,
+          :v1,
           link_id: 'question_exact',
           form_definition_identifier: 'test_form',
           criteria_type: Hmis::Scoring::Rule::EXACT_MATCH,
@@ -46,12 +47,37 @@ RSpec.describe HmisExternalApis::AcHmis::AltAhaCalculator, type: :model do
         expect(log.calculation_details['alt_aha_2']['raw_score']).to eq('0.0')
         expect(log.calculation_details['alt_aha_3']['raw_score']).to eq('0.0')
       end
+
+      it 'ignores model version 2 rules for the same form' do
+        create(
+          :hmis_scoring_rule,
+          :v2,
+          link_id: 'question_exact',
+          form_definition_identifier: 'test_form',
+          criteria_type: Hmis::Scoring::Rule::EXACT_MATCH,
+          criteria_config: { 'match_value' => 'Yes' },
+          weight: 0.9,
+          algorithm: 'alt_aha_1',
+        )
+
+        calculator = described_class.new(
+          values_by_link_id: { 'question_exact' => 'Yes' },
+          client: client,
+          user: user,
+          owner: owner,
+          form_definition_identifier: 'test_form',
+        )
+
+        _score, log = calculator.calculate_score
+        expect(log.calculation_details['alt_aha_1']['raw_score']).to eq('0.5')
+      end
     end
 
     describe 'range rule' do
       let!(:range_rule) do
         create(
           :hmis_scoring_rule,
+          :v1,
           link_id: 'question_range',
           form_definition_identifier: 'test_form',
           criteria_type: Hmis::Scoring::Rule::RANGE,
@@ -82,6 +108,7 @@ RSpec.describe HmisExternalApis::AcHmis::AltAhaCalculator, type: :model do
       let!(:value_rule) do
         create(
           :hmis_scoring_rule,
+          :v1,
           link_id: 'question_value',
           form_definition_identifier: 'test_form',
           criteria_type: Hmis::Scoring::Rule::VALUE,
@@ -112,6 +139,7 @@ RSpec.describe HmisExternalApis::AcHmis::AltAhaCalculator, type: :model do
       let!(:include_rule) do
         create(
           :hmis_scoring_rule,
+          :v1,
           link_id: 'question_include',
           form_definition_identifier: 'test_form',
           criteria_type: Hmis::Scoring::Rule::INCLUDE,
@@ -160,6 +188,7 @@ RSpec.describe HmisExternalApis::AcHmis::AltAhaCalculator, type: :model do
       let!(:weighted_exact_match_rule) do
         create(
           :hmis_scoring_rule,
+          :v1,
           link_id: 'weighted_exact',
           form_definition_identifier: 'test_form',
           criteria_type: Hmis::Scoring::Rule::EXACT_MATCH,
@@ -172,6 +201,7 @@ RSpec.describe HmisExternalApis::AcHmis::AltAhaCalculator, type: :model do
       let!(:null_exact_match_rule) do
         create(
           :hmis_scoring_rule,
+          :v1,
           link_id: 'null_exact',
           form_definition_identifier: 'test_form',
           criteria_type: Hmis::Scoring::Rule::EXACT_MATCH,
@@ -184,6 +214,7 @@ RSpec.describe HmisExternalApis::AcHmis::AltAhaCalculator, type: :model do
       let!(:range_rule) do
         create(
           :hmis_scoring_rule,
+          :v1,
           link_id: 'range_question',
           form_definition_identifier: 'test_form',
           criteria_type: Hmis::Scoring::Rule::RANGE,
@@ -196,6 +227,7 @@ RSpec.describe HmisExternalApis::AcHmis::AltAhaCalculator, type: :model do
       let!(:client_age_rule) do
         create(
           :hmis_scoring_rule,
+          :v1,
           link_id: 'client_demographics_age',
           form_definition_identifier: 'test_form',
           criteria_type: Hmis::Scoring::Rule::VALUE,
@@ -207,6 +239,7 @@ RSpec.describe HmisExternalApis::AcHmis::AltAhaCalculator, type: :model do
       let!(:client_gender_rule) do
         create(
           :hmis_scoring_rule,
+          :v1,
           link_id: 'client_demographics_gender',
           form_definition_identifier: 'test_form',
           criteria_type: Hmis::Scoring::Rule::EXACT_MATCH,
