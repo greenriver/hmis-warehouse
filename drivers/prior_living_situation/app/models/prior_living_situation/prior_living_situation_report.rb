@@ -100,7 +100,7 @@ module PriorLivingSituation
     def data_for_living_situations
       @data_for_living_situations ||= begin
         data = {}
-        report_scope.joins(:enrollment, project: :project_cocs).
+        report_scope.joins(:enrollment).joins_project_cocs(coc_codes: filter.coc_codes).
           order(:CoCCode, :first_date_in_program).
           pluck(
             :client_id,

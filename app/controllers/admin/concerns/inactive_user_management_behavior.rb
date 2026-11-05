@@ -58,7 +58,7 @@ module Admin
       private def perform_search(search_params = {})
         @query = search_params['q'].presence
         if @query
-          @users = user_scope.text_search(@query)
+          @users = user_scope.text_search(@query, sort_by_best_match: true)
         else
           @users = user_scope.none
         end

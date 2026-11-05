@@ -39,7 +39,7 @@ module HmisExternalApis::AcHmis
       # Cache all scoring rules
       @all_rules = Hmis::Scoring::Rule.
         for_form(@form_definition_identifier).
-        where(algorithm: ['alt_aha_1', 'alt_aha_2', 'alt_aha_3'])
+        where(model_version: 1, algorithm: ['alt_aha_1', 'alt_aha_2', 'alt_aha_3'])
     end
 
     def calculate_score

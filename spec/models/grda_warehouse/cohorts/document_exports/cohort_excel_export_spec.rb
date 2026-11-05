@@ -122,5 +122,52 @@ RSpec.describe GrdaWarehouse::Cohorts::DocumentExports::CohortExcelExport, type:
       expect(export.status).to eq(GrdaWarehouse::DocumentExport::COMPLETED_STATUS)
       expect(export.filename).to start_with("Cohort - #{cohort.name} - Active Clients - ")
     end
+
+    context 'with more clients than the preload-miss threshold, one of them restricted in HMIS' do
+      let(:hmis_ds) { create(:hmis_primary_data_source) }
+      let(:hmis_user) { create(:hmis_user, data_source: hmis_ds) }
+      let(:restricted_source_client) { create(:hmis_hud_client, data_source: hmis_ds, first_name: 'Restricted', last_name: 'Client') }
+      let!(:restricted_client) { create(:grda_warehouse_hud_client, data_source: data_source, FirstName: 'Restricted', LastName: 'Client') }
+      let!(:open_clients) do
+        (1..GrdaWarehouse::AuthPolicies::PreloadMissTracker::THRESHOLD).map do |i|
+          create(:grda_warehouse_hud_client, data_source: data_source, FirstName: "Open#{i}", LastName: 'Client')
+        end
+      end
+
+      before do
+        GrdaWarehouse::WarehouseClient.create!(destination_id: restricted_client.id, source_id: restricted_source_client.id, data_source_id: hmis_ds.id, id_in_source: restricted_source_client.id.to_s)
+        restricted_source_client.mark_as_restricted!(user: hmis_user)
+        ([restricted_client] + open_clients).each { |c| create(:cohort_client, cohort: cohort, client: c) }
+      end
+
+      def names_by_client_id(file_data)
+        file = Tempfile.new(['cohort_export', '.xlsx'])
+        file.binmode
+        file.write(file_data)
+        file.close
+        sheet = Roo::Excelx.new(file.path).sheet(0)
+        headers = sheet.row(1)
+        id_index = headers.index('Warehouse Client ID')
+        first_index = headers.index('First Name')
+        last_index = headers.index('Last Name')
+        (2..sheet.last_row).to_h do |i|
+          row = sheet.row(i)
+          [row[id_index], [row[first_index], row[last_index]]]
+        end
+      ensure
+        file&.unlink
+      end
+
+      it 'redacts the restricted client and shows names for the others' do
+        export.perform
+
+        expect(export.status).to eq(GrdaWarehouse::DocumentExport::COMPLETED_STATUS)
+        names = names_by_client_id(export.file_data)
+        expect(names[restricted_client.id]).to eq(['Name Redacted', 'Name Redacted'])
+        open_clients.each do |c|
+          expect(names[c.id]).to eq([c.FirstName, 'Client'])
+        end
+      end
+    end
   end
 end

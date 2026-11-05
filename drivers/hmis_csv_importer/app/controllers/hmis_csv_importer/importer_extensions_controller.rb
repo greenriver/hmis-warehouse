@@ -52,6 +52,7 @@ class HmisCsvImporter::ImporterExtensionsController < ApplicationController
       HmisCsvImporter::PostIngestCleanup::FixIncorrectPersonalIdReferences,
       HmisCsvImporter::Loader::HudKeyRemapper,
       HmisCsvImporter::Loader::UnlinkedRecordFilter,
+      HmisCsvImporter::Loader::CurrentLivingSitIdRegenerator,
     ].sort_by(&:associated_model).
       freeze
   end

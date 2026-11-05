@@ -481,14 +481,15 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
 
     private def sheltered_and_unsheltered_last_three_years
       @sheltered_and_unsheltered_last_three_years ||= begin
-        # homeless IS FALSE: homeless is NULL for non-homeless, non-PH days, and those are not housed
+        project_type = three_year_source.arel_table[:project_type]
         per_day = three_year_source.
           where(client_id: @client_ids, date: three_year_range).
           group(:client_id, :date).
           select(
             :client_id,
-            Arel.sql("bool_or(project_type IN (#{HudHelper.util.homeless_sheltered_project_types.join(',')})) AS sheltered"),
-            Arel.sql("bool_or(project_type IN (#{HudHelper.util.homeless_unsheltered_project_types.join(',')})) AS unsheltered"),
+            nf('bool_or', [project_type.in(HudHelper.util.homeless_sheltered_project_types)], 'sheltered'),
+            nf('bool_or', [project_type.in(HudHelper.util.homeless_unsheltered_project_types)], 'unsheltered'),
+            # homeless IS FALSE: homeless is NULL for non-homeless, non-PH days, and those are not housed
             Arel.sql('bool_or(homeless IS FALSE) AS housed'),
           )
         three_year_source.from(per_day, :d).group('d.client_id').pluck(
@@ -696,7 +697,8 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
     end
 
     def last_rrh_visit(client_id)
-      @last_rrh_visit ||= last_seen_in_type(:rrh)
+      # RRH: Services Only is not a housing resource
+      @last_rrh_visit ||= last_seen_in_type(:rrh, GrdaWarehouse::ServiceHistoryEnrollment.residential)
       @last_rrh_visit[client_id] || []
     end
 
@@ -706,10 +708,11 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
     end
 
     # NOTE: this should be cached in the calling method since this will return different results based on type provided
-    private def last_seen_in_type(type)
+    private def last_seen_in_type(type, she_scope = GrdaWarehouse::ServiceHistoryEnrollment.all)
       lsit = {}
       GrdaWarehouse::ServiceHistoryEnrollment.entry.ongoing.
         merge(GrdaWarehouse::Hud::Project.public_send(type)).
+        merge(she_scope).
         where(client_id: @client_ids).
         joins(:service_history_services, :project, :organization).
         group(:client_id, :project_name, p_t[:id], bool_or(p_t[:confidential], o_t[:confidential])).

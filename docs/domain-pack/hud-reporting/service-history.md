@@ -263,7 +263,9 @@ inline.
 `days_homeless_last_three_years`, `literally_homeless_last_three_years`,
 `days_homeless_plus_overrides`, `last_intentional_contacts`, `last_exit_destination`) and
 `extra_data` (clients on an active cohort or `cas_active`, who also get ongoing-enrollment
-flags, household members, VI-SPDAT scores, CAS match fields, and per-type last visits). Rows
+flags, household members, VI-SPDAT scores, CAS match fields, and per-type last visits). The RRH
+last visit (`last_rrh_visit`, the "Ongoing RRH Enrollments" cohort column) leaves out RRH:
+Services Only regardless of move-in date. Rows
 are upserted with `import` on `(client_id, routine)` under the `WarehouseClientsProcessed#upsert`
 advisory lock, then `Hud::Client.destination.clear_view_cache(client_id)`.
 
