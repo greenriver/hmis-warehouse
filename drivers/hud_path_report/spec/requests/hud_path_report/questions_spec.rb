@@ -8,7 +8,7 @@
 
 require 'rails_helper'
 
-RSpec.describe 'HudPathReport filter scope', type: :request, exclude_fixpoints: true do
+RSpec.describe 'HudPathReport single question runs', type: :request, exclude_fixpoints: true do
   before(:all) { GrdaWarehouse::Utility.clear! }
   after(:all) { GrdaWarehouse::Utility.clear! }
 
