@@ -77,6 +77,40 @@ RSpec.describe model, type: :model do
           expect(user_ids[user]).to eq ids[r1]
         end
       end
+
+      describe 'user granted the same report through more than one collection' do
+        let!(:first_collection) { create :collection }
+        let!(:second_collection) { create :collection }
+        let!(:unpermitted_collection) { create :collection }
+        let!(:r3) { create :core_demographics_report }
+
+        before do
+          first_collection.set_viewables({ reports: [r1.id, r2.id] })
+          second_collection.set_viewables({ reports: [r1.id] })
+          unpermitted_collection.set_viewables({ reports: [r1.id, r3.id] })
+          setup_access_control(user, assigned_report_viewer, first_collection)
+          setup_access_control(user, assigned_report_viewer, second_collection)
+          setup_access_control(user, no_permission_role, unpermitted_collection)
+        end
+
+        it 'returns each report once' do
+          expect(model.viewable_by(user).pluck(:id)).to contain_exactly(r1.id, r2.id)
+        end
+
+        it 'returns each report once when ordered by name' do
+          expect(model.viewable_by(user).order(name: :asc).pluck(:id)).to eq([r1, r2].sort_by(&:name).map(&:id))
+        end
+
+        it 'excludes a report found only in a collection whose role lacks can_view_assigned_reports' do
+          expect(model.viewable_by(user).where(id: r3.id).exists?).to be false
+        end
+
+        it 'drops a report once its only permitted collection assignment is removed' do
+          first_collection.set_viewables({ reports: [r1.id] })
+
+          expect(model.viewable_by(user).pluck(:id)).to contain_exactly(r1.id)
+        end
+      end
     end
   end
 

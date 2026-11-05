@@ -177,6 +177,7 @@ window.addHouseholdTypeListener = function (individualOrFamilySelector) {
   setWindowHouseholdId();
 
   // Listener for household type (Individual or Family)
+  // See "Gotchas" in docs/features/hmis/hmis-external-forms.md
   //
   // Expected item attributes:
   //

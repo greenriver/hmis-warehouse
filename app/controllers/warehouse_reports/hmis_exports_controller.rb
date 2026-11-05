@@ -37,14 +37,18 @@ module WarehouseReports
         parameters.delete('_aj_globalid')
         parameters['project_ids'] = parameters.delete('projects')
         report = GrdaWarehouse::HmisExport.new(parameters)
-        # Matches export_scope for finished exports.
-        next unless can_view_all_reports? || report.user_id == current_user.id
+        next unless queued_report_visible?(report)
 
         [job.run_at, report]
       rescue Psych::Exception => e
         Sentry.capture_exception(e)
         nil
       end
+    end
+
+    # Queued exports aren't saved yet, so this repeats export_scope's rules in Ruby.
+    private def queued_report_visible?(report)
+      can_view_all_reports? || report.user_id == current_user.id
     end
 
     def set_exports
