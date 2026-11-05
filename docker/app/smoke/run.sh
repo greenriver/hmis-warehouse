@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Smoke test a production image: rake, puma, a styled page, and a delayed job.
+# Smoke test a production image: rake, puma, a styled page, a delayed job, and a PDF.
 # Usage: docker/app/smoke/run.sh <image>
 set -euo pipefail
 
@@ -28,7 +28,7 @@ for _ in $(seq 90); do get -o /dev/null "$url/bootz" 2>/dev/null && break; sleep
 get "$url/bootz"; echo
 
 echo '== styled page'
-css=$(get "$url/users/sign_in" | grep -o '/assets/[^"]*\.css' | head -1)
+css=$(get "$url/users/sign_in" | grep -m1 -o '/assets/[^"]*\.css' || true)
 [ -n "$css" ] || { echo 'no stylesheet link'; exit 1; }
 bytes=$(get -o /dev/null -w '%{content_type} %{size_download}' "$url$css")
 echo "$css $bytes"
@@ -42,5 +42,8 @@ app rails runner '
   ok, failed = Delayed::Worker.new(queues: ["smoke"]).work_off
   abort "delayed job: #{ok} ok, #{failed} failed" unless ok == 1 && failed.zero?
 '
+
+echo '== pdf (grover, chromium)'
+app rails runner 'abort "no PDF" unless PdfGenerator.render_pdf("<p>smoke</p>").start_with?("%PDF")'
 
 echo 'smoke test passed'

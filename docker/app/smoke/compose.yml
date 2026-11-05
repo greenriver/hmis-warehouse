@@ -16,7 +16,6 @@ services:
 
   app:
     image: ${SMOKE_IMAGE:?set SMOKE_IMAGE}
-    platform: linux/amd64
     env_file: smoke.env
     command: [puma, -b, tcp://0.0.0.0:3000]
     ports:
