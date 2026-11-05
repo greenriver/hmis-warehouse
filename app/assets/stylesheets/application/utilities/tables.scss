@@ -22,6 +22,18 @@ tr.even td {
   background-color: var(--gray-015);
 }
 
+// Put on the table's wrapper. Browsers ignore percentage max-width on table cells, so the
+// cap uses container units (1cqi = 1% of this wrapper's width).
+.table-capped-columns {
+  container-type: inline-size;
+
+  th,
+  td {
+    max-width: 15cqi;
+    overflow-wrap: anywhere;
+  }
+}
+
 .table-striped {
   background-color: var(--white);
   margin-bottom: 0;

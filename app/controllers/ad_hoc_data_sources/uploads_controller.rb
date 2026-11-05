@@ -22,7 +22,7 @@ class AdHocDataSources::UploadsController < ApplicationController
     possible_matches = GrdaWarehouse::Hud::Client.where(id: possible_client_ids).index_by(&:id)
     @possible_matches = {}
     @upload.ad_hoc_clients.each do |ad_hoc_client|
-      @possible_matches[ad_hoc_client.id] = possible_matches.values_at(*ad_hoc_client.matching_client_ids).compact
+      @possible_matches[ad_hoc_client.id] = possible_matches.values_at(*Array(ad_hoc_client.matching_client_ids).uniq).compact
     end
   end
 

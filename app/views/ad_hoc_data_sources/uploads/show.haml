@@ -36,7 +36,7 @@
   .row.table-utilities
     .col-sm-12
       .card
-        .table-responsive
+        .table-responsive.table-capped-columns
           %table.table.table-striped
             %thead
               %tr
@@ -48,6 +48,8 @@
                 %th Possible Matches
                 %th.text-center= Translation.translate('Health Priority')
             %tbody
+              -# client_path encrypts the id on every call, and the same client can be a possible match for many rows.
+              - possible_paths = {}
               - @upload.ad_hoc_clients.find_each.with_index do |client, i|
                 - odd_class = if i.even? then 'even' else 'odd' end
                 - matched_client = @found_clients[client.client_id]
@@ -103,7 +105,7 @@
                     %tr{class: odd_class}
                       %td{colspan: 5}
                       %td
-                        = link_to possible.name, client_path(possible), target: :_blank
+                        = link_to possible.name, (possible_paths[possible.id] ||= client_path(possible)), target: :_blank
                         (#{possible.id})
                       %td.text-center
                         = f.input :health_prioritized, as: :boolean, label: false, input_html: { name: "clients[#{possible.id}][health_prioritized]", checked: possible.health_prioritized_for_cas? }
