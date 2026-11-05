@@ -6,6 +6,8 @@
 
 # frozen_string_literal: true
 
+# Site config for published external forms, read from `external_forms/*` AppConfigProperty records.
+# See docs/features/hmis/hmis-external-forms.md for more details.
 module HmisExternalApis::ExternalForms
   class Config
     PROPERTIES = [:site_logo_alt, :site_logo_url, :site_logo_width, :site_logo_height, :recaptcha_key, :presign_url, :sentry_sdk_url, :csp_content].freeze
@@ -34,7 +36,7 @@ module HmisExternalApis::ExternalForms
 
     # Validate that all necessary creds and config are present to support publishing
     # external forms and consuming external form submissions.
-    # See https://docs.google.com/document/d/1gV_naB47tUd0xB57EZFyWPjybbOMj2TKm2T1UDC2FU4/edit?tab=t.0#heading=h.58f9u5u7aj7f for more details on setup.
+    # See "Setting up external forms" in docs/features/hmis/hmis-external-forms.md for setup steps.
     def self.validate_external_forms_setup
       logger = Rails.logger
       missing = []

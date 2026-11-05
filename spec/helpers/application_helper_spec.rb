@@ -351,4 +351,33 @@ RSpec.describe ApplicationHelper, type: :helper do
       end
     end
   end
+
+  describe '#pagy_url_for' do
+    let(:custom_url) { '/reports?filter[start]=2023-01-01&filter[project_type_codes][]=es&filter[project_type_codes][]=so&page=3' }
+    let(:pagy) { Pagy.new(count: 100, page: 1).tap { |p| p.vars[:custom_url] = custom_url } }
+
+    def query_for(url)
+      Rack::Utils.parse_nested_query(URI(url).query)
+    end
+
+    it 'keeps array filters from the custom URL' do
+      expect(query_for(helper.pagy_url_for(pagy, 2))).to eq(
+        'filter' => { 'start' => '2023-01-01', 'project_type_codes' => ['es', 'so'] },
+        'page' => '2',
+      )
+    end
+
+    it 'overrides a custom URL filter with the request value and keeps the other filters' do
+      helper.request.query_string = 'filter[start]=2024-01-01'
+
+      expect(query_for(helper.pagy_url_for(pagy, 2))['filter']).to eq(
+        'start' => '2024-01-01',
+        'project_type_codes' => ['es', 'so'],
+      )
+    end
+
+    it 'drops the page param for page 1' do
+      expect(query_for(helper.pagy_url_for(pagy, 1))).not_to have_key('page')
+    end
+  end
 end
