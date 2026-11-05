@@ -98,9 +98,45 @@ RSpec.describe ActiveClientReport, type: :model do
       expect(report.enrollment_count).to eq(2)
       expect(report.unique_client_count).to eq(1)
     end
+
+    it 'ignores exit records even when a service row points at one' do
+      exited = create_enrollment(client: client, project: project, entry_date: start_date + 10.days, exit_date: start_date + 20.days)
+      create_bed_night_service(enrollment: exited, date: start_date + 11.days)
+      GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find_each(&:rebuild_service_history!)
+      exit_record = GrdaWarehouse::ServiceHistoryEnrollment.find_by!(record_type: 'exit', enrollment_group_id: exited.EnrollmentID)
+      create(
+        :service_history_service,
+        service_history_enrollment_id: exit_record.id,
+        client_id: exit_record.client_id,
+        date: start_date + 11.days,
+        record_type: 'service',
+        project_type: exit_record.project_type,
+      )
+
+      expect(report.enrollment_count).to eq(2)
+      expect(report.enrollment_scope.map(&:record_type)).to contain_exactly('entry', 'entry')
+    end
+  end
+
+  describe '#counts' do
+    it 'computes both counts in a single query and reuses it' do
+      queries = []
+      callback = ->(*, payload) { queries << payload[:sql] if payload[:sql].include?('COUNT(DISTINCT') }
+      ActiveSupport::Notifications.subscribed(callback, 'sql.active_record') do
+        2.times { report.enrollment_count }
+        report.unique_client_count
+      end
+
+      expect(queries.size).to eq(1)
+      expect(report.counts).to eq(enrollments: 1, clients: 1)
+    end
   end
 
   describe '#enrollment_scope' do
+    it 'does not use DISTINCT' do
+      expect(report.enrollment_scope.to_sql).not_to include('SELECT DISTINCT')
+    end
+
     it 'returns the qualifying enrollment(s) ordered by program dates' do
       # Use materialized records to avoid DISTINCT/ORDER BY select-list mismatch
       ids = report.enrollment_scope.to_a.map(&:id)
