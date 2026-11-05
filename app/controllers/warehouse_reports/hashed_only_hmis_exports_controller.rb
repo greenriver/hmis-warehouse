@@ -29,6 +29,10 @@ module WarehouseReports
       super().where(hash_status: 4)
     end
 
+    private def queued_report_visible?(report)
+      super && report.hash_status == 4
+    end
+
     def report_params
       export_source.clean_params(
         params.require(:filter).permit(
