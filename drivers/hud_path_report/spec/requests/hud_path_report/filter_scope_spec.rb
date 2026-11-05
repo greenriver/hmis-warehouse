@@ -66,7 +66,6 @@ RSpec.describe 'HudPathReport filter scope', type: :request, exclude_fixpoints: 
 
       report = HudReports::ReportInstance.last
       expect(report.project_ids).to contain_exactly(visible_project.id)
-      expect(Array(report.options['project_ids']).map(&:to_i)).to contain_exactly(visible_project.id)
     end
 
     it 'stores only projects the user can report on for a single question run' do

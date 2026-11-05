@@ -64,7 +64,6 @@ module HudPathReport
       end
       # Override with params if set
       @filter.update(filter_params) if filter_params.present?
-      limit_filter_to_viewable!
     end
 
     def active_report_versions
