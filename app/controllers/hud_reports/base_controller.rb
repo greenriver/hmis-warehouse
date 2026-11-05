@@ -292,6 +292,26 @@ module HudReports
       @filter.update(filter_params) if filter_params.present?
     end
 
+    private def limit_filter_to_viewable!
+      normalize = ->(values) { Array(values).reject(&:blank?).map(&:to_i) }
+      viewable_project_ids = @filter.all_project_ids
+      viewable_group_ids = GrdaWarehouse::ProjectGroup.viewable_by(current_user).pluck(:id)
+
+      @filter.project_ids = normalize.call(@filter.project_ids) & viewable_project_ids
+      @filter.organization_ids = normalize.call(@filter.organization_ids) & @filter.all_organizations_scope.pluck(:id)
+      @filter.data_source_ids = normalize.call(@filter.data_source_ids) & @filter.all_data_sources_scope.pluck(:id)
+      @filter.project_group_ids = normalize.call(@filter.project_group_ids) & viewable_group_ids
+
+      [:secondary_project_ids, :excluded_project_ids].each do |field|
+        next unless @filter.respond_to?(field)
+
+        @filter.public_send("#{field}=", normalize.call(@filter.public_send(field)) & viewable_project_ids)
+      end
+      return unless @filter.respond_to?(:secondary_project_group_ids)
+
+      @filter.secondary_project_group_ids = normalize.call(@filter.secondary_project_group_ids) & viewable_group_ids
+    end
+
     def filter_params
       return {} unless params[:filter]
 
