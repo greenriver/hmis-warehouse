@@ -105,6 +105,24 @@ RSpec.describe Admin::UsersController, type: :request do
       end
     end
 
+    context 'when the admin saves a user whose 2FA was turned off but is still confirmed', :devise_only do
+      let!(:confirmed_off) do
+        create(:user_2fa, otp_required_for_login: false, confirmed_2fa: 2)
+      end
+      let!(:device) do
+        confirmed_off.two_factors_memorized_devices.create!(uuid: SecureRandom.uuid, name: 'Laptop', expires_at: 1.week.from_now)
+      end
+
+      it 'clears the OTP secret and deletes remembered devices' do
+        patch admin_user_path(confirmed_off), params: { user: { otp_required_for_login: 'false' } }
+
+        confirmed_off.reload
+        expect(confirmed_off.otp_secret).to be_nil
+        expect(confirmed_off.confirmed_2fa).to eq(0)
+        expect(TwoFactorsMemorizedDevice.where(id: device.id)).not_to exist
+      end
+    end
+
     context 'when updating vi-spdat notifications' do
       let(:updated_user) { User.not_system.first }
       before(:each) do
