@@ -124,9 +124,9 @@ RSpec.describe Importing::RunDailyImportsJob, type: :job do
         expect(notifier).to have_received(:ping).with(a_string_matching(/Nightly Process completed in/))
       end
 
-      describe 'chronic backfill' do
+      describe 'chronic list recalculation' do
         def configure_months_to_build(value)
-          create(:app_config_property, key: 'chronic_backfill/months_to_build', value: value)
+          create(:app_config_property, key: 'chronic_list_recalculation/months_to_build', value: value)
         end
 
         def chronic_dates_calculated
@@ -202,7 +202,7 @@ RSpec.describe Importing::RunDailyImportsJob, type: :job do
 
         context 'with days of the month configured' do
           before do
-            create(:app_config_property, key: 'chronic_backfill/days_of_month', value: [10, 25])
+            create(:app_config_property, key: 'chronic_list_recalculation/days_of_month', value: [10, 25])
             configure_months_to_build(2)
           end
 
