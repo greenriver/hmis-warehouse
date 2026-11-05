@@ -95,8 +95,9 @@ RSpec.describe 'AdHocDataSources::UploadsController', type: :request do
     it 'shows each possible match once' do
       get ad_hoc_data_source_upload_path(data_source, batch)
 
+      doc = Nokogiri::HTML(response.body)
       checkbox_count = ->(client) do
-        Nokogiri::HTML(response.body).css("input[type=checkbox][name='clients[#{client.id}][health_prioritized]']").size
+        doc.css("input[type=checkbox][name='clients[#{client.id}][health_prioritized]']").size
       end
       expect([checkbox_count.call(possible_client), checkbox_count.call(other_possible_client)]).to eq([1, 1])
     end
