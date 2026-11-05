@@ -75,6 +75,18 @@ RSpec.describe 'HudPathReport filter scope', type: :request, exclude_fixpoints: 
 
       expect(HudReports::ReportInstance.last.project_ids).to eq([0])
     end
+
+    it 'stores the requested question for a single question run' do
+      post hud_reports_path_questions_path(path_id: 0), params: { question: 'Q17: Services Provided', filter: filter_params }
+
+      expect(HudReports::ReportInstance.last.build_for_questions).to eq(['Q17: Services Provided'])
+    end
+
+    it 'stores the fallback question when the requested name is not a PATH question' do
+      post hud_reports_path_questions_path(path_id: 0), params: { question: 'Not A Question', filter: filter_params }
+
+      expect(HudReports::ReportInstance.last.build_for_questions).to eq(['Q8-Q16'])
+    end
   end
 
   context 'with a legacy role-based user' do
