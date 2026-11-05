@@ -46,7 +46,11 @@ class Hmis::File < GrdaWarehouse::File
   scope :confidential, -> { where(confidential: true) }
   scope :nonconfidential, -> { where(confidential: [false, nil]) }
 
-  # Passing client_ids can significantly improve performance, to avoid a subquery on the entire Client table.
+  # Files the user can see.
+  #
+  # client_ids (optional): limit the result to files belonging to these clients. The result is the same as
+  # viewable_by(user).where(client_id: client_ids), but the filter is applied inside each visibility subquery,
+  # so Postgres doesn't evaluate visibility for every client. Blank client_ids means no client filter.
   # This may not be the perfect solution (combining scopes would be neater) but it works.
   # It is similar to the strategy described in the Warehouse's EnrollmentArbiter.
   scope :viewable_by, ->(user, client_ids: nil) do
@@ -82,7 +86,9 @@ class Hmis::File < GrdaWarehouse::File
       viewable_scope = viewable_scope.or(own_scope)
     end
 
-    # Filter on files.client_id so the subquery can use the index on client_id instead of scanning all files
+    # Performance only: the scopes above already limit results to these clients, but only inside the
+    # CASE/OR subqueries, which Postgres can't use an index for. This top-level filter on files.client_id
+    # lets it use the index on client_id instead of scanning all files.
     viewable_scope = viewable_scope.where(client_id: client_ids) if client_ids.present?
 
     where(id: viewable_scope.select(:id))
