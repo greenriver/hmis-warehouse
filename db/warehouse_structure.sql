@@ -43041,7 +43041,7 @@ ALTER SEQUENCE public.hmis_scoring_rules_id_seq OWNED BY public.hmis_scoring_rul
 --
 
 CREATE VIEW public.hmis_services AS
- SELECT (concat('1', ("Services".id)::character varying))::integer AS id,
+ SELECT (concat('1', ("Services".id)::character varying))::bigint AS id,
     "Services".id AS owner_id,
     'Hmis::Hud::Service'::text AS owner_type,
     "Services"."RecordType",
@@ -43058,7 +43058,7 @@ CREATE VIEW public.hmis_services AS
    FROM public."Services"
   WHERE ("Services"."DateDeleted" IS NULL)
 UNION ALL
- SELECT (concat('2', ("CustomServices".id)::character varying))::integer AS id,
+ SELECT (concat('2', ("CustomServices".id)::character varying))::bigint AS id,
     "CustomServices".id AS owner_id,
     'Hmis::Hud::CustomService'::text AS owner_type,
     NULL::integer AS "RecordType",

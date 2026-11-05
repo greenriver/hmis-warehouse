@@ -2,7 +2,7 @@
 (
 	SELECT
 		CAST(
-			CONCAT('1', CAST("Services"."id" AS VARCHAR)) AS INT
+			CONCAT('1', CAST("Services"."id" AS VARCHAR)) AS BIGINT
 		) AS id,
 		"Services"."id" AS owner_id,
 		'Hmis::Hud::Service' AS owner_type,
@@ -26,7 +26,7 @@ UNION
 ALL (
 	SELECT
 		CAST(
-			CONCAT('2', CAST("CustomServices".id AS VARCHAR)) AS INT
+			CONCAT('2', CAST("CustomServices".id AS VARCHAR)) AS BIGINT
 		) AS id,
 		"CustomServices".id AS owner_id,
 		'Hmis::Hud::CustomService' AS owner_type,
