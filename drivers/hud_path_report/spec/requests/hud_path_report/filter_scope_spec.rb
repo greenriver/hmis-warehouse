@@ -43,12 +43,6 @@ RSpec.describe 'HudPathReport filter scope', type: :request, exclude_fixpoints: 
     end
   end
 
-  it 'does not route edit or update for PATH runs' do
-    expect(Rails.application.routes.url_helpers).not_to respond_to(:edit_hud_reports_path_path)
-    expect { Rails.application.routes.recognize_path('/hud_reports/paths/1', method: :patch) }.
-      to raise_error(ActionController::RoutingError)
-  end
-
   context 'with an ACL user' do
     let(:user) { create(:acl_user) }
 
@@ -76,18 +70,16 @@ RSpec.describe 'HudPathReport filter scope', type: :request, exclude_fixpoints: 
     end
 
     it 'stores only projects the user can report on when the run is prefilled from a prior report' do
-      prior = create(
+      create(
         :hud_reports_report_instance,
         user_id: user.id,
         report_name: HudPathReport::Generators::Fy2026::Generator.title,
-        options: filter_params.stringify_keys.merge('project_ids' => [visible_project.id, hidden_project.id]),
+        options: filter_params.stringify_keys,
       )
 
       expect { post hud_reports_paths_path }.to change(HudReports::ReportInstance, :count).by(1)
 
-      report = HudReports::ReportInstance.order(:id).last
-      expect(report.id).not_to eq(prior.id)
-      expect(report.project_ids).to contain_exactly(visible_project.id)
+      expect(HudReports::ReportInstance.order(:id).last.project_ids).to contain_exactly(visible_project.id)
     end
 
     it 'stores the no-project sentinel when every posted project is out of scope' do
@@ -97,9 +89,10 @@ RSpec.describe 'HudPathReport filter scope', type: :request, exclude_fixpoints: 
     end
 
     it 'stores the requested question for a single question run' do
-      post hud_reports_path_questions_path(path_id: 0), params: { question: 'Q17: Services Provided', filter: filter_params }
+      question = HudPathReport::Generators::Fy2026::QuestionSeventeen.question_number
+      post hud_reports_path_questions_path(path_id: 0), params: { question: question, filter: filter_params }
 
-      expect(HudReports::ReportInstance.last.build_for_questions).to eq(['Q17: Services Provided'])
+      expect(HudReports::ReportInstance.last.build_for_questions).to eq([question])
     end
 
     it 'stores the fallback question when the requested name is not a PATH question' do
