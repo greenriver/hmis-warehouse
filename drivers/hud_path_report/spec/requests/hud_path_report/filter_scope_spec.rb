@@ -76,6 +76,21 @@ RSpec.describe 'HudPathReport filter scope', type: :request, exclude_fixpoints: 
       expect(HudReports::ReportInstance.last.project_ids).to contain_exactly(visible_project.id)
     end
 
+    it 'stores only projects the user can report on when the run is prefilled from a prior report' do
+      prior = create(
+        :hud_reports_report_instance,
+        user_id: user.id,
+        report_name: HudPathReport::Generators::Fy2026::Generator.title,
+        options: filter_params.stringify_keys.merge('project_ids' => [visible_project.id, hidden_project.id]),
+      )
+
+      expect { post hud_reports_paths_path }.to change(HudReports::ReportInstance, :count).by(1)
+
+      report = HudReports::ReportInstance.order(:id).last
+      expect(report.id).not_to eq(prior.id)
+      expect(report.project_ids).to contain_exactly(visible_project.id)
+    end
+
     it 'stores the no-project sentinel when every posted project is out of scope' do
       post hud_reports_paths_path, params: { filter: filter_params.merge(project_ids: [hidden_project.id]) }
 
