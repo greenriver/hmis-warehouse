@@ -26,10 +26,9 @@ module HmisCsvImporter::HmisCsvCleanup
     end
 
     def assessment_scope
-      assessment_source.
-        where(importer_log_id: @importer_log.id).
-        where.not(PrioritizationStatus: 1).
-        or(assessment_source.where(PrioritizationStatus: nil))
+      current_import = assessment_source.where(importer_log_id: @importer_log.id)
+      current_import.where.not(PrioritizationStatus: 1).
+        or(current_import.where(PrioritizationStatus: nil))
     end
 
     def assessment_source

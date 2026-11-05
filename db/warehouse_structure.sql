@@ -500,10 +500,10 @@ CREATE TABLE public."Assessment" (
     "EnrollmentID" character varying NOT NULL,
     "PersonalID" character varying NOT NULL,
     "AssessmentDate" date NOT NULL,
-    "AssessmentLocation" character varying NOT NULL,
-    "AssessmentType" integer NOT NULL,
-    "AssessmentLevel" integer NOT NULL,
-    "PrioritizationStatus" integer NOT NULL,
+    "AssessmentLocation" character varying,
+    "AssessmentType" integer,
+    "AssessmentLevel" integer,
+    "PrioritizationStatus" integer,
     "DateCreated" timestamp without time zone NOT NULL,
     "DateUpdated" timestamp without time zone NOT NULL,
     "UserID" character varying(32) NOT NULL,
@@ -360293,6 +360293,7 @@ ALTER TABLE ONLY public.import_logs
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261028120000'),
 ('20261014140000'),
 ('20260921142542'),
 ('20260918121000'),

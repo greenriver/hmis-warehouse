@@ -44,9 +44,13 @@ done
 #   .env.test.local - a primary that sets its own test database names (e.g. a second
 #                     install using NAME_PREFIX); without it the rewrite starts from .env.test.
 #   CLAUDE.local.md - personal agent instructions; gitignored, so a new worktree lacks them.
-for f in .env.test.local CLAUDE.local.md; do
+#   .local-overcommit.yml, .overcommit-plugins - overcommit signs the merged
+#                     .overcommit.yml + .local-overcommit.yml and stores that signature in
+#                     the git config all worktrees share, so every tree needs the same local
+#                     config or each one fails the others' signature check.
+for f in .env.test.local CLAUDE.local.md .local-overcommit.yml .overcommit-plugins; do
   if [ -e "$primary_path/$f" ] && [ ! -e "$worktree_path/$f" ]; then
-    cp "$primary_path/$f" "$worktree_path/$f"
+    cp -r "$primary_path/$f" "$worktree_path/$f"
     echo "  copied $f"
   fi
 done

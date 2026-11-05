@@ -2609,7 +2609,7 @@ module GrdaWarehouse::Hud
         GrdaWarehouse::ServiceHistoryService.where(client_id: client_id).
           literally_homeless.
           where(date: start_date..end_date).
-          where.not(date: dates_hud_non_chronic_residential_last_three_years_scope(client_id: client_id)).
+          where.not(date: dates_hud_non_chronic_residential_last_three_years_scope(client_id: client_id, on_date: on_date)).
           select(:date).distinct
       end
     end
@@ -2635,13 +2635,13 @@ module GrdaWarehouse::Hud
         GrdaWarehouse::ServiceHistoryService.where(client_id: client_id).
           homeless.
           where(date: start_date..end_date).
-          where.not(date: dates_hud_non_chronic_residential_last_three_years_scope(client_id: client_id)).
+          where.not(date: dates_hud_non_chronic_residential_last_three_years_scope(client_id: client_id, on_date: on_date)).
           select(:date).distinct
       end
     end
 
-    def sheltered_days_homeless_last_three_years
-      end_date = Date.current
+    def sheltered_days_homeless_last_three_years(on_date: Date.current)
+      end_date = on_date.to_date
       start_date = end_date - 3.years
       sheltered_homeless_dates(start_date: start_date, end_date: end_date).count
     end
@@ -2655,8 +2655,8 @@ module GrdaWarehouse::Hud
         distinct
     end
 
-    def unsheltered_days_homeless_last_three_years
-      end_date = Date.current
+    def unsheltered_days_homeless_last_three_years(on_date: Date.current)
+      end_date = on_date.to_date
       start_date = end_date - 3.years
       unsheltered_days_homeless(start_date: start_date, end_date: end_date).count
     end
@@ -2672,7 +2672,7 @@ module GrdaWarehouse::Hud
     end
 
     # TH or PH
-    def self.dates_hud_non_chronic_residential_last_three_years_scope client_id:, on_date: Date.current
+    def self.dates_hud_non_chronic_residential_last_three_years_scope client_id:, on_date:
       end_date = on_date.to_date
       start_date = end_date - 3.years
 

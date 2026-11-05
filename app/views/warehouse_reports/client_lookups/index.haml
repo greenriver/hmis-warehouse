@@ -16,11 +16,11 @@
         = f.input :end, as: :date_picker
     .row
       .col-sm-4
-        = f.input :project_ids, label: 'Project', collection: [], as: :select_two, input_html: {multiple: true, data: {'collection-path' => api_projects_path(permission: :can_view_assigned_reports)}}, include_blank: false
+        = f.input :project_ids, label: 'Project', collection: [], as: :select_two, input_html: {multiple: true, data: {'collection-path' => report_filter_projects_api_path_helper()}}, include_blank: false
       .col-sm-4
-        = f.input :organization_ids, collection: GrdaWarehouse::Hud::Organization.options_for_select(user: current_user), as: :grouped_select_two, group_method: :last, placeholder: 'Any Organization', input_html: { multiple: true }, label: 'Organizations'
+        = f.input :organization_ids, collection: @filter.organization_options_for_select(user: current_user), as: :grouped_select_two, group_method: :last, placeholder: 'Any Organization', input_html: { multiple: true }, label: 'Organizations'
       .col-sm-4
-        = f.input :data_source_ids, collection: GrdaWarehouse::DataSource.source.viewable_by(current_user).pluck(:name, :id), placeholder: 'Any Data Source', input_html: { multiple: true}, label: 'Data Sources', as: :select_two
+        = f.input :data_source_ids, collection: @filter.data_source_options_for_select(user: current_user), placeholder: 'Any Data Source', input_html: { multiple: true}, label: 'Data Sources', as: :select_two
     .row
       .col-sm-4
         .form-group

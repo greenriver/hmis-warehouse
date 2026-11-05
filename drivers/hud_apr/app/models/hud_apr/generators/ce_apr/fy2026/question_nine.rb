@@ -71,7 +71,8 @@ module HudApr::Generators::CeApr::Fy2026
     private def q9b_table_rows
       {
         'Placed on Prioritization List (Prioritized)' => a_t[:ce_assessment_prioritization_status].eq(1),
-        'Not Placed on Prioritization List' => a_t[:ce_assessment_prioritization_status].eq(2),
+        # HUD spec: assessments missing prioritization status are reported on this row.
+        'Not Placed on Prioritization List' => a_t[:ce_assessment_prioritization_status].eq(2).or(a_t[:ce_assessment_prioritization_status].eq(nil)),
         'Percent of Assessed Prioritized Of the total HH Assessed report the percent of those placed on the prioritization list' => Arel.sql('0=1'), # This will be calculated as a separate step
       }.freeze
     end

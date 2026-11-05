@@ -114,6 +114,20 @@ services:
       s3:
         condition: service_healthy
 
+  # Production runs dedicated short_running workers, so background renders don't wait behind long jobs.
+  dj-short:
+    <<: *backend
+    # $$ defers expansion to the container shell, which sees the env_file values.
+    command: sh -c './bin/rake jobs:work QUEUES=$${DJ_SHORT_QUEUE_NAME:-short_running}'
+    entrypoint: ""
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      s3:
+        condition: service_healthy
+
   # once we're fully on EKS, we can refactor this into the main dj service.
   dj-eks:
     <<: *backend
