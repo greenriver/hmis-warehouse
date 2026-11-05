@@ -50,6 +50,8 @@
             %tbody
               -# client_path encrypts the id on every call, and the same client can be a possible match for many rows.
               - possible_paths = {}
+              -# Rack keeps only the last value for a repeated field name, so each client gets one Health Priority checkbox.
+              - priority_rendered = Set.new
               - @upload.ad_hoc_clients.find_each.with_index do |client, i|
                 - odd_class = if i.even? then 'even' else 'odd' end
                 - matched_client = @found_clients[client.client_id]
@@ -98,8 +100,10 @@
                     - elsif possible_matching_clients.blank?
                       = f.input :client_id, label: 'No match found', required: false, input_html: { name: "clients[#{client.id}][client_id]", style: 'width: 8em;', placeholder: 'Client ID' }
                   %td.text-center
-                    - if matched_client
+                    - if matched_client && priority_rendered.add?(matched_client.id)
                       = f.input :health_prioritized, as: :boolean, label: false, input_html: { name: "clients[#{matched_client.id}][health_prioritized]", checked: matched_client.health_prioritized_for_cas? }
+                    - elsif matched_client
+                      %span.text-muted See above
                 - unless matched_client
                   - possible_matching_clients.each do |possible|
                     %tr{class: odd_class}
@@ -108,6 +112,9 @@
                         = link_to possible.name, (possible_paths[possible.id] ||= client_path(possible)), target: :_blank
                         (#{possible.id})
                       %td.text-center
-                        = f.input :health_prioritized, as: :boolean, label: false, input_html: { name: "clients[#{possible.id}][health_prioritized]", checked: possible.health_prioritized_for_cas? }
+                        - if priority_rendered.add?(possible.id)
+                          = f.input :health_prioritized, as: :boolean, label: false, input_html: { name: "clients[#{possible.id}][health_prioritized]", checked: possible.health_prioritized_for_cas? }
+                        - else
+                          %span.text-muted See above
   .text-right
     = f.button :submit, 'Save'

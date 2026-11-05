@@ -194,6 +194,23 @@ RSpec.describe 'AdHocDataSources::UploadsController', type: :request do
 
       expect([unrestricted_destination_client.reload.health_prioritized, outside_client.reload.health_prioritized]).to eq([nil, 'Yes'])
     end
+
+    context 'when a client appears on more than one row' do
+      before do
+        GrdaWarehouse::AdHocClient.create!(batch_id: batch.id, first_name: 'First', last_name: 'Row', matching_client_ids: [possible_client.id, unrestricted_destination_client.id])
+        GrdaWarehouse::AdHocClient.create!(batch_id: batch.id, first_name: 'Second', last_name: 'Row', matching_client_ids: [possible_client.id])
+      end
+
+      it 'renders one checkbox and one hidden field per client' do
+        get ad_hoc_data_source_upload_path(data_source, batch)
+
+        doc = Nokogiri::HTML(response.body)
+        input_types = ->(client) do
+          doc.css("input[name='clients[#{client.id}][health_prioritized]']").map { |input| input['type'] }
+        end
+        expect([input_types.call(unrestricted_destination_client), input_types.call(possible_client)]).to eq([['hidden', 'checkbox'], ['hidden', 'checkbox']])
+      end
+    end
   end
 
   describe 'an upload from another data source' do
