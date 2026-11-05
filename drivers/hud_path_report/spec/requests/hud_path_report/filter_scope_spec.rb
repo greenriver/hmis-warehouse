@@ -43,6 +43,12 @@ RSpec.describe 'HudPathReport filter scope', type: :request, exclude_fixpoints: 
     end
   end
 
+  it 'does not route edit or update for PATH runs' do
+    expect(Rails.application.routes.url_helpers).not_to respond_to(:edit_hud_reports_path_path)
+    expect { Rails.application.routes.recognize_path('/hud_reports/paths/1', method: :patch) }.
+      to raise_error(ActionController::RoutingError)
+  end
+
   context 'with an ACL user' do
     let(:user) { create(:acl_user) }
 
