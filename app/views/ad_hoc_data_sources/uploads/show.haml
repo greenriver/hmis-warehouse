@@ -55,7 +55,7 @@
                 - matched_client = @found_clients[client.client_id]
                 - possible_matching_clients = @possible_matches[client.id]
                 %tr{class: odd_class}
-                  %td
+                  %td.text-break
                     - if matched_client
                       - pii = matched_client.pii_provider(user: current_user)
                       - if pii.first_name
@@ -64,7 +64,7 @@
                         = pii.first_name
                     - else
                       = client.first_name
-                  %td
+                  %td.text-break
                     - if matched_client
                       - if pii.middle_name
                         = link_to pii.middle_name, client_path(client.client_id), target: :_blank
@@ -72,7 +72,7 @@
                         = pii.middle_name
                     - else
                       = client.middle_name
-                  %td
+                  %td.text-break
                     - if matched_client
                       - if pii.last_name
                         = link_to pii.last_name, client_path(client.client_id), target: :_blank
@@ -104,7 +104,7 @@
                   - possible_matching_clients.each do |possible|
                     %tr{class: odd_class}
                       %td{colspan: 5}
-                      %td
+                      %td.text-break
                         = link_to possible.name, (possible_paths[possible.id] ||= client_path(possible)), target: :_blank
                         (#{possible.id})
                       %td.text-center
