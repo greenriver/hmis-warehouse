@@ -16,8 +16,11 @@ module GrdaWarehouse
     # finish under a deploy's lock_timeout. Outside a deploy it can wait as long as it needs, and
     # waiting doesn't block reads or writes.
     #
-    # DISPOSABLE: once every production database has completed the task and follow-up migrations
-    # (guarded on a valid index existing) put these indexes in warehouse_structure.sql, delete this
+    # Development and test get the same indexes from the Rails.env.local?-guarded migrations
+    # 20261104120100_add_index_to_files_on_client_id and
+    # 20261104120200_add_lower_household_id_index_to_enrollment. Keep the definitions in sync.
+    #
+    # DISPOSABLE: once every staging and production database has completed the task, delete this
     # class, its spec, and the TaskQueue entry.
     #
     # Usage: GrdaWarehouse::Tasks::BuildFilesAndEnrollmentIndexes.run!

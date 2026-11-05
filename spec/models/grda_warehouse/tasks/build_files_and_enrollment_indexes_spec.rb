@@ -10,7 +10,8 @@ require 'rails_helper'
 
 RSpec.describe GrdaWarehouse::Tasks::BuildFilesAndEnrollmentIndexes do
   # CREATE INDEX CONCURRENTLY can't run inside the per-example transaction, so this group manages
-  # the indexes itself and drops them afterwards, leaving the test database as structure.sql defines it.
+  # the indexes itself: it drops them first, then rebuilds them afterwards, leaving the test
+  # database as structure.sql defines it.
   self.use_transactional_tests = false
 
   let(:connection) { GrdaWarehouseBase.connection }
@@ -44,7 +45,7 @@ RSpec.describe GrdaWarehouse::Tasks::BuildFilesAndEnrollmentIndexes do
   end
 
   before { drop_indexes }
-  after { drop_indexes }
+  after { described_class.run! }
 
   it 'builds the files client_id index' do
     expect { described_class.run! }.to change { index_validity(files_index_name) }.from(nil).to(true)
