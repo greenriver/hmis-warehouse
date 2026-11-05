@@ -157,8 +157,8 @@ ENV RUBYOPT="-r/usr/local/lib/ruby/has_rdoc_patch.rb ${RUBYOPT}"
 # instead, so the bundled copy (whatever version this Ruby ships) is removed to keep Trivy from
 # flagging it.
 RUN gem update --system \
-  && gem update rexml rack erb \
-  && gem cleanup rexml rack erb \
+  && gem update rexml rack \
+  && gem cleanup rexml rack \
   && gem uninstall -i /usr/local/lib/ruby/gems/3.4.0 net-imap --all --executables \
   && gem install bundler --version=${BUNDLER_VERSION} \
   && bundle config set --local path /bundle \
