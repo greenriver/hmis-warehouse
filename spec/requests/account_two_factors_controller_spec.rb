@@ -53,4 +53,13 @@ RSpec.describe AccountTwoFactorsController, :devise_only, type: :request do
       expect(TwoFactorsMemorizedDevice.where(id: other_device.id)).to exist
     end
   end
+
+  describe 'PATCH update' do
+    it 'flashes an invalid-code error when otp_attempt is missing' do
+      patch account_two_factor_path, params: { user: { foo: 1 } }
+
+      expect(response).to redirect_to(edit_account_two_factor_path)
+      expect(flash[:error]).to eq('The code submitted was invalid')
+    end
+  end
 end

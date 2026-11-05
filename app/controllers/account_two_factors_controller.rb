@@ -72,6 +72,6 @@ class AccountTwoFactorsController < ApplicationController
   end
 
   private def clean_code
-    account_params[:otp_attempt].gsub(/[^0-9a-z]/, '')
+    account_params[:otp_attempt].to_s.gsub(/[^0-9a-z]/, '')
   end
 end
