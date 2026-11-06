@@ -11,6 +11,7 @@ module Clients
     include ClientPathGenerator
     include AjaxModalRails::Controller
     include ClientDependentControllers
+    include ClientEnrollmentVisibility
 
     before_action :require_can_view_enrollment_details!
     before_action :client
@@ -27,11 +28,10 @@ module Clients
     end
 
     def assessment
-      @assessment ||= @client.source_assessments.preload(:assessment_questions, :assessment_results, enrollment: :project).
+      @assessment ||= @client.source_assessments.
+        where(visible_enrollment_condition).
+        preload(:assessment_questions, :assessment_results, enrollment: :project).
         find(params[:id].to_i)
-      raise ActiveRecord::RecordNotFound unless GrdaWarehouse::Hud::Enrollment.visible_to(current_user).where(id: @assessment.enrollment&.id).exists?
-
-      @assessment
     end
   end
 end

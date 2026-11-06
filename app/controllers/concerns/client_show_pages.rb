@@ -13,6 +13,7 @@ module ClientShowPages
 
   included do
     include ArelHelper
+    include ClientEnrollmentVisibility
 
     def title_for_show
       @client.pii_provider(user: current_user).full_name
@@ -108,18 +109,14 @@ module ClientShowPages
     helper_method :source_clients
 
     def visible_source_assessments
-      @client.source_assessments.where(visible_enrollment_ids_condition)
+      @client.source_assessments.where(visible_enrollment_condition)
     end
     helper_method :visible_source_assessments
 
     def visible_hmis_source_custom_assessments
-      @client.hmis_source_custom_assessments.where(visible_enrollment_ids_condition)
+      @client.hmis_source_custom_assessments.where(visible_enrollment_condition)
     end
     helper_method :visible_hmis_source_custom_assessments
-
-    private def visible_enrollment_ids_condition
-      e_t[:id].in(GrdaWarehouse::Hud::Enrollment.visible_to(current_user).select(:id).arel)
-    end
 
     def ds_short_name_for(source_client_id)
       js_clients.dig(source_client_id, 2)

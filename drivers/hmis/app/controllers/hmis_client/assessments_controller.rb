@@ -9,6 +9,7 @@
 class HmisClient::AssessmentsController < ApplicationController
   include AjaxModalRails::Controller
   include ClientDependentControllers
+  include ClientEnrollmentVisibility
 
   before_action :require_can_view_enrollment_details!
   before_action :client
@@ -25,10 +26,9 @@ class HmisClient::AssessmentsController < ApplicationController
   end
 
   def assessment
-    @assessment ||= @client.hmis_source_custom_assessments.preload(:user, :custom_data_elements, enrollment: :project, form_processor: :definition).
+    @assessment ||= @client.hmis_source_custom_assessments.
+      where(visible_enrollment_condition).
+      preload(:user, :custom_data_elements, enrollment: :project, form_processor: :definition).
       find(params[:id].to_i)
-    raise ActiveRecord::RecordNotFound unless GrdaWarehouse::Hud::Enrollment.visible_to(current_user).where(id: @assessment.enrollment&.id).exists?
-
-    @assessment
   end
 end
