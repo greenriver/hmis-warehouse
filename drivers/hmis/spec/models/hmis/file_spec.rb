@@ -166,15 +166,14 @@ RSpec.describe Hmis::File, type: :model do
       let!(:own_file_on_hidden_client) { create :file, client: hidden_client, blob: blob, user: hmis_user }
       let!(:own_enrollment_file_on_hidden_client) { create :file, client: hidden_client, enrollment: hidden_enrollment, blob: blob, user: hmis_user }
       let!(:own_file_on_visible_client) { create :file, client: c1, blob: blob, user: hmis_user }
-
-      before do
-        # Can view clients only at p1, so hidden_client (enrolled only at hidden_project) is not viewable
-        create_access_control(hmis_user, p1, with_permission: [:can_manage_own_client_files, :can_view_clients])
-      end
+      # Replaces the top-level access control: no file view permissions anywhere, so files are only
+      # visible through can_manage_own_client_files. Can view clients only at p1, so hidden_client
+      # (enrolled only at hidden_project) is not viewable.
+      let!(:access_control) { create_access_control(hmis_user, p1, with_permission: [:can_manage_own_client_files, :can_view_clients]) }
 
       it 'returns own files only on clients the user can view' do
-        expect(Hmis::File.viewable_by(hmis_user)).to include(own_file_on_visible_client)
-        expect(Hmis::File.viewable_by(hmis_user)).not_to include(own_file_on_hidden_client, own_enrollment_file_on_hidden_client)
+        expect(Hmis::File.viewable_by(hmis_user)).to contain_exactly(own_file_on_visible_client)
+        expect(Hmis::File.viewable_by(hmis_user, client_ids: [c1.id])).to contain_exactly(own_file_on_visible_client)
       end
 
       it 'does not return own files on a client the user cannot view when that client is requested' do
@@ -182,6 +181,7 @@ RSpec.describe Hmis::File, type: :model do
       end
 
       it 'does not return own files on a soft-deleted client' do
+        expect(Hmis::File.viewable_by(hmis_user)).to include(own_file_on_visible_client)
         c1.update_columns(DateDeleted: Time.current)
         expect(Hmis::File.viewable_by(hmis_user)).not_to include(own_file_on_visible_client)
         expect(Hmis::File.viewable_by(hmis_user, client_ids: [c1.id])).not_to include(own_file_on_visible_client)
