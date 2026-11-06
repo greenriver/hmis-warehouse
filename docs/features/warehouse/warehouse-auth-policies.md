@@ -35,7 +35,7 @@ graph TD
 Policies are located in `app/models/grda_warehouse/auth_policies/`.
 
 - `BasePolicy`: Abstract base class providing common initialization and validation helpers.
-- **Resource Policies**: for warehouse resources (e.g., `ProjectPolicy`, `OrganizationPolicy`, `SourceClientPolicy`, `DataSourcePolicy`).
+- **Resource Policies**: for warehouse resources (e.g., `ProjectPolicy`, `OrganizationPolicy`, `SourceClientPolicy`, `EnrollmentPolicy`, `DataSourcePolicy`).
 - **Specialized Policies**: optimized for controlling access to sensitive data in reporting contexts (e.g., `ProjectPiiPolicy`).
 
 ## Usage
@@ -63,6 +63,32 @@ Client features are authorized per client through the destination client policy:
 - `policy.can_mark_restricted?` requires `can_mark_clients_as_restricted`. It is client-level and delegated to source clients like the PII permissions. Restriction does not affect it, so the marking user can always unrestrict.
 
 A role that grants these permissions on a project the client is not enrolled in does not grant them for that client.
+
+### Enrollment visibility
+
+`policy_for(enrollment).can_view?` answers whether the user can see one enrollment. Unlike client `can_view?`, which combines permissions from every project the client is enrolled in, it judges only the enrollment's own project.
+
+ACL users can view an enrollment when either:
+
+- The enrollment's project is covered by one of the user's collections through a role with `can_view_clients`. Confidential projects count.
+- The role on the enrollment's project grants `can_view_client_enrollments_with_roi`, the source client's data source has `obey_consent`, and the destination client has an ROI authorization visible in the user's CoCs.
+
+An enrollment with no project, a deleted project, or no client is not visible.
+
+Legacy (role-based) users can view an enrollment when any of these holds:
+
+- The enrollment's project is in an access group the user belongs to, and the user has legacy roles. The permission the role grants is not checked.
+- The project's data source is a window data source and window access does not require a release.
+- The destination client has active confirmed consent in the user's CoCs. This needs neither a project nor a permission.
+
+Use `policy_for(enrollment).can_view?` for per-client lists, such as the enrollments, assessments, and services on one client's pages. Use `Enrollment.visible_to(user)` for cross-client queries and reports, where one SQL query is cheaper than a policy check per row.
+
+Known differences from `Enrollment.visible_to`:
+
+- (a) The legacy consent SQL also accepts data sources returned by `DataSource.viewable_by(user)` that lack `obey_consent`. The policy requires `obey_consent`. The legacy SQL checks the data source on the `warehouse_clients` row, while the policy checks the source client's own data source. These are normally the same.
+- (b) A legacy user in an access group but with no legacy roles sees the enrollment in SQL but not from the policy. Such a user cannot reach a client dashboard.
+- (c) The SQL caches the user's project ids for 5 minutes and CoC codes for 1 minute. The policy reads current values on every request.
+- The policy judges whatever enrollment record it is given, including a soft-deleted one. `Enrollment.visible_to` excludes soft-deleted enrollments through the default scope, so pass records loaded through normal scopes.
 
 ### Preloading
 
