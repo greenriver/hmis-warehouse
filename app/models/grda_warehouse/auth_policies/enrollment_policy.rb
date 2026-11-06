@@ -35,7 +35,6 @@ class GrdaWarehouse::AuthPolicies::EnrollmentPolicy < GrdaWarehouse::AuthPolicie
     permissions = context.project_role_permissions(project.id)
     return true if permissions.include?(:can_view_clients)
 
-    # The ROI permission and the client's release are both required.
     permissions.include?(:can_view_client_enrollments_with_roi) && roi_authorized?
   end
 
