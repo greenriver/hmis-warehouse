@@ -20,21 +20,13 @@ RSpec.describe Clients::CoordinatedEntryHudAssessmentsController, type: :request
 
   before { Collection.maintain_system_groups }
 
-  def build_assessment(response_text:, data_source_id: window_visible_data_source.id, personal_id: window_source_client.PersonalID, enrollment_id: window_enrollment.EnrollmentID)
-    assessment = create(:hud_assessment, data_source_id: data_source_id, PersonalID: personal_id, EnrollmentID: enrollment_id)
-    GrdaWarehouse::AssessmentAnswerLookup.create!(assessment_question: 'c_housing_assessment_name', response_code: assessment.AssessmentID.to_s, response_text: response_text)
-    create(
-      :hud_assessment_question,
-      data_source_id: data_source_id,
-      AssessmentID: assessment.AssessmentID,
-      AssessmentQuestion: 'c_housing_assessment_name',
-      AssessmentAnswer: assessment.AssessmentID.to_s,
-    )
-    assessment
-  end
+  include NamedHudAssessmentHelpers
 
-  let!(:pathways_assessment) { build_assessment(response_text: 'Pathways 2024') }
-  let!(:non_qualifying_assessment) { build_assessment(response_text: 'Some Other Assessment') }
+  let(:window_assessment_attributes) do
+    { data_source_id: window_visible_data_source.id, PersonalID: window_source_client.PersonalID, EnrollmentID: window_enrollment.EnrollmentID }
+  end
+  let!(:pathways_assessment) { create_named_hud_assessment('Pathways 2024', **window_assessment_attributes) }
+  let!(:non_qualifying_assessment) { create_named_hud_assessment('Some Other Assessment', **window_assessment_attributes) }
 
   def sign_in_with(role)
     setup_access_control(user, role, Collection.system_collection(:window_data_sources))
@@ -67,11 +59,11 @@ RSpec.describe Clients::CoordinatedEntryHudAssessmentsController, type: :request
     end
 
     it 'blocks access to a qualifying assessment that belongs to a different client' do
-      other_clients_pathways_assessment = build_assessment(
-        response_text: 'Pathways 2024',
+      other_clients_pathways_assessment = create_named_hud_assessment(
+        'Pathways 2024',
         data_source_id: non_window_visible_data_source.id,
-        personal_id: non_window_source_client.PersonalID,
-        enrollment_id: non_window_enrollment.EnrollmentID,
+        PersonalID: non_window_source_client.PersonalID,
+        EnrollmentID: non_window_enrollment.EnrollmentID,
       )
 
       get client_coordinated_entry_hud_assessment_path(window_destination_client, other_clients_pathways_assessment)
@@ -107,12 +99,14 @@ RSpec.describe Clients::CoordinatedEntryHudAssessmentsController, type: :request
   describe 'enrollment scoping' do
     include_context 'hidden project enrollment context'
 
-    let!(:visible_pathways) { build_assessment(response_text: 'Pathways 2024', data_source_id: ds.id, personal_id: hmis_client.PersonalID, enrollment_id: visible_enrollment.EnrollmentID) }
-    let!(:hidden_pathways) { build_assessment(response_text: 'Pathways 2024', data_source_id: ds.id, personal_id: hmis_client.PersonalID, enrollment_id: hidden_enrollment.EnrollmentID) }
+    let!(:visible_pathways) do
+      create_named_hud_assessment('Pathways 2024', data_source_id: ds.id, PersonalID: hmis_client.PersonalID, EnrollmentID: visible_enrollment.EnrollmentID, AssessmentDate: Date.new(2024, 3, 3))
+    end
+    let!(:hidden_pathways) do
+      create_named_hud_assessment('Pathways 2024', data_source_id: ds.id, PersonalID: hmis_client.PersonalID, EnrollmentID: hidden_enrollment.EnrollmentID, AssessmentDate: Date.new(2023, 4, 4))
+    end
 
     before do
-      visible_pathways.update!(AssessmentDate: Date.new(2024, 3, 3))
-      hidden_pathways.update!(AssessmentDate: Date.new(2023, 4, 4))
       config.update(client_dashboard: :boston)
       sign_in_with(viewer_role)
     end

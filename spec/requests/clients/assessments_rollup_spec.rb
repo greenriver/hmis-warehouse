@@ -14,18 +14,11 @@ RSpec.describe 'Client dashboard assessment rollups', type: :request do
 
   let!(:config) { create :config_b }
 
+  include NamedHudAssessmentHelpers
+
   # Pathways, so the Boston limited dashboard links it.
   def build_pathways(enrollment, date)
-    assessment = create(:hud_assessment, data_source_id: ds.id, PersonalID: hmis_client.PersonalID, EnrollmentID: enrollment.EnrollmentID, AssessmentDate: date)
-    GrdaWarehouse::AssessmentAnswerLookup.create!(assessment_question: 'c_housing_assessment_name', response_code: assessment.AssessmentID.to_s, response_text: 'Pathways 2024')
-    create(
-      :hud_assessment_question,
-      data_source_id: ds.id,
-      AssessmentID: assessment.AssessmentID,
-      AssessmentQuestion: 'c_housing_assessment_name',
-      AssessmentAnswer: assessment.AssessmentID.to_s,
-    )
-    assessment
+    create_named_hud_assessment('Pathways 2024', data_source_id: ds.id, PersonalID: hmis_client.PersonalID, EnrollmentID: enrollment.EnrollmentID, AssessmentDate: date)
   end
 
   let!(:visible_hud_assessment) { build_pathways(visible_enrollment, Date.new(2024, 3, 3)) }
