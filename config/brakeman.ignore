@@ -7,7 +7,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "drivers/public_reports/app/models/public_reports/state_dashboard/geography.rb",
-      "line": 151,
+      "line": 157,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "Arel.sql(\"ST_Extent(ST_Transform(#{geom}, 3857))::text\")",
       "render_path": null,
@@ -158,6 +158,29 @@
       "confidence": "Medium",
       "cwe_id": [
         77
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "131c009bf0007972c0d18d9890b740e3cabc6b10a2dcc9cf16217f91a1fef972",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "drivers/hmis/lib/hmis_util/migrated_file_attachment_loader.rb",
+      "line": 185,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "connection.execute(\"CREATE TABLE IF NOT EXISTS #{tracking} (\\n  s3_key text NOT NULL PRIMARY KEY,\\n  active_storage_started_at timestamp,\\n  active_storage_completed_at timestamp,\\n  active_storage_blob_id bigint,\\n  errors varchar\\n)\\n\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "HmisUtil::MigratedFileAttachmentLoader",
+        "method": "create_tracking_table"
+      },
+      "user_input": "tracking",
+      "confidence": "Medium",
+      "cwe_id": [
+        89
       ],
       "note": ""
     },
@@ -346,6 +369,29 @@
       "note": ""
     },
     {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "2c5059e53b685b233659c072b2eb0dedfcf38febee7cb00c4bb44fb03604e146",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "drivers/hmis/lib/hmis_util/migrated_file_attachment_loader.rb",
+      "line": 216,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "connection.select_value(\"SELECT count(*) FROM #{source} WHERE updated_at IS NULL\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "HmisUtil::MigratedFileAttachmentLoader",
+        "method": "check_updated_at!"
+      },
+      "user_input": "source",
+      "confidence": "Medium",
+      "cwe_id": [
+        89
+      ],
+      "note": ""
+    },
+    {
       "warning_type": "Command Injection",
       "warning_code": 14,
       "fingerprint": "2d5a0735c8eef436174e943c26f2f3107fdbe465dd46e480ad60ed6b43b29b5b",
@@ -468,6 +514,29 @@
       "confidence": "Weak",
       "cwe_id": [
         79
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "389e7712935f510262adee9215328644210fe49e77e64c86b66d483c3d1c3638",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "drivers/hmis/lib/hmis_util/migrated_file_attachment_loader.rb",
+      "line": 399,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "connection.select_values(\"SELECT nextval(#{q(connection.select_value(\"SELECT pg_get_serial_sequence('files', 'id')\"))}) FROM generate_series(1, #{count.to_i})\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "HmisUtil::MigratedFileAttachmentLoader",
+        "method": "allocate_file_ids"
+      },
+      "user_input": "q(connection.select_value(\"SELECT pg_get_serial_sequence('files', 'id')\"))",
+      "confidence": "Medium",
+      "cwe_id": [
+        89
       ],
       "note": ""
     },
@@ -612,6 +681,29 @@
     {
       "warning_type": "SQL Injection",
       "warning_code": 0,
+      "fingerprint": "48e865a40af1744e5a6d224000ba50c94ef2a9f3dbaa83c1b0af9b7d667997a3",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "drivers/hmis/lib/hmis_util/migrated_file_attachment_loader.rb",
+      "line": 210,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "connection.select_value(\"SELECT count(*) FROM (SELECT s3_key FROM #{source} GROUP BY s3_key HAVING count(*) > 1) duplicates\\n\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "HmisUtil::MigratedFileAttachmentLoader",
+        "method": "check_duplicate_keys!"
+      },
+      "user_input": "source",
+      "confidence": "Medium",
+      "cwe_id": [
+        89
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
       "fingerprint": "4dbef2124ce5f88d9517b90cfd0933fa92ca9a4353331c92fca66c397e476a6f",
       "check_name": "SQL",
       "message": "Possible SQL injection",
@@ -639,7 +731,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "drivers/client_access_control/app/models/client_access_control/enrollment_arbiter.rb",
-      "line": 138,
+      "line": 146,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "Arel.sql(\"#{c_t[:id].to_sql} IN (#{union_sql})\")",
       "render_path": null,
@@ -706,7 +798,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/concerns/reporting/project_data_quality_reports/version_four/display.rb",
-      "line": 1186,
+      "line": 1192,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "send(options[:denominator]).where(\"#{key}_#{measure}\" => true)",
       "render_path": null,
@@ -763,6 +855,29 @@
       },
       "user_input": "GrdaWarehouseBase.connection.quote(s.current_observation_date.strftime(\"%Y-%m-%d\"))",
       "confidence": "High",
+      "cwe_id": [
+        89
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "6a1fb5c3d964fab80fba1a1478a6beb044b58b24a5058492371cc7a493ccf479",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "drivers/hmis/lib/hmis_util/migrated_file_attachment_loader.rb",
+      "line": 176,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "connection.select_value(\"SELECT pg_advisory_unlock(#{\"hashtext(#{q(\"build_translation_cache\")})\"})\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "HmisUtil::MigratedFileAttachmentLoader",
+        "method": "with_run_lock"
+      },
+      "user_input": "q(\"build_translation_cache\")",
+      "confidence": "Medium",
       "cwe_id": [
         89
       ],
@@ -852,7 +967,7 @@
           "type": "controller",
           "class": "WarehouseReports::ChronicHousedController",
           "method": "index",
-          "line": 34,
+          "line": 35,
           "file": "app/controllers/warehouse_reports/chronic_housed_controller.rb",
           "rendered": {
             "name": "warehouse_reports/chronic_housed/index",
@@ -934,7 +1049,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/concerns/reporting/project_data_quality_reports/version_four/display.rb",
-      "line": 1218,
+      "line": 1224,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "send(options[:denominator]).where(:project_id => hud_project.id, \"#{key}_#{measure}\" => true)",
       "render_path": null,
@@ -1216,11 +1331,34 @@
     {
       "warning_type": "SQL Injection",
       "warning_code": 0,
+      "fingerprint": "8c49c6d9e24244a57703039f77e617c400f6288457997c426103cf31ee00f781",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "drivers/hmis/lib/hmis_util/migrated_file_attachment_loader.rb",
+      "line": 171,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "connection.select_value(\"SELECT pg_try_advisory_lock(#{\"hashtext(#{q(\"build_translation_cache\")})\"})\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "HmisUtil::MigratedFileAttachmentLoader",
+        "method": "with_run_lock"
+      },
+      "user_input": "q(\"build_translation_cache\")",
+      "confidence": "Medium",
+      "cwe_id": [
+        89
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
       "fingerprint": "94f0e64c5acc071a901163d39ebce6861e109a286a0157b979408b31ce9c6a17",
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/data_source.rb",
-      "line": 123,
+      "line": 125,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "where(\"#{has_access_to_data_source_through_viewable_entities(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_data_source_through_organizations(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_data_source_through_projects(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)}\")",
       "render_path": null,
@@ -1237,13 +1375,36 @@
       "note": ""
     },
     {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "95b178f391e24ad8ce58534f80e13fa178411d9310f972f56666e54051abebc5",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "drivers/hmis/lib/hmis_util/migrated_file_attachment_loader.rb",
+      "line": 469,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "connection.execute(\"INSERT INTO #{tracking} (#{rows.first.keys.join(\", \")}) VALUES #{rows.map do\n values = rows.first.keys.map do\n (column == :errors) ? (row[:errors].truncate(1000)) : (row[column])\n end\n\"(#{rows.first.keys.map do\n (column == :errors) ? (row[:errors].truncate(1000)) : (row[column])\n end.map do\n q(value)\n end.join(\", \")})\"\n end.join(\", \")}\\nON CONFLICT (s3_key) DO UPDATE SET #{(rows.first.keys - [:s3_key]).map do\n \"#{column} = EXCLUDED.#{column}\"\n end.join(\", \")}\\n\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "HmisUtil::MigratedFileAttachmentLoader",
+        "method": "upsert_tracking"
+      },
+      "user_input": "tracking",
+      "confidence": "Medium",
+      "cwe_id": [
+        89
+      ],
+      "note": ""
+    },
+    {
       "warning_type": "Remote Code Execution",
       "warning_code": 24,
       "fingerprint": "a018a2a65716f162e78639cf9ecc84440e48c1b4001c80db96d96f5ca82c11ab",
       "check_name": "UnsafeReflection",
       "message": "Unsafe reflection method `constantize` called on model attribute",
       "file": "app/controllers/cohorts/clients_controller.rb",
-      "line": 513,
+      "line": 516,
       "link": "https://brakemanscanner.org/docs/warning_types/remote_code_execution/",
       "code": "GrdaWarehouse::Cohort.available_columns.map(&:class).map(&:name).select do\n (m == params.require(:field))\n end.first.constantize",
       "render_path": null,
@@ -1313,6 +1474,29 @@
       "confidence": "Medium",
       "cwe_id": [
         79
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "a2d476a4dbc3a4c94e755755e8ddfec753257224feb104d0652d7eeb2d54914f",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "drivers/hmis/lib/hmis_util/migrated_file_attachment_loader.rb",
+      "line": 226,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "connection.select_all(\"SELECT src.*, src.updated_at::text AS load_order_at FROM #{source} src\\nLEFT JOIN #{tracking} t ON t.s3_key = src.s3_key\\nWHERE t.active_storage_completed_at IS NULL\\n  AND NULLIF(TRIM(src.checksum), '') IS NOT NULL\\n  AND #{(\"src.type = #{q(\"GrdaWarehouse::ClientFile\")}\" or \"(src.type = #{q(\"GrdaWarehouse::ClientFile\")} OR src.enrollment_id IS NOT NULL)\")}\\n  #{(\"AND (src.updated_at, src.s3_key) < (#{cursor.map do\n q(value)\n end.join(\", \")})\" or \"\")}\\nORDER BY src.updated_at DESC, src.s3_key DESC\\nLIMIT #{size.to_i}\\n\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "HmisUtil::MigratedFileAttachmentLoader",
+        "method": "fetch_batch"
+      },
+      "user_input": "source",
+      "confidence": "Medium",
+      "cwe_id": [
+        89
       ],
       "note": ""
     },
@@ -1870,7 +2054,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/hud/client.rb",
-      "line": 2245,
+      "line": 2246,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "Arel.sql(\"array_position(ARRAY[#{self.class.where(:id => { candidate.id => candidate.score.to_f }.keys).select do\n active_source_client_ages.include?(c.age)\n end.sort_by do\n -scores_by_id[c.id]\n end.first(20).map(&:id).join(\",\")}]::bigint[], id)\")",
       "render_path": null,
