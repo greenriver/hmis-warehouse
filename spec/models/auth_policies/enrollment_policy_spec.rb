@@ -145,6 +145,15 @@ RSpec.describe GrdaWarehouse::AuthPolicies::EnrollmentPolicy, type: :model do
       end
     end
 
+    describe 'soft-deleted project' do
+      it 'hides the enrollment at the deleted project and shows the one at the live project' do
+        grant_project_access(user, view_role, [granted_project, other_project], mode: :acl)
+        granted_project.update_column(:DateDeleted, Time.current)
+        expect_visibility(GrdaWarehouse::Hud::Enrollment.find(granted_enrollment.id), false)
+        expect_visibility(other_enrollment, true)
+      end
+    end
+
     describe 'missing client' do
       it 'hides the enrollment whose PersonalID matches no client' do
         clientless_enrollment = create :hud_enrollment, data_source: data_source, project: granted_project, PersonalID: 'no-such-client'
@@ -260,6 +269,13 @@ RSpec.describe GrdaWarehouse::AuthPolicies::EnrollmentPolicy, type: :model do
         orphan_enrollment = create :hud_enrollment, data_source: data_source, client: source_client, ProjectID: 'no-such-project'
         expect_policy_visibility(orphan_enrollment, false)
         expect_policy_visibility(granted_enrollment, true)
+      end
+
+      it 'hides the enrollment at a soft-deleted project and shows the one at the live project' do
+        granted_project.update_column(:DateDeleted, Time.current)
+        # Reloaded: the factory-built instance still caches the project association.
+        expect_policy_visibility(GrdaWarehouse::Hud::Enrollment.find(granted_enrollment.id), false)
+        expect_policy_visibility(other_enrollment, true)
       end
 
       it 'hides the enrollment when the consent is for a CoC the user does not have' do
