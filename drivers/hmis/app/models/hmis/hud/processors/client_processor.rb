@@ -177,6 +177,8 @@ module Hmis::Hud::Processors
       name_attributes.merge(client_attributes)
     end
 
+    # Used by external forms like the PIT. Option codes must match HudHelper age_range keys exactly, or processing raises.
+    # See "Gotchas" in docs/features/hmis/hmis-external-forms.md
     private def process_age_range(value)
       case value
       when *HudHelper.util.age_range.keys
