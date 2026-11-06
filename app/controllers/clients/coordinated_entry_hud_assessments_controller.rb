@@ -28,6 +28,9 @@ module Clients
     def assessment
       @assessment ||= @client.source_assessments.preload(:assessment_questions, :assessment_results, enrollment: :project).
         find(params[:id].to_i)
+      raise ActiveRecord::RecordNotFound unless GrdaWarehouse::Hud::Enrollment.visible_to(current_user).where(id: @assessment.enrollment&.id).exists?
+
+      @assessment
     end
 
     private def require_can_view_coordinated_entry_assessment!

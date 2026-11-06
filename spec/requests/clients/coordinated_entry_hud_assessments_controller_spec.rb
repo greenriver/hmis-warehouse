@@ -8,6 +8,7 @@
 
 require 'rails_helper'
 require 'shared_contexts/visibility_test_context'
+require 'shared_contexts/hidden_project_enrollment_context'
 
 RSpec.describe Clients::CoordinatedEntryHudAssessmentsController, type: :request do
   include_context 'visibility test context'
@@ -100,6 +101,38 @@ RSpec.describe Clients::CoordinatedEntryHudAssessmentsController, type: :request
     it 'blocks access to a pathways assessment' do
       get client_coordinated_entry_hud_assessment_path(window_destination_client, pathways_assessment)
       expect(response).to redirect_to(user.my_root_path)
+    end
+  end
+
+  describe 'enrollment scoping' do
+    include_context 'hidden project enrollment context'
+
+    let!(:visible_pathways) { build_assessment(response_text: 'Pathways 2024', data_source_id: ds.id, personal_id: hmis_client.PersonalID, enrollment_id: visible_enrollment.EnrollmentID) }
+    let!(:hidden_pathways) { build_assessment(response_text: 'Pathways 2024', data_source_id: ds.id, personal_id: hmis_client.PersonalID, enrollment_id: hidden_enrollment.EnrollmentID) }
+
+    before do
+      visible_pathways.update!(AssessmentDate: Date.new(2024, 3, 3))
+      hidden_pathways.update!(AssessmentDate: Date.new(2023, 4, 4))
+      config.update(client_dashboard: :boston)
+      sign_in_with(viewer_role)
+    end
+
+    it 'shows the Pathways assessment recorded at the visible project' do
+      get client_coordinated_entry_hud_assessment_path(destination, visible_pathways)
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include(visible_pathways.AssessmentDate.to_s)
+    end
+
+    it 'does not show the Pathways assessment recorded at a project outside the collection' do
+      # Pathways and on a visible client, so only the enrollment check can refuse.
+      expect(hidden_pathways.pathways_or_transfer?).to be(true)
+      expect(destination.show_demographics_to?(user)).to be(true)
+
+      get client_coordinated_entry_hud_assessment_path(destination, hidden_pathways)
+
+      expect(response).to have_http_status(:not_found)
+      expect(response.body).not_to include(hidden_pathways.AssessmentDate.to_s)
     end
   end
 end
