@@ -72,22 +72,8 @@ class GrdaWarehouse::AuthPolicies::SourceClientPolicy < GrdaWarehouse::AuthPolic
     resource
   end
 
-  # NOTE: loads through context.client_roi_loader; preload it when authorizing many clients to avoid N+1 queries
-  #
-  # An ROI confers visibility when:
-  # - the source client is in a data source with `obey_consent=true`
-  # - the destination client has a ClientRoiAuthorization.visible_in_cocs row for one of the user's CoCs, or all CoCs.
-  #   Under Consent::Default a partial (CAS-only) release does not count
-  # - the user has a role on the source client's project granting `can_view_client_enrollments_with_roi`
-  #   (view) or `can_search_clients_with_roi` (search)
-  # ROI does not confer additional permissions such as name or SSN visibility.
   def roi_authorized?
-    return false unless client.data_source&.obey_consent?
-
-    destination = client.destination_client
-    return false unless destination
-
-    context.client_roi_loader.get(destination.id)
+    context.source_client_roi_authorized?(client)
   end
 
   # a set of permissions the user has for either the project or the client which would grant them access to this client

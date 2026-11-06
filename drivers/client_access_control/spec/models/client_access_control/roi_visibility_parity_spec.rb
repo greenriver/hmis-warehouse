@@ -49,13 +49,14 @@ RSpec.describe 'ROI visibility parity', type: :model do
       search: GrdaWarehouse::Hud::Client.searchable_to(viewer).where(id: source_client.id).exists?,
       detail_scope: GrdaWarehouse::Hud::Client.source_visible_to(viewer).where(id: source_client.id).exists?,
       enrollments: GrdaWarehouse::Hud::Enrollment.visible_to(viewer).where(id: enrollment.id).exists?,
+      enrollment_policy: viewer.policy_for(enrollment).can_view?,
       policy: viewer.policy_for(source_client).can_view?,
       demographics: destination_client.reload.show_demographics_to?(viewer),
     }
   end
 
   def on_every_path(value)
-    { search: value, detail_scope: value, enrollments: value, policy: value, demographics: value }
+    { search: value, detail_scope: value, enrollments: value, enrollment_policy: value, policy: value, demographics: value }
   end
 
   shared_examples 'shared ROI rules' do

@@ -26,6 +26,24 @@ class GrdaWarehouse::AuthPolicies::UserBaseContext
     GrdaWarehouse::AuthPolicies::ContextLoaders::ClientRoiLoader.new(@user, miss_tracker: preload_miss_tracker)
   end
 
+  # NOTE: loads through client_roi_loader; preload it when authorizing many clients to avoid N+1 queries
+  #
+  # An ROI confers visibility when:
+  # - the source client is in a data source with `obey_consent=true`
+  # - the destination client has a ClientRoiAuthorization.visible_in_cocs row for one of the user's CoCs, or all CoCs.
+  #   Under Consent::Default a partial (CAS-only) release does not count
+  # ROI does not confer additional permissions such as name or SSN visibility.
+  # Callers must also check that the user's role on the project grants the ROI permission
+  # (`can_view_client_enrollments_with_roi` or `can_search_clients_with_roi`).
+  def source_client_roi_authorized?(source_client)
+    return false unless source_client.data_source&.obey_consent?
+
+    destination = source_client.destination_client
+    return false unless destination
+
+    client_roi_loader.get(destination.id)
+  end
+
   memoize def restricted_client_loader
     GrdaWarehouse::AuthPolicies::ContextLoaders::RestrictedClientLoader.new(miss_tracker: preload_miss_tracker)
   end

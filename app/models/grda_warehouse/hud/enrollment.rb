@@ -190,6 +190,10 @@ module GrdaWarehouse::Hud
       self.RelationshipToHoH == 1
     end
 
+    def policy_class
+      GrdaWarehouse::AuthPolicies::EnrollmentPolicy
+    end
+
     ADDRESS_FIELDS = [
       :LastPermanentStreet,
       :LastPermanentCity,
