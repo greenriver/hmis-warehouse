@@ -78,6 +78,31 @@ RSpec.describe 'AdHocDataSources::UploadsController', type: :request do
     end
   end
 
+  # Matching appends name, SSN, and DOB hits separately, so a client found by more than one
+  # stores its id more than once.
+  context 'when a row lists the same possible match more than once' do
+    let!(:possible_client) { create(:grda_warehouse_hud_client, FirstName: 'Possible', LastName: 'Match') }
+    let!(:other_possible_client) { create(:grda_warehouse_hud_client, FirstName: 'Other', LastName: 'Match') }
+    let!(:unmatched_row) do
+      GrdaWarehouse::AdHocClient.create!(
+        batch_id: batch.id,
+        first_name: 'Unmatched',
+        last_name: 'Row',
+        matching_client_ids: [possible_client.id, other_possible_client.id, possible_client.id],
+      )
+    end
+
+    it 'shows each possible match once' do
+      get ad_hoc_data_source_upload_path(data_source, batch)
+
+      doc = Nokogiri::HTML(response.body)
+      checkbox_count = ->(client) do
+        doc.css("input[type=checkbox][name='clients[#{client.id}][health_prioritized]']").size
+      end
+      expect([checkbox_count.call(possible_client), checkbox_count.call(other_possible_client)]).to eq([1, 1])
+    end
+  end
+
   describe 'PATCH update' do
     let!(:unmatched_row) { GrdaWarehouse::AdHocClient.create!(batch_id: batch.id, ad_hoc_data_source_id: data_source.id, first_name: 'Unmatched', last_name: 'Row') }
     # A row can only be linked to a client the user can search for or view; the enrollment
@@ -168,6 +193,23 @@ RSpec.describe 'AdHocDataSources::UploadsController', type: :request do
       }
 
       expect([unrestricted_destination_client.reload.health_prioritized, outside_client.reload.health_prioritized]).to eq([nil, 'Yes'])
+    end
+
+    context 'when a client appears on more than one row' do
+      before do
+        GrdaWarehouse::AdHocClient.create!(batch_id: batch.id, first_name: 'First', last_name: 'Row', matching_client_ids: [possible_client.id, unrestricted_destination_client.id])
+        GrdaWarehouse::AdHocClient.create!(batch_id: batch.id, first_name: 'Second', last_name: 'Row', matching_client_ids: [possible_client.id])
+      end
+
+      it 'renders one checkbox and one hidden field per client' do
+        get ad_hoc_data_source_upload_path(data_source, batch)
+
+        doc = Nokogiri::HTML(response.body)
+        input_types = ->(client) do
+          doc.css("input[name='clients[#{client.id}][health_prioritized]']").map { |input| input['type'] }
+        end
+        expect([input_types.call(unrestricted_destination_client), input_types.call(possible_client)]).to eq([['hidden', 'checkbox'], ['hidden', 'checkbox']])
+      end
     end
   end
 
