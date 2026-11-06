@@ -66,7 +66,7 @@ A role that grants these permissions on a project the client is not enrolled in 
 
 ### Enrollment visibility
 
-`policy_for(enrollment).can_view?` answers whether the user can see one enrollment, it judges using only the enrollment's own project.
+`policy_for(enrollment).can_view?` answers whether the user can see one enrollment; it judges using only the enrollment's own project.
 
 An enrollment with no client, no project, or a deleted project is always hidden.
 
@@ -87,7 +87,7 @@ Use `policy_for(enrollment).can_view?` for per-client lists, such as the enrollm
 
 Known differences from `Enrollment.visible_to`:
 
-- (a) The legacy consent SQL also accepts data sources returned by `DataSource.viewable_by(user)` that lack `obey_consent`. The policy requires `obey_consent`. The legacy SQL checks the data source on the `warehouse_clients` row, while the policy checks the source client's own data source. These should match.
+- (a) The legacy consent SQL also accepts data sources returned by `DataSource.viewable_by(user)` that lack `obey_consent`. The policy requires `obey_consent`. The legacy SQL checks the data source on the `warehouse_clients` row, while the policy checks the source client's own data source. In practice these are the same value.
 - (b) A legacy user in an access group but with no legacy roles sees the enrollment in SQL but not from the policy. Such a user cannot reach a client dashboard.
 - (c) The SQL caches the user's project ids for 5 minutes and CoC codes for 1 minute. The policy reads current values on every request.
 - (d) The policy judges whatever enrollment record it is given, including a soft-deleted one. `Enrollment.visible_to` excludes soft-deleted enrollments through the default scope, so pass records loaded through normal scopes.  In practice, this doesn't occur.
