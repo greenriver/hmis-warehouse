@@ -41,9 +41,11 @@ RSpec.describe HmisClient::AssessmentsController, type: :request do
     before { sign_in_with(search_only_role) }
 
     it 'does not show the assessment' do
-      # Searchable but not viewable, so only the client scope can refuse.
+      # Searchable but not viewable. Without can_view_clients the user sees none of the
+      # client's enrollments either, so the client scope and the enrollment check both refuse.
       expect(GrdaWarehouse::Hud::Client.destination_from_searchable_to(user).pluck(:id)).to include(destination.id)
       expect(destination.show_demographics_to?(user)).to be(false)
+      expect(GrdaWarehouse::Hud::Enrollment.visible_to(user).where(id: visible_enrollment.id)).to be_empty
 
       get hmis_client_client_assessment_path(destination, visible_assessment)
 
