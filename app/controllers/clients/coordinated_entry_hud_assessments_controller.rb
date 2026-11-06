@@ -12,6 +12,7 @@ module Clients
   class CoordinatedEntryHudAssessmentsController < ApplicationController
     include ClientPathGenerator
     include AjaxModalRails::Controller
+    include ClientDependentControllers
 
     before_action :client
     before_action :assessment
@@ -22,7 +23,7 @@ module Clients
     end
 
     def client
-      @client ||= GrdaWarehouse::Hud::Client.destination_visible_to(current_user).find(params[:client_id].to_i)
+      @client ||= destination_visible_client_scope.find(params[:client_id].to_i)
     end
 
     def assessment
