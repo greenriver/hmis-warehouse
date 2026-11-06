@@ -46,7 +46,11 @@ class Hmis::File < GrdaWarehouse::File
   scope :confidential, -> { where(confidential: true) }
   scope :nonconfidential, -> { where(confidential: [false, nil]) }
 
-  # Passing client_ids can significantly improve performance, to avoid a subquery on the entire Client table.
+  # Files the user can see.
+  #
+  # client_ids (optional): limit the result to files belonging to these clients. The result is the same as
+  # viewable_by(user).where(client_id: client_ids), but the filter is applied inside each visibility subquery,
+  # so Postgres doesn't evaluate visibility for every client. Blank client_ids means no client filter.
   # This may not be the perfect solution (combining scopes would be neater) but it works.
   # It is similar to the strategy described in the Warehouse's EnrollmentArbiter.
   scope :viewable_by, ->(user, client_ids: nil) do
@@ -65,22 +69,27 @@ class Hmis::File < GrdaWarehouse::File
       then(arel_table[:enrollment_id].in(enrollment_scope.select(:id).arel)).
       else(arel_table[:client_id].in(client_scope.select(:id).arel))
 
-    viewable_scope = Hmis::File.
-      left_outer_joins(:client).
-      left_outer_joins(:enrollment).
-      where(case_statement)
+    viewable_scope = Hmis::File.where(case_statement)
 
     # Users can see files they uploaded if they have can_manage_own_client_files, even if they lack broader permissions.
     # can_manage_own_client_files is a global permission. If you have it anywhere in the data source,
     # you can manage your own files on any client you can view (even if you don't have it in any of that client's projects).
     if user.policy_for(Hmis::File, policy_type: :hmis_file).can_manage_own_client_files?
-      own_scope = Hmis::File.
-        left_outer_joins(:client). # same left_outer_joins as above, in order to pass structurally compatible relationship to #or
-        left_outer_joins(:enrollment).
-        merge(Hmis::Hud::Client.viewable_by(user)).
-        where(user_id: user.id)
+      # Use a subquery rather than joining Client; a join forces Postgres to hash the entire Client table.
+      own_client_scope = if client_ids.present?
+        # Narrows the client visibility query to just these clients
+        Hmis::Hud::Client.viewable_by(user, client_ids: client_ids)
+      else
+        Hmis::Hud::Client.viewable_by(user)
+      end
+      own_scope = Hmis::File.where(user_id: user.id, client_id: own_client_scope.select(:id))
       viewable_scope = viewable_scope.or(own_scope)
     end
+
+    # Performance only: the scopes above already limit results to these clients, but only inside the
+    # CASE/OR subqueries, which Postgres can't use an index for. This top-level filter on files.client_id
+    # lets it use the index on client_id instead of scanning all files.
+    viewable_scope = viewable_scope.where(client_id: client_ids) if client_ids.present?
 
     where(id: viewable_scope.select(:id))
   end
