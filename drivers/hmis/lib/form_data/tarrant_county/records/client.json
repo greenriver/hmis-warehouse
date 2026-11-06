@@ -24,9 +24,6 @@
       "fragment": "#client_emergency_contact"
     },
     {
-      "fragment": "#client_tb_dates"
-    },
-    {
       "fragment": "#client_photo",
       "enable_when": [
         {
