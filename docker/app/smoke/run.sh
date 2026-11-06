@@ -22,6 +22,26 @@ echo '== rake: create, load, migrate, seed'
 "${compose[@]}" up -d --wait postgres redis
 app bin/db_prep
 
+echo '== pg_repack, postgres client tools, shared libraries'
+# The Dockerfile hand-lists runtime libraries; catch one the builder stage had and prod-build lacks
+app env PG_MAJOR=17 sh -c '
+  set -e
+  for bin in /usr/lib/postgresql/$PG_MAJOR/bin/pg_repack-*; do "$bin" --version; done
+  for tool in psql pg_dump; do
+    version=$($tool --version)
+    echo "$version"
+    case "$version" in
+      *" $PG_MAJOR."*) ;;
+      *) echo "$tool is not version $PG_MAJOR"; exit 1 ;;
+    esac
+  done
+  missing=$(
+    { find /bundle -name "*.so" -exec ldd {} +; ldd /usr/lib/postgresql/$PG_MAJOR/bin/pg_repack-*; } 2>/dev/null \
+      | awk "/^[^\t]/ { file = \$0 } /not found/ { print file, \$0 }"
+  )
+  [ -z "$missing" ] || { echo "unresolved shared libraries:"; echo "$missing"; exit 1; }
+  
+'
 echo '== puma'
 "${compose[@]}" up -d app
 for _ in $(seq 90); do get -o /dev/null "$url/bootz" 2>/dev/null && break; sleep 2; done
