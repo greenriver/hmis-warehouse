@@ -10,6 +10,7 @@ module ClientEnrollmentVisibility
   extend ActiveSupport::Concern
 
   # Condition on "Enrollment"."id"; the relation it's applied to must already join the Enrollment table.
+  # Admits only the visible source enrollments of the given `client`.
   private def visible_enrollment_condition(client)
     GrdaWarehouse::Hud::Enrollment.arel_table[:id].in(visible_enrollment_ids_for(client))
   end

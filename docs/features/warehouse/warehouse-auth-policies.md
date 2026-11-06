@@ -79,7 +79,7 @@ Legacy (role-based) users can view an enrollment when any of these holds:
 
 - The enrollment's project is in an access group the user belongs to, and the user has legacy roles. The permission the role grants is not checked.
 - The project's data source is a window data source and window access does not require a release.
-- The destination client has active confirmed consent in the user's CoCs. This needs neither a project nor a permission.
+- The enrollment has a client, and that client's destination client has active confirmed consent in the user's CoCs. This needs neither a project nor a permission.
 
 Use `policy_for(enrollment).can_view?` for per-client lists, such as the enrollments, assessments, and services on one client's pages. Use `Enrollment.visible_to(user)` for cross-client queries and reports, where one SQL query is cheaper than a policy check per row.
 
@@ -88,7 +88,7 @@ Known differences from `Enrollment.visible_to`:
 - (a) The legacy consent SQL also accepts data sources returned by `DataSource.viewable_by(user)` that lack `obey_consent`. The policy requires `obey_consent`. The legacy SQL checks the data source on the `warehouse_clients` row, while the policy checks the source client's own data source. These are normally the same.
 - (b) A legacy user in an access group but with no legacy roles sees the enrollment in SQL but not from the policy. Such a user cannot reach a client dashboard.
 - (c) The SQL caches the user's project ids for 5 minutes and CoC codes for 1 minute. The policy reads current values on every request.
-- The policy judges whatever enrollment record it is given, including a soft-deleted one. `Enrollment.visible_to` excludes soft-deleted enrollments through the default scope, so pass records loaded through normal scopes.
+- (d) The policy judges whatever enrollment record it is given, including a soft-deleted one. `Enrollment.visible_to` excludes soft-deleted enrollments through the default scope, so pass records loaded through normal scopes.
 
 ### Preloading
 

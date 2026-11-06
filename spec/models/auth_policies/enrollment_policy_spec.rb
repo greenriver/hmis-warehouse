@@ -246,6 +246,20 @@ RSpec.describe GrdaWarehouse::AuthPolicies::EnrollmentPolicy, type: :model do
         orphan_enrollment = create :hud_enrollment, data_source: data_source, client: source_client, ProjectID: 'no-such-project'
         expect_visibility(orphan_enrollment, true)
       end
+
+      it 'hides the enrollment when the consent is for a CoC the user does not have' do
+        destination_client.update_columns(consented_coc_codes: ['XX-999'])
+        GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask.new._perform(client_ids: [destination_client.id])
+        expect_visibility(granted_enrollment, false)
+      end
+
+      it 'hides the enrollment when the consent has expired' do
+        GrdaWarehouse::Config.first.update!(release_duration: 'Use Expiration Date')
+        GrdaWarehouse::Config.invalidate_cache
+        destination_client.update_columns(consent_expires_on: Date.current - 1.day)
+        GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask.new._perform(client_ids: [destination_client.id])
+        expect_visibility(granted_enrollment, false)
+      end
     end
 
     describe 'no grant' do
