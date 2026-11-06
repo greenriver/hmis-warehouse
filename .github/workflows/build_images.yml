@@ -159,6 +159,10 @@ jobs:
               - 'Gemfile'
               - 'Gemfile.lock'
               - '.dockerignore'
+              - 'package.json'
+              - 'yarn.lock'
+              # BUILD_TAG (Ruby and Debian base image) lives here
+              - '.github/workflows/build_images.yml'
 
       - name: Smoke test image
         if: steps.changes.outputs.image == 'true'
