@@ -26,4 +26,14 @@ module ClientEnrollmentVisibility
         map(&:id)
     end
   end
+
+  # Finds one record by id in `scope`, which must already join the Enrollment table. Raises
+  # ActiveRecord::RecordNotFound unless the user can view the record's source enrollment.
+  private def find_with_visible_enrollment(scope, id)
+    enrollment_id_column = GrdaWarehouse::Hud::Enrollment.arel_table[:id]
+    enrollment = GrdaWarehouse::Hud::Enrollment.find_by(id: scope.where(id: id).pick(enrollment_id_column))
+    raise ActiveRecord::RecordNotFound unless enrollment && current_user.policy_for(enrollment).can_view?
+
+    scope.where(enrollment_id_column.eq(enrollment.id)).find(id)
+  end
 end

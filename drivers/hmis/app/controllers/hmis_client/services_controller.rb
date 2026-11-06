@@ -26,9 +26,10 @@ class HmisClient::ServicesController < ApplicationController
   end
 
   def service
-    @service ||= @client.custom_services.
-      where(visible_enrollment_condition(@client)).
-      preload(:user, :custom_data_elements, enrollment: :project, form_processor: :definition).
-      find(params[:id].to_i)
+    @service ||= find_with_visible_enrollment(
+      @client.custom_services.
+        preload(:user, :custom_data_elements, enrollment: :project, form_processor: :definition),
+      params[:id].to_i,
+    )
   end
 end

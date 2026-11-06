@@ -28,10 +28,10 @@ module Clients
     end
 
     def assessment
-      @assessment ||= @client.source_assessments.
-        where(visible_enrollment_condition(@client)).
-        preload(:assessment_questions, :assessment_results, enrollment: :project).
-        find(params[:id].to_i)
+      @assessment ||= find_with_visible_enrollment(
+        @client.source_assessments.preload(:assessment_questions, :assessment_results, enrollment: :project),
+        params[:id].to_i,
+      )
     end
 
     private def require_can_view_coordinated_entry_assessment!
