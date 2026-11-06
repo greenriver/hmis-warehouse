@@ -10,6 +10,8 @@
 # (ClientAccessControl::EnrollmentArbiter#enrollments_visible_to)
 class GrdaWarehouse::AuthPolicies::EnrollmentPolicy < GrdaWarehouse::AuthPolicies::BasePolicy
   memoize def can_view?
+    return false unless enrollment.client && project
+
     user.using_acls? ? acl_can_view? : legacy_can_view?
   end
 
@@ -27,21 +29,16 @@ class GrdaWarehouse::AuthPolicies::EnrollmentPolicy < GrdaWarehouse::AuthPolicie
     enrollment.project
   end
 
-  # The ACL SQL joins the client; the legacy project branch does not.
   def acl_can_view?
-    return false unless enrollment.client
-    return false unless project
-
     permissions = context.project_role_permissions(project.id)
     return true if permissions.include?(:can_view_clients)
 
     permissions.include?(:can_view_client_enrollments_with_roi) && roi_authorized?
   end
 
-  # The legacy consent rule needs neither a project nor a permission.
   def legacy_can_view?
-    return true if project && context.project_role_permissions(project.id).present?
-    return true if project && window_visible?
+    return true if context.project_role_permissions(project.id).present?
+    return true if window_visible?
 
     roi_authorized?
   end
@@ -52,9 +49,6 @@ class GrdaWarehouse::AuthPolicies::EnrollmentPolicy < GrdaWarehouse::AuthPolicie
   end
 
   def roi_authorized?
-    client = enrollment.client
-    return false unless client
-
-    context.source_client_roi_authorized?(client)
+    context.source_client_roi_authorized?(enrollment.client)
   end
 end

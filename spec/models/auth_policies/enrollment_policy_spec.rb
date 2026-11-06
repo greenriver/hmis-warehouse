@@ -44,6 +44,11 @@ RSpec.describe GrdaWarehouse::AuthPolicies::EnrollmentPolicy, type: :model do
     ).to eq(sql: visible, policy: visible)
   end
 
+  # For cases where the policy is stricter than the legacy SQL by design.
+  def expect_policy_visibility(enrollment, visible, as: user)
+    expect(User.find(as.id).policy_for(enrollment).can_view?).to eq(visible)
+  end
+
   def grant_collection(viewables, role: view_role)
     collection.set_viewables(viewables)
     setup_access_control(user, role, collection)
@@ -204,6 +209,15 @@ RSpec.describe GrdaWarehouse::AuthPolicies::EnrollmentPolicy, type: :model do
       end
     end
 
+    describe 'missing client' do
+      it 'hides the enrollment whose PersonalID matches no client' do
+        clientless_enrollment = create :hud_enrollment, data_source: data_source, project: granted_project, PersonalID: 'no-such-client'
+        grant_project_access(user, legacy_role, [granted_project], mode: :legacy)
+        expect_policy_visibility(clientless_enrollment, false)
+        expect_policy_visibility(granted_enrollment, true)
+      end
+    end
+
     describe 'access group with the data source' do
       it 'shows the enrollment' do
         access_group = create :access_group
@@ -242,9 +256,10 @@ RSpec.describe GrdaWarehouse::AuthPolicies::EnrollmentPolicy, type: :model do
         expect_visibility(granted_enrollment, true)
       end
 
-      it 'shows the enrollment whose ProjectID matches no project' do
+      it 'hides the enrollment whose ProjectID matches no project' do
         orphan_enrollment = create :hud_enrollment, data_source: data_source, client: source_client, ProjectID: 'no-such-project'
-        expect_visibility(orphan_enrollment, true)
+        expect_policy_visibility(orphan_enrollment, false)
+        expect_policy_visibility(granted_enrollment, true)
       end
 
       it 'hides the enrollment when the consent is for a CoC the user does not have' do
