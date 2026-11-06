@@ -8,7 +8,6 @@
 
 class HmisClient::ServicesController < ApplicationController
   include AjaxModalRails::Controller
-  include ClientDependentControllers
 
   before_action :require_can_view_enrollment_details!
   before_action :client
@@ -21,11 +20,14 @@ class HmisClient::ServicesController < ApplicationController
   end
 
   def client
-    @client ||= destination_searchable_client_scope.find(params[:client_id].to_i)
+    @client ||= GrdaWarehouse::Hud::Client.destination_visible_to(current_user).find(params[:client_id].to_i)
   end
 
   def service
     @service ||= @client.custom_services.preload(:user, :custom_data_elements, enrollment: :project, form_processor: :definition).
       find(params[:id].to_i)
+    raise ActiveRecord::RecordNotFound unless GrdaWarehouse::Hud::Enrollment.visible_to(current_user).where(id: @service.enrollment&.id).exists?
+
+    @service
   end
 end
