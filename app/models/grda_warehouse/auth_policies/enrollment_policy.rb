@@ -27,7 +27,9 @@ class GrdaWarehouse::AuthPolicies::EnrollmentPolicy < GrdaWarehouse::AuthPolicie
     enrollment.project
   end
 
+  # The ACL SQL joins the client; the legacy project branch does not.
   def acl_can_view?
+    return false unless enrollment.client
     return false unless project
 
     permissions = context.project_role_permissions(project.id)

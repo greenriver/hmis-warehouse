@@ -140,6 +140,15 @@ RSpec.describe GrdaWarehouse::AuthPolicies::EnrollmentPolicy, type: :model do
       end
     end
 
+    describe 'missing client' do
+      it 'hides the enrollment whose PersonalID matches no client' do
+        clientless_enrollment = create :hud_enrollment, data_source: data_source, project: granted_project, PersonalID: 'no-such-client'
+        grant_project_access(user, view_role, [granted_project], mode: :acl)
+        expect_visibility(clientless_enrollment, false)
+        expect_visibility(granted_enrollment, true)
+      end
+    end
+
     describe 'ROI' do
       let(:roi_role) { create :role, can_view_client_enrollments_with_roi: true }
 
@@ -219,7 +228,7 @@ RSpec.describe GrdaWarehouse::AuthPolicies::EnrollmentPolicy, type: :model do
     end
 
     describe 'consent without project access' do
-      it 'shows the enrollment when the client has a full release in the user CoC' do
+      before do
         user.coc_codes = [user_coc_code]
         destination_client.update_columns(
           housing_release_status: GrdaWarehouse::Hud::Client.full_release_string,
@@ -227,7 +236,15 @@ RSpec.describe GrdaWarehouse::AuthPolicies::EnrollmentPolicy, type: :model do
           consented_coc_codes: [user_coc_code],
         )
         GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask.new._perform(client_ids: [destination_client.id])
+      end
+
+      it 'shows the enrollment when the client has a full release in the user CoC' do
         expect_visibility(granted_enrollment, true)
+      end
+
+      it 'shows the enrollment whose ProjectID matches no project' do
+        orphan_enrollment = create :hud_enrollment, data_source: data_source, client: source_client, ProjectID: 'no-such-project'
+        expect_visibility(orphan_enrollment, true)
       end
     end
 
