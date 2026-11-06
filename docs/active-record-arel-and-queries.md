@@ -95,14 +95,12 @@ That format does **not** match ISO date literals, JSONB keys, or string
 comparisons, so interpolating a bare date into SQL silently produces wrong
 results.
 
-This actually happened: the APR/CAPER Q7b/Q8b Point-in-Time counts query a
-`jsonb` column whose keys are ISO date strings (`"2025-01-29"`, written via
-`as_json`). The query interpolated `'#{pit_date}'`, which is `Date#to_s` →
-`"Jan 29, 2025"`, so the key lookup never matched and every PIT count came back
-`0`.
+The same applies to `Date`/`Time` hash keys written to JSON or `jsonb`: the
+encoder stringifies keys with `#to_s`, so build them explicitly
+(`{ pit_date.iso8601 => ... }`) and read them back in the same format.
 
 ```ruby
-# bad — Date#to_s is "Jan 29, 2025", never matches the ISO jsonb key
+# bad — Date#to_s is "Jan 29, 2025", never matches an ISO jsonb key
 universe.members.where("pit_enrollments ? '#{pit_date}'")
 
 # good — explicit machine format
