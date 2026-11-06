@@ -77,7 +77,7 @@ gem 'encryptor'
 # File processing
 gem 'image_processing', '~> 1.14.0'
 
-gem "mini_magick", ">= 5.1"
+gem 'mini_magick', '~> 5.1'
 gem 'mimemagic'
 gem 'marcel'
 # there are no obvious breaking changes but
