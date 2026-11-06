@@ -29,7 +29,7 @@ module Clients
 
     def assessment
       @assessment ||= @client.source_assessments.
-        where(visible_enrollment_condition).
+        where(visible_enrollment_condition(@client)).
         preload(:assessment_questions, :assessment_results, enrollment: :project).
         find(params[:id].to_i)
     end

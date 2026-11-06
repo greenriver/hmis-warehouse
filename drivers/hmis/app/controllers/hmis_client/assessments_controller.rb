@@ -27,7 +27,7 @@ class HmisClient::AssessmentsController < ApplicationController
 
   def assessment
     @assessment ||= @client.hmis_source_custom_assessments.
-      where(visible_enrollment_condition).
+      where(visible_enrollment_condition(@client)).
       preload(:user, :custom_data_elements, enrollment: :project, form_processor: :definition).
       find(params[:id].to_i)
   end

@@ -109,12 +109,12 @@ module ClientShowPages
     helper_method :source_clients
 
     def visible_source_assessments
-      @client.source_assessments.where(visible_enrollment_condition)
+      @client.source_assessments.where(visible_enrollment_condition(@client))
     end
     helper_method :visible_source_assessments
 
     def visible_hmis_source_custom_assessments
-      @client.hmis_source_custom_assessments.where(visible_enrollment_condition)
+      @client.hmis_source_custom_assessments.where(visible_enrollment_condition(@client))
     end
     helper_method :visible_hmis_source_custom_assessments
 
