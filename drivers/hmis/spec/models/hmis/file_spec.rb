@@ -99,6 +99,18 @@ RSpec.describe Hmis::File, type: :model do
         remove_permissions(access_control, :can_view_clients)
         expect(Hmis::File.viewable_by(hmis_user)).to be_empty
       end
+
+      context 'if the user can view the client but has no file permissions at its projects' do
+        let!(:p2) { create :hmis_hud_project, data_source: ds1 }
+        let!(:e1) { create :hmis_hud_enrollment, client: c1, data_source: ds1, project: p2 } # c1 is enrolled only at p2
+        # File permissions remain at p1 (top-level access control), where c1 is not enrolled
+        let!(:p2_access_control) { create_access_control(hmis_user, p2, with_permission: [:can_view_clients, :can_view_project, :can_view_enrollment_details]) }
+
+        it 'does not return the file' do
+          expect(Hmis::Hud::Client.viewable_by(hmis_user)).to include(c1)
+          expect(Hmis::File.viewable_by(hmis_user)).not_to include(file1)
+        end
+      end
     end
 
     context 'user has can_manage_own_client_files' do
@@ -117,12 +129,25 @@ RSpec.describe Hmis::File, type: :model do
       end
     end
 
+    context 'user can view the client but does not have can_manage_own_client_files' do
+      let!(:access_control) { create_access_control(hmis_user, ds1, with_permission: [:can_view_clients]) }
+      let!(:file1) { create :file, client: c1, user: hmis_user, blob: blob }
+
+      it 'does not return own files' do
+        expect(Hmis::Hud::Client.viewable_by(hmis_user)).to include(c1)
+        expect(Hmis::File.viewable_by(hmis_user)).not_to include(file1)
+      end
+    end
+
     context 'user has can_manage_own_client_files only in another data source' do
       let!(:ds2) { create :hmis_data_source }
-      let!(:access_control) { create_access_control(hmis_user, ds2, with_permission: [:can_manage_own_client_files, :can_view_clients]) }
+      # Can view clients in the current data source, but manage-own is granted only in ds2
+      let!(:access_control) { create_access_control(hmis_user, ds1, with_permission: [:can_view_clients]) }
+      let!(:ds2_access_control) { create_access_control(hmis_user, ds2, with_permission: [:can_manage_own_client_files, :can_view_clients]) }
       let!(:file1) { create :file, client: c1, user: hmis_user, blob: blob }
 
       it 'does not return own files for clients in the current data source' do
+        expect(Hmis::Hud::Client.viewable_by(hmis_user)).to include(c1)
         expect(Hmis::File.viewable_by(hmis_user)).not_to include(file1)
       end
     end
