@@ -43041,7 +43041,7 @@ ALTER SEQUENCE public.hmis_scoring_rules_id_seq OWNED BY public.hmis_scoring_rul
 --
 
 CREATE VIEW public.hmis_services AS
- SELECT (concat('1', ("Services".id)::character varying))::integer AS id,
+ SELECT (concat('1', ("Services".id)::character varying))::bigint AS id,
     "Services".id AS owner_id,
     'Hmis::Hud::Service'::text AS owner_type,
     "Services"."RecordType",
@@ -43058,8 +43058,8 @@ CREATE VIEW public.hmis_services AS
    FROM public."Services"
   WHERE ("Services"."DateDeleted" IS NULL)
 UNION ALL
- SELECT (concat('2', ("CustomServices".id)::character varying))::integer AS id,
-    ("CustomServices".id)::integer AS owner_id,
+ SELECT (concat('2', ("CustomServices".id)::character varying))::bigint AS id,
+    "CustomServices".id AS owner_id,
     'Hmis::Hud::CustomService'::text AS owner_type,
     NULL::integer AS "RecordType",
     NULL::integer AS "TypeProvided",
@@ -214025,6 +214025,13 @@ CREATE INDEX idx_enrollment_ds_id_hh_id_p_id ON public."Enrollment" USING btree 
 
 
 --
+-- Name: idx_enrollment_on_lower_household_id_pattern; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_enrollment_on_lower_household_id_pattern ON public."Enrollment" USING btree (lower(("HouseholdID")::text) text_pattern_ops) WHERE ("DateDeleted" IS NULL);
+
+
+--
 -- Name: idx_fed_census_acc_on_geo_measure; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -217151,6 +217158,13 @@ CREATE INDEX index_favorites_on_updated_at ON public.favorites USING btree (upda
 --
 
 CREATE INDEX index_favorites_on_user_id ON public.favorites USING btree (user_id);
+
+
+--
+-- Name: index_files_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_files_on_client_id ON public.files USING btree (client_id);
 
 
 --
@@ -360297,6 +360311,9 @@ ALTER TABLE ONLY public.import_logs
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261104120200'),
+('20261104120100'),
+('20261104120000'),
 ('20261028120000'),
 ('20261027120000'),
 ('20261014140000'),
