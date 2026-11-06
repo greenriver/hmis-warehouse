@@ -88,9 +88,9 @@ RSpec.describe Clients::HudAssessmentsController, type: :request do
     context 'when the user can search the client but not view it' do
       before { sign_in_with(search_only_role) }
 
-      it 'does not show the assessment' do
-        # Searchable but not viewable. Without can_view_clients the user sees none of the
-        # client's enrollments either, so the client scope and the enrollment check both refuse.
+      it 'refuses the assessment because neither the client nor its enrollment is visible' do
+        # Any grant that makes an enrollment visible also makes its client visible, so the client
+        # scope and the enrollment condition can't be tested one at a time.
         expect(GrdaWarehouse::Hud::Client.destination_from_searchable_to(user).pluck(:id)).to include(destination.id)
         expect(destination.show_demographics_to?(user)).to be(false)
         expect(GrdaWarehouse::Hud::Enrollment.visible_to(user).where(id: visible_enrollment.id)).to be_empty
