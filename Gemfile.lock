@@ -1199,7 +1199,7 @@ DEPENDENCIES
   memery
   memory_profiler
   mimemagic
-  mini_magick (>= 5.1)
+  mini_magick (~> 5.1)
   minitest-reporters
   multipart-post
   mutex_m
