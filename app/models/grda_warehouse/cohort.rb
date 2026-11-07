@@ -644,7 +644,11 @@ module GrdaWarehouse
     end
 
     def self.maintain_auto_maintained!
-      auto_maintained.find_each(&:maintain)
+      auto_maintained.find_each do |cohort|
+        cohort.maintain
+      rescue AvailableSubPopulations::UnknownSubPopulation => e
+        Sentry.capture_exception_with_info(e, 'Skipped cohort automation', { cohort_id: cohort.id })
+      end
     end
 
     # automation filter configured?
@@ -741,7 +745,7 @@ module GrdaWarehouse
       return filter unless project_group_id.present?
 
       filter.project_group_ids = [project_group_id]
-      filter.sub_population = automation_sub_population.to_sym if automation_sub_population.present?
+      filter.sub_population = automation_sub_population if automation_sub_population.present?
       filter.hoh_only = automation_hoh_only
       filter.require_service_during_range = false
       filter

@@ -93,6 +93,11 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Exports::AdHoc, type: :model do
       expect(restricted_row.values_at('First Name', 'Last Name')).to eq(['Name Redacted', 'Name Redacted'])
       expect(open_row.values_at('First Name', 'Last Name')).to eq(['Name Redacted', 'Name Redacted'])
     end
+
+    it 'raises for an unregistered sub-population in stored options' do
+      stale = described_class.create!(user_id: running_user.id, options: ad_hoc_options.merge(sub_population: 'not_a_real_population'))
+      expect { stale.rows_for_export }.to raise_error(AvailableSubPopulations::UnknownSubPopulation)
+    end
   end
 
   # Projects the running user reaches in different ways, each with one client enrolled, plus one

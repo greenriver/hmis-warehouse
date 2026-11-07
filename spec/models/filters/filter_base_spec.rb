@@ -314,4 +314,39 @@ RSpec.describe Filters::FilterBase, type: :model do
       travel_back
     end
   end
+
+  describe 'sub_population' do
+    it 'raises when update receives an unregistered sub-population' do
+      filter = Filters::FilterBase.new(user_id: user.id, sub_population: :veterans)
+      expect { filter.update(sub_population: 'entry') }.to raise_error(AvailableSubPopulations::UnknownSubPopulation)
+    end
+
+    it 'keeps a registered sub-population passed as a string' do
+      filter = Filters::FilterBase.new(user_id: user.id)
+      filter.update(sub_population: 'veterans')
+      expect(filter.sub_population).to eq(:veterans)
+    end
+
+    it 'raises for an unregistered sub-population passed to new' do
+      expect { Filters::DateRangeAndSourcesResidentialOnly.new(user_id: user.id, sub_population: 'all_clients') }.
+        to raise_error(AvailableSubPopulations::UnknownSubPopulation)
+    end
+
+    it 'falls back to clients for a blank sub-population' do
+      filter = Filters::FilterBase.new(user_id: user.id, sub_population: :veterans)
+      filter.sub_population = ''
+      expect(filter.sub_population).to eq(:clients)
+    end
+
+    it 'keeps the outflow-only youth sub-populations on the outflow filter' do
+      filter = Filters::OutflowReport.new(user_id: user.id)
+      filter.update(sub_population: 'youth_at_search_start')
+      expect(filter.sub_population).to eq(:youth_at_search_start)
+    end
+
+    it 'rejects the outflow-only youth sub-populations on the base filter' do
+      expect { Filters::FilterBase.new(user_id: user.id, sub_population: :youth_at_search_start) }.
+        to raise_error(AvailableSubPopulations::UnknownSubPopulation)
+    end
+  end
 end

@@ -249,6 +249,13 @@ RSpec.describe GrdaWarehouse::Cohort, type: :model do
         expect(cohort.clients.pluck(:id)).to contain_exactly(@client_veteran.destination_client.id)
       end
 
+      it 'raises and adds no clients when the stored sub-population is not registered' do
+        cohort.update_column(:automation_sub_population, 'children')
+
+        expect { cohort.maintain }.to raise_error(AvailableSubPopulations::UnknownSubPopulation)
+        expect(cohort.clients.pluck(:id)).to be_empty
+      end
+
       it 'filters by hoh_only' do
         expect do
           cohort.update!(automation_hoh_only: true)
@@ -310,6 +317,30 @@ RSpec.describe GrdaWarehouse::Cohort, type: :model do
         expect do
           cohort.maintain
         end.to change { cohort.reload.automation_updated_at }.from(nil)
+      end
+    end
+
+    describe '.maintain_auto_maintained!' do
+      let!(:stale_cohort) do
+        create(:cohort, project_group: project_group).tap do |c|
+          c.update_column(:automation_sub_population, 'children')
+        end
+      end
+      let!(:valid_cohort) { create(:cohort, project_group: project_group) }
+
+      it 'maintains the remaining cohorts after one with an unregistered sub-population' do
+        allow(Sentry).to receive(:capture_exception_with_info)
+
+        described_class.maintain_auto_maintained!
+
+        expect(valid_cohort.clients.pluck(:id)).to contain_exactly(
+          @client.destination_client.id,
+          @client_hoh.destination_client.id,
+          @client_veteran.destination_client.id,
+        )
+        expect(stale_cohort.clients.pluck(:id)).to be_empty
+        expect(Sentry).to have_received(:capture_exception_with_info).
+          with(instance_of(AvailableSubPopulations::UnknownSubPopulation), anything, { cohort_id: stale_cohort.id })
       end
     end
 

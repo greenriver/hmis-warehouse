@@ -107,6 +107,10 @@ module Filters
       self.user_id = user.id if user
     end
 
+    def sub_population=(value)
+      super(value.blank? ? :clients : AvailableSubPopulations.fetch!(value, available_sub_populations.values))
+    end
+
     # Incorporate anything that might change the results
     def cache_key
       to_h
