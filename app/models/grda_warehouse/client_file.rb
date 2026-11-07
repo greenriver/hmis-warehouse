@@ -70,8 +70,8 @@ module GrdaWarehouse
       where(visible_in_window: true)
     end
 
-    # Confidential files are visible by users who have access to confidential files at the associated project,
-    # OR if the file does not have an associated enrollment and the user can view some confidential files
+    # Confidential files are visible by users who have access to confidential files at the associated enrollment's project,
+    # OR at any project in the file's data source (a file with both an enrollment and a data source matches through either)
     scope :confidential_visible_by, ->(user) do
       permission = :can_see_confidential_files
       return none unless user&.send("#{permission}?")

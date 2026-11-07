@@ -55,8 +55,8 @@ All three versions produce HUD-compliant HMIS CSV zip files (see [hmis-csv-expor
 | `app/services/client_external_data_sharing.rb` | Service — reads and writes the exclusion flag |
 | `app/models/grda_warehouse/client_attribute.rb` | Model — warehouse DB table holding the flag |
 | `app/models/concerns/export/scopes.rb` | Concern — applies exclusion to exporter scopes |
-| `app/controllers/clients_controller.rb` | Controller — `external_sharing_flag` / `update_external_sharing_flag` actions |
-| `app/views/clients/external_sharing_flag.haml` | View — modal form for editing the flag |
+| `app/controllers/clients/external_data_sharing_controller.rb` | Controller — `show` / `update` for the flag; requires `can_edit_clients` and loads the client through `destination_visible_to`, so a client outside the user's visibility returns 404 |
+| `app/views/clients/external_data_sharing/show.haml` | View — form for editing the flag |
 | `app/views/clients/_external_sharing_flag.haml` | Partial — badge shown on client profile |
 | `db/warehouse/migrate/20260624000001_create_client_attributes.rb` | Migration — creates the `client_attributes` table |
 

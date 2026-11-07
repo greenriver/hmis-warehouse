@@ -122,9 +122,9 @@ module ClientImageConsumer
     private def uploaded_local_image
       # These need to be flagged as available in the Window. Since we cache these
       # in the file-system, we'll only show those that would be available to people
-      # with window access.
+      # with window access. Confidential files are excluded since anyone who can see the client sees the headshot.
       # Only works on the destination client
-      client_files.window.tagged_with('Client Headshot').order(updated_at: :desc).limit(1)&.first
+      client_files.window.non_confidential.tagged_with('Client Headshot').order(updated_at: :desc).limit(1)&.first
     end
 
     private def local_hmis_image
