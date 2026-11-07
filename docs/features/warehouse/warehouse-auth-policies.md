@@ -193,5 +193,5 @@ Redaction only covers code that goes through `PiiProvider` or the `reporting_pol
 
 Two conventions cover restriction-aware PII in report detail views, chosen by row shape:
 
-- **Array rows aligned to a header list**: `WarehouseReports::PiiDetailRows#redact_pii_in_row` redacts the name, DOB, and SSN columns, given the position of the warehouse client id in the row.
+- **Array rows aligned to a header list**: `WarehouseReports::PiiDetailRows#redact_pii_in_row` redacts the name, DOB, and SSN columns, given the position of the warehouse client id in the row. Pass `project_id:` when the row belongs to a project, so the viewer's project PII permissions apply; without it, browse mode shows all PII.
 - **Per-row report models** (a report's own client or enrollment record): a `detail_value(key, user:, mode:)` method returns the redacted value for PII keys and the raw attribute otherwise.
