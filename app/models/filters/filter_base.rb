@@ -684,16 +684,21 @@ module Filters
       )
     end
 
-    def all_projects?
-      effective_project_ids.sort == all_project_ids.sort
-    end
-
     def project_ids
       @project_ids.reject(&:blank?)
     end
 
+    # Memoized because the All Neighbors report calls this once per enrollment
     def secondary_project_ids
-      @secondary_project_ids.reject(&:blank?)
+      @visible_secondary_project_ids ||= begin # rubocop:disable Naming/MemoizedInstanceVariableName -- @secondary_project_ids holds the raw param
+        submitted_ids = @secondary_project_ids.reject(&:blank?).map(&:to_i)
+        submitted_ids.empty? ? [] : all_project_scope.where(id: submitted_ids).pluck(:id)
+      end
+    end
+
+    def secondary_project_ids=(ids)
+      @visible_secondary_project_ids = nil
+      super
     end
 
     def coc_codes
@@ -733,27 +738,40 @@ module Filters
     end
 
     def effective_project_ids_from_projects
-      @effective_project_ids_from_projects ||= project_ids.reject(&:blank?).map(&:to_i)
+      @effective_project_ids_from_projects ||= begin
+        submitted_ids = project_ids.reject(&:blank?).map(&:to_i)
+        submitted_ids.empty? ? [] : all_project_scope.where(id: submitted_ids).pluck(:id)
+      end
     end
 
     def effective_project_ids_from_project_groups
       pgs = project_group_ids.reject(&:blank?).map(&:to_i)
       return [] if pgs.empty? # if there are no project groups selected, there are no projects
 
-      @effective_project_ids_from_project_groups ||= GrdaWarehouse::ProjectGroup.joins(:projects).
-        merge(GrdaWarehouse::ProjectGroup.viewable_by(user)).
-        where(id: pgs).
-        pluck(p_t[:id].as('project_id'))
+      @effective_project_ids_from_project_groups ||= visible_project_ids_in_project_groups(pgs)
     end
 
     def effective_project_ids_from_secondary_project_groups
       pgs = secondary_project_group_ids.reject(&:blank?).map(&:to_i)
       return [] if pgs.empty? # if there are no project groups selected, there are no projects
 
-      @effective_project_ids_from_secondary_project_groups ||= GrdaWarehouse::ProjectGroup.joins(:projects).
-        merge(GrdaWarehouse::ProjectGroup.viewable_by(user)).
-        where(id: pgs).
-        pluck(p_t[:id].as('project_id'))
+      @effective_project_ids_from_secondary_project_groups ||= visible_project_ids_in_project_groups(pgs)
+    end
+
+    # A project group limits which projects a report covers, it doesn't grant access to them:
+    # users only get the group's projects they can already report on
+    private def visible_project_ids_in_project_groups(project_group_ids)
+      group_project_ids = GrdaWarehouse::ProjectGroup.joins(:projects).
+        merge(viewable_project_group_scope).
+        where(id: project_group_ids).
+        select(p_t[:id])
+
+      all_project_scope.where(id: group_project_ids).pluck(:id)
+    end
+
+    # The project groups a selection may use
+    private def viewable_project_group_scope
+      GrdaWarehouse::ProjectGroup.viewable_by(user)
     end
 
     def effective_project_ids_from_organizations
@@ -796,6 +814,13 @@ module Filters
     end
 
     def all_project_scope
+      GrdaWarehouse::Hud::Project.viewable_by(user, permission: :can_view_assigned_reports)
+    end
+
+    # The projects whose enrollments `apply_criteria` may return. Unlike `all_project_scope`,
+    # subclasses don't narrow it by project type, so criteria keep enrollments in any
+    # project the user can report on
+    def criteria_project_scope
       GrdaWarehouse::Hud::Project.viewable_by(user, permission: :can_view_assigned_reports)
     end
 

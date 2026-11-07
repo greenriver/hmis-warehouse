@@ -102,6 +102,23 @@ RSpec.describe model, type: :model do
           expect(user_ids[user]).to eq ids[o1, o2]
         end
       end
+
+      describe 'viewable_by followed by a merge on organization id' do
+        before do
+          no_data_source_collection.set_viewables({ organizations: [o1.id] })
+          setup_access_control(user, can_view_projects, no_data_source_collection)
+        end
+
+        it 'does not widen to an invisible organization' do
+          scope = model.viewable_by(user).merge(model.where(id: o2.id))
+          expect(scope.pluck(:id)).to be_empty
+        end
+
+        it 'intersects with the merged ids' do
+          scope = model.viewable_by(user).merge(model.where(id: [o1.id, o2.id]))
+          expect(scope.pluck(:id)).to eq [o1.id]
+        end
+      end
     end
   end
 end

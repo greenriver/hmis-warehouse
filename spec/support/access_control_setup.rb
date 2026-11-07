@@ -34,4 +34,20 @@ module AccessControlSetup
     projects.each { |project| access_group.add_viewable(project) }
     user.clear_memery_cache!
   end
+
+  # Lets the user see and pick `project_groups` in reports, without granting access to their
+  # projects, through ACLs (`:acl`) or legacy roles and access groups (`:legacy`)
+  def grant_project_group_access(user, role, project_groups, mode:)
+    if mode == :acl
+      collection = create(:collection, collection_type: 'Project Groups')
+      collection.set_viewables({ project_groups: project_groups.map(&:id) })
+      return setup_access_control(user, role, collection)
+    end
+
+    role.add(user)
+    access_group = create(:access_group)
+    access_group.add(user)
+    project_groups.each { |project_group| access_group.add_viewable(project_group) }
+    user.clear_memery_cache!
+  end
 end

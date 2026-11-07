@@ -240,6 +240,35 @@ RSpec.describe GrdaWarehouse::Cohort, type: :model do
         )
       end
 
+      it 'adds clients from a confidential project in the group' do
+        project.update!(confidential: true)
+        system_user = User.setup_system_user
+        expect(system_user.can_report_on_confidential_projects?).to be false
+
+        cohort.maintain
+
+        expect(cohort.clients.pluck(:id)).to contain_exactly(
+          @client.destination_client.id,
+          @client_hoh.destination_client.id,
+          @client_veteran.destination_client.id,
+        )
+      end
+
+      it 'adds clients when the system user has no project access yet' do
+        # e.g. a new data source before the delayed system group maintenance has run
+        GrdaWarehouse::GroupViewableEntity.delete_all
+        system_user = User.setup_system_user
+        expect(GrdaWarehouse::Hud::Project.viewable_by(system_user, permission: :can_view_assigned_reports)).to be_empty
+
+        cohort.maintain
+
+        expect(cohort.clients.pluck(:id)).to contain_exactly(
+          @client.destination_client.id,
+          @client_hoh.destination_client.id,
+          @client_veteran.destination_client.id,
+        )
+      end
+
       it 'filters by sub-population' do
         expect do
           cohort.update!(automation_sub_population: 'veterans')

@@ -79,6 +79,12 @@ Single-client pages such as the client dashboard need no preload; `DestinationCl
 
 When a context falls back to one-at-a-time lookups for more than a handful of distinct clients, it raises in development and test and sends a Sentry warning in staging and production. The fix is a preload where the list is loaded, not a higher threshold.
 
+## Project Groups and Confidential Projects
+
+Seeing a project group doesn't grant access to its projects: a report run on a group covers only the group's projects the user can already report on. Access to a group's projects comes from a separate `ProjectAccessGroup` grant. Project group membership and cohort automation use system filters that skip visibility checks, so confidential projects picked into a group reach the cohorts maintained from it. See [Project Groups](./project-groups.md) for how membership is resolved and how groups, confidential projects, and cohorts interact.
+
+`Project.viewable_by` leaves confidential projects out unless the user has `can_report_on_confidential_projects`. The system user doesn't have that permission, so report filters run as the system user leave confidential projects out, including ones listed directly by ID.
+
 ## PII Provider Instantiation
 
 `GrdaWarehouse::PiiProvider` is built a few different ways depending on whether a policy already exists and whether restriction still needs to be applied.

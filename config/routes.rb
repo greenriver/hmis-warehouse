@@ -80,21 +80,8 @@ Rails.application.routes.draw do
   resources :maintenance, only: [:index]
   resources :maintenance_saver, only: [:index], controller: 'maintenance'
 
-  namespace :reports do
-    namespace :hic do
-      resource :export, only: [:show, :create]
-      resource :organization, only: [:show]
-      resource :project, only: [:show]
-      resource :inventory, only: [:show]
-      resource :site, only: [:show]
-      resource :geography, only: [:show]
-      resource :funder, only: [:show]
-      resource :project_coc, only: [:show]
-    end
-  end
   get 'hud_reports', to: redirect('/warehouse_reports') # bookmarks from the removed HUD Reports index
   namespace :hud_reports do
-    resources :historic_pits, only: [:index]
     resources :historic_lsas, only: [:index], controller: 'lsas'
   end
   resources :report_results_summary, only: [:show]

@@ -168,6 +168,10 @@ environment. `UserPermissionCache` (`app/models/concerns/user_permission_cache.r
 - `can_x?` on `User` is true if any of the user's roles has the flag, regardless of collection.
   `Project.viewable_by(user, permission:)` first requires `user.can_x?`, then narrows by
   collection. A green `can_x?` does not mean access to a specific record.
+- `ProjectGroup.viewable_by(user)` grants no project access. A report run on a group covers only
+  the group's projects in `Project.viewable_by(user, permission: :can_view_assigned_reports)`.
+  Project access through a group comes from the same row granted as a `ProjectAccessGroup`. See
+  "Using a Group" in `docs/features/warehouse/project-groups.md`.
 - `permission:` on `viewable_by` scopes is ignored on the legacy branch; a user on legacy roles
   gets the legacy union. Specs for scope changes need a user on each `permission_context`.
 - `UserGroupMember` does not include `UserPermissionCache`, and `UserGroup#add`/`remove` write

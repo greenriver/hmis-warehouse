@@ -124,6 +124,23 @@ RSpec.describe model, type: :model do
         end
       end
 
+      describe 'viewable_by followed by a merge on data source id' do
+        before do
+          empty_collection.set_viewables({ data_sources: [ds1.id] })
+          setup_access_control(user, can_view_projects, empty_collection)
+        end
+
+        it 'does not widen to an invisible data source' do
+          scope = model.viewable_by(user).merge(model.where(id: ds2.id))
+          expect(scope.pluck(:id)).to be_empty
+        end
+
+        it 'intersects with the merged ids' do
+          scope = model.viewable_by(user).merge(model.where(id: [ds1.id, ds2.id]))
+          expect(scope.pluck(:id)).to eq [ds1.id]
+        end
+      end
+
       describe 'user assigned to projet group' do
         it 'sees ds1' do
           empty_collection.set_viewables({ project_access_groups: [pg1.id] })

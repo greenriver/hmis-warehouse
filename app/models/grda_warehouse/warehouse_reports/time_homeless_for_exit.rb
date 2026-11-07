@@ -100,14 +100,22 @@ module GrdaWarehouse::WarehouseReports
           each do |client_id, entry_date, exit_date, project_name, project_id, confidential|
             next if client_housed_dates[client_id].exit_date < entry_date
 
-            safe_project_name = GrdaWarehouse::Hud::Project.confidentialize_name(filter.user, project_name, confidential)
+            # The stay still counts toward days homeless, but a project the user can't report on
+            # is shown as confidential and without its ID so the report doesn't link to it
+            if reportable_project_ids.include?(project_id)
+              safe_project_name = GrdaWarehouse::Hud::Project.confidentialize_name(filter.user, project_name, confidential)
+              safe_project_id = project_id
+            else
+              safe_project_name = GrdaWarehouse::Hud::Project.confidential_project_name
+              safe_project_id = nil
+            end
             existing_date = dates[client_id]
             # first-time through
             if existing_date.blank?
               dates[client_id] = OpenStruct.new(
                 entry_date: entry_date,
                 project_name: safe_project_name,
-                project_id: project_id,
+                project_id: safe_project_id,
               )
               next
             end
@@ -118,10 +126,17 @@ module GrdaWarehouse::WarehouseReports
             dates[client_id] = OpenStruct.new(
               entry_date: entry_date,
               project_name: safe_project_name,
-              project_id: project_id,
+              project_id: safe_project_id,
             )
           end
       end
+    end
+
+    private def reportable_project_ids
+      @reportable_project_ids ||= GrdaWarehouse::Hud::Project.
+        viewable_by(filter.user, permission: :can_view_assigned_reports).
+        pluck(:id).
+        to_set
     end
 
     private def homeless_entries
@@ -164,9 +179,21 @@ module GrdaWarehouse::WarehouseReports
         public_send(filter.sub_population).
         joins(source_enrollments: [:project, :organization]).
         merge(GrdaWarehouse::Hud::Project.viewable_by(filter.user, permission: :can_view_assigned_reports))
-      scope = scope.merge(GrdaWarehouse::Hud::Project.where(id: filter.effective_project_ids)) if filter.effective_project_ids.reject(&:zero?).any?
+      scope = scope.merge(GrdaWarehouse::Hud::Project.where(id: filter.effective_project_ids)) if any_project_selection?
       scope = scope.where(id: cohort_client_scope.select(:client_id)) if filter.cohort_ids.any?
       scope
+    end
+
+    # Report on every visible project only when nothing was picked. A selection that
+    # resolves to no projects (all hidden) means none, not all.
+    private def any_project_selection?
+      [
+        filter.project_ids,
+        filter.project_group_ids,
+        filter.organization_ids,
+        filter.data_source_ids,
+        filter.coc_codes,
+      ].any? { |ids| ids.compact_blank.present? }
     end
 
     private def cohort_client_scope

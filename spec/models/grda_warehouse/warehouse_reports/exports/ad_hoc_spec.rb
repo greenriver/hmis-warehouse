@@ -164,6 +164,21 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Exports::AdHoc, type: :model do
           end
         end
 
+        context 'when only a viewable non-residential project is selected' do
+          let!(:services_only_project) { create(:hud_project, organization: organization, data_source: hmis_ds, ProjectType: 6) } # SSO
+          let!(:services_only_client) { create(:grda_warehouse_hud_client, FirstName: 'Services', LastName: 'Only', DOB: 20.years.ago.to_date) }
+          let!(:services_only_she) { build_open_enrollment(services_only_client, services_only_project) }
+          # The default `:clients` sub-population requires a homeless enrollment somewhere
+          let!(:services_only_homeless_she) { build_open_enrollment(services_only_client) }
+          let(:selection) { { project_ids: [services_only_project.id] } }
+
+          before { grant_project_access(running_user, role, [services_only_project], mode: access_mode) }
+
+          it 'includes only clients enrolled in that project' do
+            expect(client_ids(ad_hoc)).to contain_exactly(services_only_client.id)
+          end
+        end
+
         context 'when only a data source is selected' do
           let(:selection) { { data_source_ids: [hmis_ds.id] } }
 
