@@ -633,29 +633,6 @@
       "note": ""
     },
     {
-      "warning_type": "Command Injection",
-      "warning_code": 14,
-      "fingerprint": "41a55397c476ac6cbc535605ca0fa1ee00eb625118da55aaca9b6e761c90f50c",
-      "check_name": "Execute",
-      "message": "Possible command injection",
-      "file": "app/models/grda_warehouse/shape/installer.rb",
-      "line": 89,
-      "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
-      "code": "system(\"./shape_files/#{conf.dir}/make.inserts #{GrdaWarehouse::Config.get(:relevant_state_codes)}\")",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "GrdaWarehouse::Shape::Installer",
-        "method": "handle_one_geography!"
-      },
-      "user_input": "conf.dir",
-      "confidence": "Medium",
-      "cwe_id": [
-        77
-      ],
-      "note": ""
-    },
-    {
       "warning_type": "SQL Injection",
       "warning_code": 0,
       "fingerprint": "473ca8588df62336dd0e01e2d9695c7643b543e986c48cadceb7641d2acd2e25",

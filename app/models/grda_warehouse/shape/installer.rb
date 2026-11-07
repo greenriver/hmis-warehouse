@@ -74,6 +74,11 @@ module GrdaWarehouse
         end
       end
 
+      def make_inserts_command(dir)
+        codes = GrdaWarehouse::Config.relevant_state_codes.select { |code| code.match?(GrdaWarehouse::Config::STATE_CODE) }
+        ["./shape_files/#{dir}/make.inserts", codes.join(',')]
+      end
+
       def handle_one_geography!(conf)
         if conf.klass.all_we_need?
           Rails.logger.info "Skipping #{conf.klass} since you already have it."
@@ -86,7 +91,8 @@ module GrdaWarehouse
 
         # command-line arg is only important for block groups and CoC, but
         # easier to just pass it along for all
-        system("./shape_files/#{conf.dir}/make.inserts #{GrdaWarehouse::Config.get(:relevant_state_codes)}")
+        command, codes = make_inserts_command(conf.dir)
+        system(command, codes)
 
         if ::File.exist?("shape_files/#{conf.dir}/inserts.sql")
           Rails.logger.info "Inserting #{conf.klass} into the database, conserving RAM"
