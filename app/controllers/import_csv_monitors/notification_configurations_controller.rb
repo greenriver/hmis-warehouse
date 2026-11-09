@@ -9,7 +9,8 @@
 module ImportCsvMonitors
   class NotificationConfigurationsController < ApplicationController
     include AjaxModalRails::Controller
-    before_action :require_can_view_imports_projects_or_organizations!
+    include ImportAlertsAuthorization
+    before_action :require_can_edit_data_sources_or_warehouse_alerts!
     before_action :data_source
     before_action :import_csv_monitor
 
@@ -49,10 +50,7 @@ module ImportCsvMonitors
     end
 
     private def data_source
-      @data_source ||= GrdaWarehouse::DataSource.viewable_by(
-        current_user,
-        permission: :can_view_projects,
-      ).find(params[:data_source_id].to_i)
+      @data_source ||= import_alerts_data_source_scope.find(params[:data_source_id].to_i)
     end
     helper_method :data_source
 
@@ -63,7 +61,7 @@ module ImportCsvMonitors
 
     private def notification_configuration
       @notification_configuration ||= if params[:id].present?
-        GrdaWarehouse::NotificationConfiguration.find_safely(params[:id])
+        GrdaWarehouse::NotificationConfiguration.where(source: import_csv_monitor).find_safely(params[:id])
       else
         GrdaWarehouse::NotificationConfiguration.new(
           source: import_csv_monitor,

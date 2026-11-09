@@ -8,7 +8,8 @@
 
 class NotificationConfigurationsController < ApplicationController
   include AjaxModalRails::Controller
-  before_action :require_can_view_imports_projects_or_organizations!, only: [:show]
+  include ImportAlertsAuthorization
+  before_action :require_can_edit_data_sources_or_warehouse_alerts!
   before_action :data_source
   before_action :import_threshold
 
@@ -40,12 +41,8 @@ class NotificationConfigurationsController < ApplicationController
       permit(:user_id, :active)
   end
 
-  private def data_source_scope
-    GrdaWarehouse::DataSource.viewable_by(current_user, permission: :can_view_projects)
-  end
-
   private def data_source
-    @data_source ||= data_source_scope.find(params[:data_source_id].to_i)
+    @data_source ||= import_alerts_data_source_scope.find(params[:data_source_id].to_i)
   end
   helper_method :data_source
 
@@ -56,7 +53,7 @@ class NotificationConfigurationsController < ApplicationController
 
   def notification_configuration
     @notification_configuration ||= if params[:id].present?
-      GrdaWarehouse::NotificationConfiguration.find_safely(params[:id])
+      GrdaWarehouse::NotificationConfiguration.where(source: import_threshold).find_safely(params[:id])
     else
       GrdaWarehouse::NotificationConfiguration.new(
         source: import_threshold,
