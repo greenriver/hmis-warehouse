@@ -314,7 +314,7 @@ module GrdaWarehouse::Hud
     alias_attribute :name, :OrganizationName
 
     def name(user = nil, ignore_confidential_status: false)
-      if ignore_confidential_status || user&.can_view_confidential_project_names?
+      if ignore_confidential_status || user&.policy_for(self)&.can_view_name?
         self.OrganizationName
       else
         safe_organization_name

@@ -97,6 +97,17 @@ RSpec.describe GrdaWarehouse::AuthPolicies::OrganizationPolicy, type: :model do
 
           expect(policy.can_view_name?).to be false
         end
+
+        it 'is false when Can View Confidential Project Names is granted only on a collection without the organization' do
+          grant(view_only_role, collection_with(organizations: [organization.id]))
+          grant(
+            create(:role, can_view_projects: true, can_view_confidential_project_names: true),
+            collection_with(organizations: [other_organization.id]),
+          )
+
+          expect(policy.can_view_name?).to be false
+          expect(organization.name(user)).to eq(GrdaWarehouse::Hud::Organization.confidential_organization_name)
+        end
       end
     end
   end
