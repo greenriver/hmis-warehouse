@@ -605,6 +605,31 @@ RSpec.describe DataSourcesController, type: :request do
     end
   end
 
+  describe 'writes by a legacy user who can only view one project of the data source' do
+    let(:legacy_user) { create(:user) }
+    let(:access_group) { create(:access_group) }
+    let(:legacy_role) { create(:role, can_view_projects: true, can_edit_projects: true, can_edit_data_sources: true, can_delete_data_sources: true) }
+    let!(:viewed_project) { create(:hud_project, data_source: data_source) }
+
+    before do
+      legacy_role.add(legacy_user)
+      access_group.add(legacy_user)
+      access_group.add_viewable(viewed_project)
+      sign_in legacy_user
+    end
+
+    it 'does not update the data source' do
+      patch data_source_path(data_source), params: { grda_warehouse_data_source: { name: 'Renamed' } }
+      expect(response).to have_http_status(:not_found)
+      expect(data_source.reload.name).not_to eq('Renamed')
+    end
+
+    it 'does not queue its deletion' do
+      expect { delete data_source_path(data_source) }.not_to have_enqueued_job(DeleteItemJob)
+      expect(response).to have_http_status(:not_found)
+    end
+  end
+
   describe 'DELETE #destroy' do
     let(:edit_only_role) { create(:role, can_view_projects: true, can_edit_data_sources: true) }
     let(:delete_role) { create(:role, can_view_projects: true, can_edit_data_sources: true, can_delete_data_sources: true) }
