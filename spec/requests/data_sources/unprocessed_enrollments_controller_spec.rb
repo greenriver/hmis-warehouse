@@ -50,6 +50,33 @@ RSpec.describe DataSources::UnprocessedEnrollmentsController, type: :request do
       end
     end
 
+    context 'with access to one project in the data source' do
+      let(:other_project) { create(:grda_warehouse_hud_project, data_source: data_source) }
+      let!(:visible_enrollment) do
+        create(:hud_enrollment, data_source: data_source, project: project, client: create_linked_client(data_source), processed_as: nil)
+      end
+      let!(:outside_enrollment) do
+        create(:hud_enrollment, data_source: data_source, project: other_project, client: create_linked_client(data_source), processed_as: nil)
+      end
+
+      before do
+        collection.set_viewables({ projects: [project.id] })
+        setup_access_control(user, role, collection)
+        sign_in user
+      end
+
+      it 'lists only enrollments in projects the user can view' do
+        get data_source_unprocessed_enrollments_path(data_source)
+        rendered_ids = response.body.scan(/<td>(\d+)<\/td>/).flatten.map(&:to_i)
+        expect(rendered_ids).to contain_exactly(visible_enrollment.id)
+      end
+
+      it 'shows the same count on the data source index' do
+        get data_sources_path
+        expect(response.body).to include('Enrollments remaining to process: 1')
+      end
+    end
+
     context 'with permission and access to the data source' do
       before do
         collection.set_viewables({ data_sources: [data_source.id] })
@@ -93,7 +120,8 @@ RSpec.describe DataSources::UnprocessedEnrollmentsController, type: :request do
 
           rendered_ids = response.body.scan(/<td>(\d+)<\/td>/).flatten.map(&:to_i)
           expect(rendered_ids).to contain_exactly(eligible_enrollment.id)
-          expect(data_source.unprocessed_enrollment_count).to eq(rendered_ids.size)
+          project_scope = GrdaWarehouse::Hud::Project.viewable_by(user, confidential_scope_limiter: :all, permission: :can_view_projects)
+          expect(data_source.unprocessed_enrollment_count(project_scope: project_scope)).to eq(rendered_ids.size)
         end
       end
 
@@ -165,10 +193,14 @@ RSpec.describe DataSources::UnprocessedEnrollmentsController, type: :request do
       describe 'client PII scoping' do
         let(:role) { create(:role, can_view_projects: true, can_view_clients: true, can_view_client_name: true) }
 
+        let(:view_only_collection) { create(:collection) }
+
         before do
           # Narrows the outer before block's data-source-wide grant down to just `project`,
-          # so `restricted_project` (below) is enrolled-in but not itself granted.
+          # and grants `restricted_project` (below) project view without client name access.
           collection.set_viewables({ projects: [project.id] })
+          view_only_collection.set_viewables({ projects: [restricted_project.id] })
+          setup_access_control(user, create(:role, can_view_projects: true), view_only_collection)
         end
 
         let!(:shared_client) { create_linked_client(data_source) }

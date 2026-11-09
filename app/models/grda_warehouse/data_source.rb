@@ -542,8 +542,12 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     self.class.data_spans_by_id[id]
   end
 
-  def unprocessed_enrollment_count
-    @unprocessed_enrollment_count ||= enrollments.unprocessed_with_resolvable_project_and_client.count
+  def unprocessed_enrollments(project_scope: nil)
+    self.class.limit_enrollments_to_projects(enrollments.unprocessed_with_resolvable_project_and_client, project_scope)
+  end
+
+  def unprocessed_enrollment_count(project_scope: nil)
+    unprocessed_enrollments(project_scope: project_scope).count
   end
 
   # Batched form of the stalled-date business rules for a page of data sources, to avoid one
@@ -784,12 +788,17 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
   end
 
   # Batched form of #unprocessed_enrollment_count for a page of data sources, to avoid one query per row.
-  def self.unprocessed_enrollment_counts_by_id(data_source_ids)
-    Hash.new(0).merge(
-      GrdaWarehouse::Hud::Enrollment.unprocessed_with_resolvable_project_and_client.
-        where(data_source_id: data_source_ids).
-        group(:data_source_id).count,
-    )
+  def self.unprocessed_enrollment_counts_by_id(data_source_ids, project_scope: nil)
+    enrollments = GrdaWarehouse::Hud::Enrollment.unprocessed_with_resolvable_project_and_client.
+      where(data_source_id: data_source_ids)
+    Hash.new(0).merge(limit_enrollments_to_projects(enrollments, project_scope).group(:data_source_id).count)
+  end
+
+  # Expects enrollment_scope to already join :project.
+  def self.limit_enrollments_to_projects(enrollment_scope, project_scope)
+    return enrollment_scope if project_scope.nil?
+
+    enrollment_scope.where(GrdaWarehouse::Hud::Project.arel_table[:id].in(project_scope.select(:id).arel))
   end
 
   # A data source's show page renders every project at once unless the list is
