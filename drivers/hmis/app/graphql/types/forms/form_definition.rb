@@ -29,6 +29,8 @@ module Types
     field :title, String, null: false
     field :version, ID, null: false
     field :external_form_object_key, String, null: true, description: 'External object key, only present for External Form role'
+    field :external_form_public_url, String, null: true, description: 'Public URL the External Form is published to, if the public bucket is configured'
+    field :external_form_last_published_at, GraphQL::Types::ISO8601DateTime, null: true, description: 'When this version was last published to its public URL'
     field :supports_save_in_progress, Boolean, null: false
     field :definition, Forms::FormDefinitionJson, null: false
     field :raw_definition, JsonObject, null: false
@@ -121,6 +123,14 @@ module Types
 
     def supports_save_in_progress
       object.supports_save_in_progress?
+    end
+
+    def external_form_public_url
+      HmisExternalApis::ExternalForms::Config.public_form_url(object.external_form_object_key)
+    end
+
+    def external_form_last_published_at
+      object.external_form_publications.maximum(:created_at)
     end
 
     protected

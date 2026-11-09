@@ -78,13 +78,13 @@ The AWS pieces live outside this repository: the presign Lambda and its API Gate
    `Hmis::Form::Definition.find(id).update!(external_form_object_key: '<form_name>')`
    The key is the form's path in the public S3 bucket, so it can include a prefix (`pit/<form_name>`) if needed. Each form identifier needs its own key; one can't be reused across identifiers.
 3. **Add one active form rule** for the project that will review submissions.
-4. **Publish the HTML:** `HmisExternalApis::PublishExternalFormsJob.new.perform(definition_id)`. The form is then live at `https://<public bucket>.s3.amazonaws.com/<external_form_object_key>`. The first publish can take a few minutes to become reachable.
+4. **Publish the HTML:** click **Publish to Public URL** on the form's page (Admin > Forms). This runs `HmisExternalApis::PublishExternalFormsJob` for the published version, and needs the same permission as publishing in the Form Builder. The form is then live at `https://<public bucket>.s3.amazonaws.com/<external_form_object_key>`, shown on the form's page with when it was last published. The first publish can take a few minutes to become reachable.
 5. **Test the whole pipeline** (see Gotchas).
 
 **Changing an existing form:**
 
 1. **Edit and publish a new version** in the Form Builder. New versions keep the `external_form_object_key`, so you don't need to set it again.
-2. **Republish the HTML** with the new version's ID: `HmisExternalApis::PublishExternalFormsJob.new.perform(new_definition_id)`. The live page is replaced immediately. ([#6550](https://github.com/open-path/Green-River/issues/6550) is outstanding ticket to automate this)
+2. **Republish the HTML:** click **Publish to Public URL** on the form's page. Publishing a new version in the Form Builder doesn't change the live page until you do. The live page is replaced immediately.
 3. **Test the whole pipeline** (see Gotchas).
 
 **Local development:** set `external_forms/presign_url` to `/hmis_external_api/external_forms/presign`, then open `https://hmis-warehouse.dev.test/hmis_external_api/external_forms/<external_form_object_key>`. In development, the Form Builder's form page links there. That route publishes and serves the form. Submissions go straight into `hmis_external_form_submissions` with a captcha score of `1.0`, with no S3 involved.

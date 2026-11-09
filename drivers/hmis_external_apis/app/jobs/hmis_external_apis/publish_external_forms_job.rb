@@ -47,7 +47,7 @@ class HmisExternalApis::PublishExternalFormsJob
 
     # Validate the form structure and CDEDs
     errors = Hmis::Form::DefinitionValidator.perform(definition.definition, data_source_id: definition.data_source_id)
-    raise "cannot publish form with errors: #{errors.full_messages.join(', ')}" if errors.any?
+    raise "cannot publish form with errors: #{errors.map(&:full_message).join(', ')}" if errors.any?
   end
 
   # prepare form content for publication
