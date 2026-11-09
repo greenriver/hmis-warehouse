@@ -1,3 +1,12 @@
+---
+sources:
+  - lib/rubocop/cop/queries/unsafe_bulk_update_sql.rb
+  - lib/rubocop/cop/queries/date_interpolation_in_sql.rb
+  - lib/rubocop/cop/migrations/disable_ddl_transaction.rb
+  - lib/util/hud_helper.rb
+  - drivers/hmis/app/graphql/mutations/clean_base_mutation.rb
+---
+
 # Application Code Patterns and Conventions Guide
 
 This document outlines the preferred patterns and conventions for code contributors. The goal is to improve code consistency and discoverability across the project.
@@ -21,6 +30,7 @@ Note that this document may include code that is only in use in a handful of loc
 - [GraphQL](#graphql)
 - [Testing](#testing)
 - [Background Reports](#background-reports)
+- [Patterns not to repeat](#patterns-not-to-repeat)
 
 ## Server-side views
 
@@ -233,7 +243,11 @@ GrdaWarehouse::Hud::Enrollment.joins(:client).where(c_t[:VeteranStatus].eq(1))
 
 Rely on ActiveRecord relationships over manual table joins.
 
-Avoid passing raw SQL strings to `update_all` / `delete_all` / `update_counters`; on joined relations (e.g. the `.hmis` scope) Rails 8.1 aliases the table and bare columns become ambiguous. See [ActiveRecord, Arel, and Query Best Practices](active-record-arel-and-queries.md) for the full rationale, the range-syntax preference, and the `Queries/UnsafeBulkUpdateSql` cop.
+Avoid passing raw SQL strings to `update_all` / `delete_all` / `update_counters`; on joined relations (e.g. the `.hmis` scope) Rails 8.1 aliases the table and bare columns become ambiguous. Never interpolate a Date or Time into SQL; `Date#to_s` renders a human format in this app, so the SQL silently matches nothing. See [ActiveRecord, Arel, and Query Best Practices](active-record-arel-and-queries.md) for the full rationale, the range-syntax preference, and the `Queries/UnsafeBulkUpdateSql` and `Queries/DateInterpolationInSql` cops.
+
+### Migrations
+
+Never call `disable_ddl_transaction!` in a migration (enforced by the `Migrations/DisableDdlTransaction` cop). Without the wrapping transaction, a failure partway through (for example a lock timeout on a concurrent index build) leaves earlier statements committed while the migration is not recorded as run. The retry on the next deploy then re-runs them and fails, for example with `PG::DuplicateColumn`.
 
 ### Scope naming
 
@@ -394,3 +408,22 @@ Use factories if possible to create test objects rather than the active record c
 
 Where possible, reports that run in the background should use some shared infrastructure.  For official HUD reports, they should use `HudReports::ReportInstance` and follow patterns used in other HUD reports, like including `render 'hud_reports/index'` and `= render 'hud_reports/show'` in their index and show pages to provide a consistent user experience.  For warehouse reports, `SimpleReports::ReportInstance` should be used where possible, and `= render 'common/background_report/history_filter'`
 and `= render 'common/background_report/history_table'` should be included to present a consistent filtering and history experience.
+
+## Patterns not to repeat
+
+Older forms of these patterns are still common in the code. A common legacy form is not a license to add one more: follow the replacement even when neighboring files do the old thing. Don't refactor legacy occurrences on sight; just avoid new ones.
+
+- `before_action :require_can_*!` on controllers: use `authorize_with`. See [Authorization on a controller action](#authorization-on-a-controller-action).
+- Per-model `visible_to` / `visible_by` scopes: use `viewable_by`. See [Authorization on a scope](#authorization-on-a-scope).
+- New files under `app/assets/javascripts`, or CoffeeScript: use a Stimulus controller. See [View Asset Management](#view-asset-management).
+- Inline scripts without a CSP nonce, including HAML `:javascript`: see [Content Security Policy nonces for inline scripts](#content-security-policy-nonces-for-inline-scripts).
+- String interpolation followed by `.html_safe`, and hand-rolled Redcarpet: see [Rich Text and Markdown Rendering Safety](#rich-text-and-markdown-rendering-safety).
+- Rails `enum` or literal integers for HUD-coded fields: use `HudHelper.util(hud_version)`. See [HUD-coded fields](#hud-coded-fields-dont-use-enum).
+- Raw SQL strings in `update_all` / `delete_all` / `update_counters`, and dates interpolated into SQL: see [Database Queries](#database-queries).
+- `disable_ddl_transaction!` in migrations: see [Migrations](#migrations).
+- Bare `rescue` or `rescue StandardError`: see [Exception handling](#exception-handling).
+- `is_a?` to choose behavior: ask what the object can do instead (`service.supports_backfill?`). This is a design convention, not a lint; `is_a?` to validate an argument type is fine. See `AGENTS.md`.
+- `ENV` for per-installation settings: see [Installation-specific configuration](#installation-specific-configuration).
+- API keys or hosts in a model column, config file, or `ENV`: see [Storing credentials](#storing-credentials).
+- Editing a shipped fiscal-year report generator for a new HUD spec year: see [Versioned report generators](#versioned-report-generators).
+- GraphQL `BaseMutation`, `Types::BaseAccess.can`, the `permissions:` kwarg on `Types::BaseField`, and `current_permission?`: see [Mutation authorization](#mutation-authorization) and [Access objects](#access-objects-presentational). ADR 0006 lets the legacy helpers coexist during migration; that permits leaving them, not adding them.
