@@ -3,10 +3,11 @@ sources:
   - app/models/grda_warehouse/client_file.rb
   - app/models/grda_warehouse/hmis_client.rb
   - app/models/grda_warehouse/tasks/generate_client_roi_authorizations_task.rb
-  - app/models/grda_warehouse/tasks/update_housing_release_statuses.rb
+  - app/models/grda_warehouse/client_roi_authorization.rb
+  - app/models/grda_warehouse/vispdat/base.rb
+  - app/jobs/importing/run_daily_imports_job.rb
   - app/models/consent/default.rb
   - app/models/consent/implied.rb
-  - app/models/concerns/cas_client_data.rb
 ---
 
 # Client ROI and Consent
@@ -213,7 +214,7 @@ See [Client Dashboards](client-dashboards.md) for layout (`default`, `boston`, `
   - `User#reporting_policy_for_client` uses the client policy, so ROIs apply.
   - `User#reporting_policy_for_project` (`ProjectPiiPolicy`) does not consider ROIs.
   - Cohort PII policies do not check ROIs.
-- **CAS** uses both full and partial releases (`CasClientData`).
+- **CAS** uses both full and partial releases. `PushClientsToCas` sends `housing_release_status` through `release_status_for_cas` and `consent_form_signed_on` as the release date. The status is `None on file` when blank, and `Expired` under `One Year` or `Use Expiration Date` when the form is not valid and confirmed.
 
 ## Rebuild and lookup behavior
 
@@ -227,7 +228,6 @@ See [Client Dashboards](client-dashboards.md) for layout (`default`, `boston`, `
 - **Windows under access controls.** Window data sources and `window_access_requires_release` are legacy. Under access controls, a system collection of window data sources replaces them. For new work, grant `can_view_client_enrollments_with_roi` or `can_search_clients_with_roi` on a collection.
 - **Deciding visibility.** New access-control checks should use `visible_in_cocs` plus the `obey_consent` check (as `ClientRoiLoader` does), or `user.policy_for(source_client).can_view?`. Do not read the client columns, `ClientRoiAuthorization.active`, `consent_form_valid?` or `can_view_client_enrollments_with_roi?` alone.
 - **Row is derived.** Do not write `ClientRoiAuthorization` rows directly. Write consent through `ClientFile` and the client columns, then call `rebuild_clients`.
-- **CAS.** `PushClientsToCas` sends `housing_release_status` through `release_status_for_cas` and `consent_form_signed_on` as the release date. The status is `None on file` when blank, and `Expired` under `One Year` or `Use Expiration Date` when the form is not valid and confirmed.
 
 ## Known gaps
 
