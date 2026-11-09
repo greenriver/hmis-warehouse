@@ -1,3 +1,11 @@
+---
+sources:
+  - drivers/hmis/app/models/hmis/form/definition.rb
+  - drivers/hmis/app/graphql/mutations/create_next_draft_form_definition.rb
+  - drivers/hmis/app/graphql/mutations/publish_form_definition.rb
+  - drivers/hmis/lib/hmis_util/json_forms.rb
+---
+
 # HMIS form definitions
 
 Nearly all data entry in the HMIS front-end is driven by a **form definition**. This document covers the `Hmis::Form::Definition` model itself — its columns, its roles, and its status lifecycle. It is the entry point to the other form docs.

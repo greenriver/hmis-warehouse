@@ -1,3 +1,15 @@
+---
+sources:
+  - drivers/hmis/app/models/hmis/ce/change_marker.rb
+  - drivers/hmis/app/models/concerns/hmis/mark_client_as_dirty_behavior.rb
+  - drivers/hmis/app/jobs/hmis/ce/process_pools_job.rb
+  - drivers/hmis/app/jobs/hmis/ce/process_clients_job.rb
+  - drivers/hmis/app/models/hmis/ce/match/candidate_pool_builder.rb
+  - drivers/hmis/app/models/hmis/ce/referral.rb
+  - drivers/hmis/app/models/hmis/project_ce_config.rb
+  - drivers/hmis/app/graphql/mutations/ce/mark_units_available.rb
+---
+
 # Coordinated Entry (CE) Change Tracking System
 
 The change tracking system for Coordinated Entry (CE) efficiently processes client and housing opportunity updates for eligibility and prioritization.
@@ -138,3 +150,21 @@ The incremental change tracking system works alongside the existing daily full r
 
 - **Incremental Processing**: The `ProcessPoolsJob` and `ProcessClientsJob` run frequently to process only dirty records, providing near real-time updates with optimal performance through concurrent processing.
 - **Daily Full Refresh**: A nightly Rake task runs the `CandidatePoolBuilder` to rebuild all candidate pools and marks them all dirty, serving as a comprehensive backup and catch-all for any missed changes. It is also the only mechanism that picks up time-based changes with no triggering record save, such as a client or household member aging across an age threshold in a rule (`current_age`, `household.youngest_member_age`, `household.oldest_member_age`).
+
+## Gotchas
+
+- **CE is gated.** When `Hmis::Ce.configuration.enabled?` (the `hmis_ce/enabled` app config property) is false, change markers are not written, the jobs raise, and CE mutations raise. Specs must set the property.
+- **Pool rebuilds are synchronous.** Callbacks on `Rule`, `UnitGroup`, and `ProjectCeConfig` run `CandidatePoolBuilder` inside `CandidatePool.lock_for_maintenance!` (10-second timeout), so bulk-creating rules in a loop rebuilds once per save. Any new caller of the builder must take the same lock.
+- **Write markers through `upsert_or_bump_version` and `mark_processed`.** They sort by trackable id so concurrent writers lock rows in the same order. Plain `create`/`update` can deadlock.
+- **The engine matches destination clients.** It evaluates `GrdaWarehouse::Hud::Client` destination records, not `Hmis::Hud::Client`. A client with no destination yet is not matched until `IdentifyDuplicates` runs.
+- **One busy pool delays every client.** `ProcessClientsJob` leaves the whole batch dirty if any pool lock was busy, so a long `ProcessPoolsJob` delays all client updates.
+- **Some changes are only picked up nightly.** Changing `eligibility_lookback_months` or the eligibility project group changes match results but triggers no rebuild.
+- **`candidate_pool_id` can go stale.** `UnitGroup.candidate_pool_id` may remain set after a project stops supporting waitlists; `CandidatePool.active` filters those out.
+
+## Opportunities and referrals
+
+- An `Opportunity` is an available unit. Its project, unit group, and pool are resolved through the unit; those columns on the table are ignored. Don't store or read pool ids or rules per opportunity. Rules live on the unit group.
+- A `Referral` snapshots the unit group's effective rules into `assignment_rules` at creation. `resolve_match_rule_fields` reads that snapshot and intentionally bypasses `viewable_by` scopes on the associated data.
+- `Referral.viewable_by` is the union of: target-project `can_view_referrals`, own assigned or swimlane steps with `can_view_own_referrals`, and source-project `can_view_outgoing_referral_details`.
+- `ProjectCeConfig#receives_direct_referrals_from` restricts which projects may direct-send to a project; empty means any. It stores integer project ids (the setter casts GraphQL ID strings and drops non-numeric values). Disabling direct referrals clears the list.
+- `MarkUnitsAvailable` still enforces a legacy `ReferralPosting` count check, for installations running legacy referral postings and CE referrals side by side.

@@ -1,3 +1,13 @@
+---
+sources:
+  - drivers/hmis/app/models/hmis/form/instance.rb
+  - drivers/hmis/app/models/hmis/form/instance_project_match.rb
+  - drivers/hmis/app/models/hmis/form/instance_enrollment_match.rb
+  - drivers/hmis/app/models/hmis/form/definition_item_filter.rb
+  - drivers/hmis/app/graphql/types/forms/form_definition.rb
+  - drivers/hmis/app/graphql/types/hmis_schema/query_type.rb
+---
+
 # HMIS form resolution
 
 Several published form definitions can share a role, so "which form does the user get?" is a real question with a non-obvious answer. Resolution happens in three separate layers, and conflating them is the most common source of confusion in this subsystem:
@@ -107,6 +117,10 @@ The same name is used at two layers, with different jobs:
 - **On an item**, it is a HUD requirement about which clients a specific question applies to. `set_hud_requirements` reconciles the HUD requirement with whatever the form specifies and keeps the *less* strict of the two — so HUD does not simply win.
 
 `filter_context` is the ephemeral carrier for all of this: an attribute set on the definition by GraphQL resolvers, holding the project and sometimes an active date. It is easy to forget when exercising definitions outside of GraphQL, and it participates in the definition's cache key.
+
+## Gotcha: fully filtered definitions
+
+If server-side item filtering removes every item for a project, the non-null `definition` field on the GraphQL form definition type fails at query time. `rawDefinition` is unfiltered.
 
 ## Related
 

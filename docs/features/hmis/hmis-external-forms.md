@@ -1,3 +1,12 @@
+---
+sources:
+  - drivers/hmis_external_apis/app/models/hmis_external_apis/external_forms/form_generator.rb
+  - drivers/hmis_external_apis/app/models/hmis_external_apis/external_forms/form_submission.rb
+  - drivers/hmis_external_apis/app/models/hmis_external_apis/external_forms/config.rb
+  - drivers/hmis_external_apis/app/jobs/hmis_external_apis/publish_external_forms_job.rb
+  - drivers/hmis_external_apis/app/jobs/hmis_external_apis/consume_external_form_submissions_job.rb
+---
+
 # HMIS external forms
 
 External forms publish an `EXTERNAL_FORM` definition as a static HTML page that anyone can fill out without logging in, for example a Point-in-Time (PIT) count survey or a prevention screening. Submissions travel through S3 to the HMIS, where staff review them in the project's External Forms tab. Marking a submission reviewed runs it through the form processor, which writes the answers to HMIS records.
@@ -118,6 +127,7 @@ The AWS pieces live outside this repository: the presign Lambda and its API Gate
 - **`pick_list_options` codes are the stored values.** For field mappings, the codes must match the target enum or value the processor expects. Rewording a code breaks processing, even though the form still renders and submits.
 - **Publishing takes effect immediately and isn't tied to form versions** ([#6550](https://github.com/open-path/Green-River/issues/6550)). The S3 object is overwritten as soon as the job runs. Each submission keeps the definition ID it was submitted with, so CDED keys and mappings that already-collected submissions use must keep working until those submissions are reviewed.
 - **Exactly one active project rule.** `FormSubmission#parent_project` uses `.sole`, so with zero rules or more than one, review fails.
+- **Definition text is rendered unescaped.** `FormGenerator#render_display_node` and the form view mark stored definition text `html_safe` in a public page. Definitions are admin-authored, but don't extend the pattern; if rich text is needed, escape by default and sanitize a fixed markup subset.
 - **Use existing forms as reference.** Before building a new PIT or intake-style form, copy a published `EXTERNAL_FORM` definition from the Form Builder. PIT forms namespace their CDED keys by year (for example `external_form_pit_2026_*`), so each year's survey has its own fields.
 
 ## Related

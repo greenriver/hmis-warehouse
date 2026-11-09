@@ -1,3 +1,14 @@
+---
+sources:
+  - drivers/hmis/app/models/hmis/restricted_record.rb
+  - drivers/hmis/app/models/hmis/concerns/restrictable.rb
+  - drivers/hmis/app/models/hmis/auth_policies/user_context.rb
+  - drivers/hmis/app/models/hmis/auth_policies/context_loaders/restricted_client_loader.rb
+  - drivers/hmis/app/models/hmis/auth_policies/hmis_client_policy.rb
+  - drivers/hmis/app/graphql/mutations/set_client_restricted.rb
+  - drivers/hmis/app/models/hmis/hud/client.rb
+---
+
 # HMIS Restricted Records
 
 `hmis_restricted_records` marks individual HMIS records as **restricted**, so visibility can be limited to staff with the appropriate permission. The table was introduced to support **restricted clients**, with the intention to expand the same pattern to other record types later (for example case notes or assessments).
@@ -86,3 +97,11 @@ So a legacy `update` version means "a different user called `mark!`". It does no
 - **`Hmis::Concerns::Restrictable`**: Included on restrictable models (`Hmis::Hud::Client` today). Provides `restricted?`, `mark_as_restricted!`, and `remove_restriction!`.
 - **`Hmis::AuthPolicies::UserContext`**: Owns the visibility rule. `pii_redacted_for_client?` answers it for one client, and `Hmis::Hud::Client.searchable_to` applies the same rule as a SQL predicate on top of `visible_to` to back the search exclusion, so search cost does not depend on how many clients are restricted.
 - **`Hmis::AuthPolicies::ContextLoaders::RestrictedClientLoader`**: Batches restriction status, so authorizing a page of clients takes one query. Wired into `UserContext#preload_client_dependencies`, which GraphQL already calls when loading clients.
+
+## Gotchas
+
+- **Restriction status is a per-request snapshot.** `RestrictedClientLoader` caches per `UserContext`. The only cache clear is in `SetClientRestricted`, so the response reflects the change. Don't add cache busting elsewhere, including long-running exports.
+- **Keep the `OFFSET 0` fence** on the enrollment `EXISTS` in `Client.searchable_to`. Without it Postgres can hash every enrollment in the permitted projects.
+- **Mark and unmark through the client.** Use `mark_as_restricted!` and `remove_restriction!` so the already-restricted no-op and data-source validation apply. Don't call `RestrictedRecord.create!` or `destroy!` directly. For a warehouse destination client, use `DestinationClientRestriction`.
+- **Unenrolled restricted clients can still be unmarked.** They are redacted for everyone, but marking and unmarking use the normal `client_permissions` fallback to global permissions, so the person who marked one can unmark it.
+- **No ad hoc restriction filters.** Hide restricted clients in a new search path with `Client.searchable_to(user)`, and put every PII field behind a `HmisClientPolicy::Instance` predicate. Reading `first_name` directly, or checking a name permission without `pii_redacted?`, bypasses restriction.
