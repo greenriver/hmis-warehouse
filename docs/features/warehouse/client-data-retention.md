@@ -1,3 +1,10 @@
+---
+sources:
+  - app/models/grda_warehouse/client_retention_mark.rb
+  - app/jobs/client_retention_job.rb
+  - app/models/grda_warehouse/hidden_clients.rb
+---
+
 # Client Data Retention
 
 Aging out of client data for warehouse identities that have had no activity for a configurable
@@ -94,3 +101,13 @@ leaves existing marks in place; clear them from `client_retention_marks` in the 
   re-evaluated.
 - Nothing is scrubbed or deleted, and a later full historical import re-creates aged-out clients
   until the next run marks them again.
+
+## Gotchas
+
+- Marks are written all-or-none per identity. The set of sources to unmark comes from the identity's live `warehouse_clients` links, not the rollup, so it includes soft-deleted sources whose marks would otherwise still hide the identity.
+- Each future-dated field is dropped on its own, so one future-dated value never hides the other dates on the same row.
+- A failed run records `failed_at`; marks from batches that completed stand.
+- A mark changes nothing in the client rows. Hiding comes entirely from `HiddenClients`, which feeds the policy loader, search, report drilldowns, the CSV export transform, and `analytics.client_piis`. Extend the job and `HiddenClients` rather than deleting or nulling client data.
+- Scrub-and-delete, propagation to CAS, and a privileged override are not built; the ADR lists them as later phases or open decisions.
+- The inactive set includes marked sources and their destinations but not unmarked sibling sources, so a sibling can briefly be unmarked after a merge until the next run.
+- Redaction and cache details are in [PII Cataloging, Access Logging, and Scrubbing](pii-and-restricted-clients.md).

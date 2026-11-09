@@ -1,3 +1,14 @@
+---
+sources:
+  - app/models/grda_warehouse/cohort.rb
+  - app/models/grda_warehouse/cohort_client_change.rb
+  - app/models/grda_warehouse/cohort_copier.rb
+  - app/models/grda_warehouse/system_cohorts/base.rb
+  - app/models/cohort_columns/base.rb
+  - app/models/audit/cohort_access/base.rb
+  - app/controllers/cohorts/columns_controller.rb
+---
+
 # Cohorts
 
 The Cohorts feature is a tool for grouping, tracking, and visualizing client data. It allows users to create custom lists of clients based on specific criteria, which can then be used for case management, reporting, and in-depth data analysis. Many communities use this feature to support By-Name-Lists or BNL.
@@ -79,3 +90,40 @@ For a detailed explanation of how the Service History is generated and how it im
 - **Client Management in Cohorts:** `app/controllers/cohorts/clients_controller.rb`
 - **Service History Logic:** `app/models/grda_warehouse/service_history_enrollment.rb`
 - **Service History Generation Task:** `app/models/grda_warehouse/tasks/service_history/enrollment.rb` (see `rebuild_service_history!`)
+
+## Behavior notes
+
+### Visibility
+- Per-user access is per cohort. Each cohort owns a system collection and two system user groups (editor and viewer), created on first use of `replace_access`. Counting collections, user groups, or roles without the `not_system` / `general` scopes inflates the numbers.
+- Scope cohorts to a user with `GrdaWarehouse::Cohort.viewable_by(user)` (or `editable_by`), never with a new visibility scope or by writing collection, group, role, or access control rows by hand. Use `cohort.replace_access`.
+- A user who can edit a cohort can see it, so `viewable_by` includes the editing permissions by default. `editable_by` does not also require a view permission.
+- Cohort PII follows the viewing user. Browsing shows PII to anyone who can see the cohort, downloads also require the `include_pii_in_detail_downloads` config, and a client who is HMIS-restricted or retention-marked is always redacted.
+- `Cohorts::ColumnsController` loads the cohort with a plain `find`, so only `can_edit_cohort_columns` gates it, not per-cohort access.
+
+### Membership history
+- Every membership change writes a `CohortClientChange` (create, destroy, activate, deactivate), and the change report and `associated_exit` pair entries with exits from those rows. Use `add_clients` / `remove_clients` for automated paths. Do not change membership without a change row.
+- Cell edits are not written there. Column-value history lives in PaperTrail versions on `CohortClient`, and notes are separate rows.
+- Copying values between cohorts affects only clients already on the destination, writes versions but no change rows, and respects the user's visible cohorts. Notes are duplicated with their original timestamps.
+
+### Inactivity
+- The `active` flag drives the Inactive tab; calculated inactivity (`days_of_inactivity` against `WarehouseClientsProcessed`) is separate. A client's active-cohort status for CAS requires both.
+- Time-dependent columns (`*_on_effective_date`, destination from homelessness, related users, missing documents, most-recent columns) are only as fresh as the last `prepare_active_cohorts` run; they are not recomputed on view.
+
+### System cohorts
+- A system cohort exists only while its config flag is on. It is created with 90 days of inactivity and the default tabs, and the daily job rebuilds it only when system cohorts are enabled.
+- Each run re-computes the previous week, because HMIS data arrives late and back-dated entries must be absorbed. For each date, the system user's changes with a known reason are deleted and the date is re-synced in one transaction, so re-processing leaves exactly one set of changes per date.
+- Sync waits up to ten seconds for the cohort lock. If it cannot get it, the transaction rolls back and that date is retried on the next run.
+- Writers to a cohort's clients (system sync, `maintain`, cache warm) share a per-cohort advisory lock that is non-blocking by default. A writer that skips the lock can deadlock with those jobs.
+
+### Columns and analytics
+- A column's analytics value defaults to whatever it renders for a read-only viewer. A column that renders markup must override `analytics_value` with a plain-text form, or the markup is stored in the analytics table. The destination-from-homelessness column does this today; the open-enrollments column shows the correct pattern.
+- Analytics are built as the system user, so PII decisions inside a column are made as that user. A new column holding direct identifiers must be added to `Cohort.excluded_from_analytics`.
+- Column titles and descriptions go through translations, so installations can rename columns without code. Adding a column means adding its class, registering it in the known-columns list, adding the physical `cohort_clients` column if it is user-entered, and running `CohortColumn.maintain!`.
+- `column_state` is serialized YAML with a permitted-class list. A column object that has memoized its live column record cannot be re-serialized (`RepairColumnState` strips it), so do not call `cohort_column` on objects that will be saved back into `column_state`.
+
+### Access audit
+The cohort access audit rebuilds who could see a cohort, and when, from PaperTrail versions. It shows structural relationships only and cannot know:
+- Roles. A user listed may have held a role without `can_view_cohorts`.
+- Restores. Restoring a removed cohort-to-collection link writes no version, so the audit reopens it at the row's last update time, an approximation.
+- Missing timestamps. Legacy access groups lack timestamps, so a live row with no versions is treated as present since the epoch, bounded by the other paths.
+- System collections. Every cohort joins the "All Cohorts" and hidden system collections after create, and those grants appear dated at the job's run time.
