@@ -81,7 +81,7 @@ returns `EXPLAIN (ANALYZE, BUFFERS)` for one job-sized batch. Pass `limit:` for 
 ## What "hidden" means
 
 A source client in `client_retention_marks`, and every destination it is linked to through a live
-`warehouse_clients` row, is treated exactly like an HMIS-restricted client on the warehouse side
+`warehouse_clients` row, is treated exactly like a client restricted in HMIS or the warehouse on the warehouse side
 (`GrdaWarehouse::HiddenClients`); see [Warehouse Auth Policies](warehouse-auth-policies.md#client-restriction). PII is redacted
 everywhere `PiiProvider` is consulted, name and SSN search skip the client, the Superset
 `analytics.client_piis` view and the HMIS CSV export transform redact name and SSN. DOB and exact

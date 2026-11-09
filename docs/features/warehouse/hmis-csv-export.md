@@ -140,7 +140,7 @@ Name hashing is SHA-256 of the Soundex code, not the raw name, so two names with
 
 ### Restricted clients
 
-`Export::RestrictedClientPiiTransform` always runs last on `Client.csv`. It redacts names, nulls the SSN, and sets SSN data quality to 99 for hidden clients (HMIS-restricted or retention-inactive) in the export. It is skipped entirely when either de-identification mode is on, so a faked export of a restricted client still carries their shifted `DOB` (by up to 600 days) and real enrollment history.
+`Export::RestrictedClientPiiTransform` always runs last on `Client.csv`. It redacts names, nulls the SSN, and sets SSN data quality to 99 for hidden clients (restricted in HMIS or the warehouse, or retention-inactive) in the export. It is skipped entirely when either de-identification mode is on, so a faked export of a restricted client still carries their shifted `DOB` (by up to 600 days) and real enrollment history.
 
 The faked-PII gate is view-only. The controller permits `faked_pii` from any user who can reach the form; only the checkbox requires `can_export_anonymous_hmis_data`.
 

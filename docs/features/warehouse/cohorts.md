@@ -97,7 +97,7 @@ For a detailed explanation of how the Service History is generated and how it im
 - Per-user access is per cohort. Each cohort owns a system collection and two system user groups (editor and viewer), created on first use of `replace_access`. Counting collections, user groups, or roles without the `not_system` / `general` scopes inflates the numbers.
 - Scope cohorts to a user with `GrdaWarehouse::Cohort.viewable_by(user)` (or `editable_by`), never with a new visibility scope or by writing collection, group, role, or access control rows by hand. Use `cohort.replace_access`.
 - A user who can edit a cohort can see it, so `viewable_by` includes the editing permissions by default. `editable_by` does not also require a view permission.
-- Cohort PII follows the viewing user. Browsing shows PII to anyone who can see the cohort, downloads also require the `include_pii_in_detail_downloads` config, and a client who is HMIS-restricted or retention-marked is always redacted.
+- Cohort PII follows the viewing user. Browsing shows PII to anyone who can see the cohort, downloads also require the `include_pii_in_detail_downloads` config, and a client who is restricted in HMIS or the warehouse, or retention-marked is always redacted.
 - `Cohorts::ColumnsController` loads the cohort with a plain `find`, so only `can_edit_cohort_columns` gates it, not per-cohort access. New cohort controllers should include `CohortAuthorization` and load through `cohort_scope.find`.
 
 ### Membership history
