@@ -12,13 +12,9 @@ module DataSources
     before_action :set_data_source
 
     def index
-      @enrollments = @data_source.unprocessed_enrollments(project_scope: viewable_projects).
+      @enrollments = @data_source.unprocessed_enrollments(user: current_user).
         preload(:project, :client, :destination_client).
         order(EntryDate: :desc, id: :desc)
-    end
-
-    private def viewable_projects
-      GrdaWarehouse::Hud::Project.viewable_by(current_user, confidential_scope_limiter: :all, permission: :can_view_projects)
     end
 
     private def set_data_source

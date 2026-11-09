@@ -19,10 +19,7 @@ module DataSourceReport::WarehouseReports
       data_source_ids = @data_sources.map(&:id)
       @client_counts = GrdaWarehouse::DataSource.client_counts_by_id(data_source_ids)
       @project_counts = GrdaWarehouse::DataSource.project_counts_by_id(data_source_ids)
-      @unprocessed_enrollment_counts = GrdaWarehouse::DataSource.unprocessed_enrollment_counts_by_id(
-        data_source_ids,
-        project_scope: GrdaWarehouse::Hud::Project.viewable_by(current_user, confidential_scope_limiter: :all, permission: :can_view_projects),
-      )
+      @unprocessed_enrollment_counts = GrdaWarehouse::DataSource.unprocessed_enrollment_counts_by_id(data_source_ids, user: current_user)
       @last_import_completed_ats = GrdaWarehouse::DataSource.last_import_completed_ats_by_id(data_source_ids)
       @stalled_dates = GrdaWarehouse::DataSource.stalled_dates_by_id(data_source_ids)
     end
