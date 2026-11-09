@@ -718,4 +718,35 @@ RSpec.describe DataSourcesController, type: :request do
       expect(response.body).to include(GrdaWarehouse::Hud::Project.confidential_project_name)
     end
   end
+
+  describe 'confidential organization names' do
+    let(:viewer_role) { create(:role, can_view_projects: true) }
+    let(:org_editor_role) { create(:role, can_view_projects: true, can_edit_organizations: true) }
+    let(:other_collection) { create(:collection) }
+    let!(:confidential_org) { create(:hud_organization, data_source: data_source, OrganizationName: 'Hidden Agency Name', confidential: true) }
+    let!(:project) { create(:hud_project, data_source: data_source, OrganizationID: confidential_org.OrganizationID) }
+
+    before do
+      collection.set_viewables({ data_sources: [data_source.id] })
+      setup_access_control(user, viewer_role, collection)
+      sign_in user
+    end
+
+    it 'masks the name when the user can edit organizations only in another collection' do
+      other_collection.set_viewables({ data_sources: [create(:source_data_source).id] })
+      setup_access_control(user, org_editor_role, other_collection)
+
+      get data_source_path(data_source)
+      expect(response).to have_http_status(:ok)
+      expect(response.body).not_to include('Hidden Agency Name')
+    end
+
+    it 'shows the name when the user can edit that organization' do
+      other_collection.set_viewables({ organizations: [confidential_org.id] })
+      setup_access_control(user, org_editor_role, other_collection)
+
+      get data_source_path(data_source)
+      expect(response.body).to include('Hidden Agency Name')
+    end
+  end
 end

@@ -74,6 +74,31 @@ RSpec.describe GrdaWarehouse::AuthPolicies::OrganizationPolicy, type: :model do
 
       expect(policy.can_edit_contacts?).to be false
     end
+
+    describe '#can_view_name?' do
+      let(:edit_role) { create(:role, can_view_projects: true, can_edit_organizations: true) }
+
+      it 'is true for a non-confidential organization without any grant' do
+        expect(policy.can_view_name?).to be true
+      end
+
+      context 'with a confidential organization' do
+        before { organization.update!(confidential: true) }
+
+        it 'is true when Can Edit Organizations is granted on a collection that includes the organization' do
+          grant(edit_role, collection_with(organizations: [organization.id]))
+
+          expect(policy.can_view_name?).to be true
+        end
+
+        it 'is false when Can Edit Organizations is granted only on a collection without the organization' do
+          grant(view_only_role, collection_with(organizations: [organization.id]))
+          grant(edit_role, collection_with(organizations: [other_organization.id]))
+
+          expect(policy.can_view_name?).to be false
+        end
+      end
+    end
   end
 
   context 'with legacy role permissions' do
