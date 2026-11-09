@@ -1,3 +1,14 @@
+---
+sources:
+  - app/models/grda_warehouse/client_file.rb
+  - app/models/grda_warehouse/hmis_client.rb
+  - app/models/grda_warehouse/tasks/generate_client_roi_authorizations_task.rb
+  - app/models/grda_warehouse/tasks/update_housing_release_statuses.rb
+  - app/models/consent/default.rb
+  - app/models/consent/implied.rb
+  - app/models/concerns/cas_client_data.rb
+---
+
 # Client ROI and Consent
 
 A release of information (ROI) can make a client visible to users who would not otherwise see them. This doc covers where ROI data lives and which settings change its meaning. It also covers how an ROI affects client search, client dashboards, and reporting, for users with access controls and for users with legacy role-based permissions.
@@ -37,6 +48,35 @@ Each rebuild reads its clients with row locks (`SELECT ... FOR UPDATE`, in id or
 | Anything else; a missing signature date under `One Year`/`Two Years`; a missing expiration date under `Use Expiration Date` | no row (and the task clears the consent columns; under `Consent::Implied` the client falls back to implied consent) |
 
 `ClientRoiAuthorization.visible_in_cocs(coc_codes)` is the ROI rule for access-control visibility and for `SourceClientPolicy`. Legacy scope code still reads the client columns through `Client.active_confirmed_consent_in_cocs`.
+
+## How a consent file becomes client consent
+
+- **Tags decide the type.** A file is a consent form when one of its `AvailableFileTag`s has `consent_form: true`. `full_release: true` makes it a full release; a consent tag without it is a partial release. `coc_available: true` lets the uploader pick CoC codes.
+- **CoC codes.** `consented_coc_codes` is `['All CoCs']` if chosen, or if the tag supports CoCs and none were picked. It is the chosen codes otherwise, and `[]` for tags without CoC support.
+- **Writes skip callbacks.** `ClientFile#set_client_consent` writes the client columns with `update_columns`, and `invalidate_consent!` and `revoke_expired_consent` use `update_all`. None fire callbacks or paper trail on the client. Bulk file writers that set `callbacks_skipped` leave the client columns and the ROI row stale until something else recomputes them.
+- **Status strings are bare.** `housing_release_status` must equal the consent class's bare release string (`Full HAN Release`, `Expanded Consent`, ...). `release_valid?` and the release string queries compare against it. CoC detail belongs in `consented_coc_codes`. Use `Client.full_release_string` and friends instead of hard-coding a string.
+- **Expiration date required.** Under `Use Expiration Date`, a confirmed, unrevoked consent form cannot be saved without an `expiration_date`, because the rebuild clears consent for a release with no expiration date.
+- **Deleting a file.** Soft delete fires `set_client_consent`, which returns early because the deleted file no longer appears in the consent scopes. The controller's explicit `invalidate_consent!` plus `rebuild_clients` is what clears the client and its ROI row. A new deletion path must do both.
+- **Expiry leaves identifiers.** `revoke_expired_consent` clears `housing_release_status` and `consented_coc_codes` only. `consent_form_id` and `consent_form_signed_on` stay, so `active_consent_form` still resolves after expiry. Use `consent_form_valid?`, not the association, to test for a valid release.
+- **Revoked under `Consent::Default`.** The revoked string is the empty string, which `where(housing_release_status: nil)` misses. `ExpiringConsentController` matches both `nil` and `''`.
+- **Housing release statuses job.** `UpdateHousingReleaseStatuses` is not scheduled. It runs when an admin changes `roi_model`. Day-to-day expiry is `revoke_expired_consent` in the nightly import.
+- **VI-SPDAT.** Un-confirming `housing_release_confirmed` restores the `consent_type` of the active consent file only if that file is confirmed and not past its expiration. Otherwise it blanks the status, and the rebuild then removes the row.
+- **Duration mapping has several copies.** `Client.consent_validity_period`, `Client#consent_expiration_date` (the expiring-consent report), and `roi_expiry_date` in the rebuild task. Change them together. `consent_validity_period` raises for `Use Expiration Date`.
+- **HMIS has no consent feature.** The HMIS application under `drivers/hmis` does not use ROIs; consent is warehouse-only.
+
+## Consent from ETO
+
+Some installations record the release in ETO instead of uploading a form. The ETO importer copies `consent_confirmed_on`, `consent_expires_on` and `consent_form_status` onto the source-level `HmisClient`, only where the installation's `EtoApiConfig` field mapping names them. The mapping is configuration, so code alone cannot say which installations have ETO consent. HMIS CSV imports carry no consent.
+
+`HmisClient.maintain_client_consent` copies active source consent onto the destination client:
+
+- **Gate:** it runs only when `release_duration` is `Use Expiration Date`. Under the other durations ETO consent stays on `HmisClient` and is never copied, while file-based consent keeps working. The year durations compute expiry from the signature date alone, so copying ETO expiry dates would give two definitions of expired.
+- **Newest wins:** a blank destination date is filled from the source. A date is overwritten only when the source date is strictly later, so a source with an earlier expiry never shortens the destination's consent.
+- **Result:** when a date changes, `housing_release_status` becomes the full release string and the client is saved with callbacks. Otherwise nothing is written.
+- **No CoC scoping:** `consented_coc_codes` and `consent_form_id` are never touched, so ETO consent is never CoC-limited.
+- **Re-release:** a destination revoked for expiry keeps its stale dates, so any still-active source row re-releases it on the next pass.
+- **Order:** the nightly import calls the reconcile twice, and the second call is a no-op. Duplicate identification runs after both, so after a merge the new destination gets the source's dates the next day. Dates already written to the old destination remain.
+- **Audit:** the reconcile saves through ActiveRecord, while the expiry revoke uses `update_all`. Audit history differs between the two directions.
 
 ## Settings that change ROI behavior
 
@@ -174,6 +214,20 @@ See [Client Dashboards](client-dashboards.md) for layout (`default`, `boston`, `
   - `User#reporting_policy_for_project` (`ProjectPiiPolicy`) does not consider ROIs.
   - Cohort PII policies do not check ROIs.
 - **CAS** uses both full and partial releases (`CasClientData`).
+
+## Rebuild and lookup behavior
+
+- **Locking.** The nightly and bulk rebuilds run under an advisory lock with no wait, so a concurrent run skips. A batch is retried once on a deadlock, for example against a client merge. `rebuild_clients` takes neither the lock nor the retry.
+- **Implied-consent second pass.** Under `Consent::Implied`, a client whose consent is cleared is processed again, because the reset to `Implied Consent` needs a `partial` row. Without that pass the client is hidden from ROI-only users until the next rebuild.
+- **Spec tip.** A spec that writes consent columns with `update_columns` must call `rebuild_clients` before checking visibility.
+- **Preloading.** `ClientRoiLoader` is memoized per request or job, keyed by destination client id. List views that check visibility per row need `user.policy_context.preload_client_dependencies(client_ids)` first. `show_demographics_to?` reads the same loader.
+- **Memoized arbiter.** `EnrollmentArbiter` memoizes the obey-consent data source ids, and one arbiter is reused per user object. Specs that flip `obey_consent` need a fresh user object.
+- **User CoCs.** `user.coc_codes` is cached for a minute and comes from the user's collections (access controls) or access groups (legacy). It does not come from `ConsentLimit`.
+- **`ConsentLimit`.** Rows (a CoC code such as `ZZ-000`) are only the option list for the CoC select on consent forms. `AgenciesConsentLimit` links them to agencies for display. Neither changes a user's effective CoCs.
+- **Windows under access controls.** Window data sources and `window_access_requires_release` are legacy. Under access controls, a system collection of window data sources replaces them. For new work, grant `can_view_client_enrollments_with_roi` or `can_search_clients_with_roi` on a collection.
+- **Deciding visibility.** New access-control checks should use `visible_in_cocs` plus the `obey_consent` check (as `ClientRoiLoader` does), or `user.policy_for(source_client).can_view?`. Do not read the client columns, `ClientRoiAuthorization.active`, `consent_form_valid?` or `can_view_client_enrollments_with_roi?` alone.
+- **Row is derived.** Do not write `ClientRoiAuthorization` rows directly. Write consent through `ClientFile` and the client columns, then call `rebuild_clients`.
+- **CAS.** `PushClientsToCas` sends `housing_release_status` through `release_status_for_cas` and `consent_form_signed_on` as the release date. The status is `None on file` when blank, and `Expired` under `One Year` or `Use Expiration Date` when the form is not valid and confirmed.
 
 ## Known gaps
 
