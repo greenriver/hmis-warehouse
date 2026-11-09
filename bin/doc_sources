@@ -1,0 +1,28 @@
+#!/usr/bin/env ruby
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+# frozen_string_literal: true
+
+require_relative '../lib/doc_sources'
+
+root = File.expand_path('..', __dir__)
+
+case ARGV.first
+when 'stamp'
+  manifest = DocSources.stamp(root)
+  puts "Stamped #{manifest.size} sources into #{DocSources::MANIFEST}"
+when 'check'
+  problems = DocSources.check(root)
+  if problems.empty?
+    puts 'doc sources are in sync'
+  else
+    puts problems
+    exit 1
+  end
+else
+  abort 'usage: bin/doc_sources stamp|check'
+end
