@@ -144,7 +144,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       response, result = update_key(external_form, other_form.external_form_object_key)
       expect(response.status).to eq(200), result.inspect
       errors = result.dig('data', 'updateFormDefinition', 'errors')
-      expect(errors.map { |e| e['fullMessage'] }).to contain_exactly(end_with('has already been taken'))
+      expect(errors.map { |e| e['fullMessage'] }).to contain_exactly('External Form Key is already used by a different form. To reuse it, retire the other forms that use it.')
       expect(external_form.reload.external_form_object_key).to be_nil
     end
 

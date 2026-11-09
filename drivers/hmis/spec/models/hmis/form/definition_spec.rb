@@ -316,7 +316,7 @@ RSpec.describe Hmis::Form::Definition, type: :model do
 
       new_form = build(:hmis_form_definition, data_source: ds1, external_form_object_key: 'existing-key', role: :EXTERNAL_FORM)
       expect(new_form.valid?).to be false
-      expect(new_form.errors.full_messages).to include('External form object key has already been taken')
+      expect(new_form.errors[:external_form_object_key]).to include('is already used by a different form. To reuse it, retire the other forms that use it.')
 
       new_form.external_form_object_key = 'unused-key'
       expect(new_form.valid?).to be true

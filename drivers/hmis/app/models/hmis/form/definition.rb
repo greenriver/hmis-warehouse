@@ -364,7 +364,10 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     # Ensure that external_form_object_key is not reused across forms with different identifiers
     object_key_taken = Hmis::Form::Definition.where(external_form_object_key: external_form_object_key).
       where.not(identifier: identifier).exists?
-    errors.add(:external_form_object_key, 'has already been taken') if object_key_taken
+    return unless object_key_taken
+
+    message = 'is already used by a different form. To reuse it, retire the other forms that use it.'
+    errors.add(:external_form_object_key, :taken, message: message, full_message: "External Form Key #{message}")
   end
 
   def self.apply_filters(input)
