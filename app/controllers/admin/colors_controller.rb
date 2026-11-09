@@ -15,10 +15,19 @@ module Admin
     end
 
     def update
-      batch = @colors.map do |slug, color|
-        color.background_color = allowed_params[slug]
+      submitted = allowed_params
+      batch = @colors.slice(*submitted.keys).map do |slug, color|
+        value = submitted[slug]
+        color.background_color = value.is_a?(String) ? value : nil
         color
       end
+      # import skips invalid rows without raising, so check the whole batch first
+      unless batch.all?(&:valid?)
+        flash[:error] = 'Colors must be hex values such as #1a2b3c; no changes were saved.'
+        redirect_to edit_admin_color_path
+        return
+      end
+
       GrdaWarehouse::SystemColor.import(
         batch,
         on_duplicate_key_update: {
