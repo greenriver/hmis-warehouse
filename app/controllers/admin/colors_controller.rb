@@ -16,17 +16,15 @@ module Admin
 
     def update
       submitted = allowed_params
+      return reject_colors unless submitted.is_a?(ActionController::Parameters)
+
       batch = @colors.slice(*submitted.keys).map do |slug, color|
         value = submitted[slug]
         color.background_color = value.is_a?(String) ? value : nil
         color
       end
       # import skips invalid rows without raising, so check the whole batch first
-      unless batch.all?(&:valid?)
-        flash[:error] = 'Colors must be hex values such as #1a2b3c; no changes were saved.'
-        redirect_to edit_admin_color_path
-        return
-      end
+      return reject_colors unless batch.all?(&:valid?)
 
       GrdaWarehouse::SystemColor.import(
         batch,
@@ -40,6 +38,11 @@ module Admin
 
     def allowed_params
       params.require(:colors)
+    end
+
+    private def reject_colors
+      flash[:error] = 'Colors must be hex values such as #1a2b3c; no changes were saved.'
+      redirect_to edit_admin_color_path
     end
 
     private def set_all_colors

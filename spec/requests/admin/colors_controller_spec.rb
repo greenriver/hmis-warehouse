@@ -51,6 +51,16 @@ RSpec.describe Admin::ColorsController, type: :request do
     expect(race0.reload.background_color).to eq('#111111')
   end
 
+  ['colors=%23abcdef', 'colors[]=%23abcdef'].each do |body|
+    it "rejects #{body} when colors is not keyed by slug" do
+      patch admin_color_path, params: body, headers: { 'CONTENT_TYPE' => 'application/x-www-form-urlencoded' }
+
+      expect(response).to redirect_to(edit_admin_color_path)
+      expect(flash[:error]).to be_present
+      expect(race0.reload.background_color).to eq('#111111')
+    end
+  end
+
   it 'denies a user without can_edit_theme' do
     role.update!(can_edit_theme: false)
 
