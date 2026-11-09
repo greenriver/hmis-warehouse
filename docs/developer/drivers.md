@@ -108,10 +108,6 @@ means editing the core model. Drivers may extend each other's models the same wa
 (see the architecture doc above) is that a driver depends on core abstractions, not another driver's
 internals. That rule is enforced by review, not code.
 
-The include-block comment in `app/models/reporting/housed.rb` and `app/models/grda_warehouse/upload.rb`
-cites ADR 0007. That ADR covers HMIS CSV importer cleanup extensions, a different mechanism. Driver
-extensions are documented in the architecture doc, not in an ADR.
-
 ## Driver-local base controllers for HUD reports
 
 HUD report drivers build on `HudReports::BaseController`. `HudApr`, `HopwaCaper`,

@@ -12,7 +12,7 @@ module GrdaWarehouse::Hud
     include ::HmisStructure::ProjectCoc
     include ::HmisStructure::Shared
     include ArelHelper
-    # Extensions from drivers — see ADR 0007
+    # Extensions from drivers — see docs/architecture/08-concepts/08-3-driver-module-pattern.md
     include HmisCsvImporter::GrdaWarehouse::Hud::ProjectCocExtension
     include HmisCsvTwentyTwenty::GrdaWarehouse::Hud::ProjectCocExtension
     include HmisCsvTwentyTwentyFour::GrdaWarehouse::Hud::ProjectCocExtension

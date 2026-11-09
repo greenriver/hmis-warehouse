@@ -2896,7 +2896,7 @@ module GrdaWarehouse::Hud
     end
 
     # Include extensions at the end so they can override default behavior
-    # Extensions from drivers — see ADR 0007
+    # Extensions from drivers — see docs/architecture/08-concepts/08-3-driver-module-pattern.md
     include AdultOnlyHouseholdsSubPop::GrdaWarehouse::Hud::ClientExtension
     include AdultsWithChildrenSubPop::GrdaWarehouse::Hud::ClientExtension
     include AdultsWithChildrenTwentyfivePlusHohSubPop::GrdaWarehouse::Hud::ClientExtension
