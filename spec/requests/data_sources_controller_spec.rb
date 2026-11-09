@@ -717,6 +717,15 @@ RSpec.describe DataSourcesController, type: :request do
       expect(response.body).not_to include('Hidden Shelter Name')
       expect(response.body).to include(GrdaWarehouse::Hud::Project.confidential_project_name)
     end
+
+    it 'shows the name when the user can edit that project' do
+      project_edit_collection = create(:collection)
+      project_edit_collection.set_viewables({ projects: [confidential_project.id] })
+      setup_access_control(user, editor_role, project_edit_collection)
+
+      get data_source_path(data_source)
+      expect(response.body).to include('Hidden Shelter Name')
+    end
   end
 
   describe 'confidential organization names' do
