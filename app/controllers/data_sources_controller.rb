@@ -8,7 +8,8 @@
 
 class DataSourcesController < ApplicationController
   before_action :require_can_edit_projects!, only: [:update]
-  before_action :require_can_edit_data_sources!, only: [:new, :create, :destroy, :edit, :update]
+  before_action :require_can_edit_data_sources!, only: [:new, :create, :edit, :update]
+  before_action :require_can_delete_data_sources!, only: [:destroy]
   before_action :require_can_view_imports_projects_or_organizations!, only: [:show, :index]
   before_action :set_data_source, only: [:show, :edit, :update, :destroy]
   before_action :load_hmis_hostname_options, only: [:new, :create, :edit, :update]
@@ -49,12 +50,12 @@ class DataSourcesController < ApplicationController
   end
 
   def new
-    @data_source = data_source_source.new
+    @data_source = GrdaWarehouse::DataSource.new
     @per_page_js = ['data_source_form']
   end
 
   def create
-    @data_source = data_source_source.new(new_data_source_params)
+    @data_source = GrdaWarehouse::DataSource.new(new_data_source_params)
     @data_source.source_type = :authoritative if new_data_source_params[:authoritative]
     if @data_source.save
       @data_source.replace_access([current_user], scope: :editor)
@@ -155,8 +156,13 @@ class DataSourcesController < ApplicationController
     data_source_source.source
   end
 
+  private def editable_data_source_scope
+    GrdaWarehouse::DataSource.editable_by(current_user)
+  end
+
   private def set_data_source
-    @data_source = data_source_source.find(params[:id].to_i)
+    scope = action_name == 'show' ? data_source_source : editable_data_source_scope
+    @data_source = scope.find(params[:id].to_i)
   end
 
   private def load_overrides

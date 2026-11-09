@@ -542,4 +542,99 @@ RSpec.describe DataSourcesController, type: :request do
       end
     end
   end
+
+  describe 'writes to a data source the user can only view through one project' do
+    let(:editor_role) { create(:role, can_view_projects: true, can_edit_projects: true, can_edit_data_sources: true, can_delete_data_sources: true) }
+    let(:viewer_role) { create(:role, can_view_projects: true) }
+    let(:editable_data_source) { create(:source_data_source) }
+    let(:edit_collection) { create(:collection) }
+    let(:view_collection) { create(:collection) }
+    let!(:viewed_org) { create(:hud_organization, data_source: data_source) }
+    let!(:viewed_project) { create(:hud_project, data_source: data_source, OrganizationID: viewed_org.OrganizationID) }
+    let!(:unseen_project) { create(:hud_project, data_source: data_source, OrganizationID: viewed_org.OrganizationID, confidential: false) }
+
+    before do
+      edit_collection.set_viewables({ data_sources: [editable_data_source.id] })
+      view_collection.set_viewables({ projects: [viewed_project.id] })
+      setup_access_control(user, editor_role, edit_collection)
+      setup_access_control(user, viewer_role, view_collection)
+      sign_in user
+    end
+
+    it 'still shows the view-only data source' do
+      get data_source_path(data_source)
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include(viewed_project.ProjectName)
+    end
+
+    it 'does not update it or its projects' do
+      patch data_source_path(data_source), params: {
+        grda_warehouse_data_source: {
+          name: 'Renamed',
+          projects_attributes: { '0' => { id: unseen_project.id, confidential: '1' } },
+        },
+      }
+      expect(response).to have_http_status(:not_found)
+      expect(data_source.reload.name).not_to eq('Renamed')
+      expect(unseen_project.reload.confidential).to be(false)
+    end
+
+    it 'does not queue its deletion' do
+      expect { delete data_source_path(data_source) }.not_to have_enqueued_job(DeleteItemJob)
+      expect(response).to have_http_status(:not_found)
+    end
+
+    it 'still updates the data source the role covers' do
+      patch data_source_path(editable_data_source), params: { grda_warehouse_data_source: { name: 'Renamed' } }
+      expect(response).to redirect_to(data_source_path(editable_data_source))
+      expect(editable_data_source.reload.name).to eq('Renamed')
+    end
+  end
+
+  describe 'DELETE #destroy' do
+    let(:edit_only_role) { create(:role, can_view_projects: true, can_edit_data_sources: true) }
+    let(:delete_role) { create(:role, can_view_projects: true, can_edit_data_sources: true, can_delete_data_sources: true) }
+
+    before do
+      collection.set_viewables({ data_sources: [data_source.id] })
+      sign_in user
+    end
+
+    it 'refuses an editor without the delete permission' do
+      setup_access_control(user, edit_only_role, collection)
+      expect { delete data_source_path(data_source) }.not_to have_enqueued_job(DeleteItemJob)
+      expect(response).to redirect_to(root_path)
+    end
+
+    it 'queues the delete for a user with the delete permission' do
+      setup_access_control(user, delete_role, collection)
+      expect { delete data_source_path(data_source) }.
+        to have_enqueued_job(DeleteItemJob).with(item_id: data_source.id, item_class: 'GrdaWarehouse::DataSource')
+    end
+  end
+
+  describe 'confidential project names with edit rights in another collection' do
+    let(:editor_role) { create(:role, can_view_projects: true, can_edit_projects: true) }
+    let(:viewer_role) { create(:role, can_view_projects: true) }
+    let(:other_collection) { create(:collection) }
+    let!(:org) { create(:hud_organization, data_source: data_source) }
+    let!(:confidential_project) do
+      create(:hud_project, data_source: data_source, OrganizationID: org.OrganizationID, ProjectName: 'Hidden Shelter Name', confidential: true)
+    end
+
+    before do
+      collection.set_viewables({ data_sources: [data_source.id] })
+      other_collection.set_viewables({ data_sources: [create(:source_data_source).id] })
+      setup_access_control(user, viewer_role, collection)
+      setup_access_control(user, editor_role, other_collection)
+      sign_in user
+    end
+
+    it 'masks the confidential project name' do
+      get data_source_path(data_source)
+      expect(response).to have_http_status(:ok)
+      expect(response.body).not_to include('Hidden Shelter Name')
+      expect(response.body).to include(GrdaWarehouse::Hud::Project.confidential_project_name)
+    end
+  end
 end
