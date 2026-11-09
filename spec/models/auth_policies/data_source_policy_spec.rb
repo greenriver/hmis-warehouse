@@ -24,6 +24,11 @@ RSpec.describe GrdaWarehouse::AuthPolicies::DataSourcePolicy, type: :model do
            can_edit_data_sources: true)
   end
 
+  let(:delete_only_role) do
+    create(:role,
+           can_delete_data_sources: true)
+  end
+
   let(:upload_only_role) do
     create(:role,
            can_upload_hud_zips: true)
@@ -52,6 +57,23 @@ RSpec.describe GrdaWarehouse::AuthPolicies::DataSourcePolicy, type: :model do
       end
     end
 
+    context 'with delete-only role' do
+      let(:role) { delete_only_role }
+
+      it 'grants delete but denies edit' do
+        expect(policy.can_delete?).to be true
+        expect(policy.can_edit?).to be false
+      end
+    end
+
+    context 'with edit-only role, for delete' do
+      let(:role) { edit_only_role }
+
+      it 'denies delete' do
+        expect(policy.can_delete?).to be false
+      end
+    end
+
     context 'with upload-only role' do
       let(:role) { upload_only_role }
 
@@ -72,6 +94,14 @@ RSpec.describe GrdaWarehouse::AuthPolicies::DataSourcePolicy, type: :model do
   end
 
   shared_examples 'permission checks without access' do
+    context 'with delete-only role' do
+      let(:role) { delete_only_role }
+
+      it 'denies delete' do
+        expect(policy.can_delete?).to be false
+      end
+    end
+
     it 'denies all access when user lacks resource access' do
       [full_access_role, edit_only_role, upload_only_role, no_access_role].each do |test_role|
         expect(policy.can_edit?).to be(false),
