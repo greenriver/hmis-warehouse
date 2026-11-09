@@ -15,6 +15,8 @@ RSpec.describe 'HUD SPM FY2026 retry behavior', type: :model do
   let(:generator_class) { HudSpmReport::Generators::Fy2026::Generator }
 
   def create_and_queue_report(project_ids)
+    grant_report_projects(project_ids)
+
     filter = default_filter.dup
     filter.update(project_ids: project_ids)
 

@@ -354,8 +354,15 @@ module HudPathReport::Generators::Fy2026
     end
 
     private def path_services(enrollment)
-      enrollment.services.path_service.between(start_date: @report.start_date, end_date: @report.end_date).
-        group(:DateProvided).pluck(:DateProvided, Arel.sql(array_agg(s_t[:TypeProvided]).to_sql)).to_h
+      services_in_range = enrollment.services.path_service.between(
+        start_date: @report.start_date,
+        end_date: @report.end_date,
+      )
+      types_by_date = services_in_range.
+        group(:DateProvided).
+        pluck(:DateProvided, Arel.sql(array_agg(s_t[:TypeProvided]).to_sql))
+      # Explicit ISO keys: the jsonb encoder would otherwise use Date#to_s ("Jan 29, 2025")
+      types_by_date.to_h { |date, types| [date.iso8601, types] }
     end
 
     private def cmh_service_provided(enrollment)
@@ -364,8 +371,16 @@ module HudPathReport::Generators::Fy2026
     end
 
     private def path_referrals(enrollment)
-      enrollment.services.path_referral.between(start_date: @report.start_date, end_date: @report.end_date).
-        group(:DateProvided).pluck(:DateProvided, Arel.sql(array_agg(sql_array(s_t[:TypeProvided], s_t[:ReferralOutcome])).to_sql)).to_h
+      referrals_in_range = enrollment.services.path_referral.between(
+        start_date: @report.start_date,
+        end_date: @report.end_date,
+      )
+      type_and_outcome = sql_array(s_t[:TypeProvided], s_t[:ReferralOutcome])
+      referrals_by_date = referrals_in_range.
+        group(:DateProvided).
+        pluck(:DateProvided, Arel.sql(array_agg(type_and_outcome).to_sql))
+      # Explicit ISO keys: the jsonb encoder would otherwise use Date#to_s ("Jan 29, 2025")
+      referrals_by_date.to_h { |date, referrals| [date.iso8601, referrals] }
     end
 
     private def cmh_referral_provided_and_attained(enrollment)

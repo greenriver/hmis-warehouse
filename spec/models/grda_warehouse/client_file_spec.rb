@@ -627,4 +627,69 @@ RSpec.describe GrdaWarehouse::ClientFile, type: :model do
       end
     end
   end
+
+  describe '.confidential_visible_by' do
+    let!(:client) { create :grda_warehouse_hud_client }
+    let!(:other_client) { create :grda_warehouse_hud_client }
+    let!(:enrollment_project) { create :hud_project }
+    let!(:data_source_project) { create :hud_project }
+    let!(:outside_project) { create :hud_project }
+    let!(:enrollment_file) { create :client_file, client: client, confidential: true, enrollment: create_enrollment(enrollment_project) }
+    let!(:data_source_file) { create :client_file, client: client, confidential: true, data_source: data_source_project.data_source }
+    let!(:outside_file) { create :client_file, client: client, confidential: true, enrollment: create_enrollment(outside_project) }
+    let!(:outside_enrollment_with_data_source_file) do
+      create :client_file,
+             client: client,
+             confidential: true,
+             enrollment: create_enrollment(outside_project),
+             data_source: data_source_project.data_source
+    end
+    let!(:client_only_file) do
+      file = create :client_file, client: client, confidential: true, data_source: outside_project.data_source
+      file.update_columns(data_source_id: nil, enrollment_id: nil)
+      file
+    end
+    let!(:public_file) { create :client_file, client: client }
+    let!(:other_client_file) do
+      create :client_file, client: other_client, confidential: true, enrollment: create_enrollment(enrollment_project)
+    end
+
+    def create_enrollment(project)
+      create :hud_enrollment, data_source_id: project.data_source_id, ProjectID: project.ProjectID, PersonalID: SecureRandom.hex(4)
+    end
+
+    def visible_files(user)
+      described_class.where(client_id: client.id).confidential_visible_by(user)
+    end
+
+    context 'for a legacy user with can_see_confidential_files' do
+      let!(:user) { create :user }
+
+      before do
+        role = create :role, can_see_confidential_files: true
+        grant_project_access(user, role, [enrollment_project, data_source_project], mode: :legacy)
+      end
+
+      it 'returns none' do
+        expect(visible_files(user)).to be_empty
+      end
+    end
+
+    context 'for an ACL user with can_see_confidential_files at some projects' do
+      let!(:user) { create :acl_user }
+
+      before do
+        role = create :role, can_see_confidential_files: true
+        grant_project_access(user, role, [enrollment_project, data_source_project], mode: :acl)
+      end
+
+      it "returns the client's confidential files at those projects or their data sources" do
+        expect(visible_files(user)).to contain_exactly(
+          enrollment_file,
+          data_source_file,
+          outside_enrollment_with_data_source_file,
+        )
+      end
+    end
+  end
 end

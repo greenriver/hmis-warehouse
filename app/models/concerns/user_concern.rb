@@ -317,12 +317,6 @@ module UserConcern
       email == 'noreply@greenriver.com'
     end
 
-    def can_report_on_confidential_projects?
-      return true if system_user?
-
-      can_report_on_confidential_projects
-    end
-
     # TODO: START_ACL remove when ACL transition complete
     def organizations
       viewable GrdaWarehouse::Hud::Organization

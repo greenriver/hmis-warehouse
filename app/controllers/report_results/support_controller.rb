@@ -33,7 +33,7 @@ module ReportResults
     end
 
     def report
-      @report ||= Report.find(params[:report_id].to_i)
+      @report ||= Report.active.find(params[:report_id].to_i)
     end
 
     def set_report
