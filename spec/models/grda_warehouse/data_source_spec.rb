@@ -208,6 +208,34 @@ RSpec.describe model, type: :model do
         end
       end
     end
+
+    describe 'deletability' do
+      let!(:can_delete_data_sources_role) { create :role, name: 'can delete data sources', can_delete_data_sources: true }
+      let!(:can_edit_data_sources_role) { create :role, name: 'can edit data sources', can_edit_data_sources: true }
+      let(:other_collection) { create :collection }
+
+      deletable_ids = ->(user) { model.deletable_by(user).pluck(:id).sort }
+
+      it 'is empty for a user without the delete permission' do
+        empty_collection.set_viewables({ data_sources: [ds1.id] })
+        setup_access_control(user, can_edit_data_sources_role, empty_collection)
+        expect(model.deletable_by(user).exists?).to be false
+      end
+
+      it 'includes only data sources in a collection that grants the delete permission' do
+        empty_collection.set_viewables({ data_sources: [ds1.id] })
+        other_collection.set_viewables({ data_sources: [ds2.id] })
+        setup_access_control(user, can_delete_data_sources_role, empty_collection)
+        setup_access_control(user, can_edit_data_sources_role, other_collection)
+        expect(deletable_ids[user]).to eq ids[ds1]
+      end
+
+      it 'does not grant a data source reached only through a project' do
+        empty_collection.set_viewables({ projects: [p1.id] })
+        setup_access_control(user, can_delete_data_sources_role, empty_collection)
+        expect(model.deletable_by(user).exists?).to be false
+      end
+    end
   end
 
   describe '.stalled_dates_by_id' do

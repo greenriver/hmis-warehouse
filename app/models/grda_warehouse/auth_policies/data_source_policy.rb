@@ -10,6 +10,7 @@ class GrdaWarehouse::AuthPolicies::DataSourcePolicy < GrdaWarehouse::AuthPolicie
   # expose role permissions. Optionally rename the permission
   [
     [:can_edit_data_sources, :can_edit?],
+    [:can_delete_data_sources, :can_delete?],
   ].each do |permission, method_name|
     method_name ||= :"#{permission}?"
     define_method(method_name) do

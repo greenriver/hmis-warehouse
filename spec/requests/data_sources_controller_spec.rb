@@ -625,6 +625,34 @@ RSpec.describe DataSourcesController, type: :request do
       expect { delete data_source_path(data_source) }.
         to have_enqueued_job(DeleteItemJob).with(item_id: data_source.id, item_class: 'GrdaWarehouse::DataSource')
     end
+
+    it 'queues the delete for a user with the delete permission but not the edit permission' do
+      setup_access_control(user, create(:role, can_view_projects: true, can_delete_data_sources: true), collection)
+      expect { delete data_source_path(data_source) }.
+        to have_enqueued_job(DeleteItemJob).with(item_id: data_source.id, item_class: 'GrdaWarehouse::DataSource')
+    end
+
+    context 'with the delete permission only in another collection' do
+      let(:deletable_data_source) { create(:source_data_source) }
+      let(:delete_collection) { create(:collection) }
+
+      before do
+        delete_collection.set_viewables({ data_sources: [deletable_data_source.id] })
+        setup_access_control(user, create(:role, can_view_projects: true, can_delete_data_sources: true), delete_collection)
+        setup_access_control(user, edit_only_role, collection)
+      end
+
+      it 'does not queue the delete of a data source the user can only edit' do
+        expect { delete data_source_path(data_source) }.not_to have_enqueued_job(DeleteItemJob)
+        expect(response).to have_http_status(:not_found)
+      end
+
+      it 'shows the index delete button only on the data source the delete permission covers' do
+        get data_sources_path
+        delete_links = Nokogiri::HTML(response.body).css("a[data-method='delete'][href^='/data_sources/']").map { |a| a['href'] }
+        expect(delete_links).to contain_exactly(data_source_path(deletable_data_source))
+      end
+    end
   end
 
   describe 'confidential project names with edit rights in another collection' do

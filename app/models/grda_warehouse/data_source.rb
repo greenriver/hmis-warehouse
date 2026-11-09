@@ -147,6 +147,16 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     # END_ACL
   end
 
+  scope :deletable_by, ->(user) do
+    return none unless user&.can_delete_data_sources?
+
+    # TODO: START_ACL cleanup after migration to ACLs
+    return directly_viewable_by(user) unless user.using_acls?
+
+    # END_ACL
+    where(id: data_source_ids_from_viewable_entities(user, :can_delete_data_sources))
+  end
+
   ##
   # Returns DataSources where the user has direct permissions on the record itself.
   #

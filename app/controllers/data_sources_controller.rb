@@ -27,11 +27,7 @@ class DataSourcesController < ApplicationController
     @project_counts = GrdaWarehouse::DataSource.project_counts_by_id(data_source_ids)
     @unprocessed_enrollment_counts = GrdaWarehouse::DataSource.unprocessed_enrollment_counts_by_id(data_source_ids, project_scope: viewable_projects)
     @stalled_dates = GrdaWarehouse::DataSource.stalled_dates_by_id(data_source_ids)
-    @deletable_data_source_ids = if can_delete_data_sources?
-      editable_data_source_scope.where(id: data_source_ids).pluck(:id).to_set
-    else
-      Set.new
-    end
+    @deletable_data_source_ids = GrdaWarehouse::DataSource.deletable_by(current_user).where(id: data_source_ids).pluck(:id).to_set
   end
 
   def show
@@ -166,7 +162,11 @@ class DataSourcesController < ApplicationController
   end
 
   private def set_data_source
-    scope = action_name == 'show' ? data_source_source : editable_data_source_scope
+    scope = case action_name
+    when 'show' then data_source_source
+    when 'destroy' then GrdaWarehouse::DataSource.deletable_by(current_user)
+    else editable_data_source_scope
+    end
     @data_source = scope.find(params[:id].to_i)
   end
 
