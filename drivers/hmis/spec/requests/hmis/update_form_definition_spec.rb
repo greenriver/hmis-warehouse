@@ -126,7 +126,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       '/pit' => 'must contain only lowercase letters',
       'pit/' => 'must contain only lowercase letters',
       'pit//2027' => 'must contain only lowercase letters',
-      'pit.html' => 'must contain only lowercase letters',
+      '../pit' => 'must contain only lowercase letters',
       'pit 2027' => 'must contain only lowercase letters',
       'a' * 101 => 'is too long (maximum is 100 characters)',
     }.each do |key, message|

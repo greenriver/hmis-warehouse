@@ -325,11 +325,11 @@ RSpec.describe Hmis::Form::Definition, type: :model do
 
     it 'should error if the object key has an invalid format or length' do
       form = build(:hmis_form_definition, data_source: ds1, role: :EXTERNAL_FORM)
-      ['pit/pit_2027', 'a' * 100].each do |key|
+      ['pit/pit_2027', 'pit.html', 'pit/2027.v2.html', 'a' * 100].each do |key|
         form.external_form_object_key = key
         expect(form).to be_valid, key
       end
-      ['PIT-2027', 'pit//2027', 'pit.html'].each do |key|
+      ['PIT-2027', 'pit//2027', '.pit', 'pit/../secret', 'pit.HTML'].each do |key|
         form.external_form_object_key = key
         expect(form).not_to be_valid, key
         expect(form.errors[:external_form_object_key].sole).to start_with('must contain only lowercase letters')
