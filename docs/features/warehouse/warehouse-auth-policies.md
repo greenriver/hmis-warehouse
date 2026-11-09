@@ -151,7 +151,7 @@ When there's no client record at all (plucked columns or a hash row), use `GrdaW
 
 PII policies are duck-typed: anything answering the `can_view_*?` questions works. `CohortPiiPolicy` allows everything except the full SSN, which follows `user.can_view_full_ssn?`. `HudReportPolicy#can_view_checkpoints?` reads `user.can_*?` flags directly because report instances have no Collection relationship; don't copy that for resources that do. PII policies decide display, not query scope: use `Model.viewable_by(user)` to limit which records load.
 
-`PiiProvider#dob` and `#ssn` return `nil` for a blank value and `Redacted` (or a masked string) only when a value exists, so presence checks can't tell a redacted field from an empty one.
+`PiiProvider#ssn` returns `nil` for a blank value, `Redacted` when a value exists but the policy denies it, and a masked or full string otherwise. `#dob` returns `nil` both when the value is blank and when the policy denies it, so presence checks can't tell a redacted DOB from an empty one.
 
 The masked SSN (`XXX-XX-1234`) is a separate permission from the full SSN. Every policy allows it except a restricted client's: restriction means no SSN at all, matching HMIS.
 
