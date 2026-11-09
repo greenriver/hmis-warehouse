@@ -589,6 +589,20 @@ RSpec.describe DataSourcesController, type: :request do
       expect(response).to redirect_to(data_source_path(editable_data_source))
       expect(editable_data_source.reload.name).to eq('Renamed')
     end
+
+    it 'shows the Edit button only on the data source the role covers' do
+      get data_source_path(data_source)
+      expect(Nokogiri::HTML(response.body).css("a[href='#{edit_data_source_path(data_source)}']")).to be_empty
+
+      get data_source_path(editable_data_source)
+      expect(Nokogiri::HTML(response.body).css("a[href='#{edit_data_source_path(editable_data_source)}']").size).to eq(1)
+    end
+
+    it 'shows the index delete button only on the data source the role covers' do
+      get data_sources_path
+      delete_links = Nokogiri::HTML(response.body).css("a[data-method='delete'][href^='/data_sources/']").map { |a| a['href'] }
+      expect(delete_links).to contain_exactly(data_source_path(editable_data_source))
+    end
   end
 
   describe 'DELETE #destroy' do
