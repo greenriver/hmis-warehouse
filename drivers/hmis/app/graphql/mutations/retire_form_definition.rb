@@ -25,6 +25,11 @@ module Mutations
 
       raise 'only published forms can be retired' unless definition.published?
 
+      # Retiring was added for External Forms, so their object key can be reused. Other roles could be supported
+      # later, but retiring some (such as system record or intake/exit forms) would break resolution. To stop
+      # collecting another type of form, remove its form rules instead.
+      raise 'only External Forms can be retired' unless definition.role == 'EXTERNAL_FORM'
+
       # A draft would still count as an active version of the form, so require it to be resolved first
       draft_exists = Hmis::Form::Definition.where(identifier: definition.identifier, data_source_id: definition.data_source_id).draft.exists?
       if draft_exists
@@ -33,7 +38,7 @@ module Mutations
         return { errors: errors }
       end
 
-      # TODO: retiring an External Form should also take its published page down from the public S3 bucket
+      # TODO(#10054): retiring an External Form should also take its published page down from the public S3 bucket
       # (HmisExternalApis::PublishExternalFormsJob uploads it). Until then the page stays live, and submissions
       # to it are still processed, until another form is published to the same external_form_object_key.
       definition.update!(status: Hmis::Form::Definition::RETIRED)

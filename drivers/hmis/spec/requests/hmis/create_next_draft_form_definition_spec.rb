@@ -68,6 +68,27 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     expect_access_denied post_graphql(identifier: fd2.identifier) { mutation }
   end
 
+  describe 'retired external forms' do
+    let!(:retired_form) { create :hmis_external_form_definition, status: Hmis::Form::Definition::RETIRED, external_form_object_key: 'pit', data_source: ds1 }
+
+    def new_draft_for(identifier)
+      response, result = post_graphql(identifier: identifier) { mutation }
+      expect(response.status).to eq(200), result.inspect
+      Hmis::Form::Definition.find(result.dig('data', 'createNextDraftFormDefinition', 'formIdentifier', 'draftVersion', 'id'))
+    end
+
+    it 'keeps the object key when no other form has reused it' do
+      expect(new_draft_for(retired_form.identifier).external_form_object_key).to eq('pit')
+    end
+
+    it 'leaves the object key off the new draft when another form has reused it' do
+      create :hmis_external_form_definition, status: Hmis::Form::Definition::PUBLISHED, external_form_object_key: 'pit', data_source: ds1
+      new_draft = new_draft_for(retired_form.identifier)
+      expect(new_draft.external_form_object_key).to be_nil
+      expect(retired_form.reload.external_form_object_key).to eq('pit')
+    end
+  end
+
   it 'should error if the form is managed in version control' do
     fd = create(:hmis_form_definition, managed_in_version_control: true, data_source: ds1)
     expect_access_denied post_graphql(identifier: fd.identifier) { mutation }

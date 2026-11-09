@@ -362,9 +362,9 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
 
     # Ensure that external_form_object_key is not used by another form that is still active (has a draft or published
     # version). Once a form is retired, its key can be reused.
-    # TODO: retiring a form should take its page down from S3 (see Mutations::RetireFormDefinition)
-    active_identifiers = Hmis::Form::Definition.where(status: [DRAFT, PUBLISHED]).select(:identifier)
-    object_key_taken = Hmis::Form::Definition.where(external_form_object_key: external_form_object_key).
+    # TODO(#10054): retiring a form should take its page down from S3 (see Mutations::RetireFormDefinition)
+    active_identifiers = Hmis::Form::Definition.where(data_source_id: data_source_id, status: [DRAFT, PUBLISHED]).select(:identifier)
+    object_key_taken = Hmis::Form::Definition.where(data_source_id: data_source_id, external_form_object_key: external_form_object_key).
       where.not(identifier: identifier).
       where(identifier: active_identifiers).
       exists?

@@ -54,6 +54,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     expect_gql_error post_graphql(id: draft.id) { mutation }, message: 'only published forms can be retired'
   end
 
+  it 'only retires External Forms' do
+    project_form = create :hmis_form_definition, role: :PROJECT, status: Hmis::Form::Definition::PUBLISHED, data_source: ds1
+    expect_gql_error post_graphql(id: project_form.id) { mutation }, message: 'only External Forms can be retired'
+    expect(project_form.reload.status).to eq(Hmis::Form::Definition::PUBLISHED)
+  end
+
   it 'requires permission to publish the form' do
     remove_permissions(access_control, :can_manage_forms, :can_administrate_config)
     expect_access_denied post_graphql(id: external_form.id) { mutation }
