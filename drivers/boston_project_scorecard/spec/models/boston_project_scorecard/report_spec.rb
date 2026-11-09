@@ -654,7 +654,11 @@ RSpec.describe BostonProjectScorecard::Report, type: :model do
   end
 
   describe '#apr_report' do
-    before { project_coc }
+    before do
+      project_coc
+      # The APR filter drops submitted projects the user cannot see
+      user.access_group.add_viewable(project)
+    end
 
     it 'scopes the real APR filter to the report project, independent of the mocked answer data used elsewhere in this file' do
       allow(Reporting::Hud::RunReportJob).to receive(:perform_now) do |_class_name, report_id, **_kwargs|
@@ -665,6 +669,60 @@ RSpec.describe BostonProjectScorecard::Report, type: :model do
 
       expect(apr.project_ids).to eq([project.id])
       expect(apr).to be_completed
+    end
+  end
+
+  describe 'APRs for a viewable project group containing a project the user cannot see' do
+    let(:invisible_project) do
+      create(
+        :hud_project,
+        data_source: data_source,
+        organization: organization,
+        project_type: 13,
+      )
+    end
+    let(:project_group) { create(:project_group, projects: [project, invisible_project]) }
+    let(:role) { create :role, can_view_assigned_reports: true }
+    let(:group_report) do
+      described_class.create!(
+        user: user,
+        project_group: project_group,
+        start_date: Date.new(2024, 10, 1),
+        end_date: Date.new(2025, 9, 30),
+      )
+    end
+
+    before do
+      # A shared CoC code, so the APR's CoC filter can't be what drops the invisible project
+      project_coc.update!(CoCCode: 'XX-500')
+      create(:hud_project_coc, data_source: data_source, project_id: invisible_project.project_id, CoCCode: 'XX-500')
+      allow(Reporting::Hud::RunReportJob).to receive(:perform_now) do |_class_name, report_id, **_kwargs|
+        HudReports::ReportInstance.find(report_id).update!(state: 'Completed', completed_at: Time.current)
+      end
+    end
+
+    [:acl, :legacy].each do |mode|
+      context "with #{mode} access" do
+        let(:user) { create(mode == :acl ? :acl_user : :user) }
+
+        before do
+          grant_project_access(user, role, [project], mode: mode)
+          grant_project_group_access(user, role, [project_group], mode: mode)
+        end
+
+        it 'limits the APR to the group projects the user can report on' do
+          apr = group_report.send(:apr_report)
+
+          expect(apr.project_ids).to eq([project.id])
+        end
+
+        it 'limits the prior-year comparison APR the same way' do
+          comparison_apr = group_report.send(:apr_compmarison_report)
+
+          expect(comparison_apr.project_ids).to eq([project.id])
+          expect(comparison_apr.start_date).to eq(Date.new(2023, 10, 1))
+        end
+      end
     end
   end
 

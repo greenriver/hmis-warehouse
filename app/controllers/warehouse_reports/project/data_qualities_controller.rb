@@ -54,7 +54,7 @@ module WarehouseReports::Project
         @project_ids = project_params
         # filter by viewability
         @project_ids = project_scope.where(id: @project_ids).pluck(:id)
-        @project_group_ids = project_group_params
+        @project_group_ids = project_group_scope.where(id: project_group_params).pluck(:id)
 
         raise ActionController::ParameterMissing, 'Parameters missing' if @project_ids.empty? && @project_group_ids.empty?
       rescue ActionController::ParameterMissing

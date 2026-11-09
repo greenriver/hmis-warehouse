@@ -85,4 +85,38 @@ RSpec.describe GrdaWarehouse::Config, type: :model do
       end
     end
   end
+
+  describe 'relevant_state_codes' do
+    it 'stores codes upcased and without spaces' do
+      config = create(:config)
+      config.update!(relevant_state_codes: 'ma, nh ,vt')
+
+      expect(config.reload.relevant_state_codes).to eq('MA,NH,VT')
+    end
+
+    it 'rejects values that are not comma-separated two-letter codes' do
+      ['MA;NH', 'MA NH', 'MAS', 'MA,NHX', ''].each do |value|
+        config = build(:config, relevant_state_codes: value)
+
+        expect(config).not_to be_valid, value
+        expect(config.errors[:relevant_state_codes]).not_to be_empty, value
+      end
+    end
+
+    it 'reads a stored value with spaces and lowercase as clean codes' do
+      config = create(:config)
+      config.update_column(:relevant_state_codes, 'ma, nh')
+      GrdaWarehouse::Config.invalidate_cache
+
+      expect(GrdaWarehouse::Config.relevant_state_codes).to eq(['MA', 'NH'])
+    end
+
+    it 'reads a stored blank value as no states' do
+      config = create(:config)
+      config.update_column(:relevant_state_codes, '')
+      GrdaWarehouse::Config.invalidate_cache
+
+      expect(GrdaWarehouse::Config.relevant_state_codes).to eq([])
+    end
+  end
 end

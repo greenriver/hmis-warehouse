@@ -79,19 +79,23 @@ RSpec.describe HudSpmReport::Fy2026::SpmEnrollment, type: :model, exclude_fixpoi
       ds2 = create(:source_data_source)
       shared_id = 'ENR-COLLISION-123'
 
-      project1 = create(:hud_project, data_source: ds1, ProjectType: 0)
+      # The report filter's viewable_by applies non_confidential, which inner-joins the organization
+      organization1 = create(:hud_organization, data_source: ds1)
+      organization2 = create(:hud_organization, data_source: ds2)
+
+      project1 = create(:hud_project, data_source: ds1, organization: organization1, ProjectType: 0)
       create(:hud_project_coc, project: project1, data_source: ds1, CoCCode: 'MA-500')
 
-      project2 = create(:hud_project, data_source: ds2, ProjectType: 0)
+      project2 = create(:hud_project, data_source: ds2, organization: organization2, ProjectType: 0)
       create(:hud_project_coc, project: project2, data_source: ds2, CoCCode: 'MA-500')
 
       client1 = create(:hud_client, data_source: ds1, dob: Date.parse('1990-01-01'))
       create(:warehouse_client, source: client1)
-      create(:hud_enrollment, data_source: ds1, EnrollmentID: shared_id, PersonalID: client1.PersonalID, ProjectID: project1.ProjectID, EntryDate: '2022-01-01')
+      create(:hud_enrollment, data_source: ds1, EnrollmentID: shared_id, PersonalID: client1.PersonalID, ProjectID: project1.ProjectID, EnrollmentCoC: 'MA-500', EntryDate: '2022-01-01')
 
       client2 = create(:hud_client, data_source: ds2, dob: Date.parse('1970-01-01'))
       create(:warehouse_client, source: client2)
-      create(:hud_enrollment, data_source: ds2, EnrollmentID: shared_id, PersonalID: client2.PersonalID, ProjectID: project2.ProjectID, EntryDate: '2022-01-01')
+      create(:hud_enrollment, data_source: ds2, EnrollmentID: shared_id, PersonalID: client2.PersonalID, ProjectID: project2.ProjectID, EnrollmentCoC: 'MA-500', EntryDate: '2022-01-01')
 
       report = setup_report([project1.id, project2.id])
 
