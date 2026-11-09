@@ -6,20 +6,19 @@
 
 # frozen_string_literal: true
 
-require 'digest'
-require 'json'
 require 'pathname'
 require 'yaml'
 
-# Keeps docs in step with the code files they list in `sources:`.
+# Docs list the code files they describe in `sources:` frontmatter. `check` validates the
+# frontmatter; `affected` and `missing_sources` feed the PR comment naming docs to re-read.
 # Stdlib only so bin/doc_sources and CI run it without booting Rails.
 module DocSources
   DOC_GLOBS = ['docs/*.md', 'docs/features/**/*.md'].freeze
-  MANIFEST = 'docs/doc_sources_manifest.json'
+  COMMENT_MARKER = '<!-- doc-sources -->'
   REQUIRED_KEYS = ['sources'].freeze
   FRONTMATTER = /\A---\n(.*?)\n---\n/m
   # `path.rb:12`, `path.rb:12-20`, or a bare `:40` continuing a citation. Line numbers drift
-  # without the source hash changing meaning, so docs name methods and constants instead.
+  # as code moves, so docs name methods and constants instead.
   # ponytail: backtick spans only; a bare path:NNN in prose is not caught.
   LINE_CITATION = /`((?:[\w.\/-]+\.\w+)?:\d+(?:-\d+)?)`/
 
@@ -66,48 +65,49 @@ module DocSources
     value.is_a?(Array) && value.any? && value.all?(String)
   end
 
-  def sources(root)
-    docs(root).flat_map { |doc| Array(doc.frontmatter['sources']) }.uniq.sort
-  end
-
-  def digest(root, source)
-    Digest::SHA256.file(Pathname(root).join(source).to_s).hexdigest
-  end
-
-  def stamp(root)
-    root = Pathname(root)
-    manifest = sources(root).select { |source| root.join(source).file? }.to_h { |source| [source, digest(root, source)] }
-    root.join(MANIFEST).dirname.mkpath
-    File.write(root.join(MANIFEST).to_s, "#{JSON.pretty_generate(manifest)}\n")
-    manifest
-  end
-
   def check(root)
+    docs(root).flat_map(&:errors).uniq
+  end
+
+  def affected(root, changed_paths)
+    sources_by_doc(root) do |sources|
+      sources & changed_paths
+    end
+  end
+
+  def missing_sources(root)
     root = Pathname(root)
-    all_docs = docs(root)
-    problems = all_docs.flat_map(&:errors)
-    manifest_path = root.join(MANIFEST)
-    manifest = manifest_path.exist? ? JSON.parse(manifest_path.read) : {}
-
-    all_docs.each do |doc|
-      Array(doc.frontmatter['sources']).each do |source|
-        unless root.join(source).file?
-          problems << "#{doc.path}: source `#{source}` does not exist"
-          next
-        end
-
-        recorded = manifest[source]
-        if recorded.nil?
-          problems << "#{doc.path}: source `#{source}` is not in #{MANIFEST}; run bin/doc_sources stamp"
-        elsif recorded != digest(root, source)
-          problems << "#{doc.path}: source `#{source}` changed since last stamp; update the doc, then run bin/doc_sources stamp"
-        end
-      end
+    sources_by_doc(root) do |sources|
+      sources.reject { |source| root.join(source).file? }
     end
+  end
 
-    (manifest.keys - sources(root)).each do |orphan|
-      problems << "#{MANIFEST}: `#{orphan}` is not listed by any doc; run bin/doc_sources stamp"
+  def comment_body(affected, missing)
+    return '' if affected.empty? && missing.empty?
+
+    sections = []
+    if affected.any?
+      sections << "### Docs that may need an update\n\n" \
+                  "This PR changes code that these docs describe. Check that each still matches the code, and update it if not.\n\n" \
+                  "#{doc_lines(affected)}\n"
     end
-    problems.uniq
+    if missing.any?
+      sections << "#{affected.empty? ? "### Docs that may need an update\n\n" : ''}" \
+                  "These docs list sources that no longer exist. Update their `sources:` frontmatter.\n\n" \
+                  "#{doc_lines(missing)}\n"
+    end
+    "#{COMMENT_MARKER}\n#{sections.join("\n")}"
+  end
+
+  def doc_lines(by_doc)
+    by_doc.map { |doc, sources| "- `#{doc}`: #{sources.map { |source| "`#{source}`" }.join(', ')}" }.join("\n")
+  end
+
+  # Yields each doc's sorted, unique sources; keeps docs where the block returns any.
+  def sources_by_doc(root)
+    docs(root).each_with_object({}) do |doc, result|
+      matched = yield(Array(doc.frontmatter['sources']).uniq).sort
+      result[doc.path] = matched if matched.any?
+    end
   end
 end

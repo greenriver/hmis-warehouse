@@ -1,25 +1,43 @@
 name: Doc Sources
 
 on:
-  workflow_dispatch:
   pull_request:
-    branches:
-      - '*'
-      - '**/*'
+    types: [opened, synchronize, reopened, ready_for_review]
 concurrency:
   group: ${{ github.ref }}-doc-sources
   cancel-in-progress: true
 
 jobs:
-  doc_sources_check:
-    name: Documented sources match the manifest
+  doc_sources:
+    name: Docs that describe changed code
     runs-on: ubuntu-24.04
-    container: ruby:3.4.12-slim-trixie
     permissions:
       contents: read
+      pull-requests: write
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
 
-      - name: Check that documented sources match the manifest
+      - name: Check doc frontmatter
         run: ruby bin/doc_sources check
+
+      - name: List docs that describe changed code
+        run: ruby bin/doc_sources affected "${{ github.event.pull_request.base.sha }}" > "$RUNNER_TEMP/doc_sources_comment.md"
+
+      - name: Comment on the PR
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          body="$RUNNER_TEMP/doc_sources_comment.md"
+          if [ ! -s "$body" ]; then
+            exit 0
+          fi
+          existing=$(gh api "repos/${{ github.repository }}/issues/$PR/comments" --paginate \
+            --jq '.[] | select(.body | contains("<!-- doc-sources -->")) | .id')
+          if [ -z "$existing" ]; then
+            gh pr comment "$PR" --repo "${{ github.repository }}" --body-file "$body"
+          fi

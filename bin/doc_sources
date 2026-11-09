@@ -7,22 +7,31 @@
 
 # frozen_string_literal: true
 
+require 'open3'
 require_relative '../lib/doc_sources'
 
 root = File.expand_path('..', __dir__)
+usage = 'usage: bin/doc_sources check|affected BASE_REF'
 
 case ARGV.first
-when 'stamp'
-  manifest = DocSources.stamp(root)
-  puts "Stamped #{manifest.size} sources into #{DocSources::MANIFEST}"
 when 'check'
   problems = DocSources.check(root)
   if problems.empty?
-    puts 'doc sources are in sync'
+    puts 'doc sources are valid'
   else
     puts problems
     exit 1
   end
+when 'affected'
+  base_ref = ARGV[1]
+  abort usage if base_ref.nil? || base_ref.empty?
+
+  output, status = Open3.capture2e('git', '-C', root, 'diff', '--name-only', '--no-renames', "#{base_ref}...HEAD")
+  abort "git diff failed:\n#{output}" unless status.success?
+
+  changed = output.split("\n")
+  body = DocSources.comment_body(DocSources.affected(root, changed), DocSources.missing_sources(root))
+  puts body unless body.empty?
 else
-  abort 'usage: bin/doc_sources stamp|check'
+  abort usage
 end

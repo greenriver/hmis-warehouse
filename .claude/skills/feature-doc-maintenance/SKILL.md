@@ -1,17 +1,15 @@
 ---
 name: feature-doc-maintenance
 disable-model-invocation: true
-description: Use when the CI job "Documented sources match the manifest" fails, someone pastes a failed run/job link for it, says "docs are stale", "restamp the docs", or "source changed since last stamp", or edits a code file listed in a doc's `sources:` frontmatter under docs/ or docs/features/ and needs the doc brought back in line.
+description: Use when a PR has the comment "Docs that may need an update", the CI job "Docs that describe changed code" fails on frontmatter errors, someone says "docs are stale", or a code file listed in a doc's `sources:` frontmatter under docs/ or docs/features/ was edited and the doc needs checking.
 ---
 
 # Feature doc maintenance
 
 Docs in `docs/*.md` and `docs/features/**/*.md` may list code files in `sources:` frontmatter.
-`docs/doc_sources_manifest.json` records a SHA-256 of each source. CI runs `bin/doc_sources check`
-and fails when a source changed but was not re-stamped.
-
-The check exists so docs get re-read when their code changes. A bare `stamp` silences it without
-doing that, so the job is: verify, fix the docs, then stamp.
+On a PR, CI comments with the docs whose listed sources changed, and with docs that list files that
+no longer exist. The comment is advisory. The job fails only on frontmatter errors: invalid YAML, a
+missing or malformed `sources:` list, or a cited line number.
 
 **What a doc keeps (the Keep rule):** a fact stays only if an engineer or agent could not get it by
 reading the code it names, or by searching the code MCP server. Keep: why/rationale, HUD or customer
@@ -24,56 +22,42 @@ Commands run in Docker, never on the host:
 
 ```bash
 docker compose run --rm --no-deps spec ruby bin/doc_sources check
-docker compose run --rm --no-deps spec ruby bin/doc_sources stamp
+docker compose run --rm --no-deps spec ruby bin/doc_sources affected <base>
 ```
 
-## 1. Get the failure list
+The container has no git, so `affected` fails there. Run the diff on the host and match its output
+to docs with grep (step 1).
 
-From a URL like `https://github.com/greenriver/hmis-warehouse/actions/runs/<run_id>/job/<job_id>?pr=<n>`:
+## 1. Get the doc list
+
+Use the PR comment. To rebuild it locally, find the base and the changed files on the host:
 
 ```bash
-gh run view <run_id> --log-failed > <scratch>/doc_sources_ci.log
-gh pr view <n> --json headRefName,baseRefName
+gh pr view <n> --json headRefName,baseRefName,baseRefOid
 git branch --show-current
+git diff --name-only --no-renames <base>...HEAD > <scratch>/changed.txt
+grep -rlF --include='*.md' -f <scratch>/changed.txt docs
 ```
 
 Confirm the checked-out branch is the PR's `headRefName` before editing. If it is not, stop and
 tell the user which branch to check out; do not switch branches with uncommitted work present.
 
-Then reproduce locally with `check` (above). The local run is the source of truth. If CI failed but
-the local check passes, CI likely ran on the PR merge commit, so the drift came from `main`. Tell
-the user to merge or rebase `main` and re-run; don't guess at changes you can't see.
+For frontmatter errors, run `check` (above) and fix what it prints: a non-empty `sources:` list of
+file paths (quote values containing `: `, including dates), and method, constant, or class names
+in place of cited line numbers.
 
-Group the problems by message:
+For a source listed as no longer existing, find the new path
+(`git log --follow --diff-filter=RD --oneline -- <source>`), update `sources` and any mention of
+the old path in the doc body. If it was deleted, remove the facts that depended on it.
 
-| Message | Meaning | Action |
-|---|---|---|
-| `source X changed since last stamp` | File edited | Steps 2-4 |
-| `source X does not exist` | File renamed or deleted | Find the new path (`git log --follow --diff-filter=RD --oneline -- X`), update `sources` and any mention of the old path in the doc body; if deleted, remove the facts that depended on it |
-| `source X is not in docs/doc_sources_manifest.json` | Doc newly lists a source | Verify the doc's claims about X (step 3), then stamp |
-| `X is not listed by any doc` | Orphan manifest entry | Stamp only |
-| ``frontmatter missing `sources` `` / `` `sources` must be a non-empty list of file paths `` / `frontmatter is not valid YAML` / `frontmatter must be a mapping` | Malformed frontmatter | Fix it: a non-empty `sources:` list of file paths (quote values containing `: `, including dates) |
-| `cites line number ...` | A fact is anchored to a line | Replace it with the method, constant, or class name at that line (step 4) |
+## 2. See what changed
 
-## 2. Map changed sources to docs, and see what changed
-
-For each changed source, find every doc that lists it (the check prints one line per doc, but grep
-to be sure):
+For each listed source in the comment:
 
 ```bash
-grep -rln --include='*.md' -- '<source path>' docs
+git log --oneline <base>..HEAD -- <source>
+git diff <base> -- <source>          # includes uncommitted edits
 ```
-
-Every stamp rewrites the manifest, so the last commit that touched it is the baseline:
-
-```bash
-base=$(git log -1 --format=%H -- docs/doc_sources_manifest.json)
-git log --oneline "$base"..HEAD -- <source>
-git diff "$base" -- <source>          # includes uncommitted edits
-```
-
-If the diff is empty or unrelated to the source's current state (e.g. the manifest was stamped on
-another branch), fall back to `git diff $(git merge-base HEAD origin/main) -- <source>`.
 
 Sources are never symlinks. If a listed path turns out to be a symlink, replace it with its target
 (`readlink <source>`).
@@ -105,23 +89,21 @@ Keep a short working list: claim, still true / wrong / new fact worth adding, ev
 
 Edit only what the evidence supports. Leave accurate text alone.
 
-- If a change only affects facts derivable from code, the doc likely needs no edit. Say so in the
-  report and stamp.
+- If a change only affects facts derivable from code, the doc likely needs no edit. Report
+  "verified, no change needed" with the reason.
 - Fix wrong claims; remove claims about deleted code. Add a fact only if it passes the Keep rule.
 - Never cite line numbers, line ranges, or commit SHAs, and don't paste code that restates an
-  implementation detail. State behavior, not a snapshot of how it is written today; stable wording
-  means the next stamp failure is about a real change.
+  implementation detail. State behavior, not a snapshot of how it is written today.
 - Update `sources` if the doc now depends on a new file or no longer on an old one. List files, not
   directories or globs, never a gitignored path or a symlink (list its target). Keep the list
   short: only files whose behavior the doc asserts.
 - No bead ids, issue numbers, PR numbers, or branch names in the docs.
 - If a doc should be split or a new doc written, say so and ask before restructuring.
 
-## 5. Stamp and confirm
+## 5. Confirm and report
 
 ```bash
-docker compose run --rm --no-deps spec ruby bin/doc_sources stamp
-docker compose run --rm --no-deps spec ruby bin/doc_sources check    # must print "doc sources are in sync"
+docker compose run --rm --no-deps spec ruby bin/doc_sources check    # must print "doc sources are valid"
 git diff --stat docs
 ```
 
@@ -131,6 +113,3 @@ Don't commit. Report to the user, per changed source:
 - what changed in the source (one line)
 - what was edited in each doc, or "verified, no change needed" with the reason
 - anything uncertain that a human should look at
-
-Reviewers push back on a manifest change with no doc change, so the "verified, no change needed"
-lines are what let a stamp-only diff through review.

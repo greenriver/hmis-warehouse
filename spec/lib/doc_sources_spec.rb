@@ -55,59 +55,15 @@ RSpec.describe DocSources, type: :lib do
       expect(DocSources.check(@root)).to eq(["#{doc_path}: `sources` must be a non-empty list of file paths"])
     end
 
-    it 'reports a listed source that does not exist on disk' do
+    it 'does not report a listed source that does not exist on disk' do
       write_doc(doc_path, sources: ['app/missing.rb'])
 
-      expect(DocSources.check(@root)).to eq(["#{doc_path}: source `app/missing.rb` does not exist"])
-    end
-
-    it 'reports a source that has never been stamped' do
-      write('app/a.rb', 'x')
-      write_doc(doc_path, sources: ['app/a.rb'])
-
-      expect(DocSources.check(@root)).to eq(
-        ["#{doc_path}: source `app/a.rb` is not in #{DocSources::MANIFEST}; run bin/doc_sources stamp"],
-      )
-    end
-
-    it 'is clean right after a stamp' do
-      write('app/a.rb', 'x')
-      write('app/b.rb', 'y')
-      write_doc(doc_path, sources: ['app/a.rb', 'app/b.rb'])
-      DocSources.stamp(@root)
-
       expect(DocSources.check(@root)).to eq([])
-    end
-
-    it 'reports the doc and the source when a stamped source changes' do
-      write('app/a.rb', 'x')
-      write('app/b.rb', 'y')
-      write_doc(doc_path, sources: ['app/a.rb', 'app/b.rb'])
-      DocSources.stamp(@root)
-      write('app/a.rb', 'x changed')
-
-      expect(DocSources.check(@root)).to eq(
-        ["#{doc_path}: source `app/a.rb` changed since last stamp; update the doc, then run bin/doc_sources stamp"],
-      )
-    end
-
-    it 'reports a manifest entry no doc lists any more' do
-      write('app/a.rb', 'x')
-      write('app/gone.rb', 'z')
-      write_doc(doc_path, sources: ['app/a.rb', 'app/gone.rb'])
-      DocSources.stamp(@root)
-      write_doc(doc_path, sources: ['app/a.rb'])
-
-      expect(DocSources.check(@root)).to eq(
-        ["#{DocSources::MANIFEST}: `app/gone.rb` is not listed by any doc; run bin/doc_sources stamp"],
-      )
     end
 
     it 'reports each line-number citation in a doc body' do
       write('app/a.rb', 'x')
       write_doc(doc_path, sources: ['app/a.rb'], body: '`app/a.rb:12` `find`; `:40` `save`.')
-      DocSources.stamp(@root)
-
       expect(DocSources.check(@root)).to contain_exactly(
         "#{doc_path}: cites line number `app/a.rb:12`; name the method or constant instead",
         "#{doc_path}: cites line number `:40`; name the method or constant instead",
@@ -117,8 +73,6 @@ RSpec.describe DocSources, type: :lib do
     it 'does not treat paths without a line, clock times, or ratios as line citations' do
       write('app/a.rb', 'x')
       write_doc(doc_path, sources: ['app/a.rb'], body: '`app/a.rb` runs at 8:20 pm with a 1:1 mapping.')
-      DocSources.stamp(@root)
-
       expect(DocSources.check(@root)).to eq([])
     end
 
@@ -126,9 +80,7 @@ RSpec.describe DocSources, type: :lib do
       write('app/a.rb', 'x')
       write_doc(doc_path, sources: ['app/a.rb'])
       write('docs/features/warehouse/plain.md', "# Plain\n\nIntro.\n\n---\n\nsources:\n  - app/missing.rb\n\n---\n")
-      manifest = DocSources.stamp(@root)
 
-      expect(manifest.keys).to eq(['app/a.rb'])
       expect(DocSources.check(@root)).to eq([])
     end
 
@@ -139,13 +91,13 @@ RSpec.describe DocSources, type: :lib do
     end
 
     it 'reads docs at the top of docs/ and under docs/features/, and nowhere else in docs/' do
-      write('app/a.rb', 'x')
-      write('app/b.rb', 'y')
-      write_doc('docs/conventions.md', sources: ['app/a.rb'])
-      write_doc('docs/architecture/x.md', sources: ['app/b.rb'])
+      write('docs/conventions.md', "---\ntitle: Top\n---\n")
+      write('docs/features/warehouse/deep.md', "---\ntitle: Deep\n---\n")
+      write('docs/architecture/x.md', "---\ntitle: Arch\n---\n")
 
-      expect(DocSources.check(@root)).to eq(
-        ['docs/conventions.md: source `app/a.rb` is not in docs/doc_sources_manifest.json; run bin/doc_sources stamp'],
+      expect(DocSources.check(@root)).to contain_exactly(
+        'docs/conventions.md: frontmatter missing `sources`',
+        'docs/features/warehouse/deep.md: frontmatter missing `sources`',
       )
     end
 
@@ -158,18 +110,98 @@ RSpec.describe DocSources, type: :lib do
     end
   end
 
-  describe '.stamp' do
-    it 'writes one sha256 per unique source, sorted by path' do
-      write('app/a.rb', 'x')
-      write('app/b.rb', 'y')
-      write_doc(doc_path, sources: ['app/b.rb', 'app/a.rb'])
-      write_doc('docs/features/warehouse/other.md', sources: ['app/a.rb'])
+  describe '.affected' do
+    let(:other_path) { 'docs/features/warehouse/other.md' }
 
-      manifest = DocSources.stamp(@root)
+    it 'lists the listed sources that changed, sorted, and omits docs and sources that did not' do
+      write_doc(doc_path, sources: ['app/b.rb', 'app/a.rb', 'app/c.rb'])
+      write_doc(other_path, sources: ['app/d.rb'])
 
-      expect(manifest.keys).to eq(['app/a.rb', 'app/b.rb'])
-      expect(manifest['app/a.rb']).to eq(Digest::SHA256.hexdigest('x'))
-      expect(JSON.parse(File.read(File.join(@root, DocSources::MANIFEST)))).to eq(manifest)
+      expect(DocSources.affected(@root, ['app/b.rb', 'app/a.rb', 'app/unlisted.rb'])).to eq(
+        { doc_path => ['app/a.rb', 'app/b.rb'] },
+      )
+    end
+
+    it 'lists every doc that lists a changed source' do
+      write_doc(doc_path, sources: ['app/a.rb'])
+      write_doc(other_path, sources: ['app/a.rb'])
+
+      expect(DocSources.affected(@root, ['app/a.rb'])).to eq(
+        { other_path => ['app/a.rb'], doc_path => ['app/a.rb'] },
+      )
+      expect(DocSources.affected(@root, ['app/a.rb']).keys).to eq([other_path, doc_path])
+    end
+
+    it 'returns an empty hash when nothing listed changed' do
+      write_doc(doc_path, sources: ['app/a.rb'])
+
+      expect(DocSources.affected(@root, ['app/z.rb'])).to eq({})
+    end
+  end
+
+  describe '.missing_sources' do
+    it 'lists listed sources that are not files, sorted, and omits docs with none missing' do
+      write('app/present.rb', 'x')
+      write('app/dir/keep.rb', 'x')
+      write_doc(doc_path, sources: ['app/z_gone.rb', 'app/present.rb', 'app/a_gone.rb', 'app/dir'])
+      write_doc('docs/features/warehouse/ok.md', sources: ['app/present.rb'])
+
+      expect(DocSources.missing_sources(@root)).to eq(
+        { doc_path => ['app/a_gone.rb', 'app/dir', 'app/z_gone.rb'] },
+      )
+    end
+  end
+
+  describe '.comment_body' do
+    it 'is empty when there is nothing to report' do
+      expect(DocSources.comment_body({}, {})).to eq('')
+    end
+
+    it 'has a section for affected docs and one for missing sources' do
+      body = DocSources.comment_body(
+        { 'docs/features/a.md' => ['app/one.rb', 'app/two.rb'], 'docs/features/b.md' => ['app/one.rb'] },
+        { 'docs/features/x.md' => ['app/old/path.rb'] },
+      )
+
+      expect(body).to eq(<<~MD)
+        <!-- doc-sources -->
+        ### Docs that may need an update
+
+        This PR changes code that these docs describe. Check that each still matches the code, and update it if not.
+
+        - `docs/features/a.md`: `app/one.rb`, `app/two.rb`
+        - `docs/features/b.md`: `app/one.rb`
+
+        These docs list sources that no longer exist. Update their `sources:` frontmatter.
+
+        - `docs/features/x.md`: `app/old/path.rb`
+      MD
+    end
+
+    it 'has only the affected section when no sources are missing' do
+      body = DocSources.comment_body({ 'docs/features/a.md' => ['app/one.rb'] }, {})
+
+      expect(body).to eq(<<~MD)
+        <!-- doc-sources -->
+        ### Docs that may need an update
+
+        This PR changes code that these docs describe. Check that each still matches the code, and update it if not.
+
+        - `docs/features/a.md`: `app/one.rb`
+      MD
+    end
+
+    it 'has only the missing section when no listed source changed' do
+      body = DocSources.comment_body({}, { 'docs/features/x.md' => ['app/old/path.rb'] })
+
+      expect(body).to eq(<<~MD)
+        <!-- doc-sources -->
+        ### Docs that may need an update
+
+        These docs list sources that no longer exist. Update their `sources:` frontmatter.
+
+        - `docs/features/x.md`: `app/old/path.rb`
+      MD
     end
   end
 end
