@@ -1,3 +1,9 @@
+---
+sources:
+  - drivers/hmis/app/models/hmis/auth_policies/user_context.rb
+  - drivers/hmis/app/models/hmis/auth_policies/resource_policy.rb
+  - drivers/hmis/app/graphql/concerns/graphql_application_helper.rb
+---
 # HMIS Authorization Policy Architecture
 
 The goal of the authorization policy is to centralize authorization logic, making it more explicit, maintainable, and performant.
@@ -159,6 +165,12 @@ end
 - **Memoization**: All expensive operations are memoized at the UserContext level
 - **Bulk Loading**: Context can support preloading pages of records to avoid N+1 queries
 - **Request Scope**: UserContext is created once per request and reused
+
+## Gotchas
+
+- `UserContext.new` raises `ArgumentError` unless the user is an `Hmis::User` with `hmis_data_source_id` set. In specs and background jobs, assign it before calling `policy_for`.
+- `access_denied!` raises a plain `RuntimeError` (message `access denied`), not a GraphQL error type. Don't `rescue` it in a mutation.
+- Nesting a full `Project`, `Client`, or `Enrollment` type on a config or summary object opens traversal to the rest of that graph. Expose scalars such as `project_name` and `project_id` when that is all the UI needs.
 
 ## Related Documentation
 

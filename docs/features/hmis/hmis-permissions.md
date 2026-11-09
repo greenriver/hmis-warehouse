@@ -1,3 +1,13 @@
+---
+sources:
+  - drivers/hmis/app/models/hmis/role.rb
+  - drivers/hmis/app/models/hmis/access_group.rb
+  - drivers/hmis/app/models/hmis/group_viewable_entity.rb
+  - drivers/hmis/app/models/hmis/user.rb
+  - drivers/hmis/app/models/hmis/auth_policies/user_context.rb
+  - drivers/hmis/app/models/hmis/auth_policies/context_loaders/hmis_permission_loader.rb
+  - drivers/hmis/app/models/hmis/auth_policies/context_loaders/hmis_project_access_group_loader.rb
+---
 # HMIS Permissions
 
 The HMIS uses a scoped RBAC (Role-Based Access Control) system that is structurally similar to, but entirely separate from, [warehouse permissions](../warehouse/warehouse-permissions.md). Each grant combines a role (the actions), a collection of entities (the targets), and a user group (the recipients). Unlike the warehouse, the HMIS has no legacy permissions path — every grant goes through `Hmis::AccessControl`.
@@ -157,6 +167,14 @@ Four conventions apply to the GraphQL API:
 - **Access objects**: the nested `access { ... }` objects the frontend uses to decide what to render. New fields should use `bool_field` with a memoized `policy` helper; the legacy `can` helper exposes raw permissions and is not data-source safe. See [ADR 0006](../../adr/0006-policy-based-graphql-access-fields.md).
 - **`current_permission?` (legacy, avoid in new code)**: `current_permission?(permission:, entity:)` from `GraphqlApplicationHelper` checks one raw permission against one entity through `GraphqlPermissionChecker`, and is what the deprecated `permissions:` kwarg and `can` access-object helper use under the hood. It bypasses requirement resolution and reads as a permission flag rather than a domain question. It is being phased out in favor of instance policy checks — don't add new usages, and replace them when touching nearby code.
 
+### Scopes that skip requirement resolution
+
+`Hmis::Hud::Project.viewable_by` is built on `Hmis::User#entities_with_permissions`, which matches Role columns directly, so it does not resolve requirements. `Project.with_access` does. For project-scoped queries that name a permission other than `can_view_project`, prefer `with_access`.
+
+## Cross-database joins
+
+`Hmis::GroupViewableEntity` and `Hmis::ProjectAccessGroupMember` inherit from `GrdaWarehouseBase`, while `Hmis::AccessGroup`, `Hmis::Role`, `Hmis::AccessControl`, and `Hmis::UserGroup` inherit from `ApplicationRecord`. Joins across the two cross a database boundary, which is why `HmisProjectAccessGroupLoader` filters deleted Collections in Ruby rather than in the view.
+
 ## Caching
 
 Permission data is cached per request, not globally:
@@ -166,6 +184,8 @@ Permission data is cached per request, not globally:
 - `Hmis::User#cached_viewable_project_ids` is the exception: it uses `Rails.cache` with a one-minute expiry.
 
 Because caching is request-scoped, permission changes take effect on the next request without explicit invalidation.
+
+`Hmis::UserGroup` includes `UserPermissionCache`, which calls the warehouse `User.clear_cached_permissions` on save. That clears the warehouse cache, not the HMIS `UserContext`.
 
 ## Admin Interface
 
