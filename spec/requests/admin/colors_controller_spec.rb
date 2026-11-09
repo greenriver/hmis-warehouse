@@ -14,10 +14,14 @@ RSpec.describe Admin::ColorsController, type: :request do
   let!(:user) { create :acl_user }
   let!(:role) { create :role, can_edit_theme: true }
   let!(:collection) { create :collection }
-  let!(:race0) { GrdaWarehouse::SystemColor.create!(slug: 'race-0', background_color: '#111111') }
-  let!(:race1) { GrdaWarehouse::SystemColor.create!(slug: 'race-1', background_color: '#222222') }
+  let(:race0) { GrdaWarehouse::SystemColor.find_by!(slug: 'race-0') }
+  let(:race1) { GrdaWarehouse::SystemColor.find_by!(slug: 'race-1') }
 
   before do
+    # the edit view renders one field per default slug
+    GrdaWarehouse::SystemColor.ensure_colors
+    race0.update!(background_color: '#111111')
+    race1.update!(background_color: '#222222')
     setup_access_control(user, role, collection)
     sign_in user
   end
@@ -30,11 +34,21 @@ RSpec.describe Admin::ColorsController, type: :request do
   end
 
   it 'saves nothing when any submitted color is invalid' do
-    patch admin_color_path, params: { colors: { 'race-0' => '#abcdef', 'race-1' => '#fff}</style><b>x</b>' } }
+    patch admin_color_path, params: { colors: { 'race-0' => '#abcdef', 'race-1' => 'red' } }
 
-    expect(response).to redirect_to(edit_admin_color_path)
+    expect(response).to have_http_status(:unprocessable_content)
     expect(race0.reload.background_color).to eq('#111111')
     expect(race1.reload.background_color).to eq('#222222')
+  end
+
+  it 're-renders the form with the submitted values and names the invalid slug' do
+    patch admin_color_path, params: { colors: { 'race-0' => '#abcdef', 'race-1' => 'red' } }
+
+    page = Nokogiri::HTML(response.body)
+    expect(page.at_css('input[name="colors[race-0]"]')['value']).to eq('#abcdef')
+    expect(page.at_css('input[name="colors[race-1]"]')['value']).to eq('red')
+    expect(flash[:error]).to include('race-1')
+    expect(flash[:error]).not_to include('race-0')
   end
 
   it 'keeps the stored color for a slug the form did not send' do
@@ -47,7 +61,7 @@ RSpec.describe Admin::ColorsController, type: :request do
   it 'rejects a nested value instead of raising' do
     patch admin_color_path, params: { colors: { 'race-0' => { 'x' => 'y' } } }
 
-    expect(response).to redirect_to(edit_admin_color_path)
+    expect(response).to have_http_status(:unprocessable_content)
     expect(race0.reload.background_color).to eq('#111111')
   end
 
