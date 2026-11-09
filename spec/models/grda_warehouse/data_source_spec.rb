@@ -611,19 +611,35 @@ RSpec.describe model, type: :model do
       create(:hud_enrollment, data_source: data_source, project: project, client: source_client, processed_as: processed_as)
     end
 
-    it "matches each data source's own #unprocessed_enrollment_count" do
+    before do
+      empty_collection.set_viewables({ data_sources: [ds1.id, ds2.id] })
+      setup_access_control(user, can_view_projects, empty_collection)
+    end
+
+    it "matches each data source's own #unprocessed_enrollments count" do
       create_resolvable_enrollment(data_source: ds1, project: p1, processed_as: nil)
       create_resolvable_enrollment(data_source: ds1, project: p1, processed_as: { 'a' => 1 })
 
-      result = GrdaWarehouse::DataSource.unprocessed_enrollment_counts_by_id([ds1.id, ds2.id])
+      result = GrdaWarehouse::DataSource.unprocessed_enrollment_counts_by_id([ds1.id, ds2.id], user: user)
 
-      expect(result[ds1.id]).to eq(ds1.unprocessed_enrollment_count)
+      expect(result[ds1.id]).to eq(ds1.unprocessed_enrollments(user: user).count)
       expect(result[ds1.id]).to eq(1)
       expect(result[ds2.id]).to eq(0)
     end
 
+    it 'counts only enrollments in projects the user can view' do
+      empty_collection.set_viewables({ projects: [p1.id] })
+      create_resolvable_enrollment(data_source: ds1, project: p1, processed_as: nil)
+      create_resolvable_enrollment(data_source: ds1, project: p2, processed_as: nil)
+
+      result = GrdaWarehouse::DataSource.unprocessed_enrollment_counts_by_id([ds1.id], user: user)
+
+      expect(result[ds1.id]).to eq(1)
+      expect(ds1.unprocessed_enrollments(user: user).map(&:ProjectID)).to contain_exactly(p1.ProjectID)
+    end
+
     it 'defaults to 0 for a data source with no unprocessed enrollments, rather than omitting its key' do
-      result = GrdaWarehouse::DataSource.unprocessed_enrollment_counts_by_id([ds1.id])
+      result = GrdaWarehouse::DataSource.unprocessed_enrollment_counts_by_id([ds1.id], user: user)
 
       expect(result[ds1.id]).to eq(0)
     end

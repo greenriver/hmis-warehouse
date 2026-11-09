@@ -25,7 +25,7 @@ class DataSourcesController < ApplicationController
     data_source_ids = @data_sources.map(&:id)
     @client_counts = GrdaWarehouse::DataSource.client_counts_by_id(data_source_ids)
     @project_counts = GrdaWarehouse::DataSource.project_counts_by_id(data_source_ids)
-    @unprocessed_enrollment_counts = GrdaWarehouse::DataSource.unprocessed_enrollment_counts_by_id(data_source_ids, project_scope: viewable_projects)
+    @unprocessed_enrollment_counts = GrdaWarehouse::DataSource.unprocessed_enrollment_counts_by_id(data_source_ids, user: current_user)
     @stalled_dates = GrdaWarehouse::DataSource.stalled_dates_by_id(data_source_ids)
     @deletable_data_source_ids = GrdaWarehouse::DataSource.deletable_by(current_user).where(id: data_source_ids).pluck(:id).to_set
   end
@@ -39,6 +39,7 @@ class DataSourcesController < ApplicationController
       @coc_summaries = @data_source.coc_summaries(viewable_projects)
     else
       @organizations = load_organizations.to_a
+      current_user.policy_context.preload_project_dependencies(@organizations.flat_map(&:projects).map(&:id))
       if @require_coc_choice
         @coc_display_name = params[:coc_code] == 'unknown' ? Translation.translate('Unknown CoC') : HudHelper.util.coc_name(params[:coc_code])
         @coc_project_count = project_scope.count

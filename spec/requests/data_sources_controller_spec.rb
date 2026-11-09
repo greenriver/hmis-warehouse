@@ -655,6 +655,45 @@ RSpec.describe DataSourcesController, type: :request do
     end
   end
 
+  describe 'GET #show query efficiency' do
+    let!(:org) { create(:hud_organization, data_source: data_source) }
+
+    def create_projects(count, prefix)
+      Array.new(count) { |i| create(:hud_project, data_source: data_source, OrganizationID: org.OrganizationID, ProjectName: "#{prefix} Project #{i}") }
+    end
+
+    def count_queries(&block)
+      count = 0
+      ActiveSupport::Notifications.subscribed(->(*) { count += 1 }, 'sql.active_record', &block)
+      count
+    end
+
+    def rendered_project_names(body)
+      Nokogiri::HTML(body).css('.project__name a').map { |a| a.text.strip }
+    end
+
+    before do
+      collection.set_viewables({ data_sources: [data_source.id] })
+      setup_access_control(user, role, collection)
+      sign_in user
+    end
+
+    it 'runs a bounded number of queries regardless of how many projects are listed' do
+      small_batch = create_projects(2, 'Small')
+      # Warm up one-time schema-cache queries so they don't skew the comparison.
+      get data_source_path(data_source)
+      small_queries = count_queries { get data_source_path(data_source) }
+      expect(rendered_project_names(response.body)).to match_array(small_batch.map(&:ProjectName))
+
+      large_batch = small_batch + create_projects(10, 'Large')
+      large_queries = count_queries { get data_source_path(data_source) }
+      expect(rendered_project_names(response.body)).to match_array(large_batch.map(&:ProjectName))
+
+      # Per-project permission lookups add at least one query per project (10 more here).
+      expect(large_queries).to be_within(5).of(small_queries)
+    end
+  end
+
   describe 'confidential project names with edit rights in another collection' do
     let(:editor_role) { create(:role, can_view_projects: true, can_edit_projects: true) }
     let(:viewer_role) { create(:role, can_view_projects: true) }

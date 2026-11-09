@@ -115,13 +115,12 @@ RSpec.describe DataSources::UnprocessedEnrollmentsController, type: :request do
           expect(response.body).not_to include("<td>#{other_data_source_enrollment.id}</td>")
         end
 
-        it "matches DataSource#unprocessed_enrollment_count exactly, so the drill-down list can't disagree with the index page's count" do
+        it "matches the count of DataSource#unprocessed_enrollments exactly, so the drill-down list can't disagree with the index page's count" do
           get data_source_unprocessed_enrollments_path(data_source)
 
           rendered_ids = response.body.scan(/<td>(\d+)<\/td>/).flatten.map(&:to_i)
           expect(rendered_ids).to contain_exactly(eligible_enrollment.id)
-          project_scope = GrdaWarehouse::Hud::Project.viewable_by(user, confidential_scope_limiter: :all, permission: :can_view_projects)
-          expect(data_source.unprocessed_enrollment_count(project_scope: project_scope)).to eq(rendered_ids.size)
+          expect(data_source.unprocessed_enrollments(user: user).count).to eq(rendered_ids.size)
         end
       end
 
