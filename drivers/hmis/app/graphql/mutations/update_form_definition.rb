@@ -23,6 +23,14 @@ module Mutations
       raise 'not allowed to change identifier' if input.identifier.present? && input.identifier != definition.identifier
       raise 'not allowed to change role' if input.role.present? && input.role != definition.role
 
+      # The External Form Key is the form's public URL path, so once a version of the form has been published
+      # the key is locked. The model validates the key's format.
+      new_key = input.external_form_object_key&.strip.presence
+      if input.to_h.key?(:external_form_object_key) && definition.external_form_object_key.present? && new_key != definition.external_form_object_key
+        previously_published = Hmis::Form::Definition.where(identifier: definition.identifier, data_source_id: definition.data_source_id).published_or_retired.exists?
+        raise 'not allowed to change external form object key after the form has been published' if previously_published
+      end
+
       # This mutation can be used to update the definition or the title, which is why definition is optional.
       definition.assign_attributes(**input.to_attributes) unless input.to_attributes.blank?
 
@@ -38,8 +46,12 @@ module Mutations
       validation_errors = definition.validate_json_form
       return { errors: validation_errors } if validation_errors.any?
 
-      # Raise if the definition is not valid (invalid role/status/identifier; not expected)
-      raise "Definition invalid: #{definition.errors.full_messages}" unless definition.valid?
+      # Return model validation errors, such as an invalid or already-taken external_form_object_key
+      unless definition.valid?
+        errors = HmisErrors::Errors.new
+        errors.add_ar_errors(definition.errors.errors)
+        return { errors: errors }
+      end
 
       # Manually save a PaperTrail version, so we know who made the change. Because we `skip` the definition
       # field, a PaperTrail record will not automatically get created if only the definition changed.

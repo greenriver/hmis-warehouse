@@ -51,6 +51,8 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   attr_accessor :filter_context
 
   validates :identifier, format: { with: /\A[a-zA-Z][a-zA-Z0-9_-]*\z/, message: 'must contain only alphanumeric characters, underscores, and dashes, and must start with a letter' }
+  # The External Form's path in the public S3 bucket: lowercase segments separated by single slashes
+  validates :external_form_object_key, allow_nil: true, length: { maximum: 100 }, format: { with: /\A[a-z0-9][a-z0-9_-]*(\/[a-z0-9][a-z0-9_-]*)*\z/, message: 'must contain only lowercase letters, numbers, underscores, dashes, and slashes, and must start with a letter or number' }
   # Forms that are managed in version control cannot have more than 1 version. To enforce this, we ensure that the identifier is unique.
   validates_uniqueness_of :identifier, if: :managed_in_version_control?, scope: :data_source_id
 
@@ -109,7 +111,6 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     :FORM_RULE,
     :PROJECT_CONFIG,
     :CLIENT_ALERT,
-    :FORM_DEFINITION,
   ].freeze
 
   # All form roles

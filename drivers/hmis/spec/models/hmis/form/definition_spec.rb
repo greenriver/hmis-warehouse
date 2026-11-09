@@ -322,5 +322,21 @@ RSpec.describe Hmis::Form::Definition, type: :model do
       expect(new_form.valid?).to be true
       new_form.save!
     end
+
+    it 'should error if the object key has an invalid format or length' do
+      form = build(:hmis_form_definition, data_source: ds1, role: :EXTERNAL_FORM)
+      ['pit/pit_2027', 'a' * 100].each do |key|
+        form.external_form_object_key = key
+        expect(form).to be_valid, key
+      end
+      ['PIT-2027', 'pit//2027', 'pit.html'].each do |key|
+        form.external_form_object_key = key
+        expect(form).not_to be_valid, key
+        expect(form.errors[:external_form_object_key].sole).to start_with('must contain only lowercase letters')
+      end
+      form.external_form_object_key = 'a' * 101
+      expect(form).not_to be_valid
+      expect(form.errors[:external_form_object_key].sole).to eq('is too long (maximum is 100 characters)')
+    end
   end
 end

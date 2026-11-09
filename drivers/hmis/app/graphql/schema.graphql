@@ -5133,6 +5133,7 @@ type FormDefinitionForJsonResult {
 
 input FormDefinitionInput {
   definition: String
+  externalFormObjectKey: String
   identifier: String
   role: FormRole
   title: String
@@ -5452,11 +5453,6 @@ enum FormRole {
   File
   """
   FILE
-
-  """
-  Form definition
-  """
-  FORM_DEFINITION
 
   """
   Form rule
@@ -12724,11 +12720,6 @@ enum StaticFormRole {
   Client alert
   """
   CLIENT_ALERT
-
-  """
-  Form definition
-  """
-  FORM_DEFINITION
 
   """
   Form rule

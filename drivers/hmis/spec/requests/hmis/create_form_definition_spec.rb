@@ -103,4 +103,25 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     expect(errors).not_to be_empty
     expect(errors.first['fullMessage']).to eq('Identifier is not unique. Please choose another identifier.')
   end
+
+  describe 'external form object key' do
+    let(:input) { { role: 'EXTERNAL_FORM', title: 'PIT 2027', identifier: 'pit_2027', definition: '' } }
+    before { add_permissions(access_control, :can_administrate_config) } # required to create External Forms
+
+    it 'sets the key on a new external form' do
+      response, result = post_graphql(input: input.merge(external_form_object_key: 'pit/pit-2027')) { mutation }
+      expect(response.status).to eq(200), result.inspect
+      expect(result.dig('data', 'createFormDefinition', 'errors')).to be_empty
+      expect(Hmis::Form::Definition.find_by!(identifier: 'pit_2027', data_source: ds1).external_form_object_key).to eq('pit/pit-2027')
+    end
+
+    it 'rejects an invalid key' do
+      expect do
+        response, result = post_graphql(input: input.merge(external_form_object_key: 'PIT 2027')) { mutation }
+        expect(response.status).to eq(200), result.inspect
+        errors = result.dig('data', 'createFormDefinition', 'errors')
+        expect(errors.map { |e| e['message'] }).to contain_exactly(start_with('must contain only lowercase letters'))
+      end.not_to change(Hmis::Form::Definition, :count)
+    end
+  end
 end
