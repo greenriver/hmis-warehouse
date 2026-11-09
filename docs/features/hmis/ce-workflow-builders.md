@@ -94,7 +94,7 @@ end
 Updates to Workflow Templates fall into two categories. See [https://github.com/open-path/Green-River/issues/8515](https://github.com/open-path/Green-River/issues/8515).
 
 - **Form field/label changes** such as label changes, adding a question, or adding a pick list option:
-  - Edit JSON in `lib/form_data/`.
+  - Edit JSON in `drivers/hmis/lib/form_data/`.
   - On deploy, forms are re-seeded automatically.
   - No template version bump.
 - **Graph changes** such as new steps, gateways, side effects:
