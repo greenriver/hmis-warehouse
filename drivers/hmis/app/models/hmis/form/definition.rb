@@ -360,9 +360,14 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   def validate_external_form_object_key
     return unless role == 'EXTERNAL_FORM' && external_form_object_key.present?
 
-    # Ensure that external_form_object_key is not reused across forms with different identifiers
+    # Ensure that external_form_object_key is not used by another form that is still active (has a draft or published
+    # version). Once a form is retired, its key can be reused.
+    # TODO: retiring a form should take its page down from S3 (see Mutations::RetireFormDefinition)
+    active_identifiers = Hmis::Form::Definition.where(status: [DRAFT, PUBLISHED]).select(:identifier)
     object_key_taken = Hmis::Form::Definition.where(external_form_object_key: external_form_object_key).
-      where.not(identifier: identifier).exists?
+      where.not(identifier: identifier).
+      where(identifier: active_identifiers).
+      exists?
     errors.add(:external_form_object_key, 'has already been taken') if object_key_taken
   end
 

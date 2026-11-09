@@ -322,5 +322,14 @@ RSpec.describe Hmis::Form::Definition, type: :model do
       expect(new_form.valid?).to be true
       new_form.save!
     end
+
+    it 'allows reusing the object key of a retired form, but not of an active one' do
+      pit_2026 = create(:hmis_form_definition, data_source: ds1, external_form_object_key: 'pit', role: :EXTERNAL_FORM, status: Hmis::Form::Definition::PUBLISHED)
+      pit_2027 = build(:hmis_form_definition, data_source: ds1, external_form_object_key: 'pit', role: :EXTERNAL_FORM, status: Hmis::Form::Definition::DRAFT)
+      expect(pit_2027).not_to be_valid
+
+      pit_2026.update!(status: Hmis::Form::Definition::RETIRED)
+      expect(pit_2027).to be_valid
+    end
   end
 end

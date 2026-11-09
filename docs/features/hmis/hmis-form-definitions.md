@@ -62,7 +62,7 @@ Multiple published definitions can share a role. Which one applies to a given pr
 
 Only one version per identifier can be `published` at a time, and only one can be `draft`; both are enforced by partial unique indexes, as is `identifier` + `version`. Publishing a draft (`PublishFormDefinition`) retires the previously published version in the same transaction. Editing a published form means creating the next draft version (`CreateNextDraftFormDefinition`), then publishing that. The Form Builder refuses to open anything but a draft.
 
-Deletion is restricted to drafts (`DeleteFormDefinition`), because published and retired definitions are referenced by `hmis_form_processors` rows on existing records. Retiring is the only way to take a form out of circulation.
+Deletion is restricted to drafts (`DeleteFormDefinition`), because published and retired definitions are referenced by `hmis_form_processors` rows on existing records. Retiring is the only way to take a form out of circulation. `RetireFormDefinition` retires a form's published version, leaving no published version; it refuses while the form has a draft. A retired External Form's `external_form_object_key` can be reused by another form. The Form Builder only offers Retire on External Forms for now.
 
 `valid_status_for_submit?` allows both `published` and `retired`, so a retired definition can still be submitted. This is deliberate: it keeps existing records editable after their form is retired. Which definition the UI actually uses to edit an old record — the original or a newer one — depends on the record type, and is covered in [Form resolution](hmis-form-resolution.md#choosing-a-definition-for-an-existing-record).
 
