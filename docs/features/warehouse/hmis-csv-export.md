@@ -1,3 +1,15 @@
+---
+sources:
+  - app/models/filters/hmis_export.rb
+  - app/models/concerns/export/scopes.rb
+  - app/models/export/restricted_client_pii_transform.rb
+  - app/models/grda_warehouse/fake_data.rb
+  - app/controllers/warehouse_reports/hmis_exports_controller.rb
+  - drivers/hmis_csv_twenty_twenty_six/app/models/hmis_csv_twenty_twenty_six/exporter/client.rb
+  - drivers/hmis_csv_twenty_twenty_six/app/models/hmis_csv_twenty_twenty_six/exporter/client/overrides.rb
+  - drivers/hmis_csv_twenty_twenty_six/app/models/hmis_csv_twenty_twenty_six/exporter/export_concern.rb
+---
+
 
 # HMIS CSV Export
 
@@ -17,6 +29,8 @@ The export system uses a multi-version driver architecture. Each HUD CSV version
 8. Zip uploaded to ActiveStorage
 9. User downloads completed export
 
+Only the 2024 and 2026 drivers are selectable. The 2022 driver's `register_version` line is commented out, and the 2020 driver has an importer but no exporter. `Filters::HmisExport` silently ignores a `version` that isn't registered. The 2022 and 2024 exporters are frozen near-copies of 2026, so a fix in 2026 doesn't propagate. To add a version, copy the newest driver and register it, rather than editing an older one.
+
 ## Export Configuration
 
 Exports are configured through `Filters::HmisExport` with the following parameters:
@@ -30,6 +44,8 @@ Exports are configured through `Filters::HmisExport` with the following paramete
 - **Faked PII**: Replaces sensitive fields with realistic fake data (see [De-identification Options](#de-identification-options) below)
 - **Include deleted**: Whether to export soft-deleted records
 - **Custom files**: Optional custom CSV files defined via the custom files configuration
+
+An empty project selection means every project the user can view. Confidential projects are excluded unless the user can view confidential project names. Period type 2 (effective) is not implemented and raises; the form offers only operating (3) and update (1). Choosing the update period forces `include_deleted`, because updated-period exports need deleted rows.
 
 ## Export Process
 
@@ -109,7 +125,7 @@ The "Hashed Only" export UI forces this setting and is available to users with f
 
 ### Faked PII
 
-Replaces sensitive fields with realistic-looking fabricated data (names, SSN, DOB, addresses, project/organization names, contact info, and free-text fields). Fake values are consistent within an export — the same real value always maps to the same fake value — so referential integrity is preserved. This is intended for producing sample files safe for developers to use locally, or for use in staging environments. While the intention is to remove all PII, it is not guaranteed, and output should not be shared externally without detailed review. 
+Replaces sensitive fields with realistic-looking fabricated data (names, SSN, DOB, addresses, project/organization names, contact info, and free-text fields). Fake values are consistent within an export and across exports in the same environment — the same real value always maps to the same fake value, persisted in `GrdaWarehouse::FakeData` — so referential integrity is preserved. This is intended for producing sample files safe for developers to use locally, or for use in staging environments. While the intention is to remove all PII, it is not guaranteed, and output should not be shared externally without detailed review. 
 
 ### When to use which
 
@@ -119,9 +135,30 @@ Replaces sensitive fields with realistic-looking fabricated data (names, SSN, DO
 | Produce a developer-friendly dataset | Faked PII |
 | HUD-compliant de-identification for RHY | SHA-256 Hashing |
 
-The two options are mutually exclusive in practice: the hashed export path does not accept faked PII.
+Only the hashed-only export UI prevents combining the two; the full form permits both. In a combined run, hashing runs first, so `MiddleName` is hashed (it isn't in the faked list) while first name, last name, and SSN are faked, and `Export.csv` still says `HashStatus` 4.
+
+Name hashing is SHA-256 of the Soundex code, not the raw name, so two names with the same Soundex produce the same hash. The SSN hash is prefixed with its last four digits in the clear.
+
+### Restricted clients
+
+`Export::RestrictedClientPiiTransform` always runs last on `Client.csv`. It redacts names, nulls the SSN, and sets SSN data quality to 99 for hidden clients (HMIS-restricted or retention-inactive) in the export. It is skipped entirely when either de-identification mode is on, so a faked export of a restricted client still carries their shifted `DOB` (by up to 600 days) and real enrollment history.
+
+The faked-PII gate is view-only. The controller permits `faked_pii` from any user who can reach the form; only the checkbox requires `can_export_anonymous_hmis_data`.
 
 **Important:** Neither option fully de-identifies the data. Hashing only covers a handful of fields, and faked PII does not obscure enrollment patterns, dates, or service history that could re-identify individuals. All exports should be treated as confidential regardless of which de-identification option is used.
+
+## Gotchas
+
+- Every exporter file class includes `ExportConcern` and defines only `adjust_keys`, `export_scope`, and `transforms`. ID assignment, string sanitizing, length limits, and rounding come from `ExportConcern#process`. Don't override `process`.
+- Don't format money or integer columns by assigning strings to ActiveRecord attributes in a transform. Assignment re-casts the value. `CsvDestination#write` rounds again on the plain hash for that reason.
+- `Client.csv` transform order matters: hash overrides, the client transform, fake data, then restricted-client redaction.
+- Resolve the job class through `Filters::HmisExport#schedule_job`, not a hard-coded class name.
+- Apply the external data sharing exclusion in `Export::Scopes`, not in an individual file's scope.
+- Don't add a third de-identification switch. Extend `GrdaWarehouse::FakeData#fake_patterns` for faked output, or the hash override for hashed output.
+- Faked PII covers a fixed list of columns. Dates other than `DOB`, enrollment and service structure, and custom assessment values pass through.
+- The export forces ISO date formats process-wide until it finishes, so anything else in the same worker sees them.
+- `User.csv` is exported last on purpose: it is built from the user ids referenced by earlier files, and adds an `op-system` row for records with no user.
+- XML export is retired; no code path remains.
 
 ## Recurring Exports
 
