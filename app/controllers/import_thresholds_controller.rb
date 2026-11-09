@@ -8,6 +8,7 @@
 
 class ImportThresholdsController < ApplicationController
   include AjaxModalRails::Controller
+  include ImportAlertsAuthorization
   before_action :require_can_view_imports_projects_or_organizations!, only: [:show]
   before_action :require_can_edit_data_sources_or_warehouse_alerts!, only: [:update]
   before_action :data_source
@@ -31,23 +32,8 @@ class ImportThresholdsController < ApplicationController
       permit(*GrdaWarehouse::ImportThreshold.known_params)
   end
 
-  private def require_can_edit_data_sources_or_warehouse_alerts!
-    not_authorized! unless can_edit_data_sources? || can_edit_warehouse_alerts?
-  end
-
-  # Anyone who can view the data source may see its thresholds (notification emails link here).
-  # Changing them requires edit rights on this data source, or the warehouse-wide alerts
-  # permission (the admin alerts page links here for every data source).
-  private def data_source_scope
-    viewable = GrdaWarehouse::DataSource.viewable_by(current_user, permission: :can_view_projects)
-    return viewable unless action_name == 'update'
-    return viewable if can_edit_warehouse_alerts?
-
-    GrdaWarehouse::DataSource.editable_by(current_user)
-  end
-
   private def data_source
-    @data_source ||= data_source_scope.find_safely(params[:data_source_id])
+    @data_source ||= import_alerts_data_source_scope.find_safely(params[:data_source_id])
   end
   helper_method :data_source
 
