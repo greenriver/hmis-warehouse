@@ -388,6 +388,7 @@ class Dba::DatabaseBloat
                 LEFT JOIN pg_class AS toast ON tbl.reltoastrelid = toast.oid
               WHERE NOT att.attisdropped
                 AND tbl.relkind in ('r','m')
+                AND pg_has_role(current_user, tbl.relowner, 'USAGE')
               GROUP BY 1,2,3,4,5,6,7,8,9,10
               ORDER BY 2,3
             ) AS s
@@ -524,6 +525,8 @@ class Dba::DatabaseBloat
                                 -- This avoids running expensive per-index statistics for thousands of small indexes
                                 -- (e.g. child partition indexes from hmis_2022_* tables).
                                 AND ci.relpages > #{(SIZE_CUTOFF / 8192.0).ceil}
+                                -- REINDEX/VACUUM FULL/DROP need ownership; skip relations owned by other roles (e.g. airflow ETL schemas)
+                                AND pg_has_role(current_user, ci.relowner, 'USAGE')
                             ) AS idx_data
                         ) AS ic
                         JOIN pg_catalog.pg_class ct ON ct.oid = ic.tbloid
@@ -677,6 +680,7 @@ class Dba::DatabaseBloat
         LEFT JOIN recent_indexes ri ON ( ri.indexrelname = ui.indexrelname )
       WHERE
         NOT i.indisunique -- ignore unique indexes which serve an additional purpose of ensuring uniqueness
+        AND pg_has_role(current_user, (SELECT relowner FROM pg_class WHERE oid = i.indexrelid), 'USAGE')
         AND ui.indexrelname NOT LIKE 'pg_toast_%'
         AND ui.idx_scan = 0
         AND ui.idx_tup_read = 0
