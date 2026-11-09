@@ -25,7 +25,7 @@ module Mutations
 
       # The External Form Key is the form's public URL path, so once a version of the form has been published
       # the key is locked. The model validates the key's format.
-      new_key = input.external_form_object_key&.strip.presence
+      new_key = Hmis::Form::Definition.normalize_value_for(:external_form_object_key, input.external_form_object_key)
       if input.to_h.key?(:external_form_object_key) && definition.external_form_object_key.present? && new_key != definition.external_form_object_key
         previously_published = Hmis::Form::Definition.where(identifier: definition.identifier, data_source_id: definition.data_source_id).published_or_retired.exists?
         raise 'not allowed to change external form object key after the form has been published' if previously_published

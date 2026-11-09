@@ -51,7 +51,9 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   attr_accessor :filter_context
 
   validates :identifier, format: { with: /\A[a-zA-Z][a-zA-Z0-9_-]*\z/, message: 'must contain only alphanumeric characters, underscores, and dashes, and must start with a letter' }
-  # The External Form's path in the public S3 bucket: lowercase segments separated by single slashes, such as pit/pit.html
+  # The External Form's path in the public S3 bucket: lowercase segments separated by single slashes, such as pit/pit.html.
+  # Blank input (such as an empty text field) is stored as nil.
+  normalizes :external_form_object_key, with: ->(key) { key.strip.presence }
   validates :external_form_object_key, allow_nil: true, length: { maximum: 100 }, format: { with: /\A[a-z0-9][a-z0-9._-]*(\/[a-z0-9][a-z0-9._-]*)*\z/, message: 'must contain only lowercase letters, numbers, underscores, dashes, periods, and slashes, and each part must start with a letter or number' }
   # Forms that are managed in version control cannot have more than 1 version. To enforce this, we ensure that the identifier is unique.
   validates_uniqueness_of :identifier, if: :managed_in_version_control?, scope: :data_source_id
@@ -359,7 +361,14 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
 
   validate :validate_external_form_object_key
   def validate_external_form_object_key
-    return unless role == 'EXTERNAL_FORM' && external_form_object_key.present?
+    return if external_form_object_key.blank?
+
+    # Only External Forms have an object key. Only super-admins (can_administrate_config) can manage External Forms,
+    # so this also ensures that only super-admins can set a key.
+    if role != 'EXTERNAL_FORM'
+      errors.add(:external_form_object_key, :present, message: 'can only be set on External Forms')
+      return
+    end
 
     # Ensure that external_form_object_key is not reused across forms with different identifiers
     object_key_taken = Hmis::Form::Definition.where(external_form_object_key: external_form_object_key).

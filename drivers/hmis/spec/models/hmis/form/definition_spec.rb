@@ -323,6 +323,24 @@ RSpec.describe Hmis::Form::Definition, type: :model do
       new_form.save!
     end
 
+    it 'should error if the object key is set on a form that is not an External Form' do
+      form = build(:hmis_form_definition, data_source: ds1, role: :SERVICE, external_form_object_key: 'pit-2027')
+      expect(form).not_to be_valid
+      expect(form.errors[:external_form_object_key].sole).to eq('can only be set on External Forms')
+
+      form.external_form_object_key = nil
+      expect(form).to be_valid
+    end
+
+    it 'should store a blank object key as nil and strip whitespace' do
+      form = build(:hmis_form_definition, data_source: ds1, role: :EXTERNAL_FORM, external_form_object_key: '  ')
+      expect(form.external_form_object_key).to be_nil
+      expect(form).to be_valid
+
+      form.external_form_object_key = ' pit-2027 '
+      expect(form.external_form_object_key).to eq('pit-2027')
+    end
+
     it 'should error if the object key has an invalid format or length' do
       form = build(:hmis_form_definition, data_source: ds1, role: :EXTERNAL_FORM)
       ['pit/pit_2027', 'pit.html', 'pit/2027.v2.html', 'a' * 100].each do |key|

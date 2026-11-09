@@ -157,6 +157,20 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(result.dig('data', 'updateFormDefinition', 'errors')).to be_empty
         expect(external_form.reload.external_form_object_key).to eq('pit-2028')
       end
+
+      it 'clears it when given a blank key' do
+        response, result = update_key(external_form, '  ')
+        expect(response.status).to eq(200), result.inspect
+        expect(result.dig('data', 'updateFormDefinition', 'errors')).to be_empty
+        expect(external_form.reload.external_form_object_key).to be_nil
+      end
+    end
+
+    it 'strips whitespace from the key' do
+      response, result = update_key(external_form, ' pit-2027 ')
+      expect(response.status).to eq(200), result.inspect
+      expect(result.dig('data', 'updateFormDefinition', 'errors')).to be_empty
+      expect(external_form.reload.external_form_object_key).to eq('pit-2027')
     end
 
     context 'when the key is set and a previous version has been published' do
