@@ -56,6 +56,12 @@ class DataQualityReportsProjectGroupController < DataQualityReportsController
     project_group_source.viewable_by current_user
   end
 
+  # A group report spans several projects, so a row without a Project ID has no project
+  # whose PII policy applies.
+  private def fallback_pii_project_id
+    nil
+  end
+
   def require_valid_token_or_project_access!
     if notification_id.present?
       token = GrdaWarehouse::ReportToken.find_by_token(notification_id)

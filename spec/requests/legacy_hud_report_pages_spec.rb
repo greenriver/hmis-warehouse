@@ -8,9 +8,8 @@
 
 require 'rails_helper'
 
-# Pre-framework HUD report pages (the legacy Report/ReportResult catalog, results
-# summaries, and the old HIC export) take their access from the current report
-# definition of the same family.
+# Pre-framework HUD report pages (the legacy Report/ReportResult catalog and results
+# summaries) take their access from the current report definition of the same family.
 RSpec.describe 'Legacy HUD report pages', type: :request do
   let(:user) { create(:acl_user) }
   let(:other_user) { create(:user) }
@@ -93,6 +92,28 @@ RSpec.describe 'Legacy HUD report pages', type: :request do
     end
   end
 
+  describe 'a disabled report' do
+    let!(:own_result) { create(:report_result, report: dq_report, user: user, percent_complete: 100, results: {}, support: { 'k' => {} }) }
+
+    before do
+      grant_hud_report(user, 'hud_reports/dqs')
+      dq_report.update!(enabled: false)
+    end
+
+    it 'cannot be run' do
+      post report_report_results_path(dq_report), params: { report_result: { name: 'Run' } }
+
+      expect(response).to have_http_status(:not_found)
+      expect(ReportResult.where(report_id: dq_report.id).count).to eq 1
+    end
+
+    it 'does not serve support' do
+      get report_report_result_support_index_path(dq_report, own_result, key: 'k')
+
+      expect(response).to have_http_status(:not_found)
+    end
+  end
+
   describe 'GET /report_results_summary/:id' do
     let!(:summary) { ReportResultsSummary.create!(type: 'ReportResultsSummaries::SystemPerformance::Base', name: 'SPM FY2019') }
 
@@ -135,12 +156,35 @@ RSpec.describe 'Legacy HUD report pages', type: :request do
         expect(response.body).not_to include("completed on #{other_run.reload.updated_at}")
       end
     end
+
+    context 'with a disabled report' do
+      let!(:disabled_report) { Report.create!(name: 'Legacy SPM 2', type: 'Reports::SystemPerformance::Fy2019::MeasureTwo', enabled: false, report_results_summary: summary) }
+      let!(:active_run) { create(:report_result, report: spm_report, user: user, percent_complete: 100, results: {}, updated_at: 2.days.ago) }
+      let!(:disabled_run) { create(:report_result, report: disabled_report, user: user, percent_complete: 100, results: {}, updated_at: 1.day.ago) }
+
+      before { grant_hud_report(user, 'hud_reports/spms', role: all_hud_role) }
+
+      it 'lists only runs of active reports' do
+        get report_results_summary_path(summary)
+
+        expect(response).to have_http_status(:ok)
+        expect(response.body).to include("completed on #{active_run.reload.updated_at}")
+        expect(response.body).not_to include("completed on #{disabled_run.reload.updated_at}")
+      end
+
+      it 'is not found once every report in the summary is disabled' do
+        spm_report.update!(enabled: false)
+
+        get report_results_summary_path(summary)
+
+        expect(response).to have_http_status(:not_found)
+      end
+    end
   end
 
   describe 'pages gated by a sibling definition' do
     let(:pages) do
       {
-        'hud_reports/pits' => [hud_reports_historic_pits_path],
         'hud_reports/lsas' => [hud_reports_historic_lsas_path],
         'hud_reports/dqs' => [hud_reports_past_dqs_path, hud_reports_legacy_dqs_path, hud_reports_legacy_dq_path(dq_report)],
         'hud_reports/spms' => [hud_reports_legacy_spms_path],
@@ -167,24 +211,6 @@ RSpec.describe 'Legacy HUD report pages', type: :request do
           expect(response).to have_http_status(:redirect), "expected #{path} to redirect"
         end
       end
-    end
-  end
-
-  describe 'GET /reports/hic/export' do
-    it 'allows a user granted the current HIC definition' do
-      grant_hud_report(user, 'hud_reports/hics')
-
-      get reports_hic_export_path
-
-      expect(response).to have_http_status(:ok)
-    end
-
-    it 'denies a user granted only another family' do
-      grant_hud_report(user, 'hud_reports/dqs')
-
-      get reports_hic_export_path
-
-      expect(response).to have_http_status(:redirect)
     end
   end
 

@@ -173,6 +173,34 @@ RSpec.describe model, type: :model do
       end
     end
 
+    describe 'viewable_by followed by a merge on project id' do
+      before do
+        no_data_source_collection.set_viewables({ projects: [p1.id] })
+        setup_access_control(user, can_view_projects_role, no_data_source_collection)
+      end
+
+      it 'does not widen to an invisible project' do
+        scope = model.viewable_by(user).merge(model.where(id: p2.id))
+        expect(scope.pluck(:id)).to be_empty
+      end
+
+      it 'intersects with the merged ids' do
+        scope = model.viewable_by(user).merge(model.where(id: [p1.id, p2.id]))
+        expect(scope.pluck(:id)).to eq [p1.id]
+      end
+
+      it 'is not replaced by ServiceHistoryEnrollment.in_project' do
+        create :grda_warehouse_service_history, data_source_id: p2.data_source_id, project_id: p2.ProjectID, organization_id: p2.OrganizationID
+        expect(GrdaWarehouse::ServiceHistoryEnrollment.in_project([p2.id]).count).to eq 1
+
+        scope = GrdaWarehouse::ServiceHistoryEnrollment.
+          joins(:project).
+          merge(model.viewable_by(user)).
+          in_project([p2.id])
+        expect(scope.pluck(:id)).to be_empty
+      end
+    end
+
     describe 'confidentiality' do
       before(:each) do
         p1.update(confidential: true) # project in CoC 'XX-500'

@@ -14,6 +14,17 @@ module GrdaWarehouse::WarehouseReports::Exports
   class AdHocAnon < AdHoc
     self.table_name = :exports_ad_hoc_anons
 
+    # Don't limit selected projects by user visibility, end results are de-identified
+    class AnonFilter < ::Filters::DateRangeAndSourcesResidentialOnly
+      def effective_project_ids_from_projects
+        project_ids.reject(&:blank?).map(&:to_i)
+      end
+    end
+
+    def filter
+      @filter ||= AnonFilter.new(options)
+    end
+
     def url
       warehouse_reports_ad_hoc_anon_analysis_index_url(host: ENV.fetch('FQDN'), protocol: 'https')
     end

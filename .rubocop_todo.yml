@@ -817,8 +817,6 @@ Naming/PredicatePrefix:
     - "app/models/reports/ahar/fy2017/by_project.rb"
     - "app/models/reports/data_quality/fy2016/base.rb"
     - "app/models/reports/data_quality/fy2017/base.rb"
-    - "app/models/reports/hic/fy2017/base.rb"
-    - "app/models/reports/hic/fy2019/base.rb"
     - "app/models/reports/pit/fy2017/base.rb"
     - "app/models/reports/pit/fy2017/by_project.rb"
     - "app/models/reports/pit/fy2018/by_project.rb"

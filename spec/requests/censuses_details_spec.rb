@@ -59,6 +59,36 @@ RSpec.describe 'CensusesController#details', type: :request do
     expect(response.body).to include('Openlast')
   end
 
+  describe 'with a slug naming a project the user cannot see' do
+    let!(:invisible_project) { create_project(project_type: 1) }
+    let!(:hidden_client) { create_client_with_warehouse_link(first_name: 'Hiddenfirst', last_name: 'Hiddenlast') }
+    let!(:hidden_enrollment) { create_enrollment(client: hidden_client, project: invisible_project, entry_date: Date.current) }
+
+    before do
+      create_bed_night_service(enrollment: hidden_enrollment, date: Date.current)
+      GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find_each(&:rebuild_service_history!)
+    end
+
+    def request_invisible_project_details
+      get details_censuses_path(details_params.merge(census_detail_slug: "all-all-#{invisible_project.id}"))
+    end
+
+    it 'returns the project clients once the user can see the project' do
+      collection.set_viewables({ reports: [report.id], projects: [project.id, invisible_project.id] })
+
+      request_invisible_project_details
+
+      expect(response.body).to include('Hiddenfirst')
+    end
+
+    it 'returns no clients from the invisible project' do
+      request_invisible_project_details
+
+      expect(response.body).not_to include('Hiddenfirst')
+      expect(response.body).not_to include('Hiddenlast')
+    end
+  end
+
   def rendered_workbook
     excel_file = Tempfile.new(['census_details', '.xlsx'])
     excel_file.binmode
