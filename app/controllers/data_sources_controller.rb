@@ -27,10 +27,15 @@ class DataSourcesController < ApplicationController
     @project_counts = GrdaWarehouse::DataSource.project_counts_by_id(data_source_ids)
     @unprocessed_enrollment_counts = GrdaWarehouse::DataSource.unprocessed_enrollment_counts_by_id(data_source_ids, project_scope: viewable_projects)
     @stalled_dates = GrdaWarehouse::DataSource.stalled_dates_by_id(data_source_ids)
+    @deletable_data_source_ids = if can_delete_data_sources?
+      editable_data_source_scope.where(id: data_source_ids).pluck(:id).to_set
+    else
+      Set.new
+    end
   end
 
   def show
-    @readonly = ! (can_edit_data_sources? || can_edit_projects?)
+    @can_edit_data_source = can_edit_data_sources? && editable_data_source_scope.exists?(id: @data_source.id)
     load_overrides
     params[:coc_code] = nil unless valid_coc_code_param?
     @require_coc_choice = @data_source.require_coc_choice?(viewable_projects)
