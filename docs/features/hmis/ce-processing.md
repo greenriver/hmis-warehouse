@@ -154,7 +154,7 @@ The incremental change tracking system works alongside the existing daily full r
 ## Gotchas
 
 - **CE is gated.** When `Hmis::Ce.configuration.enabled?` (the `hmis_ce/enabled` app config property) is false, change markers are not written, the jobs raise, and CE mutations raise. Specs must set the property.
-- **Pool rebuilds are synchronous.** Callbacks on `Rule`, `UnitGroup`, and `ProjectCeConfig` run `CandidatePoolBuilder` inside `CandidatePool.lock_for_maintenance!` (10-second timeout), so bulk-creating rules in a loop rebuilds once per save. Any new caller of the builder must take the same lock.
+- **Pool rebuilds are synchronous.** Callbacks on `Rule`, `UnitGroup`, and `ProjectCeConfig` run `CandidatePoolBuilder` inside `CandidatePool.lock_for_maintenance!` (10-second timeout), so bulk-creating or destroying rules in a loop rebuilds on every save. Updates rebuild only when a rule's logic changes (or, for a unit group, its workflow template). Any new caller of the builder must take the same lock.
 - **Write markers through `upsert_or_bump_version` and `mark_processed`.** They sort by trackable id so concurrent writers lock rows in the same order. Plain `create`/`update` can deadlock.
 - **The engine matches destination clients.** It evaluates `GrdaWarehouse::Hud::Client` destination records, not `Hmis::Hud::Client`. A client with no destination yet is not matched until `IdentifyDuplicates` runs.
 - **One busy pool delays every client.** `ProcessClientsJob` leaves the whole batch dirty if any pool lock was busy, so a long `ProcessPoolsJob` delays all client updates.

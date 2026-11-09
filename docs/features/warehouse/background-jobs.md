@@ -15,7 +15,7 @@ Background work runs on Delayed Job. Application jobs inherit `BaseJob` (not `Ac
 
 ## Queues and retries
 
-- Three queues are fixed in `config/initializers/delayed_job.rb`: `short_running`, `default_priority` (the default), and `long_running`. Jobs pick one with `queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)` (or the `DJ_SHORT_QUEUE_NAME` equivalent). The ENV lookup exists so a deployment can rename a queue; it is the only sanctioned ENV read in job code. Per-installation settings belong in `GrdaWarehouse::Config` or `AppConfigProperty`.
+- Three queues are fixed in `config/initializers/delayed_job.rb`: `short_running`, `default_priority` (the default), and `long_running`. Jobs pick one with `queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)` (or the `DJ_SHORT_QUEUE_NAME` equivalent). The ENV lookup exists so a deployment can rename a queue; it is the only sanctioned ENV read in job code. For per-installation settings, see [App Config Property](app-config-property.md).
 - `BaseJob` defines named priority constants (lower runs first). Use these rather than bare numbers.
 - Active Job ignores Delayed Job's `max_attempts`, so `BaseJob` writes the attempt count after enqueue. A job is retried up to the worker limit only when `supports_idempotent_retry?` is true (the default). A non-idempotent job gets one attempt.
 - `JobCancelled` and `JobInterrupted` are the two sanctioned control-flow signals, raised by `check_halt_status!` when a worker is stopping or a cancellation was requested. Other jobs that want to stop early return. Only jobs that override `interruptible?` to true can be cancelled after they start.

@@ -55,6 +55,7 @@ Project groups can exclude specific projects or project types. Excluded projects
 - `cas_active` (who is pushed) and `active_in_cas?` (the `sync_with_cas` value in the payload) are parallel implementations. A new availability method must be added to both and to `GrdaWarehouse::Config.available_cas_methods`. `active_in_cas?` also excludes deceased clients and clients moved in with PH, which the scope does not, so a client can be pushed yet marked unavailable.
 - The sync first sets `sync_with_cas: false` on every CAS `project_clients` row, then re-pushes. A client who drops out of the active set becomes unavailable in CAS on the next run even if no warehouse row changed.
 - Columns pushed come from the CAS schema. A column added in CAS but missing from the warehouse column map is pushed as nil.
+- A new payload column in `cas_columns_data` that is not also in `ignored_for_batch_maintenance` shows up as a bulk-editable flag in the manage CAS flags report.
 - A manually flagged client housed through CAS can be made available again before the warehouse learns of the housing (see the note in `RunDailyImportsJob#sync_with_cas`).
 
 ### Release status in the payload

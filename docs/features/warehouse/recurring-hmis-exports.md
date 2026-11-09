@@ -34,8 +34,7 @@ This feature automates the delivery of HMIS CSV exports on a rolling schedule. I
   - `7z`: expands the zip and rebuilds it as a `.7z` archive protected by the password.
 - Only the S3 copy is encrypted. The stored `GrdaWarehouse::HmisExport` keeps the unencrypted zip, and in-app downloads still work if the S3 step fails.
 - `zip` and `7z` need their binaries on the worker image. Without them the S3 upload fails or is empty.
-- `zipcloak` reads the password from a pseudo-terminal, so the model rejects passwords over 80 characters or containing control characters at save time rather than mid-export. A password and an encryption type must be given together.
-- `zipcloak` will not take a password longer than 80 characters, so `zip_password` is length-validated for the `zip` type and the user sees the error on the form. The `7z` type has no such limit.
+- `zipcloak` reads the password from a pseudo-terminal and will not take one over 80 characters or containing control characters. For the `zip` type the model rejects these at save time, so the user sees the error on the form rather than mid-export. The `7z` type has no such limit. A password and an encryption type must be given together.
 
 ## Background Processing
 - The rake task `grda_warehouse:process_recurring_hmis_exports` iterates all recurrence definitions and calls `run` for those that return `should_run?`.

@@ -118,10 +118,6 @@ The same name is used at two layers, with different jobs:
 
 `filter_context` is the ephemeral carrier for all of this: an attribute set on the definition by GraphQL resolvers, holding the project and sometimes an active date. It is easy to forget when exercising definitions outside of GraphQL, and it participates in the definition's cache key.
 
-## Gotcha: fully filtered definitions
-
-If server-side item filtering removes every item for a project, the non-null `definition` field on the GraphQL form definition type fails at query time. `rawDefinition` is unfiltered.
-
 ## Related
 
 - [Form definitions](hmis-form-definitions.md) — the model, roles, and status lifecycle

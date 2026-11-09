@@ -5,6 +5,7 @@ sources:
   - app/jobs/delete_item_job.rb
   - app/models/grda_warehouse/tasks/service_history/purge_for_deleted_data_sources.rb
   - app/models/grda_warehouse/custom_imports/import_file.rb
+  - drivers/custom_imports_boston_service/app/models/custom_imports_boston_service/import_file.rb
   - app/models/eto_api/tasks/update_eto_data.rb
 ---
 

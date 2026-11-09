@@ -126,7 +126,7 @@ The hash calculation includes these fields to detect changes. Two consequences:
 
 `rebuild_service_history!` is a no-op for an exited entry/exit enrollment whose exit date is later than its last build date. Invalidate `processed_as` to force work on it. The batch job rebuilds each enrollment on its own and records the outcome in `processing_error` (cleared on success), so one failing enrollment doesn't stop the batch.
 
-Don't write to `service_history_enrollments` or `service_history_services` from feature code. `GrdaWarehouse::Tasks::ServiceHistory::Enrollment` is the only writer; invalidate and let the builder run. Enqueue rebuilds through `ServiceHistory::Builder.queue_enrollments`, which takes the advisory lock and skips ids already queued, rather than enqueuing the batch job directly. Use the stored `homeless` flags or `HudHelper.util` project type lists instead of hard-coding project type numbers. When `rebuild_service_history!` is called on an enrollment, it compares the current hash with the stored `processed_as` value. If they differ, a full rebuild occurs.
+Don't write to `service_history_enrollments` or `service_history_services` from feature code. `GrdaWarehouse::Tasks::ServiceHistory::Enrollment` is the only writer; invalidate and let the builder run. Enqueue rebuilds through `ServiceHistory::Builder.queue_enrollments`, which takes the advisory lock and skips ids already queued, rather than enqueuing the batch job directly. Use the stored `homeless` flags or `HudHelper.util` project type lists instead of hard-coding project type numbers.
 
 ### Automatic Rebuild via Daily Project Cleanup Task
 

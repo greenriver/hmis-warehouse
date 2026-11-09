@@ -98,7 +98,7 @@ For a detailed explanation of how the Service History is generated and how it im
 - Scope cohorts to a user with `GrdaWarehouse::Cohort.viewable_by(user)` (or `editable_by`), never with a new visibility scope or by writing collection, group, role, or access control rows by hand. Use `cohort.replace_access`.
 - A user who can edit a cohort can see it, so `viewable_by` includes the editing permissions by default. `editable_by` does not also require a view permission.
 - Cohort PII follows the viewing user. Browsing shows PII to anyone who can see the cohort, downloads also require the `include_pii_in_detail_downloads` config, and a client who is HMIS-restricted or retention-marked is always redacted.
-- `Cohorts::ColumnsController` loads the cohort with a plain `find`, so only `can_edit_cohort_columns` gates it, not per-cohort access.
+- `Cohorts::ColumnsController` loads the cohort with a plain `find`, so only `can_edit_cohort_columns` gates it, not per-cohort access. New cohort controllers should include `CohortAuthorization` and load through `cohort_scope.find`.
 
 ### Membership history
 - Every membership change writes a `CohortClientChange` (create, destroy, activate, deactivate), and the change report and `associated_exit` pair entries with exits from those rows. Use `add_clients` / `remove_clients` for automated paths. Do not change membership without a change row.
@@ -112,7 +112,7 @@ For a detailed explanation of how the Service History is generated and how it im
 ### System cohorts
 - A system cohort exists only while its config flag is on. It is created with 90 days of inactivity and the default tabs, and the daily job rebuilds it only when system cohorts are enabled.
 - Each run re-computes the previous week, because HMIS data arrives late and back-dated entries must be absorbed. For each date, the system user's changes with a known reason are deleted and the date is re-synced in one transaction, so re-processing leaves exactly one set of changes per date.
-- Sync waits up to ten seconds for the cohort lock. If it cannot get it, the transaction rolls back and that date is retried on the next run.
+- The Currently Homeless sync waits up to ten seconds for the cohort lock. If it cannot get it, the transaction rolls back and that date is retried on the next run.
 - Writers to a cohort's clients (system sync, `maintain`, cache warm) share a per-cohort advisory lock that is non-blocking by default. A writer that skips the lock can deadlock with those jobs.
 
 ### Columns and analytics

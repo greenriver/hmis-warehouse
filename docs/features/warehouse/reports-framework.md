@@ -49,6 +49,8 @@ A run older than 24 hours without completion is treated as failed (`SimpleReport
 
 **Synchronous.** Rendered in the controller.
 
+`WarehouseReports::Export#value_for_display` passes `ignore_confidential_status: true` when naming the selected projects. That is safe only because it echoes the viewer's own selection, not result rows.
+
 Store project ids and client ids in persisted results and resolve names at render time, per viewer. `Project#name(user)` returns the real name only when the viewer may see it, so a name resolved for the requesting user and saved into the results leaks or over-redacts for the next viewer. `WarehouseReports::PiiDetailRows#redact_pii_in_row` does the same for client-level detail rows; its `:download` mode honors the `include_pii_in_detail_downloads` config.
 
 ## Document exports

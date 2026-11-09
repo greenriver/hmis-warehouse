@@ -249,8 +249,8 @@ Archival is registered the same way: each generator includes its driver's archiv
 The framework supports the following HUD reports:
 - **APR** (`/app/drivers/hud_apr`)
 - **CAPER** (`/app/drivers/hopwa_caper`)
-- **Data Quality** (`/app/drivers/hud_data_quality_report`)
-- **HIC** (`/app/drivers/hud_hic`)
+- **Data Quality** (`/app/drivers/hud_data_quality_report`): legacy, kept for past reports. New DQ work goes in `hud_apr`.
+- **HIC** (`/app/drivers/hud_hic`): the tabular version only. A HIC submission is an LSA run with the HIC scope (see [HUD LSA](hud-lsa-report.md)).
 - **LSA** (`/app/drivers/hud_lsa`)
 - **PATH** (`/app/drivers/hud_path_report`)
 - **PIT** (`/app/drivers/hud_pit`)

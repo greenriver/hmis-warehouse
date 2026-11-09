@@ -59,6 +59,8 @@ e.g. `GrdaWarehouse::HmisExport`, `GrdaWarehouse::NonHmisUpload`, `GrdaWarehouse
 report archival CSVs. Those models aren't part of the `files` table and are out of scope
 for this doc, but `client_file` above is one attachment among many, not a special case.
 
+`ClientFile#active_storage_url` caches the blob URL for external analytics. It is cleared on save only when the service is `:amazon` or `:local_s3`, and `ClientFile.maintain_urls` back-fills it.
+
 ## Tags drive behavior
 
 Behavior on a `ClientFile` comes from its tags. Tags match rows in `GrdaWarehouse::AvailableFileTag`, and the boolean flags on that row decide what uploading the file does: consent form (writes consent onto the client; see [Client ROI and Consent](client-roi-and-consent.md)), verified homeless history, notification trigger, document ready, CE self-report certification, and required effective or expiration dates. `included_info` powers lookups such as verification of disability, which feeds the CAS `disability_verified_on` sync.
@@ -85,6 +87,8 @@ Both `ClientFileBase` and `GrdaWarehouse::ClientFile` enforce 100 bytes to 12 MB
 Client files are soft-deleted. `has_one_attached :client_file, dependent: false` stops `acts_as_paranoid` from enqueuing a blob purge, and `soft_delete!` updates `deleted_at` without running `destroy` callbacks, which would let `acts_as_taggable` hard-delete the taggings and make restore impossible. Never `destroy` a `ClientFile` or `Hmis::File`. Deleting the active consent form also invalidates consent and rebuilds the client's ROI authorization.
 
 `PurgeSoftDeletedClientFilesJob` later purges blobs and hard-deletes rows older than the retention period (`AppConfigProperty` keys `purge_soft_deleted_records/enabled`, `retention_period_days`, default 365, and `max_deleted_per_run`). Purging is enabled by default only in staging. Elsewhere the job runs and completes its maintenance-task record but purges nothing, so soft-deleted files and blobs persist indefinitely.
+
+`ClientImageConsumer` caches headshots as `Client Headshot Cache` files and replaces them with `really_destroy!`, not `soft_delete!`; they are not user documents and are excluded from file notifications.
 
 `Admin::PublicFilesController#destroy` calls `destroy`, not `soft_delete!`, so a public file's taggings are hard-deleted.
 
