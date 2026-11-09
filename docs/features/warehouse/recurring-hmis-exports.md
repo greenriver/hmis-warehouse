@@ -5,7 +5,6 @@ sources:
   - app/jobs/export_base_job.rb
   - app/services/zip_cloak.rb
   - app/services/seven_zip.rb
-  - config/schedule.rb
 ---
 
 # Recurring HMIS Exports
@@ -38,7 +37,7 @@ This feature automates the delivery of HMIS CSV exports on a rolling schedule. I
 
 ## Background Processing
 - The rake task `grda_warehouse:process_recurring_hmis_exports` iterates all recurrence definitions and calls `run` for those that return `should_run?`.
-- In production this task should execute on a schedule (cron, Delayed Job recurring task, or equivalent). Without it, no follow-up runs occur.
+- The task is scheduled daily in `config/schedule.rb`. Without that entry, no follow-up runs occur.
 - Each `run` rebuilds the `Filters::HmisExport` object from the stored options, adjusts reporting periods, and queues the export job via `schedule_job`.
 
 ## Operations and Monitoring

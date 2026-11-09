@@ -214,7 +214,7 @@ See [Client Dashboards](client-dashboards.md) for layout (`default`, `boston`, `
   - `User#reporting_policy_for_client` uses the client policy, so ROIs apply.
   - `User#reporting_policy_for_project` (`ProjectPiiPolicy`) does not consider ROIs.
   - Cohort PII policies do not check ROIs.
-- **CAS** uses both full and partial releases. `PushClientsToCas` sends `housing_release_status` through `release_status_for_cas` and `consent_form_signed_on` as the release date. The status is `None on file` when blank, and `Expired` under `One Year` or `Use Expiration Date` when the form is not valid and confirmed.
+- **CAS** uses both full and partial releases. `PushClientsToCas` sends `housing_release_status` through `release_status_for_cas` and `consent_form_signed_on` as the release date. For how the status is derived, see [CAS Sync of Active Clients](cas-sync-active-clients.md).
 
 ## Rebuild and lookup behavior
 

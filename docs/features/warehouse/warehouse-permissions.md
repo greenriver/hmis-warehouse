@@ -8,6 +8,7 @@ sources:
   - app/models/grda_warehouse/hud/project.rb
   - app/controllers/application_controller.rb
 ---
+
 # Warehouse Permissions
 
 The warehouse uses a scoped RBAC (Role-Based Access Control) system to determine what actions users can perform and which entities those actions apply to. Each permission grant combines a role (the actions), an entity scope (the targets), and a user group (the recipients). A parallel legacy system exists and is being phased out.

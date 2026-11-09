@@ -4,7 +4,6 @@ sources:
   - app/models/grda_warehouse/monitoring/tasks/metric_snapshot_collector.rb
   - app/jobs/collect_client_metrics_job.rb
   - lib/tasks/grda_warehouse.rake
-  - config/schedule.rb
 ---
 
 # Threshold Monitoring System - Architecture

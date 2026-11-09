@@ -37,6 +37,24 @@ RSpec.describe DocSources, type: :lib do
       expect(DocSources.check(@root)).to eq(["#{doc_path}: frontmatter is not valid YAML (quote values containing `: `)"])
     end
 
+    it 'reports frontmatter that parses to something other than a mapping' do
+      write(doc_path, "---\nFirst paragraph.\n---\n\n# Thing\n")
+
+      expect(DocSources.check(@root)).to eq(["#{doc_path}: frontmatter must be a mapping"])
+    end
+
+    it 'reports an unquoted date in frontmatter as invalid YAML instead of raising' do
+      write(doc_path, "---\nupdated: 2026-11-09\nsources:\n  - app/a.rb\n---\n\n# Thing\n")
+
+      expect(DocSources.check(@root)).to eq(["#{doc_path}: frontmatter is not valid YAML (quote values containing `: `)"])
+    end
+
+    it 'reports a sources entry that is not a string instead of raising' do
+      write(doc_path, "---\nsources:\n  - app/a.rb\n  - 42\n---\n\n# Thing\n")
+
+      expect(DocSources.check(@root)).to eq(["#{doc_path}: `sources` must be a non-empty list of file paths"])
+    end
+
     it 'reports a listed source that does not exist on disk' do
       write_doc(doc_path, sources: ['app/missing.rb'])
 

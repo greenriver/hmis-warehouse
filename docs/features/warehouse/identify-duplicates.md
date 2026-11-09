@@ -201,7 +201,7 @@ The system requires **2 of 3** exact matches across these normalized fields:
 - The exact-match methods default to `legacy: true` (hand-written SQL). `IdentifyDuplicatesQueryMatcher` is only used with `legacy: false`. Change a filter in both until the legacy methods are removed; the `validate_duplicate_matching` rake task compares them.
 - Source clients hidden from interactive lookups (HMIS-restricted identities, identities with a retention mark) are skipped on name and SSN in `text_search` and in client-create duplicate lookups. DOB matching and the nightly `IdentifyDuplicates` / `ClientMatch` paths do not filter them, so hidden clients still merge.
 - `MAX_SOURCE_CLIENTS` (50): outside production a merge that would exceed it starts a new chain. In production it raises, and the nightly `match_existing!` stops until someone intervenes.
-- `DataSource.source_data_source_ids` and `destination_data_source_ids` are cached for an hour, so a data source created or reclassified mid-run may not be recognized until then.
+- `DataSource.source_data_source_ids` and `destination_data_source_ids` are cached for an hour and cleared when a data source is created, so a data source reclassified (source, destination, or authoritative) mid-run may not be recognized until the cache expires.
 - HMIS CSV imports do not call the matcher; their new source clients are picked up as unprocessed by the nightly run.
 
 ### ClientMatch rows

@@ -84,7 +84,7 @@ Both `ClientFileBase` and `GrdaWarehouse::ClientFile` enforce 100 bytes to 12 MB
 
 ## Soft delete and purge
 
-Client files are soft-deleted. `has_one_attached :client_file, dependent: false` stops `acts_as_paranoid` from enqueuing a blob purge, and `soft_delete!` updates `deleted_at` without running `destroy` callbacks, which would let `acts_as_taggable` hard-delete the taggings and make restore impossible. Never `destroy` a `ClientFile` or `Hmis::File`. Deleting the active consent form also invalidates consent and rebuilds the client's ROI authorization.
+Client files are soft-deleted. `has_one_attached :client_file, dependent: false` stops `acts_as_paranoid` from enqueuing a blob purge, and `soft_delete!` updates `deleted_at` without running `destroy` callbacks, which would let `acts_as_taggable` hard-delete the taggings and make restore impossible. Never `destroy` a `ClientFile` or `Hmis::File`. The files controller, not the model, invalidates consent and rebuilds the client's ROI authorization when the active consent form is deleted; a new deletion path must do both (see [Client ROI and Consent](client-roi-and-consent.md)).
 
 `PurgeSoftDeletedClientFilesJob` later purges blobs and hard-deletes rows older than the retention period (`AppConfigProperty` keys `purge_soft_deleted_records/enabled`, `retention_period_days`, default 365, and `max_deleted_per_run`). Purging is enabled by default only in staging. Elsewhere the job runs and completes its maintenance-task record but purges nothing, so soft-deleted files and blobs persist indefinitely.
 

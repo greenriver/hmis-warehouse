@@ -45,18 +45,25 @@ module DocSources
       body = text[match.end(0)..]
       begin
         frontmatter = YAML.safe_load(match[1]) || {}
-      rescue Psych::SyntaxError
+      rescue Psych::Exception
         return Doc.new(path: path, frontmatter: {}, errors: ["#{path}: frontmatter is not valid YAML (quote values containing `: `)"])
       end
 
+      return Doc.new(path: path, frontmatter: {}, errors: ["#{path}: frontmatter must be a mapping"]) unless frontmatter.is_a?(Hash)
+
       errors = REQUIRED_KEYS.reject { |key| frontmatter.key?(key) }.map { |key| "#{path}: frontmatter missing `#{key}`" }
-      errors << "#{path}: `sources` must be a non-empty list" if frontmatter.key?('sources') && !(frontmatter['sources'].is_a?(Array) && frontmatter['sources'].any?)
+      invalid_sources = frontmatter.key?('sources') && !valid_sources?(frontmatter['sources'])
+      return Doc.new(path: path, frontmatter: {}, errors: ["#{path}: `sources` must be a non-empty list of file paths"]) if invalid_sources
     end
 
     body.scan(LINE_CITATION).flatten.uniq.each do |citation|
       errors << "#{path}: cites line number `#{citation}`; name the method or constant instead"
     end
     Doc.new(path: path, frontmatter: frontmatter, errors: errors)
+  end
+
+  def valid_sources?(value)
+    value.is_a?(Array) && value.any? && value.all?(String)
   end
 
   def sources(root)

@@ -52,7 +52,7 @@ Group the problems by message:
 | `source X does not exist` | File renamed or deleted | Find the new path (`git log --follow --diff-filter=RD --oneline -- X`), update `sources` and any mention of the old path in the doc body; if deleted, remove the facts that depended on it |
 | `source X is not in docs/doc_sources_manifest.json` | Doc newly lists a source | Verify the doc's claims about X (step 3), then stamp |
 | `X is not listed by any doc` | Orphan manifest entry | Stamp only |
-| `frontmatter missing sources` / `sources must be a non-empty list` / `frontmatter is not valid YAML` | Malformed frontmatter | Fix it: a non-empty `sources:` list of file paths (quote values containing `: `) |
+| ``frontmatter missing `sources` `` / `` `sources` must be a non-empty list of file paths `` / `frontmatter is not valid YAML` / `frontmatter must be a mapping` | Malformed frontmatter | Fix it: a non-empty `sources:` list of file paths (quote values containing `: `, including dates) |
 | `cites line number ...` | A fact is anchored to a line | Replace it with the method, constant, or class name at that line (step 4) |
 
 ## 2. Map changed sources to docs, and see what changed
@@ -75,8 +75,8 @@ git diff "$base" -- <source>          # includes uncommitted edits
 If the diff is empty or unrelated to the source's current state (e.g. the manifest was stamped on
 another branch), fall back to `git diff $(git merge-base HEAD origin/main) -- <source>`.
 
-A source may be a symlink. The stamp hashes the target's content, but `git log`/`git diff` on the
-link only show the link itself, so run them on the target (`readlink <source>`).
+Sources are never symlinks. If a listed path turns out to be a symlink, replace it with its target
+(`readlink <source>`).
 
 The diff tells you where to look first. It does not bound the review: a small diff can invalidate a
 claim far from the hunk.

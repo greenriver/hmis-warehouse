@@ -5,7 +5,6 @@ sources:
   - drivers/hmis/app/models/hmis/form/instance_enrollment_match.rb
   - drivers/hmis/app/models/hmis/form/definition_item_filter.rb
   - drivers/hmis/app/graphql/types/forms/form_definition.rb
-  - drivers/hmis/app/graphql/types/hmis_schema/query_type.rb
 ---
 
 # HMIS form resolution

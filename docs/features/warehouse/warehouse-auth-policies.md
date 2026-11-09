@@ -9,6 +9,7 @@ sources:
   - app/models/grda_warehouse/pii_provider.rb
   - app/controllers/concerns/controller_authorization_v2.rb
 ---
+
 # Warehouse Auth Policies
 
 Warehouse Auth Policies contain the business rules for determining user access to warehouse resources such as clients, projects, and data sources.

@@ -9,6 +9,7 @@ sources:
   - app/controllers/hud_reports/base_controller.rb
   - app/jobs/reporting/hud/run_report_job.rb
 ---
+
 # HUD Report Framework
 
 The HUD Report Framework generates compliance reports (APR, CAPER, SPM, etc.) from HMIS data. It handles report lifecycle, data aggregation, and result storage. Individual report drivers implement specific business logic and calculations.
@@ -232,7 +233,7 @@ Archival is registered the same way: each generator includes its driver's archiv
 
 ## Archival
 
-`rake reports:archive_and_purge_hud_reports` writes finished reports to CSV and deletes the rows once the grace period (60 days by default) has passed. Restoring re-imports the CSVs and clears `purged_at` only. `archived_at` and the CSVs stay, so a second purge doesn't re-archive.
+`rake reports:csv:archive_and_purge_hud_reports` (run by the scheduled `reports:csv:archive_and_purge_eligible`) writes finished reports to CSV and deletes the rows once the grace period (60 days by default) has passed. Restoring re-imports the CSVs and clears `purged_at` only. `archived_at` and the CSVs stay, so a second purge doesn't re-archive.
 
 ## Gotchas
 

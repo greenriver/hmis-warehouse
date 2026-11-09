@@ -27,8 +27,9 @@ The property store supports several configuration patterns:
 
 - Add the column with a database default that preserves current behavior, and append it to `known_configs`. That array is the strong-parameters permit list, so a setting missing from it is accepted by the form and discarded without error. Array-valued settings are listed as `name: []`.
 - Restart the web process after the migration; a running process caches the column list and silently drops the new column from updates.
-- `GrdaWarehouse::Config.relevant_state_codes` is the exception: it is memoized in a class variable and bypasses the 30-second cache, so a change needs a restart.
 - `GrdaWarehouse::Config.get(:key)` memoizes the row for 30 seconds per process. A spec that changes a setting must call `GrdaWarehouse::Config.invalidate_cache`.
+
+`GrdaWarehouse::Config.relevant_state_codes` is the exception to that cache: it is memoized in a class variable and bypasses it, so a change needs a restart.
 
 ## Architecture
 

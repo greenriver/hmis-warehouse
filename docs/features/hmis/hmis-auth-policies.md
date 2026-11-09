@@ -4,6 +4,7 @@ sources:
   - drivers/hmis/app/models/hmis/auth_policies/resource_policy.rb
   - drivers/hmis/app/graphql/concerns/graphql_application_helper.rb
 ---
+
 # HMIS Authorization Policy Architecture
 
 The goal of the authorization policy is to centralize authorization logic, making it more explicit, maintainable, and performant.

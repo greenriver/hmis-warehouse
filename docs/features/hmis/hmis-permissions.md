@@ -9,6 +9,7 @@ sources:
   - drivers/hmis/app/models/hmis/auth_policies/context_loaders/hmis_permission_loader.rb
   - drivers/hmis/app/models/hmis/auth_policies/context_loaders/hmis_project_access_group_loader.rb
 ---
+
 # HMIS Permissions
 
 The HMIS uses a scoped RBAC (Role-Based Access Control) system that is structurally similar to, but entirely separate from, [warehouse permissions](../warehouse/warehouse-permissions.md). Each grant combines a role (the actions), a collection of entities (the targets), and a user group (the recipients). Unlike the warehouse, the HMIS has no legacy permissions path — every grant goes through `Hmis::AccessControl`.

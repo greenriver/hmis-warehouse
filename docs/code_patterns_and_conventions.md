@@ -413,7 +413,7 @@ and `= render 'common/background_report/history_table'` should be included to pr
 
 Older forms of these patterns are still common in the code. A common legacy form is not a license to add one more: follow the replacement even when neighboring files do the old thing. Don't refactor legacy occurrences on sight; just avoid new ones.
 
-- `before_action :require_can_*!` on controllers: too coarse, and does not work for users on Access Controls; use `authorize_with`. See [Authorization on a controller action](#authorization-on-a-controller-action).
+- `before_action :require_can_*!` on controllers: too coarse: it checks a role flag held anywhere, with no entity scope; use `authorize_with`. See [Authorization on a controller action](#authorization-on-a-controller-action).
 - Per-model `visible_to` / `visible_by` scopes: use `viewable_by`. See [Authorization on a scope](#authorization-on-a-scope).
 - New files under `app/assets/javascripts`, or CoffeeScript: use a Stimulus controller. See [View Asset Management](#view-asset-management).
 - Inline scripts without a CSP nonce, including HAML `:javascript`: see [Content Security Policy nonces for inline scripts](#content-security-policy-nonces-for-inline-scripts).

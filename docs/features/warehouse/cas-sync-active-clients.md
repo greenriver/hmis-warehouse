@@ -59,7 +59,7 @@ Project groups can exclude specific projects or project types. Excluded projects
 - A manually flagged client housed through CAS can be made available again before the warehouse learns of the housing (see the note in `RunDailyImportsJob#sync_with_cas`).
 
 ### Release status in the payload
-- `release_status_for_cas` sends `'None on file'` when no release is recorded, `'Expired'` when the release duration is time-limited and consent is not both valid and confirmed, and otherwise the installation's translated release label.
+- `release_status_for_cas` sends `'None on file'` when no release is recorded, `'Expired'` when the release duration is `One Year` or `Use Expiration Date` (never `Two Years`) and consent is not both valid and confirmed, and otherwise the installation's translated release label.
 - It reads the destination client's consent columns, not `ClientRoiAuthorization`.
 - Assessment contact details are omitted from the payload when consent is not valid.
 - The bulk-flag report never clears the full or limited housing release flags; clearing a release is a consent decision, not a CAS flag.
