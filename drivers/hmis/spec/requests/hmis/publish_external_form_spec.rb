@@ -74,7 +74,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     expect do
       response, result = post_graphql(id: external_form.id) { mutation }
       expect(response.status).to eq(200), result.inspect
-      expect(errors_for(result)).to contain_exactly('Could not publish to the public URL: external forms feature is not properly configured: public bucket')
+      expect(errors_for(result)).to contain_exactly('Could not publish to the public URL')
     end.not_to change(HmisExternalApis::ExternalForms::FormPublication, :count)
   end
 
