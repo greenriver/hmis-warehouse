@@ -119,8 +119,11 @@ module Mutations
     # Find 'owner' record being edited with this form submission.
     def find_record(owner_class:, record_id:, record_lock_version: nil)
       scope = owner_class.viewable_by(current_user)
-      record = owner_class.respond_to?(:with_view_ids) ? scope.with_view_ids(record_id).take : scope.find_by(id: record_id)
-      record = record.owner if record.is_a?(Hmis::Hud::HmisService)
+      record = if owner_class.respond_to?(:find_owner_by_service_id)
+        scope.find_owner_by_service_id(record_id)
+      else
+        scope.find_by(id: record_id)
+      end
       record.lock_version = record_lock_version if record_lock_version
       raise "User not authorized to view #{owner_class.name}##{record_id} (record not found)" unless record
 

@@ -174,7 +174,7 @@ module Types
       argument :id, ID, required: true
     end
     def service(id:)
-      Hmis::Hud::HmisService.viewable_by(current_user).with_view_ids(id).take
+      Hmis::Hud::HmisService.viewable_by(current_user).with_service_ids(id).take
     end
 
     field :service_type, Types::HmisSchema::ServiceType, 'Service type lookup', null: true do

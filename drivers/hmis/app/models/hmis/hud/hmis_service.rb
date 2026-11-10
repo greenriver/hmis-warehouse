@@ -112,15 +112,21 @@ class Hmis::Hud::HmisService < Hmis::Hud::Base
     VALID_ID_FORMAT.match?(id.to_s)
   end
 
-  # Look up rows by view id. The view id is computed, so filtering on it scans every
-  # service; filtering on owner_type/owner_id lets Postgres use the owner tables' primary keys.
-  scope :with_view_ids, ->(ids) do
+  # The id column is computed by the view, so filtering on it scans every service;
+  # filtering on owner_type/owner_id lets Postgres use the owner tables' primary keys.
+  scope :with_service_ids, ->(ids) do
     owner_ids_by_type = Array.wrap(ids).map(&:to_s).select { |id| valid_id?(id) }.
       group_by { |id| OWNER_TYPE_BY_ID_PREFIX.fetch(id.first) }.
       transform_values { |type_ids| type_ids.map { |id| id[1..].to_i } }
     next none if owner_ids_by_type.empty?
 
     owner_ids_by_type.map { |owner_type, owner_ids| where(owner_type: owner_type, owner_id: owner_ids) }.reduce(:or)
+  end
+
+  # Returns the Hmis::Hud::Service or Hmis::Hud::CustomService behind this id, or nil
+  # if the current scope excludes it.
+  def self.find_owner_by_service_id(id)
+    with_service_ids(id).take&.owner
   end
 
   def hud_service?
