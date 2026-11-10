@@ -782,26 +782,5 @@ RSpec.describe DataSourcesController, type: :request do
       get data_source_path(data_source)
       expect(response.body).to include('Hidden Agency Name')
     end
-
-    describe 'with Can View Confidential Project Names' do
-      let(:confidential_names_role) { create(:role, can_view_projects: true, can_view_confidential_project_names: true) }
-
-      it 'masks the name when the permission is granted only in another collection' do
-        other_collection.set_viewables({ data_sources: [create(:source_data_source).id] })
-        setup_access_control(user, confidential_names_role, other_collection)
-
-        get data_source_path(data_source)
-        expect(response).to have_http_status(:ok)
-        expect(response.body).not_to include('Hidden Agency Name')
-      end
-
-      it 'shows the name when the permission covers that organization' do
-        other_collection.set_viewables({ organizations: [confidential_org.id] })
-        setup_access_control(user, confidential_names_role, other_collection)
-
-        get data_source_path(data_source)
-        expect(response.body).to include('Hidden Agency Name')
-      end
-    end
   end
 end

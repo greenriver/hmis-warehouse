@@ -45,6 +45,7 @@ RSpec.describe ImportCsvMonitorsController, type: :request do
       expect(response).to redirect_to(root_path)
       delete data_source_import_csv_monitor_path(data_source, monitor)
       expect(response).to redirect_to(root_path)
+      expect(GrdaWarehouse::ImportCsvMonitor.exists?(monitor.id)).to be(true)
       expect(monitor.reload.count_increase_threshold).to eq(50)
     end
   end
@@ -62,12 +63,6 @@ RSpec.describe ImportCsvMonitorsController, type: :request do
       post data_source_import_csv_monitors_path(data_source), params: create_params
       expect(response).to have_http_status(:not_found)
       expect(created_monitor).to be_nil
-    end
-
-    it 'does not remove a monitor' do
-      delete data_source_import_csv_monitor_path(data_source, monitor)
-      expect(response).to have_http_status(:not_found)
-      expect(GrdaWarehouse::ImportCsvMonitor.exists?(monitor.id)).to be(true)
     end
   end
 
