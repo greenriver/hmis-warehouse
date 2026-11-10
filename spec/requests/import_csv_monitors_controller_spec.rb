@@ -23,6 +23,45 @@ RSpec.describe ImportCsvMonitorsController, type: :request do
     GrdaWarehouse::ImportCsvMonitor.find_by(data_source_id: data_source.id, csv_file_name: 'Enrollment.csv')
   end
 
+  # A user who can't see the data source gets a 404 from the load before any write check runs, so
+  # these examples can't catch a write action missing from an only: list. The 'with view access to
+  # one project of the data source' context does: it hits every write action and expects a redirect.
+  # A not-found response drops the sign-in session, so each example makes one request.
+  context 'with no rights' do
+    it 'denies index' do
+      get data_source_import_csv_monitors_path(data_source)
+      expect(response).to redirect_to(root_path)
+    end
+
+    it 'denies new' do
+      get new_data_source_import_csv_monitor_path(data_source)
+      expect(response).to have_http_status(:not_found)
+    end
+
+    it 'denies create' do
+      post data_source_import_csv_monitors_path(data_source), params: create_params
+      expect(response).to have_http_status(:not_found)
+      expect(created_monitor).to be_nil
+    end
+
+    it 'denies edit' do
+      get edit_data_source_import_csv_monitor_path(data_source, monitor)
+      expect(response).to have_http_status(:not_found)
+    end
+
+    it 'denies update' do
+      patch data_source_import_csv_monitor_path(data_source, monitor), params: update_params
+      expect(response).to have_http_status(:not_found)
+      expect(monitor.reload.count_increase_threshold).to eq(50)
+    end
+
+    it 'denies destroy' do
+      delete data_source_import_csv_monitor_path(data_source, monitor)
+      expect(response).to have_http_status(:not_found)
+      expect(GrdaWarehouse::ImportCsvMonitor.exists?(monitor.id)).to be(true)
+    end
+  end
+
   context 'with view access to one project of the data source' do
     before do
       collection.set_viewables({ projects: [project.id] })
@@ -32,6 +71,13 @@ RSpec.describe ImportCsvMonitorsController, type: :request do
     it 'redirects the index to the thresholds page' do
       get data_source_import_csv_monitors_path(data_source)
       expect(response).to redirect_to(data_source_import_threshold_path(data_source))
+    end
+
+    it 'does not show the new or edit forms' do
+      get new_data_source_import_csv_monitor_path(data_source)
+      expect(response).to redirect_to(root_path)
+      get edit_data_source_import_csv_monitor_path(data_source, monitor)
+      expect(response).to redirect_to(root_path)
     end
 
     it 'does not create a monitor' do
@@ -61,7 +107,8 @@ RSpec.describe ImportCsvMonitorsController, type: :request do
 
     it 'does not create a monitor' do
       post data_source_import_csv_monitors_path(data_source), params: create_params
-      expect(response).to have_http_status(:not_found)
+      expect(response).to redirect_to(root_path)
+      expect(flash[:alert]).to be_present
       expect(created_monitor).to be_nil
     end
   end

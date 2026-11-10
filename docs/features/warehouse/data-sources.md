@@ -62,6 +62,7 @@ The table below documents columns on the `data_sources` table. "Admin UI" indica
 - [hmis-csv-importer.md](hmis-csv-importer.md) — import pipeline
 - [multi-hmis-support.md](../hmis/multi-hmis-support.md) — Open Path HMIS hostname routing
 - [warehouse-permissions.md](warehouse-permissions.md) — access control for data sources
+- [Data source permissions](warehouse-auth-policies.md#data-source-permissions) — who may edit or delete a data source or its import alerts
 - [import-csv-monitoring.md](import-csv-monitoring.md) — per-CSV import monitors
 - [client-roi-and-consent.md](client-roi-and-consent.md) — how `obey_consent` and ROIs control client visibility
 - `app/models/grda_warehouse/data_source.rb` — model, scopes, and behavior

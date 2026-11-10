@@ -30,6 +30,150 @@ RSpec.describe DataSourcesController, type: :request do
     end
   end
 
+  # The controller authorizes with before_action, which has no safety net for an action missing
+  # from an only: list. Hit every action so a missed one fails here. For a user with no rights,
+  # edit, update and destroy 404 at the viewable_by load before the policy check runs, so the
+  # view-only context is what catches one of those missing from an only: list.
+  describe 'every action' do
+    let(:create_params) { { grda_warehouse_data_source: { name: 'Created', short_name: 'Created' } } }
+    let(:update_params) { { grda_warehouse_data_source: { name: 'Renamed' } } }
+
+    def expect_not_authorized
+      expect(response).to redirect_to(root_path)
+      expect(flash[:alert]).to be_present
+    end
+
+    context 'for a user with no rights' do
+      before { sign_in user }
+
+      it 'denies index' do
+        get data_sources_path
+        expect_not_authorized
+      end
+
+      it 'denies show' do
+        get data_source_path(data_source)
+        expect_not_authorized
+      end
+
+      it 'denies new' do
+        get new_data_source_path
+        expect_not_authorized
+      end
+
+      it 'denies create' do
+        expect { post data_sources_path, params: create_params }.not_to change(GrdaWarehouse::DataSource, :count)
+        expect_not_authorized
+      end
+
+      it 'denies edit' do
+        get edit_data_source_path(data_source)
+        expect(response).to have_http_status(:not_found)
+      end
+
+      it 'denies update' do
+        patch data_source_path(data_source), params: update_params
+        expect(response).to have_http_status(:not_found)
+        expect(data_source.reload.name).not_to eq('Renamed')
+      end
+
+      it 'denies destroy' do
+        expect { delete data_source_path(data_source) }.not_to have_enqueued_job(DeleteItemJob)
+        expect(response).to have_http_status(:not_found)
+      end
+    end
+
+    context 'for a user who can view the data source but has no data source rights' do
+      before do
+        collection.set_viewables({ data_sources: [data_source.id] })
+        setup_access_control(user, create(:role, can_view_projects: true, can_edit_projects: true), collection)
+        sign_in user
+      end
+
+      it 'allows show' do
+        get data_source_path(data_source)
+        expect(response).to have_http_status(:ok)
+      end
+
+      it 'denies new' do
+        get new_data_source_path
+        expect_not_authorized
+      end
+
+      it 'denies create' do
+        expect { post data_sources_path, params: create_params }.not_to change(GrdaWarehouse::DataSource, :count)
+        expect_not_authorized
+      end
+
+      it 'denies edit' do
+        get edit_data_source_path(data_source)
+        expect_not_authorized
+      end
+
+      it 'denies update' do
+        patch data_source_path(data_source), params: update_params
+        expect_not_authorized
+        expect(data_source.reload.name).not_to eq('Renamed')
+      end
+
+      it 'denies destroy' do
+        expect { delete data_source_path(data_source) }.not_to have_enqueued_job(DeleteItemJob)
+        expect_not_authorized
+      end
+    end
+
+    # Edit and delete rights don't reach a data source the user can't view: the record is loaded
+    # through viewable_by, which requires can_view_projects.
+    context 'for a user who can edit and delete the data source but not view projects' do
+      before do
+        collection.set_viewables({ data_sources: [data_source.id] })
+        role = create(
+          :role,
+          can_view_imports: true,
+          can_edit_data_sources: true,
+          can_delete_data_sources: true,
+        )
+        setup_access_control(user, role, collection)
+        sign_in user
+      end
+
+      it 'does not find the data source for edit' do
+        get edit_data_source_path(data_source)
+        expect(response).to have_http_status(:not_found)
+      end
+
+      it 'does not find the data source for update' do
+        patch data_source_path(data_source), params: update_params
+        expect(response).to have_http_status(:not_found)
+        expect(data_source.reload.name).not_to eq('Renamed')
+      end
+
+      it 'does not find the data source for destroy' do
+        expect { delete data_source_path(data_source) }.not_to have_enqueued_job(DeleteItemJob)
+        expect(response).to have_http_status(:not_found)
+      end
+    end
+
+    context 'for a user who can edit the data source but not edit projects' do
+      before do
+        collection.set_viewables({ data_sources: [data_source.id] })
+        setup_access_control(user, create(:role, can_view_projects: true, can_edit_data_sources: true), collection)
+        sign_in user
+      end
+
+      it 'allows edit' do
+        get edit_data_source_path(data_source)
+        expect(response).to have_http_status(:ok)
+      end
+
+      it 'denies update' do
+        patch data_source_path(data_source), params: update_params
+        expect_not_authorized
+        expect(data_source.reload.name).not_to eq('Renamed')
+      end
+    end
+  end
+
   describe 'with permission to view the data source' do
     before do
       collection.set_viewables({ data_sources: [data_source.id] })
@@ -574,14 +718,16 @@ RSpec.describe DataSourcesController, type: :request do
           projects_attributes: { '0' => { id: unseen_project.id, confidential: '1' } },
         },
       }
-      expect(response).to have_http_status(:not_found)
+      expect(response).to redirect_to(root_path)
+      expect(flash[:alert]).to be_present
       expect(data_source.reload.name).not_to eq('Renamed')
       expect(unseen_project.reload.confidential).to be(false)
     end
 
     it 'does not queue its deletion' do
       expect { delete data_source_path(data_source) }.not_to have_enqueued_job(DeleteItemJob)
-      expect(response).to have_http_status(:not_found)
+      expect(response).to redirect_to(root_path)
+      expect(flash[:alert]).to be_present
     end
 
     it 'still updates the data source the role covers' do
@@ -620,13 +766,15 @@ RSpec.describe DataSourcesController, type: :request do
 
     it 'does not update the data source' do
       patch data_source_path(data_source), params: { grda_warehouse_data_source: { name: 'Renamed' } }
-      expect(response).to have_http_status(:not_found)
+      expect(response).to redirect_to(root_path)
+      expect(flash[:alert]).to be_present
       expect(data_source.reload.name).not_to eq('Renamed')
     end
 
     it 'does not queue its deletion' do
       expect { delete data_source_path(data_source) }.not_to have_enqueued_job(DeleteItemJob)
-      expect(response).to have_http_status(:not_found)
+      expect(response).to redirect_to(root_path)
+      expect(flash[:alert]).to be_present
     end
   end
 
@@ -669,7 +817,8 @@ RSpec.describe DataSourcesController, type: :request do
 
       it 'does not queue the delete of a data source the user can only edit' do
         expect { delete data_source_path(data_source) }.not_to have_enqueued_job(DeleteItemJob)
-        expect(response).to have_http_status(:not_found)
+        expect(response).to redirect_to(root_path)
+        expect(flash[:alert]).to be_present
       end
 
       it 'shows the index delete button only on the data source the delete permission covers' do

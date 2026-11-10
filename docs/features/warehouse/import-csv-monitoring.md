@@ -34,7 +34,7 @@ Detect significant changes at the individual CSV level during HUD CSV imports. C
 
 ## Location
 
-- **Import Thresholds** page (`/data_sources/:id/import_threshold`): Embedded "Per-CSV Import Monitors" section with list of monitors; Add Monitor, Edit, View chart (for users with warehouse alerts permission), Remove
+- **Import Thresholds** page (`/data_sources/:id/import_threshold`): Embedded "Per-CSV Import Monitors" section with list of monitors; Add Monitor, Edit, View chart (for users with warehouse alerts permission), Remove. Anyone who can view the data source can view its thresholds and monitors, which is why alert emails link here. Adding or changing them requires `DataSourcePolicy#can_edit_import_alerts?` (see [Data source permissions](warehouse-auth-policies.md#data-source-permissions)).
 - **Admin Metric Definitions** (`/admin/metric_definitions`): CSV import metrics are excluded from the main list; a "CSV Import Thresholds (by Data Source)" section links to each data source's Import Thresholds page
 
 ## Architecture

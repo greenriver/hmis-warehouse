@@ -9,8 +9,8 @@
 class ImportCsvMonitorsController < ApplicationController
   include ImportAlertsAuthorization
   before_action :require_can_view_imports_projects_or_organizations!, only: [:index]
-  before_action :require_can_edit_data_sources_or_warehouse_alerts!, except: [:index]
   before_action :data_source
+  before_action :require_can_edit_import_alerts!, only: [:new, :create, :edit, :update, :destroy]
   before_action :import_csv_monitor, only: [:edit, :update, :destroy]
 
   helper_method :import_csv_monitor
@@ -51,7 +51,9 @@ class ImportCsvMonitorsController < ApplicationController
   end
 
   private def data_source
-    @data_source ||= import_alerts_data_source_scope.find(params[:data_source_id])
+    @data_source ||= GrdaWarehouse::DataSource.
+      viewable_by(current_user, permission: :can_view_projects).
+      find(params[:data_source_id])
   end
   helper_method :data_source
 

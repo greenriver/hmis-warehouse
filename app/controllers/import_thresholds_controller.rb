@@ -13,8 +13,8 @@ class ImportThresholdsController < ApplicationController
   # here, and any active user can be a recipient. Don't gate it on edit rights; the view hides
   # the edit controls with `can_edit_import_alerts?` instead.
   before_action :require_can_view_imports_projects_or_organizations!, only: [:show]
-  before_action :require_can_edit_data_sources_or_warehouse_alerts!, only: [:update]
   before_action :data_source
+  before_action :require_can_edit_import_alerts!, only: [:update]
   before_action :import_threshold
 
   def show
@@ -36,7 +36,9 @@ class ImportThresholdsController < ApplicationController
   end
 
   private def data_source
-    @data_source ||= import_alerts_data_source_scope.find_safely(params[:data_source_id])
+    @data_source ||= GrdaWarehouse::DataSource.
+      viewable_by(current_user, permission: :can_view_projects).
+      find_safely(params[:data_source_id])
   end
   helper_method :data_source
 
