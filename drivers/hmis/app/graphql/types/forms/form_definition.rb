@@ -126,10 +126,14 @@ module Types
     end
 
     def external_form_public_url
+      return unless role == 'EXTERNAL_FORM'
+
       HmisExternalApis::ExternalForms::Config.public_form_url(object.external_form_object_key)
     end
 
     def external_form_last_published_at
+      return unless role == 'EXTERNAL_FORM'
+
       object.external_form_publications.maximum(:created_at)
     end
 

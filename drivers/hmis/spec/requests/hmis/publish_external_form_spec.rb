@@ -60,13 +60,21 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end.not_to change(HmisExternalApis::ExternalForms::FormPublication, :count)
   end
 
-  it 'returns an error when the form content is invalid' do
+  it 'raises when the form content is invalid, since it is validated when the form is published' do
     duplicate_item = { 'type' => 'STRING', 'link_id' => 'your_name', 'text' => 'Your Name' }
     external_form.update_columns(definition: { 'item' => [duplicate_item, duplicate_item] })
     expect do
+      expect_gql_error post_graphql(id: external_form.id) { mutation }, message: 'cannot publish form with errors'
+    end.not_to change(HmisExternalApis::ExternalForms::FormPublication, :count)
+  end
+
+  it 'returns an error when external forms are not set up' do
+    allow(HmisExternalApis::ExternalForms::Config).to receive(:validate_external_forms_setup).and_return(['public bucket'])
+    allow(Rails.env).to receive(:production?).and_return(true)
+    expect do
       response, result = post_graphql(id: external_form.id) { mutation }
       expect(response.status).to eq(200), result.inspect
-      expect(errors_for(result)).to contain_exactly(start_with('Could not publish to the public URL: cannot publish form with errors'))
+      expect(errors_for(result)).to contain_exactly('Could not publish to the public URL: external forms feature is not properly configured: public bucket')
     end.not_to change(HmisExternalApis::ExternalForms::FormPublication, :count)
   end
 

@@ -34,10 +34,11 @@ module Mutations
 
       begin
         HmisExternalApis::PublishExternalFormsJob.new.perform(definition.id)
-      rescue StandardError => e
-        # The job raises for invalid form content or missing external forms setup, before uploading anything
-        Sentry.capture_exception(e)
-        errors.add(:base, :server_error, full_message: "Could not publish to the public URL: #{e.message}")
+      rescue HmisExternalApis::PublishExternalFormsJob::MissingConfigError => e
+        # Missing external forms setup, raised before anything is uploaded. Other errors, such as invalid form content
+        # (validated when the form was published) or a failed S3 upload, are not expected and are left to raise.
+        errors.add(:base, :server_error, full_message: 'Could not publish to the public URL')
+        Sentry.capture_exception(e) # report misconfiguration details to Sentry
         return { errors: errors }
       end
 
