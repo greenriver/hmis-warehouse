@@ -100,12 +100,27 @@ class Hmis::Hud::HmisService < Hmis::Hud::Base
 
   HUD_SERVICE_ID_PREFIX = '1'
   CUSTOM_SERVICE_ID_PREFIX = '2'
+  OWNER_TYPE_BY_ID_PREFIX = {
+    HUD_SERVICE_ID_PREFIX => 'Hmis::Hud::Service',
+    CUSTOM_SERVICE_ID_PREFIX => 'Hmis::Hud::CustomService',
+  }.freeze
+  # Prefix plus owner id, no leading zeros, and short enough to fit in a bigint.
+  VALID_ID_FORMAT = /\A[12][1-9]\d{0,17}\z/
 
-  # HmisService IDs are prefixed. Check if a given ID format is valid.
+  # HmisService IDs are the owner id with a type prefix. Check if a given ID format is valid.
   def self.valid_id?(id)
-    return false unless id.to_s.length > 1
+    VALID_ID_FORMAT.match?(id.to_s)
+  end
 
-    [HUD_SERVICE_ID_PREFIX, CUSTOM_SERVICE_ID_PREFIX].include?(id.to_s.first)
+  # Look up rows by view id. The view id is computed, so filtering on it scans every
+  # service; filtering on owner_type/owner_id lets Postgres use the owner tables' primary keys.
+  scope :with_view_ids, ->(ids) do
+    owner_ids_by_type = Array.wrap(ids).map(&:to_s).select { |id| valid_id?(id) }.
+      group_by { |id| OWNER_TYPE_BY_ID_PREFIX.fetch(id.first) }.
+      transform_values { |type_ids| type_ids.map { |id| id[1..].to_i } }
+    next none if owner_ids_by_type.empty?
+
+    owner_ids_by_type.map { |owner_type, owner_ids| where(owner_type: owner_type, owner_id: owner_ids) }.reduce(:or)
   end
 
   def hud_service?
