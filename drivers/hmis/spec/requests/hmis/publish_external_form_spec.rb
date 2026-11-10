@@ -51,6 +51,57 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     expect(external_form.external_form_publications.sole.object_key).to eq('pit')
   end
 
+  describe 'externalFormPublicUrl' do
+    let(:query) do
+      <<~GRAPHQL
+        query GetFormIdentifierDetails($identifier: String!) {
+          formIdentifier(identifier: $identifier) {
+            displayVersion {
+              id
+              externalFormPublicUrl
+            }
+          }
+        }
+      GRAPHQL
+    end
+
+    before(:each) do
+      allow(GrdaWarehouse::RemoteCredentials::S3).to receive(:for_active_slug).with('public_bucket').and_return(double(bucket: 'public-bucket'))
+    end
+
+    def public_url
+      response, result = post_graphql(identifier: external_form.identifier) { query }
+      expect(response.status).to eq(200), result.inspect
+      result.dig('data', 'formIdentifier', 'displayVersion', 'externalFormPublicUrl')
+    end
+
+    def publish(definition)
+      _response, result = post_graphql(id: definition.id) { mutation }
+      expect(errors_for(result)).to be_empty
+    end
+
+    it 'is nil until the form is published to its public URL' do
+      expect(public_url).to be_nil
+      publish(external_form)
+      expect(public_url).to eq('https://public-bucket.s3.amazonaws.com/pit')
+    end
+
+    it 'is present when an older version was published but the current one was not' do
+      publish(external_form)
+      external_form.update!(status: Hmis::Form::Definition::RETIRED)
+      create :hmis_external_form_definition, identifier: external_form.identifier, version: external_form.version + 1, status: Hmis::Form::Definition::PUBLISHED, external_form_object_key: 'pit', data_source: ds1
+
+      expect(public_url).to eq('https://public-bucket.s3.amazonaws.com/pit')
+    end
+
+    it 'is nil when the External Form Key changed since the last publish' do
+      publish(external_form)
+      external_form.update!(external_form_object_key: 'pit-2026')
+
+      expect(public_url).to be_nil
+    end
+  end
+
   it 'returns an error when the form has no External Form Key' do
     external_form.update!(external_form_object_key: nil)
     expect do

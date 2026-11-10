@@ -125,8 +125,16 @@ module Types
       object.supports_save_in_progress?
     end
 
+    # Nil until some version of this form has been published to its current key, so we don't link to an empty URL.
+    # Checks all versions, since an older version stays live until the new one is published to the public URL.
+    # N+1 when resolved for a list of forms; OK because it's only requested for one form at a time (FormIdentifierDetails).
     def external_form_public_url
       return unless object.role == 'EXTERNAL_FORM'
+
+      ever_published = HmisExternalApis::ExternalForms::FormPublication.
+        where(definition_id: object.all_versions.select(:id), object_key: object.external_form_object_key).
+        exists?
+      return unless ever_published
 
       HmisExternalApis::ExternalForms::Config.public_form_url(object.external_form_object_key)
     end
