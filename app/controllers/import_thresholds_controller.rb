@@ -9,6 +9,9 @@
 class ImportThresholdsController < ApplicationController
   include AjaxModalRails::Controller
   include ImportAlertsAuthorization
+  # `show` is intentionally open to read-only viewers: import and CSV monitor alert emails link
+  # here, and any active user can be a recipient. Don't gate it on edit rights; the view hides
+  # the edit controls with `can_edit_import_alerts?` instead.
   before_action :require_can_view_imports_projects_or_organizations!, only: [:show]
   before_action :require_can_edit_data_sources_or_warehouse_alerts!, only: [:update]
   before_action :data_source
