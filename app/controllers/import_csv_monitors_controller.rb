@@ -51,9 +51,10 @@ class ImportCsvMonitorsController < ApplicationController
   end
 
   private def data_source
-    @data_source ||= GrdaWarehouse::DataSource.
-      viewable_by(current_user, permission: :can_view_projects).
-      find(params[:data_source_id])
+    @data_source ||= GrdaWarehouse::DataSource.viewable_by(
+      current_user,
+      permission: :can_view_projects,
+    ).find(params[:data_source_id])
   end
   helper_method :data_source
 

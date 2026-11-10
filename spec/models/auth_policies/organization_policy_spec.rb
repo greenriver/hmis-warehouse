@@ -141,6 +141,28 @@ RSpec.describe GrdaWarehouse::AuthPolicies::OrganizationPolicy, type: :model do
           end
         end
       end
+
+      describe 'from a confidential project with no matching organization' do
+        let!(:orphan_project) do
+          create(
+            :hud_project,
+            data_source: data_source,
+            OrganizationID: 'no-such-organization',
+            ProjectName: 'Orphan Project',
+            confidential: true,
+          )
+        end
+
+        it 'shows only the project name and masks the organization name' do
+          grant(
+            create(:role, can_view_projects: true, can_view_confidential_project_names: true),
+            collection_with(projects: [orphan_project.id]),
+          )
+
+          expect(orphan_project.organization_and_name(user)).to eq('Orphan Project')
+          expect(orphan_project.organization_name(user)).to eq(GrdaWarehouse::Hud::Organization.confidential_organization_name)
+        end
+      end
     end
   end
 

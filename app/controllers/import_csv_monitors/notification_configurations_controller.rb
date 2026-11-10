@@ -50,9 +50,10 @@ module ImportCsvMonitors
     end
 
     private def data_source
-      @data_source ||= GrdaWarehouse::DataSource.
-        viewable_by(current_user, permission: :can_view_projects).
-        find(params[:data_source_id].to_i)
+      @data_source ||= GrdaWarehouse::DataSource.viewable_by(
+        current_user,
+        permission: :can_view_projects,
+      ).find(params[:data_source_id].to_i)
     end
     helper_method :data_source
 
