@@ -9,8 +9,9 @@
 # Access checks for a data source's import alert configuration: import thresholds, CSV
 # monitors, and the notification recipients of each.
 #
-# Controllers load the data source by visibility (`data_source`, memoized), so anyone who can
-# view it may see the configuration (alert emails link here). The rule for changing it lives in
+# Including controllers must define `data_source`, loading the record with
+# `DataSource.viewable_by` and memoizing it. Anyone who can view the data source may see
+# the configuration (alert emails link here); changing it requires
 # DataSourcePolicy#can_edit_import_alerts?.
 module ImportAlertsAuthorization
   extend ActiveSupport::Concern
@@ -20,8 +21,6 @@ module ImportAlertsAuthorization
     helper_method :can_edit_import_alerts?
   end
 
-  # Calls the memoized `data_source` rather than reading @data_source, so it works whatever the
-  # before_action order.
   private def data_source_policy
     current_user.policy_for(data_source)
   end

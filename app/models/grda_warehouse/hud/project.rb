@@ -755,9 +755,9 @@ module GrdaWarehouse::Hud
 
     # Provide an organization name that is confidentialized in the same way as the project
     def organization_name(user = nil)
-      return organization.class.confidential_organization_name unless organization_name_visible_to?(user)
+      return GrdaWarehouse::Hud::Organization.confidential_organization_name unless organization_name_visible_to?(user)
 
-      organization.OrganizationName
+      organization&.OrganizationName
     end
 
     def organization_and_name(user = nil, ignore_confidential_status: false)
@@ -770,9 +770,11 @@ module GrdaWarehouse::Hud
 
     # The organization name of a confidential project is shown only when the user may see both
     # the project name and the organization name. A grant on the project alone reveals the
-    # project name but not the name of its organization.
+    # project name but not the name of its organization. Imported projects can reference an
+    # OrganizationID with no matching organization; there is no name to show then.
     private def organization_name_visible_to?(user)
       return true unless confidential?
+      return false if organization.blank?
       return false unless user&.policy_for(self)&.can_view_name?
 
       user.policy_for(organization).can_view_name?

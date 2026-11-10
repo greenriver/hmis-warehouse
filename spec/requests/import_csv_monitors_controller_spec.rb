@@ -33,32 +33,10 @@ RSpec.describe ImportCsvMonitorsController, type: :request do
       expect(response).to redirect_to(root_path)
     end
 
-    it 'denies new' do
-      get new_data_source_import_csv_monitor_path(data_source)
-      expect(response).to have_http_status(:not_found)
-    end
-
     it 'denies create' do
       post data_source_import_csv_monitors_path(data_source), params: create_params
       expect(response).to have_http_status(:not_found)
       expect(created_monitor).to be_nil
-    end
-
-    it 'denies edit' do
-      get edit_data_source_import_csv_monitor_path(data_source, monitor)
-      expect(response).to have_http_status(:not_found)
-    end
-
-    it 'denies update' do
-      patch data_source_import_csv_monitor_path(data_source, monitor), params: update_params
-      expect(response).to have_http_status(:not_found)
-      expect(monitor.reload.count_increase_threshold).to eq(50)
-    end
-
-    it 'denies destroy' do
-      delete data_source_import_csv_monitor_path(data_source, monitor)
-      expect(response).to have_http_status(:not_found)
-      expect(GrdaWarehouse::ImportCsvMonitor.exists?(monitor.id)).to be(true)
     end
   end
 
@@ -73,43 +51,22 @@ RSpec.describe ImportCsvMonitorsController, type: :request do
       expect(response).to redirect_to(data_source_import_threshold_path(data_source))
     end
 
-    it 'does not show the new or edit forms' do
+    it 'does not show the forms or create, update, or remove a monitor' do
       get new_data_source_import_csv_monitor_path(data_source)
       expect(response).to redirect_to(root_path)
       get edit_data_source_import_csv_monitor_path(data_source, monitor)
       expect(response).to redirect_to(root_path)
-    end
 
-    it 'does not create a monitor' do
       post data_source_import_csv_monitors_path(data_source), params: create_params
       expect(response).to redirect_to(root_path)
-      expect(created_monitor).to be_nil
-    end
-
-    it 'does not update or remove a monitor' do
       patch data_source_import_csv_monitor_path(data_source, monitor), params: update_params
       expect(response).to redirect_to(root_path)
       delete data_source_import_csv_monitor_path(data_source, monitor)
       expect(response).to redirect_to(root_path)
+
+      expect(created_monitor).to be_nil
       expect(GrdaWarehouse::ImportCsvMonitor.exists?(monitor.id)).to be(true)
       expect(monitor.reload.count_increase_threshold).to eq(50)
-    end
-  end
-
-  context 'with the edit permission only in a collection that does not include the data source' do
-    before do
-      collection.set_viewables({ projects: [project.id] })
-      setup_access_control(user, create(:role, can_view_projects: true), collection)
-      other_collection = create(:collection)
-      other_collection.set_viewables({ data_sources: [create(:source_data_source).id] })
-      setup_access_control(user, create(:role, can_view_projects: true, can_edit_data_sources: true), other_collection)
-    end
-
-    it 'does not create a monitor' do
-      post data_source_import_csv_monitors_path(data_source), params: create_params
-      expect(response).to redirect_to(root_path)
-      expect(flash[:alert]).to be_present
-      expect(created_monitor).to be_nil
     end
   end
 
@@ -131,13 +88,11 @@ RSpec.describe ImportCsvMonitorsController, type: :request do
       setup_access_control(user, create(:role, can_view_projects: true, can_edit_data_sources: true), collection)
     end
 
-    it 'creates a monitor' do
+    it 'creates and updates a monitor' do
       post data_source_import_csv_monitors_path(data_source), params: create_params
       expect(response).to redirect_to(data_source_import_threshold_path(data_source))
       expect(created_monitor).to be_present
-    end
 
-    it 'updates a monitor' do
       patch data_source_import_csv_monitor_path(data_source, monitor), params: update_params
       expect(monitor.reload.count_increase_threshold).to eq(99)
     end

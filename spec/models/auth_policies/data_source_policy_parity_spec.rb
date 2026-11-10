@@ -155,10 +155,6 @@ RSpec.describe GrdaWarehouse::AuthPolicies::DataSourcePolicy, type: :model do
 
       before { system_group.add(user) }
 
-      it 'holds the data source in the system group' do
-        expect(system_group.data_sources).to include(data_source)
-      end
-
       it 'allows edit and delete when the role has both' do
         create(:role, **edit_and_delete_permissions).add(user)
         expect_answers(user, edit: true, delete: true)

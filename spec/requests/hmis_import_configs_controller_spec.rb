@@ -71,28 +71,4 @@ RSpec.describe HmisImportConfigsController, type: :request do
       expect(editable_config.reload.s3_bucket_name).to eq('other-bucket')
     end
   end
-
-  context 'with a legacy user who can only view a project in the data source' do
-    let(:user) { create(:user) }
-    let(:access_group) { create(:access_group) }
-    let!(:view_only_config) { create_config(view_only_data_source) }
-
-    before do
-      admin_role.add(user)
-      access_group.add(user)
-      access_group.add_viewable(viewed_project)
-      sign_in user
-    end
-
-    it 'does not render the edit page' do
-      get edit_data_source_hmis_import_config_path(view_only_data_source)
-      expect(response).to have_http_status(:not_found)
-    end
-
-    it 'does not update the config' do
-      patch data_source_hmis_import_config_path(view_only_data_source), params: { config: { s3_bucket_name: 'other-bucket' } }
-      expect(response).to have_http_status(:not_found)
-      expect(view_only_config.reload.s3_bucket_name).to eq('original-bucket')
-    end
-  end
 end

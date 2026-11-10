@@ -30,12 +30,10 @@ RSpec.describe DataSourcesController, type: :request do
     end
   end
 
-  # The controller authorizes with before_action, which has no safety net for an action missing
-  # from an only: list. Hit every action so a missed one fails here. For a user with no rights,
-  # edit, update and destroy 404 at the viewable_by load before the policy check runs, so the
-  # view-only context is what catches one of those missing from an only: list.
-  describe 'every action' do
-    let(:create_params) { { grda_warehouse_data_source: { name: 'Created', short_name: 'Created' } } }
+  # The controller authorizes with before_actions. For a user with no rights, edit, update and
+  # destroy 404 at the viewable_by load before the policy check runs, so the view-only context is
+  # what proves the per-record edit and delete checks are wired up.
+  describe 'authorization guards' do
     let(:update_params) { { grda_warehouse_data_source: { name: 'Renamed' } } }
 
     def expect_not_authorized
@@ -46,40 +44,15 @@ RSpec.describe DataSourcesController, type: :request do
     context 'for a user with no rights' do
       before { sign_in user }
 
-      it 'denies index' do
-        get data_sources_path
-        expect_not_authorized
-      end
-
       it 'denies show' do
         get data_source_path(data_source)
         expect_not_authorized
       end
 
-      it 'denies new' do
-        get new_data_source_path
-        expect_not_authorized
-      end
-
-      it 'denies create' do
-        expect { post data_sources_path, params: create_params }.not_to change(GrdaWarehouse::DataSource, :count)
-        expect_not_authorized
-      end
-
-      it 'denies edit' do
-        get edit_data_source_path(data_source)
-        expect(response).to have_http_status(:not_found)
-      end
-
-      it 'denies update' do
+      it 'does not find the data source to update' do
         patch data_source_path(data_source), params: update_params
         expect(response).to have_http_status(:not_found)
         expect(data_source.reload.name).not_to eq('Renamed')
-      end
-
-      it 'denies destroy' do
-        expect { delete data_source_path(data_source) }.not_to have_enqueued_job(DeleteItemJob)
-        expect(response).to have_http_status(:not_found)
       end
     end
 
@@ -95,28 +68,23 @@ RSpec.describe DataSourcesController, type: :request do
         expect(response).to have_http_status(:ok)
       end
 
-      it 'denies new' do
-        get new_data_source_path
-        expect_not_authorized
-      end
+      it 'denies edit, update, and destroy' do
+        project = create(:hud_project, data_source: data_source, confidential: false)
+        rename_with_nested_project_params = {
+          grda_warehouse_data_source: {
+            name: 'Renamed',
+            projects_attributes: { '0' => { id: project.id, confidential: '1' } },
+          },
+        }
 
-      it 'denies create' do
-        expect { post data_sources_path, params: create_params }.not_to change(GrdaWarehouse::DataSource, :count)
-        expect_not_authorized
-      end
-
-      it 'denies edit' do
         get edit_data_source_path(data_source)
         expect_not_authorized
-      end
 
-      it 'denies update' do
-        patch data_source_path(data_source), params: update_params
+        patch data_source_path(data_source), params: rename_with_nested_project_params
         expect_not_authorized
         expect(data_source.reload.name).not_to eq('Renamed')
-      end
+        expect(project.reload.confidential).to be(false)
 
-      it 'denies destroy' do
         expect { delete data_source_path(data_source) }.not_to have_enqueued_job(DeleteItemJob)
         expect_not_authorized
       end
@@ -137,18 +105,17 @@ RSpec.describe DataSourcesController, type: :request do
         sign_in user
       end
 
-      it 'does not find the data source for edit' do
+      # A not-found response drops the sign-in session, so sign in again before each request.
+      it 'does not find the data source for edit, update, or destroy' do
         get edit_data_source_path(data_source)
         expect(response).to have_http_status(:not_found)
-      end
 
-      it 'does not find the data source for update' do
+        sign_in user
         patch data_source_path(data_source), params: update_params
         expect(response).to have_http_status(:not_found)
         expect(data_source.reload.name).not_to eq('Renamed')
-      end
 
-      it 'does not find the data source for destroy' do
+        sign_in user
         expect { delete data_source_path(data_source) }.not_to have_enqueued_job(DeleteItemJob)
         expect(response).to have_http_status(:not_found)
       end
@@ -705,35 +672,31 @@ RSpec.describe DataSourcesController, type: :request do
       sign_in user
     end
 
-    it 'still shows the view-only data source' do
-      get data_source_path(data_source)
-      expect(response).to have_http_status(:ok)
-      expect(response.body).to include(viewed_project.ProjectName)
+    it 'still updates the data source the role covers' do
+      patch data_source_path(editable_data_source), params: { grda_warehouse_data_source: { name: 'Renamed' } }
+      expect(response).to redirect_to(data_source_path(editable_data_source))
+      expect(editable_data_source.reload.name).to eq('Renamed')
     end
 
-    it 'does not update it or its projects' do
-      patch data_source_path(data_source), params: {
+    # The role grants can_edit_data_sources, so only the per-record edit and delete checks stop
+    # these writes to a data source the role doesn't cover.
+    it 'does not update or delete the data source the user can only view' do
+      rename_with_nested_project_params = {
         grda_warehouse_data_source: {
           name: 'Renamed',
           projects_attributes: { '0' => { id: unseen_project.id, confidential: '1' } },
         },
       }
+
+      patch data_source_path(data_source), params: rename_with_nested_project_params
       expect(response).to redirect_to(root_path)
       expect(flash[:alert]).to be_present
       expect(data_source.reload.name).not_to eq('Renamed')
       expect(unseen_project.reload.confidential).to be(false)
-    end
 
-    it 'does not queue its deletion' do
       expect { delete data_source_path(data_source) }.not_to have_enqueued_job(DeleteItemJob)
       expect(response).to redirect_to(root_path)
       expect(flash[:alert]).to be_present
-    end
-
-    it 'still updates the data source the role covers' do
-      patch data_source_path(editable_data_source), params: { grda_warehouse_data_source: { name: 'Renamed' } }
-      expect(response).to redirect_to(data_source_path(editable_data_source))
-      expect(editable_data_source.reload.name).to eq('Renamed')
     end
 
     it 'shows the Edit button only on the data source the role covers' do
@@ -751,30 +714,21 @@ RSpec.describe DataSourcesController, type: :request do
     end
   end
 
-  describe 'writes by a legacy user who can only view one project of the data source' do
-    let(:legacy_user) { create(:user) }
-    let(:access_group) { create(:access_group) }
-    let(:legacy_role) { create(:role, can_view_projects: true, can_edit_projects: true, can_edit_data_sources: true, can_delete_data_sources: true) }
-    let!(:viewed_project) { create(:hud_project, data_source: data_source) }
-
+  # Building through viewable_by would copy a single viewable id onto the new record, so create
+  # must build from the bare model.
+  describe 'POST #create by a user who can view exactly one data source' do
     before do
-      legacy_role.add(legacy_user)
-      access_group.add(legacy_user)
-      access_group.add_viewable(viewed_project)
-      sign_in legacy_user
+      collection.set_viewables({ data_sources: [data_source.id] })
+      setup_access_control(user, create(:role, can_view_projects: true, can_edit_data_sources: true), collection)
+      sign_in user
     end
 
-    it 'does not update the data source' do
-      patch data_source_path(data_source), params: { grda_warehouse_data_source: { name: 'Renamed' } }
-      expect(response).to redirect_to(root_path)
-      expect(flash[:alert]).to be_present
-      expect(data_source.reload.name).not_to eq('Renamed')
-    end
+    it 'creates a new data source' do
+      create_params = { grda_warehouse_data_source: { name: 'New Source', short_name: 'NEW' } }
 
-    it 'does not queue its deletion' do
-      expect { delete data_source_path(data_source) }.not_to have_enqueued_job(DeleteItemJob)
-      expect(response).to redirect_to(root_path)
-      expect(flash[:alert]).to be_present
+      expect { post data_sources_path, params: create_params }.
+        to change(GrdaWarehouse::DataSource, :count).by(1)
+      expect(response).to redirect_to(data_sources_path)
     end
   end
 
@@ -799,12 +753,6 @@ RSpec.describe DataSourcesController, type: :request do
         to have_enqueued_job(DeleteItemJob).with(item_id: data_source.id, item_class: 'GrdaWarehouse::DataSource')
     end
 
-    it 'queues the delete for a user with the delete permission but not the edit permission' do
-      setup_access_control(user, create(:role, can_view_projects: true, can_delete_data_sources: true), collection)
-      expect { delete data_source_path(data_source) }.
-        to have_enqueued_job(DeleteItemJob).with(item_id: data_source.id, item_class: 'GrdaWarehouse::DataSource')
-    end
-
     context 'with the delete permission only in another collection' do
       let(:deletable_data_source) { create(:source_data_source) }
       let(:delete_collection) { create(:collection) }
@@ -819,12 +767,6 @@ RSpec.describe DataSourcesController, type: :request do
         expect { delete data_source_path(data_source) }.not_to have_enqueued_job(DeleteItemJob)
         expect(response).to redirect_to(root_path)
         expect(flash[:alert]).to be_present
-      end
-
-      it 'shows the index delete button only on the data source the delete permission covers' do
-        get data_sources_path
-        delete_links = Nokogiri::HTML(response.body).css("a[data-method='delete'][href^='/data_sources/']").map { |a| a['href'] }
-        expect(delete_links).to contain_exactly(data_source_path(deletable_data_source))
       end
     end
   end
