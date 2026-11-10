@@ -774,7 +774,6 @@ module GrdaWarehouse::Hud
     private def organization_name_visible_to?(user)
       return true unless confidential?
       return false unless user&.policy_for(self)&.can_view_name?
-      return true if organization.blank?
 
       user.policy_for(organization).can_view_name?
     end

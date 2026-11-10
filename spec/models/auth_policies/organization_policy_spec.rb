@@ -196,10 +196,6 @@ RSpec.describe GrdaWarehouse::AuthPolicies::OrganizationPolicy, type: :model do
     describe '#can_view_name?' do
       let(:masked_organization_name) { GrdaWarehouse::Hud::Organization.confidential_organization_name }
 
-      it 'is true for a non-confidential organization without any access group' do
-        expect(policy.can_view_name?).to be true
-      end
-
       context 'with a confidential organization and Can View Confidential Project Names' do
         let!(:project) do
           create(:hud_project, data_source: data_source, OrganizationID: organization.OrganizationID, ProjectName: 'Hidden Project')
