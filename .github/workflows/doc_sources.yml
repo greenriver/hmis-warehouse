@@ -33,11 +33,16 @@ jobs:
           PR: ${{ github.event.pull_request.number }}
         run: |
           body="$RUNNER_TEMP/doc_sources_comment.md"
-          if [ ! -s "$body" ]; then
-            exit 0
-          fi
           existing=$(gh api "repos/${{ github.repository }}/issues/$PR/comments" --paginate \
-            --jq '.[] | select(.body | contains("<!-- doc-sources -->")) | .id')
+            --jq '.[] | select(.body | contains("<!-- doc-sources -->")) | .id' | head -n 1)
+          if [ ! -s "$body" ]; then
+            if [ -z "$existing" ]; then
+              exit 0
+            fi
+            printf '%s\n%s\n' '<!-- doc-sources -->' 'This PR no longer changes code that docs list in `sources:`.' > "$body"
+          fi
           if [ -z "$existing" ]; then
             gh pr comment "$PR" --repo "${{ github.repository }}" --body-file "$body"
+          else
+            gh api --method PATCH "repos/${{ github.repository }}/issues/comments/$existing" -F "body=@$body" > /dev/null
           fi

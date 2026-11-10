@@ -7,8 +7,8 @@ description: Use when a PR has the comment "Docs that may need an update", the C
 # Feature doc maintenance
 
 Docs in `docs/*.md` and `docs/features/**/*.md` may list code files in `sources:` frontmatter.
-On a PR, CI comments with the docs whose listed sources changed, and with docs that list files that
-no longer exist. The comment is advisory. The job fails only on frontmatter errors: invalid YAML, a
+On a PR, CI keeps one comment listing the docs whose listed sources changed, and the docs that list
+files that no longer exist. Each push updates it. The comment is advisory. The job fails only on frontmatter errors: invalid YAML, a
 missing or malformed `sources:` list, or a cited line number.
 
 **What a doc keeps (the Keep rule):** a fact stays only if an engineer or agent could not get it by
