@@ -76,7 +76,9 @@ module WarehouseReports
       @counts = @counts.group(:date).
         order(date: :asc).
         count
-      render json: @counts
+      # Explicit ISO keys: the JSON encoder would otherwise use Date#to_s ("Jan 29, 2025"),
+      # which the chart's %Y-%m-%d x-axis format doesn't match
+      render json: @counts.transform_keys(&:iso8601)
     end
 
     def report_source

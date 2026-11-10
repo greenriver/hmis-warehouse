@@ -10,7 +10,7 @@ require 'rails_helper'
 
 RSpec.describe 'ServiceScanning::WarehouseReports::ScannedServicesController#detail', type: :request do
   let!(:user) { create(:acl_user) }
-  let!(:role) { create(:role, can_use_service_register: true, can_view_clients: true, can_view_all_reports: true, can_view_assigned_reports: true) }
+  let!(:role) { create(:role, can_use_service_register: true, can_view_clients: true, can_view_projects: true, can_view_all_reports: true, can_view_assigned_reports: true) }
   let!(:collection) { create(:collection) }
   let!(:report) { create(:touch_point_report, url: 'service_scanning/warehouse_reports/scanned_services', name: 'Scanned Services') }
 
@@ -18,7 +18,9 @@ RSpec.describe 'ServiceScanning::WarehouseReports::ScannedServicesController#det
   let!(:hmis_user) { create(:hmis_user, data_source: hmis_ds) }
   let!(:restricted_source_client) { create(:hmis_hud_client, data_source: hmis_ds, first_name: 'Restricted', last_name: 'Client') }
   let!(:restricted_destination_client) { create(:grda_warehouse_hud_client, FirstName: 'Restricted', LastName: 'Client') }
-  let!(:project) { create(:hud_project) }
+  # viewable_by applies non_confidential, which inner-joins the organization
+  let!(:organization) { create(:hud_organization) }
+  let!(:project) { create(:hud_project, organization: organization, data_source: organization.data_source) }
   let!(:service) { ServiceScanning::OtherService.create!(client_id: restricted_destination_client.id, project: project, provided_at: Time.current, user: user) }
 
   after { GrdaWarehouse::Config.invalidate_cache }
@@ -26,7 +28,8 @@ RSpec.describe 'ServiceScanning::WarehouseReports::ScannedServicesController#det
   before do
     Rails.cache.clear
     Collection.maintain_system_groups
-    collection.set_viewables({ reports: [report.id] })
+    # The report filter drops submitted projects the user cannot see
+    collection.set_viewables({ reports: [report.id], projects: [project.id] })
     setup_access_control(user, role, collection)
     GrdaWarehouse::WarehouseClient.create!(destination_id: restricted_destination_client.id, source_id: restricted_source_client.id, data_source_id: hmis_ds.id, id_in_source: restricted_source_client.id.to_s)
     restricted_source_client.mark_as_restricted!(user: hmis_user)

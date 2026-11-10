@@ -1215,8 +1215,10 @@ class WarehouseReport::Outcomes::Base
     )
   end
 
+  # Report on every project the user can see only when nothing was picked. A selection
+  # that resolves to no projects (hidden, or not of this report's type) means none, not all.
   def all_projects
-    @project_ids == []
+    !@filter.any_project_selection?
   end
 
   def can_see_client_details?(user)

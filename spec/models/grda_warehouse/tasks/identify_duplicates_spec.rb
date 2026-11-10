@@ -301,6 +301,19 @@ RSpec.describe GrdaWarehouse::Tasks::IdentifyDuplicates, type: :model do
           expect(Hmis::Ce::ChangeMarker.where(trackable_type: 'GrdaWarehouse::Hud::Client', trackable_id: client_in_destination.id)).to exist
         end
 
+        it 'marks the open household members of the destination dirty for CE' do
+          allow_any_instance_of(Hmis::Ce::Configuration).to receive(:enabled?).and_return(true)
+          enrollment.update!(HouseholdID: 'HH1')
+          partner_source = create :grda_warehouse_hud_client, data_source: source_data_source
+          partner_destination = create :grda_warehouse_hud_client, data_source: destination_data_source
+          create :warehouse_client, source: partner_source, destination: partner_destination, data_source: source_data_source
+          create :hud_enrollment, client: partner_source, project: project, data_source: source_data_source, entry_date: 1.week.ago, HouseholdID: 'HH1'
+
+          processor.ensure_source_client_linked!(client_in_source.id)
+
+          expect(Hmis::Ce::ChangeMarker.clients.pluck(:trackable_id)).to include(partner_destination.id)
+        end
+
         it 'queues a background service history rebuild for the destination' do
           Delayed::Job.jobs_for_class('GrdaWarehouse::Tasks::ServiceHistory::Add').delete_all
 

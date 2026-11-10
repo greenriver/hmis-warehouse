@@ -22,6 +22,15 @@ tr.even td {
   background-color: var(--gray-015);
 }
 
+.table-capped-columns {
+  container-type: inline-size;
+
+  th,
+  td {
+    max-width: 15cqi;
+  }
+}
+
 .table-striped {
   background-color: var(--white);
   margin-bottom: 0;

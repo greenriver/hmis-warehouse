@@ -219,9 +219,11 @@ branch with a PDF permission that comes only from a project the client is not en
 the controller appends `.window` unless the user `can_manage_client_files?`.
 
 `confidential` files are a second axis: `ClientFile.confidential_visible_by(user)` requires
-`can_see_confidential_files` and matches by enrollment project or, for files without an
-enrollment, by `data_source_id` of viewable projects. `index` exposes the ids as
-`@visible_confidential_ids`; the base `visible_by?` scope does not filter on `confidential`.
+`can_see_confidential_files` and matches by enrollment project or by `data_source_id` of
+viewable projects; a file with both matches through either. Without a match, a user sees only
+that the file exists, its tags, and its upload date, even with `can_manage_client_files`. In
+`Clients::FilesController`, `file_details_visible?(file)` decides what a row shows and
+`accessible_file_scope` loads files whose contents are served.
 
 `editable_by?` (scope and instance method) allows all for `can_manage_client_files?` and own
 uploads for `can_manage_window_client_files?` or `can_see_own_file_uploads?`. `destroy` and
@@ -360,8 +362,10 @@ answers `regenerate?` true, otherwise saves a pending row and enqueues `Document
   two minutes. `set_client_consent` deletes `CONSENT_FORM_TAG_CACHE_KEY` first, but a tag
   change on an `AvailableFileTag` row is not reflected until the cache expires.
 - `visible_by?` does not filter `confidential`. Views decide what to show from
-  `@visible_confidential_ids`; a new endpoint that serves file bytes must apply
-  `confidential_visible_by` itself.
+  `file_details_visible?`; a new endpoint that serves file bytes must load through
+  `accessible_file_scope` or apply `confidential_visible_by` itself.
+- `confidential_visible_by` goes through `User#viewable_project_ids`, which reads only ACLs, so a
+  legacy-permission user never sees a confidential file.
 - `Clients::FilesController#create` rescues `StandardError` and re-renders `new` with no flash,
   so a failed save shows only model errors; a raised exception elsewhere in the block is
   swallowed. This predates the no-bare-rescue convention. `destroy` rescues only

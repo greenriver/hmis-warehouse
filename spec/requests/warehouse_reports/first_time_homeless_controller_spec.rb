@@ -124,4 +124,12 @@ RSpec.describe 'WarehouseReports::FirstTimeHomelessController', type: :request d
     expect(open_row[1]).to eq('Name Redacted')
     expect(open_row[2]).to eq('Name Redacted')
   end
+
+  # The scatter chart's x axis expects %Y-%m-%d keys; Date#to_s ("Jan 29, 2025") doesn't match.
+  it 'returns summary counts keyed by ISO date' do
+    get summary_warehouse_reports_first_time_homeless_index_path(filter_params)
+
+    expect(response).to have_http_status(:success)
+    expect(response.parsed_body).to eq(entry_date.iso8601 => 2)
+  end
 end

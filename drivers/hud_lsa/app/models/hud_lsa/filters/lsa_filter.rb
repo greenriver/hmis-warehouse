@@ -63,6 +63,10 @@ module HudLsa::Filters
           with_hud_project_type(relevant_project_types).
           coc_funded.
           pluck(:id)
+      elsif any_project_selection?
+        # A selection that resolves to no projects the user can report on (e.g. a project group
+        # with none of their projects) means none, not system-wide
+        []
       else
         # For system-wide just limit by project type and coc_funded
         GrdaWarehouse::Hud::Project.viewable_by(user, permission: :can_view_assigned_reports).
@@ -71,6 +75,17 @@ module HudLsa::Filters
           coc_funded.
           pluck(:id).sort
       end
+    end
+
+    # The form's project options are additive, so any of them is a selection
+    private def any_project_selection?
+      [
+        project_ids,
+        project_group_ids,
+        organization_ids,
+        data_source_ids,
+        Array(project_type_codes),
+      ].any? { |ids| ids.compact_blank.present? }
     end
 
     # Confirmed with HUD only project types 0, 1, 2, 3, 8, 9, 10, 13 need to be included in hmis_ tables.

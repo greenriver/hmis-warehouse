@@ -26,6 +26,7 @@ This feature automates the delivery of HMIS CSV exports on a rolling schedule. I
 - The rake task `grda_warehouse:process_recurring_hmis_exports` iterates all recurrence definitions and calls `run` for those that return `should_run?`.
 - In production this task should execute on a schedule (cron, Delayed Job recurring task, or equivalent). Without it, no follow-up runs occur.
 - Each `run` rebuilds the `Filters::HmisExport` object from the stored options, adjusts reporting periods, and queues the export job via `schedule_job`.
+- Leaving every project option blank exports all projects the user can see. If project options were chosen but none of them resolve to a project the user can see (after a permission change, or when a selected project group is empty or its projects were deleted), `run` skips the export and sends a warning to Sentry instead of delivering an empty file. No link is recorded, so the run is retried on each pass and resumes once the selection resolves to a visible project.
 
 ## Operations and Monitoring
 - Verify that the Delayed Job queue responsible for exports is active; recurring runs rely on the same queues as manual exports.
