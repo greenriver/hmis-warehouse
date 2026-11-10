@@ -19,8 +19,8 @@
           %td= service.date_provided
           %td= link_to_if can_view_enrollment_details?, service.display_name, hmis_client_client_service_path(@client, service), class: 'btn btn-primary btn-muted btn-xs', data: { loads_in_pjax_modal: true }
           %td.text-right
+            = hmis_external_link(service, user: current_user)
             - if hmis_source_visible
-              = hmis_external_link(service, user: current_user)
               .text-teeny.font-weight-light
                 .text-nowrap
                   Created: #{service.DateCreated}
