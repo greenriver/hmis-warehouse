@@ -27,9 +27,12 @@ RSpec.describe ImportThresholdsController, type: :request do
       setup_access_control(user, create(:role, can_view_projects: true), collection)
     end
 
-    it 'shows the thresholds' do
+    it 'shows the thresholds without edit controls' do
       get data_source_import_threshold_path(data_source)
       expect(response).to have_http_status(:ok)
+      expect(response.body).not_to include('Update Thresholds')
+      expect(response.body).not_to include('Add Notification')
+      expect(response.body).not_to include('Add Threshold Monitor')
     end
 
     it 'does not update the thresholds' do
@@ -80,6 +83,13 @@ RSpec.describe ImportThresholdsController, type: :request do
     before do
       collection.set_viewables({ data_sources: [data_source.id] })
       setup_access_control(user, create(:role, can_view_projects: true, can_edit_data_sources: true), collection)
+    end
+
+    it 'shows the edit controls' do
+      get data_source_import_threshold_path(data_source)
+      expect(response.body).to include('Update Thresholds')
+      expect(response.body).to include('Add Notification')
+      expect(response.body).to include('Add Threshold Monitor')
     end
 
     it 'updates the thresholds' do

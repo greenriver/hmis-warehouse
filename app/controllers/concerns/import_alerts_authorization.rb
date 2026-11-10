@@ -17,6 +17,25 @@ module ImportAlertsAuthorization
 
   READ_ACTIONS = ['show', 'index'].freeze
 
+  included do
+    helper_method :can_edit_import_alerts?
+  end
+
+  # Whether the current user may change this data source's alert configuration. Views use it
+  # to hide the edit controls from read-only viewers. Mirrors the write-action rule in
+  # #import_alerts_data_source_scope.
+  private def can_edit_import_alerts?
+    return @can_edit_import_alerts if defined?(@can_edit_import_alerts)
+
+    @can_edit_import_alerts = if can_edit_warehouse_alerts?
+      true
+    elsif can_edit_data_sources?
+      GrdaWarehouse::DataSource.editable_by(current_user).exists?(id: data_source.id)
+    else
+      false
+    end
+  end
+
   private def require_can_edit_data_sources_or_warehouse_alerts!
     not_authorized! unless can_edit_data_sources? || can_edit_warehouse_alerts?
   end
