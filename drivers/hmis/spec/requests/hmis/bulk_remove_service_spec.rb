@@ -55,6 +55,18 @@ RSpec.describe 'BulkRemoveService', type: :request do
     expect(s2.reload).to be_deleted
   end
 
+  it 'removes HUD and custom services together' do
+    custom_service = create(:hmis_custom_service, custom_service_type: cst1, data_source: ds1, enrollment: e1, client: e1.client)
+    service_ids = Hmis::Hud::HmisService.where(owner: [s1, custom_service]).map(&:id)
+
+    response, result = perform_mutation(service_ids: service_ids)
+    expect(response.status).to eq(200), result.inspect
+
+    expect(Hmis::Hud::Service.where(id: s1.id)).to be_empty
+    expect(Hmis::Hud::CustomService.where(id: custom_service.id)).to be_empty
+    expect(Hmis::Hud::Service.where(id: s2.id)).to contain_exactly(s2)
+  end
+
   it 'ignores service IDs that are not found' do
     expect do
       response, result = perform_mutation(service_ids: ['9999999'])

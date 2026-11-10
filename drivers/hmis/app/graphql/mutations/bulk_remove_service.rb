@@ -18,7 +18,7 @@ module Mutations
       access_denied! unless project
       access_denied! unless current_permission?(permission: :can_edit_enrollments, entity: project)
 
-      services = Hmis::Hud::HmisService.with_project(project_id).where(id: service_ids).map(&:owner)
+      services = Hmis::Hud::HmisService.with_project(project_id).with_view_ids(service_ids).map(&:owner)
       # Note: we are intentionally NOT raising an error if some services are not found.
       # They may have already been removed by another user or in another window, which we can gracefully ignore.
 
