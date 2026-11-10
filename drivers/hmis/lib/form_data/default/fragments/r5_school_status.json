@@ -1,0 +1,12 @@
+{
+  "type": "CHOICE",
+  "link_id": "R5",
+  "required": false,
+  "warn_if_empty": true,
+  "text": "School Status",
+  "pick_list_reference": "SchoolStatus",
+  "mapping": {
+    "record_type": "EMPLOYMENT_EDUCATION",
+    "field_name": "schoolStatus"
+  }
+}
