@@ -119,7 +119,7 @@ module Mutations
     # Find 'owner' record being edited with this form submission.
     def find_record(owner_class:, record_id:, record_lock_version: nil)
       scope = owner_class.viewable_by(current_user)
-      record = if owner_class.respond_to?(:find_owner_by_service_id)
+      record = if owner_class == Hmis::Hud::HmisService
         scope.find_owner_by_service_id(record_id)
       else
         scope.find_by(id: record_id)
