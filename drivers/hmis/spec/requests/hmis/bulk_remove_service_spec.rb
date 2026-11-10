@@ -68,8 +68,13 @@ RSpec.describe 'BulkRemoveService', type: :request do
   end
 
   it 'ignores service IDs that are not found' do
+    missing_ids = [
+      "1#{Hmis::Hud::Service.with_deleted.maximum(:id).to_i + 1000}",
+      "2#{Hmis::Hud::CustomService.with_deleted.maximum(:id).to_i + 1000}",
+    ]
+
     expect do
-      response, result = perform_mutation(service_ids: ['9999999'])
+      response, result = perform_mutation(service_ids: missing_ids)
       expect(response.status).to eq(200), result.inspect
     end.not_to change(Hmis::Hud::Service, :count)
   end

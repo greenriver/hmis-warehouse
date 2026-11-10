@@ -43,7 +43,8 @@ RSpec.describe Hmis::Hud::HmisService, type: :model do
 
     it 'uses the primary keys of the underlying tables' do
       described_class.connection.execute('SET LOCAL enable_seqscan = off')
-      plan = described_class.with_view_ids(["1#{service.id}", "2#{custom_service.id}"]).explain.inspect
+      relation = described_class.with_view_ids(["1#{service.id}", "2#{custom_service.id}"])
+      plan = described_class.connection.select_values("EXPLAIN #{relation.to_sql}").join("\n")
 
       expect(plan).to include('Services_pkey', 'CustomServices_pkey')
       expect(plan).not_to match(/Seq Scan on "(Custom)?Services"/)
