@@ -1,3 +1,4 @@
+- hmis_source_visible = @client.hmis_source_visible_by?(current_user)
 %table.table
   %thead
     %tr
@@ -16,7 +17,7 @@
         %td= assessment.enrollment.project.warehouse_project.name(current_user)
         %td= assessment.AssessmentDate
         %td= assessment.user&.name
-        %td= hmis_external_link(assessment, user: current_user)
+        %td= hmis_external_link(assessment, user: current_user) if hmis_source_visible
         %td.zero-width
           - if any_buttons
             %a.btn.btn-secondary.btn-xs.btn-icon-only.jAssessmentTypeToggle{ href: '#', data: { class: cz } }
@@ -27,5 +28,5 @@
           %td= assessment.enrollment.project.warehouse_project.name(current_user)
           %td= assessment.AssessmentDate
           %td= assessment.user&.name
-          %td= hmis_external_link(assessment, user: current_user)
+          %td= hmis_external_link(assessment, user: current_user) if hmis_source_visible
           %td.zero-width

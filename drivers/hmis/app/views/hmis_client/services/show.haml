@@ -37,4 +37,5 @@
       %dl
         %dt= cded.label # label of the CustomDataElementDefinition
         %dd= display_value
+- if @client.hmis_source_visible_by?(current_user)
   = hmis_external_link(@service, user: current_user, wrapper_class: 'none-found', icon_class: 'icon-link-ext ml-2', icon_style: 'color: inherit; font-size: inherit;')
