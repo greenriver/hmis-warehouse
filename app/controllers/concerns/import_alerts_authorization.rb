@@ -6,45 +6,32 @@
 
 # frozen_string_literal: true
 
-# Access rules for a data source's import alert configuration: import thresholds, CSV
+# Access checks for a data source's import alert configuration: import thresholds, CSV
 # monitors, and the notification recipients of each.
 #
-# Anyone who can view the data source may see the configuration (notification emails link
-# here). Changing it requires edit rights on this data source, or the warehouse-wide alerts
-# permission (the admin alerts page links here for every data source).
+# Controllers load the data source by visibility (`data_source`, memoized), so anyone who can
+# view it may see the configuration (alert emails link here). The rule for changing it lives in
+# DataSourcePolicy#can_edit_import_alerts?.
 module ImportAlertsAuthorization
   extend ActiveSupport::Concern
 
-  READ_ACTIONS = ['show', 'index'].freeze
-
   included do
+    helper_method :data_source_policy
     helper_method :can_edit_import_alerts?
   end
 
-  # Whether the current user may change this data source's alert configuration. Views use it
-  # to hide the edit controls from read-only viewers. Mirrors the write-action rule in
-  # #import_alerts_data_source_scope.
+  # Calls the memoized `data_source` rather than reading @data_source, so it works whatever the
+  # before_action order.
+  private def data_source_policy
+    current_user.policy_for(data_source)
+  end
+
+  # Views use it to hide the edit controls from read-only viewers.
   private def can_edit_import_alerts?
-    return @can_edit_import_alerts if defined?(@can_edit_import_alerts)
-
-    @can_edit_import_alerts = if can_edit_warehouse_alerts?
-      true
-    elsif can_edit_data_sources?
-      GrdaWarehouse::DataSource.editable_by(current_user).exists?(id: data_source.id)
-    else
-      false
-    end
+    data_source_policy.can_edit_import_alerts?
   end
 
-  private def require_can_edit_data_sources_or_warehouse_alerts!
-    not_authorized! unless can_edit_data_sources? || can_edit_warehouse_alerts?
-  end
-
-  private def import_alerts_data_source_scope
-    viewable = GrdaWarehouse::DataSource.viewable_by(current_user, permission: :can_view_projects)
-    return viewable if action_name.in?(READ_ACTIONS)
-    return viewable if can_edit_warehouse_alerts?
-
-    GrdaWarehouse::DataSource.editable_by(current_user)
+  private def require_can_edit_import_alerts!
+    not_authorized! unless can_edit_import_alerts?
   end
 end

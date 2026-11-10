@@ -166,6 +166,31 @@ RSpec.describe GrdaWarehouse::AuthPolicies::DataSourcePolicy, type: :model do
     end
   end
 
+  describe '#can_edit_import_alerts?' do
+    let(:user) { create(:acl_user) }
+    let(:collection) { create(:collection) }
+    let(:policy) { User.find(user.id).policy_for(data_source) }
+
+    before { collection.set_viewables({ data_sources: [data_source.id] }) }
+
+    it 'allows a user with only the warehouse alerts permission' do
+      alerts_role = create(:role, can_edit_warehouse_alerts: true)
+      setup_access_control(user, alerts_role, create(:collection))
+      expect(policy.can_edit?).to be false
+      expect(policy.can_edit_import_alerts?).to be true
+    end
+
+    it 'allows a user with an edit grant on the data source' do
+      setup_access_control(user, edit_only_role, collection)
+      expect(policy.can_edit_import_alerts?).to be true
+    end
+
+    it 'denies a user with neither' do
+      setup_access_control(user, upload_only_role, collection)
+      expect(policy.can_edit_import_alerts?).to be false
+    end
+  end
+
   context 'with invalid resource type' do
     let(:user) { create(:user) }
     let(:invalid_resource) { create(:hud_organization) }

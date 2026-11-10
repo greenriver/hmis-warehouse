@@ -21,6 +21,23 @@ RSpec.describe ImportThresholdsController, type: :request do
     GrdaWarehouse::ImportThreshold.find_by(data_source_id: data_source.id)
   end
 
+  # A user who can't see the data source gets a 404 from the load before any write check runs, so
+  # these examples can't catch a write action missing from an only: list. The 'with view access to
+  # one project of the data source' context does: it hits every write action and expects a redirect.
+  # A not-found response drops the sign-in session, so each example makes one request.
+  context 'with no rights' do
+    it 'denies show' do
+      get data_source_import_threshold_path(data_source)
+      expect(response).to redirect_to(root_path)
+    end
+
+    it 'denies update' do
+      patch data_source_import_threshold_path(data_source), params: update_params
+      expect(response).to have_http_status(:not_found)
+      expect(saved_threshold&.error_count_min_threshold).not_to eq(999)
+    end
+  end
+
   context 'with view access to one project of the data source' do
     before do
       collection.set_viewables({ projects: [project.id] })
@@ -53,7 +70,8 @@ RSpec.describe ImportThresholdsController, type: :request do
 
     it 'does not update the thresholds' do
       patch data_source_import_threshold_path(data_source), params: update_params
-      expect(response).to have_http_status(:not_found)
+      expect(response).to redirect_to(root_path)
+      expect(flash[:alert]).to be_present
       expect(saved_threshold&.error_count_min_threshold).not_to eq(999)
     end
   end

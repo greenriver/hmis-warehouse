@@ -9,8 +9,8 @@
 class NotificationConfigurationsController < ApplicationController
   include AjaxModalRails::Controller
   include ImportAlertsAuthorization
-  before_action :require_can_edit_data_sources_or_warehouse_alerts!
   before_action :data_source
+  before_action :require_can_edit_import_alerts!
   before_action :import_threshold
 
   def new
@@ -42,7 +42,9 @@ class NotificationConfigurationsController < ApplicationController
   end
 
   private def data_source
-    @data_source ||= import_alerts_data_source_scope.find(params[:data_source_id].to_i)
+    @data_source ||= GrdaWarehouse::DataSource.
+      viewable_by(current_user, permission: :can_view_projects).
+      find(params[:data_source_id].to_i)
   end
   helper_method :data_source
 
