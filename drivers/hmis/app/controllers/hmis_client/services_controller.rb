@@ -9,6 +9,7 @@
 class HmisClient::ServicesController < ApplicationController
   include AjaxModalRails::Controller
   include ClientDependentControllers
+  include ClientEnrollmentVisibility
 
   before_action :require_can_view_enrollment_details!
   before_action :client
@@ -21,11 +22,13 @@ class HmisClient::ServicesController < ApplicationController
   end
 
   def client
-    @client ||= destination_searchable_client_scope.find(params[:client_id].to_i)
+    @client ||= destination_visible_client_scope.find(params[:client_id].to_i)
   end
 
   def service
-    @service ||= @client.custom_services.preload(:user, :custom_data_elements, enrollment: :project, form_processor: :definition).
+    @service ||= @client.custom_services.
+      where(visible_enrollment_condition).
+      preload(:user, :custom_data_elements, enrollment: :project, form_processor: :definition).
       find(params[:id].to_i)
   end
 end

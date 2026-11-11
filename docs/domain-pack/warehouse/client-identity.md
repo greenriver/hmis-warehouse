@@ -24,6 +24,7 @@ sources:
   - drivers/hmis/app/models/hmis/hud/client.rb
 related:
   - hmis/restricted-records-and-multi-hmis.md
+  - warehouse/pii-and-restricted-clients.md
   - hud-reporting/service-history.md
   - authorization/warehouse-policies.md
   - roi/consent-from-external-sources.md
@@ -231,10 +232,12 @@ raises unless the receiver is a destination. In one transaction it:
 2. Repoints every `WarehouseClient` of `other.source_clients`, and `other`'s own
    `warehouse_client_source`, to the receiver, stamping `reviewed_at`, `reviewd_by`, and
    `client_match_id`.
-3. Copies CAS columns from the previous destination where the receiver's are blank.
+3. Copies CAS columns from the previous destination where the receiver's are blank, and
+   restricts the receiver (`DestinationClientRestriction#restrict!`) when the previous
+   destination had a warehouse restriction row.
 4. If the previous destination has no sources left: writes
    `ClientMergeHistory(merged_into: receiver, merged_from: previous)`, carries forward an
-   external-data-sharing exclusion, and destroys it.
+   external-data-sharing exclusion, removes its warehouse restriction row, and destroys it.
 5. `move_dependent_items` (notes, files, VI-SPDATs, cohort memberships, CE assessments, custom
    data elements, and the `other` list in `hmis_dependent_items`).
 6. `force_full_service_history_rebuild` on the receiver, view cache clears.
@@ -259,7 +262,8 @@ client. `client_ids` are the source clients to detach. For each, inside one tran
    so notes, files, VI-SPDATs, cohort assignments, CE assessments, custom data elements, or
    the `other` group move to the new destination. Only one receiver is allowed; everything not
    moved stays with the original destination.
-6. Carry forward an external-data-sharing exclusion from the original destination.
+6. Carry forward an external-data-sharing exclusion from the original destination, and restrict
+   the new destination when the original has a warehouse restriction row.
 
 After the transaction it queues `ClientCleanupJob` for the original, each new destination, and
 each detached source. `ClientsController#unmerge` then invalidates the original's service
@@ -452,6 +456,8 @@ picked up as `unprocessed` by the nightly `run!`.
   hour; a data source created or reclassified mid-run may not be recognized until then.
 - `destination?` without `strict: true` means "has source clients"; a destination whose
   `WarehouseClient` is not yet saved is not one, and `merge_from` on it raises.
+  `DestinationClientRestriction` requires `destination?(strict: true)`, so carrying a
+  restriction into a receiver outside a destination data source raises and rolls back the merge.
 - `Hud::Client#splits_to` uses `foreign_key: :split_from` and `splits_from` uses `split_into`.
 - `ClientMatch` `processed_sources` rows have `source_client_id == destination_client_id`.
   Counting `ClientMatch` rows without a status scope overstates candidates. On `candidate`
@@ -494,6 +500,8 @@ picked up as `unprocessed` by the nightly `run!`.
 
 ## Related
 
+- `warehouse/pii-and-restricted-clients.md`: how `merge_from` and `split` carry a warehouse
+  restriction (`DestinationClientRestriction`).
 - `hmis/restricted-records-and-multi-hmis.md`: `Hmis::MergeClientsJob` merges source clients
   within one HMIS data source, reuses `choose_attributes_from_sources`, and leaves
   `WarehouseClient` repair to `IdentifyDuplicates` and `ClientCleanup`.

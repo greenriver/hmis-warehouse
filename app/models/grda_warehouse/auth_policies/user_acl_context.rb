@@ -124,7 +124,7 @@ class GrdaWarehouse::AuthPolicies::UserAclContext < GrdaWarehouse::AuthPolicies:
     ids = GrdaWarehouse::GroupViewableEntity.
       where(entity_type: GrdaWarehouse::DataSource.sti_name).
       where(entity_id: data_source_id).
-      where.not(collection_id: nil).
+      using_acls.
       pluck(:collection_id)
     (active_collection_ids & ids).to_a.sort
   end
@@ -136,7 +136,7 @@ class GrdaWarehouse::AuthPolicies::UserAclContext < GrdaWarehouse::AuthPolicies:
     ids = GrdaWarehouse::GroupViewableEntity.
       where(entity_type: GrdaWarehouse::Hud::Organization.sti_name).
       where(entity_id: organization_id).
-      where.not(collection_id: nil).
+      using_acls.
       pluck(:collection_id)
     ((active_collection_ids & ids).to_a + data_source_collection_ids(data_source_id)).uniq.sort
   end
@@ -163,7 +163,7 @@ class GrdaWarehouse::AuthPolicies::UserAclContext < GrdaWarehouse::AuthPolicies:
     gve_t = GrdaWarehouse::GroupViewableEntity.arel_table
     results = GrdaWarehouse::DataSource.authoritative.not_hmis.
       joins(:group_viewable_entities, :clients).
-      where(gve_t[:collection_id].not_eq(nil)).
+      merge(GrdaWarehouse::GroupViewableEntity.using_acls).
       where(c_t[:id].in(client_ids)).
       pluck(c_t[:id], gve_t[:collection_id]).
       group_by(&:shift).

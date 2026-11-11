@@ -9,6 +9,9 @@
 require 'rails_helper'
 
 RSpec.describe Admin::CollectionsController, type: :request do
+  # Entity pages list every row in the warehouse, so rows leaked by earlier specs skew counts and query totals
+  before(:all) { cleanup_test_environment }
+
   let!(:user) { create(:user) }
   let!(:admin) { create(:user) }
   let!(:admin_role) do

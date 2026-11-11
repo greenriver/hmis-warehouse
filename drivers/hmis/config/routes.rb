@@ -103,6 +103,7 @@ OpenPath::Application.routes.draw do
         end
         get :audits, on: :collection
         post :render_audits, on: :collection
+        post :project_options, on: :collection
       end
       resources :users, only: [:index, :edit, :update]
       resources :project_groups, only: [:index, :new, :create, :edit, :update, :show, :destroy]

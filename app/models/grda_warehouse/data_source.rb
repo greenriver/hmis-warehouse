@@ -115,7 +115,9 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
       # If have a set (not a nil) and it's empty, this user can't access any projects
       return none if ids.is_a?(Set) && ids.empty?
 
-      where(id: ids)
+      # A string predicate, unlike a hash or Arel predicate, is ANDed by a later
+      # `merge` on the same column instead of being replaced by it
+      where(%(#{quoted_table_name}."id" IN (?)), ids.to_a)
     else
       qc = ->(s) { connection.quote_column_name s }
       q  = ->(s) { connection.quote s }
@@ -720,7 +722,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
   #
   memoize def ever_pause_imports_with_record_changes?
     return false unless import_threshold.present?
-    return false unless import_threshold.pause_on_error_threshold
+    return false unless import_threshold.pause_on_record_count_threshold
 
     import_threshold.record_count_change_min_threshold.present? && import_threshold.record_count_change_percent_threshold.present?
   end

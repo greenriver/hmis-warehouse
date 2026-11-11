@@ -64,13 +64,13 @@ module GrdaWarehouse::WarehouseReports
         group_ids = user.collections_for_permission(:can_view_assigned_reports)
         return none if group_ids.empty?
 
-        joins(:group_viewable_entities).
-          merge(
-            GrdaWarehouse::GroupViewableEntity.where(
-              collection_id: group_ids,
-              entity_type: 'GrdaWarehouse::WarehouseReports::ReportDefinition',
-            ),
-          )
+        # A report can sit in several of the user's collections; a subquery returns it once.
+        where(
+          id: GrdaWarehouse::GroupViewableEntity.where(
+            collection_id: group_ids,
+            entity_type: 'GrdaWarehouse::WarehouseReports::ReportDefinition',
+          ).select(:entity_id),
+        )
       # Users with role-based access fall into the scenarios below
       elsif user.can_view_all_reports? || user.can_view_assigned_reports?
         # Both permissions allow access to report definitions the user has access to

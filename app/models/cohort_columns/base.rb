@@ -95,6 +95,11 @@ module CohortColumns
       nil
     end
 
+    # Default values for a batch of clients being added, keyed by client_id
+    def default_values(client_ids)
+      client_ids.index_with { |client_id| default_value(client_id) }
+    end
+
     def comments
       nil
     end

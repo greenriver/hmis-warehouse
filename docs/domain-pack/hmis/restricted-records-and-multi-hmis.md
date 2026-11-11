@@ -2,7 +2,7 @@
 title: HMIS client merges, restricted records, and multi-HMIS hosting
 summary: "Three cross-cutting HMIS behaviors. MergeClientsJob and its undo with audit history; RestrictedRecord plus the Restrictable concern that redacts PII and hides clients from search; and multi-HMIS support where the request host binds to a data source, with the hmis_go_live_at gate."
 area: hmis
-tags: [hmis, client-merge, MergeClientsJob, UndoMergeClientsJob, ClientMergeAudit, ClientMergeHistory, RestrictedRecord, Restrictable, pii_redacted_for_client?, searchable_to, RestrictedClientLoader, multi-hmis, current_hmis_host, attach_data_source_id, hmis_data_source_id, hmis_go_live_at, hmis_access_error_for]
+tags: [hmis, client-merge, MergeClientsJob, UndoMergeClientsJob, ClientMergeAudit, ClientMergeHistory, RestrictedRecord, Restrictable, DestinationClientRestriction, carry_warehouse_restriction, pii_redacted_for_client?, searchable_to, RestrictedClientLoader, multi-hmis, current_hmis_host, attach_data_source_id, hmis_data_source_id, hmis_go_live_at, hmis_access_error_for]
 sources:
   - drivers/hmis/app/jobs/hmis/merge_clients_job.rb
   - drivers/hmis/app/jobs/hmis/undo_merge_clients_job.rb
@@ -10,6 +10,7 @@ sources:
   - drivers/hmis/app/models/hmis/client_merge_history.rb
   - drivers/hmis/app/graphql/mutations/merge_clients.rb
   - drivers/hmis/app/models/hmis/restricted_record.rb
+  - app/services/destination_client_restriction.rb
   - drivers/hmis/app/models/hmis/concerns/restrictable.rb
   - drivers/hmis/app/models/hmis/auth_policies/user_context.rb
   - drivers/hmis/app/models/hmis/auth_policies/context_loaders/restricted_client_loader.rb
@@ -104,7 +105,8 @@ Multi-HMIS:
 4. Custom data elements move by `owner_id`; non-repeating definitions keep the newest.
 5. `client_id` keys (`Hmis::File`, `Hmis::Ce::Referral`, `Hmis::ClientAlert`), `PersonalID`
    keys on 18 HUD models scoped by `data_source_id`, MCI IDs, scan cards, and client locations
-   move. `GrdaWarehouse::WarehouseClient` rows for deleted clients are destroyed.
+   move. `carry_warehouse_restriction` runs, then `GrdaWarehouse::WarehouseClient` rows for
+   deleted clients are destroyed.
 6. `dedup` via `equal_for_merge?` on names, contact points, addresses, custom data elements.
    Enrollments are never deduplicated.
 7. Soft-delete the rest; mark the retained client's destination dirty for CE when enabled.
@@ -116,8 +118,27 @@ Every moved record's prior foreign key is written to `pre_merge_mappings[key][re
 and mappings present. It clears `DateDeleted`, walks the mappings back, runs
 `FixIncorrectPersonalIdReferences` for moved enrollments, destroys the history row, then runs
 `SanityCheckServiceHistory`, `IdentifyDuplicates`, and queues service-history processing. It does
-not revert retained-client attributes, recreate deduped records, or restore
-`ReferralHouseholdMember` or `WarehouseClient` rows.
+not revert retained-client attributes, recreate deduped records, restore
+`ReferralHouseholdMember` or `WarehouseClient` rows, or move a warehouse restriction back.
+
+### Warehouse restriction carry-over
+
+A warehouse restriction is an `Hmis::RestrictedRecord` row on a destination client id, written by
+`DestinationClientRestriction` (`app/services/destination_client_restriction.rb`). HMIS never
+reads rows on destination ids. `MergeClientsJob#carry_warehouse_restriction` keeps the merged
+person hidden in the warehouse after their `WarehouseClient` links are destroyed:
+
+- It finds the merged clients' destinations through live links (`deleted_at: nil`) and returns
+  when none has a row.
+- `retained_destination_id!` finds the retained client's destination. When the client is not
+  linked yet, it calls `IdentifyDuplicates#ensure_source_client_linked!` and raises if the client
+  is still unlinked, which rolls back the merge.
+- It restricts that destination with `restrict!(user: actor)`, a no-op when a row exists.
+- It calls `DestinationClientRestriction.unrestrict_merged_away!` for each restricted destination
+  left with no other source. A destination that keeps a source from elsewhere keeps its row.
+
+`DestinationClientRestriction.as_actor` sets the PaperTrail `whodunnit` to the actor when no
+request has set one, so the job's changes are attributed on the warehouse audit page.
 
 ### Restricted records
 
@@ -169,7 +190,10 @@ check uses `true_hmis_user`, so an admin impersonating a blocked user is not loc
 ## Key files
 
 - `drivers/hmis/app/jobs/hmis/merge_clients_job.rb`: the merge; `pre_merge_mappings` shape in the
-  comment on `build_and_update_merge_mappings`; `update_personal_id_foreign_keys` lists the HUD models.
+  comment on `build_and_update_merge_mappings`; `update_personal_id_foreign_keys` lists the HUD models;
+  `carry_warehouse_restriction`, `retained_destination_id!`.
+- `app/services/destination_client_restriction.rb`: `restrict!`, `unrestrict!`,
+  `unrestrict_merged_away!`, `as_actor`; warehouse rows on destination ids.
 - `drivers/hmis/app/jobs/hmis/undo_merge_clients_job.rb`: header comment lists usage and limitations;
   `CLIENT_ID_FOREIGN_KEY_CANDIDATES`, `PERSONAL_ID_FOREIGN_KEY_CANDIDATES`.
 - `drivers/hmis/app/models/hmis/client_merge_audit.rb`: `mappings_for`, `viewable_by`,
@@ -206,6 +230,12 @@ check uses `true_hmis_user`, so an admin impersonating a blocked user is not loc
   `client_permissions` fallback to global permissions, so the marker can unmark.
 - Restriction is not denial: enrollments, assessments, files, alerts, and `age` resolve as usual.
 - Merging marks the retained client restricted if any source client was restricted.
+- `ensure_source_client_linked!` waits only `PER_CLIENT_LOCK_TIMEOUT_SECONDS` for the
+  `identify_duplicates` lock. While a full `IdentifyDuplicates` run holds it, a merge that must
+  carry a warehouse restriction to an unlinked retained client raises and rolls back; a retry
+  after the run succeeds.
+- `UndoMergeClientsJob` leaves a carried warehouse restriction on the retained destination. The
+  restored client is unrestricted in the warehouse if `IdentifyDuplicates` links it elsewhere.
 - Merges never deduplicate enrollments; two open enrollments in one project after a merge is
   expected and cleaned up by hand.
 - `UndoMergeClientsJob` destroys the `ClientMergeHistory` row but keeps the `ClientMergeAudit`.
@@ -241,7 +271,7 @@ check uses `true_hmis_user`, so an admin impersonating a blocked user is not loc
   redaction cannot drift.
 - Calling `Hmis::RestrictedRecord.create!` or `destroy!` directly. Use
   `client.mark_as_restricted!(user:)` / `remove_restriction!` so the already-restricted no-op and
-  data-source validation apply.
+  data-source validation apply. For a warehouse destination, use `DestinationClientRestriction`.
 - Moving client-owned records in a merge without writing `pre_merge_mappings`. Add the key to
   `ClientMergeAudit::PRE_MERGE_MAPPING_EXPECTED_FIELDS` and a restore step in
   `UndoMergeClientsJob`, or the undo silently skips those records.
@@ -254,7 +284,7 @@ check uses `true_hmis_user`, so an admin impersonating a blocked user is not loc
 - `authorization/hmis-graphql-authorization.md`: where `viewable_by` and `authorized?` belong in
   the GraphQL layer.
 - `warehouse/pii-and-restricted-clients.md`: warehouse-side redaction and search exclusion for
-  HMIS-restricted clients.
+  restricted clients, and warehouse-side restriction of destination clients.
 - `warehouse/client-identity.md`: `WarehouseClient`, `IdentifyDuplicates`, `ClientCleanup`, and
   `choose_attributes_from_sources`.
 - Human-facing source docs: `docs/features/hmis/hmis-client-merges.md`,

@@ -54,7 +54,9 @@ Three kinds of cohort exist and are told apart by columns on `cohorts`:
 - Manual: `system_cohort: false`, `project_group_id: nil`. Users add and remove clients.
 - Auto-maintained: `project_group_id` set. `Cohort#maintain` recomputes membership from open
   enrollments in the project group, optionally narrowed by `automation_sub_population` and
-  `automation_hoh_only`. Users cannot add clients by hand.
+  `automation_hoh_only`. Users cannot add clients by hand. Automation skips visibility checks,
+  so clients in confidential projects picked into the group are added; see
+  `docs/features/warehouse/project-groups.md`.
 - System: `system_cohort: true`, an STI subclass of `GrdaWarehouse::SystemCohorts::Base`
   (`CurrentlyHomeless`, `Veteran`, `Chronic`, ...). Membership is rebuilt daily by
   `SystemCohortsJob` when `GrdaWarehouse::Config.get(:enable_system_cohorts)` is on.

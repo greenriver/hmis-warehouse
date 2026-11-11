@@ -77,8 +77,9 @@ env:
 
 jobs:
   lsa_integration_test:
+    if: vars.CI_AUTO_RUN == 'true' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-24.04
-    container: ruby:3.4.9-slim-trixie
+    container: ruby:3.4.12-slim-trixie
 
     permissions:
       contents: read
@@ -138,8 +139,6 @@ jobs:
       - name: "App setup"
         run: |
           cp config/secrets.yml.sample config/secrets.yml
-          mkdir -p app/assets/stylesheets/theme/styles
-          touch app/assets/stylesheets/theme/styles/_variables.scss
           cp .rspec.sample .rspec
           cp config/database.yml.ci config/database.yml
 
@@ -165,6 +164,14 @@ jobs:
           SOURCE: ${{ secrets.AWS_S3_ACTION_BUCKET }}lsa-sample-09-2026/
           DESTINATION: ./drivers/hud_lsa/spec/fixtures/files/lsa/fy2027/
         run: aws s3 cp --no-progress "$SOURCE" "$DESTINATION" --recursive --region us-east-1
+
+      # Specs that need SQL Server; the main rspec workflow skips them.
+      - name: Run LSA SQL Server specs
+        env:
+          AWS_ACCESS_KEY_ID: local_access_key
+          AWS_SECRET_ACCESS_KEY: local_secret_key
+          AWS_REGION: us-east-1
+        run: bundle exec rspec drivers/hud_lsa/spec/models/lsa_cross_year_column_cache_spec.rb
 
       - name: Run LSA integration test
         env:

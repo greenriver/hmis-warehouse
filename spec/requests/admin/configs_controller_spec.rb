@@ -97,6 +97,37 @@ RSpec.describe Admin::ConfigsController, type: :request do
       end
     end
 
+    describe 'PATCH #update for relevant_state_codes' do
+      it 'saves a valid list' do
+        patch admin_configs_path, params: { grda_warehouse_config: { relevant_state_codes: 'VT,MA' } }
+
+        expect(response).to redirect_to(admin_configs_path)
+        expect(config.reload.relevant_state_codes).to eq('VT,MA')
+      end
+
+      it 'saves nothing when the codes are malformed' do
+        config.update!(relevant_state_codes: 'MA', client_dashboard: 'default')
+        GrdaWarehouse::Config.invalidate_cache
+
+        patch admin_configs_path, params: { grda_warehouse_config: { relevant_state_codes: 'MA;NH', client_dashboard: 'boston' } }
+
+        expect(response).to have_http_status(:ok)
+        expect(config.reload.relevant_state_codes).to eq('MA')
+        expect(config.client_dashboard).to eq('default')
+      end
+
+      it 'cleans up a stored value with spaces and lowercase when another setting is saved' do
+        config.update_column(:relevant_state_codes, 'ma, nh')
+        GrdaWarehouse::Config.invalidate_cache
+
+        patch admin_configs_path, params: { grda_warehouse_config: { client_dashboard: 'boston' } }
+
+        expect(response).to redirect_to(admin_configs_path)
+        expect(config.reload.relevant_state_codes).to eq('MA,NH')
+        expect(config.client_dashboard).to eq('boston')
+      end
+    end
+
     describe 'GET #index' do
       it 'renders a multi-select offering every configurable demographic column' do
         get admin_configs_path

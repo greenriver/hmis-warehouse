@@ -23,7 +23,7 @@ module UserDirectoryReport::WarehouseReports
     # path (see GrdaWarehouse::WarehouseReports::ReportDefinition).
     def related_report
       GrdaWarehouse::WarehouseReports::ReportDefinition.
-        where(url: 'user_directory_report/warehouse_reports/users/warehouse')
+        where(url: REPORT_DEFINITION_URL)
     end
 
     def readonly?

@@ -106,10 +106,16 @@ refused on production and staging before `HudHelper.production_cutoff` /
 `HudHelper.staging_cutoff`. `Importers::HmisAutoMigrate.current_stop_version` supplies the
 default `stop_version` for uploads and honors `HMIS_AUTOMIGRATE_STOP_VERSION` before the cutoff.
 
-Three optional pre-load filters run on the files in a fixed order: `UnlinkedRecordFilter`
+Four optional pre-load filters run on the files in a fixed order: `UnlinkedRecordFilter`
 (drops rows that reference no client or project, logging discards, so it must see original
-ids), `HudKeyRemapper` (hashes `PersonalID`/`ProjectID` with `Export.SourceID` when enabled on
-the data source), then `ProjectFilter` when `limit_projects` is set. Each file is then encoding-
+ids), `CurrentLivingSitIdRegenerator` (replaces `CurrentLivingSitID` with an MD5 of
+`EnrollmentID`, `PersonalID`, `InformationDate`, `CurrentLivingSituation`, and `DateCreated`
+for vendors whose CLS IDs are row positions; it keeps the first of any rows sharing those five
+values, even when other columns differ, and logs the rest as discarded),
+`HudKeyRemapper` (hashes `PersonalID`/`ProjectID` with `Export.SourceID` when enabled on
+the data source), then `ProjectFilter` when `limit_projects` is set. The first three read and
+rewrite files through `HmisCsvImporter::Loader::PreProcessCsv`, which detects each file's
+encoding, transcodes it to UTF-8, and parses with `liberal_parsing`. Each file is then encoding-
 detected, line-ending-fixed, and streamed into the version's loader table with PostgreSQL
 `COPY ... FROM STDIN`. `clean_header_row` accepts headers case-insensitively and in any order,
 ignores extra columns, and fails the file when expected columns are missing. Rows with too many

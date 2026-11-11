@@ -124,6 +124,23 @@ RSpec.describe model, type: :model do
         end
       end
 
+      describe 'viewable_by followed by a merge on data source id' do
+        before do
+          empty_collection.set_viewables({ data_sources: [ds1.id] })
+          setup_access_control(user, can_view_projects, empty_collection)
+        end
+
+        it 'does not widen to an invisible data source' do
+          scope = model.viewable_by(user).merge(model.where(id: ds2.id))
+          expect(scope.pluck(:id)).to be_empty
+        end
+
+        it 'intersects with the merged ids' do
+          scope = model.viewable_by(user).merge(model.where(id: [ds1.id, ds2.id]))
+          expect(scope.pluck(:id)).to eq [ds1.id]
+        end
+      end
+
       describe 'user assigned to projet group' do
         it 'sees ds1' do
           empty_collection.set_viewables({ project_access_groups: [pg1.id] })
@@ -987,6 +1004,38 @@ RSpec.describe model, type: :model do
     it 'defaults pre_process_hooks to an empty hash' do
       data_source = create(:source_data_source)
       expect(data_source.pre_process_hooks).to eq({})
+    end
+  end
+
+  describe '#ever_pause_imports_with_record_changes?' do
+    def data_source_with_threshold(pause_on_record_count_threshold:, pause_on_error_threshold:)
+      create(
+        :import_threshold,
+        record_count_change_min_threshold: 10,
+        record_count_change_percent_threshold: 5,
+        pause_on_record_count_threshold: pause_on_record_count_threshold,
+        pause_on_error_threshold: pause_on_error_threshold,
+      ).data_source
+    end
+
+    it 'is true when only the record-count pause is enabled' do
+      data_source = data_source_with_threshold(pause_on_record_count_threshold: true, pause_on_error_threshold: false)
+      expect(data_source.ever_pause_imports_with_record_changes?).to eq(true)
+    end
+
+    it 'is false when only the error pause is enabled' do
+      data_source = data_source_with_threshold(pause_on_record_count_threshold: false, pause_on_error_threshold: true)
+      expect(data_source.ever_pause_imports_with_record_changes?).to eq(false)
+    end
+
+    it 'is false when the record-count pause is enabled but the percent threshold is blank' do
+      data_source = create(
+        :import_threshold,
+        record_count_change_min_threshold: 10,
+        record_count_change_percent_threshold: nil,
+        pause_on_record_count_threshold: true,
+      ).data_source
+      expect(data_source.ever_pause_imports_with_record_changes?).to eq(false)
     end
   end
 

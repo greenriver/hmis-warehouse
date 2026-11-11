@@ -11,6 +11,10 @@ module HudApr
     class CellDetailExport < ::HudReports::CellDetailExportBase
       private
 
+      def required_params
+        super + ['report_type']
+      end
+
       def builder
         @builder ||= HudApr::CellDetailExportBuilder.new(
           user: user,

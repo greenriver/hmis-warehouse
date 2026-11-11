@@ -11,6 +11,7 @@ jobs:
     # Fork PRs don't get repository secrets on the pull_request event, so they
     # can't post to Slack.
     if: >-
+      vars.CI_AUTO_RUN == 'true' &&
       github.event.label.name == 'needs-openpath-review' &&
       github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest

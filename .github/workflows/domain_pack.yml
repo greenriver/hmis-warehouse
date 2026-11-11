@@ -1,10 +1,12 @@
 name: Domain Pack
 
 on:
-  pull_request:
-    branches:
-      - '*'
-      - '**/*'
+  workflow_dispatch:
+  # disabled until we get closer to using the domain pack
+  # pull_request:
+  #   branches:
+  #     - '*'
+  #     - '**/*'
 concurrency:
   group: ${{ github.ref }}-domain-pack
   cancel-in-progress: true
@@ -13,7 +15,7 @@ jobs:
   domain_pack_check:
     name: Domain pack manifest is current
     runs-on: ubuntu-24.04
-    container: ruby:3.4.9-slim-trixie
+    container: ruby:3.4.12-slim-trixie
     permissions:
       contents: read
     steps:

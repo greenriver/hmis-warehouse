@@ -171,7 +171,7 @@ class ReportResultsController < ApplicationController
   end
 
   private def report
-    @report ||= Report.find(params[:report_id].to_i)
+    @report ||= Report.active.find(params[:report_id].to_i)
   end
 
   private def set_report
