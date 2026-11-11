@@ -54,7 +54,7 @@ RSpec.describe 'Import alert notification configurations', type: :request do
   end
 
   # A user who can't see the data source gets a 404 from the load before the write check runs, so
-  # these examples can't catch an action that skips require_can_edit_import_alerts!. The 'with view
+  # these examples can't catch an action that skips require_can_edit_import_alert_recipients!. The 'with view
   # access to one project of the data source' context does: it hits every action of both controllers
   # and expects a redirect.
   context 'with no rights' do

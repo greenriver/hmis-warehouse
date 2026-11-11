@@ -8,9 +8,9 @@
 
 class NotificationConfigurationsController < ApplicationController
   include AjaxModalRails::Controller
-  include ImportAlertsAuthorization
+  include ImportMonitoringAuthorization
   before_action :data_source
-  before_action :require_can_edit_import_alerts!
+  before_action :require_can_edit_import_alert_recipients!
   before_action :import_threshold
 
   def new

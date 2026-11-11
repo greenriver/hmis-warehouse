@@ -1,4 +1,5 @@
 - items = import_threshold.items_for(slug)
+- can_edit_recipients = data_source_policy.can_edit_import_alert_recipients?
 .card
   %table.table.table-striped
     %thead
@@ -6,7 +7,7 @@
         %th Name
         %th Email
         %th Receive Notifications
-        - if can_edit_import_alerts?
+        - if can_edit_recipients
           %th Actions
     %tbody
       - items.each do |item|
@@ -14,7 +15,7 @@
           %td= item.user&.name
           %td= item.user&.email
           %td= checkmark_or_x(item.active)
-          - if can_edit_import_alerts?
+          - if can_edit_recipients
             %td
               - items = [{ link_to: { path: edit_data_source_import_threshold_notification_configuration_path(@data_source, item, notification_slug: slug), data: { loads_in_ajax_modal: true }}, class: ['btn', 'btn-sm', 'btn-secondary'], icon: :pencil, label: 'Edit notification'}]
 

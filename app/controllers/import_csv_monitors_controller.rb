@@ -7,10 +7,10 @@
 # frozen_string_literal: true
 
 class ImportCsvMonitorsController < ApplicationController
-  include ImportAlertsAuthorization
+  include ImportMonitoringAuthorization
   before_action :require_can_view_imports_projects_or_organizations!, only: [:index]
   before_action :data_source
-  before_action :require_can_edit_import_alerts!, only: [:new, :create, :edit, :update, :destroy]
+  before_action :require_can_edit_import_csv_monitors!, only: [:new, :create, :edit, :update, :destroy]
   before_action :import_csv_monitor, only: [:edit, :update, :destroy]
 
   helper_method :import_csv_monitor

@@ -184,34 +184,47 @@ RSpec.describe GrdaWarehouse::AuthPolicies::DataSourcePolicy, type: :model do
     end
   end
 
-  describe '#can_edit_import_alerts?' do
+  describe 'import monitoring checks' do
     let(:user) { create(:acl_user) }
     let(:collection) { create(:collection) }
     let(:policy) { User.find(user.id).policy_for(data_source) }
+    let(:alerts_role) { create(:role, can_edit_warehouse_alerts: true) }
 
     before { collection.set_viewables({ data_sources: [data_source.id] }) }
 
-    let(:alerts_role) { create(:role, can_edit_warehouse_alerts: true) }
+    # The three checks share one rule today; each example asks all of them so a later split
+    # shows up here.
+    def import_monitoring_answers
+      {
+        thresholds: policy.can_edit_import_thresholds?,
+        csv_monitors: policy.can_edit_import_csv_monitors?,
+        alert_recipients: policy.can_edit_import_alert_recipients?,
+      }
+    end
+
+    def all_answers(value)
+      { thresholds: value, csv_monitors: value, alert_recipients: value }
+    end
 
     it 'allows a user with the warehouse alerts permission on the data source' do
       setup_access_control(user, alerts_role, collection)
       expect(policy.can_edit?).to be false
-      expect(policy.can_edit_import_alerts?).to be true
+      expect(import_monitoring_answers).to eq(all_answers(true))
     end
 
     it 'denies a user with the warehouse alerts permission only on another collection' do
       setup_access_control(user, alerts_role, create(:collection))
-      expect(policy.can_edit_import_alerts?).to be false
+      expect(import_monitoring_answers).to eq(all_answers(false))
     end
 
     it 'allows a user with an edit grant on the data source' do
       setup_access_control(user, edit_only_role, collection)
-      expect(policy.can_edit_import_alerts?).to be true
+      expect(import_monitoring_answers).to eq(all_answers(true))
     end
 
     it 'denies a user with neither' do
       setup_access_control(user, upload_only_role, collection)
-      expect(policy.can_edit_import_alerts?).to be false
+      expect(import_monitoring_answers).to eq(all_answers(false))
     end
   end
 
