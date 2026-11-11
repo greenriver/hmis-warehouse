@@ -8,7 +8,7 @@
 
 module Admin
   class LinksController < ApplicationController
-    before_action :require_can_edit_users!
+    before_action :require_can_manage_config!
     before_action :set_link, only: [:edit, :update, :destroy]
 
     def index

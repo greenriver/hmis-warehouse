@@ -6,7 +6,7 @@
   "app/controllers/admin/collections_controller.rb": "61b4d72aa86ed75eaf88b172c0b03461ae89371ac20e3e363013225c13322ecb",
   "app/controllers/admin/configs_controller.rb": "baa0570ea64baf7d8cb2e0374dd4c44f9df764dc201fc8dce808439df6cf1f7d",
   "app/controllers/admin/consent_limits_controller.rb": "070f02a648dc6697b010e63d87f2fb35b31383027d891c52e5605e6675a7411f",
-  "app/controllers/admin/public_files_controller.rb": "fb48e1a71e880b1824608b8ae1404def381f15a322f2da931e2dcfd2b2aded6d",
+  "app/controllers/admin/public_files_controller.rb": "bd722893ec2423a5a1ce777d4970d94f8c58e39044a7541698eff712ba2ac224",
   "app/controllers/admin/user_groups_controller.rb": "6b54990447b87ba897a951d81daa650775d6778f940f5016a187a2c4f68af1d0",
   "app/controllers/application_controller.rb": "4a4bf55e9e4507f34048c0af48494502238f9e55d445bcefaa3d90736140508e",
   "app/controllers/application_controller_v2.rb": "8228506de6f7944c4ab41ce1f9e21a6e2d570a7b5df0baea668153b5440cea29",
