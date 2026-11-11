@@ -5455,6 +5455,11 @@ enum FormRole {
   FILE
 
   """
+  Form definition
+  """
+  FORM_DEFINITION
+
+  """
   Form rule
   """
   FORM_RULE
@@ -12720,6 +12725,11 @@ enum StaticFormRole {
   Client alert
   """
   CLIENT_ALERT
+
+  """
+  Form definition
+  """
+  FORM_DEFINITION
 
   """
   Form rule

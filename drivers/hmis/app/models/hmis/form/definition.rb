@@ -113,6 +113,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     :FORM_RULE,
     :PROJECT_CONFIG,
     :CLIENT_ALERT,
+    :FORM_DEFINITION, # Deprecated, this role (and associated form definition row) can be removed in a future release. Kept here for backwards compatibility of deployment.
   ].freeze
 
   # All form roles
@@ -614,11 +615,6 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   # if the enrollment and project match
   def project_and_enrollment_match(...)
     instances.map { |i| i.project_and_enrollment_match(...) }.compact.min_by(&:rank)
-  end
-
-  # should use rails attr normalization in rails 7.1 (ActiveRecord::Base::normalizes)
-  def external_form_object_key=(value)
-    super(value.blank? ? nil : value.strip)
   end
 
   # Walk definition items either as open structs or hashes
