@@ -166,6 +166,24 @@ RSpec.describe GrdaWarehouse::AuthPolicies::DataSourcePolicy, type: :model do
     end
   end
 
+  describe '#can_edit_projects?' do
+    let(:user) { create(:acl_user) }
+    let(:collection) { create(:collection) }
+    let(:policy) { User.find(user.id).policy_for(data_source) }
+    let(:project_editor_role) { create(:role, can_edit_projects: true) }
+
+    it 'allows a user with the permission from a grant on the data source' do
+      collection.set_viewables({ data_sources: [data_source.id] })
+      setup_access_control(user, project_editor_role, collection)
+      expect(policy.can_edit_projects?).to be true
+    end
+
+    it 'denies a user with the permission only on another collection' do
+      setup_access_control(user, project_editor_role, create(:collection))
+      expect(policy.can_edit_projects?).to be false
+    end
+  end
+
   describe '#can_edit_import_alerts?' do
     let(:user) { create(:acl_user) }
     let(:collection) { create(:collection) }
@@ -173,11 +191,17 @@ RSpec.describe GrdaWarehouse::AuthPolicies::DataSourcePolicy, type: :model do
 
     before { collection.set_viewables({ data_sources: [data_source.id] }) }
 
-    it 'allows a user with only the warehouse alerts permission' do
-      alerts_role = create(:role, can_edit_warehouse_alerts: true)
-      setup_access_control(user, alerts_role, create(:collection))
+    let(:alerts_role) { create(:role, can_edit_warehouse_alerts: true) }
+
+    it 'allows a user with the warehouse alerts permission on the data source' do
+      setup_access_control(user, alerts_role, collection)
       expect(policy.can_edit?).to be false
       expect(policy.can_edit_import_alerts?).to be true
+    end
+
+    it 'denies a user with the warehouse alerts permission only on another collection' do
+      setup_access_control(user, alerts_role, create(:collection))
+      expect(policy.can_edit_import_alerts?).to be false
     end
 
     it 'allows a user with an edit grant on the data source' do

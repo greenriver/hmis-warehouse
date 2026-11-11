@@ -60,12 +60,21 @@ RSpec.describe ImportThresholdsController, type: :request do
   context 'with the warehouse alerts permission' do
     let(:alerts_role) { create(:role, can_view_projects: true, can_edit_warehouse_alerts: true) }
 
-    it 'updates the thresholds of a data source the user can view' do
-      collection.set_viewables({ projects: [project.id] })
+    it 'updates the thresholds when the grant covers the data source' do
+      collection.set_viewables({ data_sources: [data_source.id] })
       setup_access_control(user, alerts_role, collection)
 
       patch data_source_import_threshold_path(data_source), params: update_params
       expect(saved_threshold.error_count_min_threshold).to eq(999)
+    end
+
+    it 'does not update the thresholds when the grant covers only one of its projects' do
+      collection.set_viewables({ projects: [project.id] })
+      setup_access_control(user, alerts_role, collection)
+
+      patch data_source_import_threshold_path(data_source), params: update_params
+      expect(response).to redirect_to(root_path)
+      expect(saved_threshold&.error_count_min_threshold).not_to eq(999)
     end
 
     it 'does not update the thresholds of a data source the user cannot view' do
@@ -95,6 +104,37 @@ RSpec.describe ImportThresholdsController, type: :request do
       patch data_source_import_threshold_path(data_source), params: update_params
       expect(saved_threshold.error_count_min_threshold).to eq(999)
       expect(saved_threshold.pause_on_error_threshold).to be(true)
+    end
+  end
+
+  describe 'View chart link for a CSV monitor' do
+    before do
+      create(:grda_warehouse_import_csv_monitor, data_source: data_source, csv_file_name: 'Client.csv')
+      create(
+        :grda_warehouse_monitoring_metric_definition,
+        entity_type: 'GrdaWarehouse::DataSource',
+        category: 'csv_import',
+        subtype: 'Client.csv',
+      )
+    end
+
+    it 'is hidden from a data source editor without the warehouse alerts permission' do
+      collection.set_viewables({ data_sources: [data_source.id] })
+      setup_access_control(user, create(:role, can_view_projects: true, can_edit_data_sources: true), collection)
+
+      get data_source_import_threshold_path(data_source)
+      expect(response.body).to include('Remove this monitor?')
+      expect(response.body).not_to include('View chart')
+    end
+
+    it 'is shown without edit controls to a user with the warehouse alerts permission on another collection' do
+      collection.set_viewables({ projects: [project.id] })
+      setup_access_control(user, create(:role, can_view_projects: true), collection)
+      setup_access_control(user, create(:role, can_edit_warehouse_alerts: true), create(:collection))
+
+      get data_source_import_threshold_path(data_source)
+      expect(response.body).to include('View chart')
+      expect(response.body).not_to include('Remove this monitor?')
     end
   end
 end

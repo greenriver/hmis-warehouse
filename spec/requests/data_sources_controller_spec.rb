@@ -874,4 +874,28 @@ RSpec.describe DataSourcesController, type: :request do
       expect(response.body).to include('Hidden Agency Name')
     end
   end
+
+  describe 'PATCH #update with the project edit permission only on another collection' do
+    let(:project) { create(:hud_project, data_source: data_source, confidential: false) }
+
+    before do
+      collection.set_viewables({ data_sources: [data_source.id] })
+      setup_access_control(user, create(:role, can_view_projects: true, can_edit_data_sources: true), collection)
+      setup_access_control(user, create(:role, can_view_projects: true, can_edit_projects: true), create(:collection))
+      sign_in user
+    end
+
+    it 'does not update the data source or its projects' do
+      patch data_source_path(data_source), params: {
+        grda_warehouse_data_source: {
+          name: 'Renamed',
+          projects_attributes: [{ id: project.id, confidential: '1' }],
+        },
+      }
+
+      expect(response).to redirect_to(root_path)
+      expect(data_source.reload.name).not_to eq('Renamed')
+      expect(project.reload.confidential).to be(false)
+    end
+  end
 end

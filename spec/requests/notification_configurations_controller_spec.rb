@@ -140,15 +140,23 @@ RSpec.describe 'Import alert notification configurations', type: :request do
     end
   end
 
-  context 'with the warehouse alerts permission and view access to one project' do
-    before do
-      collection.set_viewables({ projects: [project.id] })
-      setup_access_control(user, create(:role, can_view_projects: true, can_edit_warehouse_alerts: true), collection)
-    end
+  context 'with the warehouse alerts permission' do
+    let(:alerts_role) { create(:role, can_view_projects: true, can_edit_warehouse_alerts: true) }
 
-    it 'adds threshold and CSV monitor recipients' do
+    it 'adds threshold and CSV monitor recipients when the grant covers the data source' do
+      collection.set_viewables({ data_sources: [data_source.id] })
+      setup_access_control(user, alerts_role, collection)
+
       expect { create_threshold_config }.to change { threshold_configs.count }.by(1)
       expect { create_monitor_config }.to change { monitor_configs.count }.by(1)
+    end
+
+    it 'does not add recipients when the grant covers only one of its projects' do
+      collection.set_viewables({ projects: [project.id] })
+      setup_access_control(user, alerts_role, collection)
+
+      expect { create_threshold_config }.not_to(change { threshold_configs.count })
+      expect { create_monitor_config }.not_to(change { monitor_configs.count })
     end
   end
 

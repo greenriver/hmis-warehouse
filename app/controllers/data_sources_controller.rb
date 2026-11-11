@@ -14,7 +14,7 @@ class DataSourcesController < ApplicationController
   before_action :set_data_source, only: [:show, :edit, :update, :destroy]
   before_action :require_data_source_edit!, only: [:edit, :update]
   # data_source_params permits nested projects_attributes
-  before_action :require_can_edit_projects!, only: [:update]
+  before_action :require_data_source_project_edit!, only: [:update]
   before_action :require_data_source_delete!, only: [:destroy]
   before_action :load_hmis_hostname_options, only: [:new, :create, :edit, :update]
 
@@ -177,6 +177,10 @@ class DataSourcesController < ApplicationController
 
   private def require_data_source_edit!
     not_authorized! unless data_source_policy.can_edit?
+  end
+
+  private def require_data_source_project_edit!
+    not_authorized! unless data_source_policy.can_edit_projects?
   end
 
   private def require_data_source_delete!
