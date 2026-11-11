@@ -30,6 +30,7 @@ RSpec.describe Admin::LinksController, type: :request do
 
     it 'does not create a link' do
       expect { post admin_links_path, params: link_params }.not_to change(Link, :count)
+      expect(response).to redirect_to(user.my_root_path || root_path)
     end
   end
 end

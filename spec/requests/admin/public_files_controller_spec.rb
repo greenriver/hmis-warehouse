@@ -49,6 +49,7 @@ RSpec.describe Admin::PublicFilesController, type: :request do
       expected = GrdaWarehouse::PublicFile.new(name: 'client/hmis_consent', user_id: user.id).tap(&:valid?).errors.full_messages.join('; ')
       expect(expected).not_to be_empty
       expect(flash[:error]).to eq(expected)
+      expect(flash[:error]).not_to include('grda_warehouse_public_file')
     end
   end
 end
