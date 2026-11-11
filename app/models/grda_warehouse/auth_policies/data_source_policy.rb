@@ -11,6 +11,7 @@ class GrdaWarehouse::AuthPolicies::DataSourcePolicy < GrdaWarehouse::AuthPolicie
   [
     [:can_edit_data_sources, :can_edit?],
     [:can_delete_data_sources, :can_delete?],
+    [:can_edit_projects, :can_edit_projects?],
   ].each do |permission, method_name|
     method_name ||= :"#{permission}?"
     define_method(method_name) do
@@ -22,12 +23,11 @@ class GrdaWarehouse::AuthPolicies::DataSourcePolicy < GrdaWarehouse::AuthPolicie
     resource_permissions.include?(:can_edit_data_sources) && resource_permissions.include?(:can_upload_hud_zips)
   end
 
-  # Import thresholds, CSV monitors, and their notification recipients. The warehouse-wide
-  # alerts permission covers every data source (the admin alerts page links here for all of them).
-  # Reading a global flag in a resource policy is usually wrong, but can_edit_warehouse_alerts is
-  # a warehouse-wide admin permission with no entity scope, so there is no collection to check.
+  # Import thresholds, CSV monitors, and their notification recipients. The admin alerts pages
+  # check can_edit_warehouse_alerts globally, but changing one data source's alerts requires the
+  # permission from a grant that covers that data source.
   memoize def can_edit_import_alerts?
-    user.can_edit_warehouse_alerts? || can_edit?
+    resource_permissions.include?(:can_edit_warehouse_alerts) || can_edit?
   end
 
   protected

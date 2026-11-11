@@ -64,16 +64,6 @@ Client features are authorized per client through the destination client policy:
 
 A role that grants these permissions on a project the client is not enrolled in does not grant them for that client.
 
-### Data source permissions
-
-Data source edit and delete rights are authorized per data source through `DataSourcePolicy`:
-
-- `policy.can_edit?` requires `can_edit_data_sources` from a grant on the data source itself. A grant through one of its organizations or projects lets the user see the data source but not edit it.
-- `policy.can_delete?` works the same way with `can_delete_data_sources`.
-- `policy.can_edit_import_alerts?` covers import thresholds, CSV monitors, and their notification recipients. It is `can_edit?` or the warehouse-wide `can_edit_warehouse_alerts`.
-
-Controllers load the data source with `DataSource.viewable_by`, so a data source the user can't see is not found, then check the policy. Viewing requires `can_view_projects`, so a role with `can_edit_data_sources` or `can_delete_data_sources` but not `can_view_projects` can't edit or delete the data source. The data source index uses the `deletable_by` scope instead of a policy per row, to batch the check for the page.
-
 ### Preloading
 
 Before checking policies, PII, or restriction across a list of clients, call `preload_client_dependencies` once with the list. It accepts source or destination ids, widens them to each whole warehouse identity, and loads everything a client policy or PII check reads in a small, fixed number of queries.

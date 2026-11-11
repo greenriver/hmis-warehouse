@@ -70,15 +70,24 @@ RSpec.describe ImportCsvMonitorsController, type: :request do
     end
   end
 
-  context 'with the warehouse alerts permission and view access to one project' do
-    before do
-      collection.set_viewables({ projects: [project.id] })
-      setup_access_control(user, create(:role, can_view_projects: true, can_edit_warehouse_alerts: true), collection)
-    end
+  context 'with the warehouse alerts permission' do
+    let(:alerts_role) { create(:role, can_view_projects: true, can_edit_warehouse_alerts: true) }
 
-    it 'creates a monitor' do
+    it 'creates a monitor when the grant covers the data source' do
+      collection.set_viewables({ data_sources: [data_source.id] })
+      setup_access_control(user, alerts_role, collection)
+
       post data_source_import_csv_monitors_path(data_source), params: create_params
       expect(created_monitor).to be_present
+    end
+
+    it 'does not create a monitor when the grant covers only one of its projects' do
+      collection.set_viewables({ projects: [project.id] })
+      setup_access_control(user, alerts_role, collection)
+
+      post data_source_import_csv_monitors_path(data_source), params: create_params
+      expect(response).to redirect_to(root_path)
+      expect(created_monitor).to be_nil
     end
   end
 
