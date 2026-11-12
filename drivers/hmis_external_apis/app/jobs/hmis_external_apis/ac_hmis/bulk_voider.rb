@@ -32,6 +32,9 @@ module HmisExternalApis::AcHmis
     VOID_FORM_IDENTIFIER = 'void_assessment'
     VOID_CDED_KEY = 'void_assessment_void_all_referrals'
     VOID_REASON_CDED_KEY = 'void_assessment_void_reason'
+    # Optional: only Void Assessments that have the Housing / Rental Assistance / Both choice define this CDED.
+    VOID_FROM_CDED_KEY = 'void_assessment_void_from'
+    VOID_FROM_ALL_WAITLISTS = 'Both'
 
     def perform(destination_client_ids:, ce_project_id:, initiated_by_id: nil, dry_run: false)
       bulk_void_run_id = SecureRandom.uuid
@@ -49,6 +52,7 @@ module HmisExternalApis::AcHmis
       cded_scope = Hmis::Hud::CustomDataElementDefinition.for_type(Hmis::Hud::CustomAssessment.sti_name).where(data_source_id: @data_source_id)
       @void_cded = cded_scope.find_by!(key: VOID_CDED_KEY)
       @void_reason_cded = cded_scope.find_by!(key: VOID_REASON_CDED_KEY)
+      @void_from_cded = cded_scope.find_by(key: VOID_FROM_CDED_KEY)
 
       Rails.logger.info "Bulk voiding #{destination_client_ids.count} destination clients for CE project #{ce_project_id}"
 
@@ -178,6 +182,14 @@ module HmisExternalApis::AcHmis
         user: @hud_system_user,
         data_source_id: assessment.data_source_id,
         value_string: VOID_REASON_TEXT,
+      )
+      return unless @void_from_cded
+
+      assessment.custom_data_elements.create!(
+        data_element_definition: @void_from_cded,
+        user: @hud_system_user,
+        data_source_id: assessment.data_source_id,
+        value_string: VOID_FROM_ALL_WAITLISTS,
       )
     end
   end
