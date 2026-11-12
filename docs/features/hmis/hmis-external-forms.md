@@ -74,10 +74,9 @@ The AWS pieces live outside this repository: the presign Lambda and its API Gate
 
 **New form:**
 
-1. **Build the form** in the Form Builder with role `EXTERNAL_FORM`, and publish it there. To start from an existing form, such as last year's PIT, see the last item under Gotchas.
-2. **Set the object key** in the console. The Form Builder displays it but can't set it:
-   `Hmis::Form::Definition.find(id).update!(external_form_object_key: '<form_name>')`
-   The key is the form's path in the public S3 bucket, so it can include a prefix (`pit/<form_name>`) if needed. Each form identifier needs its own key; one can't be reused across identifiers.
+1. **Build the form** in the Form Builder with role `EXTERNAL_FORM`. To start from an existing form, such as last year's PIT, see the last item under Gotchas.
+2. **Set the External Form Key** when creating the form, or later in the Form Builder's Edit Form Details dialog (the pencil next to the title). The key is required to publish.
+   The key is the form's path in the public S3 bucket, so it can include a prefix (`pit/<form_name>`) if needed. It must be lowercase letters, numbers, `-`, `_`, `.` and `/` (for example `pit.html` or `pit/2027.html`), 100 characters or fewer, and each `/`-separated part must start with a letter or number. Each form identifier needs its own key; one can't be reused across identifiers. The key can be changed until the form is first published; after that, fixing a wrong key needs a developer at the console.
 3. **Add one active form rule** for the project that will review submissions.
 4. **Publish the HTML:** `HmisExternalApis::PublishExternalFormsJob.new.perform(definition_id)`. The form is then live at `https://<public bucket>.s3.amazonaws.com/<external_form_object_key>`. The first publish can take a few minutes to become reachable.
 5. **Test the whole pipeline** (see Gotchas).
@@ -85,7 +84,7 @@ The AWS pieces live outside this repository: the presign Lambda and its API Gate
 
 **Changing an existing form:**
 
-1. **Edit and publish a new version** in the Form Builder. New versions keep the `external_form_object_key`, so you don't need to set it again.
+1. **Edit and publish a new version** in the Form Builder. New versions keep the External Form Key, so you don't need to set it again.
 2. **Republish the HTML** with the new version's ID: `HmisExternalApis::PublishExternalFormsJob.new.perform(new_definition_id)`. The live page is replaced immediately. ([#6550](https://github.com/open-path/Green-River/issues/6550) is outstanding ticket to automate this)
 3. **Test the whole pipeline** (see Gotchas).
 

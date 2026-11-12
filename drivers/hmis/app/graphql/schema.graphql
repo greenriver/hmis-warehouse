@@ -5133,6 +5133,7 @@ type FormDefinitionForJsonResult {
 
 input FormDefinitionInput {
   definition: String
+  externalFormObjectKey: String
   identifier: String
   role: FormRole
   title: String
