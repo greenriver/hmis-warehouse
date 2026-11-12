@@ -28,6 +28,7 @@ class Hmis::ProjectConfig < Hmis::HmisBase
   STAFF_ASSIGNMENT_CONFIG = 'Hmis::ProjectStaffAssignmentConfig'
   CE_CONFIG = 'Hmis::ProjectCeConfig'
   SENDS_DIRECT_CE_REFERRALS_CONFIG = 'Hmis::ProjectSendsDirectCeReferralsConfig'
+  EXTERNAL_FORM_SUBMISSION_NOTIFICATIONS_CONFIG = 'Hmis::ProjectExternalFormSubmissionNotificationConfig'
 
   CONFIG_TYPE_FACTORIES = {
     'AUTO_EXIT' => AUTO_EXIT_CONFIG,
@@ -35,6 +36,7 @@ class Hmis::ProjectConfig < Hmis::HmisBase
     'STAFF_ASSIGNMENT' => STAFF_ASSIGNMENT_CONFIG,
     'COORDINATED_ENTRY' => CE_CONFIG,
     'SENDS_DIRECT_CE_REFERRALS' => SENDS_DIRECT_CE_REFERRALS_CONFIG,
+    'EXTERNAL_FORM_SUBMISSION_NOTIFICATIONS' => EXTERNAL_FORM_SUBMISSION_NOTIFICATIONS_CONFIG,
   }.freeze
 
   validates :type, inclusion: { in: CONFIG_TYPE_FACTORIES.values }
