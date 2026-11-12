@@ -1092,6 +1092,11 @@ enum CeMatchRuleFieldSource {
   CUSTOM_DATA_ELEMENT
 
   """
+  Household
+  """
+  HOUSEHOLD
+
+  """
   HUD
   """
   PSDE
@@ -10150,6 +10155,11 @@ enum ProjectConfigType {
   Coordinated Entry Referrals
   """
   COORDINATED_ENTRY
+
+  """
+  External Form Submission Notifications
+  """
+  EXTERNAL_FORM_SUBMISSION_NOTIFICATIONS
 
   """
   Outgoing Referrals

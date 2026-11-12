@@ -148,6 +148,9 @@ jobs:
           cache-from: type=local,src=/tmp/.buildx-cache/${{ matrix.cache_key }}
           cache-to: type=local,dest=/tmp/.buildx-cache/${{ matrix.cache_key }},mode=max
 
+      - name: Smoke test image
+        run: docker/app/smoke/run.sh ${{ secrets.ECR_REPOSITORY_URI }}
+
       - name: Push image with tags
         env:
           image: ${{ secrets.ECR_REPOSITORY_URI }}

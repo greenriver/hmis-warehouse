@@ -315,5 +315,19 @@
         }
       ]
     }
+  },
+  {
+    "link_id": "R15",
+    "custom_rule": {
+      "operator": "ANY",
+      "parts": [
+        {
+          "_comment": "YYA Navigation (HYS)",
+          "variable": "projectId",
+          "operator": "EQUAL",
+          "value": "821"
+        }
+      ]
+    }
   }
 ]

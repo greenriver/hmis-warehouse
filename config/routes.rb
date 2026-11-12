@@ -701,14 +701,14 @@ Rails.application.routes.draw do
         patch :update
       end
     end
-    resources :links
+    resources :links, except: [:show]
     resources :content_pages
     resources :app_config_properties
     resources :compliance_requirements, except: [:show] do
       post :activate, on: :member
       post :deactivate, on: :member
     end
-    resources :translation_keys, only: [:index, :update]
+    resources :translation_keys, only: [:index]
     resources :translation_text, only: [:update]
     resources :configs, only: [:index] do
       patch :update, on: :collection

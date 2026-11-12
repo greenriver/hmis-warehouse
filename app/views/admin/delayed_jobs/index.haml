@@ -1,6 +1,5 @@
 - title = 'Delayed Jobs'
 - content_for :title, title
 %h1= content_for(:title)
-= render partial: 'menus/admin_tabs'
 
 = render_paginated_list(scope: @jobs, item_name: 'job', list_partial: 'list')
