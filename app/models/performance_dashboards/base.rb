@@ -45,7 +45,7 @@ class PerformanceDashboards::Base
     @veteran_statuses = filter.veteran_statuses
     @project_types = filter.project_type_ids || HudHelper.util.homeless_project_types
     @comparison_pattern = filter.comparison_pattern
-    @sub_population = valid_sub_population(filter.sub_population)
+    @sub_population = filter.sub_population
   end
 
   attr_reader :start_date, :end_date, :coc_codes, :project_types, :filter
@@ -128,10 +128,6 @@ class PerformanceDashboards::Base
   def self.sub_populations
     AvailableSubPopulations.available_sub_populations
     # Reporting::MonthlyReports::Base.available_types.map { |k, klass| [klass.constantize.new.sub_population_title, k] }.to_h
-  end
-
-  def valid_sub_population(population)
-    self.class.sub_populations.values.detect { |m| m == population&.to_sym } || :clients
   end
 
   # @return filtered scope

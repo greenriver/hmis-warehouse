@@ -127,3 +127,99 @@ RSpec.describe WarehouseReports::PiiDetailRows, type: :model do
     end
   end
 end
+
+RSpec.describe WarehouseReports::PiiDetailRows, 'with a project or caller-supplied policy', type: :model do
+  subject(:redactor) { Class.new { include WarehouseReports::PiiDetailRows }.new }
+
+  let!(:collection) { create(:collection) }
+  let!(:role) { create(:role, can_view_client_name: true, can_view_full_ssn: true, can_view_full_dob: true, can_view_projects: true) }
+  let!(:user) { create(:acl_user) }
+  let!(:project) { create(:hud_project) }
+
+  let!(:hmis_ds) { create(:hmis_primary_data_source) }
+  let!(:hmis_user) { create(:hmis_user, data_source: hmis_ds) }
+  let!(:restricted_source_client) { create(:hmis_hud_client, data_source: hmis_ds, first_name: 'Restricted', last_name: 'Client') }
+  let!(:restricted_destination_client) { create(:grda_warehouse_hud_client, FirstName: 'Restricted', LastName: 'Client') }
+  let!(:open_destination_client) { create(:grda_warehouse_hud_client, FirstName: 'Open', LastName: 'Doe') }
+
+  let(:headers) { ['Client ID', 'First Name', 'Last Name', 'DOB', 'SSN'] }
+  let(:open_row) { [open_destination_client.id, 'Open', 'Doe', Date.new(1985, 6, 15), '987654321'] }
+  let(:restricted_row) { [restricted_destination_client.id, 'Restricted', 'Client', Date.new(1990, 1, 1), '123456789'] }
+
+  def redacted_row(client_id)
+    [
+      client_id,
+      GrdaWarehouse::PiiProvider::NAME_REDACTED,
+      GrdaWarehouse::PiiProvider::NAME_REDACTED,
+      GrdaWarehouse::PiiProvider::REDACTED,
+      GrdaWarehouse::PiiProvider::REDACTED,
+    ]
+  end
+
+  before do
+    collection.set_viewables({ projects: [project.id] })
+    setup_access_control(user, role, collection)
+    GrdaWarehouse::WarehouseClient.create!(
+      destination_id: restricted_destination_client.id,
+      source_id: restricted_source_client.id,
+      data_source_id: hmis_ds.id,
+      id_in_source: restricted_source_client.id.to_s,
+    )
+    restricted_source_client.mark_as_restricted!(user: hmis_user)
+  end
+
+  it 'shows PII the project role allows when no policy is given' do
+    result = redactor.redact_pii_in_row(open_row, headers: headers, user: user, mode: :browse, project_id: project.id)
+
+    expect(result).to eq([open_destination_client.id, 'Open', 'Doe', Date.new(1985, 6, 15), '987-65-4321'])
+  end
+
+  it 'uses the given policy in place of the project role' do
+    result = redactor.redact_pii_in_row(
+      open_row,
+      headers: headers,
+      user: user,
+      mode: :browse,
+      project_id: project.id,
+      policy: GrdaWarehouse::AuthPolicies::DenyPiiPolicy.instance,
+    )
+
+    expect(result).to eq(redacted_row(open_destination_client.id))
+  end
+
+  it 'redacts a restricted client even when the given policy allows PII' do
+    result = redactor.redact_pii_in_row(
+      restricted_row,
+      headers: headers,
+      user: user,
+      mode: :browse,
+      policy: GrdaWarehouse::AuthPolicies::AllowPiiPolicy.instance,
+    )
+
+    expect(result).to eq(redacted_row(restricted_destination_client.id))
+  end
+
+  context 'when downloading with a given policy' do
+    after { GrdaWarehouse::Config.invalidate_cache }
+
+    def download_with_allow_policy(include_pii:)
+      GrdaWarehouse::Config.first_or_create.update!(include_pii_in_detail_downloads: include_pii)
+      GrdaWarehouse::Config.invalidate_cache
+      redactor.redact_pii_in_row(
+        open_row,
+        headers: headers,
+        user: user,
+        mode: :download,
+        policy: GrdaWarehouse::AuthPolicies::AllowPiiPolicy.instance,
+      )
+    end
+
+    it 'redacts PII when include_pii_in_detail_downloads is off' do
+      expect(download_with_allow_policy(include_pii: false)).to eq(redacted_row(open_destination_client.id))
+    end
+
+    it 'shows PII the policy allows when include_pii_in_detail_downloads is on' do
+      expect(download_with_allow_policy(include_pii: true)).to eq([open_destination_client.id, 'Open', 'Doe', Date.new(1985, 6, 15), '987-65-4321'])
+    end
+  end
+end

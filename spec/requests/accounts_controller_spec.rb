@@ -127,5 +127,16 @@ RSpec.describe AccountsController, :devise_only, type: :request do
         expect(flash[:notice]).to eq('Account name was updated. Email schedule was updated. Phone number was updated.')
       end
     end
+
+    it 'ignores otp_required_for_login on profile update' do
+      user_2fa = create(:user_2fa)
+      sign_in(user_2fa)
+
+      patch account_path, params: { user: { first_name: 'Renamed', last_name: user_2fa.last_name, otp_required_for_login: 'false' } }
+
+      user_2fa.reload
+      expect(user_2fa.first_name).to eq('Renamed')
+      expect(user_2fa.otp_required_for_login).to be(true)
+    end
   end
 end
