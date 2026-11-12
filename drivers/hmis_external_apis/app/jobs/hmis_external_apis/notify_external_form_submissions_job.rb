@@ -12,6 +12,8 @@
 # Order matters for failure handling: find the recipients, then enqueue the emails, then stamp. If
 # finding recipients raises, nothing has been sent or stamped and the next run starts clean. Emails
 # are delivered in their own jobs so a failed send doesn't affect other recipients.
+#
+# See docs/features/hmis/hmis-external-forms.md for more details.
 class HmisExternalApis::NotifyExternalFormSubmissionsJob < BaseJob
   queue_as ENV.fetch('DJ_SHORT_QUEUE_NAME', :short_running)
 

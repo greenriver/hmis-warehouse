@@ -10,6 +10,8 @@
 #
 # Never include client PII or submission content: this mailer receives only IDs and a count, and
 # must not load FormSubmission records (raw_data and notes are PII).
+#
+# See docs/features/hmis/hmis-external-forms.md for more details.
 class HmisExternalApis::ExternalFormSubmissionNotificationMailer < ::DatabaseMailer
   # Mailers don't pick up the driver view paths registered in config/initializers/driver_setup.rb
   prepend_view_path File.expand_path('../../views', __dir__)
