@@ -56,6 +56,12 @@ class GrdaWarehouse::AuthPolicies::UserAclContext < GrdaWarehouse::AuthPolicies:
     preload_collection_ids_by_project(project_ids)
   end
 
+  # ACL users need a grant on a confidential project's organization (or its data source) to see
+  # the organization's name. A grant on the project alone reveals only the project name.
+  def organization_name_requires_organization_grant?
+    true
+  end
+
   # Duck-typed for legacy role-based permissions
   def legacy_permissions
     EMPTY_SET

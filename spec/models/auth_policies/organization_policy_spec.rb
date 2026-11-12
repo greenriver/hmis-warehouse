@@ -243,13 +243,16 @@ RSpec.describe GrdaWarehouse::AuthPolicies::OrganizationPolicy, type: :model do
           expect(project.organization_name(user)).to eq(organization.OrganizationName)
         end
 
-        it 'is false when an access group includes only a project in the organization' do
+        # Legacy users see a confidential project's organization name whenever they see the
+        # project name, unlike ACL users, who also need a grant on the organization.
+        it 'is false when an access group includes only a project in the organization, but the project shows the organization name' do
           access_group.add_viewable(project)
 
           expect(policy.can_view_name?).to be false
+          expect(organization.name(user)).to eq(masked_organization_name)
           expect(project.name(user)).to eq('Hidden Project')
-          expect(project.organization_name(user)).to eq(masked_organization_name)
-          expect(project.organization_and_name(user)).to eq('Hidden Project')
+          expect(project.organization_name(user)).to eq(organization.OrganizationName)
+          expect(project.organization_and_name(user)).to eq("#{organization.OrganizationName} / Hidden Project")
         end
 
         it 'is false when no access group includes the organization or its data source' do
