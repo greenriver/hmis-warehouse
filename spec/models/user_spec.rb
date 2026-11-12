@@ -100,6 +100,38 @@ RSpec.describe User, type: :model do
       expect(results).not_to include(user1)
     end
 
+    it 'finds a user by id' do
+      expect(User.text_search(" #{user3.id} ")).to eq([user3])
+    end
+
+    it 'still text searches a bare number' do
+      user4 = create(:user, email: 'case.worker.8675309@example.com')
+      expect(User.text_search('8675309')).to include(user4)
+    end
+
+    it 'finds a user by a short id' do
+      # any free id under 100 keeps the query below 3 characters
+      user4 = create(:user, id: (1..99).find { |i| !User.with_deleted.exists?(id: i) })
+      expect(User.text_search(user4.id.to_s)).to eq([user4])
+    end
+
+    it 'matches a short number by id only, not by email' do
+      create(:user, email: 'case.worker.0@example.com')
+      expect(User.text_search('0')).to be_empty
+    end
+
+    it 'ranks the id match ahead of email matches when sorting by best match' do
+      # zero-padded so the query stays at least 3 characters, whatever user3's id is
+      query = user3.id.to_s.rjust(3, '0')
+      user4 = create(:user, email: "case.worker.#{query}@example.com")
+      expect(User.text_search(query, sort_by_best_match: true).to_a).to eq([user3, user4])
+    end
+
+    it 'returns none for an id wider than bigint' do
+      expect(User.text_search('99999999999999999999')).to be_empty
+      expect(User.text_search('99999999999999999999', sort_by_best_match: true)).to be_empty
+    end
+
     it 'returns none for no match' do
       results = User.text_search('Nonexistent')
       expect(results).to be_empty

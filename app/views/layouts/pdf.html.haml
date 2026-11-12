@@ -12,11 +12,6 @@
     = inline_stylesheet_link_tag 'application'
     = inline_stylesheet_link_tag 'print'
 
-    = cache('theme', expires_in: 4.hours) do
-      - Dir.glob('app/assets/stylesheets/theme/styles/*.scss') do |stylesheet|
-        - theme_styles = "theme/styles/#{File.basename(stylesheet, '.scss')}"
-        = inline_stylesheet_link_tag(theme_styles)
-
     = render 'layouts/favicon'
     = csrf_meta_tags
 

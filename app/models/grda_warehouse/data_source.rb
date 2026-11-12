@@ -722,7 +722,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
   #
   memoize def ever_pause_imports_with_record_changes?
     return false unless import_threshold.present?
-    return false unless import_threshold.pause_on_error_threshold
+    return false unless import_threshold.pause_on_record_count_threshold
 
     import_threshold.record_count_change_min_threshold.present? && import_threshold.record_count_change_percent_threshold.present?
   end

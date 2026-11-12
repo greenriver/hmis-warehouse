@@ -128,24 +128,8 @@ module Importing
         GrdaWarehouse::ChEnrollment.maintain!
         @notifier.ping('Done Pre-calculating Chronically Homeless at Entry')
 
-        # Only run the chronic calculator on the 1st and 15th
-        # but run it for the past 2 of each
-        if @start_time.to_date.day.in?([1, 15])
-          months_to_build = 6
-          dates = []
-          months_to_build.times do |i|
-            dates << i.months.ago.change(day: 15).to_date
-            dates << i.months.ago.change(day: 1).to_date
-          end
-          dates.select! { |m| m <= Date.current }
-
-          dates.each do |date|
-            GrdaWarehouse::Tasks::ChronicallyHomeless.new(date: date).run!
-            GrdaWarehouse::Tasks::DmhChronicallyHomeless.new(date: date).run!
-            GrdaWarehouse::Tasks::HudChronicallyHomeless.new(date: date).run!
-          end
-          @notifier.ping('Chronically homeless calculated')
-        end
+        # Only recalculate the chronic lists on the configured days of the month
+        recalculate_chronic_lists if @start_time.to_date.day.in?(chronic_list_recalculation_days)
       end
 
       run_maintenance_task('Finalize client history') do
@@ -205,6 +189,44 @@ module Importing
         create_statistical_matches
         generate_logging_info
         shs_debugging_counts
+      end
+    end
+
+    # Recalculate the point-in-time chronic lists (GrdaWarehouse::Chronic, including DMH,
+    # and GrdaWarehouse::HudChronic) for each configured day of each of the last
+    # `months_to_build` months (including the current one), skipping future dates.
+    # This does not affect the official calculation (GrdaWarehouse::ChEnrollment).
+    # @see docs/features/warehouse/homeless-episodes.md
+    def recalculate_chronic_lists
+      # Staff-managed setting; 0 disables the recalculation.
+      # Only admins (engineers) set this, so it is intentionally not validated.
+      configured_months = AppConfigProperty.find_by(key: 'chronic_list_recalculation/months_to_build')&.value
+      months_to_build = Integer(configured_months || 6)
+
+      dates = []
+      months_to_build.times do |i|
+        month = i.months.ago.to_date
+        chronic_list_recalculation_days.each do |day|
+          dates << month.change(day: day)
+        end
+      end
+      dates.select! { |m| m <= Date.current }
+
+      dates.each do |date|
+        GrdaWarehouse::Tasks::ChronicallyHomeless.new(date: date).run!
+        GrdaWarehouse::Tasks::DmhChronicallyHomeless.new(date: date).run!
+        GrdaWarehouse::Tasks::HudChronicallyHomeless.new(date: date).run!
+      end
+      @notifier.ping('Chronically homeless calculated')
+    end
+
+    # Staff-managed setting: days of the month (1-28) on which the recalculation runs,
+    # and which it recalculates, e.g. [10, 25]. Intentionally kept simple and not
+    # validated, like `months_to_build` above.
+    def chronic_list_recalculation_days
+      @chronic_list_recalculation_days ||= begin
+        configured_days = AppConfigProperty.find_by(key: 'chronic_list_recalculation/days_of_month')&.value
+        Array(configured_days || [1, 15]).map { |day| Integer(day) }
       end
     end
 

@@ -34,8 +34,6 @@ RSpec.describe 'oauth2-proxy skip_auth_routes', :jwt_only do
         'Ends the IdP session with the access token oauth2-proxy forwards; skips user auth only so deactivated users can sign out',
       /\A\/hmis\/system_status\// => 'Same actions as /system_status/, which the proxy opens',
       /\A\/hmis\/themes?\z/ => 'QA theme switching from a signed-in session; the default theme comes from /hmis/app_settings',
-      /\A\/clients\/:client_id\/history\/pdf\z/ =>
-        'No HTTP caller; ClientHistory#generate_service_history_pdf renders the template in-process',
     }
   end
 

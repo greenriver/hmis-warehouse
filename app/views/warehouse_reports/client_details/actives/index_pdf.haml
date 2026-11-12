@@ -19,6 +19,6 @@
 
 %section
   %p
-    - unique_clients = @report.enrollment_scope.distinct.count(:client_id)
-    = "The following #{number_with_delimiter(unique_clients)} clients with #{number_with_delimiter(@report.enrollment_scope.count)} enrollments, have at least one day of service between #{@filter.start} and #{@filter.end}."
+    - counts = @report.counts
+    = "The following #{number_with_delimiter(counts[:clients])} clients with #{number_with_delimiter(counts[:enrollments])} enrollments, have at least one day of service between #{@filter.start} and #{@filter.end}."
 

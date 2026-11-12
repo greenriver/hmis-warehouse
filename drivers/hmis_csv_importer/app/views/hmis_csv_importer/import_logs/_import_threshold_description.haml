@@ -4,7 +4,7 @@
     .d-block
       %p
         %strong #{@import.data_source.name}
-        is currently set to prevent pause imports if the following conditions are met:
+        is set to pause imports if the following conditions are met:
       - threshold = @import.data_source.import_threshold
       %ul
         - if threshold.pause_on_error_threshold
