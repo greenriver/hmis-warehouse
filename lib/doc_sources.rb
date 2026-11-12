@@ -75,9 +75,12 @@ module DocSources
     end
   end
 
-  def missing_sources(root)
+  # Reports only what the PR caused: a doc it edited, or a source it deleted or renamed away.
+  # `changed_paths` must come from a diff with renames off, so a renamed file's old path is in it.
+  def missing_sources(root, changed_paths)
     root = Pathname(root)
-    sources_by_doc(root) do |sources|
+    sources_by_doc(root) do |sources, doc_path|
+      sources &= changed_paths unless changed_paths.include?(doc_path)
       sources.reject { |source| root.join(source).file? }
     end
   end
@@ -103,10 +106,10 @@ module DocSources
     by_doc.map { |doc, sources| "- `#{doc}`: #{sources.map { |source| "`#{source}`" }.join(', ')}" }.join("\n")
   end
 
-  # Yields each doc's sorted, unique sources; keeps docs where the block returns any.
+  # Yields each doc's unique sources and its path; keeps docs where the block returns any, sorted.
   def sources_by_doc(root)
     docs(root).each_with_object({}) do |doc, result|
-      matched = yield(Array(doc.frontmatter['sources']).uniq).sort
+      matched = yield(Array(doc.frontmatter['sources']).uniq, doc.path).sort
       result[doc.path] = matched if matched.any?
     end
   end

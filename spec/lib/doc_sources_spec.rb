@@ -140,15 +140,31 @@ RSpec.describe DocSources, type: :lib do
   end
 
   describe '.missing_sources' do
-    it 'lists listed sources that are not files, sorted, and omits docs with none missing' do
+    let(:other_path) { 'docs/features/warehouse/other.md' }
+
+    it 'lists every missing source of a changed doc, sorted, and omits changed docs with none missing' do
       write('app/present.rb', 'x')
       write('app/dir/keep.rb', 'x')
       write_doc(doc_path, sources: ['app/z_gone.rb', 'app/present.rb', 'app/a_gone.rb', 'app/dir'])
-      write_doc('docs/features/warehouse/ok.md', sources: ['app/present.rb'])
+      write_doc(other_path, sources: ['app/present.rb'])
 
-      expect(DocSources.missing_sources(@root)).to eq(
+      expect(DocSources.missing_sources(@root, [doc_path, other_path])).to eq(
         { doc_path => ['app/a_gone.rb', 'app/dir', 'app/z_gone.rb'] },
       )
+    end
+
+    it 'lists a missing source of an unchanged doc only when the source itself changed' do
+      write_doc(doc_path, sources: ['app/deleted.rb', 'app/already_gone.rb'])
+
+      expect(DocSources.missing_sources(@root, ['app/deleted.rb'])).to eq(
+        { doc_path => ['app/deleted.rb'] },
+      )
+    end
+
+    it 'omits an unchanged doc whose missing sources did not change' do
+      write_doc(doc_path, sources: ['app/already_gone.rb'])
+
+      expect(DocSources.missing_sources(@root, ['app/unrelated.rb'])).to eq({})
     end
   end
 
