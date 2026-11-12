@@ -56,6 +56,8 @@ RSpec.describe GrdaWarehouse::AuthPolicies::DataSourcePolicy, type: :model do
     GrdaWarehouse::DataSource.viewable_by(fresh_user).exists?(id: data_source.id)
   end
 
+  # DataSourcesController#destroy loads the record through viewable_by before asking the policy,
+  # so a deletable data source that isn't viewable would show a Delete button that 404s.
   def expect_answers(user, edit:, delete:)
     expect(answers_for(user)).to eq(
       editable_by: edit,
@@ -63,6 +65,7 @@ RSpec.describe GrdaWarehouse::AuthPolicies::DataSourcePolicy, type: :model do
       deletable_by: delete,
       can_delete: delete,
     )
+    expect(viewable?(user)).to be(true) if delete
   end
 
   context 'with an ACL user' do

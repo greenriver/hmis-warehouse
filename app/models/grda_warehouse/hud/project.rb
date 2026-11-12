@@ -768,16 +768,12 @@ module GrdaWarehouse::Hud
       "#{organization&.OrganizationName} / #{project_name}"
     end
 
-    # The organization name of a confidential project is shown only when the user may see both
-    # the project name and the organization name. A grant on the project alone reveals the
-    # project name but not the name of its organization. Imported projects can reference an
-    # OrganizationID with no matching organization; there is no name to show then.
+    # Policy lookups are memoized per project and organization, so a list pays per distinct
+    # confidential project and organization, not per row.
     private def organization_name_visible_to?(user)
       return true unless confidential?
-      return false if organization.blank?
-      return false unless user&.policy_for(self)&.can_view_name?
 
-      user.policy_for(organization).can_view_name?
+      user&.policy_for(self)&.can_view_organization_name? || false
     end
 
     def name_and_type(ignore_confidential_status: false)
