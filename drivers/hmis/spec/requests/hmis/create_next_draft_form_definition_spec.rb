@@ -87,6 +87,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(new_draft.external_form_object_key).to be_nil
       expect(retired_form.reload.external_form_object_key).to eq('pit')
     end
+
+    it 'keeps the form that reused the key valid after the retired form gets a new draft' do
+      reusing_form = create :hmis_external_form_definition, status: Hmis::Form::Definition::PUBLISHED, external_form_object_key: 'pit', data_source: ds1
+      new_draft_for(retired_form.identifier)
+      expect(reusing_form.reload).to be_valid
+    end
   end
 
   it 'should error if the form is managed in version control' do

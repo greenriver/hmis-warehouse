@@ -39,7 +39,7 @@ module Mutations
 
       # When the most recent version is a retired External Form, another form may have reused its object key since.
       # Leave the key off the new draft in that case; it must be set again before publishing.
-      key_reused = definition.external_form_object_key.present? && !definition.valid? && definition.errors.include?(:external_form_object_key)
+      key_reused = definition.external_form_object_key.present? && !definition.valid? && definition.errors.of_kind?(:external_form_object_key, :taken)
       definition.external_form_object_key = nil if key_reused
 
       definition.save!
