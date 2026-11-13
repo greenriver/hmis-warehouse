@@ -13,8 +13,10 @@ module HmisExternalApis
       API_KEY = 'apikey'.freeze,
     ].freeze
 
+    # Internal systems that external systems can authenticate to with an inbound API key.
+    # 'Referrals' was removed with the inbound LINK Referral API; existing rows are left in place
+    # but are no longer offered when creating keys.
     NAMES = [
-      'Referrals',
       'Involvements',
     ].freeze
 
