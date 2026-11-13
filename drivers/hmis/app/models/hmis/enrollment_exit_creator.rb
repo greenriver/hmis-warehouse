@@ -31,7 +31,7 @@
 # - acting_user_id: application user to record as the actor (Defaults to System User)
 # - auto_exited: optional DateTime (e.g. from Auto Exit Job); when set, stored on Exit.auto_exited.
 #
-# @see docs/features/hmis/hmis-auto-exit.md End-user documentation for Auto-Exit behavior and exit date rules
+# @see docs/features/hmis/hmis-auto-exit.md for more details
 class Hmis::EnrollmentExitCreator
   def self.call(**args)
     new(**args).call
