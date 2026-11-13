@@ -8,8 +8,9 @@
 
 class NotificationConfigurationsController < ApplicationController
   include AjaxModalRails::Controller
-  before_action :require_can_view_imports_projects_or_organizations!, only: [:show]
+  include ImportMonitoringAuthorization
   before_action :data_source
+  before_action :require_can_edit_import_alert_recipients!
   before_action :import_threshold
 
   def new
@@ -56,7 +57,7 @@ class NotificationConfigurationsController < ApplicationController
 
   def notification_configuration
     @notification_configuration ||= if params[:id].present?
-      GrdaWarehouse::NotificationConfiguration.find_safely(params[:id])
+      GrdaWarehouse::NotificationConfiguration.where(source: import_threshold).find_safely(params[:id])
     else
       GrdaWarehouse::NotificationConfiguration.new(
         source: import_threshold,

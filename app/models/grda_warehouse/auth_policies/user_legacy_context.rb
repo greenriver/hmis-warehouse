@@ -56,6 +56,12 @@ class GrdaWarehouse::AuthPolicies::UserLegacyContext < GrdaWarehouse::AuthPolici
     preload_access_group_ids_by_project(project_ids)
   end
 
+  # Legacy (role-based) users see a confidential project's organization name when they can see
+  # the project name: some access to the project plus Can View Confidential Project Names.
+  def organization_name_requires_organization_grant?
+    false
+  end
+
   memoize def legacy_permissions
     user.legacy_roles.flat_map(&:granted_permissions).to_set.freeze
   end

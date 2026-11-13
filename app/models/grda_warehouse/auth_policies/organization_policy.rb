@@ -17,6 +17,13 @@ class GrdaWarehouse::AuthPolicies::OrganizationPolicy < GrdaWarehouse::AuthPolic
     end
   end
 
+  # for confidential organizations, is there permission to view the name
+  def can_view_name?
+    return true unless organization.confidential?
+
+    resource_permissions.include?(:can_edit_organizations) || resource_permissions.include?(:can_view_confidential_project_names)
+  end
+
   protected
 
   def validate_resource!(arg)
