@@ -14,7 +14,7 @@
 #
 # @see docs/features/warehouse/service-history.md
 class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
-  # Extensions from drivers — see ADR 0007
+  # Extensions from drivers — see docs/architecture/08-concepts/08-3-driver-module-pattern.md
   include AdultOnlyHouseholdsSubPop::GrdaWarehouse::ServiceHistoryEnrollmentExtension
   include AdultsWithChildrenSubPop::GrdaWarehouse::ServiceHistoryEnrollmentExtension
   include AdultsWithChildrenTwentyfivePlusHohSubPop::GrdaWarehouse::ServiceHistoryEnrollmentExtension

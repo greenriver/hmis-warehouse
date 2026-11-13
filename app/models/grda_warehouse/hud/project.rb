@@ -81,7 +81,7 @@ module GrdaWarehouse::Hud
     belongs_to :project_cocs_with_deleted, class_name: 'GrdaWarehouse::Hud::WithDeleted::ProjectCoc', primary_key: [:ProjectID, :data_source_id], foreign_key: [:ProjectID, :data_source_id], optional: true
 
     # Needs to come after has_many :enrollments, bc one extension uses a has_many through: :enrollments relation
-    # Extensions from drivers — see ADR 0007
+    # Extensions from drivers — see docs/architecture/08-concepts/08-3-driver-module-pattern.md
     include ClientAccessControl::GrdaWarehouse::Hud::ProjectExtension
     include ClientLocationHistory::GrdaWarehouse::Hud::ProjectExtension
     include HmisCsvImporter::GrdaWarehouse::Hud::ProjectExtension
