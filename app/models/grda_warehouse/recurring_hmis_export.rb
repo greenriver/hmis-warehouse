@@ -50,6 +50,16 @@ module GrdaWarehouse
 
     def run
       filter = ::Filters::HmisExport.new(filter_hash)
+      # Skip rather than deliver an empty export. No link is recorded, so the run is
+      # retried each day and resumes once the selection resolves to a visible project
+      if filter.project_selection_hidden?
+        Sentry.capture_message(
+          "RecurringHmisExport #{id}: none of the selected projects resolve to a project user #{user_id} can see; skipping run",
+          level: :warning,
+        )
+        return
+      end
+
       filter.adjust_reporting_period
       filter.schedule_job(report_url: nil)
     end

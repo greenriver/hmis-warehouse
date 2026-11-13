@@ -1,3 +1,11 @@
+---
+sources:
+  - drivers/hmis/app/jobs/hmis/merge_clients_job.rb
+  - drivers/hmis/app/jobs/hmis/undo_merge_clients_job.rb
+  - drivers/hmis/app/models/hmis/client_merge_audit.rb
+  - drivers/hmis/app/models/hmis/client_merge_history.rb
+---
+
 # HMIS Client Merges
 
 ## Overview
@@ -132,3 +140,12 @@ However, note that **destination clients are not necessarily deleted** because:
 - A warehouse destination client may have multiple source clients
 - Even if one HMIS source client is merged away, the warehouse client remains active if it still has other source clients pointing to it
 - Only warehouse clients with no remaining source clients are cleaned up
+
+### Restrictions and merges
+
+- **A merged client is restricted if any source was.** The retained client is marked restricted when any merged client was.
+- **Warehouse restrictions carry over.** A warehouse restriction is a row on the destination client, not the HMIS client. Because the merge destroys the deleted clients' `WarehouseClient` links, `MergeClientsJob` restricts the retained client's destination before that happens (linking the client first if needed), and releases destinations left with no other source. If the retained client can't be linked, the merge raises and rolls back.
+- **Known gap: lock timeout.** Linking waits only briefly for the duplicate-identification lock. While a full `IdentifyDuplicates` run holds it, a merge that must carry a restriction to an unlinked client rolls back; retry after the run finishes.
+- **Undo does not move the restriction back.** The retained destination stays restricted, and the restored client is unrestricted in the warehouse if duplicate identification places it under a different destination.
+- **Undo keeps the audit.** It destroys the `ClientMergeHistory` row so the clients no longer appear linked in search, but keeps the `ClientMergeAudit`.
+- **Moving a new kind of client-owned record.** Record its prior foreign key in `pre_merge_mappings` and add the key to `ClientMergeAudit::PRE_MERGE_MAPPING_EXPECTED_FIELDS` and a restore step in the undo job, or undo silently skips those records.

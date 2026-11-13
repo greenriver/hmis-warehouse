@@ -1,3 +1,11 @@
+---
+sources:
+  - drivers/hmis/app/models/hmis/form/definition.rb
+  - drivers/hmis/app/graphql/mutations/create_next_draft_form_definition.rb
+  - drivers/hmis/app/graphql/mutations/publish_form_definition.rb
+  - drivers/hmis/lib/hmis_util/json_forms.rb
+---
+
 # HMIS form definitions
 
 Nearly all data entry in the HMIS front-end is driven by a **form definition**. This document covers the `Hmis::Form::Definition` model itself — its columns, its roles, and its status lifecycle. It is the entry point to the other form docs.
@@ -41,7 +49,7 @@ A definition's `role` determines what record the form owns, which mutation submi
 | Assessment | `INTAKE`, `UPDATE`, `ANNUAL`, `EXIT`, `POST_EXIT`, `CUSTOM_ASSESSMENT` | Own a `CustomAssessment`; submitted via `SubmitAssessment`. Only these support save-in-progress. See [HMIS assessments](hmis-assessments.md) |
 | System record | `PROJECT`, `ORGANIZATION`, `PROJECT_COC`, `FUNDER`, `INVENTORY`, `CLIENT`, `NEW_CLIENT_ENROLLMENT`, `ENROLLMENT`, `HMIS_PARTICIPATION`, `CE_PARTICIPATION` | Required for basic HMIS function. Resolution raises if one is missing |
 | Data collection feature | `CURRENT_LIVING_SITUATION`, `SERVICE`, `CE_EVENT`, `CE_ASSESSMENT`, `CASE_NOTE`, `EXTERNAL_FORM` | Optional per-project features, toggled on by an active form rule. |
-| Static | `FORM_RULE`, `PROJECT_CONFIG`, `CLIENT_ALERT`, `FORM_DEFINITION` | Admin config forms. Not configurable, need no rule, submitted by bespoke mutations |
+| Static | `FORM_RULE`, `PROJECT_CONFIG`, `CLIENT_ALERT`, `FORM_DEFINITION` (deprecated) | Admin config forms. Not configurable, need no rule, submitted by bespoke mutations. |
 | Other | `OCCURRENCE_POINT`, `CLIENT_DETAIL`, `FILE`, `CE_REFERRAL_STEP` | |
 
 The system record and data collection feature roles are "record forms," submitted via `SubmitForm`. `FORM_ROLE_CONFIG` maps each role to its `owner_class` — the record type the form creates or edits. Two roles in those groups are exceptions: `CE_REFERRAL_STEP` has its own mutation, and `EXTERNAL_FORM` arrives through the external pipeline rather than a submit mutation. See [Form processing](hmis-form-processing.md#submission-approaches).

@@ -5133,6 +5133,7 @@ type FormDefinitionForJsonResult {
 
 input FormDefinitionInput {
   definition: String
+  externalFormObjectKey: String
   identifier: String
   role: FormRole
   title: String
@@ -10156,6 +10157,11 @@ enum ProjectConfigType {
   Coordinated Entry Referrals
   """
   COORDINATED_ENTRY
+
+  """
+  External Form Submission Notifications
+  """
+  EXTERNAL_FORM_SUBMISSION_NOTIFICATIONS
 
   """
   Outgoing Referrals

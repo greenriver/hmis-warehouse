@@ -93,6 +93,11 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Exports::AdHoc, type: :model do
       expect(restricted_row.values_at('First Name', 'Last Name')).to eq(['Name Redacted', 'Name Redacted'])
       expect(open_row.values_at('First Name', 'Last Name')).to eq(['Name Redacted', 'Name Redacted'])
     end
+
+    it 'raises for an unregistered sub-population in stored options' do
+      stale = described_class.create!(user_id: running_user.id, options: ad_hoc_options.merge(sub_population: 'not_a_real_population'))
+      expect { stale.rows_for_export }.to raise_error(AvailableSubPopulations::UnknownSubPopulation)
+    end
   end
 
   # Projects the running user reaches in different ways, each with one client enrolled, plus one
@@ -156,6 +161,21 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Exports::AdHoc, type: :model do
             it 'excludes clients enrolled only in that project' do
               expect(client_ids(ad_hoc)).not_to include(services_only_client.id)
             end
+          end
+        end
+
+        context 'when only a viewable non-residential project is selected' do
+          let!(:services_only_project) { create(:hud_project, organization: organization, data_source: hmis_ds, ProjectType: 6) } # SSO
+          let!(:services_only_client) { create(:grda_warehouse_hud_client, FirstName: 'Services', LastName: 'Only', DOB: 20.years.ago.to_date) }
+          let!(:services_only_she) { build_open_enrollment(services_only_client, services_only_project) }
+          # The default `:clients` sub-population requires a homeless enrollment somewhere
+          let!(:services_only_homeless_she) { build_open_enrollment(services_only_client) }
+          let(:selection) { { project_ids: [services_only_project.id] } }
+
+          before { grant_project_access(running_user, role, [services_only_project], mode: access_mode) }
+
+          it 'includes only clients enrolled in that project' do
+            expect(client_ids(ad_hoc)).to contain_exactly(services_only_client.id)
           end
         end
 

@@ -93,4 +93,14 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     fd = create(:hmis_form_definition, managed_in_version_control: true, data_source: ds1)
     expect_access_denied post_graphql(identifier: fd.identifier) { mutation }
   end
+
+  it 'keeps the external form object key on the new draft, so it stays locked across versions' do
+    external_form = create :hmis_external_form_definition, status: Hmis::Form::Definition::PUBLISHED, external_form_object_key: 'pit-2027', data_source: ds1
+    response, result = post_graphql(identifier: external_form.identifier) { mutation }
+    expect(response.status).to eq(200), result.inspect
+
+    new_draft = Hmis::Form::Definition.find(result.dig('data', 'createNextDraftFormDefinition', 'formIdentifier', 'draftVersion', 'id'))
+    expect(new_draft.version).to eq(external_form.version + 1)
+    expect(new_draft.external_form_object_key).to eq('pit-2027')
+  end
 end

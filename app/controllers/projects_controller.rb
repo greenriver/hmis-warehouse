@@ -56,6 +56,12 @@ class ProjectsController < ApplicationControllerV2
     @show_census = GrdaWarehouse::WarehouseReports::ReportDefinition.
       where(url: 'censuses').
       viewable_by(current_user).exists?
+    # The census filter drops projects the user can't report on, so hide the
+    # chart rather than render it empty
+    @show_census &&= GrdaWarehouse::Hud::Project.
+      viewable_by(current_user, permission: :can_view_assigned_reports).
+      where(id: @project.id).
+      exists?
 
     return unless @show_census
 

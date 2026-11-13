@@ -174,6 +174,40 @@ RSpec.describe GrdaWarehouse::RecurringHmisExport, type: :model do
 
       export.run
     end
+
+    context 'when no selected project resolves to one the user can see' do
+      let!(:acl_user) { create :acl_user }
+      let!(:can_view_projects_role) { create :role, can_view_projects: true }
+      let!(:collection) { create :collection }
+      let!(:data_source) { create :source_data_source }
+      # viewable_project_scope applies non_confidential, which inner-joins the organization
+      let!(:organization) { create :hud_organization, data_source_id: data_source.id }
+      let!(:visible_project) { create :hud_project, data_source_id: data_source.id, OrganizationID: organization.OrganizationID }
+      let!(:invisible_project) { create :hud_project, data_source_id: data_source.id, OrganizationID: organization.OrganizationID }
+
+      before do
+        collection.set_viewables({ projects: [visible_project.id] })
+        setup_access_control(acl_user, can_view_projects_role, collection)
+      end
+
+      it 'skips the run and reports to Sentry' do
+        export = create(
+          :recurring_hmis_export,
+          user: acl_user,
+          options: {
+            start_date: 2.weeks.ago.to_date,
+            end_date: 1.week.ago.to_date,
+            project_ids: [invisible_project.id],
+          },
+        )
+
+        expect_any_instance_of(Filters::HmisExport).not_to receive(:schedule_job)
+        expect(Sentry).to receive(:capture_message).with(/RecurringHmisExport #{export.id}/, level: :warning)
+
+        # Reload so options round-trip through the database as a scheduled run reads them
+        export.reload.run
+      end
+    end
   end
 
   describe '#s3_valid?' do

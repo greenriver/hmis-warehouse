@@ -15,5 +15,6 @@ module Types
     value 'STAFF_ASSIGNMENT', description: 'Staff Assignment'
     value 'COORDINATED_ENTRY', description: 'Coordinated Entry Referrals'
     value 'SENDS_DIRECT_CE_REFERRALS', description: 'Outgoing Referrals'
+    value 'EXTERNAL_FORM_SUBMISSION_NOTIFICATIONS', description: 'External Form Submission Notifications'
   end
 end

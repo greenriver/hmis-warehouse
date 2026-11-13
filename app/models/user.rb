@@ -11,7 +11,7 @@ class User < ApplicationRecord
   include Memery
   include UserConcern
 
-  # Extensions from drivers — see ADR 0007
+  # Extensions from drivers — see docs/architecture/08-concepts/08-3-driver-module-pattern.md
   include CasAccess::UserExtension
   include Hmis::UserExtension
 
@@ -278,16 +278,7 @@ class User < ApplicationRecord
   #   end
   def reporting_policy_for_project(project_id:, mode: :browse, client_id: nil)
     restricted = policy_context.client_restricted?(client_id)
-
-    allowed = false
-    case mode.to_sym
-    when :download
-      allowed = ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
-    when :browse
-      allowed = true
-    else
-      raise ArgumentError, "Bad mode #{mode}"
-    end
+    allowed = reporting_pii_allowed_in_mode?(mode)
 
     if project_id.nil?
       policy = allowed ? GrdaWarehouse::AuthPolicies::AllowPiiPolicy.instance : GrdaWarehouse::AuthPolicies::DenyPiiPolicy.instance
@@ -297,6 +288,18 @@ class User < ApplicationRecord
     policy = policy_for(project_id, policy_class: GrdaWarehouse::AuthPolicies::ProjectPiiPolicy) if allowed
     policy ||= GrdaWarehouse::AuthPolicies::DenyPiiPolicy.instance
     GrdaWarehouse::PiiProvider.restrict(policy, restricted: restricted)
+  end
+
+  # False when report detail rows in this mode must carry no PII, whatever the project role allows.
+  def reporting_pii_allowed_in_mode?(mode)
+    case mode.to_sym
+    when :download
+      ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
+    when :browse
+      true
+    else
+      raise ArgumentError, "Bad mode #{mode}"
+    end
   end
 
   # Retrieve the user's PII Policy for a specific client (used by reports whose detail rows

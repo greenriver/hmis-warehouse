@@ -106,7 +106,9 @@ module GrdaWarehouse
         ).pluck(:entity_id)
         return none if ids.empty?
 
-        where(id: ids)
+        # A string predicate, unlike a hash or Arel predicate, is ANDed by a later
+        # `merge` on the same column instead of being replaced by it
+        where(%(#{quoted_table_name}."id" IN (?)), ids)
       elsif user.can_access_some_cohorts
         if current_scope.present?
           current_scope.merge(user.cohorts)
@@ -135,7 +137,7 @@ module GrdaWarehouse
         end.compact
         return none if ids.empty?
 
-        where(id: ids)
+        where(%(#{quoted_table_name}."id" IN (?)), ids)
       else
         if user.can_edit_some_cohorts? # rubocop:disable Style/IfInsideElse
           if current_scope.present?
@@ -644,7 +646,11 @@ module GrdaWarehouse
     end
 
     def self.maintain_auto_maintained!
-      auto_maintained.find_each(&:maintain)
+      auto_maintained.find_each do |cohort|
+        cohort.maintain
+      rescue AvailableSubPopulations::UnknownSubPopulation => e
+        Sentry.capture_exception_with_info(e, 'Skipped cohort automation', { cohort_id: cohort.id })
+      end
     end
 
     # automation filter configured?
@@ -731,17 +737,12 @@ module GrdaWarehouse
     end
 
     private def build_automation_filter
-      filter = ::Filters::FilterBase.new
-      filter.user_id = User.setup_system_user.id
-      # Match the historic behavior of automation: include only clients with
-      # enrollments that are open today so we don't linger closed participants.
+      filter = ::Filters::SystemProjectFilter.for_project_group(project_group)
+      # Include only clients with enrollments open today, so closed participants drop off
       today = Date.current
       filter.start = today
       filter.end = today
-      return filter unless project_group_id.present?
-
-      filter.project_group_ids = [project_group_id]
-      filter.sub_population = automation_sub_population.to_sym if automation_sub_population.present?
+      filter.sub_population = automation_sub_population if automation_sub_population.present?
       filter.hoh_only = automation_hoh_only
       filter.require_service_during_range = false
       filter

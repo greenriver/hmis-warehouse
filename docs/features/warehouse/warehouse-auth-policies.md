@@ -1,8 +1,18 @@
+---
+sources:
+  - app/models/grda_warehouse/auth_policies/base_policy.rb
+  - app/models/grda_warehouse/auth_policies/user_acl_context.rb
+  - app/models/grda_warehouse/auth_policies/user_legacy_context.rb
+  - app/models/grda_warehouse/auth_policies/organization_policy.rb
+  - app/models/grda_warehouse/auth_policies/hud_report_policy.rb
+  - app/models/grda_warehouse/auth_policies/cohort_pii_policy.rb
+  - app/models/grda_warehouse/pii_provider.rb
+  - app/controllers/concerns/controller_authorization_v2.rb
+---
+
 # Warehouse Auth Policies
 
 Warehouse Auth Policies contain the business rules for determining user access to warehouse resources such as clients, projects, and data sources.
-
-Implementation details (query shapes, loader internals, key files, and patterns not to repeat) are in the domain pack: [Warehouse policies](../../domain-pack/authorization/warehouse-policies.md) and [PII and restricted clients](../../domain-pack/warehouse/pii-and-restricted-clients.md).
 
 ## Overview
 
@@ -37,6 +47,28 @@ Policies are located in `app/models/grda_warehouse/auth_policies/`.
 - `BasePolicy`: Abstract base class providing common initialization and validation helpers.
 - **Resource Policies**: for warehouse resources (e.g., `ProjectPolicy`, `OrganizationPolicy`, `SourceClientPolicy`, `DataSourcePolicy`).
 - **Specialized Policies**: optimized for controlling access to sensitive data in reporting contexts (e.g., `ProjectPiiPolicy`).
+
+### Context differences
+
+Both contexts expose the same methods, so policies don't branch on user type. Two exceptions and one trap:
+
+- `SourceClientPolicy` is the one policy that reads legacy-only data (window data sources).
+- An organization is reached through a Collection (or legacy access group) that includes the organization or its data source. A group that includes only one of its projects does not reach it.
+- `OrganizationPolicy#can_edit_contacts?` and `ProjectPolicy#can_edit_contacts?` both map to `can_view_imports` on the record.
+
+### Adding a policy for a new resource type
+
+1. Subclass `GrdaWarehouse::AuthPolicies::BasePolicy` and override `validate_resource!` with `ensure_arg_type!`.
+2. Map permission symbols to predicate names and define each from the context's `resource_permissions`, as `ProjectPolicy` does.
+3. Add `policy_class` to the model. `user.policy_for(record)` raises `ArgumentError` for a model without it, unless the caller passes `policy_class:`.
+4. In the controller, use `authorize_with` (see [Controller authorization](warehouse-permissions.md#controller-authorization)).
+5. Spec with a user on each `permission_context`.
+
+Get policies from `user.policy_for` and `user.policy_context`, which are memoized for the request. Don't construct a context per check.
+
+### Controller authorization gotchas
+
+`authorize_with` blocks run as `before_action`s in controller instance scope, so any instance variable they read must be set by an earlier `before_action` (for example `set_project`).
 
 ## Usage
 
@@ -79,6 +111,12 @@ Single-client pages such as the client dashboard need no preload; `DestinationCl
 
 When a context falls back to one-at-a-time lookups for more than a handful of distinct clients, it raises in development and test and sends a Sentry warning in staging and production. The fix is a preload where the list is loaded, not a higher threshold.
 
+## Project Groups and Confidential Projects
+
+Seeing a project group doesn't grant access to its projects: a report run on a group covers only the group's projects the user can already report on. Access to a group's projects comes from a separate `ProjectAccessGroup` grant. Project group membership and cohort automation use system filters that skip visibility checks, so confidential projects picked into a group reach the cohorts maintained from it. See [Project Groups](./project-groups.md) for how membership is resolved and how groups, confidential projects, and cohorts interact.
+
+`Project.viewable_by` leaves confidential projects out unless the user has `can_report_on_confidential_projects`. The system user doesn't have that permission, so report filters run as the system user leave confidential projects out, including ones listed directly by ID.
+
 ## PII Provider Instantiation
 
 `GrdaWarehouse::PiiProvider` is built a few different ways depending on whether a policy already exists and whether restriction still needs to be applied.
@@ -117,6 +155,10 @@ When there's no client record at all (plucked columns or a hash row), use `GrdaW
 ## PII Redaction
 
 `GrdaWarehouse::PiiProvider` mediates display of a client's name, SSN, DOB, photo, and HIV status. It takes any policy object that answers the `can_view_*?` PII questions and asks them before showing each value. The client dashboard, HUD report drilldowns and exports, cohort grids, and most warehouse reports display PII through it.
+
+PII policies are duck-typed: anything answering the `can_view_*?` questions works. `CohortPiiPolicy` allows everything except the full SSN, which follows `user.can_view_full_ssn?`. `HudReportPolicy#can_view_checkpoints?` reads `user.can_*?` flags directly because report instances have no Collection relationship; don't copy that for resources that do. PII policies decide display, not query scope: use `Model.viewable_by(user)` to limit which records load.
+
+`PiiProvider#ssn` returns `nil` for a blank value, `Redacted` when a value exists but the policy denies it, and a masked or full string otherwise. `#dob` returns `nil` both when the value is blank and when the policy denies it, so presence checks can't tell a redacted DOB from an empty one.
 
 The masked SSN (`XXX-XX-1234`) is a separate permission from the full SSN. Every policy allows it except a restricted client's: restriction means no SSN at all, matching HMIS.
 
@@ -187,5 +229,5 @@ Redaction only covers code that goes through `PiiProvider` or the `reporting_pol
 
 Two conventions cover restriction-aware PII in report detail views, chosen by row shape:
 
-- **Array rows aligned to a header list**: `WarehouseReports::PiiDetailRows#redact_pii_in_row` redacts the name, DOB, and SSN columns, given the position of the warehouse client id in the row.
+- **Array rows aligned to a header list**: `WarehouseReports::PiiDetailRows#redact_pii_in_row` redacts the name, DOB, and SSN columns, given the position of the warehouse client id in the row. Pass `project_id:` when the row belongs to a project, so the viewer's project PII permissions apply; without it, browse mode shows all PII.
 - **Per-row report models** (a report's own client or enrollment record): a `detail_value(key, user:, mode:)` method returns the redacted value for PII keys and the raw attribute otherwise.
