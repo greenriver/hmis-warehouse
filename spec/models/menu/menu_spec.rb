@@ -14,7 +14,6 @@ RSpec.describe Menu::Menu, type: :model do
   let(:menu) { described_class.new(user: user, context: context) }
 
   before do
-    allow(RailsDrivers).to receive(:loaded).and_return([:superset])
     allow(Superset).to receive(:available?).and_return(true)
   end
 
@@ -152,6 +151,30 @@ RSpec.describe Menu::Menu, type: :model do
     end
   end
 
+  describe '#warehouse_configuration_menu' do
+    let(:user) { create(:user) }
+    let(:titles) { Array(menu.warehouse_configuration_menu.children).map(&:title) }
+
+    before { user.legacy_roles << role }
+
+    context 'with only can_edit_translations' do
+      let(:role) { create(:role, can_edit_translations: true) }
+
+      it 'shows Translations' do
+        expect(titles).to include('Translations')
+      end
+    end
+
+    context 'with only can_manage_config' do
+      let(:role) { create(:role, can_manage_config: true) }
+
+      it 'shows Site Config but not Translations' do
+        expect(titles).to include('Site Config')
+        expect(titles).not_to include('Translations')
+      end
+    end
+  end
+
   describe '#site_menu' do
     let(:user) { create(:acl_user) }
     let(:context) do
@@ -193,6 +216,26 @@ RSpec.describe Menu::Menu, type: :model do
       tree = menu.site_menu
 
       expect(collect_titles(tree)).not_to include('Care Hub')
+    end
+
+    describe 'HUD Reports item' do
+      let(:hud_item) { menu.reports_menu.children.to_a.find { |item| item.id == 'hud-reports' } }
+
+      it 'points at the HUD Reports section of the warehouse reports page for a user granted a HUD report' do
+        grant_hud_report(user, 'hud_reports/aprs')
+
+        expect(hud_item.path).to eq('/warehouse_reports#hud-reports')
+        expect(collect_titles([menu.reports_menu])).to include('HUD Reports', 'Warehouse Reports')
+      end
+
+      it 'is absent for a user whose reports include no HUD report' do
+        collection = create(:collection, collection_type: 'Reports')
+        collection.set_viewables(reports: [analytics_report.id])
+        setup_access_control(user, create(:role, can_view_assigned_reports: true), collection)
+
+        expect(hud_item).to be_nil
+        expect(collect_titles([menu.reports_menu])).to include('Warehouse Reports')
+      end
     end
   end
 end

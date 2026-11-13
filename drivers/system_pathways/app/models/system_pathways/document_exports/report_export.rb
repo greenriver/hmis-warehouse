@@ -10,11 +10,13 @@ module SystemPathways::DocumentExports
   class ReportExport < ::GrdaWarehouse::DocumentExport
     include ApplicationHelper
     def authorized?
-      user.can_view_any_reports? && report_class.viewable_by(user)
+      user.can_view_any_reports? &&
+        GrdaWarehouse::WarehouseReports::ReportDefinition.url_viewable_by?(report_class.url, user) &&
+        report.present?
     end
 
     protected def report
-      @report ||= report_class.find(params['id'])
+      @report ||= report_class.visible_to(user).find_by(id: params['id'])
     end
 
     protected def view_assigns

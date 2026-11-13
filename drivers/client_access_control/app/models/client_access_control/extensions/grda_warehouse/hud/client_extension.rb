@@ -152,7 +152,11 @@ module ClientAccessControl::GrdaWarehouse::Hud
         # TODO: START_ACL cleanup after ACL migration is complete
         if user.using_acls?
           return false unless user.can_view_client_enrollments_with_roi?
-          return false unless consent_form_valid?
+
+          # The dashboard needs a full release; implied consent (a partial row under Consent::Implied)
+          # grants list, enrollment, and policy access only. Preload with
+          # user.policy_context.preload_client_dependencies before calling this in a loop.
+          return user.policy_context.client_roi_loader.full_release?(id)
         else
           return false unless user.can_view_clients?
           # access isn't governed by release if a client can only search their assigned clients
@@ -170,92 +174,111 @@ module ClientAccessControl::GrdaWarehouse::Hud
 
       def enrollments_for_rollup(user:, en_scope: scope, include_confidential_names: false, only_ongoing: false)
         Rails.cache.fetch("clients/#{id}/enrollments_for_rollup/#{en_scope.to_sql}/#{include_confidential_names}/#{only_ongoing}/#{user.id}", expires_in: ::GrdaWarehouse::Hud::Client::CACHE_EXPIRY) do
-          if en_scope.count.zero?
-            []
-          else
-            enrollments = enrollments_for(en_scope, include_confidential_names: include_confidential_names, user: user)
-            enrollments = enrollments.select { |m| m[:exit_date].blank? } if only_ongoing
-            enrollments || []
-          end
+          uncached_enrollments_for_rollup(user: user, en_scope: en_scope, only_ongoing: only_ongoing)
         end
       end
 
-      # build an array of useful hashes for the enrollments roll-ups
-      private def enrollments_for(en_scope, user:, include_confidential_names: false)
-        Rails.cache.fetch("clients/#{id}/enrollments_for/#{en_scope.to_sql}/#{include_confidential_names}/#{user.id}", expires_in: ::GrdaWarehouse::Hud::Client::CACHE_EXPIRY) do
-          total_enrollment_count = en_scope.joins(:project, :source_client, :enrollment).count
-          en_scope = en_scope.joins(:enrollment).merge(::GrdaWarehouse::Hud::Enrollment.visible_to(user)) unless user == User.setup_system_user
-          enrollments = en_scope.joins(:project, :source_client, :enrollment).
-            includes(:organization, :source_client, project: :project_cocs, enrollment: [:enrollment_cocs, :exit, :ch_enrollment]).
-            order(first_date_in_program: :desc)
-          visible_enrollment_count = enrollments.count
-          enrollments.map do |entry|
-            project = entry.project
-            organization = entry.organization
-            dates_served = entry.service_history_services.where(record_type: service_types).distinct.pluck(:date)
-            project_name = if project.confidential_for_user?(user)
-              project.safe_project_name
-            else
-              cocs = ''
-              if ::GrdaWarehouse::Config.get(:expose_coc_code)
-                cocs = project.project_cocs&.pluck(GrdaWarehouse::Hud::ProjectCoc.coc_code_coalesce)&.reject(&:blank?)&.uniq&.join(', ')
-                cocs = " (#{cocs})" if cocs.present?
-              end
-              "#{entry.project_name} < #{organization.OrganizationName} #{cocs}"
-            end
-            count_until = calculated_end_of_enrollment(enrollment: entry, enrollments: enrollments)
-            # days included in adjusted days that are not also served by a residential project
-            adjusted_dates_for_similar_programs = adjusted_dates(dates: dates_served, stop_date: count_until)
-            homeless_dates_for_enrollment = adjusted_dates_for_similar_programs - ClientHistory::Calculator.new(client: self).residential_dates(enrollments: enrollments)
-            # extrapolated days may extend beyond the actual last contact, turning off ineligible_uses_extrapolated_days means
-            # we only count actual contacts
-            most_recent_service = if GrdaWarehouse::Config.get(:ineligible_uses_extrapolated_days)
-              dates_served.max
-            else
-              entry.service_history_services.service_excluding_extrapolated.maximum(:date)
-            end
-            # default to entry date if we don't have any services
-            most_recent_service ||= entry.entry_date
+      def uncached_enrollments_for_rollup(user:, en_scope: scope, only_ongoing: false)
+        return [] if en_scope.count.zero?
 
-            new_episode = new_episode?(residential_enrollments: enrollments, enrollment: entry)
+        enrollments = enrollments_for(en_scope, user: user)
+        enrollments = enrollments.select { |m| m[:exit_date].blank? } if only_ongoing
+        enrollments || []
+      end
+
+      # build an array of useful hashes for the enrollments roll-ups
+      private def enrollments_for(en_scope, user:)
+        total_enrollment_count = en_scope.joins(:project, :source_client, :enrollment).count
+        en_scope = en_scope.joins(:enrollment).merge(::GrdaWarehouse::Hud::Enrollment.visible_to(user)) unless user == User.setup_system_user
+        enrollments = en_scope.joins(:project, :source_client, :enrollment).
+          includes(
+            :organization,
+            :source_client,
+            project: :project_cocs,
+            enrollment: [:enrollment_cocs, :exit, :ch_enrollment, :project, :disabilities_at_entry],
+          ).
+          order(first_date_in_program: :desc, id: :desc)
+        enrollments = enrollments.to_a
+        visible_enrollment_count = enrollments.size
+        calculator = ClientHistory::Calculator.new(client: self, enrollments: enrollments)
+        residential_dates = calculator.residential_dates
+        expose_coc_code = ::GrdaWarehouse::Config.get(:expose_coc_code)
+        # Preload dedupes rows, not AR objects, so entries sharing a project each get
+        # their own Project instance; compute its (cached) confidentiality once per
+        # distinct project rather than once per enrollment.
+        project_data_by_key = {}
+        project_data_for = lambda do |entry|
+          key = [entry.data_source_id, entry.project_id, entry.organization_id]
+          project_data_by_key[key] ||= begin
+            project = entry.project
+            cocs = ''
+            if expose_coc_code
+              cocs = project.project_cocs.map(&:CoCCode).reject(&:blank?).uniq.join(', ')
+              cocs = " (#{cocs})" if cocs.present?
+            end
             {
-              client_source_id: entry.source_client.id,
-              project_id: project.id,
-              ProjectID: project.ProjectID,
-              project_name: project_name,
-              confidential_project: project.confidential,
-              entry_date: entry.entry_date,
-              living_situation: entry.enrollment.LivingSituation,
-              chronically_homeless_at_start: entry.enrollment.chronically_homeless_at_start?,
-              chronically_homeless_at_most_recent: entry.enrollment.chronically_homeless_at_start?(date: most_recent_service),
-              exit_date: entry.exit_date,
-              destination: entry.destination,
-              move_in_date_inherited: entry.enrollment.MoveInDate.blank? && entry.move_in_date.present?,
-              move_in_date: entry.move_in_date,
-              days: dates_served.count,
-              homeless: entry.project_type.in?(::HudHelper.util.homeless_project_types),
-              residential: entry.project_type.in?(::HudHelper.util.residential_project_type_ids),
-              homeless_days: homeless_dates_for_enrollment.count,
-              adjusted_days: adjusted_dates_for_similar_programs.count,
-              months_served: adjusted_months_served(dates: adjusted_dates_for_similar_programs),
-              household: household(entry.household_id, entry.enrollment.data_source_id),
-              project_type: ::HudHelper.util.project_type_brief(entry.project_type),
-              project_type_id: entry.project_type,
-              rrh_sub_type: project.rrh_sub_type,
-              class: "client__service_type_#{entry.project_type}",
-              most_recent_service: most_recent_service,
-              new_episode: new_episode,
-              enrollment_id: entry.enrollment.EnrollmentID,
-              data_source_id: entry.enrollment.data_source_id,
-              created_at: entry.enrollment.DateCreated,
-              updated_at: entry.enrollment.DateUpdated,
-              hmis_id: entry.enrollment.id,
-              hmis_exit_id: entry.enrollment&.exit&.id,
-              total_enrollment_count: total_enrollment_count,
-              visible_enrollment_count: visible_enrollment_count,
-              # support: dates_served,
+              project: project,
+              confidential_for_user: project.confidential_for_user?(user),
+              confidential: project.confidential,
+              cocs: cocs,
             }
           end
+        end
+        enrollments.map do |entry|
+          project_data = project_data_for.call(entry)
+          project = project_data[:project]
+          organization = entry.organization
+          dates_served = calculator.dates_served(entry)
+          project_name = if project_data[:confidential_for_user]
+            project.safe_project_name
+          else
+            "#{entry.project_name} < #{organization.OrganizationName} #{project_data[:cocs]}"
+          end
+          count_until = calculated_end_of_enrollment(enrollment: entry, enrollments: enrollments)
+          # days included in adjusted days that are not also served by a residential project
+          adjusted_dates_for_similar_programs = adjusted_dates(dates: dates_served, stop_date: count_until)
+          homeless_dates_for_enrollment = adjusted_dates_for_similar_programs - residential_dates
+          # default to entry date if we don't have any services
+          most_recent_service = calculator.most_recent_service_date(entry) || entry.entry_date
+
+          new_episode = calculator.new_episode?(enrollment: entry)
+          {
+            client_source_id: entry.source_client.id,
+            project_id: project.id,
+            ProjectID: project.ProjectID,
+            project_name: project_name,
+            confidential_project: project_data[:confidential],
+            entry_date: entry.entry_date,
+            living_situation: entry.enrollment.LivingSituation,
+            chronically_homeless_at_start: entry.enrollment.chronically_homeless_at_start?,
+            chronically_homeless_at_most_recent: entry.enrollment.chronically_homeless_at_start?(date: most_recent_service),
+            exit_date: entry.exit_date,
+            destination: entry.destination,
+            move_in_date_inherited: entry.enrollment.MoveInDate.blank? && entry.move_in_date.present?,
+            move_in_date: entry.move_in_date,
+            days: dates_served.count,
+            homeless: entry.project_type.in?(::HudHelper.util.homeless_project_types),
+            residential: entry.project_type.in?(::HudHelper.util.residential_project_type_ids),
+            homeless_days: homeless_dates_for_enrollment.count,
+            adjusted_days: adjusted_dates_for_similar_programs.count,
+            months_served: adjusted_months_served(dates: adjusted_dates_for_similar_programs),
+            household: household(entry.household_id, entry.enrollment.data_source_id),
+            project_type: ::HudHelper.util.project_type_brief(entry.project_type),
+            project_type_id: entry.project_type,
+            rrh_sub_type: project.rrh_sub_type,
+            class: "client__service_type_#{entry.project_type}",
+            most_recent_service: most_recent_service,
+            new_episode: new_episode,
+            enrollment_id: entry.enrollment.EnrollmentID,
+            data_source_id: entry.enrollment.data_source_id,
+            created_at: entry.enrollment.DateCreated,
+            updated_at: entry.enrollment.DateUpdated,
+            hmis_id: entry.enrollment.id,
+            hmis_exit_id: entry.enrollment&.exit&.id,
+            total_enrollment_count: total_enrollment_count,
+            visible_enrollment_count: visible_enrollment_count,
+            # support: dates_served,
+          }
         end
       end
 

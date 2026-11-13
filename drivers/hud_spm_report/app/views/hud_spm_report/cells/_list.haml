@@ -9,7 +9,7 @@
       - # list contains SpmEnrollment, Episodes, or Returns
       - can_view_project_page = current_user.can_view_projects? || current_user.can_edit_projects?
       - list.each.with_index do |client, i|
-        - pii_policy = current_user.reporting_policy_for_project(project_id: client.project_id)
+        - pii_policy = current_user.reporting_policy_for_project(project_id: client.project_id, client_id: client.destination_client_id_for_pii)
         %tr
           %th.table-dark= (@pagy.offset + i + 1)
           - @drilldown.headers.each_key do |k|

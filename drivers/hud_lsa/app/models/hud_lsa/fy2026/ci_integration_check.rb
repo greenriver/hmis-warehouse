@@ -43,25 +43,8 @@ module HudLsa::Fy2026
     #
     # Every skip must be accompanied by a comment explaining why it's here.
     KNOWN_SAMPLE_DATA_GAPS = {
-      lsa: {
-        # sample_hmis_export/Enrollment.csv has zero HoH enrollments with an
-        # invalid/missing EnrollmentCoC, this DQ count can only ever compute as 0.
-        # sample_results/LSAReport.csv
-        # expects 12, implying it was generated from a different Enrollment.csv.
-        'LSAReport.csv' => { columns: ['NoCoC'] },
-        # Same underlying condition as NoCoC above, just the per-project version:
-        # "10.4 Get Counts of Households with no Enrollment CoC Record" (ReportRow
-        # 905 in "10 LSACalculated Data Quality.sql").
-        'LSACalculated.csv' => { rows: { 'ReportRow' => ['905'] } },
-      },
-      hic: {
-        'LSAReport.csv' => { columns: ['NoCoC'] },
-        # sample_hic_results is from an older HMIS data generation than the
-        # current sample_hmis_export (HUD has no newer HIC sample for this
-        # release) — Funder/Inventory rows legitimately differ wholesale.
-        'Funder.csv' => { skip_file: true },
-        'Inventory.csv' => { skip_file: true },
-      },
+      lsa: {},
+      hic: {},
     }.freeze
 
     OUTPUT_ROOT = 'tmp/lsa_ci_output'

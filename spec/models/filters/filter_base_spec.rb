@@ -24,6 +24,12 @@ RSpec.describe Filters::FilterBase, type: :model do
   end
 
   describe 'FilterBase' do
+    it 'time_range spans the whole end day, unlike range' do
+      filter = Filters::FilterBase.new(user_id: user.id, start: Date.new(2026, 9, 1), end: Date.new(2026, 9, 19))
+      expect(filter.range).to eq(Date.new(2026, 9, 1)..Date.new(2026, 9, 19))
+      expect(filter.time_range).to eq(Time.zone.local(2026, 9, 1)..Time.zone.local(2026, 9, 19).end_of_day)
+    end
+
     it 'defaults to nothing if nothing is specified' do
       filter_params = {}
       filter = Filters::FilterBase.new(user_id: user.id).update(filter_params)
@@ -57,6 +63,207 @@ RSpec.describe Filters::FilterBase, type: :model do
       filter = Filters::FilterBase.new(user_id: user.id).update(filter_params)
       expect(filter.effective_project_ids).not_to include es_project.id
       expect(filter.effective_project_ids).not_to include psh_project.id
+    end
+  end
+
+  describe 'submitted project ids the user cannot see' do
+    let!(:other_data_source) { create :source_data_source }
+    let!(:invisible_project) { create :grda_warehouse_hud_project, ProjectType: 1, data_source_id: other_data_source.id }
+
+    it 'drops the invisible project from effective_project_ids' do
+      filter = Filters::FilterBase.new(user_id: user.id).update(project_ids: [psh_project.id, invisible_project.id])
+      expect(filter.effective_project_ids).to include psh_project.id
+      expect(filter.effective_project_ids).not_to include invisible_project.id
+    end
+
+    it 'drops the invisible project from secondary_project_ids' do
+      filter = Filters::FilterBase.new(user_id: user.id).update(secondary_project_ids: [psh_project.id, invisible_project.id])
+      expect(filter.secondary_project_ids).to eq [psh_project.id]
+    end
+
+    it 'rechecks secondary_project_ids after they are reassigned' do
+      filter = Filters::FilterBase.new(user_id: user.id).update(secondary_project_ids: [invisible_project.id])
+      expect(filter.secondary_project_ids).to be_empty
+
+      filter.secondary_project_ids = [psh_project.id]
+      expect(filter.secondary_project_ids).to eq [psh_project.id]
+    end
+  end
+
+  describe 'submitted confidential project ids' do
+    let!(:confidential_project) do
+      create :grda_warehouse_hud_project, ProjectType: 1, OrganizationID: organization.OrganizationID, confidential: true
+    end
+
+    it 'drops a confidential project for a user who cannot report on confidential projects' do
+      filter = Filters::FilterBase.new(user_id: user.id).update(project_ids: [psh_project.id, confidential_project.id])
+      expect(filter.effective_project_ids).to include psh_project.id
+      expect(filter.effective_project_ids).not_to include confidential_project.id
+    end
+
+    it 'drops a confidential project for the system user in a report filter' do
+      system_user = User.setup_system_user
+      filter = Filters::FilterBase.new(user_id: system_user.id).update(project_ids: [psh_project.id, confidential_project.id])
+      expect(filter.effective_project_ids).to include psh_project.id
+      expect(filter.effective_project_ids).not_to include confidential_project.id
+    end
+  end
+
+  describe Filters::SystemProjectFilter do
+    let!(:other_data_source) { create :source_data_source }
+    let!(:project_outside_acls) { create :grda_warehouse_hud_project, ProjectType: 1, data_source_id: other_data_source.id }
+
+    it 'can only be built from a project group' do
+      expect { described_class.new }.to raise_error(NoMethodError)
+    end
+
+    it 'resolves a project group the user cannot see' do
+      hidden_group = create :project_group, projects: [psh_project, project_outside_acls]
+      expect(GrdaWarehouse::ProjectGroup.viewable_by(user)).not_to include hidden_group
+
+      filter = described_class.for_project_group(hidden_group)
+
+      expect(filter.effective_project_ids).to contain_exactly(psh_project.id, project_outside_acls.id)
+    end
+  end
+
+  describe Filters::SystemProjectHudFilter do
+    it 'can only be built from a project group' do
+      expect { described_class.new }.to raise_error(NoMethodError)
+    end
+  end
+
+  describe 'a viewable project group containing a project the user cannot see' do
+    let!(:other_data_source) { create :source_data_source }
+    let!(:invisible_project) { create :grda_warehouse_hud_project, ProjectType: 1, data_source_id: other_data_source.id }
+    let!(:project_group) { create :project_group, projects: [psh_project, invisible_project] }
+
+    before do
+      ds_entity_group.set_viewables({ data_sources: [data_source.id], project_groups: [project_group.id] })
+    end
+
+    it 'limits effective_project_ids to the group projects the user can report on' do
+      filter = Filters::FilterBase.new(user_id: user.id).update(project_group_ids: [project_group.id])
+      expect(filter.effective_project_ids).to eq [psh_project.id]
+    end
+
+    it 'limits secondary project group projects to the ones the user can report on' do
+      filter = Filters::FilterBase.new(user_id: user.id).update(secondary_project_group_ids: [project_group.id])
+      expect(filter.effective_project_ids_from_secondary_project_groups).to eq [psh_project.id]
+    end
+
+    it 'limits HudFilterBase effective_project_ids the same way' do
+      filter = Filters::HudFilterBase.new(user_id: user.id).update(project_group_ids: [project_group.id])
+      expect(filter.effective_project_ids).to eq [psh_project.id]
+    end
+
+    it 'keeps every group project in a SystemProjectFilter, which cohort automation uses' do
+      confidential_project = create(
+        :grda_warehouse_hud_project,
+        ProjectType: 1,
+        OrganizationID: organization.OrganizationID,
+        confidential: true,
+      )
+      project_group.projects << confidential_project
+
+      filter = Filters::SystemProjectFilter.for_project_group(project_group)
+
+      expect(filter.effective_project_ids).to contain_exactly(
+        psh_project.id,
+        invisible_project.id,
+        confidential_project.id,
+      )
+    end
+  end
+
+  describe 'a viewable project group containing confidential projects the user can view' do
+    let!(:confidential_project) do
+      create :grda_warehouse_hud_project, ProjectType: 1, OrganizationID: organization.OrganizationID, confidential: true
+    end
+    let!(:confidential_organization) { create :grda_warehouse_hud_organization, confidential: true }
+    let!(:project_in_confidential_organization) do
+      create :grda_warehouse_hud_project, ProjectType: 1, OrganizationID: confidential_organization.OrganizationID
+    end
+    let!(:project_group) do
+      create :project_group, projects: [psh_project, confidential_project, project_in_confidential_organization]
+    end
+
+    before do
+      ds_entity_group.set_viewables({ data_sources: [data_source.id], project_groups: [project_group.id] })
+    end
+
+    def effective_project_ids_for_group
+      filter = Filters::FilterBase.new(user_id: user.id).update(project_group_ids: [project_group.id])
+      filter.effective_project_ids
+    end
+
+    it 'leaves confidential projects out for a user who cannot report on confidential projects' do
+      expect(user.can_report_on_confidential_projects?).to be false
+
+      expect(effective_project_ids_for_group).to eq [psh_project.id]
+    end
+
+    it 'includes confidential projects for a user who can report on confidential projects' do
+      confidential_reporting_role = create :role, can_report_on_confidential_projects: true
+      setup_access_control(user, confidential_reporting_role, ds_entity_group)
+
+      expect(effective_project_ids_for_group).to contain_exactly(
+        psh_project.id,
+        confidential_project.id,
+        project_in_confidential_organization.id,
+      )
+    end
+  end
+
+  describe 'project access granted only through a project access group' do
+    let!(:confidential_project) do
+      create :grda_warehouse_hud_project, ProjectType: 1, OrganizationID: organization.OrganizationID, confidential: true
+    end
+    let!(:project_group) { create :project_group, projects: [psh_project, confidential_project] }
+    let!(:group_access_user) { create :acl_user }
+    let!(:projects_collection) { create :collection, collection_type: 'Projects' }
+
+    before do
+      projects_collection.set_viewables({ project_access_groups: [project_group.id] })
+      setup_access_control(group_access_user, reporting_role, projects_collection)
+    end
+
+    def reportable_project_ids(confidential_scope_limiter: :non_confidential)
+      GrdaWarehouse::Hud::Project.viewable_by(
+        group_access_user,
+        confidential_scope_limiter: confidential_scope_limiter,
+        permission: :can_view_assigned_reports,
+      ).pluck(:id)
+    end
+
+    it 'grants access to the group projects, including a confidential one picked into the group' do
+      expect(reportable_project_ids(confidential_scope_limiter: :all)).to contain_exactly(
+        psh_project.id,
+        confidential_project.id,
+      )
+    end
+
+    it 'does not grant access to projects outside the group' do
+      expect(reportable_project_ids(confidential_scope_limiter: :all)).not_to include es_project.id
+    end
+
+    it 'leaves the confidential project out of reports for a user who cannot report on confidential projects' do
+      expect(reportable_project_ids).to eq [psh_project.id]
+
+      filter = Filters::FilterBase.new(user_id: group_access_user.id).update(
+        project_ids: [psh_project.id, confidential_project.id],
+      )
+      expect(filter.effective_project_ids).to eq [psh_project.id]
+    end
+
+    it 'includes the confidential project in reports for a user who can report on confidential projects' do
+      confidential_reporting_role = create :role, can_report_on_confidential_projects: true
+      setup_access_control(group_access_user, confidential_reporting_role, projects_collection)
+
+      filter = Filters::FilterBase.new(user_id: group_access_user.id).update(
+        project_ids: [psh_project.id, confidential_project.id],
+      )
+      expect(filter.effective_project_ids).to contain_exactly(psh_project.id, confidential_project.id)
     end
   end
 
@@ -306,6 +513,41 @@ RSpec.describe Filters::FilterBase, type: :model do
       expect(filter2.default_on).to eq(Date.new(2025, 1, 15))
 
       travel_back
+    end
+  end
+
+  describe 'sub_population' do
+    it 'raises when update receives an unregistered sub-population' do
+      filter = Filters::FilterBase.new(user_id: user.id, sub_population: :veterans)
+      expect { filter.update(sub_population: 'entry') }.to raise_error(AvailableSubPopulations::UnknownSubPopulation)
+    end
+
+    it 'keeps a registered sub-population passed as a string' do
+      filter = Filters::FilterBase.new(user_id: user.id)
+      filter.update(sub_population: 'veterans')
+      expect(filter.sub_population).to eq(:veterans)
+    end
+
+    it 'raises for an unregistered sub-population passed to new' do
+      expect { Filters::DateRangeAndSourcesResidentialOnly.new(user_id: user.id, sub_population: 'all_clients') }.
+        to raise_error(AvailableSubPopulations::UnknownSubPopulation)
+    end
+
+    it 'falls back to clients for a blank sub-population' do
+      filter = Filters::FilterBase.new(user_id: user.id, sub_population: :veterans)
+      filter.sub_population = ''
+      expect(filter.sub_population).to eq(:clients)
+    end
+
+    it 'keeps the outflow-only youth sub-populations on the outflow filter' do
+      filter = Filters::OutflowReport.new(user_id: user.id)
+      filter.update(sub_population: 'youth_at_search_start')
+      expect(filter.sub_population).to eq(:youth_at_search_start)
+    end
+
+    it 'rejects the outflow-only youth sub-populations on the base filter' do
+      expect { Filters::FilterBase.new(user_id: user.id, sub_population: :youth_at_search_start) }.
+        to raise_error(AvailableSubPopulations::UnknownSubPopulation)
     end
   end
 end

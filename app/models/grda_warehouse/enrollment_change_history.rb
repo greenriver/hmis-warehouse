@@ -70,8 +70,8 @@ module GrdaWarehouse
 
       # System User is correct here
       user = User.setup_system_user
-      attributes_for_client[:residential] = client.enrollments_for_rollup(en_scope: client.scope_for_residential_enrollments(user), user: user).to_json
-      attributes_for_client[:other] = client.enrollments_for_rollup(en_scope: client.scope_for_other_enrollments(user), user: user).to_json
+      attributes_for_client[:residential] = client.uncached_enrollments_for_rollup(en_scope: client.scope_for_residential_enrollments(user), user: user).to_json
+      attributes_for_client[:other] = client.uncached_enrollments_for_rollup(en_scope: client.scope_for_other_enrollments(user), user: user).to_json
       attributes_for_client[:days_homeless] = client.days_homeless
       return attributes_for_client
     end

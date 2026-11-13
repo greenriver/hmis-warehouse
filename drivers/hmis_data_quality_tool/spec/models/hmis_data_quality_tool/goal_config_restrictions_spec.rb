@@ -12,6 +12,12 @@ require_relative './shared_context'
 RSpec.describe HmisDataQualityTool::Report, type: :model do
   include_context 'DQ Tool test setup'
 
+  describe 'Goal.known_params' do
+    it 'permits global_overlap_checks so the config form can save it' do
+      expect(HmisDataQualityTool::Goal.known_params).to include(:global_overlap_checks)
+    end
+  end
+
   describe 'goal config restrictions on pivot_details' do
     let!(:project) { create_project(project_type: 1) } # ES
 

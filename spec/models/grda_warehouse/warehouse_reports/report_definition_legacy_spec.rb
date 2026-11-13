@@ -67,6 +67,28 @@ RSpec.describe model, type: :model do
     end
   end
 
+  describe 'legacy user with only a HUD report flag' do
+    let(:hud_role) { create(:role, can_view_own_hud_reports: true) }
+    let(:apr) { model.find_by!(url: 'hud_reports/aprs') }
+
+    before do
+      model.maintain_report_definitions
+      user.legacy_roles << hud_role
+      user.add_viewable(apr)
+      user.add_viewable(r1) # a non-HUD report in the same access group
+    end
+
+    it 'sees HUD definitions granted to them and no other reports' do
+      expect(model.viewable_by(user).pluck(:url)).to contain_exactly('hud_reports/aprs')
+    end
+
+    it 'sees nothing if the HUD definition is not in any of their groups' do
+      user.access_group.remove_viewable(apr)
+
+      expect(model.viewable_by(user)).to be_empty
+    end
+  end
+
   describe PerformanceMeasurement::Report, type: :model do
     let(:user) { create :user }
     let(:other_user) { create :user }

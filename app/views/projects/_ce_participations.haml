@@ -24,7 +24,7 @@
             %td
               - if can_see_raw_hmis_data?
                 = link_to 'HMIS', source_datum_path(ce_participation.id, type: 'CEParticipation'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis my-1'
-              - if RailsDrivers.loaded.include?(:hmis_csv_importer) && HmisCsvImporter::ImportOverride.any_apply?(ce_participation)
+              - if HmisCsvImporter::ImportOverride.any_apply?(ce_participation)
                 %i.icon-info{data: { 'bs-toggle' => :tooltip, 'bs-title' => "Overrides Active"}}
 
   - else

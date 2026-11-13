@@ -18,8 +18,6 @@ module Types
 
     available_filter_options do
       arg :search_term, String
-      # ADD: role
-      # ADD: status
     end
 
     field :id, ID, null: false
@@ -31,6 +29,8 @@ module Types
     field :title, String, null: false
     field :version, ID, null: false
     field :external_form_object_key, String, null: true, description: 'External object key, only present for External Form role'
+    field :external_form_public_url, String, null: true, description: 'Public URL the External Form is published to, if the public bucket is configured'
+    field :external_form_last_published_at, GraphQL::Types::ISO8601DateTime, null: true, description: 'When this version was last published to its public URL'
     field :supports_save_in_progress, Boolean, null: false
     field :definition, Forms::FormDefinitionJson, null: false
     field :raw_definition, JsonObject, null: false
@@ -123,6 +123,26 @@ module Types
 
     def supports_save_in_progress
       object.supports_save_in_progress?
+    end
+
+    # Nil until some version of this form has been published to its current key, so we don't link to an empty URL.
+    # Checks all versions, since an older version stays live until the new one is published to the public URL.
+    # N+1 when resolved for a list of forms; OK because it's only requested for one form at a time (FormIdentifierDetails).
+    def external_form_public_url
+      return unless object.role == 'EXTERNAL_FORM'
+
+      ever_published = HmisExternalApis::ExternalForms::FormPublication.
+        where(definition_id: object.all_versions.select(:id), object_key: object.external_form_object_key).
+        exists?
+      return unless ever_published
+
+      HmisExternalApis::ExternalForms::Config.public_form_url(object.external_form_object_key)
+    end
+
+    def external_form_last_published_at
+      return unless object.role == 'EXTERNAL_FORM'
+
+      object.external_form_publications.maximum(:created_at)
     end
 
     protected

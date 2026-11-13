@@ -33,7 +33,7 @@ module Clients
     protected
 
     def set_client
-      @client = client_source.destination.find(params[:client_id].to_i)
+      @client = client_source.destination_visible_to(current_user).find(params[:client_id].to_i)
     end
   end
 end

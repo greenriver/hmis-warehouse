@@ -66,7 +66,7 @@ module Export::Exporter
 
     def zip_archive
       files = Dir.glob(File.join(@file_path, '*')).map { |f| File.basename(f) }
-      Zip::File.open(zip_path, Zip::File::CREATE) do |zipfile|
+      Zip::File.open(zip_path, create: true) do |zipfile|
         files.each do |filename|
           zipfile.add(
             # File.join(@export.export_id, filename),

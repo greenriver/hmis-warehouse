@@ -34,6 +34,7 @@ class Hmis::Hud::CustomDataElementDefinition < Hmis::Hud::Base
     json: :value_json,
     file: :value_file,
   }.freeze
+  KEY_FORMAT = /\A[a-zA-Z0-9_-]*\z/
 
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
   belongs_to :user, **hmis_relation(:UserID, 'User'), optional: true, inverse_of: :assessments
@@ -45,7 +46,7 @@ class Hmis::Hud::CustomDataElementDefinition < Hmis::Hud::Base
              optional: true
 
   validates :field_type, inclusion: { in: FIELD_TYPES.map(&:to_s) }, allow_blank: false
-  validates_format_of :key, with: /\A[a-zA-Z0-9_-]*\z/
+  validates_format_of :key, with: KEY_FORMAT
 
   scope :for_type, ->(owner_type) do
     where(owner_type: owner_type)

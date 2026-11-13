@@ -10,6 +10,8 @@ wb.add_worksheet(name: "Client Details") do |sheet|
   title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
   sheet.add_row(['Warehouse Client ID','First Name', 'Last Name', 'SSN', 'DOB', 'Veteran Status'], :style => title)
   @clients.each do |client|
-    sheet.add_row([client[:id], client[:FirstName], client[:LastName], client[:SSN], client[:DOB], client[:VeteranStatus]])
+    policy = current_user.reporting_policy_for_project(project_id: nil, mode: :download, client_id: client[:id])
+    pii = GrdaWarehouse::PiiProvider.from_attributes(policy: policy, first_name: client[:FirstName], last_name: client[:LastName], dob: client[:DOB], ssn: client[:SSN])
+    sheet.add_row([client[:id], pii.first_name, pii.last_name, pii.ssn, GrdaWarehouse::PiiProvider.viewable_dob(client[:DOB], policy: policy), client[:VeteranStatus]])
   end
 end

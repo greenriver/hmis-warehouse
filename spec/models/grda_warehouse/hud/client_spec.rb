@@ -7,6 +7,8 @@
 # frozen_string_literal: true
 
 require 'rails_helper'
+require 'shared_contexts/enrollment_rollup_context'
+require 'shared_contexts/hud_enrollment_builders'
 include ActiveJob::TestHelper
 
 RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
@@ -170,6 +172,132 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
         whitespace_strict_search_expects(client_leading_whitespace)
       end
     end
+
+    describe 'text_search with HMIS restriction' do
+      let!(:hmis_ds) { create(:hmis_primary_data_source) }
+      let!(:hmis_user) { create(:hmis_user, data_source: hmis_ds) }
+      let!(:restricted_source_client) { create(:hmis_hud_client, data_source: hmis_ds, first_name: 'Zzrestrict', last_name: 'Zzclient', ssn: '999887777', dob: Date.new(1980, 5, 5)) }
+      let!(:restricted_destination_client) { create(:grda_warehouse_hud_client) }
+      let!(:unrestricted_source_client) { create(:hmis_hud_client, data_source: hmis_ds, first_name: 'Zzopen', last_name: 'Zzclient', ssn: '111223333', dob: Date.new(1981, 6, 6)) }
+      let!(:unrestricted_destination_client) { create(:grda_warehouse_hud_client) }
+
+      before do
+        GrdaWarehouse::WarehouseClient.create!(destination_id: restricted_destination_client.id, source_id: restricted_source_client.id, data_source_id: hmis_ds.id, id_in_source: restricted_source_client.id.to_s)
+        GrdaWarehouse::WarehouseClient.create!(destination_id: unrestricted_destination_client.id, source_id: unrestricted_source_client.id, data_source_id: hmis_ds.id, id_in_source: unrestricted_source_client.id.to_s)
+        restricted_source_client.mark_as_restricted!(user: hmis_user)
+      end
+
+      it 'does not find a restricted client by SSN' do
+        expect(GrdaWarehouse::Hud::Client.text_search('999-88-7777').to_a).to eq([])
+      end
+
+      it 'still finds an unrestricted client by SSN' do
+        expect(GrdaWarehouse::Hud::Client.text_search('111-22-3333').to_a).to eq([unrestricted_destination_client])
+      end
+
+      it 'does not find a restricted client by name' do
+        expect(GrdaWarehouse::Hud::Client.text_search('Zzrestrict Zzclient').to_a).to eq([])
+      end
+
+      it 'still finds a restricted client by DOB' do
+        expect(GrdaWarehouse::Hud::Client.text_search('05/05/1980').to_a).to eq([restricted_destination_client])
+      end
+
+      it 'still finds a restricted client by exact PersonalID' do
+        expect(GrdaWarehouse::Hud::Client.text_search(restricted_source_client.PersonalID).to_a).to eq([restricted_destination_client])
+      end
+    end
+
+    describe 'retention-inactive clients' do
+      let!(:warehouse_ds) { create(:destination_data_source) }
+      let!(:source_ds) { create(:source_data_source) }
+      let!(:inactive_source) { create(:grda_warehouse_hud_client, data_source: source_ds, FirstName: 'Zzaged', LastName: 'Zzout', SSN: '999887777', DOB: Date.new(1980, 5, 5)) }
+      let!(:inactive_destination) { create(:grda_warehouse_hud_client, data_source: warehouse_ds, FirstName: 'Zzaged', LastName: 'Zzout', SSN: '999887777', DOB: Date.new(1980, 5, 5)) }
+      let!(:active_source) { create(:grda_warehouse_hud_client, data_source: source_ds, FirstName: 'Zzcurrent', LastName: 'Zzout', SSN: '111223333', DOB: Date.new(1981, 6, 6)) }
+      let!(:active_destination) { create(:grda_warehouse_hud_client, data_source: warehouse_ds, FirstName: 'Zzcurrent', LastName: 'Zzout') }
+      let!(:user) { create(:acl_user) }
+
+      before do
+        GrdaWarehouse::WarehouseClient.create!(destination_id: inactive_destination.id, source_id: inactive_source.id, data_source_id: source_ds.id, id_in_source: inactive_source.PersonalID)
+        GrdaWarehouse::WarehouseClient.create!(destination_id: active_destination.id, source_id: active_source.id, data_source_id: source_ds.id, id_in_source: active_source.PersonalID)
+        GrdaWarehouse::ClientRetentionMark.create!(client_id: inactive_source.id, marked_on: Date.current, last_activity_on: 10.years.ago.to_date, retention_years: 7)
+      end
+
+      # The report path: an allow-everything policy that only the hidden-client check can narrow.
+      def report_name_for(client, as_user: user)
+        policy = as_user.reporting_policy_for_project(project_id: nil, mode: :browse, client_id: client.id)
+        GrdaWarehouse::PiiProvider.new(client, policy: policy).full_name
+      end
+
+      it 'does not find an inactive client by name, but still finds an active one' do
+        expect(GrdaWarehouse::Hud::Client.text_search('Zzout').to_a).to eq([active_destination])
+      end
+
+      it 'does not find an inactive client by SSN' do
+        expect(GrdaWarehouse::Hud::Client.text_search('999-88-7777').to_a).to eq([])
+        expect(GrdaWarehouse::Hud::Client.text_search('111-22-3333').to_a).to eq([active_destination])
+      end
+
+      it 'still finds an inactive client by DOB and by exact PersonalID' do
+        expect(GrdaWarehouse::Hud::Client.text_search('05/05/1980').to_a).to eq([inactive_destination])
+        expect(GrdaWarehouse::Hud::Client.text_search(inactive_source.PersonalID).to_a).to eq([inactive_destination])
+      end
+
+      it 'excludes an inactive client from strict_search' do
+        criteria = { first_name: 'Zzaged', last_name: 'Zzout', ssn: '999887777', dob: nil }
+
+        expect(GrdaWarehouse::Hud::Client.strict_search(criteria, client_scope: GrdaWarehouse::Hud::Client).to_a).to eq([])
+      end
+
+      it 'redacts an inactive client under a policy that shows every other name, until the marks are cleared' do
+        expect(report_name_for(active_destination)).to eq('Zzcurrent Zzout')
+        expect(report_name_for(inactive_destination)).to eq(GrdaWarehouse::PiiProvider::NAME_REDACTED)
+        expect(report_name_for(inactive_source)).to eq(GrdaWarehouse::PiiProvider::NAME_REDACTED)
+
+        GrdaWarehouse::ClientRetentionMark.delete_all
+        # a fresh User instance, since lookups are memoized per policy context
+        expect(report_name_for(inactive_destination, as_user: User.find(user.id))).to eq('Zzaged Zzout')
+      end
+    end
+
+    describe 'strict_search with HMIS restriction' do
+      let!(:hmis_ds) { create(:hmis_primary_data_source) }
+      let!(:hmis_user) { create(:hmis_user, data_source: hmis_ds) }
+      let!(:restricted_source_client) { create(:hmis_hud_client, data_source: hmis_ds, first_name: 'Zzrestrict', last_name: 'Zzclient', ssn: '999887777', dob: Date.new(1980, 5, 5)) }
+      let!(:restricted_destination_client) { create(:grda_warehouse_hud_client) }
+      let!(:unrestricted_source_client) { create(:hmis_hud_client, data_source: hmis_ds, first_name: 'Zzopen', last_name: 'Zzclient', ssn: '111223333', dob: Date.new(1981, 6, 6)) }
+      let!(:unrestricted_destination_client) { create(:grda_warehouse_hud_client) }
+
+      before do
+        GrdaWarehouse::WarehouseClient.create!(destination_id: restricted_destination_client.id, source_id: restricted_source_client.id, data_source_id: hmis_ds.id, id_in_source: restricted_source_client.id.to_s)
+        GrdaWarehouse::WarehouseClient.create!(destination_id: unrestricted_destination_client.id, source_id: unrestricted_source_client.id, data_source_id: hmis_ds.id, id_in_source: unrestricted_source_client.id.to_s)
+        restricted_source_client.mark_as_restricted!(user: hmis_user)
+      end
+
+      it 'excludes a restricted client matching on name and SSN' do
+        criteria = { first_name: 'Zzrestrict', last_name: 'Zzclient', ssn: '999887777', dob: nil }
+
+        expect(GrdaWarehouse::Hud::Client.strict_search(criteria, client_scope: GrdaWarehouse::Hud::Client).to_a).to eq([])
+      end
+
+      it 'excludes a restricted client matching on name and DOB' do
+        criteria = { first_name: 'Zzrestrict', last_name: 'Zzclient', ssn: nil, dob: Date.new(1980, 5, 5) }
+
+        expect(GrdaWarehouse::Hud::Client.strict_search(criteria, client_scope: GrdaWarehouse::Hud::Client).to_a).to eq([])
+      end
+
+      it 'excludes a restricted client matching on SSN, DOB, and last name' do
+        criteria = { first_name: 'Nomatch', last_name: 'Zzclient', ssn: '999887777', dob: Date.new(1980, 5, 5) }
+
+        expect(GrdaWarehouse::Hud::Client.strict_search(criteria, client_scope: GrdaWarehouse::Hud::Client).to_a).to eq([])
+      end
+
+      it 'still returns an unrestricted client matching the same shape of criteria' do
+        criteria = { first_name: 'Zzopen', last_name: 'Zzclient', ssn: '111223333', dob: nil }
+
+        expect(GrdaWarehouse::Hud::Client.strict_search(criteria, client_scope: GrdaWarehouse::Hud::Client).to_a).to eq([unrestricted_destination_client])
+      end
+    end
   end
 
   describe 'scopes' do
@@ -297,18 +425,19 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
     end
 
     context 'when consent validity is two years' do
+      around { |example| travel_to(Date.new(2026, 10, 5)) { example.run } }
+      after { GrdaWarehouse::Config.invalidate_cache }
+
       before(:each) do
-        client.instance_variable_set(:@release_duration, 'Two Years')
-        client_signed_yesterday.instance_variable_set(:@release_duration, 'Two Years')
-        client_signed_2_years_ago_short_consent.instance_variable_set(:@release_duration, 'Two Years')
-        client_signed_3_years_ago_short_consent.instance_variable_set(:@release_duration, 'Two Years')
+        GrdaWarehouse::Config.first_or_create.update!(release_duration: 'Two Years')
+        GrdaWarehouse::Config.invalidate_cache
       end
       context 'client with signed consent has ' do
         it 'valid consent when signed yesterday' do
           expect(client_signed_yesterday.consent_form_valid?).to be true
         end
-        it 'invalid consent when signed 2 years ago' do
-          expect(client_signed_2_years_ago_short_consent.consent_form_valid?).to be false
+        it 'valid consent on its expiration date, two years after signing' do
+          expect(client_signed_2_years_ago_short_consent.consent_form_valid?).to be true
         end
         it 'invalid consent when signed 3 years ago' do
           expect(client_signed_3_years_ago_short_consent.consent_form_valid?).to be false
@@ -335,8 +464,9 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
 
       it 'after revoking consent, only one should have a full housing release string' do
         client_signed_yesterday.save
-        client_signed_2_years_ago.save
-        client_signed_2_years_ago_short_consent.save
+        # Consent signed exactly two years ago expires tomorrow; back-date so these have expired.
+        client_signed_2_years_ago.update(consent_form_signed_on: 2.years.ago.to_date - 1.day)
+        client_signed_2_years_ago_short_consent.update(consent_form_signed_on: 2.years.ago.to_date - 1.day)
         client_signed_3_years_ago_short_consent.save
 
         config = GrdaWarehouse::Config.first
@@ -347,6 +477,37 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
         end
         GrdaWarehouse::Hud::Client.revoke_expired_consent
         expect(GrdaWarehouse::Hud::Client.full_housing_release_on_file.count).to eq(1)
+      end
+    end
+
+    # Consent signed exactly one year ago is still valid today (`consent_form_valid?` uses >=),
+    # so revocation must only clear consent that expired before today.
+    describe 'revoke_expired_consent boundary' do
+      let(:full_release) { GrdaWarehouse::Hud::Client.full_release_string }
+      let!(:signed_one_year_ago_today) { create(:grda_warehouse_hud_client, consent_form_signed_on: 1.year.ago.to_date, housing_release_status: full_release) }
+      let!(:signed_one_year_and_a_day_ago) { create(:grda_warehouse_hud_client, consent_form_signed_on: 1.year.ago.to_date - 1.day, housing_release_status: full_release) }
+
+      # A fixed date, so a year-based expiration date is never shifted by Feb 29
+      around { |example| travel_to(Date.new(2026, 10, 5)) { example.run } }
+      after { GrdaWarehouse::Config.invalidate_cache }
+
+      before do
+        GrdaWarehouse::Config.first_or_create.update!(release_duration: 'One Year')
+        GrdaWarehouse::Config.invalidate_cache
+        GrdaWarehouse::Hud::Client.revoke_expired_consent
+      end
+
+      it 'keeps consent that expires today' do
+        expect(signed_one_year_ago_today.reload.housing_release_status).to eq(full_release)
+      end
+
+      it 'clears consent that expired yesterday' do
+        expect(signed_one_year_and_a_day_ago.reload.housing_release_status).to be_nil
+      end
+
+      it 'treats consent that expires today as valid in the method and the scope' do
+        expect(described_class.find(signed_one_year_ago_today.id).consent_form_valid?).to be true
+        expect(described_class.consent_form_valid.where(id: signed_one_year_ago_today.id).exists?).to be true
       end
     end
   end
@@ -361,7 +522,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
       let(:dates) do
         [
           {
-            ProjectType: 1,
+            ProjectType: 0, # ES entry-exit
             EntryDate: '2015-03-04',
             ExitDate: '2015-04-12',
             new_episode_expected: true,
@@ -376,16 +537,16 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
             ProjectType: 4,
             EntryDate: '2015-06-04',
             ExitDate: '2015-08-12',
-            new_episode_expected: true,
+            new_episode_expected: false,
           },
           {
-            ProjectType: 1,
+            ProjectType: 0, # ES entry-exit
             EntryDate: '2015-07-04',
             ExitDate: '2015-09-12',
             new_episode_expected: false,
           },
           {
-            ProjectType: 1,
+            ProjectType: 0, # ES entry-exit
             EntryDate: '2016-03-04',
             ExitDate: '2016-04-12',
             new_episode_expected: true,
@@ -403,7 +564,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
         FactoryBot.reload
       end
 
-      it 'should find 3 new episodes' do
+      it 'finds 2 new episodes' do
         GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
         enrollments.each_with_index do |en, i|
           date = dates[i]
@@ -424,10 +585,85 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
         end
 
         aggregate_failures 'checking' do
-          expect(enrollments.map(&:new_episode?).count(true)).to eq(3)
-          expect(client_with_enrollments.destination_client.homeless_episodes_between(start_date: '2014-01-01'.to_date, end_date: '2018-01-01'.to_date)).to eq(3)
+          expect(enrollments.map(&:new_episode?)).to eq(dates.map { |d| d[:new_episode_expected] })
+          expect(client_with_enrollments.destination_client.homeless_episodes_between(start_date: '2014-01-01'.to_date, end_date: '2018-01-01'.to_date)).to eq(2)
           expect(client_with_enrollments.destination_client.homeless_episodes_between(start_date: '2015-05-01'.to_date, end_date: '2018-01-01'.to_date)).to eq(2)
         end
+      end
+    end
+
+    describe 'same-day duplicate enrollments' do
+      include_context 'enrollment rollup context'
+
+      let(:destination) { create :hud_client, data_source_id: warehouse_data_source.id, FirstName: 'Dup', LastName: 'Client' }
+      let(:source) { create_linked_source_client(destination, first_name: 'Dup', last_name: 'Source') }
+      let(:start_date) { Date.new(2019, 1, 1) }
+      let(:end_date) { Date.new(2021, 1, 1) }
+      let(:residential) { destination.service_history_enrollments.residential.entry.includes(:enrollment).to_a }
+      let(:chronic_by_id) do
+        destination.service_history_enrollments.entry.
+          open_between(start_date: start_date, end_date: end_date).
+          hud_homeless(chronic_types_only: true).order(:id).to_a
+      end
+
+      before do
+        create_enrollment(source, shelter_a, entry: '2020-01-01', exit_date: '2020-01-10')
+        create_enrollment(source, shelter_a, entry: '2020-01-01', exit_date: '2020-01-10')
+        create_enrollment(source, shelter_a, entry: '2020-06-01', exit_date: '2020-06-05')
+        rebuild_service_history!
+      end
+
+      it 'counts the duplicated stay once whichever duplicate the query returns first' do
+        expect(chronic_by_id.size).to eq(3)
+        [chronic_by_id, [chronic_by_id[1], chronic_by_id[0], chronic_by_id[2]]].each do |ordered|
+          expect(destination.homeless_episodes_between(start_date: start_date, end_date: end_date, residential_enrollments: residential, chronic_enrollments: ordered)).to eq(2)
+          starts = destination.length_of_episodes(start_date: start_date, end_date: end_date, residential_enrollments: residential, chronic_enrollments: ordered).map { |e| e[:start_date] }
+          expect(starts).to eq([Date.new(2020, 1, 1), Date.new(2020, 6, 1)])
+        end
+      end
+    end
+
+    describe 'episode counters over several stays' do
+      include_context 'enrollment rollup context'
+
+      let(:destination) { create :hud_client, data_source_id: warehouse_data_source.id, FirstName: 'Many', LastName: 'Stays' }
+      let(:source) { create_linked_source_client(destination, first_name: 'Many', last_name: 'Source') }
+      let(:start_date) { Date.new(2019, 1, 1) }
+      let(:end_date) { Date.new(2021, 1, 1) }
+
+      before do
+        create_enrollment(source, shelter_a, entry: '2020-01-01', exit_date: '2020-01-10')
+        create_enrollment(source, shelter_a, entry: '2020-03-01', exit_date: '2020-03-05')
+        create_enrollment(source, shelter_a, entry: '2020-07-01', exit_date: '2020-07-05')
+        rebuild_service_history!
+      end
+
+      # Counts ClientHistory::Calculator's service-row pluck. length_of_episodes also loads
+      # service_history_services through the association (SELECT *), which this skips.
+      def calculator_row_loads
+        queries = 0
+        counter = ->(*, payload) { queries += 1 if payload[:sql].include?('"service_history_services"."literally_homeless"') }
+        result = ActiveSupport::Notifications.subscribed(counter, 'sql.active_record') { yield }
+        [result, queries]
+      end
+
+      it 'homeless_episodes_between loads service rows once for all of the stays' do
+        episodes, queries = calculator_row_loads { destination.homeless_episodes_between(start_date: start_date, end_date: end_date) }
+
+        expect(episodes).to eq(2)
+        expect(queries).to eq(1)
+      end
+
+      it 'length_of_episodes loads service rows once for all of the stays' do
+        episodes, queries = calculator_row_loads { destination.length_of_episodes(start_date: start_date, end_date: end_date) }
+
+        expect(episodes).to eq(
+          [
+            { start_date: Date.new(2020, 1, 1), end_date: Date.new(2020, 3, 4), months: 3 },
+            { start_date: Date.new(2020, 7, 1), end_date: Date.new(2020, 7, 4), months: 1 },
+          ],
+        )
+        expect(queries).to eq(1)
       end
     end
 
@@ -456,7 +692,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
             ProjectType: 4,
             EntryDate: '2015-06-04',
             ExitDate: '2015-12-12',
-            new_episode_expected: false,
+            new_episode_expected: true,
           },
           {
             ProjectType: 0,
@@ -468,7 +704,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
             ProjectType: 0,
             EntryDate: '2016-03-04',
             ExitDate: '2016-04-12',
-            new_episode_expected: true,
+            new_episode_expected: false,
           },
         ]
       end
@@ -477,7 +713,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
       let!(:exits) { create_list :hud_exit, dates.count, PersonalID: client_with_enrollments.PersonalID, data_source_id: client_with_enrollments.data_source_id }
       let!(:projects) { create_list :hud_project, dates.count, data_source_id: client_with_enrollments.data_source_id }
 
-      it 'should find 2 new episodes' do
+      it 'finds 2 new episodes' do
         GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
         enrollments.each_with_index do |en, i|
           date = dates[i]
@@ -498,7 +734,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
           GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find(en.id).rebuild_service_history!
         end
         aggregate_failures 'checking' do
-          expect(enrollments.map(&:new_episode?).count(true)).to eq(2)
+          expect(enrollments.map(&:new_episode?)).to eq(dates.map { |d| d[:new_episode_expected] })
           expect(client_with_enrollments.destination_client.homeless_episodes_between(start_date: '2014-01-01'.to_date, end_date: '2018-01-01'.to_date)).to eq(2)
           expect(client_with_enrollments.destination_client.homeless_episodes_between(start_date: '2015-05-01'.to_date, end_date: '2018-01-01'.to_date)).to eq(2)
         end
@@ -627,6 +863,123 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
           end
         end
       end
+    end
+  end
+
+  describe '#moved_in_with_ph?' do
+    include_context 'HUD enrollment builders'
+
+    let(:psh) { create_project(project_type: 3) }
+    let(:source_client) { create_client_with_warehouse_link }
+
+    it 'is true on the move-in date' do
+      create_enrollment(client: source_client, project: psh, entry_date: Date.current - 30.days, move_in_date: Date.current)
+
+      expect(source_client.moved_in_with_ph?).to be(true)
+    end
+
+    it 'is false before the move-in date' do
+      create_enrollment(client: source_client, project: psh, entry_date: Date.current - 30.days, move_in_date: Date.tomorrow)
+
+      expect(source_client.moved_in_with_ph?).to be(false)
+    end
+  end
+
+  describe '#pii_provider' do
+    let!(:hmis_ds) { create(:hmis_primary_data_source) }
+    let!(:hmis_user) { create(:hmis_user, data_source: hmis_ds) }
+    let!(:source_client) { create(:hmis_hud_client, data_source: hmis_ds, first_name: 'Jamie') }
+    let!(:destination_client) { create(:grda_warehouse_hud_client, FirstName: 'Jamie') }
+    let(:user) { create(:user) }
+
+    before do
+      GrdaWarehouse::WarehouseClient.create!(destination_id: destination_client.id, source_id: source_client.id, data_source_id: hmis_ds.id, id_in_source: source_client.id.to_s)
+      allow(user).to receive(:policy_for).and_return(GrdaWarehouse::AuthPolicies::AllowPiiPolicy.instance)
+    end
+
+    it 'shows PII when the client is not restricted' do
+      provider = destination_client.pii_provider(user: user)
+      expect(provider.first_name).to eq('Jamie')
+    end
+
+    it 'redacts PII when the client is restricted, regardless of the underlying policy' do
+      source_client.mark_as_restricted!(user: hmis_user)
+
+      provider = destination_client.pii_provider(user: user)
+      expect(provider.first_name).to eq('Name Redacted')
+    end
+
+    context 'called on the source client rather than the destination client' do
+      # GrdaWarehouse::Hud::Client and Hmis::Hud::Client both map to the `Client` table by id,
+      # so the warehouse-side source client is the same row as `source_client`, loaded through
+      # the warehouse model that defines #pii_provider.
+      let(:warehouse_source_client) { GrdaWarehouse::Hud::Client.find(source_client.id) }
+
+      it 'shows PII when the client is not restricted' do
+        provider = warehouse_source_client.pii_provider(user: user)
+        expect(provider.first_name).to eq('Jamie')
+      end
+
+      it 'redacts PII when the mapped destination client is restricted' do
+        source_client.mark_as_restricted!(user: hmis_user)
+
+        provider = warehouse_source_client.pii_provider(user: user)
+        expect(provider.first_name).to eq('Name Redacted')
+      end
+    end
+
+    context 'a destination client with no source clients' do
+      let!(:unlinked_destination_client) { create(:grda_warehouse_hud_client, FirstName: 'Jamie') }
+
+      it 'shows PII when the client is not restricted' do
+        provider = unlinked_destination_client.pii_provider(user: user)
+        expect(provider.first_name).to eq('Jamie')
+      end
+
+      it 'redacts PII when the client is restricted directly on its own id' do
+        Hmis::RestrictedRecord.create!(
+          restrictable_id: unlinked_destination_client.id,
+          restrictable_type: 'Hmis::Hud::Client',
+          data_source_id: unlinked_destination_client.data_source_id,
+          created_by: hmis_user,
+        )
+
+        provider = unlinked_destination_client.pii_provider(user: user)
+        expect(provider.first_name).to eq('Name Redacted')
+      end
+    end
+  end
+
+  describe '.literally_homeless_last_three_years' do
+    let(:homeless_client) { create :hud_client }
+    let(:on_date) { Date.current - 2.years }
+
+    def add_days(dates, project_type:, literally_homeless:)
+      she = create(:she_entry, client: homeless_client, project_type: project_type)
+      Array.wrap(dates).each do |date|
+        create(
+          :service_history_service,
+          client_id: homeless_client.id,
+          service_history_enrollment_id: she.id,
+          record_type: 'service',
+          date: date,
+          project_type: project_type,
+          homeless: true,
+          literally_homeless: literally_homeless,
+        )
+      end
+    end
+
+    before do
+      # 10 ES days just before on_date
+      add_days((on_date - 10.days..on_date - 1.day).to_a, project_type: 1, literally_homeless: true)
+      # An ES day overlapped by TH: inside on_date's three-year window, but more than three years before today
+      add_days(on_date - 2.years, project_type: 1, literally_homeless: true)
+      add_days(on_date - 2.years, project_type: 2, literally_homeless: false)
+    end
+
+    it 'excludes TH days inside the three years before on_date' do
+      expect(described_class.literally_homeless_last_three_years(client_id: homeless_client.id, on_date: on_date)).to eq(10)
     end
   end
 end

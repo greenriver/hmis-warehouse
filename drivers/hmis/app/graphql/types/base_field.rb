@@ -19,7 +19,7 @@ module Types
     # @param permissions [Symbol, Array<Symbol>] (Deprecated) The required permission(s) to view the field. Mutually exclusive with `authorize_with`.
     # @param authorize_with [Proc] A lambda for custom authorization logic. It receives `user` and `object` and should return a boolean. Mutually exclusive with `permissions`.
     def initialize(*args, default_value: nil, permissions: nil, authorize_with: nil, **kwargs, &block)
-      raise ArgumentError "don't use permissions and authorize_with" if permissions && authorize_with
+      raise ArgumentError, "don't use permissions and authorize_with" if permissions && authorize_with
 
       @permissions = Array.wrap(permissions)
       @authorize_with = authorize_with

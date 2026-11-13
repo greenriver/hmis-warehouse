@@ -16,7 +16,7 @@ module Importing::HudZip
       false
     end
 
-    def perform(upload_id:, data_source_id:, deidentified: false, allowed_projects: false, stop_version: nil, dry_run: false)
+    def perform(upload_id:, data_source_id:, deidentified: false, allowed_projects: false, stop_version: nil, dry_run: false, source_id_override: false)
       data_source = GrdaWarehouse::DataSource.find(data_source_id)
       raise "Data source #{data_source_id} is not importable" unless data_source.importable?
 
@@ -29,6 +29,7 @@ module Importing::HudZip
           allowed_projects: allowed_projects,
           stop_version: stop_version,
           dry_run: dry_run,
+          source_id_override: source_id_override,
         )
         importer.import!
         lock_obtained = true

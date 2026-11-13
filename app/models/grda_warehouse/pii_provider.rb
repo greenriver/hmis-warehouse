@@ -13,6 +13,57 @@ class GrdaWarehouse::PiiProvider
   NAME_REDACTED = 'Name Redacted'
   REDACTED = 'Redacted'
 
+  # Wraps another policy to force every PII predicate false, while can_view? (general
+  # record visibility) still delegates to the wrapped policy. Built by PiiProvider.restrict
+  # to make HMIS client restriction an absolute override on top of whatever the wrapped
+  # policy would otherwise allow, rather than an additional permission to satisfy.
+  class RestrictedPolicy
+    def initialize(policy)
+      @policy = policy
+    end
+
+    def can_view?
+      @policy.can_view?
+    end
+
+    def can_view_name?
+      false
+    end
+
+    def can_view_full_ssn?
+      false
+    end
+
+    def can_view_partial_ssn?
+      false
+    end
+
+    def can_view_full_dob?
+      false
+    end
+
+    def can_view_photo?
+      false
+    end
+
+    def can_view_hiv_status?
+      false
+    end
+  end
+
+  # Wraps a resolved policy so PII stays hidden when restricted is true, regardless of
+  # what the policy itself would allow. Call once, right after resolving the policy for
+  # a specific client, so restriction always wins over whatever permission check follows.
+  #   GrdaWarehouse::PiiProvider.restrict(policy, restricted: user.policy_context.client_restricted?(client_id))
+  # Also wraps a permissive policy directly, for contexts with no per-user PII check to
+  # fold restriction into (e.g. cohorts, which otherwise show PII to every viewer):
+  #   GrdaWarehouse::PiiProvider.restrict(GrdaWarehouse::AuthPolicies::AllowPiiPolicy.instance, restricted: client_restricted?(cohort_client))
+  def self.restrict(policy, restricted:)
+    return policy unless restricted
+
+    RestrictedPolicy.new(policy)
+  end
+
   def self.viewable_name(value, policy:, replacement: REDACTED)
     return replacement unless policy.can_view_name?
 
@@ -127,8 +178,16 @@ class GrdaWarehouse::PiiProvider
 
   def ssn(force_mask: false)
     value = record.ssn.presence
+    return nil unless value
+    # Restricted means no SSN at all -- matching HmisClientPolicy#can_view_partial_ssn?
+    # (drivers/hmis/app/models/hmis/auth_policies/hmis_client_policy.rb). A blank SSN still
+    # returns nil rather than REDACTED, for the same reason #dob returns nil: implying a value
+    # exists when it doesn't is worse than showing nothing. Full access implies partial access,
+    # so a policy granting can_view_full_ssn? isn't blocked by can_view_partial_ssn? alone.
+    return REDACTED unless policy.can_view_partial_ssn? || policy.can_view_full_ssn?
+
     mask = force_mask || redact_ssn?
-    format_ssn(value, mask: mask) if value
+    format_ssn(value, mask: mask)
   end
 
   # @return [String, nil] (client.image is a string)

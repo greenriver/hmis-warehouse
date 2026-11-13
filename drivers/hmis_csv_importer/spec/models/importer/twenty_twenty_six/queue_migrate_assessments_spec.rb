@@ -32,6 +32,15 @@ RSpec.describe 'HUD CSV MigrateAssessmentsJob enqueue', type: :model do
       create(:source_data_source, hmis: 'hmis.example.test', name: 'HMIS DS', short_name: 'HMIS')
     end
 
+    # An enrollment (with an assessment-related record) in the same data source that is NOT
+    # part of the import. Created before the import runs so it exists when the job is enqueued, to
+    # confirm the job is scoped to the imported enrollments rather than every enrollment in the DS.
+    let!(:out_of_scope_enrollment) do
+      create(:hmis_hud_enrollment, data_source: hmis_data_source).tap do |enrollment|
+        create(:hmis_income_benefit, data_source: hmis_data_source, enrollment: enrollment, client: enrollment.client, data_collection_stage: 1)
+      end
+    end
+
     before do
       allow(HmisEnforcement).to receive(:hmis_enabled?).and_return(true)
       import_hmis_csv_fixture(
@@ -43,14 +52,19 @@ RSpec.describe 'HUD CSV MigrateAssessmentsJob enqueue', type: :model do
       )
     end
 
-    it 'enqueues MigrateAssessmentsJob once with the data source and involved project pks' do
-      expected_project_pks = GrdaWarehouse::Hud::Project.
-        where(data_source_id: hmis_data_source.id, ProjectID: ['751']). # '751' is the ProjectID from the fixture's Project.csv
+    it 'enqueues MigrateAssessmentsJob once scoped to the involved enrollment pks' do
+      expected_enrollment_pks = GrdaWarehouse::Hud::Enrollment.
+        where(data_source_id: hmis_data_source.id).
+        where.not(id: out_of_scope_enrollment.id).
         pluck(:id)
+      expect(expected_enrollment_pks.count).to eq(4) # 4 enrollments from the fixture (excludes out-of-scope)
+      expect(expected_enrollment_pks).not_to include(out_of_scope_enrollment.id)
 
       expect(Hmis::MigrateAssessmentsJob).to have_been_enqueued.once.with(
         data_source_id: hmis_data_source.id,
-        project_ids: expected_project_pks,
+        enrollment_ids: expected_enrollment_pks,
+        upsert: true,
+        generate_empty_intakes: true,
       )
     end
   end

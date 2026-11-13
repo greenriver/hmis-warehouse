@@ -13,6 +13,7 @@ class GrdaWarehouse::AuthPolicies::ProjectPolicy < GrdaWarehouse::AuthPolicies::
     [:can_delete_projects, :can_destroy?],
     [:can_view_projects, :can_view?],
     [:can_view_imports],
+    [:can_view_imports, :can_edit_contacts?],
     [:can_view_clients],
   ].each do |permission, method_name|
     method_name ||= :"#{permission}?"
@@ -29,8 +30,6 @@ class GrdaWarehouse::AuthPolicies::ProjectPolicy < GrdaWarehouse::AuthPolicies::
 
   # can the user see the project locations (on a map)
   memoize def can_view_project_locations?
-    return false unless RailsDrivers.loaded.include?(:client_location_history)
-
     resource_permissions.include?(:can_view_project_locations)
   end
 

@@ -28,6 +28,7 @@ module WarehouseReports
       respond_to do |format|
         format.html do
           @pagy, @enrollments = pagy(@enrollments)
+          current_user.policy_context.preload_client_dependencies(@enrollments.map(&:client_id))
         end
         format.xlsx do
           require_can_view_clients!
@@ -49,9 +50,12 @@ module WarehouseReports
     helper_method :headers_for_export
 
     def rows_for_export
+      current_user.policy_context.preload_client_dependencies(@enrollments.map(&:client_id))
       @enrollments.map do |record|
-        row = [record.client.id]
-        row += [record.client.FirstName, record.client.LastName] if ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
+        client = record.client
+        pii = client.project_pii_provider(project: record.project, user: current_user, mode: :download)
+        row = [client.id]
+        row += [pii.first_name, pii.last_name] if ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
 
         at_entry = record.enrollment.income_benefits_at_entry
         GrdaWarehouse::Hud::IncomeBenefit::SOURCES.values.each do |field|
@@ -62,8 +66,8 @@ module WarehouseReports
           row << at_update&.send(field) || field
         end
         row + [
-          record.client.gender,
-          record.client.race_description,
+          client.gender,
+          client.race_description,
         ]
       end
     end

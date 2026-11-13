@@ -50,7 +50,8 @@ module TxClientReports
     end
 
     def run_and_save!
-      update(started_at: Time.current)
+      # A retry clears the failure left by the previous attempt
+      update(started_at: Time.current, failed_at: nil)
       export = create_export(
         user_id: filter.user_id,
         content_type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
@@ -173,7 +174,7 @@ module TxClientReports
     end
 
     private def report_scope
-      scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.joins(:client, project: :project_cocs)
+      scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.joins(:client).joins_project_cocs(coc_codes: filter.coc_codes)
       scope = filter_for_user_access(scope)
       scope = filter_for_range(scope)
       scope = filter_for_cocs(scope)

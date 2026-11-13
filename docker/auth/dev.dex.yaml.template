@@ -15,14 +15,35 @@ storage:
       mode: disable
 web:
   http: 0.0.0.0:4443
+  headers:
+    X-Frame-Options: DENY
+    X-Content-Type-Options: nosniff
+    X-XSS-Protection: 1; mode=block
+    Content-Security-Policy: default-src 'self'
+    Strict-Transport-Security: max-age=31536000; includeSubDomains
 oauth2:
+  grantTypes:
+    - "authorization_code"
+    - "refresh_token"
+  responseTypes: ["code"]
   skipApprovalScreen: true
   alwaysShowLoginScreen: false
+# Mirrors the openpath staging dex expiry. oauth2-proxy keeps its session after a failed
+# refresh until the ID token expires, so idTokens must not exceed the realm's
+# ssoSessionIdleTimeout (30m) and must exceed oauth2-proxy's cookie_refresh (5m).
 expiry:
+  deviceRequests: "5m"
   signingKeys: "4h"
-  idTokens: "1h"
+  # User needs to finish logging in within this length of time
+  authRequests: "2h"
+  idTokens: "30m"
   refreshTokens:
-    validIfNotUsedFor: "12h"
+    # Grace period for double use during refreshing
+    reuseInterval: "30s"
+    # How long a session can be idle before it expires (90 days)
+    validIfNotUsedFor: "2160h"
+    # 165 days; must exceed oauth2-proxy's cookie_expire
+    absoluteLifetime: "3960h"
 connectors:
   - type: oidc
     id: keycloak

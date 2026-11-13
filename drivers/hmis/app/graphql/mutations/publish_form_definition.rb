@@ -7,6 +7,9 @@
 # frozen_string_literal: true
 
 module Mutations
+  # Publishes a draft definition and retires the previously published version of the same identifier.
+  #
+  # @see docs/features/hmis/hmis-form-definitions.md#lifecycle For the full status lifecycle
   class PublishFormDefinition < CleanBaseMutation
     argument :id, ID, required: true
 
@@ -19,6 +22,12 @@ module Mutations
       access_denied! unless policy_for(definition, policy_type: :form_definition).can_publish?
 
       raise 'only draft forms can be published' unless definition.draft?
+
+      if definition.role == 'EXTERNAL_FORM' && definition.external_form_object_key.blank?
+        errors = HmisErrors::Errors.new
+        errors.add(:external_form_object_key, :required, full_message: 'Set the External Form Key in Edit Form Details before publishing.')
+        return { errors: errors }
+      end
 
       previous_published_form = Hmis::Form::Definition.find_by(
         identifier: definition.identifier,

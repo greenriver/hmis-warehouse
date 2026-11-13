@@ -65,6 +65,7 @@ RSpec.describe GrdaWarehouse::AuthPolicies::UserLegacyContext do
       before do
         create(:grda_warehouse_group_viewable_entity,
                access_group: access_group,
+               collection: nil,
                entity: data_source)
       end
 
@@ -90,6 +91,7 @@ RSpec.describe GrdaWarehouse::AuthPolicies::UserLegacyContext do
       before do
         create(:grda_warehouse_group_viewable_entity,
                access_group: access_group,
+               collection: nil,
                entity: client_data_source)
       end
 
@@ -381,6 +383,40 @@ RSpec.describe GrdaWarehouse::AuthPolicies::UserLegacyContext do
           expect(context.direct_client_role_permissions(client.id)).to be_empty
         end
       end
+    end
+  end
+
+  describe 'preload miss tracking' do
+    subject(:context) { described_class.new(legacy_user) }
+
+    let(:source_ids) { create_list(:warehouse_client, 4).map(&:source_id) }
+
+    it 'raises when direct grants are read for more clients than the threshold without a preload' do
+      expect { source_ids.each { |id| context.direct_client_role_permissions(id) } }.
+        to raise_error(GrdaWarehouse::AuthPolicies::PreloadMissTracker::PreloadMissError, /direct_client_grants/)
+    end
+
+    it 'does not count preloaded clients as misses' do
+      context.preload_client_dependencies(source_ids)
+
+      expect(source_ids.map { |id| context.enrolled_project_ids_for_client(id) }).to eq([[]] * 4)
+    end
+  end
+
+  describe '#preload_project_dependencies for projects with no CoC codes or collections' do
+    it 'reads back permissions for five such projects in the same number of queries as one' do
+      small_batch = [create(:grda_warehouse_hud_project, organization: organization, data_source: data_source)]
+      large_batch = create_list(:grda_warehouse_hud_project, 5, organization: organization, data_source: data_source)
+
+      small_context = described_class.new(legacy_user)
+      small_context.preload_project_dependencies(small_batch.map(&:id))
+      small_queries = count_database_queries { small_batch.each { |p| small_context.project_role_permissions(p.id) } }
+
+      large_context = described_class.new(legacy_user)
+      large_context.preload_project_dependencies(large_batch.map(&:id))
+      large_queries = count_database_queries { large_batch.each { |p| large_context.project_role_permissions(p.id) } }
+
+      expect(large_queries).to eq(small_queries)
     end
   end
 end

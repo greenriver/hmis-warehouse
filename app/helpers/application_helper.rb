@@ -20,6 +20,11 @@ module ApplicationHelper
     end
   end
 
+  def hud_report_viewable?(key)
+    definitions = GrdaWarehouse::WarehouseReports::ReportDefinition
+    definitions.url_viewable_by?(definitions.hud_url(key), current_user)
+  end
+
   # END Permissions
 
   # Backwards compatible translations for views so we don't have to
@@ -405,6 +410,13 @@ module ApplicationHelper
     user.report_filter_visible?(key)
   end
 
+  # Project picker URL for report filter forms; wraps api_projects_path. Scoped
+  # by the same permission report results use, so the picker offers the projects
+  # the report includes.
+  def report_filter_projects_api_path_helper(**params)
+    api_projects_path(permission: :can_view_assigned_reports, **params)
+  end
+
   # Added here to replace wicked_pdf_stylesheet_link_tag when we removed WickedPdf
   def inline_stylesheet_link_tag(*sources)
     AssetHelper.wicked_pdf_stylesheet_link_tag(*sources)
@@ -544,8 +556,9 @@ module ApplicationHelper
     return super unless custom_url
 
     uri = URI.parse(custom_url)
-    base_params = Rack::Utils.parse_query(uri.query)
-    merged_params = base_params.merge(request.query_parameters)
+    # nested parsing keeps `filter[x][]` arrays intact through `to_query`
+    base_params = Rack::Utils.parse_nested_query(uri.query)
+    merged_params = base_params.deep_merge(request.query_parameters.deep_stringify_keys)
     page_key = pagy.vars[:page_param].to_s
 
     if page == 1

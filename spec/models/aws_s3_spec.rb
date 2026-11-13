@@ -25,16 +25,65 @@ RSpec.describe AwsS3 do
     allow(bucket).to receive(:object).and_return(object)
   end
 
-  describe '#initialize' do
-    it 'initializes with given bucket name and region' do
-      expect(aws_s3.bucket_name).to eq('test-bucket')
+  describe 'region' do
+    def region_for(env, shared_config_region: nil)
+      stub_const('ENV', ENV.to_h.except('AWS_REGION', 'AMAZON_REGION', 'AWS_DEFAULT_REGION', 'AWS_PROFILE').merge(env))
+      allow(Aws.shared_config).to receive(:region).with(profile: 'default').and_return(shared_config_region)
+      AwsS3.new(bucket_name: 'test-bucket')
+      region = nil
+      expect(Aws::S3::Client).to have_received(:new) { |options| region = options[:region] }
+      region
+    end
+
+    it 'uses AWS_REGION over AWS_DEFAULT_REGION' do
+      expect(region_for({ 'AWS_REGION' => 'us-east-2', 'AWS_DEFAULT_REGION' => 'us-west-2' })).to eq('us-east-2')
+    end
+
+    it 'uses AWS_DEFAULT_REGION when AWS_REGION is blank' do
+      expect(region_for({ 'AWS_REGION' => '', 'AWS_DEFAULT_REGION' => 'us-west-2' })).to eq('us-west-2')
+    end
+
+    it 'prefers a region variable over the shared config profile' do
+      expect(region_for({ 'AWS_DEFAULT_REGION' => 'eu-west-1' }, shared_config_region: 'us-west-2')).to eq('eu-west-1')
+    end
+
+    it 'uses the shared config profile region when no region variable is set' do
+      expect(region_for({}, shared_config_region: 'us-west-2')).to eq('us-west-2')
+    end
+
+    it 'falls back to us-east-1 when neither a variable nor the shared config has a region' do
+      expect(region_for({})).to eq('us-east-1')
+    end
+  end
+
+  describe '.local_endpoint?' do
+    def local_endpoint_with(env)
+      stub_const('ENV', ENV.to_h.except('USE_LOCAL_S3_ENDPOINT', 'LOCAL_S3_ENDPOINT').merge(env))
+      AwsS3.local_endpoint?
+    end
+
+    it 'is true only when the flag is "true" and an endpoint is set' do
+      expect(
+        [
+          local_endpoint_with('USE_LOCAL_S3_ENDPOINT' => 'true', 'LOCAL_S3_ENDPOINT' => 'http://minio:9000'),
+          local_endpoint_with('USE_LOCAL_S3_ENDPOINT' => 'true', 'LOCAL_S3_ENDPOINT' => ''),
+          local_endpoint_with('USE_LOCAL_S3_ENDPOINT' => 'false', 'LOCAL_S3_ENDPOINT' => 'http://minio:9000'),
+        ],
+      ).to eq([true, false, false])
     end
   end
 
   describe '#exists?' do
-    it 'returns true if bucket exists' do
-      allow(bucket).to receive(:exists?).and_return(true)
-      expect(aws_s3.exists?).to be true
+    it 'returns what the bucket check reports' do
+      allow(bucket).to receive(:exists?).and_return(true, false)
+
+      expect([aws_s3.exists?, aws_s3.exists?]).to eq([true, false])
+    end
+
+    it 'returns false when the bucket check raises' do
+      allow(bucket).to receive(:exists?).and_raise(Aws::S3::Errors::ServiceError.new(nil, 'Forbidden'))
+
+      expect(aws_s3.exists?).to be(false)
     end
   end
 
@@ -162,25 +211,25 @@ RSpec.describe AwsS3, 'deprecation warnings' do
   end
 end
 
-RSpec.describe AwsS3, 'minio roundtrip' do
+RSpec.describe AwsS3, 'local S3 roundtrip' do
   it 'uploads then downloads the file and matches contents' do
-    # Allow real HTTP to MinIO inside the docker network for this example
+    # Allow real HTTP to local S3 inside the docker network for this example
     begin
       WebMock.allow_net_connect!
     rescue NameError
       # webmock not loaded
     end
 
-    previous_use_minio = ENV['USE_MINIO_ENDPOINT']
-    previous_minio_endpoint = ENV['MINIO_ENDPOINT']
+    previous_use_local_s3 = ENV['USE_LOCAL_S3_ENDPOINT']
+    previous_local_s3_endpoint = ENV['LOCAL_S3_ENDPOINT']
     previous_ssl_verify = Aws.config[:ssl_verify_peer]
     prev_env_access = ENV['AWS_ACCESS_KEY_ID']
     prev_env_secret = ENV['AWS_SECRET_ACCESS_KEY']
     prev_env_region = ENV['AWS_REGION']
 
-    ENV['USE_MINIO_ENDPOINT'] = 'true'
-    endpoint = ENV['MINIO_ENDPOINT'].presence || 'https://s3.dev.test:9000'
-    ENV['MINIO_ENDPOINT'] = endpoint
+    ENV['USE_LOCAL_S3_ENDPOINT'] = 'true'
+    endpoint = ENV['LOCAL_S3_ENDPOINT'].presence || 'https://s3.dev.test:9000'
+    ENV['LOCAL_S3_ENDPOINT'] = endpoint
     Aws.config[:ssl_verify_peer] = false
     access_key_id = ENV['AWS_ACCESS_KEY_ID'].presence || 'local_access_key'
     secret_access_key = ENV['AWS_SECRET_ACCESS_KEY'].presence || 'local_secret_key'
@@ -212,8 +261,8 @@ RSpec.describe AwsS3, 'minio roundtrip' do
 
       expect(File.read(download_path)).to eq(content)
     ensure
-      ENV['USE_MINIO_ENDPOINT'] = previous_use_minio
-      ENV['MINIO_ENDPOINT'] = previous_minio_endpoint
+      ENV['USE_LOCAL_S3_ENDPOINT'] = previous_use_local_s3
+      ENV['LOCAL_S3_ENDPOINT'] = previous_local_s3_endpoint
       Aws.config[:ssl_verify_peer] = previous_ssl_verify
       ENV['AWS_ACCESS_KEY_ID'] = prev_env_access
       ENV['AWS_SECRET_ACCESS_KEY'] = prev_env_secret

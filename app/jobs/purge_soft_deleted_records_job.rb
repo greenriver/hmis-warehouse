@@ -24,27 +24,16 @@ class PurgeSoftDeletedRecordsJob < BaseJob
   def perform(retain_at: nil, max_deleted: nil, models: warehouse_models, dry_run: true)
     raise 'all models must be paranoid' unless models.all?(&:paranoid?)
 
-    config = SoftDeleteRetentionConfiguration.new
-    return 0 unless config.enabled?
-
-    retain_at ||= config.retain_at
-    max_deleted ||= config.max_deleted_per_run
-
-    Rails.logger.info "Purging soft-deleted records (#{dry_run ? 'dry run' : 'live run'})"
+    @total_deleted = 0
+    @dry_run = dry_run
 
     with_lock do
-      @total_deleted = 0
-      @max_deleted = max_deleted
-      @retain_at = retain_at
-      @dry_run = dry_run
-      catch(:halt) do
-        data_sources.order(:id).each do |data_source|
-          models.each do |model|
-            model.unscoped do
-              process_model(model, data_source: data_source)
-            end
-          end
-        end
+      instrument_as_maintenance_task(name: 'purge') do |run|
+        config = SoftDeleteRetentionConfiguration.new
+        # A disabled config is still a completed run: purging is off on purpose here, so there is
+        # nothing to do and nothing worth alerting about.
+        purge(retain_at: retain_at, max_deleted: max_deleted, models: models, config: config) if config.enabled?
+        run.complete!
       end
     end
 
@@ -53,6 +42,23 @@ class PurgeSoftDeletedRecordsJob < BaseJob
   end
 
   protected
+
+  def purge(retain_at:, max_deleted:, models:, config:)
+    @max_deleted = max_deleted || config.max_deleted_per_run
+    @retain_at = retain_at || config.retain_at
+
+    Rails.logger.info "Purging soft-deleted records (#{@dry_run ? 'dry run' : 'live run'})"
+
+    catch(:halt) do
+      data_sources.order(:id).each do |data_source|
+        models.each do |model|
+          model.unscoped do
+            process_model(model, data_source: data_source)
+          end
+        end
+      end
+    end
+  end
 
   def data_sources
     GrdaWarehouse::DataSource
@@ -101,6 +107,19 @@ class PurgeSoftDeletedRecordsJob < BaseJob
     ]
   end
 
+  # CE referrals hold FKs to enrollments (target_enrollment_id, source_enrollment_id), and a soft-deleted
+  # referral still holds them. Skip those enrollments rather than untangling the referral graph.
+  #
+  # FUTURE: these enrollments are never purged, since nothing purges CE referrals or the workflow execution
+  # records behind them. Rare enough today to leave; a full fix means adding referrals, their notes and
+  # participants, and the workflow instance/step/assignment/audit-event tree to the purge in dependency order.
+  def exclude_ce_referral_enrollments(enrollment_scope)
+    referrals = Hmis::Ce::Referral.with_deleted
+    enrollment_scope.
+      where.not(id: referrals.where.not(target_enrollment_id: nil).select(:target_enrollment_id)).
+      where.not(id: referrals.where.not(source_enrollment_id: nil).select(:source_enrollment_id))
+  end
+
   def with_lock(&block)
     lock_name = self.class.name.demodulize
     GrdaWarehouseBase.with_advisory_lock(lock_name, timeout_seconds: 0, &block)
@@ -112,6 +131,8 @@ class PurgeSoftDeletedRecordsJob < BaseJob
     scope = model.
       where(data_source: data_source).
       where(paranoia_col.lt(@retain_at))
+    # Hmis::Hud::Enrollment and GrdaWarehouse::Hud::Enrollment back the same table, so match on the table name
+    scope = exclude_ce_referral_enrollments(scope) if model.table_name == GrdaWarehouse::Hud::Enrollment.table_name
 
     scope.in_batches(of: 5_000).each do |batch|
       model.transaction do

@@ -33,7 +33,7 @@ Rails.application.routes.draw do
 
     devise_scope :user do
       match 'session_keepalive' => 'users/sessions#keepalive', via: :post
-      match 'users/invitations/confirm', via: :post
+      match 'users/invitations/confirm', via: :post, as: :confirm_users_invitations
       match 'logout_talentlms' => 'users/sessions#destroy', via: :get
       if ENV['OKTA_DOMAIN'].present?
         get '/users/auth/okta/callback' => 'users/omniauth_callbacks#okta' if ENV['OKTA_CLIENT_ID']
@@ -50,11 +50,6 @@ Rails.application.routes.draw do
   end
 
   namespace :users do
-    resources :invitations do
-      collection do
-        post :confirm
-      end
-    end
     resources :account_requests, only: [:new, :create]
   end
 
@@ -67,7 +62,8 @@ Rails.application.routes.draw do
 
   match 'filter', to: 'filters#show', via: [:post]
 
-  resources :reports do
+  # Pre-framework HUD report results
+  resources :reports, only: [] do
     resources :report_results, path: 'results', only: [:index, :show, :create, :update, :destroy] do
       get :download_support, on: :member
       resources :support, only: [:index], controller: 'report_results/support'
@@ -84,21 +80,8 @@ Rails.application.routes.draw do
   resources :maintenance, only: [:index]
   resources :maintenance_saver, only: [:index], controller: 'maintenance'
 
-  namespace :reports do
-    namespace :hic do
-      resource :export, only: [:show, :create]
-      resource :organization, only: [:show]
-      resource :project, only: [:show]
-      resource :inventory, only: [:show]
-      resource :site, only: [:show]
-      resource :geography, only: [:show]
-      resource :funder, only: [:show]
-      resource :project_coc, only: [:show]
-    end
-  end
-  resources :hud_reports, only: [:index]
+  get 'hud_reports', to: redirect('/warehouse_reports') # bookmarks from the removed HUD Reports index
   namespace :hud_reports do
-    resources :historic_pits, only: [:index]
     resources :historic_lsas, only: [:index], controller: 'lsas'
   end
   resources :report_results_summary, only: [:show]
@@ -111,6 +94,12 @@ Rails.application.routes.draw do
   end
   namespace :warehouse_reports do
     resources :client_lookups, only: [:index]
+    resources :client_retention, only: [:index] do
+      collection do
+        get :expired
+        get :runs
+      end
+    end
     resources :overlapping_coc_utilization, only: [:index] do
       collection do
         get :overlap
@@ -318,7 +307,6 @@ Rails.application.routes.draw do
       get 'rollup/:partial', to: 'clients#rollup', as: :rollup
       get :assessment
       # get :image
-      get :chronic_days
       patch :merge
       patch :unmerge
 
@@ -333,6 +321,7 @@ Rails.application.routes.draw do
     #   post :queue, on: :collection
     # end
     resource :external_data_sharing, only: [:show, :update], controller: 'clients/external_data_sharing'
+    resource :restriction, only: [:show, :update], controller: 'clients/restrictions'
     resource :cas_readiness, only: [:edit, :update], controller: 'clients/cas_readiness' do
       post :render_content, on: :member
       get :render_content, on: :member if Rails.env.development?
@@ -481,12 +470,14 @@ Rails.application.routes.draw do
   resources :match_logs, only: [:index]
   resources :service_history_logs, only: [:index]
   resources :data_sources do
-    get :organizations, on: :member
-    resources :uploads, except: [:update, :destroy, :edit]
+    resources :uploads, except: [:update, :destroy, :edit] do
+      post :confirm, on: :member
+    end
     resources :non_hmis_uploads, except: [:update, :destroy, :edit]
     resources :custom_imports, controller: 'data_sources/custom_imports' do
       get :download, on: :member
     end
+    resources :unprocessed_enrollments, only: [:index], controller: 'data_sources/unprocessed_enrollments'
     resource :api_config
     resource :hmis_import_config do
       get :download
@@ -498,13 +489,14 @@ Rails.application.routes.draw do
       resources :notification_configurations, only: [:new, :edit, :create, :update, :destroy], controller: 'import_csv_monitors/notification_configurations'
     end
     resource :external_hmis_configuration, only: [:show, :update]
+    resource :user_access, only: [:show], controller: 'user_access'
   end
-  # Bookmarkable link to the CoC-code picker on a data source's show page,
-  # pre-selected. Declared after `resources :data_sources` so its own routes
-  # (edit, organizations, etc.) still win over this catch-all shape.
+  # Bookmarkable link to a data source's CoC-scoped show page. Declared after
+  # `resources :data_sources` so its own routes (edit, uploads, etc.) still win
+  # over this catch-all shape.
   get 'data_sources/:id/:coc_code', to: 'data_sources#show', as: :data_source_with_coc_code
   resources :ad_hoc_data_sources do
-    resources :uploads, except: [:edit], controller: 'ad_hoc_data_sources/uploads' do
+    resources :uploads, except: [:edit, :index], controller: 'ad_hoc_data_sources/uploads' do
       get :download, on: :member
     end
     get :download, on: :collection
@@ -685,6 +677,7 @@ Rails.application.routes.draw do
         get :export, on: :member
       end
       post :assign, on: :collection
+      post :project_options, on: :collection
       get :audits, on: :collection, to: 'access_controls#audits', as: :audits
       post :render_audits, on: :collection, to: 'access_controls#render_audits', as: :render_audits
     end
@@ -708,14 +701,14 @@ Rails.application.routes.draw do
         patch :update
       end
     end
-    resources :links
+    resources :links, except: [:show]
     resources :content_pages
     resources :app_config_properties
     resources :compliance_requirements, except: [:show] do
       post :activate, on: :member
       post :deactivate, on: :member
     end
-    resources :translation_keys, only: [:index, :update]
+    resources :translation_keys, only: [:index]
     resources :translation_text, only: [:update]
     resources :configs, only: [:index] do
       patch :update, on: :collection

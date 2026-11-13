@@ -23,18 +23,29 @@ echo "Preparing worktree $worktree_path (branch $branch)"
 
 # Files/dirs that are gitignored (so absent in a fresh worktree) but required to
 # boot and to isolate the worktree. .env.test and docker-compose.yml are tracked.
-#   .pgpass                             - the spec container's entrypoint copies
-#                                          this rather than generating it; without
-#                                          it, spec/test-db commands fail.
-#   app/assets/stylesheets/theme/styles - the asset manifest link_directory's this
-#                                          unconditionally; without it, a fresh
-#                                          worktree 500s on first request.
-for f in .env.local .env.development.local .envrc docker-compose.override.yml .pgpass app/assets/stylesheets/theme/styles; do
+#   .pgpass - the spec container's entrypoint copies this rather than generating
+#             it; without it, spec/test-db commands fail.
+for f in .env.local .env.development.local .envrc docker-compose.override.yml .pgpass; do
   if [ ! -e "$primary_path/$f" ]; then
     echo "  WARNING: $primary_path/$f not found; skipping"
   elif [ -e "$worktree_path/$f" ]; then
     echo "  $f already present; leaving as-is"
   else
+    cp -r "$primary_path/$f" "$worktree_path/$f"
+    echo "  copied $f"
+  fi
+done
+
+# Optional files, copied only when the primary has them:
+#   .env.test.local - a primary that sets its own test database names (e.g. a second
+#                     install using NAME_PREFIX); without it the rewrite starts from .env.test.
+#   CLAUDE.local.md - personal agent instructions; gitignored, so a new worktree lacks them.
+#   .local-overcommit.yml, .overcommit-plugins - overcommit signs the merged
+#                     .overcommit.yml + .local-overcommit.yml and stores that signature in
+#                     the git config all worktrees share, so every tree needs the same local
+#                     config or each one fails the others' signature check.
+for f in .env.test.local CLAUDE.local.md .local-overcommit.yml .overcommit-plugins; do
+  if [ -e "$primary_path/$f" ] && [ ! -e "$worktree_path/$f" ]; then
     cp -r "$primary_path/$f" "$worktree_path/$f"
     echo "  copied $f"
   fi

@@ -235,6 +235,12 @@ services:
   # registration by overriding the traefik.enable label to false (oauth2-proxy-warehouse
   # now fronts hmis-warehouse.dev.test). VIRTUAL_HOST/VIRTUAL_PORT are nginx-proxy
   # leftovers nothing reads here, so they're left as-is on the base service.
+  # KEYCLOAK_* for rails tasks run from these, e.g. Idp::ServiceConfig.bootstrap_from_env.
+  shell:
+    env_file: *env_file
+  console:
+    env_file: *env_file
+
   web:
     labels:
       - traefik.enable=false

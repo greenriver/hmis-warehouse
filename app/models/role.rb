@@ -112,6 +112,10 @@ class Role < ApplicationRecord
     ).first_or_create
   end
 
+  # Remove the `can_view_own_hud_reports` entry from permissions_with_descriptions
+  # and write a migration dropping the `roles.can_view_own_hud_reports` column.
+  TodoOrDie('Remove the can_view_own_hud_reports permission and column', by: Date.new(2027, 1, 15))
+
   def editable?
     system == false
   end
@@ -255,6 +259,12 @@ class Role < ApplicationRecord
       },
       can_audit_clients: {
         description: 'Access to see who has looked at or changed a client record. This should only be given to administrator level users.',
+        administrative: true,
+        category: 'Client Access',
+        sub_category: 'Administrative',
+      },
+      can_mark_clients_as_restricted: {
+        description: 'Ability to mark and unmark clients as restricted. A restricted client\'s name, SSN, date of birth, photo, and HIV status are hidden from every warehouse user. Applies to clients enrolled at projects the user can access. When removing a restriction, the confirmation shows the client\'s last name, subject to the user\'s name permission, so they can confirm the right client.',
         administrative: true,
         category: 'Client Access',
         sub_category: 'Administrative',
@@ -450,7 +460,7 @@ class Role < ApplicationRecord
         sub_category: 'General Client Access',
       },
       can_generate_homeless_verification_pdfs: {
-        description: 'Allows access to generate and view homeless verification PDFs for any client for which the user has access',
+        description: 'Allows access to generate and view homeless verification PDFs for any client for which the user has access. Generating a PDF also requires "Access to the calendar view of client enrollments" for that client.',
         administrative: false,
         category: 'Client Extras',
         sub_category: 'General Client Access',
@@ -702,7 +712,13 @@ class Role < ApplicationRecord
         sub_category: 'Relationships',
       },
       can_export_hmis_data: {
-        description: 'When combined with assignment of the appropriate report, allows a user to export HMIS data',
+        description: 'When combined with assignment of the appropriate report, allows a user to export HMIS data.  Note PII protections, other than HMIS Restricted clients, are not applied to exported data.',
+        administrative: false,
+        category: 'Reporting',
+        sub_category: 'Exporting',
+      },
+      can_download_lsa_source_data: {
+        description: 'Ability to download the source HMIS data attached to an LSA report run',
         administrative: false,
         category: 'Reporting',
         sub_category: 'Exporting',
@@ -751,7 +767,7 @@ class Role < ApplicationRecord
         sub_category: 'Report Administration',
       },
       can_view_project_related_filters: {
-        description: 'Ability to specify filters of project, organization, funding source and data sources for report universes. Most single CoC installations will want this enabled for anyone with reporting access. NOTE: This only provides access to the report filters. The filters are populated with data made accessible to the user through other permissions (e.g. the "Can view projects" permission).',
+        description: 'Ability to specify filters of project, organization, funding source and data sources for report universes. Most single CoC installations will want this enabled for anyone with reporting access. NOTE: This only provides access to the report filters. The filters are populated with data made accessible to the user through other permissions (e.g. the "Can view assigned reports" permission).',
         administrative: false,
         category: 'Reporting',
         sub_category: 'Data Access',
@@ -835,13 +851,14 @@ class Role < ApplicationRecord
         sub_category: 'Site Configuration',
       },
       can_view_all_hud_reports: {
-        description: 'This permission grants access to run all HUD reports, limited by data access assignments.  In addition, this grants access to all HUD reports that have ever been run regardless of access assignments.',
+        description: 'This permission grants access to all HUD report runs regardless of who initiated them. Access to run a HUD report is granted by assigning the report to a collection.',
         administrative: true,
         category: 'Reporting',
         sub_category: 'HUD Reports',
       },
+      # Delete this entry when the TodoOrDie at the top of this class fires.
       can_view_own_hud_reports: {
-        description: 'This permission grants access to run all HUD reports, limited by data access assignments.  Users can only see results for HUD reports they initiated.',
+        description: 'DEPRECATED: access to run a HUD report is granted by assigning the report to a collection; users see their own runs by default.',
         administrative: false,
         category: 'Reporting',
         sub_category: 'HUD Reports',

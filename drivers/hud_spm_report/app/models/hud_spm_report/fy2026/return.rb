@@ -26,6 +26,14 @@ module HudSpmReport::Fy2026
       HudSpmReport::Fy2026::SpmEnrollment.search_columns
     end
 
+    def self.pii_search_columns
+      HudSpmReport::Fy2026::SpmEnrollment.pii_search_columns
+    end
+
+    def self.restricted_client_id_columns
+      HudSpmReport::Fy2026::SpmEnrollment.restricted_client_id_columns
+    end
+
     # duck-types to enrollment
     def project_id
       [exit_enrollment, return_enrollment].detect(&:present?)&.enrollment&.project&.id

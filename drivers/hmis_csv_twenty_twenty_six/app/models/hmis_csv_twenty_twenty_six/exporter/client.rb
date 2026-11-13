@@ -39,6 +39,7 @@ module HmisCsvTwentyTwentySix::Exporter
         HmisCsvTwentyTwentySix::Exporter::Client::Overrides,
         HmisCsvTwentyTwentySix::Exporter::Client,
         HmisCsvTwentyTwentySix::Exporter::FakeData,
+        ::Export::RestrictedClientPiiTransform,
       ]
     end
   end

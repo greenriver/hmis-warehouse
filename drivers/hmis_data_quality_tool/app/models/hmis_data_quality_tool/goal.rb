@@ -18,6 +18,7 @@ module HmisDataQualityTool
         :exit_date_entered_length,
         :expose_ch_calculations,
         :show_annual_assessments,
+        :global_overlap_checks,
       ]
       columns += stay_length_categories
       segment_numbers.each do |num|

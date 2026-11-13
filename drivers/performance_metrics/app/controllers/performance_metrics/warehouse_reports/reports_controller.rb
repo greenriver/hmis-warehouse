@@ -15,7 +15,6 @@ module PerformanceMetrics::WarehouseReports
 
     before_action :require_can_access_some_version_of_clients!, only: [:details]
     before_action :set_report, only: [:show, :destroy, :details, :reload_from_csv]
-    before_action :set_pdf_export
 
     def index
       @pagy, @reports = pagy(report_scope.ordered)
@@ -69,7 +68,7 @@ module PerformanceMetrics::WarehouseReports
     helper_method :breakdown
 
     private def set_report
-      @report = report_class.find(params[:id].to_i)
+      @report = report_scope.find(params[:id].to_i)
     end
 
     private def report_scope
@@ -99,14 +98,6 @@ module PerformanceMetrics::WarehouseReports
 
     private def filter_class
       ::Filters::FilterBase
-    end
-
-    private def set_pdf_export
-      @pdf_export = pdf_export_source.new
-    end
-
-    private def pdf_export_source
-      PerformanceMetrics::DocumentExports::ReportExport
     end
 
     private def flash_interpolation_options

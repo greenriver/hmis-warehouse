@@ -14,7 +14,7 @@ jobs:
     name: Eager Load Check
 
     runs-on: ubuntu-24.04
-    container: ruby:3.4.9-slim-bookworm
+    container: ruby:3.4.12-slim-trixie
 
     permissions:
       contents: read
@@ -53,14 +53,11 @@ jobs:
         ports:
           - '2222:22'
 
-      minio:
-        image: ghcr.io/greenriver/openpath-minio:1.0
+      s3:
+        image: ghcr.io/greenriver/openpath-seaweedfs:1.0
         credentials:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-        env:
-          MINIO_ACCESS_KEY: local_access_key
-          MINIO_SECRET_KEY: local_secret_key
         ports:
           - '9000:9000'
       chrome:
@@ -74,8 +71,8 @@ jobs:
 
     env:
       CLIENT: test
-      # Boot the whole app eagerly (like production) so zeitwerk:check below catches
-      # load-time errors app-wide once. Other CI jobs stay lazy to save memory.
+      # Boot the whole app eagerly (like production) so zeitwerk:check below reports load-time
+      # errors in one fast job, whether or not the matrix router schedules the unit test buckets.
       EAGER_LOAD: true
       DATABASE_ADAPTER: postgresql
       DATABASE_APP_DB_TEST: warehouse_app_test
@@ -95,8 +92,8 @@ jobs:
       HEALTH_DATABASE_PASS: postgres
       HEALTH_DATABASE_USER: postgres
       HOSTNAME: openpath.host
-      MINIO_ENDPOINT: http://minio:9000
-      USE_MINIO_ENDPOINT: true
+      LOCAL_S3_ENDPOINT: http://s3:9000
+      USE_LOCAL_S3_ENDPOINT: true
       PORT: 80
       RAILS_ENV: test
       CACHE_HOST: redis
@@ -135,8 +132,6 @@ jobs:
       - name: 'App setup'
         run: |
           cp config/secrets.yml.sample config/secrets.yml
-          mkdir app/assets/stylesheets/theme/styles
-          touch app/assets/stylesheets/theme/styles/_variables.scss
           cp .rspec.sample .rspec
           cp config/database.yml.ci config/database.yml
 

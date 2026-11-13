@@ -16,14 +16,16 @@
       %tbody
         - @results.find_each do |result|
           - client = result.client
+          - client_pii = client&.pii_provider(user: current_user)
+          - result_pii = GrdaWarehouse::PiiProvider.new(result, policy: client_pii&.policy || GrdaWarehouse::AuthPolicies::DenyPiiPolicy.instance)
           %tr
             %td
               - if client
-                = link_to client.name, polymorphic_path(['client_he', health_emergency], client_id: client)
-            %td= result.first_name
-            %td= result.last_name
-            %td= result.dob
-            %td= ssn(result.ssn)
+                = link_to client_pii.full_name, polymorphic_path(['client_he', health_emergency], client_id: client)
+            %td= result_pii.first_name
+            %td= result_pii.last_name
+            %td= result_pii.dob
+            %td= result_pii.ssn
             %td= result.tested_on
             %td= result.test_location
             %td= result.test_result

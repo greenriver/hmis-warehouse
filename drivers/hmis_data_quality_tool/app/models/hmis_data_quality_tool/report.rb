@@ -28,9 +28,11 @@ module HmisDataQualityTool
     alias_attribute :result_cache, :build_for_questions
 
     # NOTE: this differs from viewable_by which looks at the report definitions
+    # HUD report instances share one table and are identified by report_name, not the STI type column
     scope :visible_to, ->(user) do
-      return all if user.can_view_all_reports?
-      return where(user_id: user.id) if user.can_view_assigned_reports?
+      scope = where(report_name: untranslated_title)
+      return scope if user.can_view_all_reports?
+      return scope.where(user_id: user.id) if user.can_view_assigned_reports?
 
       none
     end
@@ -59,7 +61,8 @@ module HmisDataQualityTool
     end
 
     def start
-      update(started_at: Time.current, state: 'Started')
+      # A retry clears the failure left by the previous attempt
+      update(started_at: Time.current, state: 'Started', failed_at: nil)
     end
 
     def complete
@@ -229,6 +232,39 @@ module HmisDataQualityTool
 
     def can_see_client_details?(user)
       user.can_access_some_version_of_clients?
+    end
+
+    # Names, as the viewing user may see them, for projects referenced by overlap details.
+    # Projects outside the report are redacted unless the user can report on them.
+    def overlap_project_names(items:, user:)
+      in_report_ids = Set.new
+      outside_ids = Set.new
+      items.each do |item|
+        ids = item.try(:overlap_project_ids)
+        next unless ids
+
+        in_report_ids.merge(ids[:in_report])
+        outside_ids.merge(ids[:outside_report])
+      end
+      project_ids = (in_report_ids | outside_ids).to_a
+      return {} if project_ids.empty?
+
+      user.policy_context.preload_project_dependencies(project_ids)
+
+      # Project.viewable_by resolves access for both ACL and legacy users; confidential projects are
+      # kept in scope so Project#name can apply the user's confidential-name access.
+      reportable_ids = GrdaWarehouse::Hud::Project.
+        viewable_by(user, confidential_scope_limiter: :all, permission: :can_view_assigned_reports).
+        where(id: outside_ids.to_a).
+        pluck(:id).to_set
+      GrdaWarehouse::Hud::Project.where(id: project_ids).to_h do |project|
+        name = if in_report_ids.include?(project.id) || reportable_ids.include?(project.id)
+          project.name(user)
+        else
+          HmisDataQualityTool::Client::REDACTED_PROJECT_NAME
+        end
+        [project.id, name]
+      end
     end
 
     def pivot_details

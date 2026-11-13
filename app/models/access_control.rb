@@ -20,6 +20,7 @@ class AccessControl < ApplicationRecord
   include UserPermissionCache
   include ArelHelper
   include HistoryDescriptions
+  include AccessControlFiltering
 
   acts_as_paranoid
   has_paper_trail
@@ -70,33 +71,14 @@ class AccessControl < ApplicationRecord
       order(UserGroup.arel_table[:name].asc, Role.arel_table[:name].asc, Collection.arel_table[:name].asc)
   end
 
-  # filter for access controls that somehow interact with the following
-  # User, UserGroup, Role, EntityGroup
-  scope :filtered, ->(filter_params) do
-    return current_scope unless filter_params
-    return current_scope if filter_params[:user_id].blank? && filter_params[:user_group_id].blank? && filter_params[:role_id].blank? && filter_params[:collection_id].blank?
-
-    ids = []
-    if filter_params[:user_id].present?
-      user_scope = UserGroup.with_user_id(filter_params[:user_id].to_i)
-      ids += joins(:user_group).
-        merge(user_scope).pluck(:id)
-    end
-    if filter_params[:user_group_id].present?
-      user_group_scope = where(user_group_id: filter_params[:user_group_id].to_i)
-      ids += user_group_scope.pluck(:id)
-    end
-    if filter_params[:role_id].present?
-      role_scope = where(role_id: filter_params[:role_id].to_i)
-      ids += role_scope.pluck(:id)
-    end
-    if filter_params[:collection_id].present?
-      entity_group_scope = where(collection_id: filter_params[:collection_id].to_i)
-      ids += entity_group_scope.pluck(:id)
-    end
-
-    where(id: ids)
-  end
+  filterable_by(
+    collection_association: :collection,
+    entity_class_names: {
+      data_source_id: 'GrdaWarehouse::DataSource',
+      organization_id: 'GrdaWarehouse::Hud::Organization',
+      project_id: 'GrdaWarehouse::Hud::Project',
+    },
+  )
 
   scope :visible_to, ->(_user) do
     all

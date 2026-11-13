@@ -128,6 +128,25 @@ module UserConcern
       where(permission_context: [nil, 'role_based'])
     end
 
+    # HMIS access is only ever granted through Hmis::AccessControl (docs/features/hmis/hmis-permissions.md),
+    # so one live grant, in any data source, is sufficient to indicate a user is a HMIS user.
+    scope :hmis_users, -> do
+      where(id: Hmis::AccessControl.joins(:users).select(Hmis::User.arel_table[:id]))
+    end
+
+    # Includes soft-deleted grants and memberships, for audit filters that must be able to name a
+    # user whose HMIS access has since been removed.
+    scope :current_or_former_hmis_users, -> do
+      group_ids = Hmis::AccessControl.with_deleted.select(:user_group_id)
+      where(id: Hmis::UserGroupMember.with_deleted.where(user_group_id: group_ids).select(:user_id))
+    end
+
+    # Warehouse access is identifiable as any user with a legacy role or an Access Control.
+    scope :warehouse_users, -> do
+      where(id: AccessControl.joins(:users).select(User.arel_table[:id])).
+        or(where(id: UserRole.select(:user_id)))
+    end
+
     def using_acls?
       # Note using hash syntax to get around lack of column for some data migrations
       self[:permission_context].to_s == 'acls'
@@ -250,7 +269,7 @@ module UserConcern
       root_path
     end
 
-    # Search for users by name (prefix) or email (substring, e.g. domain).
+    # Search for users by name (prefix), email (substring, e.g. domain), or exact user ID.
     #
     # @param text [String] the search query
     # @param sort_by_best_match [Boolean] whether to order results by similarity to query
@@ -261,7 +280,14 @@ module UserConcern
     #   User.text_search('john')
     def self.text_search(text, sort_by_best_match: false)
       text = text.strip
-      return none if text.length < 3 # require at least 3 characters for meaningful search
+      # A bare number may also be a user ID (support often has only the ID from an error report)
+      numeric = text.match?(/\A\d+\z/)
+      # require at least 3 characters for meaningful search; shorter numbers only match by ID
+      if text.length < 3
+        return where(id: text) if numeric
+
+        return none
+      end
 
       terms = text.split(/[\s,]+/).map(&:strip).reject(&:blank?)
       return none if terms.empty?
@@ -274,7 +300,11 @@ module UserConcern
 
         where(prefix_condition)
       end.inject(&:or)
+      scope = scope.or(where(id: text)) if numeric
       if sort_by_best_match
+        # An ID match has no text similarity, so rank it first explicitly.
+        # Compared as text so a number wider than bigint can't raise.
+        scope = scope.order(Arel.sql(sanitize_sql_array(["#{quoted_table_name}.id::text = ? DESC", text.to_i.to_s]))) if numeric
         sql = <<-SQL.squish
           similarity(
             CONCAT_WS(' ', first_name, last_name, email),
@@ -296,12 +326,6 @@ module UserConcern
 
     def system_user?
       email == 'noreply@greenriver.com'
-    end
-
-    def can_report_on_confidential_projects?
-      return true if system_user?
-
-      can_report_on_confidential_projects
     end
 
     # TODO: START_ACL remove when ACL transition complete

@@ -45,10 +45,11 @@ module GrdaWarehouse
       # @param match_type [Symbol] :existing or :unprocessed
       # @param destination_data_source_ids [Array<Integer>] Required for :unprocessed match_type
       # @param unprocessed_ids [Array<Integer>] Required for :unprocessed match_type
+      # @param destination_ids [Array<Integer>] Optional for :unprocessed match_type; limits the destination side to these client ids
       # @return [IdentifyDuplicatesQueryMatcher] Query matcher instance (call .execute to run)
       # @example
       #   IdentifyDuplicatesQueryMatcher.for_ssn_matches(match_type: :existing).execute
-      def self.for_ssn_matches(match_type:, destination_data_source_ids: nil, unprocessed_ids: nil)
+      def self.for_ssn_matches(match_type:, destination_data_source_ids: nil, unprocessed_ids: nil, destination_ids: nil)
         ensure_match_type!(match_type)
 
         new(
@@ -59,6 +60,7 @@ module GrdaWarehouse
           include_value_in_results: true,
           destination_data_source_ids: destination_data_source_ids,
           unprocessed_ids: unprocessed_ids,
+          destination_ids: destination_ids,
         )
       end
 
@@ -66,8 +68,9 @@ module GrdaWarehouse
       # @param match_type [Symbol] :existing or :unprocessed
       # @param destination_data_source_ids [Array<Integer>] Required for :unprocessed match_type
       # @param unprocessed_ids [Array<Integer>] Required for :unprocessed match_type
+      # @param destination_ids [Array<Integer>] Optional for :unprocessed match_type; limits the destination side to these client ids
       # @return [IdentifyDuplicatesQueryMatcher] Query matcher instance (call .execute to run)
-      def self.for_name_matches(match_type:, destination_data_source_ids: nil, unprocessed_ids: nil)
+      def self.for_name_matches(match_type:, destination_data_source_ids: nil, unprocessed_ids: nil, destination_ids: nil)
         ensure_match_type!(match_type)
 
         new(
@@ -78,6 +81,7 @@ module GrdaWarehouse
           include_value_in_results: false,
           destination_data_source_ids: destination_data_source_ids,
           unprocessed_ids: unprocessed_ids,
+          destination_ids: destination_ids,
         )
       end
 
@@ -85,8 +89,9 @@ module GrdaWarehouse
       # @param match_type [Symbol] :existing or :unprocessed
       # @param destination_data_source_ids [Array<Integer>] Required for :unprocessed match_type
       # @param unprocessed_ids [Array<Integer>] Required for :unprocessed match_type
+      # @param destination_ids [Array<Integer>] Optional for :unprocessed match_type; limits the destination side to these client ids
       # @return [IdentifyDuplicatesQueryMatcher] Query matcher instance (call .execute to run)
-      def self.for_dob_matches(match_type:, destination_data_source_ids: nil, unprocessed_ids: nil)
+      def self.for_dob_matches(match_type:, destination_data_source_ids: nil, unprocessed_ids: nil, destination_ids: nil)
         ensure_match_type!(match_type)
 
         new(
@@ -97,6 +102,7 @@ module GrdaWarehouse
           include_value_in_results: false,
           destination_data_source_ids: destination_data_source_ids,
           unprocessed_ids: unprocessed_ids,
+          destination_ids: destination_ids,
         )
       end
 
@@ -107,7 +113,7 @@ module GrdaWarehouse
       end
       private_class_method :ensure_match_type!
 
-      def initialize(match_type:, field_expression:, field_alias:, field_filters:, include_value_in_results:, destination_data_source_ids: nil, unprocessed_ids: nil)
+      def initialize(match_type:, field_expression:, field_alias:, field_filters:, include_value_in_results:, destination_data_source_ids: nil, unprocessed_ids: nil, destination_ids: nil)
         @match_type = match_type
         @field_expression = field_expression
         @field_alias = field_alias
@@ -115,6 +121,7 @@ module GrdaWarehouse
         @include_value_in_results = include_value_in_results
         @destination_data_source_ids = sanitize_ids(destination_data_source_ids)
         @unprocessed_ids = sanitize_ids(unprocessed_ids)
+        @destination_ids = sanitize_ids(destination_ids)
       end
 
       def to_sql(warehouse_id: nil)
@@ -150,7 +157,7 @@ module GrdaWarehouse
       private
 
       attr_reader :match_type, :field_expression, :field_alias, :field_filters, :include_value_in_results,
-                  :destination_data_source_ids, :unprocessed_ids, :warehouse_id
+                  :destination_data_source_ids, :unprocessed_ids, :destination_ids, :warehouse_id
 
       # Space-efficient approach: Groups all matching clients by field value into arrays,
       # then generates unique pairs using array indices. This avoids materializing
@@ -200,6 +207,7 @@ module GrdaWarehouse
               array_agg(DISTINCT clients.id ORDER BY clients.id) AS destination_ids
             #{unprocessed_from_clause}
               AND clients.data_source_id IN (#{destination_ids_sql})
+              #{destination_restriction_sql}
             GROUP BY #{field_alias}
           ),
           source_matches AS (
@@ -217,6 +225,13 @@ module GrdaWarehouse
           CROSS JOIN LATERAL generate_subscripts(destination_ids, 1) AS idx
           WHERE destination_ids[idx] != source_client_id
         SQL
+      end
+
+      # Limits the destination side to specific clients; empty means no restriction.
+      def destination_restriction_sql
+        return '' if destination_ids.blank?
+
+        "AND clients.id IN (#{destination_ids.join(', ')})"
       end
 
       def unprocessed_from_clause

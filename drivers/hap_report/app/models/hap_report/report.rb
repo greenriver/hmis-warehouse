@@ -53,14 +53,6 @@ module HapReport
       complete
     end
 
-    def start
-      update(started_at: Time.current)
-    end
-
-    def complete
-      update(completed_at: Time.current)
-    end
-
     def title
       'HAP Report'
     end
@@ -370,11 +362,16 @@ module HapReport
     end
 
     def enrollment_scope
+      visible_project_ids = GrdaWarehouse::Hud::Project.
+        viewable_by(user, permission: :can_view_assigned_reports).
+        where(id: @project_ids).
+        pluck(:id)
+
       GrdaWarehouse::ServiceHistoryEnrollment.
         entry.
         preload(:client, enrollment: [:disabilities, :health_and_dvs, :income_benefits]).
         joins(:project).
-        merge(GrdaWarehouse::Hud::Project.where(id: @project_ids)).
+        merge(GrdaWarehouse::Hud::Project.where(id: visible_project_ids)).
         open_between(start_date: @start_date, end_date: @end_date)
     end
 

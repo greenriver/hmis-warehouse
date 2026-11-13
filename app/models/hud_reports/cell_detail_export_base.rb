@@ -14,8 +14,14 @@ module HudReports
   # - builder: Returns a CellDetailExportBuilder instance
   class CellDetailExportBase < ::GrdaWarehouse::DocumentExport
     def authorized?
-      # User must have HUD report permissions AND either own the report or have view-all permission
-      user.can_view_hud_reports? && (report.user_id == user_id || user.can_view_all_hud_reports?)
+      return false unless required_params.all? { |key| params[key].present? }
+      return false unless report
+      return false unless report.user_id == user_id || user.can_view_all_hud_reports?
+
+      generator = requested_generator
+      return false unless generator && report.report_name == generator.title
+
+      GrdaWarehouse::WarehouseReports::ReportDefinition.url_viewable_by?(generator.report_definition_url, user)
     end
 
     def perform
@@ -52,7 +58,18 @@ module HudReports
     end
 
     def report
-      @report ||= ::HudReports::ReportInstance.find(params.fetch('report_id'))
+      @report ||= ::HudReports::ReportInstance.find_by(id: params['report_id'])
+    end
+
+    # The params `builder` reads with `fetch`.
+    def required_params
+      ['report_id', 'table', 'cell_id']
+    end
+
+    def requested_generator
+      builder.generator_for_report
+    rescue HudReports::CellDetailExportBuilderBase::UnsupportedReportError
+      nil
     end
   end
 end

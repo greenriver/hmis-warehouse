@@ -28,21 +28,27 @@ module WarehouseReports
     def set_jobs
       jobs = Delayed::Job.jobs_for_class(::Filters::HmisExport.job_classes).order(run_at: :desc)
       @job_reports = jobs.filter_map do |job|
-        parameters = YAML.safe_load(
+        job_data = YAML.safe_load(
           job.handler,
           permitted_classes: JOB_HANDLER_PERMITTED_CLASSES,
           aliases: true,
-        ).job_data['arguments'].first
-        parameters.delete('_aj_symbol_keys')
-        parameters.delete('_aj_globalid')
-        parameters['project_ids'] = parameters.delete('projects')
+        ).job_data
+        # Deserialize so ActiveJob-wrapped values (e.g. symbols such as sub_population) come back as Ruby objects.
+        parameters = ActiveJob::Arguments.deserialize(job_data['arguments']).first
+        parameters[:project_ids] = parameters.delete(:projects)
         report = GrdaWarehouse::HmisExport.new(parameters)
+        next unless queued_report_visible?(report)
 
         [job.run_at, report]
       rescue Psych::Exception => e
         Sentry.capture_exception(e)
         nil
       end
+    end
+
+    # Queued exports aren't saved yet, so this repeats export_scope's rules in Ruby.
+    private def queued_report_visible?(report)
+      can_view_all_reports? || report.user_id == current_user.id
     end
 
     def set_exports
@@ -60,11 +66,16 @@ module WarehouseReports
         frequency = recurrence_params[:every_n_days].to_i || 0
         if frequency.positive?
           recurring_export = GrdaWarehouse::RecurringHmisExport.create(recurrence_params.merge(user_id: current_user.id, options: @filter.to_h))
+          unless recurring_export.persisted?
+            flash.now[:error] = recurring_export.errors.full_messages.to_sentence
+            return render :index
+          end
+
           @filter.recurring_hmis_export_id = recurring_export.id
         end
         @filter.adjust_reporting_period
         if recurring_export&.s3_present? && ! recurring_export.s3_valid?
-          flash[:error] = 'Invalid S3 Configuration'
+          flash.now[:error] = 'Invalid S3 Configuration'
           render :index
         else
           @filter.schedule_job(report_url: warehouse_reports_hmis_exports_url)
@@ -138,7 +149,7 @@ module WarehouseReports
     helper_method :can_cancel?
 
     def set_export
-      @export = export_source.find(params[:id].to_i)
+      @export = export_scope.find(params[:id].to_i)
     end
 
     def export_source

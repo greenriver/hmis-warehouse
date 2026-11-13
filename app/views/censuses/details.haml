@@ -38,13 +38,15 @@
             -# %th Entry Dates
         %tbody
           - @clients.each_with_index do |entry, index|
+            - policy = current_user.reporting_policy_for_project(project_id: entry['project_id'], mode: :browse, client_id: entry['client_id'])
+            - pii = GrdaWarehouse::PiiProvider.from_attributes(policy: policy, first_name: entry['FirstName'], last_name: entry['LastName'])
             %tr
               %td
                 = index + 1
               %td
-                = link_to entry['LastName'], client_path(id: entry['client_id'])
+                = link_to pii.last_name, client_path(id: entry['client_id'])
               %td
-                = link_to entry['FirstName'], client_path(id: entry['client_id'])
+                = link_to pii.first_name, client_path(id: entry['client_id'])
               %td
                 = entry['ProjectName']
               %td

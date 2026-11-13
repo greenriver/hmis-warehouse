@@ -1,3 +1,10 @@
+---
+sources:
+  - drivers/hud_pit/app/models/hud_pit/generators/pit/fy2025/generator.rb
+  - drivers/hud_pit/app/models/hud_pit/generators/pit/fy2025/base.rb
+  - drivers/hud_pit/app/controllers/hud_pit/pit_concern.rb
+---
+
 # HUD PIT Report
 
 The HUD Point-in-Time (PIT) Report provides a snapshot of homelessness on a single night. It aggregates data for sheltered and unsheltered individuals across various project types.

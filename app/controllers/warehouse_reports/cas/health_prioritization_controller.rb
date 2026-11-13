@@ -33,6 +33,7 @@ module WarehouseReports::Cas
         format.xlsx do
         end
       end
+      current_user.policy_context.preload_client_dependencies(@clients.map(&:id))
     end
 
     # patch client with health_prioritization

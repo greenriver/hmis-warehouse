@@ -1,8 +1,19 @@
+---
+sources:
+  - drivers/hmis/app/models/hmis/restricted_record.rb
+  - drivers/hmis/app/models/hmis/concerns/restrictable.rb
+  - drivers/hmis/app/models/hmis/auth_policies/user_context.rb
+  - drivers/hmis/app/models/hmis/auth_policies/context_loaders/restricted_client_loader.rb
+  - drivers/hmis/app/models/hmis/auth_policies/hmis_client_policy.rb
+  - drivers/hmis/app/graphql/mutations/set_client_restricted.rb
+  - drivers/hmis/app/models/hmis/hud/client.rb
+---
+
 # HMIS Restricted Records
 
 `hmis_restricted_records` marks individual HMIS records as **restricted**, so visibility can be limited to staff with the appropriate permission. The table was introduced to support **restricted clients**, with the intention to expand the same pattern to other record types later (for example case notes or assessments).
 
-An active (non-deleted) row means the associated record is restricted. Soft-deleting the row clears the restriction.
+An active (non-deleted) row means the associated record is restricted. Soft-deleting the row clears the restriction. Restricting a record that was restricted before creates a new row rather than reviving the old one, so that each restriction is captured in PaperTrail history — Paranoia's `restore` writes through `update_columns` and skips PaperTrail. The unique index is partial on `deleted_at IS NULL`, so a restrictable has at most one active row and any number of soft-deleted ones.
 
 ## Use Cases
 
@@ -18,7 +29,7 @@ Restricted clients don't appear in client search unless you have permission to f
 
 Restriction is deliberately *not* a denial of access. A restricted client remains a normal, viewable client: their enrollments, households, assessments, services, and files resolve as they would otherwise, and every permission other than the ones listed below behaves the same whether or not the client is restricted.
 
-Restriction is expected to apply to a small fraction of clients in a data source — it's for the occasional client whose record needs extra protection, not a bulk visibility mechanism. The implementation relies on that: excluding restricted clients from search loads every restricted client ID in the data source.
+Restriction is expected to apply to a small fraction of clients in a data source — it's for the occasional client whose record needs extra protection, not a bulk visibility mechanism.
 
 A typical setup for case managers:
 
@@ -43,6 +54,8 @@ This is deliberately stricter than the rest of the permission system. `UserConte
 
 `Hmis::Hud::Client.searchable_to` drops restricted clients the user can't find. This covers both `clientSearch` and `clientOmniSearch`, including lookup by ID and by PersonalID, since those go through the same scope. `visible_to` is unchanged, so the `client(id:)` query and any navigation from an enrollment or project still resolves the record.
 
+Search passes the matched client ids to `searchable_to` as `client_ids:` (`searchable_to_matching`), and the restricted-record check runs on those ids like any others. `client_ids: []` returns no clients.
+
 ### Redacted PII
 
 The PII predicates on `HmisClientPolicy::Instance` (e.g. `can_view_name?`) each fold redaction into the underlying permission. When a restricted client is resolved by a user without the permission `can_view_restricted_clients`:
@@ -54,9 +67,40 @@ The PII predicates on `HmisClientPolicy::Instance` (e.g. `can_view_name?`) each 
 
 Not redacted: `age`, alerts, and any associated records to the client that the user otherwise has permission to view (e.g. enrollments, assessments, files).
 
+### Downstream effects in the Warehouse
+
+Restricting an HMIS client also redacts their name, SSN, DOB, photo, and HIV status on the warehouse side — the client dashboard, HUD report drilldowns and detail exports, and cohort grids — for every warehouse user, regardless of role, with no override permission, and excludes them from every warehouse-side client search path by name or SSN (DOB and exact-ID/PersonalID lookup still work). See [Warehouse Auth Policies → PII Redaction](../warehouse/warehouse-auth-policies.md#pii-redaction) for how redaction is implemented and its documented coverage limitations, and [Warehouse Auth Policies → Search](../warehouse/warehouse-auth-policies.md#search) for the search exclusion (several warehouse reports and exports are not mediated by either mechanism and will continue to show the client's real PII). The warehouse can also restrict a destination client. HMIS only checks rows on its own client ids, so a warehouse restriction does not redact the client in HMIS. The Superset `analytics.client_piis` view redacts name and SSN fields through a separate SQL-level mechanism, described there.
+
+The warehouse applies the same redaction and search exclusion to clients whose identity has aged out under [Client Data Retention](../warehouse/client-data-retention.md); HMIS itself does not yet honour those marks (see that document's limitations).
+
+## Audit Trail
+
+Restricting and unrestricting a client appear on that client's Audit History page as a **Record Restriction** row reading `Restricted: No → Yes` (or the reverse), attributed to the user who performed it. "Record Restriction" is also a Record Type filter option on that page. The same rows show up on the Audit History page for the acting user.
+
+The warehouse client audit page lists restriction versions for the destination and its sources.
+
+The change shown there is synthesized rather than read off the row. Every column on `hmis_restricted_records` is a foreign key or a timestamp, and Paranoia leaves `deleted_at` nil on both sides of the destroy, so the raw PaperTrail changeset carries no restriction signal at all. `Types::BaseAuditEvent` reports these versions as an `update` to the restrictable's own `restricted` field instead: a `create` version becomes `false → true`, a `destroy` becomes `true → false`. Reporting the restrictable's GraphQL type rather than the restriction's is what lets the front-end resolve the synthesized change against the real `Client.restricted` boolean and render it as Yes/No.
+
+`RestrictedRecord.mark!` creates a new row per restriction rather than reviving a soft-deleted one. That is a requirement of the audit trail, not a preference: Paranoia's `restore` writes through `update_columns`, which bypasses PaperTrail, so the revive itself produced no version. The unique index is scoped to `deleted_at IS NULL`, so the accumulated rows are safe.
+
+Data written before this was in place is patchier. `mark!` used to follow the revive with `update!(created_by: user)`, so what reached the audit trail depended on who acted:
+
+- **Re-restricted by a different user.** `created_by_id` changed, so the `update!` wrote an `update` version. These are on the audit trail and render as `No → Yes`, which is correct.
+- **Re-restricted by the same user.** `update!` had nothing to save and wrote no version. These restrictions are unrecoverable.
+- **`mark!` called on an already-active row by a different user.** This restricted nothing but still wrote an `update` version, indistinguishable from the first case. It renders as a restrict on a client who was already restricted.
+
+So a legacy `update` version means "a different user called `mark!`". It does not reliably mean "the client became restricted", and nothing on the version narrows it further.
+
 ## Architecture
 
 - **`Hmis::RestrictedRecord`**: ActiveRecord model for the table.
 - **`Hmis::Concerns::Restrictable`**: Included on restrictable models (`Hmis::Hud::Client` today). Provides `restricted?`, `mark_as_restricted!`, and `remove_restriction!`.
-- **`Hmis::AuthPolicies::UserContext`**: Owns the visibility rule. `pii_redacted_for_client?` answers it for one client, and `search_hidden_client_ids` applies it to every restricted client in the data source to back the search exclusion.
-- **`Hmis::AuthPolicies::ContextLoaders::RestrictedClientLoader`**: Bulk-loads restriction status, so authorizing a page of clients takes one query. Wired into `UserContext#preload_client_dependencies`, which GraphQL already calls when loading clients.
+- **`Hmis::AuthPolicies::UserContext`**: Owns the visibility rule. `pii_redacted_for_client?` answers it for one client, and `Hmis::Hud::Client.searchable_to` applies the same rule as a SQL predicate on top of `visible_to` to back the search exclusion, so search cost does not depend on how many clients are restricted.
+- **`Hmis::AuthPolicies::ContextLoaders::RestrictedClientLoader`**: Batches restriction status, so authorizing a page of clients takes one query. Wired into `UserContext#preload_client_dependencies`, which GraphQL already calls when loading clients.
+
+## Gotchas
+
+- **Restriction status is a per-request snapshot.** `RestrictedClientLoader` caches per `UserContext`. The only cache clear is in `SetClientRestricted`, so the response reflects the change. Don't add cache busting elsewhere, including long-running exports.
+- **Keep the `OFFSET 0` fence** on the enrollment `EXISTS` in `Client.searchable_to`. Without it Postgres can hash every enrollment in the permitted projects.
+- **Mark and unmark through the client.** Use `mark_as_restricted!` and `remove_restriction!` so the already-restricted no-op and data-source validation apply. Don't call `RestrictedRecord.create!` or `destroy!` directly. For a warehouse destination client, use `DestinationClientRestriction`.
+- **No ad hoc restriction filters.** Hide restricted clients in a new search path with `Client.searchable_to(user)`, and put every PII field behind a `HmisClientPolicy::Instance` predicate. Reading `first_name` directly, or checking a name permission without `pii_redacted?`, bypasses restriction.

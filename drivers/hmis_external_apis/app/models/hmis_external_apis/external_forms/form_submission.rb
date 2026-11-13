@@ -6,6 +6,9 @@
 
 # frozen_string_literal: true
 
+# A public submission of an external form, consumed from S3 by ConsumeExternalFormSubmissionsJob.
+# Marking it reviewed runs the form processor, which may create a Client and Enrollment.
+# See docs/features/hmis/hmis-external-forms.md for more details.
 module HmisExternalApis::ExternalForms
   class FormSubmission < ::HmisExternalApis::HmisExternalApisBase
     include ::Hmis::Hud::Concerns::FormSubmittable
@@ -33,7 +36,20 @@ module HmisExternalApis::ExternalForms
     # For now we will start with 0.5 as the threshold, maybe we will adjust in future
     SPAM_THRESHOLD = 0.5
     scope :not_spam, -> { where(spam_score: SPAM_THRESHOLD...).or(where(spam_score: nil)) }
-    scope :spam, -> { where(spam_score: ..SPAM_THRESHOLD) }
+    scope :spam, -> { where(spam_score: ...SPAM_THRESHOLD) }
+
+    # Submissions shown in the project's External Forms review queue: those for any version of a
+    # form definition with an active instance on the project. Uses for_project instead of
+    # for_project_through_entities because external forms are limited to project-level instances.
+    scope :in_review_queue_for, ->(project) do
+      instances = Hmis::Form::Instance.with_role(:EXTERNAL_FORM).for_project(project.id).active
+      joins(:definition).where(
+        definition: {
+          identifier: instances.select(:definition_identifier),
+          data_source_id: project.data_source_id,
+        },
+      )
+    end
 
     def spam
       spam_score && spam_score < SPAM_THRESHOLD

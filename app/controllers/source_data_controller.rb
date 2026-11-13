@@ -43,17 +43,9 @@ class SourceDataController < ApplicationController
   end
 
   private def show_imported_data
-    @importers = HmisCsvImporter::Importer::ImporterLog.without_phase_metrics.
-      where(data_source_id: @item.data_source_id).
-      order(created_at: :desc, id: :desc).
-      first(10)
-    return unless @importers.present?
+    @year = @item.most_recent_import_year
+    return unless @year
 
-    @importer = @importers.max_by do |importer|
-      [@item.imported_item_type(importer.id), importer&.created_at]
-    end
-
-    @year = @item.imported_item_type(@importer.id)
     @imported = @item.send("imported_items_#{@year}").order(importer_log_id: :desc).first
     @csv = @item.send("loaded_items_#{@year}").with_deleted.order(loader_id: :desc).first
   end

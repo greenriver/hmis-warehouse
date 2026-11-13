@@ -226,7 +226,7 @@ module MedicaidHmisInterchange::Health
       return unless paths.all? { |path| File.exist?(path) }
 
       zip_path = File.join(@file_path, zip_filename)
-      Zip::File.open(zip_path, Zip::File::CREATE) do |zip_file|
+      Zip::File.open(zip_path, create: true) do |zip_file|
         Array.wrap(paths).each do |file_name|
           zip_file.add(
             File.basename(file_name),

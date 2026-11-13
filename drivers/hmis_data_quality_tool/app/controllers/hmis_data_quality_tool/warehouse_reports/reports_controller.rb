@@ -47,6 +47,7 @@ module HmisDataQualityTool::WarehouseReports
       @clients = @report.clients.preload(client: :data_source).order(:last_name, :first_name)
       @pivot_details = @report.pivot_details
       @pagy, @clients = pagy(@clients)
+      current_user.policy_context.preload_client_dependencies(@clients.map(&:destination_client_id_for_pii))
       respond_to do |format|
         format.html {}
         format.xlsx do
@@ -118,6 +119,8 @@ module HmisDataQualityTool::WarehouseReports
       # Preload project dependencies for PII policy checks
       all_project_ids = all_project_ids_from_items(@items)
       current_user.policy_context.preload_project_dependencies(all_project_ids)
+      current_user.policy_context.preload_client_dependencies(@items.map(&:destination_client_id_for_pii))
+      @project_names = @report.overlap_project_names(items: @items, user: current_user)
 
       respond_to do |format|
         format.html {}
@@ -141,7 +144,7 @@ module HmisDataQualityTool::WarehouseReports
     helper_method :details_params
 
     private def set_report
-      @report = report_class.find(params[:id].to_i)
+      @report = report_scope.find(params[:id].to_i)
     end
 
     private def set_pdf_export
@@ -160,12 +163,8 @@ module HmisDataQualityTool::WarehouseReports
       @excel_export = HmisDataQualityTool::DocumentExports::ReportByClientExcelExport.new
     end
 
-    # Since this report uses the hud version of report instance, and it isn't STI
-    # we need to limit to those with a report name matching this one
     private def report_scope
-      report_class.
-        where(report_name: report_class.untranslated_title).
-        visible_to(current_user)
+      report_class.visible_to(current_user)
     end
 
     private def report_class

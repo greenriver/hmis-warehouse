@@ -37,24 +37,6 @@ RSpec.describe 'HMIS ACL describe_changes', type: :model do
     end
   end
 
-  describe Hmis::UserAccessControl do
-    let!(:access_control) { create(:hmis_access_control) }
-    let!(:hmis_user) { create(:hmis_user) }
-    let!(:uac) { Hmis::UserAccessControl.create!(access_control: access_control, user: hmis_user) }
-
-    it 'describes a create as directly assigning a user' do
-      version = make_version(uac, event: 'create', changes: { 'user_id' => [nil, hmis_user.id] })
-      result = described_class.describe_changes(version, {})
-      expect(result.first).to include('Directly assigned user').and include(hmis_user.name)
-    end
-
-    it 'describes a destroy as removing a direct assignment' do
-      version = make_version(uac, event: 'destroy', changes: { 'user_id' => [hmis_user.id, nil] })
-      result = described_class.describe_changes(version, {})
-      expect(result.first).to include('Removed direct user assignment').and include(hmis_user.name)
-    end
-  end
-
   describe Hmis::AccessControl do
     let!(:role1) { create(:hmis_role, name: 'Read Only') }
     let!(:role2) { create(:hmis_role, name: 'Full Access') }

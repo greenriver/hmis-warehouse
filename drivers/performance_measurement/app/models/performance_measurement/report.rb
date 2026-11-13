@@ -84,14 +84,6 @@ module PerformanceMeasurement
       complete
     end
 
-    def start
-      update(started_at: Time.current)
-    end
-
-    def complete
-      update(completed_at: Time.current)
-    end
-
     def describe_filter_as_html(keys = nil, inline: false, limited: true)
       keys ||= [
         :project_type_codes,
@@ -156,10 +148,9 @@ module PerformanceMeasurement
     end
 
     def show_spm_link?
-      return true if user.can_view_all_hud_reports?
-      return true if user.can_view_own_hud_reports? && PerformanceMeasurement::Goal.include_project_options?
+      return false unless GrdaWarehouse::WarehouseReports::ReportDefinition.url_viewable_by?(GrdaWarehouse::WarehouseReports::ReportDefinition.hud_url(:spms), user)
 
-      false
+      user.can_view_all_hud_reports? || PerformanceMeasurement::Goal.include_project_options?
     end
 
     def coc_code
@@ -256,6 +247,18 @@ module PerformanceMeasurement
     # Limit project_ids ton only those operating during the report range
     private def active_project_ids(project_ids)
       GrdaWarehouse::Hud::Project.where(id: project_ids).active_during(filter.range).pluck(:id)
+    end
+
+    # A permanent housing bed is occupied from the household's move-in date. RRH: Services Only projects
+    # have no bed inventory (HMIS Data Standards 2.02), so their nights never occupy a bed.
+    # Requires joins to service_history_services and project.
+    private def occupied_bed_night
+      rrh_sso_sub_type = HudHelper.util.rrh_sub_type('RRH: Services Only', true)
+      she_t[:project_type].not_in(HudHelper.util.residential_project_type_numbers_by_code[:ph]).
+        or(
+          she_t[:move_in_date].lteq(shs_t[:date]).
+            and(p_t[:RRHSubType].not_eq(rrh_sso_sub_type).or(p_t[:RRHSubType].eq(nil))),
+        )
     end
 
     def report_scope_source
@@ -867,6 +870,7 @@ module PerformanceMeasurement
             {}.tap do |days_by_client_id|
               scope = report_scope.joins(:service_history_services, :project, :client).
                 send(p_type).
+                where(occupied_bed_night).
                 distinct
               dobs = scope.pluck(:client_id, c_t[:DOB]).to_h
               scope.group(:client_id, p_t[:id]).
@@ -897,6 +901,7 @@ module PerformanceMeasurement
             {}.tap do |days_by_client_id|
               scope = report_scope.joins(:service_history_services, :project, :client).
                 send(p_type).
+                where(occupied_bed_night).
                 distinct
               dobs = scope.pluck(:client_id, c_t[:DOB]).to_h
               scope.group(:client_id, p_t[:id]).
@@ -928,6 +933,7 @@ module PerformanceMeasurement
               scope = report_scope.joins(:service_history_services, :project, :client).
                 merge(GrdaWarehouse::ServiceHistoryService.where(date: filter.range)).
                 send(p_type).
+                where(occupied_bed_night).
                 distinct
               dobs = scope.pluck(:client_id, c_t[:DOB]).to_h
               scope.group(:client_id, p_t[:id]).
@@ -960,6 +966,7 @@ module PerformanceMeasurement
               scope = report_scope.joins(:service_history_services, :project, :client).
                 merge(GrdaWarehouse::ServiceHistoryService.where(date: filter.range)).
                 send(p_type).
+                where(occupied_bed_night).
                 distinct
               dobs = scope.pluck(:client_id, c_t[:DOB]).to_h
               scope.group(:client_id, p_t[:id]).

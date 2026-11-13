@@ -48,14 +48,6 @@ module MaReports::MonthlyPerformance
       complete
     end
 
-    def start
-      update(started_at: Time.current)
-    end
-
-    def complete
-      update(completed_at: Time.current)
-    end
-
     def archival_csv_config
       report_type = self.class.name.gsub('::', '-').underscore.tr('/', '-')
       {

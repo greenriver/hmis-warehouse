@@ -51,7 +51,8 @@ module IncomeBenefitsReport
     end
 
     def run_and_save!
-      update(started_at: Time.current)
+      # A retry clears the failure left by the previous attempt
+      update(started_at: Time.current, failed_at: nil)
       begin
         populate_report_clients!
         populate_comparison_clients! if include_comparison?

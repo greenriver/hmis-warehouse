@@ -43,6 +43,10 @@ module HmisCsvTwentyTwentySix
         @definitions.select(&:required?).map(&:filename)
       end
 
+      def hmis_owned_filenames
+        @definitions.select(&:hmis_owned?).map(&:filename)
+      end
+
       def class_name_mapping
         @definitions.map { |d| [d.filename, "Custom::#{d.class_name}"] }.to_h
       end

@@ -83,6 +83,40 @@ RSpec.describe GrdaWarehouse::SystemCohorts::CurrentlyHomeless, type: :model do
         end
       end
     end
+
+    context 'when the move-in date is the processing date' do
+      ph_entry_date = '2020-01-15'.to_date
+      move_in_date = '2020-01-31'.to_date
+      let!(:housed_enrollment) { create :she_entry, client_id: new_client.id, project_type: 3, date: ph_entry_date, first_date_in_program: ph_entry_date, move_in_date: move_in_date }
+
+      before { currently_homeless_cohort.sync(processing_date: first_date) }
+
+      def removal_reasons
+        GrdaWarehouse::CohortClientChange.where(cohort_id: currently_homeless_cohort.id, change: 'destroy').pluck(:reason)
+      end
+
+      it 'removes the client as housed when the move-in day has housed service' do
+        create :service_history_service, client_id: new_client.id, service_history_enrollment_id: housed_enrollment.id, record_type: 'service', date: move_in_date, homeless: false
+
+        currently_homeless_cohort.sync(processing_date: move_in_date)
+
+        expect(currently_homeless_cohort.cohort_clients.count).to eq(0)
+        expect(removal_reasons).to eq(['Housed'])
+      end
+
+      it 'removes the client as no longer meeting criteria when the move-in day has no service yet' do
+        currently_homeless_cohort.sync(processing_date: move_in_date)
+
+        expect(currently_homeless_cohort.cohort_clients.count).to eq(0)
+        expect(removal_reasons).to eq(['No longer meets criteria'])
+      end
+
+      it 'keeps the client the day before the move-in date' do
+        currently_homeless_cohort.sync(processing_date: move_in_date - 1.day)
+
+        expect(currently_homeless_cohort.cohort_clients.pluck(:client_id)).to eq([new_client.id])
+      end
+    end
   end
 
   describe 'looking at CE enrollments' do

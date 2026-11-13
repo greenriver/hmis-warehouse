@@ -9,6 +9,7 @@
 module WarehouseReports
   class ActiveVeteransController < ApplicationController
     include WarehouseReportAuthorization
+    include WarehouseReports::QueuedReportJobs
 
     before_action :set_jobs, only: [:index, :running]
     before_action :sort_options, only: :index
@@ -28,6 +29,11 @@ module WarehouseReports
 
     def show
       @clients = @report.data
+      @clients_by_id = GrdaWarehouse::Hud::Client.
+        where(id: @clients.map { |client| client['id'] }).
+        preload(:source_clients).
+        index_by(&:id)
+      current_user.policy_context.preload_client_dependencies(@clients_by_id.keys)
       @sort_options = sort_options
 
       respond_to do |format|
@@ -54,24 +60,18 @@ module WarehouseReports
       GrdaWarehouse::WarehouseReports::ActiveVeteransReport
     end
 
-    # If you can see all instances of assigned reports, then show all copies of the report,
-    # otherwise just show your own
     def report_scope
-      if can_view_all_reports?
-        report_source
-      else
-        report_source.where(user_id: current_user.id)
-      end
+      report_source.visible_to(current_user)
     end
 
     private
 
     def set_jobs
-      @jobs = Delayed::Job.jobs_for_class('RunActiveVeteransJob').order(run_at: :desc)
+      @job_reports = queued_reports('RunActiveVeteransJob')
     end
 
     def set_report
-      @report = report_source.find params[:id].to_i
+      @report = report_scope.find params[:id].to_i
     end
 
     def report_params

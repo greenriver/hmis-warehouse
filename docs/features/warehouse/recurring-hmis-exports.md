@@ -1,3 +1,12 @@
+---
+sources:
+  - app/models/grda_warehouse/recurring_hmis_export.rb
+  - app/models/grda_warehouse/tasks/process_recurring_hmis_exports.rb
+  - app/jobs/export_base_job.rb
+  - app/services/zip_cloak.rb
+  - app/services/seven_zip.rb
+---
+
 # Recurring HMIS Exports
 
 This feature automates the delivery of HMIS CSV exports on a rolling schedule. It is designed for automated data exchange via S3.
@@ -11,6 +20,8 @@ This feature automates the delivery of HMIS CSV exports on a rolling schedule. I
 ## Scheduling Model
 - `every_n_days` controls the cadence. Runs skip the day the recurrence is created to avoid duplicate output.
 - A run is due when the last successful export finished at least `every_n_days` ago; otherwise the system waits.
+- A definition that has never run waits until the day after it was last saved, so editing a never-run definition pushes its first run to the next day. Editing one that has run does not change its schedule.
+- Scheduled runs pass no report URL, so no completion email is sent.
 - Reporting ranges are recalculated before each run using the saved filter options (fixed dates, rolling days, prior month, prior year).
 
 ## Storage and Delivery
@@ -20,11 +31,15 @@ This feature automates the delivery of HMIS CSV exports on a rolling schedule. I
   - `nil`: deliver the raw zip created by the export job.
   - `zip`: re-wrap the archive using `zipcloak` with the supplied `zip_password`.
   - `7z`: expands the zip and rebuilds it as a `.7z` archive protected by the password.
+- Only the S3 copy is encrypted. The stored `GrdaWarehouse::HmisExport` keeps the unencrypted zip, and in-app downloads still work if the S3 step fails.
+- `zip` and `7z` need their binaries on the worker image. Without them the S3 upload fails or is empty.
+- `zipcloak` reads the password from a pseudo-terminal and will not take one over 80 characters or containing control characters. For the `zip` type the model rejects these at save time, so the user sees the error on the form rather than mid-export. The `7z` type has no such limit. A password and an encryption type must be given together.
 
 ## Background Processing
 - The rake task `grda_warehouse:process_recurring_hmis_exports` iterates all recurrence definitions and calls `run` for those that return `should_run?`.
-- In production this task should execute on a schedule (cron, Delayed Job recurring task, or equivalent). Without it, no follow-up runs occur.
+- The task is scheduled daily in `config/schedule.rb`. Without that entry, no follow-up runs occur.
 - Each `run` rebuilds the `Filters::HmisExport` object from the stored options, adjusts reporting periods, and queues the export job via `schedule_job`.
+- Leaving every project option blank exports all projects the user can see. If project options were chosen but none of them resolve to a project the user can see (after a permission change, or when a selected project group is empty or its projects were deleted), `run` skips the export and sends a warning to Sentry instead of delivering an empty file. No link is recorded, so the run is retried on each pass and resumes once the selection resolves to a visible project.
 
 ## Operations and Monitoring
 - Verify that the Delayed Job queue responsible for exports is active; recurring runs rely on the same queues as manual exports.
@@ -36,3 +51,4 @@ This feature automates the delivery of HMIS CSV exports on a rolling schedule. I
 - Controller: `app/controllers/warehouse_reports/hmis_exports_controller.rb`
 - Model: `app/models/grda_warehouse/recurring_hmis_export.rb`
 - Task runner: `app/models/grda_warehouse/tasks/process_recurring_hmis_exports.rb`
+- Zip encryption: `app/services/zip_cloak.rb`

@@ -41,6 +41,7 @@ module HmisExternalApis::AcHmis::Exporters
             unit_group.name,          # UnitGroupName
             event.event_name,         # EventName
             event.created_at,         # CreatedAt
+            event.snapshot&.to_json,  # Snapshot
           ]
           write_row(values)
         end
@@ -59,6 +60,7 @@ module HmisExternalApis::AcHmis::Exporters
         'UnitGroupName', # Name of the unit group that uses the candidate pool
         'EventName',    # Event name (e.g., add, update, remove)
         'CreatedAt',    # Timestamp when the event was created
+        'Snapshot',     # Snapshot of the event
       ]
     end
 

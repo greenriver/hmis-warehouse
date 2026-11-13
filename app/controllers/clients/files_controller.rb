@@ -35,7 +35,6 @@ module Clients
 
       @available_tags = GrdaWarehouse::AvailableFileTag.all.index_by(&:name)
       @pre_checked = params[:file_ids].split(',').map(&:to_i) if params[:file_ids].present?
-      @visible_confidential_ids = GrdaWarehouse::ClientFile.confidential_visible_by(current_user).pluck(:id)
     end
 
     def show
@@ -54,6 +53,9 @@ module Clients
         render :new
         return
       end
+
+      # Outside the begin block so the rescue below doesn't swallow NotAuthorizedError
+      authorize_file_links!
 
       begin
         allowed_params = current_user.can_confirm_housing_release? ? file_params : file_params.except(:consent_form_confirmed)
@@ -96,21 +98,24 @@ module Clients
 
     def update
       attrs = if can_confirm_housing_release?
-        file_params
+        update_params
       elsif can_manage_client_files?
-        file_params.except(:consent_form_confirmed)
+        update_params.except(:consent_form_confirmed)
       else
         not_authorized!
       end
-      @client.invalidate_consent!(hr_status: GrdaWarehouse::Config.active_consent_class.revoked_consent_string) if attrs[:consent_revoked_at].present? && @client.consent_form_id == @file.id
+      # The client revocation rolls back with the file, so a file that fails validation leaves consent unchanged
+      GrdaWarehouseBase.transaction do
+        @client.invalidate_consent!(hr_status: GrdaWarehouse::Config.active_consent_class.revoked_consent_string) if attrs[:consent_revoked_at].present? && @client.consent_form_id == @file.id
 
-      if attrs.key?(:consent_form_signed_on)
-        attrs[:effective_date] = attrs[:consent_form_signed_on]
-        attrs[:consent_form_confirmed] = true if GrdaWarehouse::Config.get(:auto_confirm_consent)
+        if attrs.key?(:consent_form_signed_on)
+          attrs[:effective_date] = attrs[:consent_form_signed_on]
+          attrs[:consent_form_confirmed] = true if GrdaWarehouse::Config.get(:auto_confirm_consent)
+        end
+        @file.assign_attributes(attrs)
+        @file.sync_revokation_info(current_user)
+        raise ActiveRecord::Rollback unless @file.save
       end
-      @file.assign_attributes(attrs)
-      @file.sync_revokation_info(current_user)
-      @file.save
     end
 
     def show_delete_modal
@@ -133,16 +138,21 @@ module Clients
 
       begin
         @file.soft_delete!
-
-        flash[:notice] = 'File was successfully deleted.'
-        # Keep various client fields in sync with files if appropriate
-        @client.invalidate_consent! if @client.consent_form_id == @file.id
-        # Remove any view caches for this client since permissions may have changed
-        @client.clear_view_cache
-        @client.sync_cas_attributes_with_files
-      rescue Exception
+      rescue ActiveRecord::RecordInvalid, ActiveRecord::RecordNotSaved
         flash[:error] = 'File could not be deleted.'
+        redirect_to action: :index
+        return
       end
+
+      flash[:notice] = 'File was successfully deleted.'
+      # Keep various client fields in sync with files if appropriate
+      if @client.consent_form_id == @file.id
+        @client.invalidate_consent!
+        GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask.rebuild_clients([@client.id])
+      end
+      # Remove any view caches for this client since permissions may have changed
+      @client.clear_view_cache
+      @client.sync_cas_attributes_with_files
       redirect_to action: :index
     end
 
@@ -197,7 +207,7 @@ module Clients
     def batch_download
       require 'rubygems'
       require 'zip'
-      @files = all_file_scope.where(id: batch_params[:file_ids].split(',').map(&:to_i))
+      @files = accessible_file_scope.where(id: batch_params[:file_ids].split(',').map(&:to_i))
 
       # temp_file = Tempfile.new('tmp-zip-' + request.remote_ip)
       zip_stream = Zip::OutputStream.write_buffer do |zip_out|
@@ -239,6 +249,17 @@ module Clients
         )
     end
 
+    # The consent fields edited from the file list (_file_row.haml); everything else is set on create
+    def update_params
+      params.require(:grda_warehouse_client_file).
+        permit(
+          :consent_form_signed_on,
+          :consent_form_confirmed,
+          :consent_revoked_at,
+          :expiration_date,
+        )
+    end
+
     def consent_params
       params.require(:grda_warehouse_client_file).
         permit(
@@ -255,7 +276,7 @@ module Clients
     end
 
     def set_file
-      @file = all_file_scope.find(params[:id].to_i)
+      @file = accessible_file_scope.find(params[:id].to_i)
     end
 
     def set_files
@@ -281,14 +302,14 @@ module Clients
     end
 
     def all_file_scope
-      scope = file_source.visible_by?(current_user).
+      scope = file_source.visible_by?(current_user, client: @client).
         where(client_id: @client.id)
       scope = scope.window unless can_manage_client_files?
       scope
     end
 
     def file_scope
-      scope = file_source.visible_by?(current_user).
+      scope = file_source.visible_by?(current_user, client: @client).
         non_consent.
         non_cache.
         where(client_id: @client.id)
@@ -297,7 +318,7 @@ module Clients
     end
 
     def consent_scope
-      scope = file_source.visible_by?(current_user).
+      scope = file_source.visible_by?(current_user, client: @client).
         consent_forms.
         where(client_id: @client.id).
         order(
@@ -310,6 +331,56 @@ module Clients
 
     def set_window
       @window = ! can_manage_client_files?
+    end
+
+    # Files whose contents the user may see. A confidential file outside confidential_visible_by
+    # stays listed (tags and upload date only) but can't be opened, even with can_manage_client_files
+    def accessible_file_scope
+      table = file_source.arel_table
+      confidential_visible = table[:confidential].eq(false).
+        or(table[:id].in(visible_confidential_file_ids.to_a))
+      all_file_scope.where(confidential_visible)
+    end
+
+    # Non-confidential files are always shown in full. Confidential files outside
+    # confidential_visible_by show only tags and upload date.
+    def file_details_visible?(file)
+      return true unless file.confidential?
+
+      visible_confidential_file_ids.include?(file.id)
+    end
+    helper_method :file_details_visible?
+
+    # A file may only be linked to the enrollments and data sources the upload form offers, so a
+    # user can't link one to a project where they lack can_see_confidential_files or to another
+    # client's enrollment. The form never submits other ids, so a mismatch is a forged request
+    # and fails outright. Applies whether or not the file is confidential.
+    private def authorize_file_links!
+      enrollment_id = file_params[:enrollment_id]
+      if enrollment_id.present?
+        allowed_enrollment_ids = @file.
+          enrollments_for_confidential_files(current_user, @client).
+          map(&:last)
+        not_authorized! unless enrollment_id.to_i.in?(allowed_enrollment_ids)
+      end
+
+      data_source_id = file_params[:data_source_id]
+      return unless data_source_id.present?
+
+      allowed_data_source_ids = @file.
+        data_sources_for_confidential_files(current_user).
+        map(&:last)
+      not_authorized! unless data_source_id.to_i.in?(allowed_data_source_ids)
+    end
+
+    # Includes deleted files so the deleted file list can use it
+    private def visible_confidential_file_ids
+      @visible_confidential_file_ids ||= GrdaWarehouse::ClientFile.
+        with_deleted.
+        where(client_id: @client.id).
+        confidential_visible_by(current_user).
+        pluck(:id).
+        to_set
     end
 
     def editable_scope

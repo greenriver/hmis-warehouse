@@ -110,6 +110,27 @@ class Collection < ApplicationRecord
     )
   end
 
+  scope :contains_with_inherited, ->(entity) do
+    case entity
+    when GrdaWarehouse::DataSource
+      contains(entity)
+    when GrdaWarehouse::Hud::Organization
+      entity.data_source ? contains(entity).or(contains(entity.data_source)) : contains(entity)
+    when GrdaWarehouse::Hud::Project
+      # project_collection_members does not include membership through CoC codes
+      where(id: GrdaWarehouse::ProjectCollectionMember.where(project_id: entity.id).pluck(:collection_id)).
+        or(for_coc_codes(entity.project_cocs.pluck(:CoCCode)))
+    else
+      none
+    end
+  end
+
+  scope :contains_coc_code_with_inherited, ->(coc_code) do
+    project_ids = GrdaWarehouse::Hud::Project.in_coc(coc_code: coc_code).select(:id)
+    where(id: GrdaWarehouse::ProjectCollectionMember.where(project_id: project_ids).pluck(:collection_id)).
+      or(for_coc_codes([coc_code]))
+  end
+
   scope :with_source_entity, -> do
     where.not(source_id: nil)
   end
@@ -332,6 +353,10 @@ class Collection < ApplicationRecord
         g.system = ['Entities']
         g.collection_type = 'Reports'
       end,
+      hud_reports: Collection.where(name: 'All HUD Reports', must_exist: true).first_or_create do |g|
+        g.system = ['Entities']
+        g.collection_type = 'Reports'
+      end,
       cohorts: Collection.where(name: 'All Cohorts', must_exist: true).first_or_create do |g|
         g.system = ['Entities']
         g.collection_type = 'Cohorts'
@@ -383,10 +408,12 @@ class Collection < ApplicationRecord
       # Reports
       all_reports = GrdaWarehouse::WarehouseReports::ReportDefinition.enabled
 
-      all_hmis_reports = system_collection(:hmis_reports)
-      ids = all_reports.pluck(:id)
-      all_hmis_reports.set_viewables({ reports: ids })
-      system_user_access_group.set_viewables({ reports: ids })
+      # HUD reports have their own system collection; All HMIS Reports excludes them so
+      # granting it does not also grant HUD reports. The system user still gets everything.
+      hud_ids = all_reports.hud.pluck(:id)
+      system_collection(:hmis_reports).set_viewables({ reports: all_reports.pluck(:id) - hud_ids })
+      system_user_access_group.set_viewables({ reports: all_reports.pluck(:id) })
+      system_collection(:hud_reports).set_viewables({ reports: hud_ids })
     end
 
     if group.blank? || group == :cohorts

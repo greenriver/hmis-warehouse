@@ -31,7 +31,7 @@ module Importing
           Importing::EtoTouchPointsJob.perform_later(client_ids: client_ids)
         end
 
-      GrdaWarehouse::HmisForm.maintain_location_histories if RailsDrivers.loaded.include?(:client_location_history)
+      GrdaWarehouse::HmisForm.maintain_location_histories
     end
 
     def max_attempts

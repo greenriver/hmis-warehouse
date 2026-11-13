@@ -28,6 +28,7 @@ class Hmis::ProjectConfig < Hmis::HmisBase
   STAFF_ASSIGNMENT_CONFIG = 'Hmis::ProjectStaffAssignmentConfig'
   CE_CONFIG = 'Hmis::ProjectCeConfig'
   SENDS_DIRECT_CE_REFERRALS_CONFIG = 'Hmis::ProjectSendsDirectCeReferralsConfig'
+  EXTERNAL_FORM_SUBMISSION_NOTIFICATIONS_CONFIG = 'Hmis::ProjectExternalFormSubmissionNotificationConfig'
 
   CONFIG_TYPE_FACTORIES = {
     'AUTO_EXIT' => AUTO_EXIT_CONFIG,
@@ -35,6 +36,7 @@ class Hmis::ProjectConfig < Hmis::HmisBase
     'STAFF_ASSIGNMENT' => STAFF_ASSIGNMENT_CONFIG,
     'COORDINATED_ENTRY' => CE_CONFIG,
     'SENDS_DIRECT_CE_REFERRALS' => SENDS_DIRECT_CE_REFERRALS_CONFIG,
+    'EXTERNAL_FORM_SUBMISSION_NOTIFICATIONS' => EXTERNAL_FORM_SUBMISSION_NOTIFICATIONS_CONFIG,
   }.freeze
 
   validates :type, inclusion: { in: CONFIG_TYPE_FACTORIES.values }
@@ -142,5 +144,14 @@ class Hmis::ProjectConfig < Hmis::HmisBase
     new_options = { key => value }.stringify_keys
     merged_options = options ? options.merge(new_options) : new_options
     self.config_options = merged_options.to_json
+  end
+
+  # Remove an option entirely rather than storing null for it. An absent key and a null one are
+  # equivalent to every reader, but the admin config table renders a row per key present, so a
+  # null would show up as a labeled blank.
+  def unset_config_option(key)
+    return unless options&.key?(key.to_s)
+
+    self.config_options = options.except(key.to_s).to_json
   end
 end

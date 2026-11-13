@@ -23,6 +23,12 @@ class GrdaWarehouse::AuthPolicies::ProjectPiiPolicy < GrdaWarehouse::AuthPolicie
     end
   end
 
+  # Hand-written, not added to the permission-mapping array above: there is no
+  # can_view_partial_ssn role permission to map from.
+  def can_view_partial_ssn?
+    true
+  end
+
   def initialize(context:, resource:)
     resource_id = resource.is_a?(GrdaWarehouse::Hud::Project) ? resource.id : resource
     super(context: context, resource: resource_id)

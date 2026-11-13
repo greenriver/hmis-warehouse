@@ -11,10 +11,13 @@ module ClientAccessControl
     include ClientPathGenerator
     include ClientDependentControllers
 
-    skip_before_action :authenticate_user!, only: [:pdf]
-    before_action :require_can_see_this_client_demographics!, except: [:pdf]
-    before_action :set_client, except: [:pdf]
+    before_action :require_can_see_this_client_demographics!
+    before_action :set_client
+    before_action :require_can_view_history_calendar!, only: [:show]
+    before_action :require_can_generate_homeless_verification_pdf!, only: [:queue]
     after_action :log_client
+
+    helper_method :can_generate_homeless_verification_pdfs_for_client?
 
     # Removed from UI to use standard OP date format
     # Leaving here in case we need to restore
@@ -56,28 +59,6 @@ module ClientAccessControl
       redirect_to action: :show
     end
 
-    def pdf
-      options = {
-        client_id: params[:client_id].to_i,
-        user_id: params[:user_id].to_i,
-      }
-      options[:years] = params[:years].to_i if params[:years].present?
-
-      @client_history = ClientHistory.new(**options)
-      # set @client for when this method is called outside of the controller context.
-      @client ||= @client_history.client
-
-      return not_authorized! unless client_needing_processing?(client: @client_history.client)
-
-      # force some consistency.  We may be generating this for a client we haven't seen in over a year
-      # the processed data only gets cached for those with recent enrollments
-      ::GrdaWarehouse::WarehouseClientsProcessed.update_cached_counts(client_ids: [@client_history.client.id])
-      show
-
-      @client_history.generate_service_history_pdf
-      head :ok
-    end
-
     # Finds and sets @client based on params[:client_id].
     # Redirects to the merged client if applicable, or raises if not found.
     # Returns @client. Used both as a before_action and standalone method.
@@ -104,18 +85,28 @@ module ClientAccessControl
       return @client
     end
 
-    def client_needing_processing?(client: @client)
-      return true if client.generate_history_pdf || client.generate_manual_history_pdf
-
-      false
-    end
-
     private def client_source
       ::GrdaWarehouse::Hud::Client
     end
 
     private def enrollment_scope
       @client.service_history_enrollments.visible_in_window_to(current_user)
+    end
+
+    private def client_policy
+      current_user.policy_for(@client)
+    end
+
+    private def can_generate_homeless_verification_pdfs_for_client?
+      client_policy.can_generate_homeless_verification_pdfs?
+    end
+
+    private def require_can_view_history_calendar!
+      not_authorized! unless client_policy.can_view_history_calendar?
+    end
+
+    private def require_can_generate_homeless_verification_pdf!
+      not_authorized! unless can_generate_homeless_verification_pdfs_for_client?
     end
 
     private def title_for_show

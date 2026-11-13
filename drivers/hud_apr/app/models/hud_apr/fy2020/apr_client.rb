@@ -65,6 +65,16 @@ module HudApr::Fy2020
       ]
     end
 
+    def self.pii_search_columns
+      table = arel_table
+      [table[:first_name], table[:last_name], table[:ssn]]
+    end
+
+    def self.restricted_client_id_columns
+      table = arel_table
+      [table[:client_id], table[:destination_client_id]]
+    end
+
     def self.pluck_project_ids
       distinct.pluck(:project_id)
     end

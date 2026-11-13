@@ -79,19 +79,23 @@ RSpec.describe HudSpmReport::Fy2026::SpmEnrollment, type: :model, exclude_fixpoi
       ds2 = create(:source_data_source)
       shared_id = 'ENR-COLLISION-123'
 
-      project1 = create(:hud_project, data_source: ds1, ProjectType: 0)
+      # The report filter's viewable_by applies non_confidential, which inner-joins the organization
+      organization1 = create(:hud_organization, data_source: ds1)
+      organization2 = create(:hud_organization, data_source: ds2)
+
+      project1 = create(:hud_project, data_source: ds1, organization: organization1, ProjectType: 0)
       create(:hud_project_coc, project: project1, data_source: ds1, CoCCode: 'MA-500')
 
-      project2 = create(:hud_project, data_source: ds2, ProjectType: 0)
+      project2 = create(:hud_project, data_source: ds2, organization: organization2, ProjectType: 0)
       create(:hud_project_coc, project: project2, data_source: ds2, CoCCode: 'MA-500')
 
       client1 = create(:hud_client, data_source: ds1, dob: Date.parse('1990-01-01'))
       create(:warehouse_client, source: client1)
-      create(:hud_enrollment, data_source: ds1, EnrollmentID: shared_id, PersonalID: client1.PersonalID, ProjectID: project1.ProjectID, EntryDate: '2022-01-01')
+      create(:hud_enrollment, data_source: ds1, EnrollmentID: shared_id, PersonalID: client1.PersonalID, ProjectID: project1.ProjectID, EnrollmentCoC: 'MA-500', EntryDate: '2022-01-01')
 
       client2 = create(:hud_client, data_source: ds2, dob: Date.parse('1970-01-01'))
       create(:warehouse_client, source: client2)
-      create(:hud_enrollment, data_source: ds2, EnrollmentID: shared_id, PersonalID: client2.PersonalID, ProjectID: project2.ProjectID, EntryDate: '2022-01-01')
+      create(:hud_enrollment, data_source: ds2, EnrollmentID: shared_id, PersonalID: client2.PersonalID, ProjectID: project2.ProjectID, EnrollmentCoC: 'MA-500', EntryDate: '2022-01-01')
 
       report = setup_report([project1.id, project2.id])
 
@@ -102,6 +106,42 @@ RSpec.describe HudSpmReport::Fy2026::SpmEnrollment, type: :model, exclude_fixpoi
       # We expect this to fail if the bug exists (one will have the wrong age due to collision)
       expect(spm_enrollments[ds1.id].age).to eq(32)
       expect(spm_enrollments[ds2.id].age).to eq(52)
+    end
+  end
+
+  describe '.search_clients' do
+    let!(:hmis_ds) { create(:hmis_primary_data_source) }
+    let!(:hmis_user) { create(:hmis_user, data_source: hmis_ds) }
+    let!(:restricted_client) { create(:hmis_hud_client, data_source: hmis_ds, first_name: 'Restrictedfirst', last_name: 'Restrictedlast') }
+    let!(:open_client) { create(:hmis_hud_client, data_source: hmis_ds, first_name: 'Openfirst', last_name: 'Openlast') }
+    let!(:restricted_enrollment) do
+      HudSpmReport::Fy2026::SpmEnrollment.new(
+        first_name: restricted_client.first_name, last_name: restricted_client.last_name,
+        personal_id: restricted_client.personal_id, client_id: restricted_client.id
+      ).tap { |record| record.save!(validate: false) }
+    end
+    let!(:open_enrollment) do
+      HudSpmReport::Fy2026::SpmEnrollment.new(
+        first_name: open_client.first_name, last_name: open_client.last_name,
+        personal_id: open_client.personal_id, client_id: open_client.id
+      ).tap { |record| record.save!(validate: false) }
+    end
+
+    before { restricted_client.mark_as_restricted!(user: hmis_user) }
+
+    it 'excludes a restricted client from a name search' do
+      results = HudSpmReport::Fy2026::SpmEnrollment.search_clients(HudSpmReport::Fy2026::SpmEnrollment.all, 'Restrictedlast')
+      expect(results).not_to include(restricted_enrollment)
+    end
+
+    it 'still returns a non-restricted client from a name search' do
+      results = HudSpmReport::Fy2026::SpmEnrollment.search_clients(HudSpmReport::Fy2026::SpmEnrollment.all, 'Openlast')
+      expect(results).to include(open_enrollment)
+    end
+
+    it 'still returns a restricted client from an exact personal_id search' do
+      results = HudSpmReport::Fy2026::SpmEnrollment.search_clients(HudSpmReport::Fy2026::SpmEnrollment.all, restricted_enrollment.personal_id)
+      expect(results).to include(restricted_enrollment)
     end
   end
 end

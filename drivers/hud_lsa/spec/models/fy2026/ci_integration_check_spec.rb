@@ -52,21 +52,4 @@ RSpec.describe HudLsa::Fy2026::CiIntegrationCheck do
       end
     end
   end
-
-  describe '#known_sample_data_gaps' do
-    it 'returns only the LSA-specific known gaps for :lsa' do
-      expect(described_class.new(scope: :lsa).known_sample_data_gaps).to eq(
-        'LSAReport.csv' => { columns: ['NoCoC'] },
-        'LSACalculated.csv' => { rows: { 'ReportRow' => ['905'] } },
-      )
-    end
-
-    it 'returns only the HIC-specific known gaps for :hic' do
-      expect(described_class.new(scope: :hic).known_sample_data_gaps).to eq(
-        'LSAReport.csv' => { columns: ['NoCoC'] },
-        'Funder.csv' => { skip_file: true },
-        'Inventory.csv' => { skip_file: true },
-      )
-    end
-  end
 end

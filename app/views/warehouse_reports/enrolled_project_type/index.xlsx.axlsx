@@ -21,11 +21,12 @@ wb.add_worksheet(name: 'Enrolled Clients') do |sheet|
     "Days Homeless in The Past Three Years as of #{Date.current}",
   ] + GrdaWarehouse::Hud::Client.race_fields.map { |m| HudHelper.util.race(m).gsub('None', 'Race None') })
   @clients.each do |client|
+    pii = GrdaWarehouse::PiiProvider.new(client, policy: current_user.reporting_policy_for_project(project_id: nil, mode: :download, client_id: client.id))
     sheet.add_row([
       client.id,
-      ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads) ? client.FirstName : 'Redacted',
-      ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads) ? client.LastName : 'Redacted',
-      ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads) ? client.DOB : 'Redacted',
+      pii.first_name,
+      pii.last_name,
+      GrdaWarehouse::PiiProvider.viewable_dob(client.DOB, policy: pii.policy),
       HudHelper.util.veteran_status(client.VeteranStatus),
       client.days_homeless,
       client.days_homeless_in_last_three_years,

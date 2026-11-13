@@ -522,6 +522,17 @@ module GrdaWarehouse::Tasks
     end
 
     def choose_best_dob dest_attr, source_clients
+      case GrdaWarehouse::Config.get(:dob_selection_method).to_s
+      when 'oldest'
+        GrdaWarehouse::DOBSelector.call(dest_attr: dest_attr, source_clients: source_clients, use_oldest: true)
+      when 'newest'
+        GrdaWarehouse::DOBSelector.call(dest_attr: dest_attr, source_clients: source_clients, use_oldest: false)
+      else
+        choose_best_dob_legacy(dest_attr, source_clients)
+      end
+    end
+
+    def choose_best_dob_legacy dest_attr, source_clients
       # Get the best DOB (has value and quality is full or partial, oldest breaks the tie)
       non_blank_dob = source_clients.select { |sc| sc[:DOB].present? }
       if non_blank_dob.any?
@@ -1013,7 +1024,7 @@ module GrdaWarehouse::Tasks
     private def post_process_clients(client_ids:)
       return if @dry_run
 
-      Hmis::Ce::ChangeMarker.upsert_or_bump_version('GrdaWarehouse::Hud::Client', trackable_ids: client_ids)
+      Hmis::Ce::ChangeMarker.mark_destination_clients_dirty(client_ids)
     end
 
     private def client_age_at date

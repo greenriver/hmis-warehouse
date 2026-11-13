@@ -47,8 +47,6 @@ module GrdaWarehouse::CasProjectClientCalculator
     end
 
     private def eccovia_columns
-      return [] unless RailsDrivers.loaded.include?(:eccovia_data)
-
       [
         :email,
         :home_phone,

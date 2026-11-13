@@ -15,11 +15,13 @@ RSpec.describe SignalHandlerPlugin do
 
   before do
     Thread.current[:delayed_job_worker] = nil
+    Thread.current[:delayed_job] = nil
     SignalHandlerPlugin.callback_block.call(lifecycle)
   end
 
   after do
     Thread.current[:delayed_job_worker] = nil
+    Thread.current[:delayed_job] = nil
   end
 
   describe 'callbacks' do
@@ -27,20 +29,23 @@ RSpec.describe SignalHandlerPlugin do
       expect(Delayed::Worker.plugins).to include(SignalHandlerPlugin)
     end
 
-    it 'registers the worker in thread-local storage during performance' do
+    it 'registers the worker and job in thread-local storage during performance' do
       lifecycle.run_callbacks(:perform, worker, job) do
         expect(Thread.current[:delayed_job_worker]).to eq(worker)
+        expect(Thread.current[:delayed_job]).to eq(job)
       end
 
       expect(Thread.current[:delayed_job_worker]).to be_nil
+      expect(Thread.current[:delayed_job]).to be_nil
     end
 
-    it 'unregisters the worker even if perform raises' do
+    it 'unregisters the worker and job even if perform raises' do
       expect do
         lifecycle.run_callbacks(:perform, worker, job) { raise 'boom' }
       end.to raise_error('boom')
 
       expect(Thread.current[:delayed_job_worker]).to be_nil
+      expect(Thread.current[:delayed_job]).to be_nil
     end
   end
 
@@ -60,6 +65,28 @@ RSpec.describe SignalHandlerPlugin do
 
     it 'returns false if no worker is registered' do
       expect(SignalHandlerPlugin.current_worker_stopping?).to be false
+    end
+  end
+
+  describe '.current_job_interruptible?' do
+    it 'returns true if the registered job is interruptible' do
+      allow(job).to receive(:interruptible?).and_return(true)
+
+      lifecycle.run_callbacks(:perform, worker, job) do
+        expect(SignalHandlerPlugin.current_job_interruptible?).to be true
+      end
+    end
+
+    it 'returns false if the registered job is not interruptible' do
+      allow(job).to receive(:interruptible?).and_return(false)
+
+      lifecycle.run_callbacks(:perform, worker, job) do
+        expect(SignalHandlerPlugin.current_job_interruptible?).to be false
+      end
+    end
+
+    it 'returns false if no job is registered' do
+      expect(SignalHandlerPlugin.current_job_interruptible?).to be false
     end
   end
 

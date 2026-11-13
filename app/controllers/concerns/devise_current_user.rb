@@ -58,7 +58,7 @@ module DeviseCurrentUser
         else
           # If no provider exists, attempt to log the user out of superset (if they have access)
           # this will redirect back to the warehouse
-          superset_logout = "#{Superset.superset_base_url}/logout/?next=#{CGI.escape(root_url)}" if RailsDrivers.loaded.include?(:superset) && Superset.available_to_user?(user)
+          superset_logout = "#{Superset.superset_base_url}/logout/?next=#{CGI.escape(root_url)}" if Superset.available_to_user?(user)
           superset_logout || root_url
         end
       else
@@ -114,7 +114,14 @@ module DeviseCurrentUser
     helper_method :devise_mapping
 
     def user_session_expires_at
-      Time.current + (Devise.timeout_in - (Time.now.utc - (session['last_request_at'].presence || 0)).to_i)
+      # warden.session raises Warden::NotAuthenticated for a scope with no signed-in user
+      return unless warden.authenticated?(:user)
+
+      # Devise's timeoutable hook stores last_request_at (epoch seconds) in the Warden-scoped session
+      last_request_at = warden.session(:user)['last_request_at']
+      return unless last_request_at
+
+      Time.zone.at(last_request_at.to_i) + Devise.timeout_in
     end
     helper_method :user_session_expires_at
 

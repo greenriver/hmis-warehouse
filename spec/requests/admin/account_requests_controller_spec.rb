@@ -65,6 +65,14 @@ RSpec.describe Admin::AccountRequestsController, :jwt_only, type: :request do
     end
   end
 
+  it 'renders the index with a real page title' do
+    GrdaWarehouse::Config.first_or_create.update(request_account_available: true)
+    GrdaWarehouse::Config.invalidate_cache
+    get admin_account_requests_path
+    expect(response.body).to include('Manage User Accounts')
+    expect(response.body).not_to match(%r{<h1>\s*Title\s*</h1>})
+  end
+
   it 'requires an agency' do
     expect { approve(agency_id: '') }.not_to change(User, :count)
     account_request.reload

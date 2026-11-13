@@ -49,7 +49,7 @@ module ReportGenerators::SystemPerformance::Fy2019
       if scope_hash.key?(sub_population)
         scope_hash[sub_population]
       else
-        scope.send(sub_population)
+        scope.public_send(AvailableSubPopulations.fetch!(sub_population, Reports::SystemPerformance::Fy2019::Base.available_sub_populations.values))
       end
     end
 

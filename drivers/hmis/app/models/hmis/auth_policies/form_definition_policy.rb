@@ -39,14 +39,14 @@ class Hmis::AuthPolicies::FormDefinitionPolicy < Hmis::AuthPolicies::ResourcePol
       form_definition.draft? && can_manage_form?
     end
 
-    # Whether the user can configure this form in the form editor.
-    def can_configure_form? = can_configure_data_collection_for_form_by_role?
+    # Whether the user can configure this form in the admin tool (add/remove rules, not edit form content)
+    def can_configure_form? = can_configure_data_collection_for_form?
 
     # Whether the user can add a new Hmis::Form::Instance to the form definition
-    def can_add_form_rule? = can_configure_data_collection_for_form_by_role?
+    def can_add_form_rule? = can_configure_data_collection_for_form?
 
     # Whether the user can delete a Hmis::Form::Instance rule from the form definition
-    def can_delete_form_rule? = can_configure_data_collection_for_form_by_role?
+    def can_delete_form_rule? = can_configure_data_collection_for_form?
 
     protected
 
@@ -62,12 +62,20 @@ class Hmis::AuthPolicies::FormDefinitionPolicy < Hmis::AuthPolicies::ResourcePol
     end
 
     # Determines if the current user can view and manage form rules for a given form.
-    def can_configure_data_collection_for_form_by_role?
-      in_data_source? && global_permissions.include?(:can_configure_data_collection) && manageable_form_role?
+    def can_configure_data_collection_for_form?
+      in_data_source? &&
+        global_permissions.include?(:can_configure_data_collection) &&
+        configurable_form_role?
+    end
+
+    def configurable_form_role?
+      Hmis::Form::Definition::NON_CONFIGURABLE_FORM_ROLES.exclude?(form_definition.role.to_sym)
     end
 
     # Determines if the form role is considered a non-super-admin form or a super-admin form
     def manageable_form_role?
+      return false unless configurable_form_role? # disallow editing for static/non-configurable forms
+
       form_definition.role.to_s.in?(Hmis::Form::Definition::NON_ADMIN_FORM_ROLES) || global_permissions.include?(:can_administrate_config)
     end
 
@@ -109,8 +117,11 @@ class Hmis::AuthPolicies::FormDefinitionPolicy < Hmis::AuthPolicies::ResourcePol
       global_permissions.include?(:can_manage_forms) && manageable_form_role?(role: role)
     end
 
+    # Whether the user can create a form, or edit form definition content, for this role.
     def manageable_form_role?(role:)
       return false if role.nil?
+      # NON_CONFIGURABLE_FORM_ROLES cannot be created or have content managed, even with can_administrate_config
+      return false if Hmis::Form::Definition::NON_CONFIGURABLE_FORM_ROLES.include?(role.to_sym)
 
       role.to_s.in?(Hmis::Form::Definition::NON_ADMIN_FORM_ROLES) || global_permissions.include?(:can_administrate_config)
     end

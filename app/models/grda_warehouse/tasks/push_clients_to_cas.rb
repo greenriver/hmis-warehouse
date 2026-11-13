@@ -63,7 +63,7 @@ module GrdaWarehouse::Tasks
               cohort_clients: :cohort,
               source_enrollments: [:income_benefits, :exit, :ch_enrollment, :project],
             ]
-            if RailsDrivers.loaded.include?(:eccovia_data) && EccoviaData::Fetch.exists?
+            if EccoviaData::Fetch.exists?
               preloads += [
                 :source_eccovia_assessments,
                 :source_eccovia_client_contacts,
@@ -326,7 +326,7 @@ module GrdaWarehouse::Tasks
       # speed up queries by telling the calculator which client we are looking at
       calculator_instance.client_id = client.id
       attributes_for_cas_project_client(client).map do |k, value|
-        next if skip_for_display(user).include?(k)
+        next if skip_for_display(user, client).include?(k)
 
         [
           title_display_for(k),
@@ -430,8 +430,9 @@ module GrdaWarehouse::Tasks
       @title_override[column]
     end
 
-    private def skip_for_display(user)
+    private def skip_for_display(user, client)
       @skip_for_display ||= Set.new.tap do |keys|
+        hiv_hidden = !user.can_view_hiv_status? || client.pii_restricted?(user: user)
         [
           :client_identifier,
           :first_name,
@@ -446,9 +447,9 @@ module GrdaWarehouse::Tasks
         ].each do |k|
           keys << k
         end
-        keys << :hiv_positive unless user.can_view_hiv_status?
-        keys << :hues_eligible unless user.can_view_hiv_status?
-        keys << :hivaids_status unless user.can_view_hiv_status?
+        keys << :hiv_positive if hiv_hidden
+        keys << :hues_eligible if hiv_hidden
+        keys << :hivaids_status if hiv_hidden
         keys << :dmh_eligible unless user.can_view_dmh_status?
         keys << :vispdat_score unless user.can_view_vspdat?
         keys << :vispdat_length_homeless_in_days unless user.can_view_vspdat?

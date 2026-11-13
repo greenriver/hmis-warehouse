@@ -1,3 +1,12 @@
+---
+sources:
+  - drivers/hmis/app/controllers/hmis/concerns/request_data_source.rb
+  - drivers/hmis/app/controllers/hmis/base_controller.rb
+  - drivers/hmis/app/controllers/hmis/sessions_controller.rb
+  - drivers/hmis/app/models/hmis/user.rb
+  - app/models/grda_warehouse/data_source.rb
+---
+
 # Multi-HMIS Support
 
 This document describes how a single warehouse deployment supports **multiple OP HMIS installations**—each backed by its own data source—and how configuration and access are isolated per HMIS instance.
@@ -36,7 +45,7 @@ HMIS API requests (GraphQL and other HMIS controllers) determine **which data so
    - In production: `request.host` (trusted value from Rack/Rails host resolution)
    - In development: the `X-Hmis-Dev-Host` header (so the dev frontend can simulate different HMIS domains).
 
-   See `Hmis::BaseController#current_hmis_host`.
+   See `Hmis::Concerns::RequestDataSource#current_hmis_host`.
 
 2. **Lookup data source by domain**
    Each Open Path HMIS data source has an `hmis` attribute on `GrdaWarehouse::DataSource` storing the domain (e.g. `hmis-coc-a.example.com`). The controller looks up the data source for the domain identified by the request host.
@@ -89,6 +98,20 @@ Granting a user access to the **wrong** data source (e.g. an admin mistake) is a
 
 **As implemented today**, if that mistake happens: the user may be able to log in and act on a **different** HMIS (another data source), but they are not accidentally exposed to data in what they consider “their own” system. The failure mode is “user sees another HMIS” rather than “user sees wrong data inside their HMIS.”
 
+### Go-live gate
+
+`data_sources.hmis_go_live_at` schedules an HMIS launch. Blank or a timestamp in the past means the site is live.
+While the time is in the future, `Hmis::User#hmis_access_error_for(data_source)` returns `:no_hmis_access` for anyone
+who does not hold the `can_administer_hmis` permission through an access control tied to that data source
+(`Hmis::User#can_administer_hmis_in_data_source?`). `GET /hmis/user.json` answers with `accountError`,
+Devise `POST /hmis/login` answers 403, and `attach_data_source_id` answers 403 on guarded routes.
+The SPA renders these as its terminal "no access" page.
+
+Warehouse sign-in and permissions are not consulted, and the warehouse hides its "Open HMIS" link
+for blocked users (`User#can_sign_in_to_hmis_data_source?`). The check runs per request against `true_hmis_user`,
+and does not block an admin who is impersonating a non-admin to test the site. Operators set the time on the
+Edit Data Source page.
+
 ---
 
 ## Behavior summary
@@ -103,9 +126,17 @@ Granting a user access to the **wrong** data source (e.g. an admin mistake) is a
 | **User lists / admin** | User lists and selectors in an HMIS instance show only users active in that data source. (🟠TODO#8831)|
 | **CoCs** | Each data source can define and manage its relevant CoCs independently. (🟠TODO#8829)|
 | **Visual** | Each HMIS instance can have its own name and theme so users can tell which environment they’re in. (🟠TODO#8830)|
+| **Go-live** | Per data source, `hmis_go_live_at`; before it only users with `can_administer_hmis` in that data source can use that HMIS. |
 
 ## Future possibilities
 
 - **Shared configuration**: Not in scope today; all configuration remains strictly isolated. We may revisit sharing forms or config across data sources later.
 - **Configuration portability**: Import/export or upload/download of configuration (e.g. forms) could allow replicating config across environments without building shared-config storage. (https://github.com/open-path/Green-River/issues/8880)
 - **CoC-level segregation within one data source**: We could add improved support for multiple CoCs inside a single data source later, in cases where a 'softer' separation of CoCs within a single HMIS system is desired. (https://github.com/open-path/Green-River/issues/8823)
+
+## Gotchas
+
+- In development, `current_hmis_host` raises without an `X-Hmis-Dev-Host` header. `request.host` is not used there because the dev proxy makes it appear to be the backend host.
+- `data_sources.hmis` must be one of the configured HMIS hostnames and can't be changed once set.
+- The go-live gate runs in `attach_data_source_id`, `Hmis::SessionsController#create`, and `Hmis::UsersController#show`. A new HMIS controller that skips `attach_data_source_id` is not gated and is not bound to a data source.
+- `Hmis::User#can_x?` and `can_x_for?` answer across all data sources. Don't use them for scoping; use `user.policy_for(...)` or a `viewable_by(user)` scope. Load records with `Model.viewable_by(user).find_by(id:)` rather than `find` followed by an authorization check.

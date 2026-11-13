@@ -122,6 +122,7 @@ RSpec.describe GrdaWarehouse::AuthPolicies::SourceClientPolicy, type: :model do
 
       context 'when window access requires release' do
         before do
+          allow(GrdaWarehouse::Config).to receive(:get).and_call_original
           allow(GrdaWarehouse::Config).to receive(:get).with(:window_access_requires_release).and_return(true)
         end
 
@@ -172,6 +173,7 @@ RSpec.describe GrdaWarehouse::AuthPolicies::SourceClientPolicy, type: :model do
 
       context 'when window access does not require release' do
         before do
+          allow(GrdaWarehouse::Config).to receive(:get).and_call_original
           allow(GrdaWarehouse::Config).to receive(:get).with(:window_access_requires_release).and_return(false)
         end
 
@@ -244,5 +246,14 @@ RSpec.describe GrdaWarehouse::AuthPolicies::SourceClientPolicy, type: :model do
 
       include_examples 'pii permission checks without access'
     end
+  end
+
+  it 'rejects a destination client with an ArgumentError' do
+    destination_data_source = create(:destination_data_source)
+    destination_client = create(:hud_client, data_source_id: destination_data_source.id)
+    linked_source = create(:hud_client, data_source: create(:source_data_source))
+    create(:warehouse_client, source_id: linked_source.id, destination_id: destination_client.id)
+
+    expect { create(:acl_user).policy_for(destination_client, policy_class: described_class) }.to raise_error(ArgumentError, 'Must be a source client')
   end
 end

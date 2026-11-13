@@ -31,11 +31,12 @@
       %tbody
         - @clients.each do |client|
           - enrollment = @report.max_enrollment_for(@client_page, client.id)
+          - pii = client.pii_provider(user: current_user)
           %tr
-            %td= link_to_if can_view_clients?, client.FirstName, appropriate_client_path(client)
-            %td= link_to_if can_view_clients?, client.LastName, appropriate_client_path(client)
-            %td= ssn(client.SSN)
-            %td= client.DOB&.year
+            %td= link_to_if can_view_clients?, pii.first_name, appropriate_client_path(client)
+            %td= link_to_if can_view_clients?, pii.last_name, appropriate_client_path(client)
+            %td= pii.ssn
+            %td= GrdaWarehouse::PiiProvider.viewable_dob(client.DOB, policy: pii.policy, replacement: nil)&.year
             %th= client.processed_service_history.days_homeless_last_three_years
             %td= @report.max_pathways_date(@client_page, client.id)
             %td

@@ -15,7 +15,8 @@ module Types
     available_filter_options do
       arg :search_term, String
       arg :include_hud_services, Boolean
-      # ADD: category
+      arg :service_category, [ID]
+      arg :supports_bulk_assignment, HmisSchema::Enums::ServiceTypeFilterOptionSupportsBulkAssignment
     end
 
     field :id, ID, null: false
@@ -24,16 +25,10 @@ module Types
     field :supports_bulk_assignment, Boolean, null: false, default_value: false
     field :hud_record_type, HmisSchema::Enums::Hud::RecordType, null: true
     field :hud_type_provided, HmisSchema::Enums::ServiceTypeProvided, null: true
-    field :category, String, null: false
     field :service_category, HmisSchema::ServiceCategory, null: false
     field :form_definitions, [Forms::FormDefinition], null: false, description: 'Definitions that are specified for this service type'
 
     # object is a Hmis::Hud::CustomServiceType
-
-    # TODO(#5737) - remove this in favor of service_category
-    def category
-      service_category.name
-    end
 
     def hud_type_provided
       return unless object.hud_service?

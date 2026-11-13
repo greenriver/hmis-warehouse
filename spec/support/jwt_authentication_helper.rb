@@ -15,7 +15,7 @@ module JwtAuthenticationHelper
     "kc-#{user.id}"
   end
 
-  def sign_in(user)
+  def sign_in(user, expires_at: 1.hour.from_now)
     mock_token = "mock-jwt-token-#{user.id}-#{SecureRandom.hex(8)}"
     mock_session_id = "mock-session-id-#{user.id}-#{SecureRandom.hex(4)}"
 
@@ -27,7 +27,7 @@ module JwtAuthenticationHelper
       connector_id: 'test',
       connector_user_id: jwt_connector_user_id(user),
       payload_email: user.email,
-      expiration_time: 1.hour.from_now,
+      expiration_time: expires_at,
       session_id: mock_session_id,
       email_verified: true,
       first_name: user.first_name,

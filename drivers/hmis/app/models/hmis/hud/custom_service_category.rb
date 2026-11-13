@@ -15,7 +15,9 @@ class Hmis::Hud::CustomServiceCategory < Hmis::Hud::Base
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
   belongs_to :user, **hmis_relation(:UserID, 'User'), optional: true
   has_many :service_types, class_name: 'Hmis::Hud::CustomServiceType'
-  has_many :form_instances, class_name: 'Hmis::Form::Instance'
+  # Deleting a form rule in the frontend marks it inactive rather than destroying it, so only
+  # active rules indicate that a form is currently enabled for this service category.
+  has_many :form_instances, -> { active }, class_name: 'Hmis::Form::Instance'
   has_many :definitions, through: :form_instances, source: :definitions
 
   validates_presence_of :name, allow_blank: false

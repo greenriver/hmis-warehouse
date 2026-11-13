@@ -11,7 +11,7 @@ module GrdaWarehouse::Hud
     include HudSharedScopes
     include ::HmisStructure::AssessmentResult
     include ::HmisStructure::Shared
-    # Extensions from drivers — see ADR 0007
+    # Extensions from drivers — see docs/architecture/08-concepts/08-3-driver-module-pattern.md
     include HmisCsvImporter::GrdaWarehouse::Hud::AssessmentResultExtension
     include HmisCsvTwentyTwenty::GrdaWarehouse::Hud::AssessmentResultExtension
     include HmisCsvTwentyTwentyFour::GrdaWarehouse::Hud::AssessmentResultExtension

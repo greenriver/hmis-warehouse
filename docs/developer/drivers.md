@@ -36,9 +36,10 @@ Everything is wired up natively (no gem). The relevant code:
 
 - **Autoloading** (`config/application.rb`): each driver's `app/{models,controllers,mailers,helpers,jobs,graphql}`
   and `lib` are added to Zeitwerk's autoload paths. `lib/tasks` is ignored (rake files, not constants).
-- **Concerns & extensions** (`config/initializers/driver_setup.rb`): `concerns/` directories and
-  `app/models/<driver>/extensions/` directories are *collapsed* so they don't add a namespace
-  segment. Driver `app/views` are registered as view paths.
+- **Concerns & extensions** (`config/initializers/driver_setup.rb`): only the immediate `concerns/`
+  child of a driver's `app/models`, `app/controllers`, and `app/graphql`, and
+  `app/models/<driver>/extensions/` directories, are *collapsed* so they don't add a namespace
+  segment. Deeper ones such as `drivers/hmis/app/models/hmis/concerns/` keep it (`Hmis::Concerns::...`). Driver `app/views` are registered as view paths.
 - **Routes** (`config/application.rb`): each `drivers/*/config/routes.rb` is prepended to the routes
   reloader, so drivers can declare their own routes.
 - **Feature initializers** (`config/application.rb`): `drivers/**/config/initializers/**/*.rb` run
@@ -53,10 +54,15 @@ driver's feature initializer (`drivers/<name>/config/initializers/<name>_feature
 driver hooks into core **extension points** — registering sub-populations, monthly-report types,
 census factories, and similar — typically inside `Rails.application.reloader.to_prepare do … end`.
 
-> **Legacy note:** older code guards optional behavior with
-> `RailsDrivers.loaded.include?(:some_driver)` (a registry from the former driver gem, kept as a
-> shim in `lib/rails_drivers.rb`). Because every driver is now always loaded, those checks are
-> always true — don't add new ones; assume drivers are present.
+A feature initializer is plain Ruby, loaded in sorted path order after all core initializers, so the
+`config.*` registries declared under `# Extension points` in `config/application.rb` already exist.
+Registrations that only write into a registry hash or array can run at top level. Registrations that
+call a core class method (for example `GrdaWarehouse::Census.add_population`) belong in `to_prepare`;
+otherwise they are lost on a development reload. A registry with no entries is the "off" state.
+Don't test whether another driver is present.
+
+Menu items are not registered in the initializer; reports appear through `ReportDefinition` seeding
+(see "Adding a new report driver").
 
 ## Extending core models (extensions)
 
@@ -97,6 +103,24 @@ owned by the main Zeitwerk autoloader, so they load on demand and reload correct
 > top-level namespace can resolve to a same-named child. Prefer a leading `::` when including a
 > cross-namespace extension, e.g. `include ::Hmis::ClientLocationHistory::LocationExtension`.
 
+The core model owns the include list; nothing registers extensions automatically, so a new extension
+means editing the core model. Drivers may extend each other's models the same way, but the design rule
+(see the architecture doc above) is that a driver depends on core abstractions, not another driver's
+internals. That rule is enforced by review, not code.
+
+## Driver-local base controllers for HUD reports
+
+HUD report drivers build on `HudReports::BaseController`. `HudApr`, `HopwaCaper`,
+`HudDataQualityReport`, `HudPathReport`, and `HudSpmReport` define a driver-local `BaseController`
+and subclass it. `HudHic`, `HudLsa`, and `HudPit` subclass `::HudReports::BaseController` directly.
+Always use the leading `::`; inside the driver namespace `HudReports` can resolve to a same-named child.
+
+A local base controller overrides `active_report_versions` to limit the "new report" form to the
+current fiscal year, while `available_report_versions` still lists every registered year so older
+reports stay viewable. Routes use `extend HudReports::RouteConcerns` and
+`concerns :hud_report_actions`, producing `/hud_reports/<plural>` URLs. Fiscal-year registration is
+in [HUD report framework](../features/warehouse/hud-report-framework.md).
+
 ## Creating a new driver
 
 There is no generator (the old `rails g driver` came from the removed gem). Create a driver by hand:
@@ -107,7 +131,8 @@ There is no generator (the old `rails g driver` came from the removed gem). Crea
    (copy an existing `*_feature.rb` as a template).
 3. Add `drivers/my_feature/config/routes.rb`, controllers, and views as needed (namespaced under the
    driver).
-4. Restart the server (new autoload paths are picked up at boot).
+4. Restart the server (autoload paths are computed at boot). This also applies to a new `app/graphql`
+   or `app/jobs` directory in an existing driver; adding a file inside an existing path does not.
 
 ### Adding a new report driver
 
@@ -120,3 +145,14 @@ For a report, after the steps above, register it with the report framework:
    GrdaWarehouse::WarehouseReports::ReportDefinition.maintain_report_definitions
    AccessGroup.maintain_system_groups
    ```
+
+## Gotchas
+
+- Driver READMEs are mostly stubs, and the `*_sub_pop` READMEs are a copy-this-directory template. A
+  stub is not evidence a driver is trivial. Check dates and class names in the substantive ones
+  before trusting them. `drivers/hmis/README.md` is the reference for local HMIS API setup and the
+  new-deployment checklist.
+- Specs under `hud_path_report`, `hud_spm_report`, and `hud_data_quality_report` trigger fixpoint
+  loading in `spec/rails_helper.rb`; moving a spec in or out of those drivers can change its fixtures.
+- Community-specific reports and importers belong in a driver, not core `app/`. Which reports a
+  deployment sees depends on seeding and assignment, not on which drivers load.

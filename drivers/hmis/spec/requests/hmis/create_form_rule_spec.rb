@@ -59,6 +59,7 @@ RSpec.describe 'Create Form Rule Mutation', type: :request do
         form_rule = result.dig('data', 'createFormRule', 'formRule')
         expect(form_rule).to be_present
         expect(form_rule['definitionId']).to eq(form_definition.id.to_s)
+        expect(form_rule['definitionRole']).to eq('CUSTOM_ASSESSMENT')
         expect(form_rule['projectId']).to eq(p1.id.to_s)
         expect(form_rule['active']).to eq(true)
         id = form_rule['id']
@@ -67,6 +68,38 @@ RSpec.describe 'Create Form Rule Mutation', type: :request do
       form_rule = Hmis::Form::Instance.find(id)
       expect(form_rule.definition).to eq(form_definition)
       expect(form_rule.data_source_id).to eq(ds1.id)
+    end
+
+    context 'when creating a rule for a CASE_NOTE form' do
+      let!(:form_definition) { create(:hmis_form_definition, identifier: 'test-case-note', role: :CASE_NOTE, status: :published, data_source: ds1) }
+
+      it 'creates a rule for the form' do
+        expect do
+          response, result = post_graphql(input) { mutation }
+          expect(response.status).to eq(200), result.inspect
+
+          form_rule = result.dig('data', 'createFormRule', 'formRule')
+          expect(form_rule).to be_present
+          expect(form_rule['definitionRole']).to eq('CASE_NOTE')
+        end.to change(Hmis::Form::Instance, :count).by(1)
+      end
+    end
+
+    # HUD assessments are the newly configurable roles that carry HUD-compliance risk, so the
+    # rules-only persona is asserted against one at the mutation layer, not just in the policy spec.
+    context 'when creating a rule for an INTAKE form' do
+      let!(:form_definition) { create(:hmis_form_definition, identifier: 'test-intake', role: :INTAKE, status: :published, data_source: ds1) }
+
+      it 'creates a rule for the form' do
+        expect do
+          response, result = post_graphql(input) { mutation }
+          expect(response.status).to eq(200), result.inspect
+
+          form_rule = result.dig('data', 'createFormRule', 'formRule')
+          expect(form_rule).to be_present
+          expect(form_rule['definitionRole']).to eq('INTAKE')
+        end.to change(Hmis::Form::Instance, :count).by(1)
+      end
     end
   end
 
@@ -141,6 +174,30 @@ RSpec.describe 'Create Form Rule Mutation', type: :request do
         errors = result.dig('data', 'createFormRule', 'errors')
         expect(errors).to be_present
         expect(errors.first['fullMessage']).to include('service category or service type')
+      end
+    end
+  end
+
+  # Referral roles are not managed in the Forms admin tool, and static admin forms take no rules.
+  # These examples grant can_administrate_config so that the denial is attributable to the form role
+  # rather than to a missing permission.
+  [:REFERRAL, :PROJECT_CONFIG].each do |role|
+    context "when creating a rule for the non-configurable #{role} form role" do
+      let!(:access_control) { create_access_control(hmis_user, ds1, with_permission: [:can_configure_data_collection, :can_view_project, :can_administrate_config]) }
+      let!(:form_definition) { create(:hmis_form_definition, identifier: "test-#{role.to_s.downcase}", role: role, status: :published, data_source: ds1) }
+      let(:input) do
+        {
+          input: {
+            definitionId: form_definition.id,
+            input: {
+              projectId: p1.id,
+            },
+          },
+        }
+      end
+
+      it 'raises access denied error even for a super-admin' do
+        expect_access_denied post_graphql(input) { mutation }
       end
     end
   end

@@ -1215,8 +1215,10 @@ class WarehouseReport::Outcomes::Base
     )
   end
 
+  # Report on every project the user can see only when nothing was picked. A selection
+  # that resolves to no projects (hidden, or not of this report's type) means none, not all.
   def all_projects
-    @project_ids == []
+    !@filter.any_project_selection?
   end
 
   def can_see_client_details?(user)
@@ -1260,14 +1262,16 @@ class WarehouseReport::Outcomes::Base
       # For performance, we'll default to the project pii policy.
       # If the project_id is not present, we'll use the destination client policy.
       # If neither are present, we'll use the Allow Policy for consistency with how the report worked prior to this change.
+      preload_clients(user) if client_id.present?
       pii_policy = if project_id.present?
         user.policy_for(project_id.to_i, policy_class: GrdaWarehouse::AuthPolicies::ProjectPiiPolicy)
       elsif client_id.present?
-        client = GrdaWarehouse::Hud::Client.find(client_id)
-        user.policy_for(client, policy_class: GrdaWarehouse::AuthPolicies::DestinationClientPolicy)
+        user.policy_for(destination_clients_by_id.fetch(client_id.to_i), policy_class: GrdaWarehouse::AuthPolicies::DestinationClientPolicy)
       else
-        GrdaWarehouse::AuthPolicies::AllowPolicy.new(user: user, resource: nil)
+        GrdaWarehouse::AuthPolicies::AllowPiiPolicy.instance
       end
+
+      pii_policy = GrdaWarehouse::PiiProvider.restrict(pii_policy, restricted: user.policy_context.client_restricted?(client_id.to_i)) if client_id.present?
 
       pii_value(col: header, raw_value: value, pii_policy: pii_policy)
     end
@@ -1309,6 +1313,22 @@ class WarehouseReport::Outcomes::Base
           value
         end
       end
+    end
+
+    private def rows_client_ids
+      @rows_client_ids ||= @rows.map(&:first)
+    end
+
+    # Once per row set: display_value is called per cell.
+    private def preload_clients(user)
+      return if @clients_preloaded
+
+      user.policy_context.preload_client_dependencies(rows_client_ids.map(&:to_i))
+      @clients_preloaded = true
+    end
+
+    private def destination_clients_by_id
+      @destination_clients_by_id ||= GrdaWarehouse::Hud::Client.where(id: rows_client_ids).index_by(&:id)
     end
   end
 

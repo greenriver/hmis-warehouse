@@ -13,9 +13,17 @@
       - hmis_options = @available_hmis_hostnames
       = f.input :hmis, label: 'Open Path HMIS URL', collection: hmis_options, include_blank: true, as: :select_two, hint: 'Connects this data source to an Open Path HMIS installation. Leave blank for vendor HMIS or other non-OP HMIS sources. This cannot be changed after it is set.', input_html: { data: { data_source_form_target: 'hmisHostname', action: 'change->data-source-form#refresh' } }
 
+    %div{ data: { data_source_form_target: 'hmisQuestions' } }
+      = f.input :hmis_go_live_at, as: :datetime_picker, label: 'HMIS go-live time', hint: "Leave blank for a live HMIS. Before the specified time, only users who can administer HMIS can access HMIS; everyone else sees a no-access message. Times are in #{Time.zone.name}."
+
   = f.input :visible_in_window, label: 'Should this data source be visible in the window into the warehouse?', hint: 'Controls whether clients from this data source appear in the Window into the Warehouse for users who do not have direct data source access.'
 
   = f.input :obey_consent, label: 'Should this data source be exposed if a client has a consent (ROI) on file?', hint: 'If unchecked, only users with this data source assigned directly to them will be able to see the source client details.'
+
+  - if @data_source.client_retention_override_available?
+    - global_years = GrdaWarehouse::Config.get(:client_retention_years)
+    - retention_options = GrdaWarehouse::Config.available_client_retention_years(current: @data_source.client_retention_years).transform_keys { |label| label == 'Disabled' ? "Use global setting (#{global_years} years)" : label }
+    = f.input :client_retention_years, label: 'Mark clients inactive after', collection: retention_options, as: :select_two, include_blank: false, hint: "Overrides the site-wide window of #{global_years} years for clients from this data source. When a warehouse client has records in several data sources, the longest window applies."
 
   -# Vendor / external HMIS settings. Hidden when this data source is linked to Open Path HMIS,
   -# because OP HMIS uses fixed values for these fields.
@@ -36,6 +44,6 @@
   -# hidden for authoritative non-HMIS sources where data is entered manually.
   %div{ data: { data_source_form_target: 'importerQuestions' } }
     %h3.h5-prs1 Import settings
-    = f.input :source_id, label: 'Source ID', hint: 'Expected SourceID from Export.csv. If set, imports are rejected when it does not match. If left blank, any SourceID in the export file is accepted.'
+    = f.input :source_id, label: 'Source ID', hint: 'Expected SourceID from Export.csv. If set, imports are rejected when it does not match. If left blank, automated imports accept any SourceID, and manual uploads ask the user to name this data source before queuing.'
     = f.input :disable_imports, as: :boolean, label: 'Disable HUD CSV imports', hint: 'When checked, manual uploads and automated daily imports are not allowed for this data source.'
     = f.input :import_paused, label: 'Pause automated daily imports?'

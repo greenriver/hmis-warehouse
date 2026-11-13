@@ -15,7 +15,7 @@ module HudSpmReport
 
     def generator_for_report
       klass = @generator_class || possible_generator_classes[report_version]
-      raise ArgumentError, "Unsupported SPM generator version: #{report_version}" unless klass
+      raise UnsupportedReportError, "Unsupported SPM generator version: #{report_version}" unless klass
 
       klass
     end

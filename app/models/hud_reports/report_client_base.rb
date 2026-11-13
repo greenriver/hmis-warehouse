@@ -22,6 +22,13 @@ module HudReports
       transform_value(col.to_s, cell_val, pii_policy)
     end
 
+    def destination_client_id_for_pii
+      return destination_client_id if self.class.column_names.include?('destination_client_id')
+      return client_id if self.class.column_names.include?('client_id')
+
+      nil
+    end
+
     def self.search_clients(scope, search_term)
       return scope if search_term.blank?
       return scope unless searchable?
@@ -31,13 +38,24 @@ module HudReports
       return scope if columns.empty?
 
       sanitized_term = sanitize_sql_like(search_term).downcase
-      lowered_columns = columns.map { |col| Arel::Nodes::NamedFunction.new('LOWER', [col]) }
+      not_restricted = restricted_condition
 
-      conditions = lowered_columns.map do |col|
-        col.matches("%#{sanitized_term}%")
+      conditions = columns.map do |col|
+        condition = Arel::Nodes::NamedFunction.new('LOWER', [col]).matches("%#{sanitized_term}%")
+        condition = condition.and(not_restricted) if not_restricted && pii_search_columns.include?(col)
+        condition
       end
 
       scope.where(conditions.inject(:or)).distinct
+    end
+
+    # A hidden client (HMIS-restricted or retention-inactive) must not be discoverable via
+    # name/SSN matches (see app/models/concerns/client_search.rb), even though exact-ID matches
+    # remain allowed.
+    def self.restricted_condition
+      return nil if pii_search_columns.empty? || restricted_client_id_columns.empty?
+
+      restricted_client_id_columns.map { |col| GrdaWarehouse::HiddenClients.not_hidden(col) }.inject(:and)
     end
 
     def self.searchable?
@@ -49,6 +67,14 @@ module HudReports
     end
 
     def self.search_columns
+      []
+    end
+
+    def self.pii_search_columns
+      []
+    end
+
+    def self.restricted_client_id_columns
       []
     end
 

@@ -86,37 +86,73 @@ RSpec.describe GrdaWarehouse::ClientRoiAuthorization, type: :model do
     end
   end
 
-  describe '#matches_coc_codes?' do
-    context 'when coc_codes is blank' do
-      before { authorization.coc_codes = nil }
+  describe '.visible_in_cocs' do
+    # The boundary rows are built from Date.current, so the clock must not move between setup and the query
+    around { |example| freeze_time { example.run } }
+    after { GrdaWarehouse::Config.invalidate_cache }
 
-      it 'returns true' do
-        expect(authorization.matches_coc_codes?(['ANY'])).to be true
-      end
+    def use_config(factory)
+      GrdaWarehouse::Config.delete_all
+      create(factory)
+      GrdaWarehouse::Config.invalidate_cache
     end
 
-    context 'when coc_codes are present' do
-      before { authorization.coc_codes = ['CODE1', 'CODE2'] }
+    let!(:full) { create(:client_roi_authorization, status: 'full') }
+    let!(:partial) { create(:client_roi_authorization, status: 'partial') }
+    let!(:revoked) { create(:client_roi_authorization, status: 'revoked') }
+    let!(:expired) { create(:client_roi_authorization, status: 'full', expires_at: Date.yesterday) }
+    let!(:expires_today) { create(:client_roi_authorization, status: 'full', expires_at: Date.current) }
+    let!(:not_started) { create(:client_roi_authorization, status: 'full', starts_at: Date.tomorrow) }
+    let!(:empty_cocs) { create(:client_roi_authorization, status: 'full', coc_codes: []) }
+    let!(:all_cocs) { create(:client_roi_authorization, status: 'full', coc_codes: ['All CoCs']) }
+    let!(:co_500) { create(:client_roi_authorization, status: 'full', coc_codes: ['CO-500']) }
 
-      it 'returns true when there is an intersection' do
-        expect(authorization.matches_coc_codes?(['CODE1', 'CODE3'])).to be true
-      end
-
-      it 'returns false when there is no intersection' do
-        expect(authorization.matches_coc_codes?(['CODE3', 'CODE4'])).to be false
-      end
+    it 'returns full releases in effect today for any CoC under Consent::Default' do
+      use_config(:config_b)
+      expect(described_class.visible_in_cocs([]).pluck(:id)).to contain_exactly(full.id, expires_today.id, empty_cocs.id, all_cocs.id)
     end
 
-    context 'when coc_codes include All CoCs' do
-      before { authorization.coc_codes = ['All CoCs'] }
+    it 'includes a release limited to a CoC the user has' do
+      use_config(:config_b)
+      expect(described_class.visible_in_cocs(['CO-500', 'PA-501']).pluck(:id)).to contain_exactly(full.id, expires_today.id, empty_cocs.id, all_cocs.id, co_500.id)
+    end
 
-      it 'returns true when user coc codes are specific HUD codes (no literal overlap with All CoCs)' do
-        expect(authorization.matches_coc_codes?(['PA-501', 'PA-502'])).to be true
-      end
+    it 'includes partial rows under Consent::Implied' do
+      use_config(:config_va)
+      expect(described_class.visible_in_cocs([]).pluck(:id)).to contain_exactly(full.id, partial.id, expires_today.id, empty_cocs.id, all_cocs.id)
+    end
 
-      it 'returns true when user has no coc_codes' do
-        expect(authorization.matches_coc_codes?([])).to be true
-      end
+    it 'treats a CoC code containing a quote as a literal value' do
+      use_config(:config_b)
+      quoted = create(:client_roi_authorization, status: 'full', coc_codes: ["CO-5'00"])
+      expect(described_class.visible_in_cocs(["CO-5'00"]).pluck(:id)).to include(quoted.id)
+    end
+  end
+
+  describe '.with_consenting_source' do
+    let(:consenting_ds) { create :source_data_source, obey_consent: true }
+    let(:non_consenting_ds) { create :source_data_source, obey_consent: false }
+    let(:destination_ds) { create :destination_data_source }
+
+    def destination_with_source(source_ds)
+      destination = create :hud_client, data_source: destination_ds
+      source = create :hud_client, data_source: source_ds
+      create :warehouse_client, source_id: source.id, destination_id: destination.id
+      destination
+    end
+
+    let!(:consenting) { create :client_roi_authorization, destination_client: destination_with_source(consenting_ds) }
+    let!(:non_consenting) { create :client_roi_authorization, destination_client: destination_with_source(non_consenting_ds) }
+    let!(:no_sources) { create :client_roi_authorization, destination_client: create(:hud_client, data_source: destination_ds) }
+
+    it 'keeps only rows whose destination has a source client in a data source that obeys consent' do
+      expect(described_class.with_consenting_source).to contain_exactly(consenting)
+    end
+
+    it 'keeps a row when any one of several sources obeys consent' do
+      extra_source = create :hud_client, data_source: non_consenting_ds
+      create :warehouse_client, source_id: extra_source.id, destination_id: consenting.destination_client_id
+      expect(described_class.with_consenting_source).to contain_exactly(consenting)
     end
   end
 

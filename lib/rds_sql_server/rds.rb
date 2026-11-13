@@ -44,7 +44,7 @@ class Rds
   end
 
   def self.rds_available?
-    new.client.present?
+    local_sql_server? || new.client.present?
   end
 
   def initialize

@@ -16,11 +16,15 @@ module Idp
 
     private_class_method :new
 
-    def initialize(connector_id:, email:, first_name:, last_name:, user_class: User)
+    # @param connector_id [String, nil] nil creates a local account only: no remote account is
+    #   provisioned and no UserAuthenticationSource is written.
+    def initialize(connector_id:, email:, first_name:, last_name:, agency_id: nil, user_class: User)
       @connector_id = connector_id
-      @email = email
+      # Normalize the same way Idp::JwtHelper#payload_email does.
+      @email = email&.strip&.downcase
       @first_name = first_name
       @last_name = last_name
+      @agency_id = agency_id
       @user_class = user_class
     end
 
@@ -34,7 +38,7 @@ module Idp
       user = build_user
       user.save!
 
-      # No management API: link happens by email on first JWT sign-in instead.
+      # No management API: link happens by email on first JWT sign-in.
       return user unless service.supports_user_creation?
 
       begin
@@ -67,13 +71,26 @@ module Idp
         first_name: @first_name,
         last_name: @last_name,
         active: true,
-        agency_id: 0, # required; placeholder until the next user edit sets a real agency.
+        agency_id: @agency_id,
       )
     end
 
     def find_or_create_connector_user_id(service)
       existing = service.find_user_by_email(email: @email)
-      return existing['id'] if existing && existing['id'].present?
+      if existing
+        # A match with no id is contradictory: the IdP claims this email exists but gives us nothing
+        # to link on. Creating a new account would duplicate it (or 409), so fail loudly instead.
+        if existing['id'].blank?
+          raise Idp::ServiceError.new(
+            "IdP returned a match with no id for #{@email}",
+            idp_name: service.idp_name,
+            operation: :find_user_by_email,
+            transient: false,
+          )
+        end
+
+        return existing['id']
+      end
 
       service.create_user(email: @email, first_name: @first_name, last_name: @last_name).fetch(:connector_user_id)
     end

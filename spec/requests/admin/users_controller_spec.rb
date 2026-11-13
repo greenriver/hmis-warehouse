@@ -72,6 +72,57 @@ RSpec.describe Admin::UsersController, type: :request do
     before do
       sign_in admin_user
     end
+    context 'when the admin turns off 2FA for a user who has it', :devise_only do
+      let!(:user_2fa) { create(:user_2fa) }
+      let!(:device) do
+        user_2fa.two_factors_memorized_devices.create!(uuid: SecureRandom.uuid, name: 'Laptop', expires_at: 1.week.from_now)
+      end
+
+      it 'clears the OTP secret and deletes remembered devices' do
+        patch admin_user_path(user_2fa), params: { user: { otp_required_for_login: 'false' } }
+
+        user_2fa.reload
+        expect(user_2fa.otp_secret).to be_nil
+        expect(user_2fa.otp_required_for_login).to be(false)
+        expect(user_2fa.confirmed_2fa).to eq(0)
+        expect(TwoFactorsMemorizedDevice.where(id: device.id)).not_to exist
+      end
+    end
+
+    context 'when the admin saves a user who is partway through 2FA setup', :devise_only do
+      let!(:mid_setup) do
+        create(:user_2fa, otp_required_for_login: false, confirmed_2fa: 1)
+      end
+      let!(:secret) { mid_setup.otp_secret }
+
+      it 'keeps the in-progress secret' do
+        patch admin_user_path(mid_setup), params: { user: { first_name: 'Renamed', otp_required_for_login: 'false' } }
+
+        mid_setup.reload
+        expect(mid_setup.first_name).to eq('Renamed')
+        expect(mid_setup.otp_secret).to eq(secret)
+        expect(mid_setup.confirmed_2fa).to eq(1)
+      end
+    end
+
+    context 'when the admin saves a user whose 2FA was turned off but is still confirmed', :devise_only do
+      let!(:confirmed_off) do
+        create(:user_2fa, otp_required_for_login: false, confirmed_2fa: 2)
+      end
+      let!(:device) do
+        confirmed_off.two_factors_memorized_devices.create!(uuid: SecureRandom.uuid, name: 'Laptop', expires_at: 1.week.from_now)
+      end
+
+      it 'clears the OTP secret and deletes remembered devices' do
+        patch admin_user_path(confirmed_off), params: { user: { otp_required_for_login: 'false' } }
+
+        confirmed_off.reload
+        expect(confirmed_off.otp_secret).to be_nil
+        expect(confirmed_off.confirmed_2fa).to eq(0)
+        expect(TwoFactorsMemorizedDevice.where(id: device.id)).not_to exist
+      end
+    end
+
     context 'when updating vi-spdat notifications' do
       let(:updated_user) { User.not_system.first }
       before(:each) do
@@ -79,6 +130,25 @@ RSpec.describe Admin::UsersController, type: :request do
       end
       it 'flips to true' do
         expect(updated_user.reload.notify_on_vispdat_completed).to be true
+      end
+    end
+
+    context 'when the submitted agency does not exist' do
+      let!(:agency) { create(:agency) }
+      let(:updated_user) { create(:acl_user, agency_id: agency.id) }
+
+      it 'keeps the existing agency and re-renders the form' do
+        patch admin_user_path(updated_user), params: { user: { agency_id: agency.id + 1_000 } }
+
+        expect(updated_user.reload.agency_id).to eq(agency.id)
+        expect(response).to render_template :edit
+      end
+
+      it 'accepts a real agency' do
+        other = create(:agency)
+        patch admin_user_path(updated_user), params: { user: { agency_id: other.id } }
+
+        expect(updated_user.reload.agency_id).to eq(other.id)
       end
     end
 

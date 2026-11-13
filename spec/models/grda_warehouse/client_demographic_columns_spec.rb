@@ -161,8 +161,8 @@ RSpec.describe GrdaWarehouse::ClientDemographicColumns, type: :model do
       expect(described_class.value_for('ssn', client: client, pii: allow_pii)).to eq('123-45-6789')
     end
 
-    it 'masks the SSN when the policy denies full SSN' do
-      expect(described_class.value_for('ssn', client: client, pii: deny_pii)).to eq('XXX-XX-6789')
+    it 'fully redacts the SSN when the policy denies it' do
+      expect(described_class.value_for('ssn', client: client, pii: deny_pii)).to eq(GrdaWarehouse::PiiProvider::REDACTED)
     end
 
     it 'shows the name when the policy allows it' do

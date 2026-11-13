@@ -111,11 +111,14 @@ module ClientController
     end
 
     def look_for_existing_match(attr)
+      not_hidden = GrdaWarehouse::HiddenClients.not_hidden(c_t[:id])
+
       name_matches = client_search_scope.
         where(
           nf('lower', [c_t[:FirstName]]).eq(attr[:FirstName].downcase).
           and(nf('lower', [c_t[:LastName]]).eq(attr[:LastName].downcase)),
         ).
+        where(not_hidden).
         pluck(:id)
 
       ssn_matches = []
@@ -123,6 +126,7 @@ module ClientController
       if ::HudHelper.util.valid_social?(ssn)
         ssn_matches = client_search_scope.
           where(c_t[:SSN].eq(ssn)).
+          where(not_hidden).
           pluck(:id)
       end
       birthdate_matches = client_search_scope.

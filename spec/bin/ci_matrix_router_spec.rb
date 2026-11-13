@@ -137,14 +137,31 @@ RSpec.describe 'bin/ci_matrix_router.rb' do
       end
     end
 
-    # A step whose `if: matrix.test_group.<flag>` is false is skipped, not failed, so dropping a flag
-    # here loses that step's coverage on a green run — for `devise`, the whole AUTH_METHOD=devise arm.
-    it 'puts the once-per-run step flags on ci_default' do
+    # A step whose `if: matrix.test_group.<flag>` is false is skipped, not failed, so dropping this
+    # entry loses the arms' coverage on a green run — for `devise`, the whole AUTH_METHOD=devise arm.
+    it 'adds a ci_auth entry carrying the once-per-run arm flag' do
       output = run_script
       groups = JSON.parse(output['unit_matrix'])['test_group']
-      ci_default = groups.find { |g| g['id'] == 'ci_default' }
 
-      expect(ci_default).to include('okta' => true, 'logging' => true, 'devise' => true)
+      expect(groups.find { |g| g['id'] == 'ci_auth' }).to eq('id' => 'ci_auth', 'auth' => true)
+    end
+
+    # ci_auth runs the arms alone. A tag here would feed `rspec --tag`, re-running bucketed specs on
+    # top of them; ci_default stays a plain bucket so the arms do not extend its wall clock.
+    it 'gives ci_auth no tag and leaves the arm flag off ci_default' do
+      output = run_script
+      groups = JSON.parse(output['unit_matrix'])['test_group']
+
+      expect(groups.find { |g| g['id'] == 'ci_auth' }).not_to have_key('tag')
+      expect(groups.find { |g| g['id'] == 'ci_default' }).to eq('id' => 'ci_default', 'tag' => '~ci_bucket')
+    end
+
+    # A focused run replaces the whole matrix with one entry, so the arms must not appear there.
+    it 'omits ci_auth from a focused run' do
+      output = run_script('COMMIT_MSG' => 'debug [ci-focus: spec/models/user_spec.rb]')
+      groups = JSON.parse(output['unit_matrix'])['test_group']
+
+      expect(groups.map { |g| g['id'] }).to eq ['focused']
     end
   end
 

@@ -42,6 +42,8 @@ module GrdaWarehouse::Hud
     has_many :employment_educations, through: :enrollments, source: :employment_educations
     has_many :health_and_dvs, through: :enrollments, source: :health_and_dvs
     has_many :services, through: :enrollments, source: :services
+    has_many :current_living_situations, through: :enrollments, source: :current_living_situations
+    has_many :youth_education_statuses, through: :enrollments, source: :youth_education_statuses
     has_many :exits, through: :enrollments, source: :exit
     # has_many :inventories, through: :project_cocs, source: :inventories
     has_many :inventories, **hud_assoc(:ProjectID, 'Inventory'), inverse_of: :project
@@ -79,7 +81,7 @@ module GrdaWarehouse::Hud
     belongs_to :project_cocs_with_deleted, class_name: 'GrdaWarehouse::Hud::WithDeleted::ProjectCoc', primary_key: [:ProjectID, :data_source_id], foreign_key: [:ProjectID, :data_source_id], optional: true
 
     # Needs to come after has_many :enrollments, bc one extension uses a has_many through: :enrollments relation
-    # Extensions from drivers — see ADR 0007
+    # Extensions from drivers — see docs/architecture/08-concepts/08-3-driver-module-pattern.md
     include ClientAccessControl::GrdaWarehouse::Hud::ProjectExtension
     include ClientLocationHistory::GrdaWarehouse::Hud::ProjectExtension
     include HmisCsvImporter::GrdaWarehouse::Hud::ProjectExtension
@@ -358,7 +360,6 @@ module GrdaWarehouse::Hud
     scope :viewable_by, ->(user, confidential_scope_limiter: :non_confidential, permission: :can_view_projects) do
       query = viewable_by_entity(user, permission: permission)
       # If a user can't report on confidential projects, exclude them entirely
-      # return query if user.can_report_on_confidential_projects?
       return query if user.can_report_on_confidential_projects?
 
       query.send(confidential_scope_limiter)
@@ -373,7 +374,9 @@ module GrdaWarehouse::Hud
         # If have a set (not a nil) and it's empty, this user can't access any projects
         return none if ids.is_a?(Set) && ids.empty?
 
-        where(id: ids)
+        # A string predicate, unlike a hash or Arel predicate, is ANDed by a later
+        # `merge` on the same column instead of being replaced by it
+        where(%(#{quoted_table_name}."id" IN (?)), ids.to_a)
       else
         quoted_column = ->(s) { connection.quote_column_name s }
         quoted_string = ->(s) { connection.quote s }

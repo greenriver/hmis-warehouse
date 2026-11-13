@@ -16,6 +16,16 @@ module GrdaWarehouse
     serialize :client_details, type: Array
     validates :cas_sync_project_group_id, presence: { message: 'is required for the selected sync method.' }, if: ->(o) { o.cas_available_method.to_sym.in?([:project_group, :boston]) }
 
+    # nil turns retention processing off. Any positive number of years is valid; the admin UI
+    # offers only 7 and up (HUD's minimum), shorter windows are set from the console.
+    validates :client_retention_years, numericality: { only_integer: true, greater_than: 0 }, allow_nil: true
+
+    STATE_CODE = /\A[A-Z]{2}\z/
+
+    before_validation :normalize_relevant_state_codes
+    validates :relevant_state_codes, presence: true
+    validate :relevant_state_codes_are_state_codes
+
     after_save :invalidate_cache
 
     # The multi-select posts a hidden blank alongside the real selections, and that
@@ -32,7 +42,24 @@ module GrdaWarehouse
 
     def self.relevant_state_codes
       # NOTE: memoized class variable, only changes on restart/redeploy
-      @relevant_state_codes ||= GrdaWarehouse::Config.get(:relevant_state_codes)&.split(',') || ['MA']
+      @relevant_state_codes ||= begin
+        value = get(:relevant_state_codes)
+        value.nil? ? ['MA'] : normalize_state_codes(value)
+      end
+    end
+
+    def self.normalize_state_codes(value)
+      value.to_s.split(',').map { |code| code.strip.upcase }.compact_blank
+    end
+
+    private def normalize_relevant_state_codes
+      self.relevant_state_codes = self.class.normalize_state_codes(relevant_state_codes).join(',')
+    end
+
+    private def relevant_state_codes_are_state_codes
+      return if relevant_state_codes.to_s.split(',').all? { |code| code.match?(STATE_CODE) }
+
+      errors.add(:relevant_state_codes, :invalid)
     end
 
     def self.available_cas_methods
@@ -152,10 +179,26 @@ module GrdaWarehouse
       }
     end
 
+    # Options for the retention selects. A console-set window outside 7..20 is listed first,
+    # labelled "(current)", so re-saving the form keeps it instead of posting a different option.
+    def self.available_client_retention_years(current: nil)
+      options = { 'Disabled' => nil }
+      options["#{current} years (current)"] = current if current.present? && !(7..20).cover?(current)
+      options.merge((7..20).to_h { |y| ["#{y} years", y] })
+    end
+
     def self.available_warehouse_client_name_orders
       {
         'Name is set initially and not changed' => :earliest,
         'Name is set to most recently changed source client' => :latest,
+      }
+    end
+
+    def self.available_dob_selection_methods
+      {
+        'Use the oldest record, and trust the date of birth it reports' => :legacy,
+        'Use the oldest record, but demote impossible dates' => :oldest,
+        'Use the newest record, but demote impossible dates' => :newest,
       }
     end
 
@@ -333,6 +376,8 @@ module GrdaWarehouse
         :enable_external_data_sharing_exclusion,
         :rds_s3_integration_role_arn,
         :relevant_state_codes,
+        :dob_selection_method,
+        :client_retention_years,
         client_details: [],
         client_demographic_columns: [],
       ]
@@ -340,7 +385,7 @@ module GrdaWarehouse
 
     def self.arbiter_class
       # FIXME: for now, just return the one known one
-      ClientAccessControl::EnrollmentArbiter if RailsDrivers.loaded.include?(:client_access_control)
+      ClientAccessControl::EnrollmentArbiter
     end
 
     def self.active_supplemental_enrollment_importer_class

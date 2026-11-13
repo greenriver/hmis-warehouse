@@ -46,7 +46,7 @@ maintained through code review.
 | Accepted | Consequence |
 | --- | --- |
 | No engine-level isolation | Drivers share the same database connections, route namespace, and middleware stack. A misbehaving driver can affect the whole app. |
-| All drivers always loaded | Boot time and memory footprint scale with the number of drivers (~88 today), even if a deployment doesn't use all of them. |
+| All drivers always loaded | Boot time and memory footprint scale with the number of drivers, even if a deployment doesn't use all of them. |
 | No enforced dependency graph | Inter-driver dependencies are implicit. Circular references are possible and must be caught in review. |
 | Core model `include` statements grow | High-touch models like `Client` and `Enrollment` accumulate many extension includes. This is visible clutter but keeps the coupling explicit. |
 | Deep file paths | The mirrored Rails layout inside each driver produces long paths, (e.g. `drivers/client_access_control/app/models/client_access_control/extensions/grda_warehouse/hud/client_extension.rb`). This is the cost of co-location and Zeitwerk-compatible naming. |

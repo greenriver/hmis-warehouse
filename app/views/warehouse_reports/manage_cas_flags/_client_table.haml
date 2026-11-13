@@ -6,8 +6,10 @@
         %th Name
     %tbody
       - clients.each do |client|
+        - policy = current_user.reporting_policy_for_project(project_id: nil, mode: :browse, client_id: client[:id])
+        - pii = GrdaWarehouse::PiiProvider.from_attributes(policy: policy, first_name: client[:FirstName], last_name: client[:LastName])
         %tr
           %td= client[:id]
-          %td= link_to_if can_view_clients?, "#{client[:FirstName]} #{client[:LastName]}", appropriate_client_path(client[:id])
+          %td= link_to_if can_view_clients?, pii.brief_name, appropriate_client_path(client[:id])
 - else
   %p No clients found.

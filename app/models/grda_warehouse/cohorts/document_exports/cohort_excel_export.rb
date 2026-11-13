@@ -6,8 +6,6 @@
 
 # frozen_string_literal: true
 
-# frozen_string_literal: true
-
 module GrdaWarehouse::Cohorts::DocumentExports
   # Handles export of cohort data to Excel files (.xlsx) format
   #
@@ -19,15 +17,21 @@ module GrdaWarehouse::Cohorts::DocumentExports
   class CohortExcelExport < ::GrdaWarehouse::DocumentExport
     include ApplicationHelper
     def authorized?
-      user.can_download_cohorts?
+      user.can_download_cohorts? && cohort_class.viewable_by(user).where(id: cohort_id).exists?
     end
 
     protected def cohort
-      @cohort ||= cohort_class.viewable_by(user).find(params['id'])
+      @cohort ||= cohort_class.viewable_by(user).find(cohort_id)
+    end
+
+    # The cohort page (/cohorts/:id) sends `id`; the cohort report page
+    # (/cohorts/:cohort_id/report) sends `cohort_id`.
+    protected def cohort_id
+      params['cohort_id'].presence || params['id']
     end
 
     protected def cohort_clients
-      cohort.search_clients(population: population, user: user)
+      @cohort_clients ||= cohort.search_clients(population: population, user: user)
     end
 
     protected def population
@@ -50,6 +54,7 @@ module GrdaWarehouse::Cohorts::DocumentExports
     end
 
     private def excel_package
+      user.policy_context.preload_client_restrictions(cohort_clients.map(&:client_id))
       Axlsx::Package.new do |package|
         wb = package.workbook
         wb.add_worksheet(name: cohort.sanitized_name.slice(0, 30)) do |sheet|
@@ -60,6 +65,7 @@ module GrdaWarehouse::Cohorts::DocumentExports
             row += ([CohortColumns::Meta.new] + cohort.visible_columns(user: user)).map do |column|
               column.cohort = cohort
               column.cohort_names = cohort_names
+              column.current_user = user
               column.cohort_client = cohort_client
               if column.renderer == 'html'
                 column.text_value(cohort_client)

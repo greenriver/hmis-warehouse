@@ -23,7 +23,8 @@ module Hmis
     # Most recent contact (used to compute exit_date)
     # - ES Night-by-Night: latest bed night with non-nil date_provided; if missing/invalid, enrollment entry.
     # - Other project types: latest of Service.date_provided, CustomService.date_provided,
-    #   CurrentLivingSituation.information_date, CustomAssessment.assessment_date, or Enrollment (entry).
+    #   CurrentLivingSituation.information_date, CustomAssessment.assessment_date,
+    #   CustomCaseNote.information_date, or Enrollment (entry).
     #
     # Exit Creation (delegated to Hmis::EnrollmentExitCreator)
     # - Creates Hmis::Hud::Exit with destination "No exit interview completed" and timestamps auto_exited.
@@ -32,6 +33,8 @@ module Hmis
     # - Skips enrollments that already have an exit record.
     include NotifierConfig
 
+    queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
+
     def self.enabled?
       Hmis::ProjectAutoExitConfig.exists?
     end
@@ -39,17 +42,20 @@ module Hmis
     def perform(**args)
       return unless self.class.enabled?
 
+      setup_notifier('HMIS Auto-Exit')
+
       # don't track if there are arguments
-      return _perform(**args) if args.present?
+      return with_lock { _perform(**args) } if args.present?
 
       instrument_as_maintenance_task do |run|
-        _perform(**args)
-        run.complete!
+        with_lock do
+          _perform(**args)
+          run.complete!
+        end
       end
     end
 
     def _perform(project_ids: nil, data_source_id: nil)
-      setup_notifier('HMIS Auto-Exit')
       auto_exit_projects = Set.new
       auto_exit_count = 0
       now = DateTime.current
@@ -104,6 +110,17 @@ module Hmis
 
     private
 
+    def with_lock
+      lock_name = self.class.name.demodulize
+      did_run = false
+      GrdaWarehouseBase.with_advisory_lock(lock_name, timeout_seconds: 0) do
+        yield
+        did_run = true
+      end
+      @notifier&.ping("Skipped: another run holds the #{lock_name} lock") unless did_run
+      did_run
+    end
+
     def household_has_active_ce_referral?(household)
       return false unless Hmis::Ce.configuration.enabled?
 
@@ -131,6 +148,7 @@ module Hmis
           enrollment.custom_services.order(:date_provided).last,
           enrollment.current_living_situations.order(:information_date).last,
           enrollment.custom_assessments.order(:assessment_date).last,
+          enrollment.custom_case_notes.where.not(information_date: nil).order(:information_date).last,
           enrollment,
         ].compact.
           max_by { |entity| Hmis::Hud::Enrollment.contact_date_for_entity(entity) }

@@ -41,8 +41,11 @@ module WarehouseReports
       respond_to do |format|
         format.html do
           @pagy, @clients = pagy(@clients)
+          current_user.policy_context.preload_client_dependencies(@clients.map(&:id))
         end
-        format.xlsx {}
+        format.xlsx do
+          current_user.policy_context.preload_client_dependencies(@clients.map(&:id))
+        end
       end
     end
 
@@ -96,7 +99,9 @@ module WarehouseReports
         group_by { |date, _client_id| date }.
         transform_values(&:count)
 
-      render json: @counts
+      # Explicit ISO keys: the JSON encoder would otherwise use Date#to_s ("Jan 29, 2025"),
+      # which the chart's %Y-%m-%d x-axis format doesn't match
+      render json: @counts.transform_keys(&:iso8601)
     end
   end
 end

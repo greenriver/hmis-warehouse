@@ -15,6 +15,7 @@ module WarehouseReports
     before_action :set_report
 
     def index
+      current_user.policy_context.preload_client_dependencies(@report.clients.map { |client| client.client.id }) if request.format.html?
     end
 
     private def set_filter

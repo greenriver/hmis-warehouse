@@ -22,7 +22,7 @@ RSpec.describe HopwaCaper::QuestionsController, type: :request do
   end
 
   before do
-    user.legacy_roles << create(:role, can_view_own_hud_reports: true)
+    grant_hud_report(user, 'hud_reports/hopwa_capers')
     sign_in(user)
   end
 

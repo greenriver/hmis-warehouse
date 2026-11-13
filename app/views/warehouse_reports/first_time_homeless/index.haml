@@ -41,11 +41,12 @@
       %tbody
         - @clients.each do |client|
           - project = client.first_service_history.project
+          - pii = GrdaWarehouse::PiiProvider.new(client, policy: current_user.reporting_policy_for_project(project_id: nil, mode: :browse, client_id: client.id))
           %tr
             %td
-              %nobr= link_to_if can_view_clients?, client.LastName, appropriate_client_path(client)
+              %nobr= link_to_if can_view_clients?, pii.last_name, appropriate_client_path(client)
             %td
-              %nobr= link_to_if can_view_clients?, client.FirstName, appropriate_client_path(client)
+              %nobr= link_to_if can_view_clients?, pii.first_name, appropriate_client_path(client)
             %td= client.first_service_history.age
             %td= client.age()
             %td= HudHelper.util.no_yes_reasons_for_missing_data(client.VeteranStatus)

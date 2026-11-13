@@ -1,0 +1,194 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+# frozen_string_literal: true
+
+require 'rails_helper'
+
+RSpec.describe PublicReports::StateDashboard::Geography, type: :model do
+  subject(:geography) { described_class.new('place') }
+
+  let!(:state) { GrdaWarehouse::Shape::State.create!(stusps: 'MA', geoid: '25') }
+
+  def create_town(name, west:)
+    GrdaWarehouse::Shape::Town.create!(
+      town: name,
+      statefp: state.geoid,
+      geom: "SRID=4326;MULTIPOLYGON(((#{west} 42.0, #{west + 0.1} 42.0, #{west + 0.1} 42.1, #{west} 42.1, #{west} 42.0)))",
+    )
+  end
+
+  describe '#svg' do
+    it 'builds one path per geography, with coordinates in the 0..720 viewBox and a positive height' do
+      create_town('TESTVILLE', west: -71.5)
+
+      svg = geography.svg
+
+      expect(svg[:paths].size).to eq(1)
+      index, slug, d = svg[:paths].first
+      expect(index).to eq(0)
+      expect(slug).to eq('testville')
+      expect(d).to start_with('M')
+
+      height = svg[:view_box].split(' ').last.to_f
+      expect(height).to be > 0
+
+      coordinates = d.scan(/-?\d+(?:\.\d+)?/).map(&:to_f)
+      xs = coordinates.each_slice(2).map(&:first)
+      ys = coordinates.each_slice(2).map(&:last)
+      expect(xs).to all(be_between(0, 720))
+      expect(ys).to all(be_between(0, height))
+    end
+
+    it 'orders paths by name, matching the index order of #codes' do
+      create_town('ZEDBURY', west: -71.5)
+      create_town('ABINGTON', west: -71.0)
+
+      slugs = geography.svg[:paths].map { |index, slug, _d| [index, slug] }
+
+      expect(geography.codes).to eq(['ABINGTON', 'ZEDBURY'])
+      expect(slugs).to eq([[0, 'abington'], [1, 'zedbury']])
+    end
+
+    it 'draws each path from its own town polygon' do
+      create_town('ZEDBURY', west: -71.5)
+      create_town('ABINGTON', west: -71.0)
+
+      xs = geography.svg[:paths].to_h { |_index, slug, d| [slug, d.scan(/-?\d+(?:\.\d+)?/).map(&:to_f).each_slice(2).map(&:first)] }
+
+      # ABINGTON lies east of ZEDBURY, so all of its x coordinates are larger.
+      expect(xs.fetch('abington').min).to be > xs.fetch('zedbury').max
+    end
+
+    it 'returns an empty map when the state has no shapes' do
+      expect(geography.svg).to eq(view_box: '0 0 720 0', paths: [])
+    end
+  end
+
+  describe '#codes' do
+    it 'excludes towns in a state the installation does not cover' do
+      create_town('TESTVILLE', west: -71.5)
+      svg_before = described_class.new('place').svg
+      other_state = GrdaWarehouse::Shape::State.create!(stusps: 'NH', geoid: '33')
+      GrdaWarehouse::Shape::Town.create!(
+        town: 'NASHUA',
+        statefp: other_state.geoid,
+        geom: 'SRID=4326;MULTIPOLYGON(((-71.5 42.7, -71.4 42.7, -71.4 42.8, -71.5 42.8, -71.5 42.7)))',
+      )
+
+      expect(geography.codes).to eq(['TESTVILLE'])
+      expect(geography.svg).to eq(svg_before)
+    end
+
+    it 'uses the CoC number as the code and "name (number)" as the display name' do
+      GrdaWarehouse::Shape::Coc.create!(st: 'MA', cocnum: 'MA-500', cocname: 'Boston')
+      GrdaWarehouse::Shape::Coc.create!(st: 'NH', cocnum: 'NH-500', cocname: 'Manchester')
+      coc_geography = described_class.new('coc')
+
+      expect(coc_geography.codes).to eq(['MA-500'])
+      expect(coc_geography.display_name('MA-500')).to eq('Boston (MA-500)')
+    end
+  end
+
+  describe '#population_by_race' do
+    let(:coc_geography) { described_class.new('coc') }
+    let(:total_population_variable) do
+      GrdaWarehouse::UsCensusApi::CensusVariable.create!(
+        year: 2024, dataset: 'acs5', name: 'B01003_001E', label: 'POP::TOTAL', concept: 'Total Population',
+        census_group: 'B01003', census_attributes: 'B01003_001EA', internal_name: 'POP::TOTAL', created_on: Date.current
+      )
+    end
+
+    def create_coc(cocnum, population: nil)
+      coc = GrdaWarehouse::Shape::Coc.create!(st: 'MA', cocnum: cocnum, cocname: cocnum, full_geoid: "CUSTOMCOCUS#{cocnum}")
+      return if population.nil?
+
+      GrdaWarehouse::UsCensusApi::CensusValue.create!(
+        census_variable: total_population_variable, value: population, full_geoid: coc.full_geoid, census_level: 'CUSTOM', created_on: Date.current,
+      )
+    end
+
+    it 'sums the census population across the state CoCs' do
+      create_coc('MA-500', population: 1_000)
+      create_coc('MA-501', population: 500)
+
+      expect(coc_geography.population_by_race(year: 2024)).to eq(1_500)
+    end
+
+    it 'returns nil when any CoC has no census value for the year' do
+      create_coc('MA-500', population: 1_000)
+      create_coc('MA-501')
+
+      expect(coc_geography.population_by_race(year: 2024)).to be_nil
+    end
+  end
+
+  describe '#population' do
+    let!(:other_state) { GrdaWarehouse::Shape::State.create!(stusps: 'NH', geoid: '33') }
+    let(:total_population_variable) do
+      GrdaWarehouse::UsCensusApi::CensusVariable.create!(
+        year: 2024, dataset: 'acs5', name: 'B01003_001E', label: 'POP::TOTAL', concept: 'Total Population',
+        census_group: 'B01003', census_attributes: 'B01003_001EA', internal_name: 'POP::TOTAL', created_on: Date.current
+      )
+    end
+
+    def census_population(full_geoid, population)
+      GrdaWarehouse::UsCensusApi::CensusValue.create!(
+        census_variable: total_population_variable, value: population, full_geoid: full_geoid, census_level: 'CUSTOM', created_on: Date.current,
+      )
+    end
+
+    def square(west)
+      "SRID=4326;MULTIPOLYGON(((#{west} 42.0, #{west + 0.1} 42.0, #{west + 0.1} 42.1, #{west} 42.1, #{west} 42.0)))"
+    end
+
+    # The other state's row is created first, so a lookup without a state filter finds it first.
+    it 'reads a town population from the installation state when another state has a town of the same name' do
+      [[other_state, 99_000], [state, 10_000]].each do |shape_state, population|
+        GrdaWarehouse::Shape::Town.create!(town: 'TESTVILLE', statefp: shape_state.geoid, full_geoid: "CUSTOMTOWNUS#{shape_state.geoid}", geom: square(-71.5))
+        census_population("CUSTOMTOWNUS#{shape_state.geoid}", population)
+      end
+
+      expect(geography.population(2024, 'TESTVILLE')).to eq(10_000)
+    end
+
+    it 'reads a county population from the installation state when another state has a county of the same name' do
+      [[other_state, 99_000], [state, 10_000]].each do |shape_state, population|
+        GrdaWarehouse::Shape::County.create!(namelsad: 'Washington County', statefp: shape_state.geoid, full_geoid: "CUSTOMCOUNTYUS#{shape_state.geoid}", geom: square(-71.5))
+        census_population("CUSTOMCOUNTYUS#{shape_state.geoid}", population)
+      end
+
+      expect(described_class.new('county').population(2024, 'Washington County')).to eq(10_000)
+    end
+
+    it 'returns nil for a town with no census value and the population of the town that has one' do
+      GrdaWarehouse::Shape::Town.create!(town: 'NOCENSUS', statefp: state.geoid, full_geoid: 'CUSTOMTOWNUSNOCENSUS', geom: square(-71.5))
+      GrdaWarehouse::Shape::Town.create!(town: 'TESTVILLE', statefp: state.geoid, full_geoid: 'CUSTOMTOWNUSTESTVILLE', geom: square(-71.0))
+      census_population('CUSTOMTOWNUSTESTVILLE', 10_000)
+
+      expect([geography.population(2024, 'NOCENSUS'), geography.population(2024, 'TESTVILLE')]).to eq([nil, 10_000])
+    end
+  end
+
+  describe '#svg caching' do
+    around do |example|
+      original_cache = Rails.cache
+      Rails.cache = ActiveSupport::Cache::MemoryStore.new
+      example.run
+    ensure
+      Rails.cache = original_cache
+    end
+
+    it 'does not serve one map type the cached SVG of another' do
+      create_town('TESTVILLE', west: -71.5)
+
+      place_paths = described_class.new('place').svg[:paths].size
+      zip_paths = described_class.new('zip').svg[:paths].size
+
+      expect([place_paths, zip_paths]).to eq([1, 0])
+    end
+  end
+end

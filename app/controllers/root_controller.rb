@@ -10,9 +10,10 @@ class RootController < ApplicationController
   skip_before_action :authenticate_user!
   def index
     # custom_content = lookup_context.exists?('homepage_content', ['root'], true)
-    return unless current_user
+    already_there = current_user&.my_root_path == root_path
+    return redirect_to(current_user.my_root_path) if current_user && !already_there
 
-    already_there = current_user.my_root_path == root_path
-    redirect_to current_user.my_root_path unless already_there
+    # The sign-in views are HTML-only; other formats get a 406 (UnknownFormat)
+    respond_to(&:html)
   end
 end

@@ -60,5 +60,20 @@ RSpec.describe GrdaWarehouse::EnrollmentChangeHistory, type: :model do
         expect(history.days_homeless).to eq(days_homeless + 1)
       end
     end
+
+    it 'records enrollment history without caching the enrollment rollups' do
+      GrdaWarehouse::Tasks::ServiceHistory::Enrollment.all.each(&:rebuild_service_history!)
+      cache = ActiveSupport::Cache::MemoryStore.new
+      allow(Rails).to receive(:cache).and_return(cache)
+      cache_keys = []
+
+      ActiveSupport::Notifications.subscribed(->(event) { cache_keys << event.payload[:key] }, 'cache_write.active_support') do
+        described_class.create_for_clients_on_date!(client_ids: destination_clients.map(&:id), date: today)
+      end
+
+      expect(described_class.where(client_id: destination_clients.map(&:id)).count).to eq(3)
+      cached_rollups = cache_keys.map { |key| cache.read(key) }.select { |value| value.inspect.include?('project_name:') }
+      expect(cached_rollups).to eq([])
+    end
   end
 end

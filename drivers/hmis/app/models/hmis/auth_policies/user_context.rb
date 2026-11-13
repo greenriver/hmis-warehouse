@@ -127,17 +127,6 @@ class Hmis::AuthPolicies::UserContext
     !client_permissions(client_id).include?(:can_view_restricted_clients)
   end
 
-  # IDs of the restricted clients in the current data source that this user may not find, for omitting
-  # them from client search. They remain reachable by other means with their PII redacted.
-  # See docs/features/hmis/hmis-restricted-records.md for more details.
-  def client_ids_hidden_from_search
-    client_ids = restricted_client_loader.restricted_ids_in_data_source(@data_source_id)
-    return [] if client_ids.empty?
-
-    preload_client_dependencies(client_ids)
-    client_ids.select { |id| pii_redacted_for_client?(id) }
-  end
-
   # Client permissions are based on the user's permissions at projects they are enrolled in.
   # If they have no enrollments, it's based on the user's global permissions.
   def client_permissions(client_id)

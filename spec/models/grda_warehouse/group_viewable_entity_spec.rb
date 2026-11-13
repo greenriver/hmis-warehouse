@@ -9,6 +9,19 @@
 require 'rails_helper'
 
 RSpec.describe GrdaWarehouse::GroupViewableEntity do
+  describe '.legacy and .using_acls' do
+    let!(:data_source) { create(:grda_warehouse_data_source) }
+    let!(:legacy_entity) { described_class.create!(access_group: create(:access_group), entity: data_source) }
+    let!(:collection) { create(:collection).tap { |c| c.set_viewables({ data_sources: [data_source.id] }) } }
+
+    it 'splits rows by whether they belong to an access group or a collection' do
+      collection_entity = described_class.find_by!(collection_id: collection.id)
+      rows = described_class.where(id: [legacy_entity.id, collection_entity.id])
+      expect(rows.legacy).to contain_exactly(legacy_entity)
+      expect(rows.using_acls).to contain_exactly(collection_entity)
+    end
+  end
+
   describe '.describe_changes' do
     let(:access_group) { create(:access_group) }
     let(:collection) { create(:collection) }

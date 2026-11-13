@@ -1,4 +1,4 @@
-- details_visible = file.confidential == false || file.id.in?(@visible_confidential_ids)
+- details_visible = file_details_visible?(file)
 - if details_visible
   .well{ class: "client-file-#{file.id}", data: { controller: 'forms' } }
     .row

@@ -30,6 +30,11 @@ class GrdaWarehouse::AuthPolicies::UserLegacyContext < GrdaWarehouse::AuthPolici
     permissions_for_access_group_ids(access_group_ids)
   end
 
+  memoize def organization_role_permissions(organization_id, data_source_id)
+    access_group_ids = organization_access_group_ids(organization_id, data_source_id)
+    permissions_for_access_group_ids(access_group_ids)
+  end
+
   memoize def direct_client_role_permissions(client_id)
     access_group_ids = direct_client_access_group_ids(client_id)
     permissions_for_access_group_ids(access_group_ids)
@@ -39,25 +44,16 @@ class GrdaWarehouse::AuthPolicies::UserLegacyContext < GrdaWarehouse::AuthPolici
   # SourceClientPolicy#add_project_based_permissions (public, since it's used across
   # policy classes, same as #project_role_permissions/#direct_client_role_permissions).
   def enrolled_project_ids_for_client(client_id)
-    preload_enrolled_project_ids_by_client([client_id]) unless @enrolled_project_ids_by_client.key?(client_id)
+    unless @enrolled_project_ids_by_client.key?(client_id)
+      preload_miss_tracker.call(:enrolled_projects, client_id)
+      preload_enrolled_project_ids_by_client([client_id])
+    end
     @enrolled_project_ids_by_client[client_id] ||= []
   end
 
   def preload_project_dependencies(project_ids)
     preload_coc_codes_by_project(project_ids)
     preload_access_group_ids_by_project(project_ids)
-  end
-
-  # Warms the caches consulted by #direct_client_role_permissions and
-  # SourceClientPolicy#add_project_based_permissions (via #enrolled_project_ids_for_client)
-  # for a whole batch of client ids in a small constant number of queries, instead of
-  # one query per client. Also warms project_role_permissions for every project the
-  # batch is enrolled in, so per-client permission checks don't re-trigger per-project N+1.
-  def preload_client_dependencies(client_ids)
-    preload_access_group_ids_by_client(client_ids)
-    preload_enrolled_project_ids_by_client(client_ids)
-    project_ids = client_ids.flat_map { |id| @enrolled_project_ids_by_client[id] || [] }.uniq
-    preload_project_dependencies(project_ids) if project_ids.any?
   end
 
   memoize def legacy_permissions
@@ -74,6 +70,15 @@ class GrdaWarehouse::AuthPolicies::UserLegacyContext < GrdaWarehouse::AuthPolici
 
   protected
 
+  # Direct-client access groups and enrolled projects, plus the project caches for those projects.
+  # Called by UserBaseContext#preload_client_dependencies.
+  def preload_client_grants(client_ids)
+    preload_access_group_ids_by_client(client_ids)
+    preload_enrolled_project_ids_by_client(client_ids)
+    project_ids = client_ids.flat_map { |id| @enrolled_project_ids_by_client[id] || [] }.uniq
+    preload_project_dependencies(project_ids) if project_ids.any?
+  end
+
   def preload_coc_codes_by_project(project_ids)
     p_t = GrdaWarehouse::Hud::Project.arel_table
     results = GrdaWarehouse::Hud::ProjectCoc.
@@ -82,7 +87,7 @@ class GrdaWarehouse::AuthPolicies::UserLegacyContext < GrdaWarehouse::AuthPolici
       pluck(p_t[:id], :coc_code).
       group_by(&:shift).
       transform_values { |v| v.flatten.compact_blank }
-    @coc_codes_by_project.merge!(results)
+    @coc_codes_by_project.merge!(project_ids.index_with { [] }.merge(results))
   end
 
   def coc_codes_for_project(project_id)
@@ -100,7 +105,7 @@ class GrdaWarehouse::AuthPolicies::UserLegacyContext < GrdaWarehouse::AuthPolici
         # Filter out deleted access group. ProjectAccessGroupMember can't do this due to database boundaries
         (active_access_group_ids & clean_values).to_a
       end
-    @access_group_ids_by_project.merge!(results)
+    @access_group_ids_by_project.merge!(project_ids.index_with { [] }.merge(results))
   end
 
   def access_group_ids_for_project(project_id)
@@ -124,13 +129,25 @@ class GrdaWarehouse::AuthPolicies::UserLegacyContext < GrdaWarehouse::AuthPolici
     legacy_permissions
   end
 
-  def data_source_access_group_ids(data_source_id)
+  memoize def data_source_access_group_ids(data_source_id)
     ids = GrdaWarehouse::GroupViewableEntity.
       where(entity_type: GrdaWarehouse::DataSource.sti_name).
       where(entity_id: data_source_id).
-      where.not(access_group_id: nil).
+      legacy.
       pluck(:access_group_id)
     (active_access_group_ids & ids).to_a.sort
+  end
+
+  # Returns the access group ids that include this organization or its data source
+  def organization_access_group_ids(organization_id, data_source_id)
+    return [] if data_source_id.blank?
+
+    ids = GrdaWarehouse::GroupViewableEntity.
+      where(entity_type: GrdaWarehouse::Hud::Organization.sti_name).
+      where(entity_id: organization_id).
+      legacy.
+      pluck(:access_group_id)
+    ((active_access_group_ids & ids).to_a + data_source_access_group_ids(data_source_id)).uniq.sort
   end
 
   # Returns the access group ids that include this project id
@@ -155,7 +172,7 @@ class GrdaWarehouse::AuthPolicies::UserLegacyContext < GrdaWarehouse::AuthPolici
     gve_t = GrdaWarehouse::GroupViewableEntity.arel_table
     results = GrdaWarehouse::DataSource.authoritative.not_hmis.
       joins(:group_viewable_entities, :clients).
-      where(gve_t[:access_group_id].not_eq(nil)).
+      merge(GrdaWarehouse::GroupViewableEntity.legacy).
       where(c_t[:id].in(client_ids)).
       pluck(c_t[:id], gve_t[:access_group_id]).
       group_by(&:shift).
@@ -167,7 +184,10 @@ class GrdaWarehouse::AuthPolicies::UserLegacyContext < GrdaWarehouse::AuthPolici
   end
 
   def direct_client_access_group_ids(client_id)
-    preload_access_group_ids_by_client([client_id]) unless @access_group_ids_by_client.key?(client_id)
+    unless @access_group_ids_by_client.key?(client_id)
+      preload_miss_tracker.call(:direct_client_grants, client_id)
+      preload_access_group_ids_by_client([client_id])
+    end
     @access_group_ids_by_client[client_id] ||= []
   end
 

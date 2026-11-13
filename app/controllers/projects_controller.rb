@@ -25,6 +25,7 @@ class ProjectsController < ApplicationControllerV2
       preload(:client).
       order(she_t[:first_date_in_program].desc, she_t[:last_date_in_program].desc)
     @pagy, @clients = pagy(@clients)
+    current_user.policy_context.preload_client_dependencies(@clients.map(&:client_id))
   end
 
   def edit
@@ -32,14 +33,14 @@ class ProjectsController < ApplicationControllerV2
 
   def update
     @project.update(project_params)
-    respond_with @project, location: project_path(@project)
+    respond_with @project, location: project_path(@project, coc_code: params[:coc_code])
   end
 
   def destroy
     name = @project.ProjectName
     DeleteItemJob.perform_later(item_id: @project.id, item_class: @project.class.name)
     flash[:notice] = "Project: #{name} was successfully queued for removal.  Please check back in a few minutes."
-    respond_with @project, location: data_source_path(@project.data_source)
+    respond_with @project, location: data_source_path(@project.data_source, coc_code: params[:coc_code])
   end
 
   private def project_params
@@ -55,6 +56,12 @@ class ProjectsController < ApplicationControllerV2
     @show_census = GrdaWarehouse::WarehouseReports::ReportDefinition.
       where(url: 'censuses').
       viewable_by(current_user).exists?
+    # The census filter drops projects the user can't report on, so hide the
+    # chart rather than render it empty
+    @show_census &&= GrdaWarehouse::Hud::Project.
+      viewable_by(current_user, permission: :can_view_assigned_reports).
+      where(id: @project.id).
+      exists?
 
     return unless @show_census
 

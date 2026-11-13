@@ -18,7 +18,7 @@ wb.add_worksheet(name: @cell.slice(0, 30).gsub(/[^a-zA-Z0-9]/, ' ')) do |sheet|
     project = client&.project
     next unless project
 
-    pii_policy = current_user.reporting_policy_for_project(project_id: project.id, mode: :download)
+    pii_policy = current_user.reporting_policy_for_project(project_id: project.id, mode: :download, client_id: client[:client_id])
     row = []
     @detail_columns.each do |column|
       case column

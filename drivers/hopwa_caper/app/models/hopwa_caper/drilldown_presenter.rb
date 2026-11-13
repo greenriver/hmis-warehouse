@@ -116,6 +116,7 @@ module HopwaCaper
       @user.reporting_policy_for_project(
         project_id: record.project_id,
         mode: html? ? :browse : :download,
+        client_id: record.destination_client_id_for_pii,
       )
     end
 

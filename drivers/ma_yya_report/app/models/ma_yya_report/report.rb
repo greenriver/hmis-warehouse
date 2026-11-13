@@ -32,14 +32,6 @@ module MaYyaReport
       complete
     end
 
-    def start
-      update(started_at: Time.current)
-    end
-
-    def complete
-      update(completed_at: Time.current)
-    end
-
     def title
       'MA YYA Report'
     end
@@ -355,8 +347,8 @@ module MaYyaReport
       previous_period_clients = []
       previous_period_calculator.calculate { |clients| previous_period_clients += clients.values }
 
-      previous_period_client_ids = previous_period_clients.map { |client| client[:client_id] }
-      previous_period_followup_clients_ids = find_previous_period_followup_client_ids(previous_period_clients)
+      previous_period_client_ids = previous_period_clients.map { |client| client[:client_id] }.to_set
+      previous_period_followup_clients_ids = find_previous_period_followup_client_ids(previous_period_clients).to_set
 
       universe_calculator = UniverseCalculator.new(filter, self)
       universe_calculator.calculate do |clients|

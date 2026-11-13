@@ -75,6 +75,59 @@ RSpec.describe Admin::ConfigsController, type: :request do
       end
     end
 
+    describe 'PATCH #update for client_retention_years' do
+      it 'stores nil when the admin picks Disabled, which posts a blank' do
+        config.update!(client_retention_years: 7)
+
+        patch admin_configs_path, params: { grda_warehouse_config: { client_retention_years: '' } }
+
+        expect(config.reload.client_retention_years).to be_nil
+      end
+
+      it 'offers only seven years and up, but keeps a console-set shorter window selected' do
+        config.update!(client_retention_years: 3)
+        GrdaWarehouse::Config.invalidate_cache
+
+        get admin_configs_path
+        select = Nokogiri::HTML(response.body).at_css("select[name='grda_warehouse_config[client_retention_years]']")
+
+        expect(select.css('option').map { |option| option['value'] }.compact_blank).to eq(['3'] + (7..20).map(&:to_s))
+        expect(select.at_css('option[selected]')['value']).to eq('3')
+        expect(select.at_css('option[selected]').text).to eq('3 years (current)')
+      end
+    end
+
+    describe 'PATCH #update for relevant_state_codes' do
+      it 'saves a valid list' do
+        patch admin_configs_path, params: { grda_warehouse_config: { relevant_state_codes: 'VT,MA' } }
+
+        expect(response).to redirect_to(admin_configs_path)
+        expect(config.reload.relevant_state_codes).to eq('VT,MA')
+      end
+
+      it 'saves nothing when the codes are malformed' do
+        config.update!(relevant_state_codes: 'MA', client_dashboard: 'default')
+        GrdaWarehouse::Config.invalidate_cache
+
+        patch admin_configs_path, params: { grda_warehouse_config: { relevant_state_codes: 'MA;NH', client_dashboard: 'boston' } }
+
+        expect(response).to have_http_status(:ok)
+        expect(config.reload.relevant_state_codes).to eq('MA')
+        expect(config.client_dashboard).to eq('default')
+      end
+
+      it 'cleans up a stored value with spaces and lowercase when another setting is saved' do
+        config.update_column(:relevant_state_codes, 'ma, nh')
+        GrdaWarehouse::Config.invalidate_cache
+
+        patch admin_configs_path, params: { grda_warehouse_config: { client_dashboard: 'boston' } }
+
+        expect(response).to redirect_to(admin_configs_path)
+        expect(config.reload.relevant_state_codes).to eq('MA,NH')
+        expect(config.client_dashboard).to eq('boston')
+      end
+    end
+
     describe 'GET #index' do
       it 'renders a multi-select offering every configurable demographic column' do
         get admin_configs_path

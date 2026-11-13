@@ -62,6 +62,7 @@ class GrdaWarehouse::WarehouseReports::Cas::CeAssessment < OpenStruct
   def columns
     [
       c_t[:id],
+      c_t[:data_source_id], # needed by Client#pii_provider/#policy_for, via Client#destination?
       c_t[:FirstName],
       c_t[:LastName],
       c_t[:SSN],

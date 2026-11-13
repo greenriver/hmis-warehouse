@@ -69,6 +69,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   it 'should error if not allowed to delete a service' do
     remove_permissions(access_control, :can_edit_enrollments)
     expect_gql_error post_graphql(id: s1.id) { mutation }
+    expect(Hmis::Hud::Service.where(id: hud_s1.id)).to contain_exactly(hud_s1)
   end
 
   it 'tracks metadata on versions' do

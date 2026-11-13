@@ -7,6 +7,7 @@
 # frozen_string_literal: true
 
 require 'rails_helper'
+require 'shared_contexts/visibility_test_context'
 
 RSpec.describe GrdaWarehouse::ClientFile, type: :model do
   describe 'Creating a client file' do
@@ -163,7 +164,6 @@ RSpec.describe GrdaWarehouse::ClientFile, type: :model do
     let!(:can_manage_client_files) { create :role, can_manage_client_files: true }
     let!(:can_manage_window_client_files) { create :role, can_manage_window_client_files: true }
     let!(:can_see_own_file_uploads) { create :role, can_see_own_file_uploads: true }
-    let!(:can_generate_homeless_verification_pdfs) { create :role, can_generate_homeless_verification_pdfs: true }
     # file tags
     let!(:verified_homeless_tag) { create :available_file_tag, name: 'Homeless Verification', verified_homeless_history: true }
     let!(:consent_form_tag) { create :available_file_tag, name: 'Consent Form', consent_form: true }
@@ -189,7 +189,7 @@ RSpec.describe GrdaWarehouse::ClientFile, type: :model do
         user.legacy_roles << can_manage_client_files
       end
       it 'can see all files' do
-        visible_files = GrdaWarehouse::ClientFile.visible_by?(user)
+        visible_files = GrdaWarehouse::ClientFile.visible_by?(user, client: history_file.client)
         expect(visible_files.count).to eq(4)
       end
     end
@@ -199,7 +199,7 @@ RSpec.describe GrdaWarehouse::ClientFile, type: :model do
       end
 
       it 'can see own files' do
-        visible_files = GrdaWarehouse::ClientFile.visible_by?(user)
+        visible_files = GrdaWarehouse::ClientFile.visible_by?(user, client: history_file.client)
         expect(visible_files.count).to eq(1)
         expect(visible_files).to include(own_history_file)
       end
@@ -215,7 +215,7 @@ RSpec.describe GrdaWarehouse::ClientFile, type: :model do
           GrdaWarehouse::Config.invalidate_cache
         end
         it 'can see all consent forms' do
-          visible_files = GrdaWarehouse::ClientFile.visible_by?(user)
+          visible_files = GrdaWarehouse::ClientFile.visible_by?(user, client: history_file.client)
           expect(visible_files.count).to eq(2)
           expect(visible_files).to include(own_history_file)
           expect(visible_files).to include(other_consent_file)
@@ -226,7 +226,7 @@ RSpec.describe GrdaWarehouse::ClientFile, type: :model do
         other_file.client.update(housing_release_status: other_file.client.class.full_release_string)
         history_file.client.update(housing_release_status: history_file.client.class.full_release_string)
 
-        visible_files = GrdaWarehouse::ClientFile.visible_by?(user)
+        visible_files = GrdaWarehouse::ClientFile.visible_by?(user, client: history_file.client)
         expect(visible_files.count).to eq(3)
         expect(visible_files).to include(own_history_file)
         expect(visible_files).to include(other_file)
@@ -247,7 +247,7 @@ RSpec.describe GrdaWarehouse::ClientFile, type: :model do
         end
         describe 'and client does not have consent' do
           it 'can see own files' do
-            visible_files = GrdaWarehouse::ClientFile.visible_by?(user)
+            visible_files = GrdaWarehouse::ClientFile.visible_by?(user, client: history_file.client)
             expect(visible_files.count).to eq(1)
             expect(visible_files).to include(own_history_file)
           end
@@ -262,7 +262,7 @@ RSpec.describe GrdaWarehouse::ClientFile, type: :model do
               config_b.update(verified_homeless_history_visible_to_all: true)
             end
             it 'can see all history files' do
-              visible_files = GrdaWarehouse::ClientFile.visible_by?(user)
+              visible_files = GrdaWarehouse::ClientFile.visible_by?(user, client: history_file.client)
               expect(visible_files.count).to eq(2)
               expect(visible_files).to include(history_file)
               expect(visible_files).to include(own_history_file)
@@ -281,7 +281,7 @@ RSpec.describe GrdaWarehouse::ClientFile, type: :model do
           end
           it 'can see own and others files' do
             expect(GrdaWarehouse::Hud::Client.active_confirmed_consent_in_cocs(user.coc_codes).count).to eq(1)
-            visible_files = GrdaWarehouse::ClientFile.visible_by?(user)
+            visible_files = GrdaWarehouse::ClientFile.visible_by?(user, client: history_file.client)
             expect(visible_files.count).to eq(2)
             expect(visible_files).to include(history_file)
             expect(visible_files).to include(own_history_file)
@@ -299,7 +299,7 @@ RSpec.describe GrdaWarehouse::ClientFile, type: :model do
           end
           it 'can see own files' do
             expect(GrdaWarehouse::Hud::Client.active_confirmed_consent_in_cocs(user.coc_codes).count).to eq(0)
-            visible_files = GrdaWarehouse::ClientFile.visible_by?(user)
+            visible_files = GrdaWarehouse::ClientFile.visible_by?(user, client: history_file.client)
             expect(visible_files.count).to eq(1)
             expect(visible_files).to include(own_history_file)
           end
@@ -316,7 +316,7 @@ RSpec.describe GrdaWarehouse::ClientFile, type: :model do
           end
           it 'can see own files' do
             expect(GrdaWarehouse::Hud::Client.active_confirmed_consent_in_cocs(user.coc_codes).count).to eq(0)
-            visible_files = GrdaWarehouse::ClientFile.visible_by?(user)
+            visible_files = GrdaWarehouse::ClientFile.visible_by?(user, client: history_file.client)
             expect(visible_files.count).to eq(1)
           end
         end
@@ -332,7 +332,7 @@ RSpec.describe GrdaWarehouse::ClientFile, type: :model do
           config.update(verified_homeless_history_visible_to_all: true)
         end
         it 'can see all history files' do
-          visible_files = GrdaWarehouse::ClientFile.visible_by?(user)
+          visible_files = GrdaWarehouse::ClientFile.visible_by?(user, client: history_file.client)
           expect(visible_files.count).to eq(2)
           expect(visible_files).to include(history_file)
           expect(visible_files).to include(own_history_file)
@@ -350,7 +350,7 @@ RSpec.describe GrdaWarehouse::ClientFile, type: :model do
         user.legacy_roles << can_see_own_file_uploads
       end
       it 'can see own files' do
-        visible_files = GrdaWarehouse::ClientFile.visible_by?(user)
+        visible_files = GrdaWarehouse::ClientFile.visible_by?(user, client: history_file.client)
         expect(visible_files.count).to eq(1)
         expect(visible_files).to include(own_history_file)
       end
@@ -360,40 +360,53 @@ RSpec.describe GrdaWarehouse::ClientFile, type: :model do
           config.update(verified_homeless_history_visible_to_all: true)
         end
         it 'can see all history files' do
-          visible_files = GrdaWarehouse::ClientFile.visible_by?(user)
+          visible_files = GrdaWarehouse::ClientFile.visible_by?(user, client: history_file.client)
           expect(visible_files.count).to eq(2)
           expect(visible_files).to include(history_file)
           expect(visible_files).to include(own_history_file)
         end
       end
     end
+  end
 
-    describe 'when user only has can_generate_homeless_verification_pdfs' do
-      before do
-        GrdaWarehouse::Config.delete_all
-        GrdaWarehouse::Config.invalidate_cache
-      end
-      let!(:config) { create :config }
-      before :each do
-        user.legacy_roles << can_generate_homeless_verification_pdfs
-      end
-      it 'can see own history files' do
-        visible_files = GrdaWarehouse::ClientFile.visible_by?(user)
-        expect(visible_files.count).to eq(1)
-        expect(visible_files).to include(own_history_file)
-      end
+  describe 'visible_by? for homeless verification PDFs' do
+    include_context 'visibility test context'
 
-      describe 'and verified_homeless_history_visible_to_all' do
-        before :each do
-          config.update(verified_homeless_history_visible_to_all: true)
-        end
-        it 'can see all history files' do
-          visible_files = GrdaWarehouse::ClientFile.visible_by?(user)
-          expect(visible_files.count).to eq(2)
-          expect(visible_files).to include(history_file)
-          expect(visible_files).to include(own_history_file)
-        end
-      end
+    let!(:user) { create :user }
+    let(:destination) { non_window_destination_client }
+    let!(:verified_homeless_tag) { create :available_file_tag, name: 'Homeless Verification', verified_homeless_history: true }
+    let!(:own_history_file) { create :client_file, client: destination, user: user, tags: [verified_homeless_tag] }
+    let!(:other_history_file) { create :client_file, client: destination, tags: [verified_homeless_tag] }
+    let!(:other_file) { create :client_file, client: destination }
+    let!(:other_client_history_file) { create :client_file, tags: [verified_homeless_tag] }
+    let!(:pdf_role) do
+      create :role, can_view_clients: true, can_view_client_name: true, can_view_client_history_calendar: true, can_generate_homeless_verification_pdfs: true
+    end
+    let!(:config) { create :config }
+
+    before do
+      pdf_role.add(user)
+      config.update!(verified_homeless_history_visible_to_all: true)
+      GrdaWarehouse::Config.invalidate_cache
+    end
+
+    after { GrdaWarehouse::Config.invalidate_cache }
+
+    def visible_files
+      GrdaWarehouse::ClientFile.visible_by?(user, client: destination)
+    end
+
+    it 'returns every verification PDF when the access group covers the client project' do
+      non_window_project_viewable.add(user)
+
+      expect(visible_files).to contain_exactly(own_history_file, other_history_file)
+    end
+
+    it 'returns no files when the access group covers only another project' do
+      window_project_viewable.add(user)
+
+      expect(user.can_generate_homeless_verification_pdfs?).to eq(true)
+      expect(visible_files).to be_empty
     end
   end
 end

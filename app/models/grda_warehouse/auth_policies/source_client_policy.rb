@@ -14,11 +14,18 @@ class GrdaWarehouse::AuthPolicies::SourceClientPolicy < GrdaWarehouse::AuthPolic
     [:can_view_full_dob],
     [:can_view_full_ssn],
     [:can_view_hiv_status],
+    [:can_mark_clients_as_restricted, :can_mark_restricted?],
   ].each do |permission, method_name|
     method_name ||= :"#{permission}?"
     define_method(method_name) do
       resource_permissions.include?(permission)
     end
+  end
+
+  # Hand-written, not added to the permission-mapping array above: there is no
+  # can_view_partial_ssn role permission to map from.
+  def can_view_partial_ssn?
+    true
   end
 
   # can the user see the full client dash page and additional details?
@@ -27,6 +34,14 @@ class GrdaWarehouse::AuthPolicies::SourceClientPolicy < GrdaWarehouse::AuthPolic
     return roi_authorized? if resource_permissions.include?(:can_view_client_enrollments_with_roi)
 
     false
+  end
+
+  memoize def can_view_history_calendar?
+    can_view? && resource_permissions.include?(:can_view_client_history_calendar)
+  end
+
+  memoize def can_generate_homeless_verification_pdfs?
+    can_view_history_calendar? && resource_permissions.include?(:can_generate_homeless_verification_pdfs)
   end
 
   def can_view_supplemental_data?
@@ -46,7 +61,7 @@ class GrdaWarehouse::AuthPolicies::SourceClientPolicy < GrdaWarehouse::AuthPolic
 
   def validate_resource!(arg)
     ensure_arg_type!(arg, GrdaWarehouse::Hud::Client)
-    raise ArgumentError 'Must be a source client' if arg.destination?
+    raise ArgumentError, 'Must be a source client' if arg.destination?(strict: true)
   end
 
   def client_id
@@ -57,17 +72,15 @@ class GrdaWarehouse::AuthPolicies::SourceClientPolicy < GrdaWarehouse::AuthPolic
     resource
   end
 
-  # NOTE: this will query `destination_client.roi_authorizations` which could be a source of N+1 queries if authorizing
-  # multiple clients
+  # NOTE: loads through context.client_roi_loader; preload it when authorizing many clients to avoid N+1 queries
   #
-  # An ROI confers some level of visibility to the client under the following circumstances:
-  # - the source client must be in a data source with `obeys_consent=true`
-  # - the ROI has a valid status (not revoked). ROI fields are stored on the destination client record (for now)
-  # - if the ROI is restricted to certain COCs then the user's COCs must match (ROI may include "All CoCs", which matches like legacy consent)
-  # - the user has a role granting permission on source client project as follows:
-  #   - if the user has `can_search_client_with_roi`, we grant `can_search_own_clients` and `can_search_all_clients`
-  #   - if the user has `can_view_client_enrollments_with_roi`, we grant `can_view_clients`
-  # - ROI does not confer additional permissions. Additional permissions are identical to clients without an ROI, such as via direct assignment
+  # An ROI confers visibility when:
+  # - the source client is in a data source with `obey_consent=true`
+  # - the destination client has a ClientRoiAuthorization.visible_in_cocs row for one of the user's CoCs, or all CoCs.
+  #   Under Consent::Default a partial (CAS-only) release does not count
+  # - the user has a role on the source client's project granting `can_view_client_enrollments_with_roi`
+  #   (view) or `can_search_clients_with_roi` (search)
+  # ROI does not confer additional permissions such as name or SSN visibility.
   def roi_authorized?
     return false unless client.data_source&.obey_consent?
 

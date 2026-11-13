@@ -29,6 +29,14 @@ RSpec.describe model, type: :model do
   user_ids = ->(user) { model.viewable_by(user).pluck(:id).sort }
   ids      = ->(*reports) { reports.map(&:id).sort }
 
+  describe '#new_report?' do
+    it 'is true for recently created reports but never for HUD reports' do
+      expect(r1.new_report?).to be true
+      r1.update!(report_group: model::HUD_REPORT_GROUP)
+      expect(r1.new_report?).to be false
+    end
+  end
+
   describe 'scopes' do
     describe 'viewability' do
       describe 'ordinary user' do
@@ -68,6 +76,72 @@ RSpec.describe model, type: :model do
         it 'sees r1 with proper role' do
           expect(user_ids[user]).to eq ids[r1]
         end
+      end
+
+      describe 'user granted the same report through more than one collection' do
+        let!(:first_collection) { create :collection }
+        let!(:second_collection) { create :collection }
+        let!(:unpermitted_collection) { create :collection }
+        let!(:r3) { create :core_demographics_report }
+
+        before do
+          first_collection.set_viewables({ reports: [r1.id, r2.id] })
+          second_collection.set_viewables({ reports: [r1.id] })
+          unpermitted_collection.set_viewables({ reports: [r1.id, r3.id] })
+          setup_access_control(user, assigned_report_viewer, first_collection)
+          setup_access_control(user, assigned_report_viewer, second_collection)
+          setup_access_control(user, no_permission_role, unpermitted_collection)
+        end
+
+        it 'returns each report once' do
+          expect(model.viewable_by(user).pluck(:id)).to contain_exactly(r1.id, r2.id)
+        end
+
+        it 'returns each report once when ordered by name' do
+          expect(model.viewable_by(user).order(name: :asc).pluck(:id)).to eq([r1, r2].sort_by(&:name).map(&:id))
+        end
+
+        it 'excludes a report found only in a collection whose role lacks can_view_assigned_reports' do
+          expect(model.viewable_by(user).where(id: r3.id).exists?).to be false
+        end
+
+        it 'drops a report once its only permitted collection assignment is removed' do
+          first_collection.set_viewables({ reports: [r1.id] })
+
+          expect(model.viewable_by(user).pluck(:id)).to contain_exactly(r1.id)
+        end
+      end
+    end
+  end
+
+  describe 'HUD report definitions' do
+    before { model.maintain_report_definitions }
+
+    it 'seeds one definition per HUD report controller in the HUD Reports group' do
+      expect(model.hud.pluck(:url)).to contain_exactly(
+        'hud_reports/aprs', 'hud_reports/capers', 'hud_reports/ce_aprs', 'hud_reports/dqs',
+        'hud_reports/spms', 'hud_reports/pits', 'hud_reports/hics', 'hud_reports/lsas',
+        'hud_reports/paths', 'hud_reports/hopwa_capers'
+      )
+    end
+
+    describe '.url_viewable_by?' do
+      let(:apr) { model.find_by!(url: 'hud_reports/aprs') }
+      let(:collection) { create(:collection, collection_type: 'Reports') }
+
+      it 'is true only for a url in a collection granted with can_view_assigned_reports' do
+        collection.set_viewables(reports: [apr.id])
+        setup_access_control(user, create(:role, can_view_assigned_reports: true), collection)
+
+        expect(model.url_viewable_by?('hud_reports/aprs', user)).to be true
+        expect(model.url_viewable_by?('hud_reports/spms', user)).to be false
+      end
+
+      it 'is false when the role lacks can_view_assigned_reports even if the report is in the collection' do
+        collection.set_viewables(reports: [apr.id])
+        setup_access_control(user, create(:role, can_view_all_hud_reports: true), collection)
+
+        expect(model.url_viewable_by?('hud_reports/aprs', user)).to be false
       end
     end
   end

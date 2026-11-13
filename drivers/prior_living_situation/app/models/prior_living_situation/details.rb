@@ -9,6 +9,7 @@
 module
   PriorLivingSituation::Details
   extend ActiveSupport::Concern
+  include WarehouseReports::PiiDetailRows
   included do
     def detail_link_base
       "#{section_subpath}details"

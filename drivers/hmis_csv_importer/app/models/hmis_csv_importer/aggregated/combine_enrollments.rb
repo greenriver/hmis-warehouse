@@ -17,6 +17,12 @@ module HmisCsvImporter::Aggregated
       mark_incoming_data_as_do_not_import
 
       # Combine enrollments from the import data source
+      # TLDR:
+      # This has to be setup in two places before it works.
+      # 1. Make sure you have the projects you want to aggregate in the data source.  You can upload a file without any enrollment or client data to get them in quickly if you don't have them already.
+      # 2. Enable the import "Cleanup Routine" called "Replace multiple contiguous enrollments..."
+      # 3. From the console, call `GrdaWarehouse::Hud::Project.find(id).convert_to_aggregated!` for each project that needs aggregation
+      #
       # NOTE: this operates on a single client at a single project, so there should be no overlapping enrollments
       # This will loop through all enrollments for a client and send back to the import tables any that overlap the import range
       # in an aggregated form.
@@ -60,8 +66,10 @@ module HmisCsvImporter::Aggregated
                 active_enrollment = enrollment
               elsif enrollment.EntryDate != last_enrollment.exit.ExitDate
                 # Non-contiguous enrollment, so close the current active enrollment, and start a new one
-                enrollment_batch << new_enrollment_from_enrollment(active_enrollment) if enrollment_during_date_range?(active_enrollment.EntryDate, active_enrollment.exit&.ExitDate)
-                exit_batch << new_exit_for_enrollment(last_enrollment.exit, active_enrollment) if enrollment_during_date_range?(active_enrollment.EntryDate, last_enrollment.exit&.ExitDate)
+                if enrollment_during_date_range?(active_enrollment.EntryDate, last_enrollment.exit.ExitDate)
+                  enrollment_batch << new_enrollment_from_enrollment(active_enrollment)
+                  exit_batch << new_exit_for_enrollment(last_enrollment.exit, active_enrollment)
+                end
 
                 active_enrollment = enrollment
                 # else Contiguous enrollment, nothing to do
@@ -69,8 +77,10 @@ module HmisCsvImporter::Aggregated
               last_enrollment = enrollment
             end
           # Emit the remaining in-process enrollment
-          enrollment_batch << new_enrollment_from_enrollment(active_enrollment) if active_enrollment && enrollment_during_date_range?(active_enrollment.EntryDate, active_enrollment.exit&.ExitDate)
-          exit_batch << new_exit_for_enrollment(last_enrollment.exit, active_enrollment) if last_enrollment&.exit && enrollment_during_date_range?(active_enrollment.EntryDate, last_enrollment.exit&.ExitDate)
+          if active_enrollment && enrollment_during_date_range?(active_enrollment.EntryDate, last_enrollment.exit.ExitDate)
+            enrollment_batch << new_enrollment_from_enrollment(active_enrollment)
+            exit_batch << new_exit_for_enrollment(last_enrollment.exit, active_enrollment)
+          end
         end
 
         # These are imported into the staging table, there is no uniqueness constraint, and existing data is marked as don't import
@@ -141,13 +151,13 @@ module HmisCsvImporter::Aggregated
 
       ex_t = exit_source.arel_table
 
-      incoming_enrollment_ids = enrollment_destination.where(
+      incoming_enrollment_keys = enrollment_destination.where(
         ProjectID: project_ids,
         data_source_id: importer_log.data_source_id,
         importer_log_id: importer_log.id,
-      ).pluck(:EnrollmentID)
+      ).pluck(:EnrollmentID, :PersonalID)
       incoming_exit_ids = exit_destination.where(
-        EnrollmentID: incoming_enrollment_ids,
+        EnrollmentID: incoming_enrollment_keys.map(&:first),
         data_source_id: importer_log.data_source_id,
         importer_log_id: importer_log.id,
       ).pluck(:ExitID)
@@ -156,7 +166,17 @@ module HmisCsvImporter::Aggregated
         ProjectID: project_ids,
         data_source_id: importer_log.data_source_id,
       ).open_during_range(date_range.range).
-        where.not(EnrollmentID: incoming_enrollment_ids).
+        where.not(EnrollmentID: incoming_enrollment_keys.map(&:first)).
+        pluck(:id)
+      # The aggregated unique key includes PersonalID, so a row whose PersonalID
+      # changed upstream is a stale duplicate of an incoming enrollment, not a match.
+      # Its exit still carries the old PersonalID until copy_incoming_data! runs,
+      # so it can look closed; don't limit this to rows open during the range.
+      enrollments_to_delete |= enrollment_source.where(
+        ProjectID: project_ids,
+        data_source_id: importer_log.data_source_id,
+        EnrollmentID: incoming_enrollment_keys.map(&:first),
+      ).where.not([:EnrollmentID, :PersonalID] => incoming_enrollment_keys).
         pluck(:id)
       exits_to_delete = enrollment_source.where(
         ProjectID: project_ids,

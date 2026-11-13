@@ -13,7 +13,7 @@ module GrdaWarehouse::Hud
     include HudSharedScopes
     include ::HmisStructure::Organization
     include ::HmisStructure::Shared
-    # Extensions from drivers — see ADR 0007
+    # Extensions from drivers — see docs/architecture/08-concepts/08-3-driver-module-pattern.md
     include HmisCsvImporter::GrdaWarehouse::Hud::OrganizationExtension
     include HmisCsvTwentyTwenty::GrdaWarehouse::Hud::OrganizationExtension
     include HmisCsvTwentyTwentyFour::GrdaWarehouse::Hud::OrganizationExtension
@@ -62,7 +62,9 @@ module GrdaWarehouse::Hud
         # If have a set (not a nil) and it's empty, this user can't access any projects
         return none if ids.is_a?(Set) && ids.empty?
 
-        where(id: ids)
+        # A string predicate, unlike a hash or Arel predicate, is ANDed by a later
+        # `merge` on the same column instead of being replaced by it
+        where(%(#{quoted_table_name}."id" IN (?)), ids.to_a)
       else
         qc = ->(s) { connection.quote_column_name s }
         q  = ->(s) { connection.quote s }
@@ -301,6 +303,10 @@ module GrdaWarehouse::Hud
 
     def self.names
       select(:OrganizationID, :OrganizationName).distinct.pluck(:OrganizationName, :OrganizationID)
+    end
+
+    def policy_class
+      GrdaWarehouse::AuthPolicies::OrganizationPolicy
     end
 
     def project_names

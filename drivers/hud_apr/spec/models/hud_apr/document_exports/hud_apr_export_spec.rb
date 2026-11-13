@@ -102,32 +102,70 @@ RSpec.describe HudApr::DocumentExports::HudAprExport, type: :model do
 
   describe '#authorized?' do
     let(:export) { described_class.new(user: user, query_string: { id: report_id }.to_query) }
+    let(:report) { create(:hud_reports_report_instance, user: user, report_name: report_name) }
+    let(:report_id) { report.id }
+    let(:apr_definition) do
+      GrdaWarehouse::WarehouseReports::ReportDefinition.maintain_report_definitions
+      GrdaWarehouse::WarehouseReports::ReportDefinition.find_by!(url: 'hud_reports/aprs')
+    end
 
-    context 'when the user can view all HUD reports' do
+    context 'when the APR definition is not granted, even with can_view_all_hud_reports' do
       before { user.legacy_roles << create(:role, can_view_all_hud_reports: true) }
 
-      let(:report_id) { 0 }
-
-      it 'is authorized even though the report cannot be found' do
-        expect(export.authorized?).to eq(true)
+      it 'is not authorized' do
+        expect(export.authorized?).to eq(false)
       end
     end
 
-    context 'when the user can only view their own HUD reports and owns the report' do
-      before { user.legacy_roles << create(:role, can_view_own_hud_reports: true) }
+    # APR and CAPER are served by the same driver off the same generator registry, so
+    # the gate has to name the APR definition rather than settle for any report.
+    context 'when only the CAPER definition is granted' do
+      let(:caper_definition) do
+        GrdaWarehouse::WarehouseReports::ReportDefinition.maintain_report_definitions
+        GrdaWarehouse::WarehouseReports::ReportDefinition.find_by!(url: 'hud_reports/capers')
+      end
 
-      let(:report) { create(:hud_reports_report_instance, user: user, report_name: report_name) }
-      let(:report_id) { report.id }
+      before do
+        user.legacy_roles << create(:role, can_view_assigned_reports: true, can_view_all_hud_reports: true)
+        user.add_viewable(caper_definition)
+      end
+
+      it 'is not authorized' do
+        expect(export.authorized?).to eq(false)
+      end
+    end
+
+    context 'when the owner has been granted the APR definition' do
+      before do
+        user.legacy_roles << create(:role, can_view_assigned_reports: true)
+        user.add_viewable(apr_definition)
+      end
 
       it 'is authorized' do
         expect(export.authorized?).to eq(true)
       end
     end
 
-    context 'when the user can only view their own HUD reports and the report cannot be found' do
-      before { user.legacy_roles << create(:role, can_view_own_hud_reports: true) }
+    context 'when a non-owner has been granted the APR definition without can_view_all_hud_reports' do
+      let(:report) { create(:hud_reports_report_instance, user: create(:user), report_name: report_name) }
 
+      before do
+        user.legacy_roles << create(:role, can_view_assigned_reports: true)
+        user.add_viewable(apr_definition)
+      end
+
+      it 'is not authorized' do
+        expect(export.authorized?).to eq(false)
+      end
+    end
+
+    context 'when the report cannot be found' do
       let(:report_id) { 0 }
+
+      before do
+        user.legacy_roles << create(:role, can_view_assigned_reports: true, can_view_all_hud_reports: true)
+        user.add_viewable(apr_definition)
+      end
 
       it 'is not authorized' do
         expect(export.authorized?).to eq(false)

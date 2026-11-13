@@ -27,6 +27,7 @@ module WarehouseReports
         end
         cohorts
       end
+      current_user.policy_context.preload_client_dependencies(@unconfirmed.pluck(:id))
       @unconfirmed = @unconfirmed.order(LastName: :asc, FirstName: :asc)
     end
 

@@ -66,8 +66,8 @@ env:
   HEALTH_DATABASE_PASS: postgres
   HEALTH_DATABASE_USER: postgres
   HOSTNAME: openpath.host
-  MINIO_ENDPOINT: http://minio:9000
-  USE_MINIO_ENDPOINT: true
+  LOCAL_S3_ENDPOINT: http://s3:9000
+  USE_LOCAL_S3_ENDPOINT: true
   PORT: 80
   RAILS_ENV: test
   CACHE_HOST: redis
@@ -90,7 +90,7 @@ env:
   PUPPETEER_EXECUTABLE_PATH: /usr/bin/chromium
   FERRUM_PROCESS_TIMEOUT: 45
   FERRUM_DEFAULT_TIMEOUT: 45
-  # Minio and test configuration
+  # Local S3 (SeaweedFS) and test configuration
   GROVER_NO_SANDBOX: true
   CHROMIUM_PATH: /usr/bin/chromium
   LOG_LEVEL: INFO
@@ -98,8 +98,9 @@ env:
 
 jobs:
   determine_matrix:
+    if: vars.CI_AUTO_RUN == 'true' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-24.04
-    container: ruby:3.4.9-slim-bookworm
+    container: ruby:3.4.12-slim-trixie
 
     outputs:
       unit_matrix: ${{ steps.set-matrix.outputs.unit_matrix }}
@@ -148,7 +149,7 @@ jobs:
 
     # Containers must run in Linux based operating systems
     runs-on: ubuntu-24.04
-    container: ruby:3.4.9-slim-bookworm
+    container: ruby:3.4.12-slim-trixie
 
     # Docker Hub image that the job executes in
     # $RUBY_VERSION
@@ -179,14 +180,11 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
         ports:
           - "2222:22"
-      minio: &minio
-        image: ghcr.io/greenriver/openpath-minio:1.0
+      s3: &s3
+        image: ghcr.io/greenriver/openpath-seaweedfs:1.0
         credentials:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-        env:
-          MINIO_ACCESS_KEY: local_access_key
-          MINIO_SECRET_KEY: local_secret_key
         ports:
           - "9000:9000"
 
@@ -198,13 +196,11 @@ jobs:
         id: container-setup
         uses: ./.github/workflows/container_setup
         with:
-          additional_packages: libpq-dev chromium chromium-common
+          additional_packages: libpq-dev chromium chromium-common imagemagick
 
       - name: "App setup"
         run: |
           cp config/secrets.yml.sample config/secrets.yml
-          mkdir -p app/assets/stylesheets/theme/styles
-          touch app/assets/stylesheets/theme/styles/_variables.scss
           cp .rspec.sample .rspec
           cp config/database.yml.ci config/database.yml
 
@@ -264,8 +260,12 @@ jobs:
       # Default arm: the AUTH_METHOD=jwt env below is the only arm selector. Don't add a
       # ~devise_only flag here for symmetry with the Devise step — rails_helper.rb already
       # excludes :devise_only under a jwt run (filter_run_excluding).
+      # ci_auth carries neither a tag nor a focus path; it runs only the arm steps below. Without this
+      # guard an empty --tag would widen the run to the entire suite.
       - name: Run tests
+        if: matrix.test_group.tag || matrix.test_group.test_path
         env:
+          EAGER_LOAD: true
           MAX_FAILURES: 60
           AWS_ACCESS_KEY_ID: local_access_key
           AWS_SECRET_ACCESS_KEY: local_secret_key
@@ -295,8 +295,9 @@ jobs:
           fi
 
       - name: Run okta tests
-        if: matrix.test_group.okta || needs.determine_matrix.outputs.okta == 'true'
+        if: matrix.test_group.auth || needs.determine_matrix.outputs.okta == 'true'
         env:
+          EAGER_LOAD: true
           MAX_FAILURES: 60
           AWS_ACCESS_KEY_ID: local_access_key
           AWS_SECRET_ACCESS_KEY: local_secret_key
@@ -309,8 +310,9 @@ jobs:
       # would silently drop any spec nobody remembered to add. The broad --pattern is only affordable
       # because --tag devise_only narrows it: without that tag this re-runs the entire ungated suite.
       - name: Run AUTH_METHOD=devise tests
-        if: matrix.test_group.devise
+        if: matrix.test_group.auth
         env:
+          EAGER_LOAD: true
           MAX_FAILURES: 60
           AWS_ACCESS_KEY_ID: local_access_key
           AWS_SECRET_ACCESS_KEY: local_secret_key
@@ -330,7 +332,7 @@ jobs:
           echo "AUTH_METHOD=devise arm ran $count examples."
 
       - name: Run logging tests
-        if: matrix.test_group.logging || needs.determine_matrix.outputs.logging == 'true'
+        if: matrix.test_group.auth || needs.determine_matrix.outputs.logging == 'true'
         env:
           AWS_ACCESS_KEY_ID: local_access_key
           AWS_SECRET_ACCESS_KEY: local_secret_key
@@ -362,13 +364,13 @@ jobs:
       id-token: write
       pull-requests: read
     runs-on: ubuntu-24.04
-    container: ruby:3.4.9-slim-bookworm
+    container: ruby:3.4.12-slim-trixie
 
     services:
       postgres: *postgres
       redis: *redis
       hmis-warehouse-sftp: *sftp
-      minio: *minio
+      s3: *s3
 
     steps:
       - name: Checkout
@@ -382,8 +384,6 @@ jobs:
       - name: "App setup"
         run: |
           cp config/secrets.yml.sample config/secrets.yml
-          mkdir -p app/assets/stylesheets/theme/styles
-          touch app/assets/stylesheets/theme/styles/_variables.scss
           cp .rspec.sample .rspec
           cp config/database.yml.ci config/database.yml
 
@@ -412,7 +412,7 @@ jobs:
           MAX_FAILURES: 60
           LOG_LEVEL: INFO
           RUN_SYSTEM_TESTS: true
-          BRANCH_NAME: "${{ github.head_ref || github.ref_name }}:${{ github.base_ref || 'production' }}:production"
+          BRANCH_NAME: "${{ github.head_ref || github.ref_name }}:${{ github.base_ref || 'main' }}:main"
           CHROMIUM_PATH: /usr/bin/chromium
           TARGET_SPECS: ${{ needs.determine_matrix.outputs.focused_path }}
           TESTKIT_CHECK_ALL_TABLE_RESULTS: ${{ needs.determine_matrix.outputs.testkit_check_all_table_results }}
@@ -438,13 +438,13 @@ jobs:
       id-token: write
       pull-requests: read
     runs-on: ubuntu-24.04
-    container: ruby:3.4.9-slim-bookworm
+    container: ruby:3.4.12-slim-trixie
 
     services:
       postgres: *postgres
       redis: *redis
       hmis-warehouse-sftp: *sftp
-      minio: *minio
+      s3: *s3
 
     steps:
       - name: Checkout
@@ -458,8 +458,6 @@ jobs:
       - name: "App setup"
         run: |
           cp config/secrets.yml.sample config/secrets.yml
-          mkdir -p app/assets/stylesheets/theme/styles
-          touch app/assets/stylesheets/theme/styles/_variables.scss
           cp .rspec.sample .rspec
           cp config/database.yml.ci config/database.yml
 

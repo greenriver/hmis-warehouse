@@ -166,6 +166,14 @@ module ArelHelper
       nf 'CAST', [exp.as(as)]
     end
 
+    # CAST(col AT TIME ZONE 'UTC' AT TIME ZONE '<app zone>' AS DATE). Timestamp columns hold naive
+    # UTC; a bare date cast would bucket evening local activity into the next day.
+    def local_date(column)
+      at_utc = Arel::Nodes::InfixOperation.new('AT TIME ZONE', column, Arel::Nodes.build_quoted('UTC'))
+      at_local = Arel::Nodes::InfixOperation.new('AT TIME ZONE', at_utc, Arel::Nodes.build_quoted(Time.zone.tzinfo.name))
+      nf 'CAST', [at_local.as('DATE')]
+    end
+
     # NOTE: you must join project and organization for this to work.
     def confidentialized_project_name(column)
       conditions = [
@@ -476,6 +484,6 @@ module ArelHelper
     delegate :she_t, :shs_t, :shsm_t, :s_t, :g_t, :e_t, :ec_t, :ex_t, :ds_t, :c_t, :cn_t, :p_t, :pc_t, :o_t, :i_t, :af_t, :as_t, :asq_t, :ev_t, :ch_t, :hc_t, :wc_t, :wcp_t, :ib_t, :d_t, :hdv_t, :f_t, :cls_t, :enx_t, :hmis_form_t, :hmis_c_t, :c_client_t, :c_c_change_t, :yib_t, :vispdat_t, :r_monthly_t, :hr_ri_t, :r_t, :ag_t, :collection_t, to: 'self.class'
 
     # Other methods
-    delegate :qt, :nf, :unionize, :add_alias, :cl, :ct, :greatest, :bool_or, :confidentialized_project_name, :checksum, :datepart, :seconds_diff, :datediff, :cast, :acase, :lit, to: 'self.class'
+    delegate :qt, :nf, :unionize, :add_alias, :cl, :ct, :greatest, :bool_or, :confidentialized_project_name, :checksum, :datepart, :seconds_diff, :datediff, :cast, :local_date, :acase, :lit, to: 'self.class'
   end
 end

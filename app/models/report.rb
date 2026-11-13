@@ -27,12 +27,31 @@ class Report < ApplicationRecord
     where(arel_table[:type].matches("%::#{sanitize_sql_like(query)}::%"))
   end
 
+  # Pre-framework report families (the second segment of the STI type, shared with
+  # ReportResultsSummary) and the current report definition that now governs access
+  # to them. AHAR is deliberately absent: it has no current counterpart.
+  HUD_DEFINITION_URLS_BY_FAMILY = {
+    'DataQuality' => GrdaWarehouse::WarehouseReports::ReportDefinition.hud_url(:dqs),
+    'Pit' => GrdaWarehouse::WarehouseReports::ReportDefinition.hud_url(:pits),
+    'SystemPerformance' => GrdaWarehouse::WarehouseReports::ReportDefinition.hud_url(:spms),
+    'Lsa' => GrdaWarehouse::WarehouseReports::ReportDefinition.hud_url(:lsas),
+    'Hic' => GrdaWarehouse::WarehouseReports::ReportDefinition.hud_url(:hics),
+  }.freeze
+
+  def self.hud_definition_url_for(type)
+    HUD_DEFINITION_URLS_BY_FAMILY[type.to_s.split('::')[1]]
+  end
+
+  def report_definition_url
+    self.class.hud_definition_url_for(type)
+  end
+
   def model_name
     ActiveModel::Name.new self, nil, 'report'
   end
 
   def last_result(user)
-    @last_result ||= ReportResult.viewable_by(user).where(report: self).order(created_at: :desc).limit(1).first
+    @last_result ||= ReportResult.runs_visible_to(user).where(report: self).order(created_at: :desc).limit(1).first
   end
 
   # Build a two dimensional array of values from the results, return as a csv string

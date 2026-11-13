@@ -242,14 +242,6 @@ module PerformanceMetrics
       end
     end
 
-    def start
-      update(started_at: Time.current)
-    end
-
-    def complete
-      update(completed_at: Time.current)
-    end
-
     def filter=(filter_object)
       self.options = filter_object.to_h
       # force reset the filter cache

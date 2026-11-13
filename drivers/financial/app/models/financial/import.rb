@@ -107,7 +107,7 @@ module Financial
       Zip::File.open(file_path) do |zipped_file|
         zipped_file.each do |entry|
           Rails.logger.info entry.name
-          entry.extract([extract_path, File.basename(entry.name)].join('/'))
+          entry.extract(File.basename(entry.name), destination_directory: extract_path)
         end
       end
     end

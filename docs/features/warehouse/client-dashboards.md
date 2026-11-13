@@ -2,6 +2,8 @@
 
 The client dashboard is the page rendered at `/clients/:id` — the summary view a user sees for an individual client. Which sections appear is controlled by two independent settings: an **installation-level layout** (which visual "brand" of dashboard to use) and a **per-role detail level** (whether a given user sees the full dashboard or a reduced one).
 
+Whether a user can open a given client's dashboard at all, including through a release of information, is covered in [Client ROI and Consent](client-roi-and-consent.md).
+
 ## Two Independent Axes
 
 | Axis | Controlled by | Values |
@@ -76,3 +78,4 @@ Within either variant, each section is a placeholder div/article with a `data-pa
 | Permission flags | `app/models/role.rb` (`can_view_full_client_dashboard`, `can_view_limited_client_dashboard`) |
 | Combined permission + controller gate | `app/models/concerns/user_permissions.rb`, `ClientShowPages` / `ClientAccessControl::ClientsController` |
 | Individual rollup partial allowlist + AJAX endpoint | `app/controllers/concerns/client_show_pages.rb` |
+| "New episode" row highlight in the enrollment roll-up | `ClientHistory::Calculator#new_episode?`; rules and HUD sources in [Homeless Episodes](homeless-episodes.md) |

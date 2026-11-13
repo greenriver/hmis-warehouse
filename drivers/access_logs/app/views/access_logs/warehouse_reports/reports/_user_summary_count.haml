@@ -1,0 +1,8 @@
+- sub ||= nil
+.col
+  .card.h-100.shadow-sm
+    .card-body
+      .small= label
+      .fs-2.fw-bolder{ data: { summary_count: key } }= count
+      - if sub
+        .small.text-muted= sub

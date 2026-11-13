@@ -99,20 +99,20 @@
                 = f.input :select2_parenthetical_simple_form, collection: collection, as: :select_two, input_html: { class: ['select2-parenthetical-when-selected'] }, hint: 'Show only parenthetical details when selected'
 
                 %h4 Select 2 - Ajax load of Projects (select2)
-                = f.input :huge_collection, collection: [], as: :select_two, input_html: { data: { 'ajax--url' => api_projects_path(format: :json) }}, label: 'Projects'
+                = f.input :huge_collection, collection: [], as: :select_two, input_html: { data: { 'ajax--url' => report_filter_projects_api_path_helper(format: :json) }}, label: 'Projects'
 
                 %h4 Select 2 - Ajax load of Options for Projects with Blank (warehouse)
-                = f.input :huge_collection_options_with_blank, collection: [], as: :select_two, input_html: { data: { 'collection-path' => api_projects_path() }}, label: 'Projects', include_blank: 'Please choose'
+                = f.input :huge_collection_options_with_blank, collection: [], as: :select_two, input_html: { data: { 'collection-path' => report_filter_projects_api_path_helper() }}, label: 'Projects', include_blank: 'Please choose'
 
                 - selected = GrdaWarehouse::Hud::Project.joins(:data_source, :organization).viewable_by(current_user).last.id
                 %h4 Select 2 - Ajax load of Options for Projects #{selected} pre-selected (warehouse)
-                = f.input :huge_collection_options, collection: [], as: :select_two, input_html: { data: { 'collection-path' => api_projects_path(selected_project_ids: [selected]) }}, label: 'Projects'
+                = f.input :huge_collection_options, collection: [], as: :select_two, input_html: { data: { 'collection-path' => report_filter_projects_api_path_helper(selected_project_ids: [selected]) }}, label: 'Projects'
 
                 %h4 Select 2 - Ajax load of Options for Projects Multiple without pre-selected projects (warehouse)
-                = f.input :huge_collection_options_multi_none, collection: [], as: :select_two, input_html: { data: { 'collection-path' => api_projects_path() }, multiple: true}, label: 'Projects'
+                = f.input :huge_collection_options_multi_none, collection: [], as: :select_two, input_html: { data: { 'collection-path' => report_filter_projects_api_path_helper() }, multiple: true}, label: 'Projects'
 
                 %h4 Select 2 - Ajax load of Options for Projects Multiple with pre-selected projects (warehouse)
-                = f.input :huge_collection_options_multi, collection: [], as: :select_two, input_html: { data: { 'collection-path' => api_projects_path(selected_project_ids: GrdaWarehouse::Hud::Project.pluck(:id).sample(2)) }, multiple: true}, label: 'Projects'
+                = f.input :huge_collection_options_multi, collection: [], as: :select_two, input_html: { data: { 'collection-path' => report_filter_projects_api_path_helper(selected_project_ids: GrdaWarehouse::Hud::Project.pluck(:id).sample(2)) }, multiple: true}, label: 'Projects'
               %h4 Password
               = f.input :password, as: :password, required: true, **validate_html
 
@@ -144,3 +144,17 @@
             = f.input :start, as: :date_picker, input_html: { value: 1.months.ago.to_date }
     = render 'common/panel_collapse', id: 'actives', title: 'Clients active within a date range', content: '_actives'
   .col-sm-2= render 'pages'
+%h2 CSRF tokens
+%p
+  Fixtures for
+  %code spec/system/rails/per_form_csrf_tokens_spec.rb.
+%p
+  Forms A and B post to different paths. Their buttons are disabled because neither path accepts a POST.
+  With per-form tokens enabled, each form's hidden token is different.
+.d-flex.mb-4
+  = form_tag form_style_guide_path, id: 'csrf-form-a', class: 'mr-2' do
+    = submit_tag 'Form A', class: 'btn btn-secondary', disabled: true
+  = form_tag datepicker_style_guide_path, id: 'csrf-form-b' do
+    = submit_tag 'Form B', class: 'btn btn-secondary', disabled: true
+%p This form submits into the ajax modal.
+= render 'filters/view_filter_details', filter_hash: { start: '2024-01-01', end: '2024-12-31' }, selected_keys: [:start, :end]

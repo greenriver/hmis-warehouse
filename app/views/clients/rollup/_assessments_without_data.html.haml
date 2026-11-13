@@ -1,8 +1,7 @@
 - hmis_form_columms = (GrdaWarehouse::HmisForm.column_names - ['api_response', 'answers']).map(&:to_sym)
 - hmis_forms = @client.source_non_confidential_hmis_forms.select(*hmis_form_columms)&.sort&.group_by(&:assessment_type)
 - eccovia_assessments = []
-- if RailsDrivers.loaded.include?(:eccovia_data)
-  - eccovia_assessments = @client.source_eccovia_assessments
+- eccovia_assessments = @client.source_eccovia_assessments
 - if hmis_forms.any? || eccovia_assessments.any?
   - if hmis_forms.any?
     %table.table

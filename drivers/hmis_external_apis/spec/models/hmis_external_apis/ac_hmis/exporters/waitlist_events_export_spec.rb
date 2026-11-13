@@ -23,8 +23,9 @@ RSpec.describe HmisExternalApis::AcHmis::Exporters::WaitlistEventsExport, type: 
   end
 
   let!(:event) do
-    create(:hmis_ce_match_candidate_event, candidate_pool: pool, client_proxy: client_proxy, event_name: 'add')
+    create(:hmis_ce_match_candidate_event, candidate_pool: pool, client_proxy: client_proxy, event_name: 'add', snapshot: snapshot)
   end
+  let(:snapshot) { { 'open_referral_project_types' => [3, 13], 'notes' => "line one\nline two" } }
 
   let(:subject) { described_class.new }
   let(:output) do
@@ -50,5 +51,13 @@ RSpec.describe HmisExternalApis::AcHmis::Exporters::WaitlistEventsExport, type: 
     expect(row['UnitGroupName']).to eq(unit_group.name)
     expect(row['EventName']).to eq('add')
     expect(row['CreatedAt']).to eq(event.created_at.strftime('%Y-%m-%d %H:%M:%S'))
+  end
+
+  it 'exports the snapshot as a JSON column' do
+    subject.run!
+    result = CSV.parse(output, headers: true)
+
+    expect(result.headers.last).to eq('Snapshot')
+    expect(JSON.parse(result.first['Snapshot'])).to eq(snapshot)
   end
 end

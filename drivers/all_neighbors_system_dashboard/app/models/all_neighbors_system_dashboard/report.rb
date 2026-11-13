@@ -67,14 +67,6 @@ module AllNeighborsSystemDashboard
       complete
     end
 
-    def start
-      update(started_at: Time.current)
-    end
-
-    def complete
-      update(completed_at: Time.current)
-    end
-
     def url
       all_neighbors_system_dashboard_warehouse_reports_report_url(host: ENV.fetch('FQDN'), id: id, protocol: :https)
     end

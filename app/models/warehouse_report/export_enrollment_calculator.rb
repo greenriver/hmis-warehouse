@@ -248,7 +248,7 @@ class WarehouseReport::ExportEnrollmentCalculator < OpenStruct
       vispdats = {}
       clients.joins(:vispdats).
         includes(:vispdats).
-        merge(GrdaWarehouse::Vispdat::Base.completed.where(submitted_at: filter.range)).
+        merge(GrdaWarehouse::Vispdat::Base.completed.where(submitted_at: filter.time_range)).
         find_each do |client_record|
           vispdats[client_record.id] = client_record.vispdats.completed.max_by(&:submitted_at)
         end
@@ -327,7 +327,7 @@ class WarehouseReport::ExportEnrollmentCalculator < OpenStruct
   def residential_enrollments_for(client)
     @residential_enrollments_for ||= GrdaWarehouse::ServiceHistoryEnrollment.residential.
       entry.
-      preload(:service_history_services).
+      preload(:service_history_services, :enrollment).
       open_between(start_date: filter.start, end_date: filter.end).
       where(client_id: clients.select(:id)).
       order(first_date_in_program: :asc).
@@ -340,7 +340,7 @@ class WarehouseReport::ExportEnrollmentCalculator < OpenStruct
     @chronic_enrollments_for ||= GrdaWarehouse::ServiceHistoryEnrollment.
       hud_homeless(chronic_types_only: true).
       entry.
-      preload(:service_history_services).
+      preload(:service_history_services, :enrollment).
       open_between(start_date: filter.start, end_date: filter.end).
       where(client_id: clients.select(:id)).
       order(first_date_in_program: :asc).

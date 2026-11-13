@@ -18,7 +18,7 @@ This document opens the Warehouse Application container to show its internal mod
 
 The Warehouse is a Rails monolith that uses a **driver module pattern** for internal modularity. Each driver lives in `/drivers/[module]` and mirrors the standard Rails directory structure (`app/models/`, `app/controllers/`, etc.), keeping feature-specific logic isolated from the core.
 
-The 88 drivers group into the functional areas shown below.
+The drivers group into the functional areas shown below.
 
 ### HMIS & Data Collection
 
@@ -142,7 +142,7 @@ flowchart TB
 
 ## Driver Catalog
 
-Each driver is a self-contained module directory in `/drivers/[name]` with its own models, controllers, views, and specs. See [8.3 Driver Module Pattern](../08-concepts/08-3-driver-module-pattern.md) for the convention. The 88 drivers group into the functional areas below; architecturally significant drivers are listed individually, while the long tail is summarized.
+Each driver is a self-contained module directory in `/drivers/[name]` with its own models, controllers, views, and specs. See [8.3 Driver Module Pattern](../08-concepts/08-3-driver-module-pattern.md) for the convention. The drivers group into the functional areas below; architecturally significant drivers are listed individually, while the long tail is summarized.
 
 ### HMIS Module
 
@@ -182,9 +182,9 @@ Each driver is a self-contained module directory in `/drivers/[name]` with its o
 
 8 filter modules that scope reports and analytics to specific client sub-populations (veterans, adults with children, child-only households, etc.). These are used as cross-cutting filters across multiple report drivers.
 
-### Health Integration
+### Medicaid Data Interchange
 
-7 drivers providing health assessment forms, treatment planning, and Medicaid data interchange capabilities.
+`medicaid_hmis_interchange` provides a deployment-specific homelessness-verification exchange with a state Medicaid agency.
 
 ### Platform & Administration
 

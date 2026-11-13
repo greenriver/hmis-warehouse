@@ -69,7 +69,8 @@ module Reports::Ahar::Fy2017
     end
 
     def value_for_options options
-      {
+      helpers = ActionController::Base.helpers
+      pairs = {
         'CoC Code: ' => options['coc_code'],
         'Start: ' => options['report_start'],
         'End: ' => options['report_end'],
@@ -78,8 +79,9 @@ module Reports::Ahar::Fy2017
           options['jan_night'],
           options['apr_night'],
           options['jul_night'],
-        ].join(', ')
-      }.map{|k,v| "<strong>#{k}</strong>#{v}"}.join('<br />').html_safe
+        ].join(', '),
+      }
+      helpers.safe_join(pairs.map { |k, v| helpers.safe_join([helpers.content_tag(:strong, k), v]) }, '<br />'.html_safe)
     end
 
     def continuum_name

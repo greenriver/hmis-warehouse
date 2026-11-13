@@ -10,6 +10,8 @@ FactoryBot.define do
   factory :hud_client, class: 'GrdaWarehouse::Hud::Client' do
     association :data_source, factory: :grda_warehouse_data_source
     sequence(:PersonalID, 10)
+    DateCreated { Time.current }
+    DateUpdated { Time.current }
   end
   factory :grda_warehouse_hud_client, class: 'GrdaWarehouse::Hud::Client' do
     association :data_source, factory: :grda_warehouse_data_source
@@ -45,8 +47,8 @@ FactoryBot.define do
     # OtherTheater
     # MilitaryBranch
     # DischargeStatus
-    # DateCreated
-    # DateUpdated
+    DateCreated { Time.current }
+    DateUpdated { Time.current }
     # UserID
     # DateDeleted
     # ExportID
@@ -58,6 +60,8 @@ FactoryBot.define do
     sequence(:PersonalID, 100)
     FirstName { 'Bob' }
     DOB { '1999-12-01' }
+    DateCreated { Time.current }
+    DateUpdated { Time.current }
   end
 
   factory :window_hud_client, class: 'GrdaWarehouse::Hud::Client' do
@@ -66,6 +70,8 @@ FactoryBot.define do
     sequence(:PersonalID, 100)
     FirstName { 'Bob' }
     DOB { '1999-12-01' }
+    DateCreated { Time.current }
+    DateUpdated { Time.current }
   end
 
   factory :fixed_source_client, class: 'GrdaWarehouse::Hud::Client' do
@@ -74,6 +80,8 @@ FactoryBot.define do
     sequence(:PersonalID, 100)
     FirstName { 'Bob' }
     DOB { '1999-12-01' }
+    DateCreated { Time.current }
+    DateUpdated { Time.current }
   end
 
   factory :fixed_destination_client, class: 'GrdaWarehouse::Hud::Client' do
@@ -82,6 +90,8 @@ FactoryBot.define do
     sequence(:PersonalID, 100)
     FirstName { 'Bob' }
     DOB { '1999-12-01' }
+    DateCreated { Time.current }
+    DateUpdated { Time.current }
   end
 
   factory :client_with_revoked_consent, class: 'GrdaWarehouse::Hud::Client' do
@@ -90,6 +100,8 @@ FactoryBot.define do
     FirstName { 'Bob' }
     LastName { 'Ross' }
     DOB { '1999-12-01' }
+    DateCreated { Time.current }
+    DateUpdated { Time.current }
     housing_release_status { Consent::Default.revoked_consent_string }
   end
 
@@ -99,6 +111,8 @@ FactoryBot.define do
     FirstName { 'Bob' }
     LastName { 'Ross' }
     DOB { '1999-12-01' }
+    DateCreated { Time.current }
+    DateUpdated { Time.current }
     housing_release_status { Consent::Default.full_release_string }
   end
 
@@ -108,6 +122,8 @@ FactoryBot.define do
     FirstName { 'Bob' }
     LastName { 'Ross' }
     DOB { '1999-12-01' }
+    DateCreated { Time.current }
+    DateUpdated { Time.current }
     housing_release_status { Consent::Default.partial_release_string }
   end
 end

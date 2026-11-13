@@ -299,8 +299,6 @@ module HudSpmReport::Generators::Fy2026
     end
 
     def dq(section, table_name, cell_name)
-      return unless RailsDrivers.loaded.include?(:hud_apr)
-
       @attempted ||= Set.new
       @reports ||= {}
 

@@ -177,7 +177,9 @@ module TxClientReports
     def rows
       return [] unless @filter.project_ids.any? || @filter.project_group_ids.any?
 
-      client_scope.map do |client|
+      clients = client_scope.to_a
+      @filter.user.policy_context.preload_client_restrictions(clients.map(&:id))
+      clients.map do |client|
         enrollment = enrollments[client.id]
         next unless enrollment.present?
 
@@ -188,10 +190,11 @@ module TxClientReports
           income_benefits_at_entry&.
           TotalMonthlyIncome
         household = if enrollment.household_id.present?
-          enrollment.household_enrollments&.map(&:client)
+          enrollment.household_enrollments&.map(&:client)&.compact
         else
           [client]
         end
+        policy = GrdaWarehouse::PiiProvider.restrict(GrdaWarehouse::AuthPolicies::AllowPiiPolicy.instance, restricted: @filter.user.policy_context.client_restricted?(client.id))
         {
           project_id: project.id,
           project_name: project.name(@filter.user),
@@ -200,7 +203,7 @@ module TxClientReports
           entry_after_start: enrollment.first_date_in_program > @filter.start,
           fort_worth_resident: nil, # leave blank
           service_location: nil, # leave blank
-          client_name: client.name,
+          client_name: GrdaWarehouse::PiiProvider.new(client, policy: policy).full_name,
           client_id: client.id,
           street_address: enrollment.project.project_cocs&.first&.Address1, # Shelter address
           age: enrollment.age, # Age at project entry to keep report stable

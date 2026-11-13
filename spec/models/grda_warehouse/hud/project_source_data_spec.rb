@@ -24,12 +24,12 @@ RSpec.describe GrdaWarehouse::Hud::Project, 'project CSV driver extensions' do
       end
     end
 
-    it 'resolves imported_item_type to 2020 when FY2020 staging rows exist' do
+    it 'resolves most_recent_import_year to 2020 when FY2020 staging rows exist' do
       HmisCsvTwentyTwenty::Importer::Project.create!(
         staging_attributes(project, importer_log),
       )
 
-      expect(project.imported_item_type(importer_log.id)).to eq('2020')
+      expect(project.most_recent_import_year).to eq('2020')
       expect(project.imported_items_2020.where(importer_log_id: importer_log.id)).to exist
     end
   end

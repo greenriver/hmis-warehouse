@@ -49,8 +49,10 @@ class HmisCsvImporter::ImporterExtensionsController < ApplicationController
       HmisCsvImporter::HmisCsvCleanup::FixBlankHouseholdIds,
       HmisCsvImporter::HmisCsvCleanup::FixMissingTotalMonthlyIncome,
       HmisCsvImporter::HmisCsvCleanup::MakeSoleMemberHoh,
+      HmisCsvImporter::PostIngestCleanup::FixIncorrectPersonalIdReferences,
       HmisCsvImporter::Loader::HudKeyRemapper,
       HmisCsvImporter::Loader::UnlinkedRecordFilter,
+      HmisCsvImporter::Loader::CurrentLivingSitIdRegenerator,
     ].sort_by(&:associated_model).
       freeze
   end

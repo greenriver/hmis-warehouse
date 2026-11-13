@@ -44,6 +44,7 @@ class CensusesController < ApplicationController
 
     census_details = [project_type, data_source, organization, project]
     @clients = @report.clients_for_date(@date, *census_details, population)
+    current_user.policy_context.preload_client_dependencies(@clients.map { |row| row['client_id'] })
     @yesterday_client_count = @report.clients_for_date(@date - 1.day, *census_details, population).size
     @prior_year_averages = @report.prior_year_averages(@date.year - 1, *census_details, population)
 

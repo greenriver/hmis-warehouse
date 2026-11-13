@@ -34,7 +34,7 @@ module HopwaCaperHelpers
 
   def create_hopwa_project(funder:)
     project = create(:hud_project, data_source: data_source, organization: organization)
-    report_group.set_viewables({ projects: [project.id] })
+    report_group.add_viewable(project)
     create(:hud_project_coc, project: project, ProjectID: project.ProjectID, data_source: data_source, CoCCode: coc_code)
     create(:hud_funder, project: project, ProjectID: project.ProjectID, funder: funder, data_source: data_source)
     project
@@ -135,6 +135,12 @@ module HopwaCaperHelpers
     run_report(report)
     rows = question_as_rows(question_number: question_number, report: report).to_h
     [report, rows]
+  end
+
+  # Report members behind the column B cell of the row with the given label
+  def members_for_label(report:, question_number:, label:)
+    row_number = question_as_rows(question_number: question_number, report: report).index { |row| row.first == label } + 1
+    report.answer(question: question_number, cell: "B#{row_number}").universe_members.map(&:universe_membership)
   end
 
   # Run report and extract FBH rows (label => [values...])

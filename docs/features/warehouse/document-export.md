@@ -1,3 +1,12 @@
+---
+sources:
+  - app/models/grda_warehouse/document_export.rb
+  - app/models/concerns/document_export_behavior.rb
+  - app/controllers/document_exports_controller_base.rb
+  - app/jobs/document_export_job.rb
+  - app/jobs/prune_document_exports_job.rb
+---
+
 # Document Export Pipeline
 
 ## Overview
@@ -39,12 +48,19 @@ flowchart LR
 ## Creating a New Export
 1. **Subclass** `GrdaWarehouse::DocumentExport` (e.g., `GrdaWarehouse::Cohorts::DocumentExports::CohortExcelExport`).
 2. **Implement**:
-   - `authorized?` to gate downloads. Note: Exports are NOT shareable between users
+   - `authorized?` to gate creation and download. It must check the report definition is assigned to the user. When the export reads a saved report, look the report up through the model's per-user scope (e.g. `visible_to(user).find_by(id: params['id'])`) and return false when it is missing. Exports are NOT shareable between users.
    - `perform` to build the file (Axlsx, PDF, etc.) and assign `filename`, `file_data`, and `mime_type`.
    - `download_title` (optional) for notification copy.
-3. **Register** the class in `DocumentExportsControllerBase#valid_document_export_classes`.
+3. **Register** the class in `DocumentExportsControllerBase#valid_document_export_classes`. Classes missing from this allow-list cannot be created through the controller.
 4. **Enqueue** the export from your feature (controller, job, or service) by creating the record and calling `DocumentExportJob.perform_later(export_id: export.id)` or a driver-specific job.
 5. **Provide UI** hooks for polling and download using the JSON payload from `DocumentExportsControllerBase`.
+
+## Behavior to know about
+
+- Exports expire after 30 days (`EXPIRES_AFTER`); `PruneDocumentExportsJob` deletes expired rows. Bytes live in the `file_data` bytea column, not ActiveStorage.
+- `create` reuses a completed export with the same `type` and `query_string` created within the last 8 hours. A subclass whose output depends on time or on data outside the query string must return true from `regenerate?`.
+- `show` (polling) does not check `authorized?`; `download` does, and also requires the export be completed.
+- The class allow-list in `valid_document_export_classes` fails closed: `create` raises `ActionController::BadRequest` for an unlisted type.
 
 ## Maintenance
 - `PruneDocumentExportsJob` removes expired exports using `DocumentExportBehavior.expired`.

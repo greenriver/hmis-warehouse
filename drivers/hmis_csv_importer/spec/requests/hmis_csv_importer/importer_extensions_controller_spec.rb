@@ -105,6 +105,16 @@ RSpec.describe HmisCsvImporter::ImporterExtensionsController, type: :request do
         )
       end
 
+      it 'writes the checked CurrentLivingSitIdRegenerator extension into pre_process_hooks' do
+        put hmis_csv_importer_importer_extension_path(data_source), params: {
+          extensions: { 'HmisCsvImporter::Loader::CurrentLivingSitIdRegenerator' => '1' },
+        }
+
+        expect(data_source.reload.pre_process_hooks).to eq(
+          'HmisCsvImporter::Loader::CurrentLivingSitIdRegenerator' => true,
+        )
+      end
+
       it 'removes a previously enabled HudKeyRemapper extension once its checkbox is unchecked' do
         data_source.update!(pre_process_hooks: { 'HmisCsvImporter::Loader::HudKeyRemapper' => true })
 

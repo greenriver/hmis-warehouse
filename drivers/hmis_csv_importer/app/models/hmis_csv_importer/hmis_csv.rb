@@ -21,16 +21,32 @@ module HmisCsvImporter::HmisCsv
       data_lake_module(version).importable_files_map
     end
 
+    # Filenames whose warehouse tables are owned by the HMIS app itself for an
+    # HMIS-backed data source (see GrdaWarehouse::DataSource#hmis?). Version
+    # modules that don't declare any (2020, 2022, 2024) contribute none.
+    def self.hmis_owned_filenames(version)
+      mod = data_lake_module(version)
+      return [] unless mod.respond_to?(:hmis_owned_filenames)
+
+      mod.hmis_owned_filenames
+    end
+
     def self.data_lake_file_class(module_name:, phase:, name:)
       "#{module_name}::#{phase}::#{name}".constantize
     end
 
     def loadable_files
-      self.class.loadable_files(@current_version)
+      filter_hmis_owned(self.class.loadable_files(@current_version))
     end
 
     def importable_files
-      self.class.importable_files(@current_version)
+      filter_hmis_owned(self.class.importable_files(@current_version))
+    end
+
+    private def filter_hmis_owned(files)
+      return files unless data_source&.hmis?
+
+      files.except(*self.class.hmis_owned_filenames(@current_version))
     end
 
     def self.data_lake_module(version)

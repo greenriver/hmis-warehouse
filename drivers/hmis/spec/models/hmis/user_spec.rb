@@ -130,4 +130,109 @@ RSpec.describe Hmis::User, type: :model do
       expect(user.confirmation_token).not_to eq('injected_token')
     end
   end
+  # The batch counterpart to can_access_hmis_data_source?, used by the User Directory
+  # report to avoid a query per user per data source. It delegates the per-data-source
+  # lookup to .with_hmis_access_in_data_source (covered above), so these examples pin
+  # what the batch method itself adds: the shape of the hash, the multi-data-source
+  # keying, and agreement with the per-user checker.
+  describe '.accessible_hmis_data_source_ids_by_user_id' do
+    let!(:ds2) { create(:hmis_data_source) }
+    let!(:ds1_user) { create(:hmis_user, data_source: ds1) }
+    let!(:no_access_user) { create(:hmis_user, data_source: ds1) }
+
+    it 'returns an empty hash when nobody has HMIS access' do
+      expect(described_class.accessible_hmis_data_source_ids_by_user_id).to eq({})
+    end
+
+    it 'maps a user id to the data sources they can reach, omitting users with none' do
+      create_access_control(ds1_user, ds1)
+
+      expect(described_class.accessible_hmis_data_source_ids_by_user_id).to eq(ds1_user.id => [ds1.id])
+    end
+
+    it 'lists every data source a user can reach' do
+      create_access_control(ds1_user, ds1)
+      create_access_control(ds1_user, ds2)
+
+      result = described_class.accessible_hmis_data_source_ids_by_user_id
+      expect(result.keys).to contain_exactly(ds1_user.id)
+      expect(result[ds1_user.id]).to contain_exactly(ds1.id, ds2.id)
+    end
+
+    it 'keys each user separately' do
+      create_access_control(ds1_user, ds1)
+      create_access_control(no_access_user, ds2)
+
+      expect(described_class.accessible_hmis_data_source_ids_by_user_id).
+        to eq(ds1_user.id => [ds1.id], no_access_user.id => [ds2.id])
+    end
+
+    it 'omits the system user' do
+      # Inherited from with_hmis_access_in_data_source, but the directory report relies on
+      # it: the system user would otherwise be listed as an HMIS user.
+      create_access_control(User.system_user.related_hmis_user(ds1), ds1)
+      create_access_control(ds1_user, ds1)
+
+      expect(described_class.accessible_hmis_data_source_ids_by_user_id.keys).
+        not_to include(User.system_user.id)
+    end
+
+    it 'agrees with the per-user checker, for access granted below the data source' do
+      # Access via a project rather than the whole data source, so this also covers the
+      # entity-walking the report depends on.
+      create_access_control(ds1_user, p1)
+      result = described_class.accessible_hmis_data_source_ids_by_user_id
+
+      aggregate_failures do
+        expect(result.fetch(ds1_user.id, []).include?(ds1.id)).
+          to eq(ds1_user.can_access_hmis_data_source?(ds1.id))
+        expect(result.fetch(no_access_user.id, []).include?(ds1.id)).
+          to eq(no_access_user.can_access_hmis_data_source?(ds1.id))
+      end
+    end
+  end
+
+  describe '#can_administer_hmis_in_data_source?' do
+    let(:other_ds) { create(:hmis_data_source) }
+    let(:user) { create(:hmis_user) }
+
+    it 'is true through an access control that grants the permission on an entity in the data source' do
+      create_access_control(user, ds1, with_permission: [:can_administer_hmis])
+      expect(user.can_administer_hmis_in_data_source?(ds1)).to eq(true)
+    end
+
+    it 'is false when the permission is granted only in another HMIS data source' do
+      create_access_control(user, other_ds, with_permission: [:can_administer_hmis])
+      create_access_control(user, ds1, without_permission: [:can_administer_hmis])
+      expect(user.can_administer_hmis?).to eq(true)
+      expect(user.can_administer_hmis_in_data_source?(ds1)).to eq(false)
+    end
+
+    it 'is false when the user has every other permission in the data source' do
+      create_access_control(user, ds1, without_permission: [:can_administer_hmis])
+      expect(user.can_administer_hmis_in_data_source?(ds1)).to eq(false)
+    end
+  end
+
+  describe '#hmis_access_error_for' do
+    let(:user) { create(:hmis_user) }
+
+    it 'is nil for any user while the HMIS is live' do
+      expect(user.hmis_access_error_for(ds1)).to be_nil
+    end
+
+    context 'before the go-live time' do
+      before { ds1.update!(hmis_go_live_at: 1.day.from_now) }
+
+      it 'returns no_hmis_access for a user who cannot administer HMIS, even with HMIS access in the data source' do
+        create_access_control(user, ds1, without_permission: [:can_administer_hmis])
+        expect(user.hmis_access_error_for(ds1)).to eq(:no_hmis_access)
+      end
+
+      it 'is nil for a user who can administer HMIS in that data source' do
+        create_access_control(user, ds1, with_permission: [:can_administer_hmis])
+        expect(user.hmis_access_error_for(ds1)).to be_nil
+      end
+    end
+  end
 end

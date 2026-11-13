@@ -13,10 +13,12 @@
 module HudReports::StartToMoveInQuestion
   extend ActiveSupport::Concern
 
-  # Upper bound matches the largest bucket row in the spec ("366 to 730 days (1-2 Yrs)").
-  # Totals and the average use this same cap so all rows cover the same universe.
+  # Upper bound matches the largest bucket row in the spec ("366 to 730 days (1-2 Yrs)"), so
+  # rows 11, 12 and 14 cover the same clients the bucket rows do. See #6546.
   MAX_DAYS_TO_MOVE_IN = 730
 
+  # Q22c and Q27k gate their universe on the household's hoh_move_in_date, then count each row
+  # on adjusted_move_in_date, the per-person date carrying the FY2026 glossary rules.
   def start_to_move_in_question(question:, members:, populations: sub_populations)
     # PSH/RRH w/ move in date
     # OR project type 7 (other) with Funder 35 (Pay for Success)
@@ -41,9 +43,9 @@ module HudReports::StartToMoveInQuestion
             case row_cond
             when :average
               value = 0
-              # Make sure totals only include time to move in dates within the ranges being reported on
+              # Row 12 averages the same clients row 11 counts.
               scope = relevant_members.where(col_cond).
-                where(a_t[:hoh_move_in_date].between(@report.start_date..@report.end_date)).
+                where(a_t[:adjusted_move_in_date].not_eq(nil)).
                 where(a_t[:time_to_move_in].between(0..MAX_DAYS_TO_MOVE_IN))
               stay_lengths = scope.pluck(a_t[:time_to_move_in])
               value = (stay_lengths.sum(0.0) / stay_lengths.count).round if stay_lengths.any?
@@ -71,16 +73,13 @@ module HudReports::StartToMoveInQuestion
       '181 to 365 days',
       '366 to 730 days (1-2 Yrs)',
     ]
-    ret = ret.to_h do |label|
-      cond = lengths.fetch(label).and(a_t[:hoh_move_in_date].between(@report.start_date..@report.end_date))
-      [label, cond]
-    end
-    # Make sure totals only include time to move in dates within the ranges being reported on
+    ret = ret.to_h { |label| [label, lengths.fetch(label)] }
     ret.merge(
-      'Total (persons moved into housing)' => a_t[:hoh_move_in_date].between(@report.start_date..@report.end_date).and(a_t[:time_to_move_in].between(0..MAX_DAYS_TO_MOVE_IN)),
+      'Total (persons moved into housing)' => a_t[:adjusted_move_in_date].not_eq(nil).and(a_t[:time_to_move_in].between(0..MAX_DAYS_TO_MOVE_IN)),
       'Average length of time to housing' => :average,
-      'Persons who were exited without move-in' => a_t[:hoh_move_in_date].eq(nil),
-      'Total persons' => a_t[:time_to_move_in].between(0..MAX_DAYS_TO_MOVE_IN).or(a_t[:hoh_move_in_date].eq(nil)),
+      # A member who exited before their household was housed inherits no date, per the glossary.
+      'Persons who were exited without move-in' => a_t[:adjusted_move_in_date].eq(nil),
+      'Total persons' => a_t[:time_to_move_in].between(0..MAX_DAYS_TO_MOVE_IN).or(a_t[:adjusted_move_in_date].eq(nil)),
     ).freeze
   end
 end

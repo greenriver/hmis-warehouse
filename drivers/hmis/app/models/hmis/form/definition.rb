@@ -8,7 +8,8 @@
 
 # Versioned form definition. Contains a structured list of questions, information about how to render them, and information about available options and initial values. Nested recursive structure similar to FHIR Questionnaire.
 #
-# The canonical definitions are in json files under drivers/hmis/lib/form_data. When the json definitions changes, run the following command to freshen these db records
+# Forms managed in version control have their canonical definitions in json files under drivers/hmis/lib/form_data.
+# When the json definitions change, run the following command to freshen these db records
 #   rails driver:hmis:seed_definitions
 #
 # Table: hmis_form_definitions
@@ -19,12 +20,17 @@
 #   role
 #     the significance of this form within the system (INTAKE, EXIT, etc)
 #   status
-#     NOT IMPLEMENTED: aspirational support for draft status
+#     draft, published, or retired. At most one published version per identifier; publishing a draft retires
+#     the previous published version. Retired forms can still be submitted, so existing records stay editable.
 #   definition
 #     JSON field defines the inputs, labels, validation, and mapping to HMIS fields. A JSON-schema exists to validate
 #     the format of the definition
 #   title
 #     User-facing title of the form definition
+#
+# @see docs/features/hmis/hmis-form-definitions.md For roles and the status lifecycle
+# @see docs/features/hmis/hmis-form-resolution.md For how a definition is chosen, and how retired forms behave when editing existing records
+# @see docs/features/hmis/hmis-form-seeding.md For loading definitions from version-controlled JSON
 class Hmis::Form::Definition < ::GrdaWarehouseBase
   self.table_name = :hmis_form_definitions
   acts_as_paranoid
@@ -45,6 +51,10 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   attr_accessor :filter_context
 
   validates :identifier, format: { with: /\A[a-zA-Z][a-zA-Z0-9_-]*\z/, message: 'must contain only alphanumeric characters, underscores, and dashes, and must start with a letter' }
+  # The External Form's path in the public S3 bucket: lowercase segments separated by single slashes, such as pit/pit.html.
+  # Blank input (such as an empty text field) is stored as nil.
+  normalizes :external_form_object_key, with: ->(key) { key.strip.presence }
+  validates :external_form_object_key, allow_nil: true, length: { maximum: 100 }, format: { with: /\A[a-z0-9][a-z0-9._-]*(\/[a-z0-9][a-z0-9._-]*)*\z/, message: 'must contain only lowercase letters, numbers, underscores, dashes, periods, and slashes, and each part must start with a letter or number' }
   # Forms that are managed in version control cannot have more than 1 version. To enforce this, we ensure that the identifier is unique.
   validates_uniqueness_of :identifier, if: :managed_in_version_control?, scope: :data_source_id
 
@@ -103,7 +113,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     :FORM_RULE,
     :PROJECT_CONFIG,
     :CLIENT_ALERT,
-    :FORM_DEFINITION,
+    :FORM_DEFINITION, # Deprecated, this role (and associated form definition row) can be removed in a future release. Kept here for backwards compatibility of deployment.
   ].freeze
 
   # All form roles
@@ -209,15 +219,27 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   }.freeze
   NON_QUESTION_ITEM_TYPES = ['DISPLAY', 'GROUP'].freeze
 
-  # Forms that are editable by users with can_manage_forms permission, and viewable/configurable (e.g. form rules)
-  # by users with can_configure_data_collection (without needing the 'super-admin' permission can_administrate_config)
+  # Forms whose content can be managed by users with can_manage_forms without
+  # needing the super-admin permission can_administrate_config.
   NON_ADMIN_FORM_ROLES = [
     'SERVICE',
     'CUSTOM_ASSESSMENT',
   ].freeze
 
+  # Forms that are not currently managed by the Forms admin tool, so they should not be
+  # listed or configurable (including for super-admins).
+  UNMANAGED_FORM_ROLES = [
+    :CE_REFERRAL_STEP,
+    :REFERRAL, # Deprecated (external ReferralPostings)
+    :REFERRAL_REQUEST, # Deprecated (external ReferralRequests)
+  ].freeze
+
+  # Roles that nobody can configure in the Forms admin tool, including super-admins.
+  # Static forms are always present and enabled, so they take no form rules either.
+  NON_CONFIGURABLE_FORM_ROLES = [*UNMANAGED_FORM_ROLES, *STATIC_FORM_ROLES].freeze
+
   # All form roles
-  use_enum_with_same_key :form_role_enum_map, FORM_ROLES.excluding(:CE)
+  use_enum_with_same_key :form_role_enum_map, FORM_ROLES
   # Form roles that can be used with SubmitForm for editing records
   use_enum_with_same_key :record_form_role_enum_map, FORM_ROLES.excluding(*ASSESSMENT_FORM_ROLES, *STATIC_FORM_ROLES)
   # Form roles for Assessments
@@ -226,8 +248,6 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   use_enum_with_same_key :data_collection_feature_role_enum_map, DATA_COLLECTION_FEATURE_ROLES
   # Form roles that are static
   use_enum_with_same_key :static_form_role_enum_map, STATIC_FORM_ROLES
-  # Form roles that are non-admin; see comment above on NON_ADMIN_FORM_ROLES
-  use_enum_with_same_key :non_admin_form_role_enum_map, NON_ADMIN_FORM_ROLES
 
   scope :exclude_definition_from_select, -> {
     # Get all column names except 'definition'
@@ -243,12 +263,12 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   end
 
   # Forms which this user can resolve and configure in the form editor.
+  # Applies the role denylist from FormDefinitionPolicy#can_configure_form?, so that every listed
+  # form can be opened. Callers are responsible for the can_configure_data_collection check.
+  # `valid` drops legacy roles outside FORM_ROLES, which cannot be resolved at all because
+  # FormDefinition#role is a non-null GraphQL enum.
   scope :configurable_by, ->(user) do
-    # Must be in the user's data source
-    scope = in_data_source(user.hmis_data_source_id)
-    # Must be a non-admin form role, unless the user is a super-admin
-    scope = scope.with_role(Hmis::Form::Definition::NON_ADMIN_FORM_ROLES) unless user.policy_for(Hmis::Form::Definition, policy_type: :form_definition).can_administrate_config?
-    scope
+    in_data_source(user.hmis_data_source_id).valid.where.not(role: NON_CONFIGURABLE_FORM_ROLES)
   end
 
   before_destroy :can_be_destroyed, prepend: true
@@ -288,6 +308,8 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   # This is just to help with local development when switching between branches that support different roles.
   scope :valid, -> { where(role: FORM_ROLES) }
 
+  # Currently has no callers. The Forms admin tool denies static roles through
+  # NON_CONFIGURABLE_FORM_ROLES instead, so nothing depends on this scope.
   scope :non_static, -> { where.not(role: STATIC_FORM_ROLES) }
 
   scope :active, -> do
@@ -340,12 +362,24 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
 
   validate :validate_external_form_object_key
   def validate_external_form_object_key
-    return unless role == 'EXTERNAL_FORM' && external_form_object_key.present?
+    return if external_form_object_key.blank?
 
-    # Ensure that external_form_object_key is not reused across forms with different identifiers
-    object_key_taken = Hmis::Form::Definition.where(external_form_object_key: external_form_object_key).
-      where.not(identifier: identifier).exists?
-    errors.add(:external_form_object_key, 'has already been taken') if object_key_taken
+    # Only External Forms have an object key. Only super-admins (can_administrate_config) can manage External Forms,
+    # so this also ensures that only super-admins can set a key.
+    if role != 'EXTERNAL_FORM'
+      errors.add(:external_form_object_key, :present, message: 'can only be set on External Forms')
+      return
+    end
+
+    # Ensure that external_form_object_key is not held by a draft or published version of another form. Once a form is
+    # retired, its key can be reused. Not scoped to a data source: all External Forms publish to one public bucket.
+    object_key_taken = Hmis::Form::Definition.where(external_form_object_key: external_form_object_key, status: [DRAFT, PUBLISHED]).
+      where.not(identifier: identifier).
+      exists?
+    return unless object_key_taken
+
+    message = 'is already used by a different form. To reuse it, retire the other forms that use it.'
+    errors.add(:external_form_object_key, :taken, message: message, full_message: "External Form Key #{message}")
   end
 
   def self.apply_filters(input)
@@ -583,11 +617,6 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   # if the enrollment and project match
   def project_and_enrollment_match(...)
     instances.map { |i| i.project_and_enrollment_match(...) }.compact.min_by(&:rank)
-  end
-
-  # should use rails attr normalization in rails 7.1 (ActiveRecord::Base::normalizes)
-  def external_form_object_key=(value)
-    super(value.blank? ? nil : value.strip)
   end
 
   # Walk definition items either as open structs or hashes

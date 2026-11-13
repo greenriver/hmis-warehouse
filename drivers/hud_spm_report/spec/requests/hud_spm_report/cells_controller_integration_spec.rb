@@ -97,7 +97,7 @@ RSpec.describe 'HudSpmReport CellsController Integration', type: :request do
     # can_view_projects is granted here, not per-example: User memoizes its effective
     # permissions on first use, setup_report triggers that via HudFilterBase, and Warden
     # hands the view this very instance. Granting later would not be seen.
-    user.legacy_roles << create(:role, can_view_own_hud_reports: true, can_view_projects: true)
+    grant_hud_report(user, 'hud_reports/spms', role: create(:role, can_view_assigned_reports: true, can_view_projects: true))
     sign_in(user)
   end
 
@@ -302,9 +302,10 @@ RSpec.describe 'HudSpmReport CellsController Integration', type: :request do
     end
 
     it 'shows the HMIS ProjectID without a link when the user cannot view projects' do
-      # The controller loads current_user fresh from the database each request; it is never this
-      # `user` object. Revoke it on the persisted role instead
       user.legacy_roles.each { |role| role.update!(can_view_projects: false, can_edit_projects: false) }
+      # sign_in hands the controller this exact `user` instance, which memoized its permissions
+      # during setup_report. Sign in a fresh instance so the revoke is seen.
+      sign_in(User.find(user.id))
 
       get hud_reports_spm_measure_cell_path(
         spm_id: @report.id,

@@ -10,11 +10,11 @@ module HmisDataQualityTool::DocumentExports
   class ReportByClientExcelExport < ::GrdaWarehouse::DocumentExport
     include ApplicationHelper
     def authorized?
-      user.can_view_any_reports? && report_class.viewable_by(user)
+      user.can_view_any_reports? && report_class.viewable_by(user) && report.present?
     end
 
     protected def report
-      @report ||= report_class.find(params['id'])
+      @report ||= report_class.visible_to(user).find_by(id: params['id'])
     end
 
     protected def pivot_details

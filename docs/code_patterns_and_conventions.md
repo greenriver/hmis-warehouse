@@ -1,3 +1,12 @@
+---
+sources:
+  - lib/rubocop/cop/queries/unsafe_bulk_update_sql.rb
+  - lib/rubocop/cop/queries/date_interpolation_in_sql.rb
+  - lib/rubocop/cop/migrations/disable_ddl_transaction.rb
+  - lib/util/hud_helper.rb
+  - drivers/hmis/app/graphql/mutations/clean_base_mutation.rb
+---
+
 # Application Code Patterns and Conventions Guide
 
 This document outlines the preferred patterns and conventions for code contributors. The goal is to improve code consistency and discoverability across the project.
@@ -21,6 +30,7 @@ Note that this document may include code that is only in use in a handful of loc
 - [GraphQL](#graphql)
 - [Testing](#testing)
 - [Background Reports](#background-reports)
+- [Patterns not to repeat](#patterns-not-to-repeat)
 
 ## Server-side views
 
@@ -31,6 +41,25 @@ For a collection of resources on an index page, prefer using a helper to render 
 ```ruby
   render_paginated_list(scope: @data_sets, item_name: 'data set', list_partial: 'list')
 ```
+
+### Preloading auth dependencies on paginated warehouse views
+
+A project-access policy check per row on a page of records N+1s unless data is preloaded first. When the page is paginated, it must be preloaded against the **paginated** page, not the full unpaginated relation — calling `.to_a`/`pluck` on the pre-pagination scope just to gather ids for a preload materializes the whole result set and defeats the pagination.
+
+Where pagination happens depends on who owns it, and the preload call goes wherever the paginated set becomes known:
+
+- **Controller paginates** (e.g. via `pagy`) — preload right after, before rendering:
+
+  ```ruby
+  @pagy, @clients = pagy(scope, items: pagination_limit)
+  current_user.policy_context.preload_project_dependencies(@clients.map(&:project_id).compact.uniq)
+  ```
+
+- **View paginates** (e.g. `render_paginated_list`, which calls `pagy` internally and passes the resulting page as `list` to the partial) — preload inside the partial that receives `list`, not in the controller action that built the pre-pagination scope.
+
+  A download/export format serving the full (unpaginated) list is a separate code path with its own preload over the full set it actually iterates — don't try to share one preload call between a paginated html view and an unpaginated xlsx export of the same action.
+
+Client restriction is part of the same preload. HMIS restriction loads once per request, but retention marks are looked up per client, so a loop that calls `pii_provider`, `client_restricted?`, or `reporting_policy_for_project(client_id:)` needs `current_user.policy_context.preload_client_dependencies(ids)` first, like any other client policy check — see [PII Redaction](features/warehouse/warehouse-auth-policies.md#pii-redaction).
 
 ### View Helper methods
 
@@ -116,6 +145,8 @@ class ProjectsController < ApplicationControllerV2
   end
 ```
 
+The block must return `true` or `false`, and every action must be covered by some `authorize_with`. See [Controller authorization](features/warehouse/warehouse-permissions.md#controller-authorization).
+
 Note, the deprecated legacy pattern uses "require_can_*" helpers. However these do not provide granular enough checks going forward
 
 ```ruby
@@ -126,7 +157,7 @@ class ProjectsController < ApplicationController
 
 ### Authorization on a scope
 
-We should use `ArModel.viewable_by(user)`. Note there are variations of this scope in the code base but we should prefer `viewable_by` over visible_by or other variations.
+We should use `ArModel.viewable_by(user)`. Note there are variations of this scope in the code base (`visible_to`, `visible_by`, etc.) but `viewable_by` is the preferred name.
 
 ## Tracking PII
 
@@ -212,7 +243,11 @@ GrdaWarehouse::Hud::Enrollment.joins(:client).where(c_t[:VeteranStatus].eq(1))
 
 Rely on ActiveRecord relationships over manual table joins.
 
-Avoid passing raw SQL strings to `update_all` / `delete_all` / `update_counters`; on joined relations (e.g. the `.hmis` scope) Rails 8.1 aliases the table and bare columns become ambiguous. See [ActiveRecord, Arel, and Query Best Practices](active-record-arel-and-queries.md) for the full rationale, the range-syntax preference, and the `Queries/UnsafeBulkUpdateSql` cop.
+Avoid passing raw SQL strings to `update_all` / `delete_all` / `update_counters`; on joined relations (e.g. the `.hmis` scope) Rails 8.1 aliases the table and bare columns become ambiguous. Never interpolate a Date or Time into SQL; `Date#to_s` renders a human format in this app, so the SQL silently matches nothing. See [ActiveRecord, Arel, and Query Best Practices](active-record-arel-and-queries.md) for the full rationale, the range-syntax preference, and the `Queries/UnsafeBulkUpdateSql` and `Queries/DateInterpolationInSql` cops.
+
+### Migrations
+
+Never call `disable_ddl_transaction!` in a migration (enforced by the `Migrations/DisableDdlTransaction` cop). Without the wrapping transaction, a failure partway through (for example a lock timeout on a concurrent index build) leaves earlier statements committed while the migration is not recorded as run. The retry on the next deploy then re-runs them and fails, for example with `PG::DuplicateColumn`.
 
 ### Scope naming
 
@@ -239,10 +274,6 @@ A new report driver adds its own `belongs_to` to the shared `HudReports::Univers
 ### Driver-local `BaseController`
 
 HUD-report drivers define their own `<Driver>::BaseController < ::HudReports::BaseController` (not `ApplicationController` directly), and all other controllers in that driver inherit from it. Drivers outside the report framework may inherit `ApplicationController` directly instead — follow whichever base your driver extends.
-
-### `RailsDrivers.loaded` is legacy
-
-`RailsDrivers.loaded << :driver_name` in a driver's feature initializer is boilerplate carried forward through technical debt — all drivers are always loaded. `RailsDrivers.loaded.include?(...)` is legacy code slated for cleanup; do not write new code that gates behavior on it.
 
 ## GraphQL
 
@@ -273,7 +304,7 @@ Do **not** add it on every type. Add it on records with sensitive fields (Client
 
 ```ruby
 # Types::HmisSchema::Client
-# Primary defense is applying the viewable_by / visible_to scope.
+# Primary defense is applying the viewable_by scope.
 def self.authorized?(object, ctx)
   super && ctx[:current_user].policy_for(object, policy_type: :hmis_client).can_view?
 end
@@ -313,7 +344,7 @@ access_field do
 end
 ```
 
-This is the current standard for new access fields ([ADR 0006](adr/0006-policy-based-graphql-access-fields.md)). Legacy `root_can` / `composite_perm` / `can` still exist — don't flag them on sight, but write new fields this way. `current_permission?` is likewise legacy; don't add new usages.
+This is the current standard for new access fields ([ADR 0006](adr/0006-policy-based-graphql-access-fields.md)). Legacy `can` still exists — don't flag it on sight, but write new fields this way. `current_permission?` is likewise legacy; don't add new usages.
 
 ### Mutation authorization
 
@@ -377,3 +408,22 @@ Use factories if possible to create test objects rather than the active record c
 
 Where possible, reports that run in the background should use some shared infrastructure.  For official HUD reports, they should use `HudReports::ReportInstance` and follow patterns used in other HUD reports, like including `render 'hud_reports/index'` and `= render 'hud_reports/show'` in their index and show pages to provide a consistent user experience.  For warehouse reports, `SimpleReports::ReportInstance` should be used where possible, and `= render 'common/background_report/history_filter'`
 and `= render 'common/background_report/history_table'` should be included to present a consistent filtering and history experience.
+
+## Patterns not to repeat
+
+Older forms of these patterns are still common in the code. A common legacy form is not a license to add one more: follow the replacement even when neighboring files do the old thing. Don't refactor legacy occurrences on sight; just avoid new ones.
+
+- `before_action :require_can_*!` on controllers: too coarse: it checks a role flag held anywhere, with no entity scope; use `authorize_with`. See [Authorization on a controller action](#authorization-on-a-controller-action).
+- Per-model `visible_to` / `visible_by` scopes: use `viewable_by`. See [Authorization on a scope](#authorization-on-a-scope).
+- New files under `app/assets/javascripts`, or CoffeeScript: use a Stimulus controller. See [View Asset Management](#view-asset-management).
+- Inline scripts without a CSP nonce, including HAML `:javascript`: see [Content Security Policy nonces for inline scripts](#content-security-policy-nonces-for-inline-scripts).
+- String interpolation followed by `.html_safe`, and hand-rolled Redcarpet: see [Rich Text and Markdown Rendering Safety](#rich-text-and-markdown-rendering-safety).
+- Rails `enum` or literal integers for HUD-coded fields: use `HudHelper.util(hud_version)`. See [HUD-coded fields](#hud-coded-fields-dont-use-enum).
+- Raw SQL strings in `update_all` / `delete_all` / `update_counters`, and dates interpolated into SQL: see [Database Queries](#database-queries).
+- `disable_ddl_transaction!` in migrations: see [Migrations](#migrations).
+- Bare `rescue` or `rescue StandardError`: see [Exception handling](#exception-handling).
+- `is_a?` to choose behavior: ask what the object can do instead (`service.supports_backfill?`). This is a design convention, not a lint; `is_a?` to validate an argument type is fine. See `AGENTS.md`.
+- `ENV` for per-installation settings: see [Installation-specific configuration](#installation-specific-configuration).
+- API keys or hosts in a model column, config file, or `ENV`: see [Storing credentials](#storing-credentials).
+- Editing a shipped fiscal-year report generator for a new HUD spec year: see [Versioned report generators](#versioned-report-generators).
+- GraphQL `BaseMutation`, `Types::BaseAccess.can`, the `permissions:` kwarg on `Types::BaseField`, and `current_permission?`: see [Mutation authorization](#mutation-authorization) and [Access objects](#access-objects-presentational). These check one raw permission and bypass policy requirement resolution; use a policy predicate (`bool_field` with `policy_for`). ADR 0006 lets the legacy helpers coexist during migration; that permits leaving them, not adding them.

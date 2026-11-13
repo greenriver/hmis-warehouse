@@ -1,0 +1,10 @@
+[
+  {
+    "link_id": "income_and_sources",
+    "custom_rule": {
+      "operator": "ALL",
+      "_comment": "collect 4.02 Income and Sources for all projects regardless of funder or type.",
+      "parts": []
+    }
+  }
+]

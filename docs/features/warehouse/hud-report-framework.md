@@ -1,3 +1,15 @@
+---
+sources:
+  - app/models/hud_reports/generator_base.rb
+  - app/models/hud_reports/question_base.rb
+  - app/models/hud_reports/report_instance.rb
+  - app/models/hud_reports/universe_member.rb
+  - app/models/hud_reports/household_context.rb
+  - app/models/concerns/hud_report_archival.rb
+  - app/controllers/hud_reports/base_controller.rb
+  - app/jobs/reporting/hud/run_report_job.rb
+---
+
 # HUD Report Framework
 
 The HUD Report Framework generates compliance reports (APR, CAPER, SPM, etc.) from HMIS data. It handles report lifecycle, data aggregation, and result storage. Individual report drivers implement specific business logic and calculations.
@@ -177,6 +189,12 @@ Reports use several different patterns and are not uniform.
 - Not retry-safe: questions are interdependent
 - Retries are blocked when questions have completed
 
+### Interrupted runs
+
+A worker restart interrupts a running report. A generator with `supports_idempotent_retry?` re-raises so the requeued job resumes from its last checkpoint. Any other generator is marked `Failed` and the job is discarded, so the user creates a new report. For the same reason, any run with `started_at` set raises `NonIdempotentRetryError` on re-run, including one cancelled mid-question.
+
+`reset_question` runs only when `supports_idempotent_retry?` is true. Turning the flag on for a lazy-shared-universe generator makes retries delete the universe that later questions depend on.
+
 ## Helpful commands
 A report instance can be run as follows. Note, can only re-run idempotent reports like this
 ```ruby
@@ -185,13 +203,55 @@ generator = HopwaCaper::Generators::Fy2026::Generator
 Reporting::Hud::RunReportJob.new.perform(generator.name, instance, email: false)
 ```
 
+## Access
+
+Each HUD report controller has a `ReportDefinition` keyed by its index url (`hud_reports/aprs`, `hud_reports/spms`, ...). `HudReports::BaseController` includes `WarehouseReportAuthorization` and resolves the definition from the generator (`HudReports::GeneratorBase.report_definition_url`, which reads the `Rails.application.config.hud_reports` registry). Pages served under a different url than their report (`past_dqs`, `lsa_hics`, the historic PIT/LSA lists, the legacy DQ/SPM result pages) override `related_report` to point at the parent report's definition. Exports check the same definition through `ReportDefinition.url_viewable_by?`.
+
+See [Warehouse Permissions](warehouse-permissions.md#hud-report-access) for how access is granted and what the HUD role flags still mean.
+
+## Fiscal Years and Drivers
+
+A report year is a sibling namespace, not an edit. Each year (`Fy2024`, `Fy2026`, ...) has its own generator and question classes, and old years stay so historical reports still render and drill down. To add a year, copy the newest runnable year into a new namespace, register it in the driver's feature initializer (`config.hud_reports`), and add it to the controller's `possible_generator_classes` and `available_report_versions`. Don't edit a shipped year to meet a new HUD spec.
+
+Registration has two halves. The initializer hash gates running (`RunReportJob` and `QuestionBase` raise for unregistered generators); the controller gates the UI. The legacy Data Quality driver has only the controller half, so its reports can be opened but never run.
+
+Years differ in how much code survives:
+- **Inactive**: listed in the controller as inactive. Question code is intact and would run if queued from a console, but the UI does not offer it.
+- **Stub**: calculation code deleted. Existing reports open, download, and drill down; nothing runs. Examples are APR/CAPER/CE-APR FY2020 (questions have no `run_question!`), SPM FY2020/2023/2024, and HOPWA CAPER FY2024. Never use a stub as the template for a new year.
+
+Each year's default project types should come from `HudHelper.util` for that year's version (see [HUD Utility Versions](hud-utility-versions.md)). PIT FY2025 and HIC FY2022 still pin `'2024'`; don't copy that.
+
+Snapshot tables are shared across years within a driver: APR-family years all write `HudApr::Fy2020::AprClient`, PATH writes `HudPathReport::Fy2020::PathClient`, and PIT FY2025 subclasses the FY2024 `PitClient`. A column change affects every year's drilldowns, and APR universe members always join `HudApr::Fy2020::AprClient`.
+
+`HudApr.current_generator` and `HudSpmReport.current_generator` derive the year from `HudReports::BaseController#default_report_version`. `HudSpmReport.current_generator` raises for any year other than FY2026, so callers outside the drivers (`longitudinal_spm`, `performance_measurement`) break on a year bump until updated. `ce_performance`, `longitudinal_spm`, and `performance_measurement` sit beside the HUD drivers but don't use `GeneratorBase`; they aren't registered in `config.hud_reports`.
+
+### Driver extensions
+
+Core models don't declare driver associations. Each driver adds an `ActiveSupport::Concern` under `extensions/hud_reports/` and the core model (`UniverseMember`, `ReportInstance`) includes it from a hard-coded list. Adding a driver means editing that include list; nothing else registers the concern. Don't gate report code on `RailsDrivers.loaded`: all drivers always load.
+
+Archival is registered the same way: each generator includes its driver's archival concern as its last line, which calls `HudReportArchival.register_archival_generator`.
+
+## Archival
+
+`rake reports:csv:archive_and_purge_hud_reports` (run by the scheduled `reports:csv:archive_and_purge_eligible`) writes finished reports to CSV and deletes the rows once the grace period (60 days by default) has passed. Restoring re-imports the CSVs and clears `purged_at` only. `archived_at` and the CSVs stay, so a second purge doesn't re-archive.
+
+## Gotchas
+
+- Report type is `ReportInstance#report_name`, the generator's title string (for example "Annual Performance Report - FY 2026"). Renaming `generic_title` or `fiscal_year` orphans existing reports from the history list. Archives store the generator class so they survive a rename; the history list doesn't.
+- `report_cells` and `universe_members` have no `dependent:` option. Deleting a report soft-deletes only the instance; cells, members, and snapshot rows stay until archival purge.
+- A cell's members must all come from one snapshot table. `ReportCell` joins on the first member's class, so mixing tables gives wrong counts silently.
+- Question numbers are checkpoint names. Two questions with the same `QUESTION_NUMBER` collide and one is skipped on retry.
+- The manual-run advisory lock counts reports by `report_name`, so two users running the same report year are serialized.
+- `HudSpmReport`'s `ReportInstanceExtension` resolves the default report version when it loads at boot, so `spm_enrollments` points at the current year's table regardless of the instance's own year.
+- `HouseholdContext` rows are pruned daily by the maintenance job once a report is two weeks old. Re-running an old SPM rebuilds them in `prepare_report`.
+
 ## Supported Reports
 
 The framework supports the following HUD reports:
 - **APR** (`/app/drivers/hud_apr`)
 - **CAPER** (`/app/drivers/hopwa_caper`)
-- **Data Quality** (`/app/drivers/hud_data_quality_report`)
-- **HIC** (`/app/drivers/hud_hic`)
+- **Data Quality** (`/app/drivers/hud_data_quality_report`): legacy, kept for past reports. New DQ work goes in `hud_apr`.
+- **HIC** (`/app/drivers/hud_hic`): the tabular version only. A HIC submission is an LSA run with the HIC scope (see [HUD LSA](hud-lsa-report.md)).
 - **LSA** (`/app/drivers/hud_lsa`)
 - **PATH** (`/app/drivers/hud_path_report`)
 - **PIT** (`/app/drivers/hud_pit`)

@@ -4,6 +4,7 @@ on:
     branches:
       - "*"
       - "**/*"
+  workflow_dispatch:
 concurrency:
   group: ${{ github.ref }}-test_kit_fixpoints
   cancel-in-progress: true
@@ -11,8 +12,11 @@ concurrency:
 jobs:
   rebuild_fixpoints:
     runs-on: ubuntu-24.04
-    container: ruby:3.4.9-slim-bookworm
-    if: contains(github.event.head_commit.message, '[gh:rebuild_fixpoints]')
+    container: ruby:3.4.12-slim-trixie
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (vars.CI_AUTO_RUN == 'true' &&
+      contains(github.event.head_commit.message, '[gh:rebuild_fixpoints]'))
 
     permissions:
       contents: read
@@ -51,14 +55,11 @@ jobs:
         ports:
           - "2222:22"
 
-      minio:
-        image: ghcr.io/greenriver/openpath-minio:1.0
+      s3:
+        image: ghcr.io/greenriver/openpath-seaweedfs:1.0
         credentials:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-        env:
-          MINIO_ACCESS_KEY: local_access_key
-          MINIO_SECRET_KEY: local_secret_key
         ports:
           - "9000:9000"
 
@@ -81,8 +82,8 @@ jobs:
       HEALTH_DATABASE_PASS: postgres
       HEALTH_DATABASE_USER: postgres
       HOSTNAME: openpath.host
-      MINIO_ENDPOINT: http://minio:9000
-      USE_MINIO_ENDPOINT: true
+      LOCAL_S3_ENDPOINT: http://s3:9000
+      USE_LOCAL_S3_ENDPOINT: true
       PORT: 80
       RAILS_ENV: test
       REPORTING_DATABASE_ADAPTER: postgresql
@@ -113,8 +114,6 @@ jobs:
       - name: "App setup"
         run: |
           cp config/secrets.yml.sample config/secrets.yml
-          mkdir app/assets/stylesheets/theme/styles
-          touch app/assets/stylesheets/theme/styles/_variables.scss
           cp .rspec.sample .rspec
           cp config/database.yml.ci config/database.yml
 

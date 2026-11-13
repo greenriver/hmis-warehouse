@@ -135,6 +135,9 @@ class Dba::DatabaseBloat
       return
     end
 
+    leftovers = leftover_repack_objects
+    raise "pg_repack objects left by an earlier run in #{ar_base_class}: #{leftovers.join(', ')}. Drop them before repacking." if leftovers.any?
+
     catch(:enough) do
       port = ar_base_class.connection_db_config.configuration_hash[:port].presence || '5432'
       host = File.exist?(ar_base_class.connection_db_config.configuration_hash[:host].to_s) ? CGI.escape(ar_base_class.connection_db_config.configuration_hash[:host]) : ar_base_class.connection_db_config.configuration_hash[:host]
@@ -142,7 +145,9 @@ class Dba::DatabaseBloat
       database = ar_base_class.connection_db_config.configuration_hash[:database]
       # password should be in your .pgpass file
 
-      bloated_tables.each.with_index do |row, i|
+      # count repacks rather than rows so skipped tables can't push the run past MAX_PER_RUN
+      repacked = 0
+      bloated_tables.each do |row|
         if row['real_size_bytes'].to_i > MAX_REPACK_TABLE_SIZE
           Rails.logger.warn("Skipping pg_repack for #{row['tblname']} (#{row['real_size']}): exceeds DBA_MAX_REPACK_TABLE_SIZE limit")
           next
@@ -181,7 +186,8 @@ class Dba::DatabaseBloat
 
         adjust_autovacuum_for(row)
 
-        throw :enough if i + 1 == MAX_PER_RUN && !dry_run
+        repacked += 1
+        throw :enough if repacked == MAX_PER_RUN && !dry_run
       end
     end
   end
@@ -246,6 +252,19 @@ class Dba::DatabaseBloat
     # repack.version() returns a label like "pg_repack 1.5.3"; strip non-version text.
     # [^\d.] = any character that is NOT (\d) a digit or (.) a period
     raw&.gsub(/[^\d.]/, '')&.presence
+  end
+
+  # A pg_repack run that is killed partway leaves its table copy, log table and trigger behind,
+  # holding disk until they are dropped. Repacking on top of them can fill the disk.
+  # @return [Array<String>] leftover repack tables and the tables still carrying a repack trigger
+  def leftover_repack_objects
+    sql = <<~SQL
+      SELECT c.relname::text FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
+      WHERE n.nspname = 'repack' AND c.relkind = 'r'
+      UNION ALL
+      SELECT tgrelid::regclass::text FROM pg_trigger WHERE tgname LIKE '%repack_trigger'
+    SQL
+    always_run(sql).rows.flatten
   end
 
   # Quote PostgreSQL identifiers that need it (mixed case, special characters, etc.)
@@ -369,6 +388,7 @@ class Dba::DatabaseBloat
                 LEFT JOIN pg_class AS toast ON tbl.reltoastrelid = toast.oid
               WHERE NOT att.attisdropped
                 AND tbl.relkind in ('r','m')
+                AND pg_has_role(current_user, tbl.relowner, 'USAGE')
               GROUP BY 1,2,3,4,5,6,7,8,9,10
               ORDER BY 2,3
             ) AS s
@@ -505,6 +525,8 @@ class Dba::DatabaseBloat
                                 -- This avoids running expensive per-index statistics for thousands of small indexes
                                 -- (e.g. child partition indexes from hmis_2022_* tables).
                                 AND ci.relpages > #{(SIZE_CUTOFF / 8192.0).ceil}
+                                -- REINDEX/VACUUM FULL/DROP need ownership; skip relations owned by other roles (e.g. airflow ETL schemas)
+                                AND pg_has_role(current_user, ci.relowner, 'USAGE')
                             ) AS idx_data
                         ) AS ic
                         JOIN pg_catalog.pg_class ct ON ct.oid = ic.tbloid
@@ -658,6 +680,7 @@ class Dba::DatabaseBloat
         LEFT JOIN recent_indexes ri ON ( ri.indexrelname = ui.indexrelname )
       WHERE
         NOT i.indisunique -- ignore unique indexes which serve an additional purpose of ensuring uniqueness
+        AND pg_has_role(current_user, (SELECT relowner FROM pg_class WHERE oid = i.indexrelid), 'USAGE')
         AND ui.indexrelname NOT LIKE 'pg_toast_%'
         AND ui.idx_scan = 0
         AND ui.idx_tup_read = 0

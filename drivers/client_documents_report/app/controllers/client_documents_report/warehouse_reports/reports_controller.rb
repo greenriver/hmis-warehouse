@@ -23,6 +23,7 @@ module ClientDocumentsReport::WarehouseReports
           return unless @initialized
 
           @pagy, @clients = pagy(@report.clients.order(:last_name, :first_name))
+          current_user.policy_context.preload_client_dependencies(@clients.map(&:id))
         end
         format.xlsx do
           filename = "Client Documents - #{Time.current.to_fs(:db)}.xlsx"

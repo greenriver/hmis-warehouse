@@ -33,8 +33,10 @@ module WarehouseReports::HealthEmergency
       respond_to do |format|
         format.html do
           @pagy, @clients = pagy(@clients)
+          current_user.policy_context.preload_client_dependencies(@clients.map(&:id))
         end
         format.xlsx do
+          current_user.policy_context.preload_client_dependencies(@clients.map(&:id))
         end
       end
     end

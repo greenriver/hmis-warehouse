@@ -13,7 +13,11 @@ FactoryBot.define do
 
     trait :with_zip do
       after(:build) do |export|
-        export.content = 'zip-data'
+        export.hmis_zip.attach(
+          io: StringIO.new('zip-data'),
+          filename: 'export.zip',
+          content_type: 'application/zip',
+        )
       end
     end
   end

@@ -23,63 +23,60 @@ const showOrHideElement = (condition, el, className = 'hide') => {
   }
 };
 
+// Search is its own mode: a term searches every report and deselects all categories;
+// choosing a category clears the term.
 export default class extends Controller {
   static get targets() {
     return [
       'category',
       'categoryContent',
-      'item',
-      'results',
+      'input',
       'noResults',
-      'foundCount',
-      'searchAll'
+      'foundCount'
     ];
   }
 
   initialize() {
     this.ACTIVE_CLASS = 'active';
     this.ALL_KEY = 'all';
-    this.searchTerm = '';
     this.search = debounce(this.search, 300);
     this.initCategories();
   }
 
+  // Links to a category from elsewhere on the page (e.g. the site menu) only change the hash.
+  connect() {
+    this.onHashChange = () => this.initCategories();
+    window.addEventListener('hashchange', this.onHashChange);
+  }
+
+  disconnect() {
+    window.removeEventListener('hashchange', this.onHashChange);
+  }
+
   initCategories() {
-    this.selectedCategories = this.activeCategories();
     const activeCategoryHash = window.location.hash;
-    if (activeCategoryHash) {
-      this.changeCategory(
-        null,
-        this.categoryTargets.find((el) => {
-          return el.dataset.hash === activeCategoryHash.substring(1);
-        })
-      );
-    }
+    // An empty hash (e.g. navigating back to the "All" view) selects the first ("all") category.
+    const target = activeCategoryHash
+      ? this.categoryTargets.find((el) => el.dataset.hash === activeCategoryHash.substring(1))
+      : this.categoryTargets[0];
+    this.changeCategory(null, target);
   }
 
   changeCategory(event, categoryTarget = null) {
     const el = categoryTarget || event.target;
     if (!el) return;
-    if (this.selectedCategories === el) {
+    const { category, hash } = el.dataset;
+    if (!this.searchTerm() && el.classList.contains(this.ACTIVE_CLASS)) {
       return;
     }
-    const { category, hash } = el.dataset;
-    if (hash) {
-      window.location.hash = hash;
-    }
-    else {
-      window.location.hash = '';
-    }
-    if (category === this.ALL_KEY) {
-      this.selectAll();
-    } else {
-      this.hideAllCategories();
-      el.classList.add(this.ACTIVE_CLASS);
-      el.setAttribute('aria-pressed', true);
-    }
-    showOrHideElement(category === this.ALL_KEY, this.searchAllTarget);
-    this.selectedCategories = this.activeCategories();
-    this.updateCategoryContent();
+    this.clearSearch();
+    window.location.hash = hash || '';
+    this.deselectAllCategories();
+    el.classList.add(this.ACTIVE_CLASS);
+    el.setAttribute('aria-pressed', true);
+    this.categoryContentTargets.forEach((group) => {
+      showOrHideElement(category !== this.ALL_KEY && group.dataset.category !== category, group);
+    });
   }
 
   keyboardChangeCategory(e) {
@@ -88,50 +85,54 @@ export default class extends Controller {
     }
   }
 
-  selectAll() {
-    this.hideAllCategories();
-    this.categoryTargets[0].classList.add(this.ACTIVE_CLASS);
-  }
-
-  hideAllCategories() {
+  deselectAllCategories() {
     this.categoryTargets.forEach(el => {
       el.classList.remove(this.ACTIVE_CLASS);
       el.setAttribute('aria-pressed', false);
     });
   }
 
-  updateCategoryContent() {
-    let activeCategoryKeys = this.activeCategories();
-    if (activeCategoryKeys[0] === this.ALL_KEY) {
-      activeCategoryKeys =
-        this.categoryContentTargets.map(el => el.dataset.category);
+  searchTerm() {
+    return this.hasInputTarget ? this.inputTarget.value.trim().toLowerCase() : '';
+  }
+
+  clearSearch() {
+    if (this.hasInputTarget) this.inputTarget.value = '';
+    this.element.querySelectorAll('li.hide').forEach(item => item.classList.remove('hide'));
+    this.updateFoundCount(false);
+    showOrHideElement(true, this.noResultsTarget);
+  }
+
+  search() {
+    const term = this.searchTerm();
+    if (!term) {
+      this.changeCategory(null, this.categoryTargets[0]);
+      return;
     }
-    this.categoryContentTargets.forEach((el) => {
-      showOrHideElement(!activeCategoryKeys.includes(el.dataset.category), el);
+    this.deselectAllCategories();
+    // replaceState clears the hash without firing hashchange, which would reselect a category.
+    history.replaceState(null, '', window.location.pathname + window.location.search);
+
+    let foundCount = 0;
+    this.categoryContentTargets.forEach((group) => {
+      // Recently Viewed and Favorites repeat reports from the other groups.
+      if ('searchExcluded' in group.dataset) {
+        showOrHideElement(true, group);
+        return;
+      }
+      let groupCount = 0;
+      group.querySelectorAll('li').forEach((item) => {
+        const title = item.dataset.title || '';
+        const description = item.querySelector('p')?.textContent || '';
+        const matches = `${title} ${description}`.toLowerCase().includes(term);
+        showOrHideElement(!matches, item);
+        if (matches) groupCount++;
+      });
+      showOrHideElement(!groupCount, group);
+      foundCount += groupCount;
     });
-    if (this.searchTerm.length) {
-      this.search(null);
-    }
-  }
-
-  activeCategories(getContentElements = false) {
-    if (getContentElements) {
-      return this.categoryContentTargets.filter((el) => (
-        !el.classList.contains('hide')
-      ));
-    } else {
-      return this.categoryTargets
-        .map(el => el.classList.contains(this.ACTIVE_CLASS) ? el.dataset.category : null)
-        .filter(x => x);
-    }
-  }
-
-  setSearchingState(state) {
-    if (state) {
-      this.resultsTarget.classList.add('searching');
-    } else {
-      this.resultsTarget.classList.remove('searching');
-    }
+    this.updateFoundCount(true, foundCount);
+    showOrHideElement(foundCount > 0, this.noResultsTarget);
   }
 
   updateFoundCount(show = false, count) {
@@ -142,65 +143,5 @@ export default class extends Controller {
     } else {
       this.foundCountTarget.classList.add('hide');
     }
-  }
-
-  search(event) {
-    let term = '';
-    let foundCount = 0;
-    if (event) {
-      const { target } = event;
-      term = target.value;
-    } else {
-      term = this.searchTerm;
-    }
-    this.setSearchingState(true);
-    const activeCategoryContent = this.activeCategories(true);
-    return new Promise((finishSearch) => {
-      activeCategoryContent.forEach((group, groupIndex) => {
-        const searchGroupItems = (groupItems) => {
-          return new Promise((finishItemSearch) => {
-            let foundItemCount = 0;
-            if (groupItems.length == 0) {
-              finishItemSearch(foundItemCount);
-            }
-            groupItems.forEach((item, itemIndex) => {
-              if (!term.length) {
-                showOrHideElement(false, item);
-                finishItemSearch(groupItems.length);
-              }
-              const { title = '' } = item.dataset;
-              const description = item.querySelector('p');
-              const termRegExp = new RegExp(term, 'i');
-              const matches = [
-                title ? title.match(termRegExp) : false,
-                description ? description.textContent.match(termRegExp) : false
-              ];
-              const itemMatches = matches.some(v => v);
-              showOrHideElement(!itemMatches, item);
-              if (itemMatches) {
-                foundItemCount++;
-              }
-              if (groupItems.length === itemIndex + 1) {
-                finishItemSearch(foundItemCount);
-              }
-            });
-          });
-        };
-        searchGroupItems([...group.querySelectorAll('li')])
-          .then((groupItemCount) => {
-            foundCount += groupItemCount;
-            showOrHideElement(!groupItemCount && term.length, group, 'no-results');
-            if (activeCategoryContent.length === groupIndex + 1) {
-              this.updateFoundCount(term.length, foundCount);
-              if (this.hasNoResultsTarget) {
-                showOrHideElement(foundCount === 0, this.noResultsTarget);
-              }
-              this.setSearchingState(false);
-              this.searchTerm = term;
-              finishSearch(foundCount);
-            }
-          });
-      });
-    });
   }
 }

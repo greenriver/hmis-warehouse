@@ -16,7 +16,7 @@
 # Lifecycle:
 #   pre_process! → validate → aggregate → cleanup → ingest! → post_process
 #
-# Ingestion (ingest!) runs four passes per HUD file:
+# Ingestion (ingest!) runs five passes per HUD file:
 #   0. mark_tree_as_dead   — flag all in-scope warehouse rows as pending deletion
 #   1. add_new_data        — upsert staging rows whose hud_key is absent from the
 #                            in-scope warehouse set (upsert handles keys that exist
@@ -26,6 +26,11 @@
 #      b. mark_incoming_older  — staging DateUpdated < warehouse → clear pending deletion
 #      c. apply_updates        — everything still pending → overwrite warehouse from staging
 #   3. remove_pending_deletes — soft-delete anything still flagged
+#   4. remove_exits_before_export_range — soft-delete exits dated before
+#                            ExportStartDate for enrollments in Enrollment.csv
+#                            whose ExitID is not in Exit.csv (outside the
+#                            involved scope, so passes 0-3 can't reach them);
+#                            reporting-period exports only
 #
 # Terminology:
 #   "involved scope" / "in-scope" — the set of warehouse rows this import is
@@ -151,6 +156,7 @@ module HmisCsvImporter::Importer
       return pause_import if @dry_run
 
       ingest!
+      log_timing :post_ingest_cleanup!
       log_timing :invalidate_aggregated_enrollments!
       complete_import
       post_process
@@ -165,6 +171,7 @@ module HmisCsvImporter::Importer
       # and we may have paused for a significant amount of time
       @started_at = Time.current
       ingest!
+      log_timing :post_ingest_cleanup!
       log_timing :invalidate_aggregated_enrollments!
       complete_import
       post_process
@@ -301,6 +308,8 @@ module HmisCsvImporter::Importer
         importer_log.summary[file]['removed']     = klass.prevent_import_deletions? ? 0 : removed_count(klass)
         importer_log.summary[file]['total_count'] = existing_data_scope(klass).distinct.count(klass.hud_key)
       end
+      pre_range_exits = exits_before_export_range_scope
+      importer_log.summary['Exit.csv']['removed'] += pre_range_exits.count if pre_range_exits
     end
 
     # Count of incoming hud_keys that do not yet exist in the warehouse.
@@ -600,6 +609,9 @@ module HmisCsvImporter::Importer
 
         log("Cleaning #{klass.name}")
         cleanups.each do |cleanup_klass|
+          # Post-ingest cleanups run later, against warehouse data, in post_ingest_cleanup!
+          next if cleanup_klass.post_ingest?
+
           cleanup = cleanup_klass.new(
             importer_log: @importer_log,
             date_range: date_range,
@@ -607,6 +619,40 @@ module HmisCsvImporter::Importer
           )
           cleanup.cleanup!
         end
+      end
+    end
+
+    # Run any configured post-ingest cleanups against warehouse data. Unlike
+    # cleanup_data_set! (which operates on staging before ingest!), these run
+    # after ingest! and are scoped to the data source and involved projects.
+    def post_ingest_cleanup!
+      cleanup_klasses = importable_files.each_value.flat_map do |klass|
+        cleanups_from_class(klass, @data_source)
+      end.compact.uniq.select(&:post_ingest?)
+
+      cleanup_klasses.each do |cleanup_klass|
+        log("Post-ingest cleanup #{cleanup_klass.name}")
+        cleanup_klass.new(
+          importer_log: @importer_log,
+          data_source: @data_source,
+          project_ids: involved_project_ids,
+          version: @current_version,
+        ).cleanup!
+      rescue StandardError => e
+        # If any errors arose during post-ingest cleanup, capture in Sentry
+        # but don't re-raise, so that the import is still considered complete.
+        message = "Post-ingest cleanup #{cleanup_klass.name} failed: #{e.message}"
+        log(message)
+        Sentry.capture_exception_with_info(
+          e,
+          'Post-ingest cleanup failed',
+          {
+            cleanup_class: cleanup_klass.name,
+            data_source_id: @data_source.id,
+            importer_log_id: @importer_log.id,
+            project_ids: involved_project_ids,
+          },
+        )
       end
     end
 
@@ -652,6 +698,9 @@ module HmisCsvImporter::Importer
 
       # Sweep all remaining items in a pending delete state
       log_timing :remove_pending_deletes
+
+      # Remove exits before the export range for enrollments this import sent without them
+      log_timing :remove_exits_before_export_range
 
       # Update the effective export end date of the export
       log_timing :set_effective_export_end_date
@@ -748,13 +797,17 @@ module HmisCsvImporter::Importer
           # Set-based UPDATE over the multi-join involved_warehouse_scope; the
           # planner picks a bad nested-loop plan for it, prevent it from doing so.
           GrdaWarehouseBase.disable_nestloop do
-            klass.mark_tree_as_dead(
-              data_source_id: data_source.id,
-              project_ids: involved_project_ids,
-              date_range: date_range,
-              pending_date_deleted: Date.current,
-              importer_log_id: @importer_log.id,
-            )
+            # Cross-data-source writers (e.g. force_full_service_history_rebuild)
+            # can deadlock with this long UPDATE; a retry re-runs every slice.
+            GrdaWarehouseBase.retry_on_deadlock("mark_tree_as_dead #{klass.name}") do
+              klass.mark_tree_as_dead(
+                data_source_id: data_source.id,
+                project_ids: involved_project_ids,
+                date_range: date_range,
+                pending_date_deleted: Date.current,
+                importer_log_id: @importer_log.id,
+              )
+            end
           end
         end
       end
@@ -946,10 +999,54 @@ module HmisCsvImporter::Importer
       end
     end
 
+    def remove_exits_before_export_range
+      scope = exits_before_export_range_scope
+      return unless scope
+
+      removed = scope.count
+      return if removed.zero?
+
+      batch_soft_delete(importable_files['Exit.csv'], scope)
+      note_processed('Exit.csv', removed, 'removed')
+    end
+
+    # Enrollment.csv is authoritative for the exit of each enrollment it contains,
+    # but exits before ExportStartDate fall outside the involved scope, so passes 0-3 never see them.
+    # Only a reporting-period export guarantees every enrollment it sends is active in the range;
+    # an Updated export sends long-closed enrollments without their unchanged exits.
+    # Reads raw staging: a staged enrollment that failed validation, or whose project isn't in
+    # Project.csv, still counts, because the source still reports it without an exit.
+    # Returns nil when the import may not delete these exits.
+    private def exits_before_export_range_scope
+      klass = importable_files['Exit.csv']
+      return unless klass
+      return if custom_augmentation?(klass) || klass.prevent_import_deletions?
+      return unless export_record.ExportPeriodType.to_i == HudHelper.util(importer_log.version).export_period_type('Reporting period', true)
+
+      incoming_enrollment_ids = importable_files['Enrollment.csv'].
+        where(importer_log_id: importer_log.id).
+        select(:EnrollmentID)
+      warehouse_exits = GrdaWarehouse::Hud::Exit.arel_table
+      incoming_exit = klass.
+        where(importer_log_id: importer_log.id).
+        where(klass.arel_table[:ExitID].eq(warehouse_exits[:ExitID])).
+        select(1)
+      GrdaWarehouse::Hud::Exit.
+        where(data_source_id: data_source.id, EnrollmentID: incoming_enrollment_ids).
+        where(warehouse_exits[:ExitDate].lt(date_range.start)).
+        where(incoming_exit.arel.exists.not)
+    end
+
     def involved_project_ids
       @involved_project_ids ||= importable_files['Project.csv'].
         where(importer_log_id: importer_log.id).
         pluck(:ProjectID)
+    end
+
+    def involved_enrollment_ids
+      @involved_enrollment_ids ||= importable_files['Enrollment.csv'].
+        where(importer_log_id: importer_log.id).
+        pluck(:EnrollmentID)
     end
 
     private def existing_destination_data_scope(klass)
@@ -1192,20 +1289,6 @@ module HmisCsvImporter::Importer
       batch_clear_pending_deletion(klass, matched_scope, file_name)
     end
 
-    # Arel node: CAST(col AT TIME ZONE 'UTC' AT TIME ZONE '<local>' AS DATE)
-    # The DB stores naive timestamps in UTC; this converts to the app's local
-    # timezone before extracting the date so day boundaries match
-    private def local_date_cast_arel(conn, arel_column)
-      tz = Time.zone.tzinfo.name
-      utc_tz = Arel::Nodes::SqlLiteral.new("'UTC'")
-      local_tz = Arel::Nodes::SqlLiteral.new(conn.quote(tz))
-
-      at_utc = Arel::Nodes::InfixOperation.new('AT TIME ZONE', arel_column, utc_tz)
-      at_local = Arel::Nodes::InfixOperation.new('AT TIME ZONE', at_utc, local_tz)
-
-      Arel::Nodes::NamedFunction.new('CAST', [Arel::Nodes::As.new(at_local, Arel.sql('DATE'))])
-    end
-
     # Clear pending deletion for warehouse rows where the incoming DateUpdated
     # (by local-timezone date) is strictly older than the warehouse value.
     # The warehouse copy is newer, so we keep it and skip the incoming row.
@@ -1222,9 +1305,8 @@ module HmisCsvImporter::Importer
       incoming_scope = klass.should_import.where(importer_log_id: @importer_log.id).
         where.not(DateUpdated: nil)
 
-      conn = klass.connection
-      staging_date = local_date_cast_arel(conn, staging[:DateUpdated])
-      wh_date      = local_date_cast_arel(conn, wh[:DateUpdated])
+      staging_date = local_date(staging[:DateUpdated])
+      wh_date      = local_date(wh[:DateUpdated])
 
       exists = incoming_scope.
         where(staging[klass.hud_key].eq(wh[klass.hud_key])).
@@ -1630,15 +1712,17 @@ module HmisCsvImporter::Importer
     end
 
     private def queue_hmis_assessment_migration
-      # involved_project_ids are HUD ProjectIDs; MigrateAssessmentsJob expects warehouse Project pks
-      project_pks = GrdaWarehouse::Hud::Project.
-        where(data_source_id: @data_source.id, ProjectID: involved_project_ids).
+      # involved_enrollment_ids are HUD EnrollmentIDs; MigrateAssessmentsJob expects warehouse Enrollment pks
+      enrollment_pks = GrdaWarehouse::Hud::Enrollment.
+        where(data_source_id: @data_source.id, EnrollmentID: involved_enrollment_ids).
         pluck(:id)
-      return if project_pks.blank?
+      return if enrollment_pks.blank?
 
       Hmis::MigrateAssessmentsJob.perform_later(
         data_source_id: @data_source.id,
-        project_ids: project_pks,
+        enrollment_ids: enrollment_pks,
+        upsert: true,
+        generate_empty_intakes: true,
       )
     end
 

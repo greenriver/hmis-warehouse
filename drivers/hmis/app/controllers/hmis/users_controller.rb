@@ -16,10 +16,12 @@ class Hmis::UsersController < Hmis::BaseController
   # This is called by the frontend on initial page load, to determine whether
   # there is a currently active session.
   def show
-    payload = current_user_payload
-    account_error = terminal_account_error
-    payload[:accountError] = account_error if account_error
-    render json: payload
+    account_error = bootstrap_account_error
+    if account_error
+      render json: { impersonating: false, accountError: account_error }
+    else
+      render json: current_user_payload
+    end
   end
 
   # clear etag to prevent caching

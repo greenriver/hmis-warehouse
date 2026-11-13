@@ -2,7 +2,7 @@
 
 ## Overview
 
-CSV archival reduces database size by exporting report data to CSV files in Active Storage (S3/MinIO), then removing the database rows after a configurable grace period (default 60 days). Archived reports remain fully viewable — if a report's data is later needed, it can be restored from the CSV files.
+CSV archival reduces database size by exporting report data to CSV files in Active Storage (S3, or SeaweedFS locally), then removing the database rows after a configurable grace period (default 60 days). Archived reports remain fully viewable — if a report's data is later needed, it can be restored from the CSV files.
 
 Two separate archival systems exist in this codebase:
 

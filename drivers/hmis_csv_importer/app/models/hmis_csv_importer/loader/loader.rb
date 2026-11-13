@@ -35,7 +35,7 @@ module HmisCsvImporter::Loader
     # debug: no longer used
     # remove_files: The directory will be removed after calling #load!
     # deidentified: Passed to HmisCsvImporter::Importer::Importer when #import! is called
-    def initialize(
+    def initialize( # rubocop:disable Metrics/ParameterLists
       data_source_id:,
       file_path: File.join('tmp', 'hmis_import'),
       debug: true,
@@ -45,7 +45,8 @@ module HmisCsvImporter::Loader
       post_processor: nil,
       project_cleanup: true,
       stop_version: nil,
-      dry_run: false
+      dry_run: false,
+      source_id_override: false
     )
       raise ArgumentError, 'file_path must be a directory containing HMIS csv data' unless File.directory?(file_path)
 
@@ -63,6 +64,7 @@ module HmisCsvImporter::Loader
       @stop_version = stop_version
       @loader_log.version = @current_version
       @dry_run = dry_run
+      @source_id_override = source_id_override
     end
 
     def load!(import_log = nil)
@@ -152,7 +154,7 @@ module HmisCsvImporter::Loader
       Zip::File.open(file_path) do |zipped_file|
         zipped_file.each do |entry|
           Rails.logger.info entry.name
-          entry.extract([@local_path, File.basename(entry.name)].join('/'))
+          entry.extract(File.basename(entry.name), destination_directory: @local_path)
         end
       end
       FileUtils.rm(file_path)
@@ -176,6 +178,10 @@ module HmisCsvImporter::Loader
       # UnlinkedRecordFilter logs the rows it discards, so it should see the original
       # PersonalID/ProjectID values, not the ones HudKeyRemapper hashes.
       UnlinkedRecordFilter.filter!(@file_path, loadable_files, @loader_log) if UnlinkedRecordFilter.checked?(data_source)
+
+      # Digests the vendor's EnrollmentID/PersonalID, so it must run before HudKeyRemapper
+      # hashes them; HudKeyRemapper then hashes the new CurrentLivingSitID like any hud_key.
+      CurrentLivingSitIdRegenerator.regenerate!(@file_path, loadable_files, @loader_log) if CurrentLivingSitIdRegenerator.checked?(data_source)
 
       # ProjectFilter must run against the same PersonalID/ProjectID values already in the
       # warehouse, so it has to see the CSVs after HudKeyRemapper hashes them, not before.
@@ -400,6 +406,10 @@ module HmisCsvImporter::Loader
         return false
       end
       source_id = @export[:SourceID]
+      if @source_id_override
+        log("SourceID check overridden: Export.csv SourceID '#{source_id}', data source source_id '#{data_source.source_id}'")
+        return true
+      end
       return true if data_source.source_id.blank? || data_source.source_id.casecmp(source_id)&.zero?
 
       # Construct a valid file_path for add_error

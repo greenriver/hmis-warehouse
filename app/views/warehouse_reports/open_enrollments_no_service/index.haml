@@ -21,7 +21,9 @@
 
     %tbody
       - @entries.each do |entry|
-        - client_name = "#{@clients[entry[:client_id]]&.fetch(:FirstName)} #{@clients[entry[:client_id]]&.fetch(:LastName)}"
+        - client_data = @clients[entry[:client_id]]
+        - policy = current_user.reporting_policy_for_project(project_id: entry.project.id, mode: :browse, client_id: entry[:client_id])
+        - client_name = GrdaWarehouse::PiiProvider.from_attributes(policy: policy, first_name: client_data&.fetch(:FirstName), last_name: client_data&.fetch(:LastName)).full_name
         %tr
           %td= link_to_if can_view_clients?, client_name, appropriate_client_path(entry[:client_id])
           %td= link_to entry.project.name(current_user), project_path(entry.project.id)

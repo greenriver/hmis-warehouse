@@ -1,13 +1,23 @@
+---
+sources:
+  - drivers/hopwa_caper/app/models/hopwa_caper/generators/fy2026/generator.rb
+  - drivers/hopwa_caper/app/models/hopwa_caper/generators/fy2024/generator.rb
+  - drivers/hopwa_caper/app/models/hopwa_caper/extensions/hud_reports/report_instance_extension.rb
+  - drivers/hopwa_caper/app/models/hopwa_caper/enrollment.rb
+  - drivers/hopwa_caper/app/models/hopwa_caper/service.rb
+---
+
 # HOPWA CAPER
 
 The HOPWA CAPER feature produces the HUD-required Consolidated Annual Performance and Evaluation Report for Housing Opportunities for Persons With AIDS (HOPWA) grantees. It packages HMIS warehouse data into the CAPER workbook format. Note, not all sheets in the HOPWA CAPER are implemented as some data can not be sourced from an HMIS.
 
-The report lives under the HUD Reports, use `HopwaCaper::BaseController` as an entry point.
+The report lives under the HUD Reports, use `HopwaCaper::BaseController` as an entry point. FY2026 is the only runnable year. The FY2024 generator is a stub that raises `NotImplementedError`, so it can't be queued or re-run.
 
 ## Data Preparation Pipeline
 - **Filtering via ServiceHistoryEnrollment:** The generator uses `ServiceHistoryEnrollment` to identify enrollments within the report scope. This denormalized table supports date-range and project filtering.
 - **Snapshotting from source records:** The generator retrieves canonical HUD enrollment records and their associations (services, income benefits, disabilities, funders).
-- **Filtered staging tables:** Each run populates two report-scoped staging tables: `HopwaCaper::Enrollment` and `HopwaCaper::Service`. Services include both HUD services and custom services, with denormalized category and type names.
+- **Filtered staging tables:** Each run populates three report-scoped staging tables: `HopwaCaper::Enrollment`, `HopwaCaper::Service`, and `HopwaCaper::Funder`. Services include both HUD services and custom services, with denormalized category and type names, and look back 15 years (TBRA has a 15-year lookback).
+- **Re-runs:** In development, `prepare_report` clears the staging rows first so a re-run rebuilds them. Elsewhere it appends and ignores duplicates.
 - **Uniform client attributes:** After importing enrollments, `ensure_uniform_client_attrs` normalizes age, HIV indicators, and viral load suppression across all enrollments for the same warehouse client. This prevents demographic aggregations from varying when a client has overlapping enrollments with inconsistent intake answers.
 - **Enrichment with Custom Assessment Data:** The pipeline includes a specialized step (`populate_atc_data`) that enriches enrollment records with "Access to Care" outcomes sourced from custom assessments. This process uses a lookback mechanism to find the most recent valid response (Yes/No), ignoring blank or null entries in newer assessments to preserve historical accuracy.
 - **Household eligibility tagging:** `update_hopwa_eligibility` assigns a single HOPWA-eligible member per household (preferring an HIV-positive head of household). This resolves cases where multiple members qualify.
@@ -17,6 +27,22 @@ The report lives under the HUD Reports, use `HopwaCaper::BaseController` as an e
 Household counts follow the HUD HMIS reporting glossary definition: "distinct count of personal IDs of all heads of households." When a household has multiple enrollments during the reporting period (e.g., enrolling at different projects), they are counted only once by deduplicating on the HoH.
 
 While most activities (TBRA, PHP, Facility) define "served" based on project enrollment dates, **STRMU counts are strictly service-based**. A household is only considered served by STRMU if they received a documented financial assistance payment during the reporting period. This ensures consistency between the expenditure totals and the household counts reported on both the STRMU and Access to Care sheets. Services provided to any member of a household are attributed to the household by joining to the Head of Household's record via the shared `report_household_id`.
+
+## Facility-Based Housing: Leasing vs. Operating
+The HOPWA CAPER has no HMIS programming specification, so the Facility-Based Housing sheets (ST-TFBH, P-FBH) apply the CAPER workbook glossary to the data HMIS has.
+
+Leasing and Operating describe how the project spends HOPWA funds on its facility, not the assistance paid on a client's behalf. The workbook glossary defines them as follows:
+- **Leasing Costs:** "Costs used to lease all or a portion of a building as needed to provide housing to eligible households… The lease is always in the organization's name."
+- **Operating Costs:** "Costs of operating a housing facility owned or leased by the grantee or project sponsor…"
+- **Facility-Based Housing Assistance:** "Leasing, operating, and hotel/motel expenditures to support units or facilities including… short-term facilities…"
+
+Operating costs are eligible whether a facility is owned or leased, so Operating is the one category that can apply to any facility. HMIS has no field that records whether a facility is owned or leased: funding source 2.06 has one option per HOPWA component, and Housing Type 2.02 records only site-based vs. tenant-based. The HOPWA Program HMIS Manual describes the Short-Term Housing component as "facility-based housing – leasing". That describes the funding component and is not a reporting rule.
+
+The sheets report the following:
+- Every enrolled household is counted under Operating support.
+- The funder daily rate is reported as the Operating cost.
+- The Leasing cost and Other rows are left blank.
+- A household that received a security or utility deposit (HOPWA Financial Assistance) during the reporting period is also counted under Leasing and under "more than one type". This is a team decision that departs from the glossary, which lists security deposits and utility hook-up fees under Permanent Housing Placement. The HOPWA Program HMIS Manual's Permanent Housing Placement instructions also record security and utility deposits with W2 Financial Assistance.
 
 ## Question Sheets and Builders
 - **Sheet architecture:** The FY 2026 generator enumerates sheet classes. Each inherits from `HopwaCaper::Generators::Fy2026::Sheets::Base` or `BaseProgramSheet`, which wrap `HudReports::QuestionSheet` and provide helpers for enrollment scoping, cell creation, and household table generation.

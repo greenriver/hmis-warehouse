@@ -497,15 +497,16 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
   context 'when config va is in affect' do
     before do
       GrdaWarehouse::Config.delete_all
+      create :config_va
       GrdaWarehouse::Config.invalidate_cache
-      # mimic implicit consent since we aren't using Identify Duplicates
-      GrdaWarehouse::Hud::Client.destination.update_all(
-        housing_release_status: GrdaWarehouse::Hud::Client.full_release_string,
-      )
+      # Under Consent::Implied every client without a signed release holds implied consent
+      GrdaWarehouse::Hud::Client.destination.update_all(housing_release_status: Consent::Implied.no_release_string)
+      GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask.rebuild_clients(GrdaWarehouse::Hud::Client.destination.pluck(:id))
       # VA has no window visible data sources
       window_visible_data_source.update(visible_in_window: false)
     end
-    let!(:config) { create :config_va }
+    after { GrdaWarehouse::Config.invalidate_cache }
+
     let!(:user) { create :user }
 
     describe 'and the user does not have a role' do

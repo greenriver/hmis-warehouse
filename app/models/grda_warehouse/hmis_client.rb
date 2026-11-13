@@ -58,7 +58,10 @@ class GrdaWarehouse::HmisClient < GrdaWarehouseBase
 
     GrdaWarehouse::Hud::Client.revoke_expired_consent
     # all active consent gets a full release
-    consent_active.preload(:destination_client).find_each(&:maintain_client_consent)
+    changed_ids = consent_active.preload(:destination_client).find_each.filter_map do |hmis_client|
+      hmis_client.destination_client.id if hmis_client.maintain_client_consent
+    end
+    GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask.new._perform(client_ids: changed_ids) if changed_ids.any?
   end
 
   def maintain_client_consent

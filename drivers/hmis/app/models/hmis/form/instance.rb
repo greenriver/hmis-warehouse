@@ -36,6 +36,12 @@
 #   The application picks one form using InstanceProjectMatch/InstanceEnrollmentMatch ranking logic.
 # - INCLUSIVE roles (Services, Custom Assessments): ALL matching forms are displayed.
 #   If any Form Instance enables a form for a project (by project, type, org, etc.), it appears.
+#
+# Note that rules only select forms for *new* data entry. An existing record is edited with the definition
+# recorded on its form processor, which may be retired or no longer enabled by any rule.
+#
+# @see docs/features/hmis/hmis-form-resolution.md For rule ranking, exclusive vs inclusive roles, and item-level filtering
+# @see docs/features/hmis/hmis-form-definitions.md For form roles and the definition status lifecycle
 class Hmis::Form::Instance < ::GrdaWarehouseBase
   include Hmis::Concerns::HmisArelHelper
   self.table_name = :hmis_form_instances

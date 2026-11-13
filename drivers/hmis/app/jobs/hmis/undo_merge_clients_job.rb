@@ -20,6 +20,9 @@
 # - Does not restore legacy ReferralHouseholdMember rows
 # - Does not manually restore WarehouseClient links; warehouse_identify_duplicate_clients (queued below)
 #   re-establishes destination client assignments.
+# - Does not move a warehouse restriction back (known gap). MergeClientsJob carried it to the
+#   retained client's destination, which stays restricted. The restored client is unrestricted if
+#   duplicate identification puts it under a different destination.
 # - Destroys the ClientMergeHistory row on success so clients no longer appear linked in search;
 #   the ClientMergeAudit is retained for audit purposes.
 module Hmis
@@ -120,8 +123,10 @@ module Hmis
       return if updated_enrollment_ids.empty?
 
       updated_enrollment_scope = Hmis::Hud::Enrollment.where(id: updated_enrollment_ids)
-      HmisDataCleanup::Util.fix_incorrect_personal_id_references!(
-        enrollment_scope: updated_enrollment_scope,
+      Hmis::Hud::DataIntegrity::FixIncorrectPersonalIdReferences.run!(
+        data_source_id: retained_client.data_source_id,
+        # FixIncorrectPersonalIdReferences expects Enrollment.EnrollmentID, not Enrollment.id (database PK)
+        enrollment_ids: updated_enrollment_scope.pluck(:EnrollmentID),
         dry_run: dry_run,
       )
 

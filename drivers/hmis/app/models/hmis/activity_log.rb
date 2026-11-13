@@ -58,6 +58,62 @@ class Hmis::ActivityLog < ApplicationRecord
 
   scope :unprocessed, -> { where(processed_at: nil) }
 
+  # `range` is a Date..Date; created_at is a UTC instant, so bare Date bounds would drop
+  # evening (Eastern) activity on the last day.
+  scope :created_in_range, ->(range:) do
+    where(created_at: range.begin.beginning_of_day..range.end.end_of_day)
+  end
+
+  USER_SUMMARY_INDEX_NAME = 'index_hmis_activity_logs_on_created_at_and_user_id'
+
+  # Same shape as ActivityLog.export_rows. data_source lives in the warehouse database, so its
+  # name is mapped in Ruby rather than joined.
+  def self.export_rows(user_id: nil, range: 1.years.ago..Time.current, limit: nil)
+    columns = {
+      user_id: 'HMIS User ID',
+      data_source_id: 'Data Source',
+      operation_name: 'Operation',
+      header_page_path: 'Page',
+      created_at: 'Access Time',
+      session_hash: 'Session',
+      ip_address: 'IP Address',
+      referer: 'Referrer',
+    }
+    scope = where(created_at: range)
+    scope = scope.where(user_id: user_id) if user_id.present?
+    scope = scope.limit(limit) if limit
+
+    Enumerator.new do |rows|
+      rows << columns.values
+      data_source_names = GrdaWarehouse::DataSource.hmis.pluck(:id, :name).to_h
+      scope.in_batches do |batch|
+        batch.pluck(*columns.keys).each do |values|
+          row = columns.keys.zip(values).to_h
+          row[:data_source_id] = data_source_names[row[:data_source_id]]
+          row[:header_page_path] = row[:header_page_path]&.gsub(/\?.*/, '')
+          row[:referer] = row[:referer]&.gsub(/\?.*/, '')
+          row[:created_at] = row[:created_at].to_fs(:db)
+          rows << row.values
+        end
+      end
+    end
+  end
+
+  # Build an index by a TaskQueue task rather than a migration because this table gets heavy use and we want to build concurrently.
+  # This is an idempotent build:
+  # If the index exists and is valid, do nothing
+  # If the index is invalid, drop it and rebuild it
+  # If the index does not exist, create it
+  def self.ensure_user_summary_index!
+    valid = connection.select_value(<<~SQL)
+      SELECT i.indisvalid FROM pg_index i JOIN pg_class c ON c.oid = i.indexrelid WHERE c.relname = #{connection.quote(USER_SUMMARY_INDEX_NAME)}
+    SQL
+    return if valid == true
+
+    connection.remove_index(table_name, name: USER_SUMMARY_INDEX_NAME, algorithm: :concurrently) if valid == false
+    connection.add_index(table_name, [:created_at, :user_id], name: USER_SUMMARY_INDEX_NAME, algorithm: :concurrently)
+  end
+
   # Logically HmisActivityLog is HABTM to clients and enrollments. However due to the database boundary, we do not
   # define active record associations for those; the joins from such associations would be invalid sql.
   #

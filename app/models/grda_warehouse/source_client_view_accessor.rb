@@ -51,6 +51,8 @@ class GrdaWarehouse::SourceClientViewAccessor
       source_client_ids = GrdaWarehouse::WarehouseClient.where(destination_id: destination_client_ids).pluck(:source_id)
       return if source_client_ids.empty?
 
+      @user.policy_context.preload_client_dependencies(source_client_ids)
+
       source_clients = @block.call(source_client_ids)
       source_clients.each do |client|
         key = client.destination_client&.id

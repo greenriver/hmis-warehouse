@@ -1,0 +1,16 @@
+[
+  {
+    "link_id": "R10",
+    "custom_rule": {
+      "operator": "ALL",
+      "_comment": "collect R10 Pregnancy Status for Coordinated Entry projects.",
+      "parts": [
+        {
+          "variable": "projectType",
+          "operator": "EQUAL",
+          "value": 14
+        }
+      ]
+    }
+  }
+]
