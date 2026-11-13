@@ -240,8 +240,8 @@ jobs:
       # 1. Remove the fixtures from `drivers/datalab_testkit/spec/fixpoints/`
       # 2. Replace the source and result files in `drivers/datalab_testkit/spec/fixtures` and on S3
       # 3. Re-run the tests  rspec drivers/hud_apr/spec/models/fy2024/datalab_2_0_spec.rb
-      # 4. Compress the newly generated files (`gzip -k -n warehouse_test.sql warehouse_app_test.sql`)
-      #    and replace the fixpoint files in S3 with the .gz copies
+      # 4. Update the fixpoint in S3 from the newly generated file, gzipped
+      #    (see docs/features/warehouse/ci-test-data.md)
       - name: "Fetch testkit fixpoint files"
         uses: ./.github/workflows/s3_test_data
         with:

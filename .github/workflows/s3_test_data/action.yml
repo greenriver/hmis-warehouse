@@ -1,3 +1,5 @@
+# @see docs/features/warehouse/ci-test-data.md (data sets, key setup and rotation)
+#
 ## Call from the caller workflow after AWS credentials are configured:
 # - name: "Fetch testkit source files"
 #   uses: ./.github/workflows/s3_test_data
