@@ -32,7 +32,7 @@ County-specific behavior belongs in this driver. `drivers/hmis` may call `HmisEx
 - **Legacy referral postings.** The inbound LINK referral endpoint was removed (it was last called 2025-09-30). Existing postings remain. Postings from LINK have an `identifier`; HMIS-originated postings do not. Status changes are restricted to the transitions in `ReferralPosting::OLD_STATUS_TO_VALID_NEW_STATUS`.
 - **Client involvements (inbound).** `GET /hmis_external_api/ac_hmis/client_involvements` returns enrollment history, including client names, for a list of MCI IDs. It is authorized only by an API key from `InboundApiConfiguration`, so treat it as PII-sensitive. The program involvements endpoint was removed.
 - **LINK client is deprecated.** Its only method, `update_referral_posting_status`, is still used for legacy postings. Don't add new `LinkApi` methods or write to `UnitAvailabilitySync`.
-- **MPER** has no HTTP client. It is local lookups only: `ProjectID` is the MPER id, and unit types resolve through `ExternalId`. It is marked for removal but still used.
+- **MPER** has no HTTP client and no import. Only its `ExternalId` namespace (`Mper::SYSTEM_ID`, `ac_hmis_mper`) is still used, for unit-type mappings (`Hmis::UnitType#mper_id`, the `seed_ac_hmis_unit_types` task). The `Mper` lookup helpers are unused. It is marked for removal.
 - **Exports.** SFTP exports to the county data warehouse use the `ac_data_warehouse_sftp_server` credential.
 
 ## TC HMIS importers
