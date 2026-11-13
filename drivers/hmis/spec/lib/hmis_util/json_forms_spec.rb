@@ -207,6 +207,15 @@ RSpec.describe HmisUtil::JsonForms do
   end
 
   describe 'fragment resolution' do
+    it 'keeps R4, R5, and R6 together in the default Employment & Education section' do
+      described_class.new(data_source_id: data_source.id).seed_all
+
+      intake_form = Hmis::Form::Definition.where(identifier: 'base-intake', role: :INTAKE).sole
+      group = nil
+      intake_form.walk_definition_nodes { |node| group = node if node['link_id'] == 'employment_education' }
+      expect(group['item'].map { |child| child['link_id'] }).to eq(['R4', 'R5', 'R6'])
+    end
+
     it 'resolves fragments in form definitions (smoke-test)' do
       described_class.new(data_source_id: data_source.id).seed_all
 
