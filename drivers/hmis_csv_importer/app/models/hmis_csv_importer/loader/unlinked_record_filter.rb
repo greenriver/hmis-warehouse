@@ -60,7 +60,7 @@ module HmisCsvImporter::Loader
       return Set.new unless File.exist?(file)
 
       ids = Set.new
-      CSV.foreach(file, headers: true, header_converters: :downcase) do |row|
+      PreProcessCsv.foreach(file) do |row|
         ids << row[column.downcase]
       end
       ids
@@ -74,22 +74,16 @@ module HmisCsvImporter::Loader
       removed_enrollment_ids = Set.new
       kept_enrollment_ids = Set.new
       discarded_rows = []
-      Tempfile.create do |clean_file|
-        CSV.open(clean_file, 'wb') do |csv|
-          csv << CSV.parse_line(File.open(file, &:readline))
-          CSV.foreach(file, headers: true, header_converters: :downcase) do |row|
-            if allowed_personal_ids.include?(row['personalid']) && allowed_project_ids.include?(row['projectid'])
-              kept_enrollment_ids << row['enrollmentid']
-              csv << row
-            else
-              removed_enrollment_ids << row['enrollmentid']
-              reason = allowed_personal_ids.include?(row['personalid']) ? 'no_matching_project_id' : 'no_matching_personal_id'
-              discarded_rows << build_discarded_row(loader_log: loader_log, file_name: 'Enrollment.csv', klass: klass, row: row, reason: reason)
-              import_discarded_rows!(discarded_rows) if discarded_rows.size >= NOTE_IMPORT_BATCH_SIZE
-            end
-          end
+      PreProcessCsv.rewrite!(file) do |row, csv|
+        if allowed_personal_ids.include?(row['personalid']) && allowed_project_ids.include?(row['projectid'])
+          kept_enrollment_ids << row['enrollmentid']
+          csv << row
+        else
+          removed_enrollment_ids << row['enrollmentid']
+          reason = allowed_personal_ids.include?(row['personalid']) ? 'no_matching_project_id' : 'no_matching_personal_id'
+          discarded_rows << build_discarded_row(loader_log: loader_log, file_name: 'Enrollment.csv', klass: klass, row: row, reason: reason)
+          import_discarded_rows!(discarded_rows) if discarded_rows.size >= NOTE_IMPORT_BATCH_SIZE
         end
-        FileUtils.mv(clean_file, file)
       end
       import_discarded_rows!(discarded_rows)
       [removed_enrollment_ids, kept_enrollment_ids]
@@ -105,21 +99,15 @@ module HmisCsvImporter::Loader
       return unless File.exist?(file)
 
       discarded_rows = []
-      Tempfile.create do |clean_file|
-        CSV.open(clean_file, 'wb') do |csv|
-          csv << CSV.parse_line(File.open(file, &:readline))
-          CSV.foreach(file, headers: true, header_converters: :downcase) do |row|
-            enrollment_id = row['enrollmentid']
-            if kept_enrollment_ids.include?(enrollment_id)
-              csv << row
-            else
-              reason = removed_enrollment_ids.include?(enrollment_id) ? 'orphaned_child_record' : 'orphaned_enrollment_record'
-              discarded_rows << build_discarded_row(loader_log: loader_log, file_name: file_name, klass: klass, row: row, reason: reason)
-              import_discarded_rows!(discarded_rows) if discarded_rows.size >= NOTE_IMPORT_BATCH_SIZE
-            end
-          end
+      PreProcessCsv.rewrite!(file) do |row, csv|
+        enrollment_id = row['enrollmentid']
+        if kept_enrollment_ids.include?(enrollment_id)
+          csv << row
+        else
+          reason = removed_enrollment_ids.include?(enrollment_id) ? 'orphaned_child_record' : 'orphaned_enrollment_record'
+          discarded_rows << build_discarded_row(loader_log: loader_log, file_name: file_name, klass: klass, row: row, reason: reason)
+          import_discarded_rows!(discarded_rows) if discarded_rows.size >= NOTE_IMPORT_BATCH_SIZE
         end
-        FileUtils.mv(clean_file, file)
       end
       import_discarded_rows!(discarded_rows)
     end
@@ -131,7 +119,6 @@ module HmisCsvImporter::Loader
       RowProcessingNote.import(discarded_rows)
       discarded_rows.clear
     end
-    private_class_method :import_discarded_rows!
 
     def self.build_discarded_row(loader_log:, file_name:, klass:, row:, reason:)
       ordered_values = klass.hud_csv_headers.map { |header| row[header.to_s.downcase] }
@@ -145,6 +132,5 @@ module HmisCsvImporter::Loader
         reason: reason,
       }
     end
-    private_class_method :build_discarded_row
   end
 end

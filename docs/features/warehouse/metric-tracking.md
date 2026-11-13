@@ -1,3 +1,11 @@
+---
+sources:
+  - app/models/grda_warehouse/monitoring/metric_definition.rb
+  - app/models/grda_warehouse/monitoring/tasks/metric_snapshot_collector.rb
+  - app/jobs/collect_client_metrics_job.rb
+  - lib/tasks/grda_warehouse.rake
+---
+
 # Threshold Monitoring System - Architecture
 
 ## Overview
@@ -221,7 +229,9 @@ Only calculate metrics for entities with recent activity:
 
 Collection runs once per day; `config/schedule.rb` is the authority on when: it schedules the `grda_warehouse:collect_client_metrics` rake task (`lib/tasks/grda_warehouse.rake`), which runs `CollectClientMetricsJob` inline.
 
-Integrated with TaskQueue for initialization: `MetricDefinition.maintain!` creates/updates metric definitions on startup
+The collector calls `MetricDefinition.maintain!` at the start of every run, which seeds a definition per calculator (under an advisory lock, so admin-edited thresholds survive) plus one `csv_row_count_*` definition per allowed HMIS CSV file. Definitions are not seeded through `TaskQueue`.
+
+If a calculator's data is not yet stable (`data_stable?` is false), it is skipped and the job re-enqueues itself for the skipped metrics every five minutes until 10 AM (`RETRY_DEADLINE_HOUR`), then gives up for the day.
 
 ## Data Retention Strategy
 
@@ -380,8 +390,8 @@ Metrics can drive alerts through change detection.  Alerts for system-level thre
 2. **Register Calculator**
    - Add to `available_calculators` array in `MetricDefinition`
 
-3. **Run Maintenance Task**
-   - `MetricDefinition.maintain!` will create the metric definition
+3. **Seed the definition**
+   - The next collection run calls `MetricDefinition.maintain!`, which creates it
 
 4. **Enable the New Threshold**
    - Visit the threshold monitoring page in the admin section and enable the threshold monitoring

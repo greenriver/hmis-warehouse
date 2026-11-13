@@ -17,7 +17,7 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Youth::Export, type: :model do
     let!(:hmis_ds) { create(:hmis_primary_data_source) }
     let!(:hmis_user) { create(:hmis_user, data_source: hmis_ds) }
     let!(:organization) { create(:hud_organization, data_source: hmis_ds) }
-    let!(:project) { create(:hud_project, data_source: hmis_ds, OrganizationID: organization.OrganizationID) }
+    let!(:project) { create(:hud_project, data_source: hmis_ds, OrganizationID: organization.OrganizationID, ProjectType: HudHelper.util.residential_project_type_ids.first) }
 
     let!(:restricted_source_client) { create(:hmis_hud_client, data_source: hmis_ds, first_name: 'Restricted', last_name: 'Client') }
     let!(:restricted_destination_client) { create(:grda_warehouse_hud_client, FirstName: 'Restricted', LastName: 'Client', DOB: 20.years.ago.to_date) }
@@ -32,9 +32,8 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Youth::Export, type: :model do
 
     let(:entry_date) { 6.months.ago.to_date }
 
-    # `client_scope` joins to `clients_within_projects` whenever `filter.all_projects?` is false,
-    # so each destination client needs a `ServiceHistoryEnrollment` open in `project` during the
-    # filter's date range, independent of whether `all_projects?` resolves true or false.
+    # `client_scope` joins to `clients_within_projects`, so each destination client needs a
+    # `ServiceHistoryEnrollment` open in `project` during the filter's date range.
     let!(:restricted_she) { create(:she_entry, client: restricted_destination_client, project: project, enrollment: restricted_source_enrollment, data_source_id: hmis_ds.id, project_type: project.ProjectType, first_date_in_program: entry_date, last_date_in_program: nil) }
     let!(:open_she) { create(:she_entry, client: open_destination_client, project: project, enrollment: open_source_enrollment, data_source_id: hmis_ds.id, project_type: project.ProjectType, first_date_in_program: entry_date, last_date_in_program: nil) }
 
@@ -83,6 +82,63 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Youth::Export, type: :model do
       restricted_row = row_by_header(export.headers_for_report, rows, key: restricted_destination_client.id)
 
       expect(restricted_row.keys).not_to include('First Name', 'Last Name')
+    end
+
+    # Picking every residential project the user can view must not widen `client_scope`
+    # to clients the user can't report on
+    context 'when the selection covers every residential project the user can view' do
+      let!(:hidden_project) { create(:hud_project, data_source: hmis_ds, OrganizationID: organization.OrganizationID, ProjectType: HudHelper.util.residential_project_type_ids.first) }
+      let!(:hidden_client) { create(:grda_warehouse_hud_client, FirstName: 'Hidden', LastName: 'Client', DOB: 20.years.ago.to_date) }
+      let!(:hidden_she) { create(:she_entry, client: hidden_client, project: hidden_project, data_source_id: hmis_ds.id, project_type: hidden_project.ProjectType, first_date_in_program: entry_date, last_date_in_program: nil) }
+
+      it 'excludes clients enrolled only in projects the user cannot view' do
+        expect(export.client_scope.distinct.pluck(:id)).to contain_exactly(restricted_destination_client.id, open_destination_client.id)
+      end
+    end
+
+    context 'with a non-residential project' do
+      let!(:services_only_project) { create(:hud_project, data_source: hmis_ds, OrganizationID: organization.OrganizationID, ProjectType: 6) } # SSO
+      let!(:services_only_client) { create(:grda_warehouse_hud_client, FirstName: 'Services', LastName: 'Only', DOB: 20.years.ago.to_date) }
+      let!(:services_only_she) { create(:she_entry, client: services_only_client, project: services_only_project, data_source_id: hmis_ds.id, project_type: 6, first_date_in_program: entry_date, last_date_in_program: nil) }
+      let(:selected_project_ids) { [services_only_project.id] }
+      let(:viewable_project_ids) { [project.id, services_only_project.id] }
+      let(:export_options) do
+        {
+          user_id: running_user.id,
+          start: 1.year.ago.to_date,
+          end: Date.current,
+          project_ids: selected_project_ids,
+        }
+      end
+
+      before do
+        Rails.cache.clear
+        collection.set_viewables({ projects: viewable_project_ids })
+      end
+
+      context 'when only that project is selected' do
+        it 'includes only clients enrolled in that project' do
+          expect(export.client_scope.distinct.pluck(:id)).to contain_exactly(services_only_client.id)
+        end
+      end
+
+      context 'when nothing is selected' do
+        let(:selected_project_ids) { [] }
+
+        it 'includes clients from the viewable residential projects only' do
+          expect(export.client_scope.distinct.pluck(:id)).to contain_exactly(restricted_destination_client.id, open_destination_client.id)
+        end
+      end
+
+      # The viewable residential project is selected too, so the export isn't empty for other reasons
+      context 'when that project is selected but outside the user\'s access' do
+        let(:selected_project_ids) { [project.id, services_only_project.id] }
+        let(:viewable_project_ids) { [project.id] }
+
+        it 'excludes clients enrolled only in that project' do
+          expect(export.client_scope.distinct.pluck(:id)).to contain_exactly(restricted_destination_client.id, open_destination_client.id)
+        end
+      end
     end
   end
 end

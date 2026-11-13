@@ -316,11 +316,72 @@ RSpec.describe Hmis::Form::Definition, type: :model do
 
       new_form = build(:hmis_form_definition, data_source: ds1, external_form_object_key: 'existing-key', role: :EXTERNAL_FORM)
       expect(new_form.valid?).to be false
-      expect(new_form.errors.full_messages).to include('External form object key has already been taken')
+      expect(new_form.errors[:external_form_object_key]).to include('is already used by a different form. To reuse it, retire the other forms that use it.')
 
       new_form.external_form_object_key = 'unused-key'
       expect(new_form.valid?).to be true
       new_form.save!
+    end
+
+    it 'allows reusing the object key of a retired form, but not of an active one' do
+      pit_2026 = create(:hmis_form_definition, data_source: ds1, external_form_object_key: 'pit', role: :EXTERNAL_FORM, status: Hmis::Form::Definition::PUBLISHED)
+      pit_2027 = build(:hmis_form_definition, data_source: ds1, external_form_object_key: 'pit', role: :EXTERNAL_FORM, status: Hmis::Form::Definition::DRAFT)
+      expect(pit_2027).not_to be_valid
+
+      pit_2026.update!(status: Hmis::Form::Definition::RETIRED)
+      expect(pit_2027).to be_valid
+    end
+
+    it 'allows reusing a retired form key when its identifier is active in another data source' do
+      ds2 = create(:hmis_data_source)
+      retired = create(:hmis_form_definition, data_source: ds1, external_form_object_key: 'pit', role: :EXTERNAL_FORM, status: Hmis::Form::Definition::RETIRED)
+      create(:hmis_form_definition, data_source: ds2, identifier: retired.identifier, role: :EXTERNAL_FORM, status: Hmis::Form::Definition::PUBLISHED, external_form_object_key: nil)
+
+      new_form = build(:hmis_form_definition, data_source: ds1, external_form_object_key: 'pit', role: :EXTERNAL_FORM, status: Hmis::Form::Definition::DRAFT)
+      expect(new_form).to be_valid
+    end
+
+    it 'does not allow reusing a key held by an active form in another data source' do
+      ds2 = create(:hmis_data_source)
+      create(:hmis_form_definition, data_source: ds2, external_form_object_key: 'pit', role: :EXTERNAL_FORM, status: Hmis::Form::Definition::PUBLISHED)
+
+      new_form = build(:hmis_form_definition, data_source: ds1, external_form_object_key: 'pit', role: :EXTERNAL_FORM, status: Hmis::Form::Definition::DRAFT)
+      expect(new_form).not_to be_valid
+      expect(new_form.errors.of_kind?(:external_form_object_key, :taken)).to be true
+    end
+
+    it 'should error if the object key is set on a form that is not an External Form' do
+      form = build(:hmis_form_definition, data_source: ds1, role: :SERVICE, external_form_object_key: 'pit-2027')
+      expect(form).not_to be_valid
+      expect(form.errors[:external_form_object_key].sole).to eq('can only be set on External Forms')
+
+      form.external_form_object_key = nil
+      expect(form).to be_valid
+    end
+
+    it 'should store a blank object key as nil and strip whitespace' do
+      form = build(:hmis_form_definition, data_source: ds1, role: :EXTERNAL_FORM, external_form_object_key: '  ')
+      expect(form.external_form_object_key).to be_nil
+      expect(form).to be_valid
+
+      form.external_form_object_key = ' pit-2027 '
+      expect(form.external_form_object_key).to eq('pit-2027')
+    end
+
+    it 'should error if the object key has an invalid format or length' do
+      form = build(:hmis_form_definition, data_source: ds1, role: :EXTERNAL_FORM)
+      ['pit/pit_2027', 'pit.html', 'pit/2027.v2.html', 'a' * 100].each do |key|
+        form.external_form_object_key = key
+        expect(form).to be_valid, key
+      end
+      ['PIT-2027', 'pit//2027', '.pit', 'pit/../secret', 'pit.HTML'].each do |key|
+        form.external_form_object_key = key
+        expect(form).not_to be_valid, key
+        expect(form.errors[:external_form_object_key].sole).to start_with('must contain only lowercase letters')
+      end
+      form.external_form_object_key = 'a' * 101
+      expect(form).not_to be_valid
+      expect(form.errors[:external_form_object_key].sole).to eq('is too long (maximum is 100 characters)')
     end
   end
 end

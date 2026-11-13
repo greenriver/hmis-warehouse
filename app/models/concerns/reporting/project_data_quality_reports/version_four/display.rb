@@ -688,6 +688,12 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
       end
     end
 
+    # Census keys are ISO dates. Older reports stored Date#to_s keys ("Jan 29, 2025"), and some
+    # generated on Rails 8.1.0-8.1.3 already have ISO keys, so check both formats.
+    private def census_count(census, date)
+      census[date.iso8601] || census[date.to_s] || 0
+    end
+
     # formatted for billboardjs
     def bed_census_data
       @bed_census_data ||= begin
@@ -698,14 +704,14 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
           # use the dates from above to correctly order them
           counts = []
           dates.each do |date|
-            counts << report_project.nightly_client_census[date.to_s] || 0
+            counts << census_count(report_project.nightly_client_census, date)
           end
           data[projects.detect { |p| p.id == report_project.project_id }.ProjectName] = counts
         end
         if report_type == :project_group
           counts = []
           dates.each do |date|
-            counts << report_project_group.nightly_client_census[date.to_s] || 0
+            counts << census_count(report_project_group.nightly_client_census, date)
           end
           data['Total'] = counts
         end
@@ -725,14 +731,14 @@ module Reporting::ProjectDataQualityReports::VersionFour::Display
           # use the dates from above to correctly order them
           counts = []
           dates.each do |date|
-            counts << report_project.nightly_household_census[date.to_s] || 0
+            counts << census_count(report_project.nightly_household_census, date)
           end
           data[projects.detect { |p| p.id == report_project.project_id }.ProjectName] = counts
         end
         if report_type == :project_group
           counts = []
           dates.each do |date|
-            counts << report_project_group.nightly_household_census[date.to_s] || 0
+            counts << census_count(report_project_group.nightly_household_census, date)
           end
           data['Total'] = counts
         end

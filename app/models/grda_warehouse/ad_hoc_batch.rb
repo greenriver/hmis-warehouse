@@ -88,6 +88,7 @@ class GrdaWarehouse::AdHocBatch < GrdaWarehouseBase
       start
       if check_header!
         match_clients!
+        clear_client_matching_data
       else
         self.import_errors = "Headers do not match expected headers: #{self.class.csv_headers.join(',')}; found: #{headers_from_csv.join(',')}"
       end

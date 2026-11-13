@@ -133,7 +133,7 @@ class GrdaWarehouse::AuthPolicies::UserLegacyContext < GrdaWarehouse::AuthPolici
     ids = GrdaWarehouse::GroupViewableEntity.
       where(entity_type: GrdaWarehouse::DataSource.sti_name).
       where(entity_id: data_source_id).
-      where.not(access_group_id: nil).
+      legacy.
       pluck(:access_group_id)
     (active_access_group_ids & ids).to_a.sort
   end
@@ -145,7 +145,7 @@ class GrdaWarehouse::AuthPolicies::UserLegacyContext < GrdaWarehouse::AuthPolici
     ids = GrdaWarehouse::GroupViewableEntity.
       where(entity_type: GrdaWarehouse::Hud::Organization.sti_name).
       where(entity_id: organization_id).
-      where.not(access_group_id: nil).
+      legacy.
       pluck(:access_group_id)
     ((active_access_group_ids & ids).to_a + data_source_access_group_ids(data_source_id)).uniq.sort
   end
@@ -172,7 +172,7 @@ class GrdaWarehouse::AuthPolicies::UserLegacyContext < GrdaWarehouse::AuthPolici
     gve_t = GrdaWarehouse::GroupViewableEntity.arel_table
     results = GrdaWarehouse::DataSource.authoritative.not_hmis.
       joins(:group_viewable_entities, :clients).
-      where(gve_t[:access_group_id].not_eq(nil)).
+      merge(GrdaWarehouse::GroupViewableEntity.legacy).
       where(c_t[:id].in(client_ids)).
       pluck(c_t[:id], gve_t[:access_group_id]).
       group_by(&:shift).

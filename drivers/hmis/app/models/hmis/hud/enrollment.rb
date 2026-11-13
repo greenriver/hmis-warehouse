@@ -213,9 +213,23 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
       return matching_enrollments if matching_enrollments.exists?
     end
 
-    # If alphanumeric, check if it's a Household ID
+    # If alphanumeric, check if it's a Household ID.
+    # Both sides are already lowercased, so match case-sensitively: LIKE (unlike ILIKE)
+    # can use the lower("HouseholdID") text_pattern_ops index. The alpha_numeric guard
+    # keeps LIKE wildcards (% and _) out of the search term.
     if alpha_numeric
-      household_matches = where(e_t[:household_id].lower.matches("#{search_term.downcase}%")) if search_term.size == Hmis::Hud::Household::TRIMMED_HOUSEHOLD_ID_LENGTH
+      if search_term.size == Hmis::Hud::Household::TRIMMED_HOUSEHOLD_ID_LENGTH
+        household_id_prefix_pattern = "#{search_term.downcase}%"
+        escape_character = nil
+        case_sensitive = true # emits LIKE rather than ILIKE
+        household_matches = where(
+          e_t[:household_id].lower.matches(
+            household_id_prefix_pattern,
+            escape_character,
+            case_sensitive,
+          ),
+        )
+      end
       household_matches = where(e_t[:household_id].lower.eq(search_term.downcase)) unless household_matches&.exists?
       return household_matches if household_matches&.exists?
     end
@@ -590,6 +604,19 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     ]).any?
   end
 
-  # Extensions from drivers — see ADR 0007
+  # Columns that change which enrollments make up a household, or the HoH EntryDate that HouseholdSelector ranks by
+  CE_HOUSEHOLD_COLUMNS = ['HouseholdID', 'PersonalID', 'ProjectID', 'EntryDate', 'RelationshipToHoH'].freeze
+
+  # Hmis::MarkClientAsDirtyBehavior hook: this household, plus the previous one if the enrollment moved
+  protected def ce_affected_household_keys
+    # Soft delete writes DateDeleted via update_columns, so it isn't in saved_changes; check deleted? instead.
+    return [] unless deleted? || saved_changes.keys.intersect?(CE_HOUSEHOLD_COLUMNS)
+
+    household_ids = [household_id]
+    household_ids << attribute_before_last_save('HouseholdID') if saved_change_to_attribute?('HouseholdID')
+    household_ids.compact.uniq.map { |id| [data_source_id, id] }
+  end
+
+  # Extensions from drivers — see docs/architecture/08-concepts/08-3-driver-module-pattern.md
   include HmisExternalApis::Hmis::Hud::EnrollmentExtension
 end

@@ -949,4 +949,37 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
       end
     end
   end
+
+  describe '.literally_homeless_last_three_years' do
+    let(:homeless_client) { create :hud_client }
+    let(:on_date) { Date.current - 2.years }
+
+    def add_days(dates, project_type:, literally_homeless:)
+      she = create(:she_entry, client: homeless_client, project_type: project_type)
+      Array.wrap(dates).each do |date|
+        create(
+          :service_history_service,
+          client_id: homeless_client.id,
+          service_history_enrollment_id: she.id,
+          record_type: 'service',
+          date: date,
+          project_type: project_type,
+          homeless: true,
+          literally_homeless: literally_homeless,
+        )
+      end
+    end
+
+    before do
+      # 10 ES days just before on_date
+      add_days((on_date - 10.days..on_date - 1.day).to_a, project_type: 1, literally_homeless: true)
+      # An ES day overlapped by TH: inside on_date's three-year window, but more than three years before today
+      add_days(on_date - 2.years, project_type: 1, literally_homeless: true)
+      add_days(on_date - 2.years, project_type: 2, literally_homeless: false)
+    end
+
+    it 'excludes TH days inside the three years before on_date' do
+      expect(described_class.literally_homeless_last_three_years(client_id: homeless_client.id, on_date: on_date)).to eq(10)
+    end
+  end
 end

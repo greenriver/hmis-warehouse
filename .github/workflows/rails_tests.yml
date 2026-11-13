@@ -98,8 +98,9 @@ env:
 
 jobs:
   determine_matrix:
+    if: vars.CI_AUTO_RUN == 'true' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-24.04
-    container: ruby:3.4.9-slim-trixie
+    container: ruby:3.4.12-slim-trixie
 
     outputs:
       unit_matrix: ${{ steps.set-matrix.outputs.unit_matrix }}
@@ -148,7 +149,7 @@ jobs:
 
     # Containers must run in Linux based operating systems
     runs-on: ubuntu-24.04
-    container: ruby:3.4.9-slim-trixie
+    container: ruby:3.4.12-slim-trixie
 
     # Docker Hub image that the job executes in
     # $RUBY_VERSION
@@ -195,13 +196,11 @@ jobs:
         id: container-setup
         uses: ./.github/workflows/container_setup
         with:
-          additional_packages: libpq-dev chromium chromium-common
+          additional_packages: libpq-dev chromium chromium-common imagemagick
 
       - name: "App setup"
         run: |
           cp config/secrets.yml.sample config/secrets.yml
-          mkdir -p app/assets/stylesheets/theme/styles
-          touch app/assets/stylesheets/theme/styles/_variables.scss
           cp .rspec.sample .rspec
           cp config/database.yml.ci config/database.yml
 
@@ -365,7 +364,7 @@ jobs:
       id-token: write
       pull-requests: read
     runs-on: ubuntu-24.04
-    container: ruby:3.4.9-slim-trixie
+    container: ruby:3.4.12-slim-trixie
 
     services:
       postgres: *postgres
@@ -385,8 +384,6 @@ jobs:
       - name: "App setup"
         run: |
           cp config/secrets.yml.sample config/secrets.yml
-          mkdir -p app/assets/stylesheets/theme/styles
-          touch app/assets/stylesheets/theme/styles/_variables.scss
           cp .rspec.sample .rspec
           cp config/database.yml.ci config/database.yml
 
@@ -441,7 +438,7 @@ jobs:
       id-token: write
       pull-requests: read
     runs-on: ubuntu-24.04
-    container: ruby:3.4.9-slim-trixie
+    container: ruby:3.4.12-slim-trixie
 
     services:
       postgres: *postgres
@@ -461,8 +458,6 @@ jobs:
       - name: "App setup"
         run: |
           cp config/secrets.yml.sample config/secrets.yml
-          mkdir -p app/assets/stylesheets/theme/styles
-          touch app/assets/stylesheets/theme/styles/_variables.scss
           cp .rspec.sample .rspec
           cp config/database.yml.ci config/database.yml
 

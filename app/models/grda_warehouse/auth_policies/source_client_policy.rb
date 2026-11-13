@@ -14,6 +14,7 @@ class GrdaWarehouse::AuthPolicies::SourceClientPolicy < GrdaWarehouse::AuthPolic
     [:can_view_full_dob],
     [:can_view_full_ssn],
     [:can_view_hiv_status],
+    [:can_mark_clients_as_restricted, :can_mark_restricted?],
   ].each do |permission, method_name|
     method_name ||= :"#{permission}?"
     define_method(method_name) do

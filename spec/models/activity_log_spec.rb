@@ -181,4 +181,147 @@ RSpec.describe ActivityLog do
       expect(described_class.warehouse_reports).to include(entry)
     end
   end
+
+  describe '#client_id_from_path' do
+    def client_log(path, item_model: 'GrdaWarehouse::Hud::Client')
+      described_class.new(path: path, item_model: item_model)
+    end
+
+    it 'reads the client id from client page paths, including nested and query-string paths' do
+      paths = ['/clients/12', '/clients/12/files/99', '/clients/12?tab=history']
+      expect(paths.map { |path| client_log(path).client_id_from_path }).to eq([12, 12, 12])
+    end
+
+    it 'ignores paths that only end in clients/<id>, and rows for other item models' do
+      expect(
+        [
+          client_log('/source_clients/12').client_id_from_path,
+          client_log('/clients/12', item_model: 'User').client_id_from_path,
+        ],
+      ).to eq([nil, nil])
+    end
+  end
+
+  describe '#display_title' do
+    def titled(title)
+      described_class.new(title: title, controller_name: 'clients')
+    end
+
+    it 'replaces the logged name and keeps the page label when the name is redacted' do
+      expect([titled('Jane Doe').display_title(name_redacted: true), titled('Jane Doe - Files').display_title(name_redacted: true)]).
+        to eq(['Name Redacted', 'Name Redacted - Files'])
+    end
+
+    it 'shows the logged title, or the controller name without one, when the name is not redacted' do
+      expect([titled('Jane Doe - Files').display_title, titled(nil).display_title, titled(nil).display_title(name_redacted: true)]).
+        to eq(['Jane Doe - Files', 'clients', 'clients'])
+    end
+  end
+
+  describe 'client_id from path' do
+    # path => expected client_id. Shared by the callback and backfill examples so the Ruby and
+    # SQL matching rules can't drift apart.
+    client_id_cases = {
+      '/clients/52' => 52,
+      '/clients/52/audits' => 52,
+      '/clients/52/notes/7' => 52,
+      '/clients/52?tab=history' => 52,
+      '/clients/52.pdf' => 52,
+      '/clients/1010/audits' => 1010,
+      '/source_clients/52/edit' => nil,
+      '/reports?return_to=/clients/52' => nil,
+      '/clients/123456789012345678901' => nil,
+      '/clients' => nil,
+    }.freeze
+
+    describe 'on save' do
+      client_id_cases.each do |path, expected|
+        it "is #{expected.inspect} for #{path}" do
+          expect(log(path: path).reload.client_id).to eq(expected)
+        end
+      end
+
+      it 'is nil when path is nil' do
+        expect(log(path: nil).reload.client_id).to be_nil
+      end
+    end
+
+    describe '.backfill_client_id!' do
+      it 'sets client_id from path exactly as the save callback does' do
+        entries = client_id_cases.keys.map { |path| log(path: path) }
+        described_class.where(id: entries.map(&:id)).update_all(client_id: nil)
+
+        described_class.backfill_client_id!(batch_size: 3)
+
+        expect(entries.map { |e| [e.path, e.reload.client_id] }.to_h).to eq(client_id_cases)
+      end
+
+      it 'backfills the row with the highest id, in the final partial batch' do
+        entries = Array.new(4) { |i| log(path: "/clients/#{70 + i}") }
+        described_class.where(id: entries.map(&:id)).update_all(client_id: nil)
+
+        described_class.backfill_client_id!(batch_size: 3)
+
+        expect(entries.map { |e| e.reload.client_id }).to eq([70, 71, 72, 73])
+      end
+
+      it 'backfills a row written after the backfill started' do
+        entries = Array.new(3) { |i| log(path: "/clients/#{70 + i}") }
+        described_class.where(id: entries.map(&:id)).update_all(client_id: nil)
+        late_entry = nil
+        # Right after the first max id read, insert a row with no client_id, as a pod on old code would.
+        allow(described_class).to receive(:maximum).and_wrap_original do |original, *args|
+          original.call(*args).tap do
+            next if late_entry
+
+            late_entry = log(path: '/clients/80')
+            late_entry.update_column(:client_id, nil)
+          end
+        end
+
+        described_class.backfill_client_id!(batch_size: 3)
+
+        expect(late_entry.reload.client_id).to eq(80)
+      end
+
+      it 'leaves an already-set client_id unchanged' do
+        entry = log(path: '/clients/52')
+        entry.update_column(:client_id, 999)
+
+        described_class.backfill_client_id!
+
+        expect(entry.reload.client_id).to eq(999)
+      end
+    end
+  end
+
+  # CREATE INDEX CONCURRENTLY can't run inside the per-example transaction, so this group manages
+  # the index itself and drops it afterwards, leaving the test database as structure.sql defines it.
+  describe '.ensure_client_id_index!' do
+    self.use_transactional_tests = false
+
+    let(:connection) { described_class.connection }
+    let(:index_name) { described_class::CLIENT_ID_INDEX_NAME }
+
+    def index_present?
+      connection.index_exists?(:activity_logs, [:client_id, :created_at], name: index_name, where: 'client_id IS NOT NULL')
+    end
+
+    def drop_index
+      connection.remove_index(:activity_logs, name: index_name) if connection.index_name_exists?(:activity_logs, index_name)
+    end
+
+    before { drop_index }
+    after { drop_index }
+
+    it 'builds the partial client_id, created_at index when it is missing' do
+      expect { described_class.ensure_client_id_index! }.to change { index_present? }.from(false).to(true)
+    end
+
+    it 'leaves an existing index in place' do
+      described_class.ensure_client_id_index!
+
+      expect { described_class.ensure_client_id_index! }.not_to change { index_present? }.from(true)
+    end
+  end
 end

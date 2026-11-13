@@ -45,7 +45,7 @@ RSpec.describe 'WarehouseReports::IncomesController', type: :request do
   # `enrollment_source` inner-joins `:enrollment` (a `GrdaWarehouse::Hud::Enrollment`, keyed by
   # `EnrollmentID`/`ProjectID`/`data_source_id`), so each `she_entry` needs a matching `Enrollment`
   # row or its row is filtered out of `@enrollments` entirely.
-  def build_enrollment(client:)
+  def build_enrollment(client:, project: self.project)
     hud_enrollment = create(:hud_enrollment, ProjectID: project.ProjectID, data_source: project_data_source)
     create(:she_entry, client: client, project: project, enrollment_group_id: hud_enrollment.EnrollmentID,
                        record_type: :entry, project_type: 1, first_date_in_program: entry_date, last_date_in_program: nil)
@@ -107,5 +107,65 @@ RSpec.describe 'WarehouseReports::IncomesController', type: :request do
     header_row = rendered_workbook.sheet(0).row(1)
     expect(header_row).not_to include('First Name')
     expect(header_row).not_to include('Last Name')
+  end
+
+  describe 'with a submitted project the user cannot see' do
+    let!(:invisible_project) { create(:hud_project, data_source: project_data_source, OrganizationID: organization.OrganizationID, ProjectType: 1, TrackingMethod: 3) }
+    let!(:hidden_client) { create(:grda_warehouse_hud_client, FirstName: 'Hidden', LastName: 'Client') }
+    let!(:hidden_entry) { build_enrollment(client: hidden_client, project: invisible_project) }
+
+    def client_ids_for_invisible_project
+      GrdaWarehouse::Config.first_or_create.update!(include_pii_in_detail_downloads: true)
+
+      get warehouse_reports_incomes_path(format: :xlsx, filter: filter_params.merge(project_ids: [invisible_project.id]))
+
+      expect(response).to have_http_status(:success)
+      sheet = rendered_workbook.sheet(0)
+      (sheet.first_row..sheet.last_row).map { |i| sheet.row(i)[0] }
+    end
+
+    it 'returns the project rows once the user can see the project' do
+      collection.set_viewables({ reports: [report.id], projects: [project.id, invisible_project.id] })
+
+      expect(client_ids_for_invisible_project).to include(hidden_client.id)
+    end
+
+    it 'returns no rows for the invisible project' do
+      expect(client_ids_for_invisible_project).not_to include(hidden_client.id)
+    end
+
+    describe 'on the page' do
+      def get_page(project_ids)
+        get warehouse_reports_incomes_path(filter: filter_params.merge(project_ids: project_ids))
+        expect(response).to have_http_status(:success)
+      end
+
+      # Names render as "Name Redacted" for this user, so match each client's link instead
+      def client_link(client)
+        appropriate_client_path(client)
+      end
+
+      it 'lists the invisible project client once the user can see the project' do
+        collection.set_viewables({ reports: [report.id], projects: [project.id, invisible_project.id] })
+
+        get_page([project.id, invisible_project.id])
+
+        expect(response.body).to include(client_link(hidden_client))
+      end
+
+      it 'lists only visible project clients when visible and invisible ids are mixed' do
+        get_page([project.id, invisible_project.id])
+
+        expect(response.body).to include(client_link(open_destination_client))
+        expect(response.body).not_to include(client_link(hidden_client))
+      end
+
+      it 'shows no enrollments when only the invisible project is requested' do
+        get_page([invisible_project.id])
+
+        expect(response.body).to include('No enrollments found.')
+        expect(response.body).not_to include(client_link(hidden_client))
+      end
+    end
   end
 end

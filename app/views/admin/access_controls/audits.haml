@@ -2,7 +2,8 @@
 - title = "#{entity_type} Audit History"
 - content_for :title, title
 
-= render 'admin/audits/shared/breadcrumbs', entity_type: entity_type, entity_path: admin_access_controls_path
+- if can_edit_users?
+  = render 'admin/audits/shared/breadcrumbs', entity_type: entity_type, entity_path: admin_access_controls_path
 = render_display_title "#{entity_type} Audit History"
 .text-right.mb-3
   = render 'report_downloads/report_download', export: nil, excel_download_path: nil, excel_export: @excel_export, excel_download_tooltip: 'Download includes all access control audit history data in Excel format.'

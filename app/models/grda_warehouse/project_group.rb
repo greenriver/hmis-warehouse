@@ -8,6 +8,10 @@
 
 require 'roo'
 module GrdaWarehouse
+  # Seeing a project group lets a user pick it in reports, but it doesn't grant access to its
+  # projects: reports cover only the group's projects the user can already report on.
+  # Access through a group comes from ProjectAccessGroup. See "Using a Group" in
+  # @see docs/features/warehouse/project-groups.md
   class ProjectGroup < GrdaWarehouseBase
     include ArelHelper
     include AccessGroups # TODO: START_ACL remove after migration to ACLs
@@ -78,7 +82,9 @@ module GrdaWarehouse
         ).pluck(:entity_id)
         return none if ids.empty?
 
-        where(id: ids)
+        # A string predicate, unlike a hash or Arel predicate, is ANDed by a later
+        # `merge` on the same column instead of being replaced by it
+        where(%(#{quoted_table_name}."id" IN (?)), ids)
       else
         return current_scope.merge(user.project_groups) if current_scope.present?
 
@@ -105,7 +111,7 @@ module GrdaWarehouse
         end.compact
         return none if ids.empty?
 
-        where(id: ids)
+        where(%(#{quoted_table_name}."id" IN (?)), ids)
       else
         if user.can_edit_project_groups? # rubocop:disable Style/IfInsideElse
           current_scope
@@ -160,12 +166,8 @@ module GrdaWarehouse
     end
 
     def filter
-      # NOTE: not memoized as memoization breaks tests, also this is not an expensive operation
-      @filter = begin
-        f = ::Filters::HudFilterBase.new(user_id: User.setup_system_user.id).update(options)
-        f.coc_codes = []
-        f
-      end
+      # Not memoized: options can change after the filter is built
+      ::Filters::SystemProjectHudFilter.for_project_group(self)
     end
 
     # NOTE: we only care about Data Sources, Organizations, Projects, and Project Types

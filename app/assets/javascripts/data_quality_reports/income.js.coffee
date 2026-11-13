@@ -35,6 +35,7 @@ class App.DataQualityReports.Income extends App.DataQualityReports.Base
           value: (v) ->
             "#{v}%"
   _follow_link: (d, element) =>
+    return unless @support_url
     x = @data.labels[d.x]
     suffix = ''
     if x == '20% Increase'

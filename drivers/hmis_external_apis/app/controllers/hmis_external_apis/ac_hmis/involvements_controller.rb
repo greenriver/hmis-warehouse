@@ -20,16 +20,6 @@ module HmisExternalApis::AcHmis
       render json: json_payload, status: (involvement.ok? ? :ok : :bad_request)
     end
 
-    def program
-      involvement, json_payload = log_request_with_truncation do
-        involvement = ProgramInvolvement.new(program_params)
-        involvement.validate_request!
-        [involvement, involvement.to_json]
-      end
-
-      render json: json_payload, status: (involvement.ok? ? :ok : :bad_request)
-    end
-
     protected
 
     def log_request_with_truncation &block
@@ -43,10 +33,6 @@ module HmisExternalApis::AcHmis
 
     def internal_system
       @internal_system ||= HmisExternalApis::InternalSystem.where(name: 'Involvements').first
-    end
-
-    def program_params
-      params.permit(:start_date, :end_date, program_ids: [])
     end
 
     def client_params

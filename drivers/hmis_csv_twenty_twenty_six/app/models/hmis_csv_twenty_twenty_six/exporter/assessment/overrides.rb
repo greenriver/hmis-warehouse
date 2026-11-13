@@ -26,8 +26,6 @@ module HmisCsvTwentyTwentySix::Exporter
     end
 
     def self.apply_overrides(row)
-      row = replace_blank(row, hud_field: :AssessmentLocation, default_value: 'unknown')
-
       row
     end
   end

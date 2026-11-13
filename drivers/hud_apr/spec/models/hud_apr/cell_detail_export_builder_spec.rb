@@ -56,9 +56,9 @@ RSpec.describe HudApr::CellDetailExportBuilder, type: :model do
       expect(builder.generator_for_report).to eq(HudApr::Generators::Apr::Fy2024::Generator)
     end
 
-    it 'raises ArgumentError for unknown report type' do
+    it 'raises UnsupportedReportError for unknown report type' do
       b = described_class.new(user: user, report: report, report_type: 'invalid')
-      expect { b.generator_for_report }.to raise_error(ArgumentError, /Unknown report type/)
+      expect { b.generator_for_report }.to raise_error(described_class::UnsupportedReportError, /Unknown report type/)
     end
   end
 

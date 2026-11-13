@@ -234,4 +234,78 @@ RSpec.describe GrdaWarehouse::AuthPolicies::DestinationClientPolicy, type: :mode
     user = create(:acl_user)
     expect { user.policy_for(source_client, policy_class: described_class) }.to raise_error(ArgumentError, 'Must be a destination client')
   end
+
+  describe '#can_mark_restricted?' do
+    let(:marking_role) { create(:role, can_view_clients: true, can_mark_clients_as_restricted: true) }
+    let(:viewing_role) { create(:role, can_view_clients: true) }
+    let(:other_project) { create :grda_warehouse_hud_project, data_source: data_source }
+
+    def restrict_destination
+      Hmis::RestrictedRecord.create!(
+        restrictable_id: destination_client.id,
+        restrictable_type: Hmis::RestrictedRecord::CLIENT_RESTRICTABLE_TYPE,
+        data_source_id: destination_client.data_source_id,
+        created_by: Hmis::User.find(user.id),
+      )
+    end
+
+    context 'with legacy user permissions' do
+      let(:access_group) { create(:access_group) }
+      let(:user) { create(:user).tap { |u| access_group.add(u) } }
+
+      it 'is true with the permission and access to the client project' do
+        marking_role.add(user)
+        access_group.add_viewable(project)
+        expect(user.policy_for(destination_client).can_mark_restricted?).to be true
+      end
+
+      it 'is still true when the client is restricted' do
+        marking_role.add(user)
+        access_group.add_viewable(project)
+        restrict_destination
+        expect(user.policy_for(destination_client).can_mark_restricted?).to be true
+      end
+
+      it 'is false with access to the client project but no permission' do
+        viewing_role.add(user)
+        access_group.add_viewable(project)
+        expect(user.policy_for(destination_client).can_mark_restricted?).to be false
+      end
+
+      it 'is false with the permission at a project the client is not enrolled in' do
+        marking_role.add(user)
+        access_group.add_viewable(other_project)
+        expect(user.policy_for(destination_client).can_mark_restricted?).to be false
+      end
+    end
+
+    context 'with user access control permissions' do
+      let(:user) { create(:acl_user) }
+      let(:user_group) { create(:user_group).tap { |g| g.add(user) } }
+      let(:client_collection) { create(:collection).tap { |c| c.set_viewables({ projects: [project.id] }) } }
+      let(:other_collection) { create(:collection).tap { |c| c.set_viewables({ projects: [other_project.id] }) } }
+
+      it 'is true with the permission on a collection holding the client project' do
+        create(:access_control, role: marking_role, collection: client_collection, user_group: user_group)
+        expect(user.policy_for(destination_client).can_mark_restricted?).to be true
+      end
+
+      it 'is still true when the client is restricted' do
+        create(:access_control, role: marking_role, collection: client_collection, user_group: user_group)
+        restrict_destination
+        expect(user.policy_for(destination_client).can_mark_restricted?).to be true
+      end
+
+      it 'is false when the role on the client project lacks the permission' do
+        create(:access_control, role: viewing_role, collection: client_collection, user_group: user_group)
+        expect(user.policy_for(destination_client).can_mark_restricted?).to be false
+      end
+
+      it 'is false with the permission only on a collection for another project' do
+        create(:access_control, role: viewing_role, collection: client_collection, user_group: user_group)
+        create(:access_control, role: marking_role, collection: other_collection, user_group: user_group)
+        expect(user.policy_for(destination_client).can_mark_restricted?).to be false
+      end
+    end
+  end
 end

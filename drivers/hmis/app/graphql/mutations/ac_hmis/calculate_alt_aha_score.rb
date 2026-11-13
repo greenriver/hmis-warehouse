@@ -24,12 +24,16 @@ module Mutations
       enrollment = Hmis::Hud::Enrollment.viewable_by(current_user).find(enrollment_id)
       access_denied! unless policy_for(enrollment, policy_type: :hmis_enrollment).can_edit?
 
-      aha_calculator = HmisExternalApis::AcHmis::AltAhaCalculator.new(
+      definition = Hmis::Form::Definition.
+        published.in_data_source(enrollment.data_source_id).
+        find_by(identifier: form_definition_identifier)
+
+      aha_calculator = HmisExternalApis::AcHmis::AltAhaCalculatorFactory.build(
+        definition: definition,
         values_by_link_id: values_by_link_id,
         client: enrollment.client,
         user: current_user,
         owner: enrollment,
-        form_definition_identifier: form_definition_identifier,
       )
 
       # Check for missing required responses
@@ -38,21 +42,27 @@ module Mutations
       # Use form validation to validate that the required link IDs were provided in the form submission.
       # This lets us reuse the form validator's logic for skipping questions that weren't shown to the user
       # (such as dependent questions whose conditions were not met).
-      definition = Hmis::Form::Definition.
-        published.in_data_source(enrollment.data_source_id).
-        find_by(identifier: form_definition_identifier)
       validations = definition.validate_form_values(values_by_link_id, link_ids: required_link_ids)
 
-      if validations.reject(&:warning?).any?
-        # Return a generic message, not the specific questions that are required
-        errors = HmisErrors::Errors.new
-        errors.add :base, :required, full_message: 'Unable to calculate score. Please finish entering responses.'
-        return { errors: errors }
+      return incomplete_responses_error if validations.reject(&:warning?).any?
+
+      begin
+        score, = aha_calculator.calculate_score
+      rescue HmisExternalApis::AcHmis::AltAhaV2Calculator::MissingAssessmentDateError
+        # validate_form_values skips the assessment date, so a blank date is only caught here
+        return incomplete_responses_error
       end
 
-      score, = aha_calculator.calculate_score
-
       { score: score }
+    end
+
+    private
+
+    # Return a generic message, not the specific questions that are required
+    def incomplete_responses_error
+      errors = HmisErrors::Errors.new
+      errors.add :base, :required, full_message: 'Unable to calculate score. Please finish entering responses.'
+      { errors: errors }
     end
   end
 end

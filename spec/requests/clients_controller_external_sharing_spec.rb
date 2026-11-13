@@ -90,7 +90,8 @@ end
 RSpec.describe Clients::ExternalDataSharingController, type: :request do
   let(:source_ds) { create(:source_data_source) }
   let(:dest_ds)   { create(:destination_data_source) }
-  let(:user)      { create(:user) }
+  let(:user)      { create(:acl_user) }
+  let(:edit_role) { create(:role, can_edit_clients: true, can_view_clients: true) }
   let(:source_client) { create(:hud_client, data_source: source_ds) }
   let!(:dest_client) do
     dest = GrdaWarehouse::Hud::Client.create!(
@@ -105,8 +106,19 @@ RSpec.describe Clients::ExternalDataSharingController, type: :request do
     dest
   end
 
+  let(:project) { create(:hud_project, data_source: source_ds) }
+
+  # The user sees the client through its enrollment at an assigned project
+  def grant_project_visibility(user, role, project)
+    collection = create(:collection)
+    collection.set_viewables({ projects: [project.id] })
+    setup_access_control(user, role, collection)
+  end
+
   before do
-    user.legacy_roles << create(:can_edit_clients)
+    Rails.cache.clear
+    create(:hud_enrollment, data_source_id: source_ds.id, ProjectID: project.ProjectID, PersonalID: source_client.PersonalID)
+    grant_project_visibility(user, edit_role, project)
     sign_in user
   end
 
@@ -169,6 +181,39 @@ RSpec.describe Clients::ExternalDataSharingController, type: :request do
               params: { exclude_from_external_data_sharing: '1' }
         expect(ClientExternalDataSharing.new(dest_client).excluded?).to be false
       end
+    end
+
+    context 'when the client is not visible to the user' do
+      let(:outsider) { create(:acl_user) }
+
+      before do
+        stub_enabled(true)
+        # Can edit clients, but only at a project where this client has no enrollment
+        grant_project_visibility(outsider, edit_role, create(:hud_project, data_source: source_ds))
+        sign_in outsider
+      end
+
+      it 'returns not found and leaves the exclusion flag unchanged' do
+        patch client_external_data_sharing_path(dest_client),
+              params: { exclude_from_external_data_sharing: '1' }
+
+        expect(response).to have_http_status(:not_found)
+        expect(ClientExternalDataSharing.new(dest_client).excluded?).to be false
+      end
+    end
+  end
+
+  describe 'GET show for a client not visible to the user' do
+    before do
+      stub_enabled(true)
+      outsider = create(:acl_user)
+      grant_project_visibility(outsider, edit_role, create(:hud_project, data_source: source_ds))
+      sign_in outsider
+    end
+
+    it 'returns not found' do
+      get client_external_data_sharing_path(dest_client)
+      expect(response).to have_http_status(:not_found)
     end
   end
 end

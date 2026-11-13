@@ -1,3 +1,15 @@
+---
+sources:
+  - drivers/hmis/app/models/hmis/ce/change_marker.rb
+  - drivers/hmis/app/models/concerns/hmis/mark_client_as_dirty_behavior.rb
+  - drivers/hmis/app/jobs/hmis/ce/process_pools_job.rb
+  - drivers/hmis/app/jobs/hmis/ce/process_clients_job.rb
+  - drivers/hmis/app/models/hmis/ce/match/candidate_pool_builder.rb
+  - drivers/hmis/app/models/hmis/ce/referral.rb
+  - drivers/hmis/app/models/hmis/project_ce_config.rb
+  - drivers/hmis/app/graphql/mutations/ce/mark_units_available.rb
+---
+
 # Coordinated Entry (CE) Change Tracking System
 
 The change tracking system for Coordinated Entry (CE) efficiently processes client and housing opportunity updates for eligibility and prioritization.
@@ -14,7 +26,7 @@ This is achieved through a versioning system managed by the `Hmis::Ce::ChangeMar
 - **`Hmis::Ce::Match::CandidatePoolBuilder`**: A service object that serves as the main component for maintaining candidate pools. It is triggered synchronously by model callbacks and a daily Rake task to create pools and associate them with `UnitGroup`s.
 - **`Hmis::Ce::ProcessPoolsJob`**: A self-scheduling job that processes dirty candidate pools on the long-running queue. It is enqueued by the `CandidatePoolBuilder` or the nightly Rake task.
 - **`Hmis::Ce::ProcessClientsJob`**: A self-scheduling job that processes dirty clients on the short-running queue for fast updates. It uses non-blocking per-pool locks to coordinate with the pool processor.
-- **`Hmis::MarkClientAsDirtyBehavior`**: A concern included in various HUD models to automatically mark a client as dirty whenever their data is saved.
+- **`Hmis::MarkClientAsDirtyBehavior`**: A concern included in various HUD models to automatically mark a client as dirty whenever their data is saved. Enrollment and Exit changes also mark the other open members of the affected household.
 - **`Hmis::Ce::Match::UnitGroupRuleResolver` & `Hmis::Ce::Match::CandidatePoolRepository`**: Service classes used by the builder to resolve rule hierarchies and manage the persistence of candidate pools.
 
 ### Event Triggers and Actions
@@ -124,15 +136,35 @@ The `Hmis::MarkClientAsDirtyBehavior` concern is the primary mechanism for flagg
 
 When a record with this concern is saved, an `after_save` callback triggers `Hmis::Ce::ChangeMarker.upsert_or_bump_version`, which either creates a new marker or increments the `current_version` of an existing one.
 
+Household match fields (`household.*`) depend on other clients' records, so a model can override `#ce_affected_household_keys` to return the households its change affects. The open members of those households are marked dirty along with the record's own client. `Hmis::Hud::Enrollment` and `Hmis::Hud::Exit` override it; see [Household Fields](ce-match-engine.md#household-fields-household) for which changes count.
+
 `Hmis::Ce::Match::Rule`, `Hmis::UnitGroup` and `Hmis::ProjectCeConfig` models use `after_*` callbacks to synchronously run the `CandidatePoolBuilder` to ensure pool data is always consistent with the latest rules and configuration.
 
 #### 4. Client Deduplication & Cleanup Integration
 
-The `GrdaWarehouse::Tasks::ClientCleanup` and `IdentifyDuplicates` tasks are responsible for consolidating source client records into a single destination client. After this consolidation, they mark the affected destination client as dirty. This is a critical step, as the CE matching process runs against these unified destination client records, not the original source HMIS clients.
+The `GrdaWarehouse::Tasks::ClientCleanup` and `IdentifyDuplicates` tasks are responsible for consolidating source client records into a single destination client. After this consolidation, they mark the affected destination clients dirty through `Hmis::Ce::ChangeMarker.mark_destination_clients_dirty`. This is a critical step, as the CE matching process runs against these unified destination client records, not the original source HMIS clients. The method also marks everyone who shares an open household with those clients, because household match fields read each member's destination demographics (such as DOB).
 
 #### 5. Relationship with Daily Full Refresh
 
 The incremental change tracking system works alongside the existing daily full refresh mechanism:
 
 - **Incremental Processing**: The `ProcessPoolsJob` and `ProcessClientsJob` run frequently to process only dirty records, providing near real-time updates with optimal performance through concurrent processing.
-- **Daily Full Refresh**: A nightly Rake task runs the `CandidatePoolBuilder` to rebuild all candidate pools and marks them all dirty, serving as a comprehensive backup and catch-all for any missed changes.
+- **Daily Full Refresh**: A nightly Rake task runs the `CandidatePoolBuilder` to rebuild all candidate pools and marks them all dirty, serving as a comprehensive backup and catch-all for any missed changes. It is also the only mechanism that picks up time-based changes with no triggering record save, such as a client or household member aging across an age threshold in a rule (`current_age`, `household.youngest_member_age`, `household.oldest_member_age`).
+
+## Gotchas
+
+- **CE is gated.** When `Hmis::Ce.configuration.enabled?` (the `hmis_ce/enabled` app config property) is false, change markers are not written, the jobs raise, and CE mutations raise. Specs must set the property.
+- **Pool rebuilds are synchronous.** Callbacks on `Rule`, `UnitGroup`, and `ProjectCeConfig` run `CandidatePoolBuilder` inside `CandidatePool.lock_for_maintenance!` (10-second timeout), so bulk-creating or destroying rules in a loop rebuilds on every save. Updates rebuild only when a rule's logic changes (or, for a unit group, its workflow template). Any new caller of the builder must take the same lock.
+- **Write markers through `upsert_or_bump_version` and `mark_processed`.** They sort by trackable id so concurrent writers lock rows in the same order. Plain `create`/`update` can deadlock.
+- **The engine matches destination clients.** It evaluates `GrdaWarehouse::Hud::Client` destination records, not `Hmis::Hud::Client`. A client with no destination yet is not matched until `IdentifyDuplicates` runs.
+- **One busy pool delays every client.** `ProcessClientsJob` leaves the whole batch dirty if any pool lock was busy, so a long `ProcessPoolsJob` delays all client updates.
+- **Some changes are only picked up nightly.** Changing `eligibility_lookback_months` or the eligibility project group changes match results but triggers no rebuild.
+- **`candidate_pool_id` can go stale.** `UnitGroup.candidate_pool_id` may remain set after a project stops supporting waitlists; `CandidatePool.active` filters those out.
+
+## Opportunities and referrals
+
+- An `Opportunity` is an available unit. Its project, unit group, and pool are resolved through the unit; those columns on the table are ignored. Don't store or read pool ids or rules per opportunity. Rules live on the unit group.
+- A `Referral` snapshots the unit group's effective rules into `assignment_rules` at creation. `resolve_match_rule_fields` reads that snapshot and intentionally bypasses `viewable_by` scopes on the associated data.
+- `Referral.viewable_by` is the union of: target-project `can_view_referrals`, own assigned or swimlane steps with `can_view_own_referrals`, and source-project `can_view_outgoing_referral_details`.
+- `ProjectCeConfig#receives_direct_referrals_from` restricts which projects may direct-send to a project; empty means any. It stores integer project ids (the setter casts GraphQL ID strings and drops non-numeric values). Disabling direct referrals clears the list.
+- `MarkUnitsAvailable` still enforces a legacy `ReferralPosting` count check, for installations running legacy referral postings and CE referrals side by side.
