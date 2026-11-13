@@ -228,10 +228,11 @@ jobs:
 
       # fetch some closed source files
       - name: "Fetch testkit source files"
-        env:
-          SOURCE: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_SOURCE_PATH_FY_2026 }}
-          DESTINATION: ./drivers/datalab_testkit/spec/fixtures/inputs/
-        run: aws s3 cp --no-progress "$SOURCE" "$DESTINATION" --recursive --region us-east-1
+        uses: ./.github/workflows/s3_test_data
+        with:
+          name: testkit-source
+          source: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_SOURCE_PATH_FY_2026 }}
+          destination: ./drivers/datalab_testkit/spec/fixtures/inputs/
 
       # fetch pre-processed FY2024 data set; note that we need to update this whenever the test kit source
       # data changes.  To update:
@@ -240,22 +241,18 @@ jobs:
       # 3. Re-run the tests  rspec drivers/hud_apr/spec/models/fy2024/datalab_2_0_spec.rb
       # 4. Update the fixpoint in S3 from the newly generated file
       - name: "Fetch testkit fixpoint files"
-        env:
-          SOURCE: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_FIXPOINT_PATH_FY_2026 }}
-          DESTINATION: ./drivers/datalab_testkit/spec/fixpoints/
-        run: aws s3 cp --no-progress "$SOURCE" "$DESTINATION" --recursive --region us-east-1
+        uses: ./.github/workflows/s3_test_data
+        with:
+          name: testkit-fixpoints
+          source: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_FIXPOINT_PATH_FY_2026 }}
+          destination: ./drivers/datalab_testkit/spec/fixpoints/
 
       - name: "Fetch result files"
-        env:
-          SOURCE: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_RESULTS_PATH_FY_2026 }}
-          DESTINATION: ./drivers/datalab_testkit/spec/fixtures/results/
-        run: aws s3 cp --no-progress "$SOURCE" "$DESTINATION" --recursive --region us-east-1
-
-      - name: "Fetch 2022 -> 2024 source files"
-        env:
-          SOURCE: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_SOURCE_PATH_FY_2026 }}/merged/source
-          DESTINATION: ./drivers/hud_twenty_twenty_two_to_twenty_twenty_four/spec/fixtures/in/
-        run: aws s3 cp --no-progress "$SOURCE" "$DESTINATION" --recursive --region us-east-1
+        uses: ./.github/workflows/s3_test_data
+        with:
+          name: testkit-results
+          source: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_RESULTS_PATH_FY_2026 }}
+          destination: ./drivers/datalab_testkit/spec/fixtures/results/
 
       # Default arm: the AUTH_METHOD=jwt env below is the only arm selector. Don't add a
       # ~devise_only flag here for symmetry with the Devise step — rails_helper.rb already

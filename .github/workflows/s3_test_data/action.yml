@@ -1,0 +1,92 @@
+## Call from the caller workflow after AWS credentials are configured:
+# - name: "Fetch testkit source files"
+#   uses: ./.github/workflows/s3_test_data
+#   with:
+#     name: testkit-source
+#     source: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_SOURCE_PATH_FY_2026 }}
+#     destination: ./drivers/datalab_testkit/spec/fixtures/inputs/
+
+name: 'S3 Test Data'
+description: >-
+  Copies an S3 prefix into a local directory, served from the Actions cache unless
+  an object under the prefix has changed. Files ending in .gz are decompressed.
+
+inputs:
+  name:
+    description: 'Short, unique name for this data set; used in the cache key and cache path'
+    required: true
+  source:
+    description: 'S3 URL of the prefix to fetch (s3://bucket/prefix/)'
+    required: true
+  destination:
+    description: 'Local directory to populate'
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Compute cache key from S3 ETags
+      id: s3
+      shell: bash
+      env:
+        SOURCE: ${{ inputs.source }}
+      run: |
+        set -euo pipefail
+        path="${SOURCE#s3://}"
+        bucket="${path%%/*}"
+        prefix="${path#*/}"
+        listing=$(aws s3api list-objects-v2 --bucket "$bucket" --prefix "$prefix" --region us-east-1 \
+          --query 'Contents[].[Key,ETag]' --output text)
+        if [ -z "$listing" ] || [ "$listing" = "None" ]; then
+          count=0
+        else
+          count=$(printf '%s\n' "$listing" | wc -l)
+        fi
+        echo "count=$count" >> "$GITHUB_OUTPUT"
+        echo "hash=$(printf '%s' "$listing" | sha256sum | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
+        echo "Found $count objects"
+
+    - name: Restore from cache
+      id: cache
+      if: steps.s3.outputs.count != '0'
+      uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: tmp/s3-test-data/${{ inputs.name }}
+        key: s3-test-data-${{ inputs.name }}-${{ steps.s3.outputs.hash }}
+
+    - name: Download from S3
+      if: steps.s3.outputs.count != '0' && steps.cache.outputs.cache-hit != 'true'
+      shell: bash
+      env:
+        SOURCE: ${{ inputs.source }}
+        CACHE_DIR: tmp/s3-test-data/${{ inputs.name }}
+      run: aws s3 cp --no-progress "$SOURCE" "$CACHE_DIR" --recursive --region us-east-1
+
+    - name: Save to cache
+      if: steps.s3.outputs.count != '0' && steps.cache.outputs.cache-hit != 'true'
+      uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: tmp/s3-test-data/${{ inputs.name }}
+        key: s3-test-data-${{ inputs.name }}-${{ steps.s3.outputs.hash }}
+
+    - name: Unpack into destination
+      if: steps.s3.outputs.count != '0'
+      shell: bash
+      env:
+        CACHE_DIR: tmp/s3-test-data/${{ inputs.name }}
+        DESTINATION: ${{ inputs.destination }}
+      run: |
+        set -euo pipefail
+        mkdir -p "$DESTINATION"
+        dest=$(cd "$DESTINATION" && pwd)
+        cd "$CACHE_DIR"
+        # Plain files first, then .gz, so foo.gz overwrites foo when the prefix holds both.
+        find . -type f ! -name '*.gz' -print0 | while IFS= read -r -d '' f; do
+          mkdir -p "$dest/$(dirname "$f")"
+          mv "$f" "$dest/$f"
+        done
+        find . -type f -name '*.gz' -print0 | while IFS= read -r -d '' f; do
+          mkdir -p "$dest/$(dirname "$f")"
+          gunzip -c "$f" > "$dest/${f%.gz}"
+          rm "$f"
+        done

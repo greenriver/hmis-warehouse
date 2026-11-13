@@ -17,9 +17,18 @@ jobs:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - name: Delete all caches
+      # Keeps the newest s3-test-data cache per data set on main, so CI doesn't re-download
+      # it from S3 every day. Every other cache is deleted.
+      - name: Delete caches
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Use the gh CLI to delete all caches in the current repository
-          gh cache delete --all --succeed-on-no-caches
+          gh cache list --limit 1000 --sort created_at --order desc --json id,key,ref --jq '
+            [.[] | select(.ref == "refs/heads/main" and (.key | startswith("s3-test-data-")))]
+              | group_by(.key | sub("-[0-9a-f]{64}$"; ""))
+              | map(.[0].id)' > keep.json
+          gh cache list --limit 1000 --json id --jq '.[].id' | while read -r id; do
+            if ! jq -e --argjson id "$id" 'index($id)' keep.json > /dev/null; then
+              gh cache delete "$id"
+            fi
+          done
