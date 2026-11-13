@@ -1,3 +1,11 @@
+---
+sources:
+  - drivers/hmis/app/models/hmis/form/definition.rb
+  - drivers/hmis/app/graphql/mutations/create_next_draft_form_definition.rb
+  - drivers/hmis/app/graphql/mutations/publish_form_definition.rb
+  - drivers/hmis/lib/hmis_util/json_forms.rb
+---
+
 # HMIS form definitions
 
 Nearly all data entry in the HMIS front-end is driven by a **form definition**. This document covers the `Hmis::Form::Definition` model itself — its columns, its roles, and its status lifecycle. It is the entry point to the other form docs.
@@ -41,7 +49,7 @@ A definition's `role` determines what record the form owns, which mutation submi
 | Assessment | `INTAKE`, `UPDATE`, `ANNUAL`, `EXIT`, `POST_EXIT`, `CUSTOM_ASSESSMENT` | Own a `CustomAssessment`; submitted via `SubmitAssessment`. Only these support save-in-progress. See [HMIS assessments](hmis-assessments.md) |
 | System record | `PROJECT`, `ORGANIZATION`, `PROJECT_COC`, `FUNDER`, `INVENTORY`, `CLIENT`, `NEW_CLIENT_ENROLLMENT`, `ENROLLMENT`, `HMIS_PARTICIPATION`, `CE_PARTICIPATION` | Required for basic HMIS function. Resolution raises if one is missing |
 | Data collection feature | `CURRENT_LIVING_SITUATION`, `SERVICE`, `CE_EVENT`, `CE_ASSESSMENT`, `CASE_NOTE`, `EXTERNAL_FORM` | Optional per-project features, toggled on by an active form rule. |
-| Static | `FORM_RULE`, `PROJECT_CONFIG`, `CLIENT_ALERT`, `FORM_DEFINITION` | Admin config forms. Not configurable, need no rule, submitted by bespoke mutations |
+| Static | `FORM_RULE`, `PROJECT_CONFIG`, `CLIENT_ALERT`, `FORM_DEFINITION` (deprecated) | Admin config forms. Not configurable, need no rule, submitted by bespoke mutations. |
 | Other | `OCCURRENCE_POINT`, `CLIENT_DETAIL`, `FILE`, `CE_REFERRAL_STEP` | |
 
 The system record and data collection feature roles are "record forms," submitted via `SubmitForm`. `FORM_ROLE_CONFIG` maps each role to its `owner_class` — the record type the form creates or edits. Two roles in those groups are exceptions: `CE_REFERRAL_STEP` has its own mutation, and `EXTERNAL_FORM` arrives through the external pipeline rather than a submit mutation. See [Form processing](hmis-form-processing.md#submission-approaches).
@@ -62,7 +70,7 @@ Multiple published definitions can share a role. Which one applies to a given pr
 
 Only one version per identifier can be `published` at a time, and only one can be `draft`; both are enforced by partial unique indexes, as is `identifier` + `version`. Publishing a draft (`PublishFormDefinition`) retires the previously published version in the same transaction. Editing a published form means creating the next draft version (`CreateNextDraftFormDefinition`), then publishing that. The Form Builder refuses to open anything but a draft.
 
-Deletion is restricted to drafts (`DeleteFormDefinition`), because published and retired definitions are referenced by `hmis_form_processors` rows on existing records. Retiring is the only way to take a form out of circulation.
+Deletion is restricted to drafts (`DeleteFormDefinition`), because published and retired definitions are referenced by `hmis_form_processors` rows on existing records. Retiring is the only way to take a form out of circulation. `RetireFormDefinition` retires a form's published version, leaving no published version; it refuses while the form has a draft. A retired External Form's `external_form_object_key` can be reused by another form. Only External Forms can be retired for now; to stop collecting another type of form, remove its form rules.
 
 `valid_status_for_submit?` allows both `published` and `retired`, so a retired definition can still be submitted. This is deliberate: it keeps existing records editable after their form is retired. Which definition the UI actually uses to edit an old record — the original or a newer one — depends on the record type, and is covered in [Form resolution](hmis-form-resolution.md#choosing-a-definition-for-an-existing-record).
 

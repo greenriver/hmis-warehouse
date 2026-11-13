@@ -101,8 +101,8 @@ RSpec.describe Filters::Criteria::FilterForSubPopulation do
       end
     end
 
-    context 'with an invalid sub population' do
-      let(:sub_population) { :invalid_sub_population }
+    context 'with an invalid sub population that bypassed the filter' do
+      before { allow(filter).to receive(:sub_population).and_return(:invalid_sub_population) }
 
       it 'raises an error' do
         expect { criteria.apply(scope) }.to raise_error(/not allowed/)

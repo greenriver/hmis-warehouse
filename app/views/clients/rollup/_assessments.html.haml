@@ -1,13 +1,11 @@
 - hmis_forms_columms = (GrdaWarehouse::HmisForm.column_names - ['api_response', 'answers']).map(&:to_sym)
 - hmis_forms = @client.source_hmis_forms.select(*hmis_forms_columms).sort.group_by(&:assessment_type)
 - eccovia_assessments = []
-- ce_assessments = []
 - eccovia_assessments = @client.source_eccovia_assessments
-- if @client.source_assessments.exists?
-  - ce_assessments = @client.source_assessments.order(assessment_date: :desc).preload(:assessment_questions).to_a
+- ce_assessments = visible_source_assessments.order(assessment_date: :desc).preload(:assessment_questions).to_a
 - custom_hmis_assessments = []
 - if HmisEnforcement.hmis_enabled?
-  - custom_hmis_assessments = @client.hmis_source_custom_assessments.order(assessment_date: :desc).preload(:user, enrollment: [:data_source, { project: :warehouse_project }], form_processor: :definition).to_a
+  - custom_hmis_assessments = visible_hmis_source_custom_assessments.order(assessment_date: :desc).preload(:user, enrollment: [:data_source, { project: :warehouse_project }], form_processor: :definition).to_a
   -# remove any CE assessments for which we have a matching HMIS custom assessment.  The custom assessment will give better fidelity
   -# we'll add back the ce assessment details on the show page
   - custom_hmis_assessments.each do |assessment|

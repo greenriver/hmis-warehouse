@@ -27,7 +27,7 @@ module Admin
       end
       @file.save
       if @file.invalid?
-        flash[:error] = @file.errors.full_messages.join('; ') + params.inspect.to_s
+        flash[:error] = @file.errors.full_messages.join('; ')
         redirect_to admin_public_files_path
         return
       end

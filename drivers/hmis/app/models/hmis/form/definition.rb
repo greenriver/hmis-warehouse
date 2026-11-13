@@ -51,6 +51,10 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   attr_accessor :filter_context
 
   validates :identifier, format: { with: /\A[a-zA-Z][a-zA-Z0-9_-]*\z/, message: 'must contain only alphanumeric characters, underscores, and dashes, and must start with a letter' }
+  # The External Form's path in the public S3 bucket: lowercase segments separated by single slashes, such as pit/pit.html.
+  # Blank input (such as an empty text field) is stored as nil.
+  normalizes :external_form_object_key, with: ->(key) { key.strip.presence }
+  validates :external_form_object_key, allow_nil: true, length: { maximum: 100 }, format: { with: /\A[a-z0-9][a-z0-9._-]*(\/[a-z0-9][a-z0-9._-]*)*\z/, message: 'must contain only lowercase letters, numbers, underscores, dashes, periods, and slashes, and each part must start with a letter or number' }
   # Forms that are managed in version control cannot have more than 1 version. To enforce this, we ensure that the identifier is unique.
   validates_uniqueness_of :identifier, if: :managed_in_version_control?, scope: :data_source_id
 
@@ -109,7 +113,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     :FORM_RULE,
     :PROJECT_CONFIG,
     :CLIENT_ALERT,
-    :FORM_DEFINITION,
+    :FORM_DEFINITION, # Deprecated, this role (and associated form definition row) can be removed in a future release. Kept here for backwards compatibility of deployment.
   ].freeze
 
   # All form roles
@@ -358,12 +362,27 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
 
   validate :validate_external_form_object_key
   def validate_external_form_object_key
-    return unless role == 'EXTERNAL_FORM' && external_form_object_key.present?
+    return if external_form_object_key.blank?
 
-    # Ensure that external_form_object_key is not reused across forms with different identifiers
-    object_key_taken = Hmis::Form::Definition.where(external_form_object_key: external_form_object_key).
-      where.not(identifier: identifier).exists?
-    errors.add(:external_form_object_key, 'has already been taken') if object_key_taken
+    # Only External Forms have an object key. Only super-admins (can_administrate_config) can manage External Forms,
+    # so this also ensures that only super-admins can set a key.
+    if role != 'EXTERNAL_FORM'
+      errors.add(:external_form_object_key, :present, message: 'can only be set on External Forms')
+      return
+    end
+
+    # Ensure that external_form_object_key is not used by another form that is still active (has a draft or published
+    # version). Once a form is retired, its key can be reused.
+    # TODO(#10054): retiring a form should take its page down from S3 (see Mutations::RetireFormDefinition)
+    active_identifiers = Hmis::Form::Definition.where(data_source_id: data_source_id, status: [DRAFT, PUBLISHED]).select(:identifier)
+    object_key_taken = Hmis::Form::Definition.where(data_source_id: data_source_id, external_form_object_key: external_form_object_key).
+      where.not(identifier: identifier).
+      where(identifier: active_identifiers).
+      exists?
+    return unless object_key_taken
+
+    message = 'is already used by a different form. To reuse it, retire the other forms that use it.'
+    errors.add(:external_form_object_key, :taken, message: message, full_message: "External Form Key #{message}")
   end
 
   def self.apply_filters(input)
@@ -601,11 +620,6 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   # if the enrollment and project match
   def project_and_enrollment_match(...)
     instances.map { |i| i.project_and_enrollment_match(...) }.compact.min_by(&:rank)
-  end
-
-  # should use rails attr normalization in rails 7.1 (ActiveRecord::Base::normalizes)
-  def external_form_object_key=(value)
-    super(value.blank? ? nil : value.strip)
   end
 
   # Walk definition items either as open structs or hashes

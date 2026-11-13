@@ -90,9 +90,9 @@ module Clients
 
     def update
       attrs = if can_confirm_housing_release?
-        file_params
+        update_params
       elsif can_manage_client_files? || can_use_separated_consent?
-        file_params.except(:consent_form_confirmed)
+        update_params.except(:consent_form_confirmed)
       else
         not_authorized!
       end
