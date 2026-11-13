@@ -29,6 +29,6 @@ jobs:
               | map(.[0].id)' > keep.json
           gh cache list --limit 1000 --json id --jq '.[].id' | while read -r id; do
             if ! jq -e --argjson id "$id" 'index($id)' keep.json > /dev/null; then
-              gh cache delete "$id"
+              gh cache delete "$id" || echo "::warning::Could not delete cache $id"
             fi
           done

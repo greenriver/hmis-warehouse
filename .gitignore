@@ -164,6 +164,7 @@ drivers/datalab_testkit/spec/fixtures/internal_consistency_validations/*
 /app/assets/builds/*
 !/app/assets/builds/.keep
 
+/drivers/hud_twenty_twenty_two_to_twenty_twenty_four/spec/fixtures/in/*
 drivers/hud_lsa/spec/fixtures/files/lsa/*/*/*.csv
 
 # Superset storage

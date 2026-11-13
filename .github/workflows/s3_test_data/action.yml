@@ -118,8 +118,10 @@ runs:
       env:
         DATA_DIR: tmp/s3-test-data/${{ inputs.name }}
         DESTINATION: ${{ inputs.destination }}
+        CACHE_FILE: tmp/s3-test-data-cache/${{ inputs.name }}.tar.enc
       run: |
         set -euo pipefail
+        rm -f "$CACHE_FILE"
         mkdir -p "$DESTINATION"
         dest=$(cd "$DESTINATION" && pwd)
         cd "$DATA_DIR"
