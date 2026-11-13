@@ -10,6 +10,7 @@
 
 require_relative 'cronjob'
 require 'time'
+require 'zlib'
 
 # Run from rails root
 
@@ -21,7 +22,9 @@ class CronInstaller
   def run!
     Rails.logger.info "The current time is #{Time.now} and the current time in zone is #{Time.zone.now}"
 
-    Cronjob.clear!
+    jobnames = []
+    existing_crons = Cronjob.existing_cron_names
+    existing_vpas = Cronjob.existing_vpa_names
 
     each_cron_entry do |cron_expression, command|
       description = command.join(' ').sub(/ --silent/, '').sub(/bundle exec /, '')[0, MAX_DESCRIPTION_LENGTH]
@@ -44,9 +47,15 @@ class CronInstaller
         capacity_type: capacity_type,
       }
 
-      Cronjob.new(**params).run!
+      cronjob = Cronjob.new(**params)
+      # Upserts are keyed on jobname, so a collision would silently overwrite one entry
+      raise "Two schedule entries both map to cronjob name #{cronjob.jobname}. Make their commands distinct." if jobnames.include?(cronjob.jobname)
+
+      jobnames << cronjob.jobname
+      cronjob.run!(existing_crons: existing_crons, existing_vpas: existing_vpas)
     end
 
+    Cronjob.clear_defunct!(jobnames)
     Cronjob.clear_defunct_vpas!
   end
 
@@ -92,13 +101,17 @@ class CronInstaller
         hour
       end
 
+    # Seeded per entry so the schedule is stable across deploys. A changed schedule on a CronJob that
+    # keeps its status.lastScheduleTime can look like a missed run and start a catch-up Job.
+    rng = Random.new(Zlib.crc32(line))
+
     jitterize =
       if add_jitter
         ->(min, amount) do
           if min.to_i < 60 - amount
-            min.to_i + Random.rand(amount)
+            min.to_i + rng.rand(amount)
           else
-            min.to_i - Random.rand(amount)
+            min.to_i - rng.rand(amount)
           end
         end
       else
