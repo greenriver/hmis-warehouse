@@ -1,15 +1,16 @@
-# frozen_string_literal: true
-
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
-#
+
+# frozen_string_literal: true
+
 require 'memery'
 
 class GrdaWarehouse::DataSource < GrdaWarehouseBase
-  include RailsDrivers::Extensions
+  # Extensions from drivers — see ADR 0007
+  include Hmis::GrdaWarehouse::DataSourceExtension
   include EntityAccess
   include ArelHelper
   include Memery
@@ -21,6 +22,18 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
 
   validates :name, presence: true
   validates :short_name, presence: true
+  # Same rule as GrdaWarehouse::Config#client_retention_years; nil defers to the global window.
+  validates :client_retention_years, numericality: { only_integer: true, greater_than: 0 }, allow_nil: true
+
+  normalizes :hmis, with: lambda(&:presence) # normalize empty string/blank into nil
+  validates :hmis, uniqueness: { allow_nil: true, conditions: -> { where(deleted_at: nil) } }
+  validates :hmis,
+            inclusion: { in: ->(_) { HmisEnforcement.configured_hmis_hostnames } },
+            allow_nil: true,
+            unless: -> { Rails.env.test? } # Skip validation in test environment, too cumbersome to enforce
+  validate :hmis_hostname_immutable, if: :persisted?
+
+  before_validation :enforce_op_hmis_defaults, if: :hmis?
 
   after_create :maintain_system_group
   after_create :clear_ds_id_cache
@@ -49,9 +62,9 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
   accepts_nested_attributes_for :projects
 
   scope :importable, -> do
-    # Authoritative data sources are not importable. There is a temporary exception for HMIS data sources,
-    # since they need to continue to accept imports during the migration phase. (PT #185835773)
-    source.where(arel_table[:authoritative].eq(false).or(arel_table[:hmis].not_eq(nil)))
+    source.
+      where(disable_imports: false).
+      where(arel_table[:authoritative].eq(false).or(arel_table[:hmis].not_eq(nil)))
   end
 
   scope :source, -> do
@@ -102,7 +115,9 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
       # If have a set (not a nil) and it's empty, this user can't access any projects
       return none if ids.is_a?(Set) && ids.empty?
 
-      where(id: ids)
+      # A string predicate, unlike a hash or Arel predicate, is ANDed by a later
+      # `merge` on the same column instead of being replaced by it
+      where(%(#{quoted_table_name}."id" IN (?)), ids.to_a)
     else
       qc = ->(s) { connection.quote_column_name s }
       q  = ->(s) { connection.quote s }
@@ -169,7 +184,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
 
   # Data sources that are OP HMIS installations ('hmis' attribute = domain).
   # If 'user' provided, limits to the HMIS user's current HMIS data source.
-  # @see docs/architecture/multi-hmis-support.md
+  # @see docs/features/hmis/multi-hmis-support.md
   scope :hmis, ->(user = nil) do
     scope = where.not(hmis: nil)
     scope = scope.where(id: user.hmis_data_source_id) if user.present?
@@ -177,6 +192,14 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
   end
 
   scope :not_hmis, -> { where(hmis: nil) }
+
+  # Every HMIS installation on this deployment, empty when HMIS is turned off here.
+  # Callers use the emptiness to decide whether to show HMIS at all.
+  def self.enabled_hmis_data_sources
+    return [] unless HmisEnforcement.hmis_enabled?
+
+    hmis.to_a
+  end
 
   scope :scannable, -> do
     where(service_scannable: true)
@@ -522,69 +545,105 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
   end
 
   def unprocessed_enrollment_count
-    @unprocessed_enrollment_count ||= enrollments.unprocessed.joins(:project, :destination_client).count
+    @unprocessed_enrollment_count ||= enrollments.unprocessed_with_resolvable_project_and_client.count
   end
 
-  # Returns the date of the most recent fully successful import if the import is stalled, nil if it is not stalled
-  # @return [Date, nil] The date the import stalled, or nil if not stalled.
-  def stalled_date
-    return nil if import_paused
-    return nil unless hmis_import_config&.active
+  # Batched form of the stalled-date business rules for a page of data sources, to avoid one
+  # query per row. Every requested id is present in the result; nil means not stalled.
+  def self.stalled_dates_by_id(data_source_ids)
+    return {} if data_source_ids.blank?
 
-    # hmis_import_config.file_count is the expected number of uploads for a given day
-    # fetch the expected number, and confirm they all arrived within a 24 hour window
-    most_recent_uploads = uploads.completed.
-      # limit look back to 6 months to improve performance, but to potentially highlight missing data
-      where(user_id: User.system_user.id, completed_at: 6.months.ago..Time.current).
-      order(completed_at: :desc, created_at: :desc).
-      select(:id, :data_source_id, :user_id, :completed_at, :created_at).
-      distinct.
-      first(hmis_import_config.file_count)
-    # We didn't find any uploads in the last 6 months, assume this isn't connected yet
-    return nil unless most_recent_uploads.present?
+    ds_t = arel_table
+    ic_t = GrdaWarehouse::HmisImportConfig.arel_table
+    file_counts = GrdaWarehouse::DataSource.
+      where(id: data_source_ids, import_paused: false).
+      joins(:hmis_import_config).
+      merge(GrdaWarehouse::HmisImportConfig.active).
+      pluck(ds_t[:id], ic_t[:file_count]).to_h
 
-    min_completion_time = most_recent_uploads.minimum(:completed_at)
-    received_files_count = most_recent_uploads.count
+    return data_source_ids.index_with { nil } if file_counts.empty?
 
-    # If we only expected one file
-    if hmis_import_config.file_count == 1
-      # and it came in the last 24 hours, we're good
-      return nil if min_completion_time > 24.hours.ago
+    max_file_count = file_counts.values.max
 
-      # if not, return the last time we received a file
-      return min_completion_time.to_date
+    # file_count is the expected number of uploads per day; capping at rn <= max_file_count
+    # keeps this query from pulling the full 6-month lookback's uploads into Ruby.
+    ranked = GrdaWarehouse::Upload.
+      completed.
+      where(
+        user_id: User.system_user.id,
+        data_source_id: file_counts.keys,
+        # limit look back to 6 months to improve performance, but to potentially highlight missing data
+        completed_at: 6.months.ago..Time.current,
+      ).
+      define_window(:per_data_source).
+      partition_by(:data_source_id, order_by: { completed_at: :desc, created_at: :desc }).
+      select_window(:row_number, over: :per_data_source, as: :rn).
+      select(:data_source_id, :completed_at)
+
+    # Use GrdaWarehouse::Upload.unscoped as ranked already ignores deleted uploads.
+    top_uploads = GrdaWarehouse::Upload.unscoped.from(ranked, :ranked_uploads).
+      where('ranked_uploads.rn <= ?', max_file_count).
+      order('ranked_uploads.data_source_id, ranked_uploads.rn').
+      pluck('ranked_uploads.data_source_id', 'ranked_uploads.completed_at')
+    completion_times_by_data_source_id = top_uploads.group_by(&:first).transform_values { |rows| rows.map(&:second) }
+
+    data_source_ids.index_with do |id|
+      file_count = file_counts[id]
+      next nil unless file_count
+
+      # Trim back down to this id's own file_count - the query above capped every id at
+      # max_file_count across the whole batch, which can be larger than this one's own.
+      completion_times = completion_times_by_data_source_id[id]&.first(file_count)
+      # We didn't find any uploads in the last 6 months, assume this isn't connected yet
+      next nil if completion_times.blank?
+
+      min_completion_time = completion_times.min
+      received_files_count = completion_times.size
+
+      if file_count == 1
+        next nil if min_completion_time > 24.hours.ago
+
+        next min_completion_time.to_date
+      end
+
+      next nil if min_completion_time > 24.hours.ago && received_files_count >= file_count
+
+      min_completion_time.to_date
     end
-
-    # If we processed the expected number of files within a 24 hour period, we're good
-    return nil if min_completion_time > 24.hours.ago && received_files_count >= hmis_import_config.file_count
-
-    # Note the last time we received a file
-    min_completion_time.to_date
   end
 
   def self.import_advisory_lock_name(data_source_id)
     "enforce_sequential_data_source_imports_for_#{data_source_id}"
   end
 
-  def self.stalled_imports?(user)
-    Rails.cache.fetch(['data_source_stalled_imports', user], expires_in: 1.hours) do
-      stalled = false
-      viewable_by(user).each do |data_source|
-        next if stalled
+  # Batched form of the per-row import_logs.maximum(:completed_at) lookup.
+  # Ids with no import logs are absent from the result.
+  def self.last_import_completed_ats_by_id(data_source_ids)
+    return {} if data_source_ids.blank?
 
-        most_recently_completed = data_source.import_logs.maximum(:completed_at)
-        if most_recently_completed.present?
-          stalled = true if data_source.stalled_date.present?
-        end
-      end
+    GrdaWarehouse::ImportLog.where(data_source_id: data_source_ids).group(:data_source_id).maximum(:completed_at)
+  end
 
-      stalled
+  # Cached globally for an hour - user-independent;
+  # stalled_imports?'s viewability filter limits to user-relevant data sources.
+  def self.stalled_data_source_ids
+    Rails.cache.fetch('data_source_stalled_ids', expires_in: 1.hours) do
+      ids = GrdaWarehouse::DataSource.pluck(:id)
+      last_completed_by_id = last_import_completed_ats_by_id(ids)
+      stall_date_by_id = stalled_dates_by_id(ids)
+
+      ids.select { |id| last_completed_by_id[id].present? && stall_date_by_id[id].present? }
     end
   end
 
-  def self.options_for_select(user:, ids: nil)
+  def self.stalled_imports?(user)
+    viewable_ids = viewable_by(user).pluck(:id)
+    (stalled_data_source_ids & viewable_ids).any?
+  end
+
+  def self.options_for_select(user:, ids: nil, permission: :can_view_projects)
     # don't cache this, it's a class method
-    scope = viewable_by(user)
+    scope = viewable_by(user, permission: permission)
     scope = scope.where(id: ids) if ids.present?
     scope.distinct.
       order(name: :asc).
@@ -663,7 +722,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
   #
   memoize def ever_pause_imports_with_record_changes?
     return false unless import_threshold.present?
-    return false unless import_threshold.pause_on_error_threshold
+    return false unless import_threshold.pause_on_record_count_threshold
 
     import_threshold.record_count_change_min_threshold.present? && import_threshold.record_count_change_percent_threshold.present?
   end
@@ -705,6 +764,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
   def destroy_dependents!
     organizations.map(&:destroy_dependents!)
     organizations.update_all(DateDeleted: Time.current, source_hash: nil)
+    remove_system_collections!
   end
 
   def client_count
@@ -715,10 +775,152 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     projects.joins(:organization).count
   end
 
+  # Batched form of #client_count for a page of data sources, to avoid one query per row.
+  def self.client_counts_by_id(data_source_ids)
+    Hash.new(0).merge(GrdaWarehouse::Hud::Client.where(data_source_id: data_source_ids).group(:data_source_id).count)
+  end
+
+  # Batched form of #project_count for a page of data sources, to avoid one query per row.
+  def self.project_counts_by_id(data_source_ids)
+    Hash.new(0).merge(GrdaWarehouse::Hud::Project.joins(:organization).where(data_source_id: data_source_ids).group(:data_source_id).count)
+  end
+
+  # Batched form of #unprocessed_enrollment_count for a page of data sources, to avoid one query per row.
+  def self.unprocessed_enrollment_counts_by_id(data_source_ids)
+    Hash.new(0).merge(
+      GrdaWarehouse::Hud::Enrollment.unprocessed_with_resolvable_project_and_client.
+        where(data_source_id: data_source_ids).
+        group(:data_source_id).count,
+    )
+  end
+
+  # A data source's show page renders every project at once unless the list is
+  # large and picking a CoC would meaningfully shrink it. A CoC choice is only required when
+  # there are at least two CoCs, the project count reaches MIN_PROJECT_COUNT_FOR_COC_CHOICE,
+  # the projects outside the largest CoC together reach MIN_FRAGMENT_COUNT_FOR_COC_CHOICE, and
+  # the largest CoC holds less than DOMINANT_COC_SHARE of the total.
+  #
+  # Counts are distinct projects per CoC, the same figures coc_summaries puts on the picker
+  # cards: a project with several ProjectCoc rows in one CoC counts once there, and a project
+  # in several CoCs counts once in each.
+  MIN_PROJECT_COUNT_FOR_COC_CHOICE = Rails.env.development? ? 100 : 1000
+  MIN_FRAGMENT_COUNT_FOR_COC_CHOICE = Rails.env.development? ? 5 : 50
+  DOMINANT_COC_SHARE = Rails.env.development? ? 0.90 : 0.75
+
+  # project_scope must be a viewable-projects scope (e.g. GrdaWarehouse::Hud::Project.viewable_by(...)),
+  # not yet narrowed to this data source or any particular CoC code — the point here is deciding
+  # whether a CoC choice is needed at all, based on what this user could otherwise see all at once.
+  def require_coc_choice?(project_scope)
+    counts = coc_code_bucket_scope(project_scope.where(data_source_id: id)).count(DISTINCT_PROJECT_ID).values
+    return false if counts.size < 2
+
+    total = counts.sum
+    dominant = counts.max
+    return false if total < MIN_PROJECT_COUNT_FOR_COC_CHOICE
+    return false if total - dominant < MIN_FRAGMENT_COUNT_FOR_COC_CHOICE
+
+    dominant.to_f / total < DOMINANT_COC_SHARE
+  end
+
+  # One summary row per distinct CoC code (plus an "unknown" bucket for projects with
+  # a blank/whitespace CoC code), each with counts of the distinct projects and
+  # organizations in that CoC, for use as the picker cards on the data source show page.
+  #
+  # project_scope has the same contract as require_coc_choice?: a viewable-projects
+  # scope not yet narrowed to this data source or any particular CoC code.
+  def coc_summaries(project_scope)
+    scope = coc_code_bucket_scope(project_scope)
+    project_counts = scope.count(DISTINCT_PROJECT_ID)
+    org_counts = scope.count('DISTINCT "Project"."OrganizationID"')
+
+    project_counts.map do |code, project_count|
+      known = code.present?
+      {
+        code: known ? code : 'unknown',
+        name: known ? HudHelper.util.coc_name(code) : Translation.translate('Unknown CoC'),
+        project_count: project_count,
+        org_count: org_counts[code] || 0,
+      }
+    end.sort_by { |summary| [summary[:code] == 'unknown' ? 1 : 0, summary[:code]] }
+  end
+
+  # Users who can see this data source's clients regardless of window visibility;
+  # shown on the show page's Access card and its "who can view this" modal.
+  #
+  # A can_view_clients grant only counts if it actually reaches this data source -
+  # via the legacy AccessGroup system, or via an ACL Collection that covers this data
+  # source directly or through its organizations/projects/project access groups/CoCs.
+  # DataSource#users (legacy AccessGroup only) can't express the ACL half of that, and
+  # hand-rolling the ACL collection-inclusion rules here risks diverging from the real
+  # ones, so this reuses .viewable_by.
+  def users_with_view_access
+    User.can_view_clients.active.select do |user|
+      GrdaWarehouse::DataSource.viewable_by(user, permission: :can_view_clients).exists?(id: id)
+    end
+  end
+
+  DISTINCT_PROJECT_ID = 'DISTINCT "Project"."id"'
+  private_constant :DISTINCT_PROJECT_ID
+
+  # Group nil, empty, and whitespace-only CoC codes into a single bucket, matching
+  # ProjectCoc.unknown_coc.
+  private def coc_code_bucket_scope(project_scope)
+    coc = GrdaWarehouse::Hud::ProjectCoc.arel_table[:CoCCode]
+    bucket = nf('NULLIF', [nf('TRIM', [coc]), ''])
+
+    GrdaWarehouse::Hud::ProjectCoc.
+      where(data_source_id: id).
+      joins(:project).
+      merge(project_scope).
+      group(bucket)
+  end
+
+  # A per-source window only means something while global retention is on, and the
+  # warehouse (destination) data source has no source clients for a window to apply to.
+  def client_retention_override_available?
+    return false if source_type.nil? && !authoritative
+
+    GrdaWarehouse::Config.get(:client_retention_years).present?
+  end
+
+  # nil when retention is off.
+  def effective_client_retention_years
+    global = GrdaWarehouse::Config.get(:client_retention_years)
+    return nil if global.nil?
+
+    client_retention_years || global
+  end
+
   # True when this data source is an Open Path HMIS installation
-  # @see docs/architecture/multi-hmis-support.md
+  # @see docs/features/hmis/multi-hmis-support.md
   def hmis?
     hmis.present?
+  end
+
+  # Pre-launch gate for an Open Path HMIS.
+  # * Blank or a timestamp in the past means live
+  # * A future timestamp keeps everyone except users who can administer HMIS out.
+  def hmis_live?
+    hmis_go_live_at.nil? || hmis_go_live_at <= Time.current
+  end
+
+  def importable?
+    self.class.importable.where(id: id).exists?
+  end
+
+  # whether the user can upload HUD CSV files to this data source
+  def importable_by?(user)
+    return false unless importable?
+    return false unless user.can_upload_hud_zips?
+    return false unless directly_viewable_by?(user, permission: :can_upload_hud_zips)
+
+    true
+  end
+
+  def self.available_hmis_hostnames(exclude_data_source_id: nil)
+    assigned = where.not(hmis: nil)
+    assigned = assigned.where.not(id: exclude_data_source_id) if exclude_data_source_id
+    HmisEnforcement.configured_hmis_hostnames - assigned.pluck(:hmis).map(&:downcase)
   end
 
   def hmis_name
@@ -739,31 +941,56 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     external_hmis_configuration&.url(entity)
   end
 
+  # Bare link to this data source's Open Path HMIS instance -- there's no specific entity to
+  # deep-link to (used by nav menus and the data sources admin table). Routed through the user's
+  # last IdP connector the same way #open_path_hmis_url routes its deep links; see
+  # #hmis_signed_in_url.
+  def hmis_login_url(user: nil)
+    return unless hmis?
+
+    hmis_signed_in_url(base: "https://#{hmis}", path: '/', user: user)
+  end
+
+  # Validate that the HMIS hostname was not changed
+  private def hmis_hostname_immutable
+    errors.add(:hmis, 'cannot be changed once set') if hmis_changed? && hmis_was.present?
+  end
+
+  private def enforce_op_hmis_defaults
+    self.authoritative = true        # OP HMIS is the system of record
+    self.authoritative_type = nil    # not needed for OP HMIS
+    self.source_type = nil           # not needed for OP HMIS
+    self.munged_personal_id = false  # do not inject dashes into Personal ID UUIDs
+    self.after_create_path = nil     # not applicable, clients are not created in the warehouse for OP HMIS
+    self.service_scannable = false   # not applicable, clients are not created in the warehouse for OP HMIS
+  end
+
   private def open_path_hmis_url(entity, user: nil)
     base = "https://#{hmis}"
     base += ':5173' if Rails.env.development? # port used by hmis vite dev server
 
-    url = case entity
+    path = case entity
     when GrdaWarehouse::Hud::Project, Hmis::Hud::Project
-      "#{base}/projects/#{entity.id}"
+      "/projects/#{entity.id}"
     when GrdaWarehouse::Hud::Organization, Hmis::Hud::Organization
-      "#{base}/organizations/#{entity.id}"
+      "/organizations/#{entity.id}"
     when GrdaWarehouse::Hud::Client, Hmis::Hud::Client
-      "#{base}/client/#{entity.id}"
+      "/client/#{entity.id}"
     when GrdaWarehouse::Hud::Enrollment, Hmis::Hud::Enrollment
-      "#{base}/client/#{entity.client&.id}/enrollments/#{entity.id}"
+      "/client/#{entity.client&.id}/enrollments/#{entity.id}"
     when Hmis::Hud::CustomAssessment
-      "#{base}/client/#{entity.enrollment&.client&.id}/enrollments/#{entity.enrollment&.id}/assessments/#{entity.id}"
+      "/client/#{entity.enrollment&.client&.id}/enrollments/#{entity.enrollment&.id}/assessments/#{entity.id}"
     when Hmis::Hud::CustomService
-      "#{base}/client/#{entity.enrollment&.client&.id}/enrollments/#{entity.enrollment&.id}/services"
+      "/client/#{entity.enrollment&.client&.id}/enrollments/#{entity.enrollment&.id}/services"
     end
 
     # For any other Enrollment-related record, link to the enrollment page
-    url ||= "#{base}/client/#{entity.client&.id}/enrollments/#{entity.enrollment&.id}" if entity.respond_to?(:enrollment) && entity.respond_to?(:client)
+    path ||= "/client/#{entity.client&.id}/enrollments/#{entity.enrollment&.id}" if entity.respond_to?(:enrollment) && entity.respond_to?(:client)
+    return unless path.present?
 
     # If we don't have the HMIS driver we probably aren't here, but we need to check for the next section
     # If we don't have a user, just return the URl (backwards compatibility)
-    return url if user.blank?
+    return hmis_signed_in_url(base: base, path: path, user: user) if user.blank?
 
     # If we have a user, check for access (on the HMIS side)
     hmis_entity = if entity.respond_to?(:as_hmis)
@@ -772,23 +999,38 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
       entity
     end
     hmis_user = user.related_hmis_user(self)
+    return hmis_signed_in_url(base: base, path: path, user: user) unless hmis_user.present?
 
-    known_permissions = {
-      'Hmis::Hud::Project' => [:can_view_project],
-      # 'Hmis::Hud::Organization' => [:can_view_organization],
-      'Hmis::Hud::Client' => [:can_view_clients],
-      'Hmis::Hud::Enrollment' => [:can_view_projects, :can_view_enrollment_details],
-      'Hmis::Hud::CustomAssessment' => [:can_view_projects, :can_view_enrollment_details],
-    }
+    # If we can't determine access for this entity type, show the link and let HMIS handle it.
+    # If we can determine the user lacks access, don't bother linking.
+    authorized = case hmis_entity
+    when Hmis::Hud::Project
+      hmis_user.policy_for(hmis_entity, policy_type: :hmis_project).can_view?
+    when Hmis::Hud::Client
+      hmis_user.policy_for(hmis_entity, policy_type: :hmis_client).can_view?
+    when Hmis::Hud::Enrollment
+      hmis_user.policy_for(hmis_entity, policy_type: :hmis_enrollment).can_view_details?
+    when Hmis::Hud::CustomAssessment, Hmis::Hud::CustomService
+      enrollment = hmis_entity.enrollment
+      enrollment.present? && hmis_user.policy_for(enrollment, policy_type: :hmis_enrollment).can_view_details?
+    else
+      true
+    end
 
-    perms = known_permissions[hmis_entity.class.name]
-    # If we can't determine if we can see this in HMIS, just go ahead and show the link,
-    # HMIS will handle access
-    return url if perms.blank?
-    # If we can't see this in HMIS, don't bother linking to it
-    return nil unless hmis_user.permissions_for?(hmis_entity, *perms, mode: :all)
+    authorized ? hmis_signed_in_url(base: base, path: path, user: user) : nil
+  end
 
-    url
+  # Routes the URL through HMIS's own oauth2-proxy /oauth2/sign_in endpoint with the user's
+  # connector_id, so Dex sends the user straight to their IdP instead of showing its connector
+  # picker: oauth2-proxy forwards connector_id to Dex for requests to that endpoint, per its
+  # loginURLParameters config. See Superset.warehouse_login_url for the same routing on Superset.
+  private def hmis_signed_in_url(base:, path:, user:)
+    return "#{base}#{path}" unless AuthMethod.jwt?
+
+    connector_id = user&.last_connector_id
+    return "#{base}#{path}" if connector_id.blank?
+
+    base + Idp::Oauth2ProxySignInPath.call(connector_id: connector_id, redirect_to: path)
   end
 
   private def maintain_system_group
@@ -844,6 +1086,4 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     end
     memoize :warehouse_id
   end
-
-  include RailsDrivers::Extensions
 end

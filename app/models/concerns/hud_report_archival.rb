@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -8,6 +8,8 @@
 
 module HudReportArchival
   extend ActiveSupport::Concern
+
+  RESTORE_STALE_AFTER = 4.hours
 
   mattr_accessor :generator_registry
   self.generator_registry = {}
@@ -43,12 +45,47 @@ module HudReportArchival
     has_one_attached :report_cells_csv
     has_one_attached :universe_members_csv
 
+    # APR / CAPER / CE-APR
+    has_one_attached :apr_clients_csv
+    has_one_attached :apr_living_situations_csv
+    has_one_attached :apr_ce_assessments_csv
+    has_one_attached :apr_ce_events_csv
+
+    # DQ
+    has_one_attached :dq_clients_csv
+    has_one_attached :dq_living_situations_csv
+
+    # HIC
+    has_one_attached :hic_projects_csv
+    has_one_attached :hic_project_cocs_csv
+    has_one_attached :hic_inventories_csv
+    has_one_attached :hic_organizations_csv
+    has_one_attached :hic_funders_csv
+
+    # LSA
+    has_one_attached :lsa_summary_results_csv
+
+    # PATH
+    has_one_attached :path_clients_csv
+
+    # PIT
+    has_one_attached :pit_clients_csv
+
+    # SPM
+    has_one_attached :spm_clients_csv
+    has_one_attached :spm_enrollments_csv
+    has_one_attached :spm_enrollment_links_csv
+    has_one_attached :spm_episodes_csv
+    has_one_attached :spm_returns_csv
+    has_one_attached :spm_bed_nights_csv
+
     scope :purge_eligible, ->(grace_period_days, now = Time.current) do
       sanitized_days = grace_period_days.to_i
 
       base = where(state: 'Completed').
         where.not(completed_at: nil).
-        where("archival_metadata->>'purged_at' IS NULL")
+        where("archival_metadata->>'purged_at' IS NULL").
+        where("archival_metadata->>'purge_failed_at' IS NULL")
 
       # Branch 1: an explicit purge_eligible_at was set (e.g. by the rake task)
       by_explicit_date = base.
@@ -89,6 +126,58 @@ module HudReportArchival
     (completed_at + grace.to_i.days) <= Time.current
   end
 
+  def restoring?
+    return false unless purged?
+
+    started = parsed_archival_time('restore_started_at')
+    return false if started.blank?
+    return false if parsed_archival_time('restore_failed_at').present?
+    return false if started < RESTORE_STALE_AFTER.ago
+
+    started > purged_at_time
+  end
+
+  def restore_failed?
+    return false unless purged?
+
+    failed = parsed_archival_time('restore_failed_at')
+    return false if failed.blank?
+
+    failed > purged_at_time
+  end
+
+  def restore_error
+    archival_metadata&.dig('restore_error')
+  end
+
+  def begin_restore!
+    remove_archival_metadata('restore_failed_at', 'restore_error')
+    update_archival_metadata('restore_started_at', Time.current.iso8601)
+  end
+
+  def finish_restore!
+    remove_archival_metadata('restore_started_at', 'restore_failed_at', 'restore_error')
+  end
+
+  def fail_restore!(message)
+    remove_archival_metadata('restore_started_at')
+    update_archival_metadata('restore_failed_at', Time.current.iso8601)
+    update_archival_metadata('restore_error', message.to_s)
+  end
+
+  private def purged_at_time
+    parsed_archival_time('purged_at') || Time.zone.at(0)
+  end
+
+  private def parsed_archival_time(key)
+    value = archival_metadata&.dig(key)
+    return if value.blank?
+
+    Time.zone.parse(value.to_s)
+  rescue ArgumentError
+    nil
+  end
+
   def archival_status
     return { archived: false } unless archival_metadata&.dig('archived_at').present?
 
@@ -115,6 +204,11 @@ module HudReportArchival
   def update_archival_metadata(key, value)
     current = archival_metadata || {}
     update_column(:archival_metadata, current.merge(key.to_s => value))
+  end
+
+  def remove_archival_metadata(*keys)
+    current = archival_metadata || {}
+    update_column(:archival_metadata, current.except(*keys.map(&:to_s)))
   end
 
   def archival_generator_klass

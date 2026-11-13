@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -50,12 +50,18 @@ module TxClientReports
     end
 
     def run_and_save!
-      update(started_at: Time.current)
-      create_export(
+      # A retry clears the failure left by the previous attempt
+      update(started_at: Time.current, failed_at: nil)
+      export = create_export(
         user_id: filter.user_id,
-        content: excel_content,
         content_type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       )
+      export.research_export_file.attach(
+        io: StringIO.new(excel_content),
+        filename: 'research_export.xlsx',
+        content_type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      )
+      export.save!
       assign_attributes(completed_at: Time.current)
       save
     end
@@ -77,13 +83,7 @@ module TxClientReports
     private def excel_content
       controller = TxClientReports::WarehouseReports::ResearchExportsController
       assigns = { filter: filter, format: :xlsx, report: self }
-      ActionController::Renderer::RACK_KEY_TRANSLATION['warden'] ||= 'warden'
-      warden_proxy = Warden::Proxy.new({}, Warden::Manager.new({})).tap do |i|
-        i.set_user(user, scope: :user, store: false, run_callbacks: false)
-      end
-      renderer = controller.renderer.new(
-        'warden' => warden_proxy,
-      )
+      renderer = controller.renderer.new(WardenProxyFactory.renderer_env(user))
       renderer.render(
         action: :index,
         layout: false,
@@ -174,7 +174,7 @@ module TxClientReports
     end
 
     private def report_scope
-      scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.joins(:client, project: :project_cocs)
+      scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.joins(:client).joins_project_cocs(coc_codes: filter.coc_codes)
       scope = filter_for_user_access(scope)
       scope = filter_for_range(scope)
       scope = filter_for_cocs(scope)

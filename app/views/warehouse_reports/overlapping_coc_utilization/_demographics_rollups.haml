@@ -66,11 +66,12 @@
             %td= key
             %td.text-right= vv[key]
     - content_for :page_js do
-      :javascript
-        App.WarehouseReports.clientDemographicsRollupChart({
-          rootSelector: '#' + #{chart_id.to_json.html_safe},
-          categories: #{keys.to_json.html_safe},
-          values: #{vv.to_json.html_safe},
-          domain: #{[0, vv.values.sum].to_json.html_safe},
-          palette: #{palette.to_json.html_safe}
-        });
+      %script{ nonce: content_security_policy_nonce }
+        :plain
+          App.WarehouseReports.clientDemographicsRollupChart({
+            rootSelector: '#' + #{chart_id.to_json.html_safe},
+            categories: #{keys.to_json.html_safe},
+            values: #{vv.to_json.html_safe},
+            domain: #{[0, vv.values.sum].to_json.html_safe},
+            palette: #{palette.to_json.html_safe}
+          });

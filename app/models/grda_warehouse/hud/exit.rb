@@ -1,17 +1,21 @@
-# frozen_string_literal: true
-
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 module GrdaWarehouse::Hud
   class Exit < Base
     include HudSharedScopes
     include ::HmisStructure::Exit
     include ::HmisStructure::Shared
-    include RailsDrivers::Extensions
+    # Extensions from drivers — see ADR 0007
+    include HmisCsvImporter::GrdaWarehouse::Hud::ExitExtension
+    include HmisCsvTwentyTwenty::GrdaWarehouse::Hud::ExitExtension
+    include HmisCsvTwentyTwentyFour::GrdaWarehouse::Hud::ExitExtension
+    include HmisCsvTwentyTwentySix::GrdaWarehouse::Hud::ExitExtension
 
     attr_accessor :source_id
 

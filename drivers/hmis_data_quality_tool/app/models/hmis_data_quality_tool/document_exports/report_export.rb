@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -10,11 +10,11 @@ module HmisDataQualityTool::DocumentExports
   class ReportExport < ::GrdaWarehouse::DocumentExport
     include ApplicationHelper
     def authorized?
-      user.can_view_any_reports? && report_class.viewable_by(user)
+      user.can_view_any_reports? && report_class.viewable_by(user) && report.present?
     end
 
     protected def report
-      @report ||= report_class.find(params['id'])
+      @report ||= report_class.visible_to(user).find_by(id: params['id'])
     end
 
     protected def view_assigns

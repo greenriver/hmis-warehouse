@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -16,7 +16,6 @@ OpenPath::Application.routes.draw do
       get :from_source
     end
     resource :history, only: [:show], controller: 'client_access_control/history' do
-      get :pdf, on: :collection
       post :queue, on: :collection
     end
   end

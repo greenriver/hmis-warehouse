@@ -1,3 +1,9 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 wb = xlsx_package.workbook
 wb.add_worksheet(name: 'Project Groups') do |sheet|
   title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
@@ -11,6 +17,7 @@ wb.add_worksheet(name: 'Project Groups') do |sheet|
     'Data Sources',
     'Created',
     'Last Updated',
+    'Notes',
   ]
   sheet.add_row(columns, style: title)
   @project_groups.each do |group|
@@ -23,7 +30,8 @@ wb.add_worksheet(name: 'Project Groups') do |sheet|
       group.filter.chosen(:data_source_ids)&.join(', '),
       group.created_at,
       group.updated_at,
+      group.notes,
     ]
-    sheet.add_row(row, style: [data_cell] * 6) # Don't add style to the date columns
+    sheet.add_row(row, style: [data_cell] * 6 + [nil, nil, data_cell]) # nil preserves Axlsx default date formatting for Created/Last Updated
   end
 end

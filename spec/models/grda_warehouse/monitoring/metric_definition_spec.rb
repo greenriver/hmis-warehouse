@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -9,6 +9,7 @@
 require 'rails_helper'
 
 RSpec.describe GrdaWarehouse::Monitoring::MetricDefinition, type: :model do
+  before(:all) { cleanup_test_environment }
   describe 'validations' do
     it 'requires name' do
       metric = build(:grda_warehouse_monitoring_metric_definition, name: nil)

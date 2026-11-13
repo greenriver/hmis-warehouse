@@ -1,8 +1,9 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
 # frozen_string_literal: true
 
 # Loads and caches access group IDs for projects, including via organizations, data sources,
@@ -40,6 +41,21 @@ module Hmis::AuthPolicies::ContextLoaders
       # For projects that don't have any access groups, add `nil` to the cache, so that we don't check the db again
       no_access_project_ids = new_project_ids - results.keys
       @cache.merge!(no_access_project_ids.index_with(nil))
+    end
+
+    # {project_id => [access_group_id, ...]} for projects in the given data source that are covered by the
+    # given access groups, directly or indirectly. The inverse of #get, so results mention only the access
+    # groups passed in.
+    def access_group_ids_by_project(access_group_ids, data_source_id:)
+      return {} if access_group_ids.empty?
+
+      Hmis::ProjectAccessGroupMember.
+        joins(:project).
+        where(access_group_id: access_group_ids).
+        where(Hmis::Hud::Project.arel_table[:data_source_id].eq(data_source_id)).
+        pluck(:project_id, :access_group_id).
+        group_by(&:first).
+        transform_values { |rows| rows.map(&:last).sort }
     end
 
     private

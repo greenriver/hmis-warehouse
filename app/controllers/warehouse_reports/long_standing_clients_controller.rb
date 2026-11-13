@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -22,6 +22,7 @@ module WarehouseReports
 
       @pagy, @entries = pagy(@entries)
       @clients = client_source.where(id: @entries.map(&:client_id)).preload(source_clients: :data_source).index_by(&:id)
+      current_user.policy_context.preload_client_dependencies(@clients.keys)
     end
 
     private def client_source

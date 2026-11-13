@@ -3,4 +3,4 @@
   Edit Inventory for #{@inventory.project.name(ignore_confidential_status: true)} at #{@inventory.project.organization.name(ignore_confidential_status: true)}
 = simple_form_for :inventory, url: manual_hmis_data_inventory_path, method: :patch do |f|
   = render 'manual_hmis_data/form', form: f
-  = f.submit 'Save Inventory'
+  = f.submit 'Save Inventory', class: 'btn btn-primary'

@@ -78,7 +78,7 @@ graph TB
 2. In the Docker shell, run the `run_hmis_system_tests` script, indicating the branch of the `hmis-frontend` repo you want to test. The `--dev` flag keeps the frontend server running in the foreground for development.
 
     ```bash
-    BRANCH_NAME=release-X ./bin/run_hmis_system_tests.sh --dev
+    BRANCH_NAME=main ./bin/run_hmis_system_tests.sh --dev
     ```
 
     You can specify multiple fallback branches separated by colons, although this is mostly used in CI to guess at the right branch:

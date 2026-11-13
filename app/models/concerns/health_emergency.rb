@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -12,7 +12,10 @@ module HealthEmergency
     acts_as_paranoid
     has_paper_trail
 
-    belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
+    # Each including class declares its own belongs_to :client, since required-ness varies by
+    # model (most require a client; GrdaWarehouse::HealthEmergency::UploadedTest allows a nil
+    # one, pre-reconciliation). Redeclaring an association here and again in a subclass doesn't
+    # cleanly override a presence validator the first declaration added.
     belongs_to :user, optional: true
     belongs_to :agency, optional: true
 

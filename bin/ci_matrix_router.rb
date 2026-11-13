@@ -1,4 +1,10 @@
 #!/usr/bin/env ruby
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # frozen_string_literal: true
 
 require 'json'
@@ -122,7 +128,12 @@ class CiMatrixRouter
         }
       end
     end
-    groups << { id: 'ci_default', tag: '~ci_bucket', okta: true, logging: true }
+    # ci_default catches every spec no bucket claims.
+    groups << { id: 'ci_default', tag: '~ci_bucket' }
+    # The okta, logging and devise arms re-run specs under env the bucketed run cannot use, so they
+    # are not bucketable and get their own matrix entry. It carries no tag: the main rspec step is
+    # gated on one, so this entry runs the arms alone rather than extending a bucket's wall clock.
+    groups << { id: 'ci_auth', auth: true }
     groups
   end
 

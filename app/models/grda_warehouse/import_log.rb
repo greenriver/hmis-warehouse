@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -8,9 +8,11 @@
 
 class GrdaWarehouse::ImportLog < GrdaWarehouseBase
   include ActionView::Helpers::DateHelper
-  serialize :files
-  serialize :import_errors
-  serialize :summary
+  # summary: real usage across the hmis_csv_importer/hmis_csv_twenty_twenty driver
+  # loaders/importers is a nested Hash{String filename => Hash{String stat => Integer count}}.
+  serialize :files, type: Array
+  serialize :import_errors, type: Array
+  serialize :summary, type: Hash
   belongs_to :data_source
   belongs_to :upload, optional: true
 
@@ -37,5 +39,7 @@ class GrdaWarehouse::ImportLog < GrdaWarehouseBase
     end
   end
   # Overrides some methods, so must be included at the end
-  include RailsDrivers::Extensions
+  # Extensions from drivers — see ADR 0007
+  include HmisCsvImporter::GrdaWarehouse::ImportLogExtension
+  include HmisCsvTwentyTwenty::GrdaWarehouse::ImportLogExtension
 end

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -287,7 +287,7 @@ module HudApr::Generators::Shared::Fy2021
 
     private def pit_universe(month:)
       pit_date = pit_date(month: month, before: @report.end_date)
-      universe.members.where("pit_enrollments ? '#{pit_date}'")
+      universe.members.where("pit_enrollments ? '#{pit_date.iso8601}'")
     end
   end
 end

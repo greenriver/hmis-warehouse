@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -28,6 +28,10 @@ module PublicReports
 
     attr_accessor :map_max_rate, :map_max_count
 
+    def self.publication_types
+      ['PublicReports::StateLevelHomelessness', 'PublicReports::StateDashboard']
+    end
+
     def title
       Translation.translate('State-Level Homelessness Report Generator')
     end
@@ -38,6 +42,39 @@ module PublicReports
 
     def instance_title
       Translation.translate('State-Level Homelessness Report')
+    end
+
+    def enforce_min_threshold(data, key)
+      case key
+      when 'homeless_households', 'homeless_clients'
+        value = data[key]
+        return 0 if value.zero?
+        return number_with_delimiter(value) if value > 100
+
+        'Under 100'
+      when 'need_map'
+        # Convert all rates to the upper limit of the range of map_colors the rate falls into
+        data.each do |_, date_data|
+          date_data.each do |_, count_data|
+            count_data.each do |_, c_data|
+              c_data[:count] = 'less than 100' if c_data[:count].positive? && c_data[:count] < 100
+              top_of_range = map_colors.values.detect { |bucket| bucket[:range].cover?(c_data[:rate]) }.try(:[], :range)&.last
+              c_data[:rate] = top_of_range || 0 unless top_of_range == 100
+            end
+          end
+        end
+      when 'homeless_row'
+        data.each do |_, chart_data|
+          next unless chart_data['data'].map(&:last).any? { |count| count < MIN_THRESHOLD }
+
+          chart_data['data'].each do |row|
+            row[1] = 0
+          end
+          chart_data['data'] << ['Redacted', 100]
+        end
+      else
+        super
+      end
     end
 
     private def public_s3_directory
@@ -198,7 +235,7 @@ module PublicReports
     end
 
     private def report_scope
-      # for compatability with FilterScopes
+      # for compatibility with FilterScopes
       @filter = filter_object
       @project_types = @filter.project_type_numbers
       scope = GrdaWarehouse::ServiceHistoryEnrollment.entry
@@ -650,8 +687,8 @@ module PublicReports
               rate: rate.round(1),
               homeless_count: homeless_count,
             }
-            self.map_max_rate = rate if rate > self.map_max_rate
-            self.map_max_count = homeless_count if homeless_count > self.map_max_count
+            self.map_max_rate = rate if rate > map_max_rate
+            self.map_max_count = homeless_count if homeless_count > map_max_count
           end
         end
       end

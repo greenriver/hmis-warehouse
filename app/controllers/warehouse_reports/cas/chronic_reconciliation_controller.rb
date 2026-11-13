@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -23,7 +23,7 @@ module WarehouseReports::Cas
 
       cas_ids = client_source.cas_active.pluck(:id)
       @missing_in_cas = client_source.joins(site_chronics_table).
-        merge(site_chronic_source.on_date(date: @date)).
+        merge(site_chronic_source.on_date(date: @filter.date)).
         where(id: (chronic_ids - cas_ids)).
         order(last_name: :asc, first_name: :asc).
         pluck(*client_columns.values).
@@ -35,6 +35,7 @@ module WarehouseReports::Cas
         where(id: (cas_ids - chronic_ids)).
         order(last_name: :asc, first_name: :asc).
         includes(site_chronics_table)
+      current_user.policy_context.preload_client_dependencies(@not_on_list.map(&:id))
     end
 
     def client_columns

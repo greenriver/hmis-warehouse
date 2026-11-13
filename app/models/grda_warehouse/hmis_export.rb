@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -16,10 +16,6 @@ module GrdaWarehouse
     attr_accessor :enforce_project_date_scope
     # attr_accessor :zip_password
 
-    # attachment via CarrierWave
-    mount_uploader :file, HmisExportUploader
-
-    # attachment via ActiveStorage
     has_one_attached :hmis_zip
 
     belongs_to :user, class_name: 'User', optional: true
@@ -39,35 +35,6 @@ module GrdaWarehouse
       has_content.
         select(column_names - ['content', 'file'])
     end
-
-    # for file migration
-    scope :unprocessed_s3_migration, -> do
-      migrated = ActiveStorage::Attachment.where(record_type: 'GrdaWarehouse::HmisExport').pluck(:record_id)
-      all = pluck(:id)
-      unmigrated = all - migrated
-      return none if unmigrated.blank?
-
-      where(id: unmigrated)
-    end
-
-    def copy_to_s3!
-      return unless content.present?
-      return unless valid? # Ignore uploads that are already invalid (data source deleted?)
-      return if hmis_zip.attached? # don't re-process
-
-      puts "Migrating #{file} to S3"
-
-      Tempfile.create(binmode: true) do |tmp_file|
-        tmp_file.write(content)
-        tmp_file.rewind
-        hmis_zip.attach(io: tmp_file, content_type: content_type, filename: file, identify: false)
-      end
-
-      # Save no-matter validity state
-      self.content = nil
-      save!(validate: false)
-    end
-    # END for file migration
 
     def runtime
       return unless started_at.present? && completed_at.present?
@@ -109,7 +76,7 @@ module GrdaWarehouse
     end
 
     def filter
-      ::Filters::HmisExport.new(options)
+      ::Filters::HmisExport.new(options.merge(user_id: user_id))
     end
 
     def source_type
@@ -147,7 +114,7 @@ module GrdaWarehouse
             Rails.logger.info "To: #{extract_path}"
             unzip_parent = ::File.dirname(unzip_path)
             FileUtils.mkdir_p(unzip_parent) unless ::File.directory?(unzip_parent)
-            entry.extract(unzip_path)
+            entry.extract(file_name, destination_directory: extract_path)
             unzipped_files << [GrdaWarehouse::Hud.hud_filename_to_model(file_name).name, unzip_path] if file_name.include?('.csv')
           end
         end

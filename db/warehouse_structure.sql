@@ -500,10 +500,10 @@ CREATE TABLE public."Assessment" (
     "EnrollmentID" character varying NOT NULL,
     "PersonalID" character varying NOT NULL,
     "AssessmentDate" date NOT NULL,
-    "AssessmentLocation" character varying NOT NULL,
-    "AssessmentType" integer NOT NULL,
-    "AssessmentLevel" integer NOT NULL,
-    "PrioritizationStatus" integer NOT NULL,
+    "AssessmentLocation" character varying,
+    "AssessmentType" integer,
+    "AssessmentLevel" integer,
+    "PrioritizationStatus" integer,
     "DateCreated" timestamp without time zone NOT NULL,
     "DateUpdated" timestamp without time zone NOT NULL,
     "UserID" character varying(32) NOT NULL,
@@ -1637,21 +1637,122 @@ CREATE TABLE public."Client" (
 
 
 --
+-- Name: client_retention_marks; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.client_retention_marks (
+    id bigint NOT NULL,
+    client_id bigint NOT NULL,
+    marked_on date NOT NULL,
+    last_activity_on date NOT NULL,
+    retention_years integer NOT NULL
+);
+
+
+--
+-- Name: hmis_restricted_records; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_restricted_records (
+    id bigint NOT NULL,
+    restrictable_type character varying NOT NULL,
+    restrictable_id bigint NOT NULL,
+    data_source_id bigint NOT NULL,
+    created_by_id bigint NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp(6) without time zone
+);
+
+
+--
+-- Name: warehouse_clients; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.warehouse_clients (
+    id bigint NOT NULL,
+    id_in_source character varying NOT NULL,
+    data_source_id bigint,
+    proposed_at timestamp without time zone,
+    reviewed_at timestamp without time zone,
+    reviewd_by character varying,
+    approved_at timestamp without time zone,
+    rejected_at timestamp without time zone,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
+    deleted_at timestamp without time zone,
+    source_id bigint,
+    destination_id bigint,
+    client_match_id bigint,
+    source_hash character varying
+);
+
+
+--
 -- Name: client_piis; Type: VIEW; Schema: analytics; Owner: -
 --
 
 CREATE VIEW analytics.client_piis AS
- SELECT id,
-    data_source_id,
-    "PersonalID",
-    "FirstName",
-    "MiddleName",
-    "LastName",
-    "NameSuffix",
-    "SSN",
-    "DOB"
-   FROM public."Client"
-  WHERE ("DateDeleted" IS NULL);
+ WITH directly_restricted AS (
+         SELECT hmis_restricted_records.restrictable_id AS client_id
+           FROM public.hmis_restricted_records
+          WHERE (((hmis_restricted_records.restrictable_type)::text = 'Hmis::Hud::Client'::text) AND (hmis_restricted_records.deleted_at IS NULL))
+        ), restricted_destinations AS (
+         SELECT DISTINCT warehouse_clients.destination_id AS client_id
+           FROM (public.warehouse_clients
+             JOIN directly_restricted ON (((directly_restricted.client_id = warehouse_clients.source_id) OR (directly_restricted.client_id = warehouse_clients.destination_id))))
+          WHERE (warehouse_clients.deleted_at IS NULL)
+        ), restricted_clients AS (
+         SELECT directly_restricted.client_id
+           FROM directly_restricted
+        UNION
+         SELECT restricted_destinations.client_id
+           FROM restricted_destinations
+        UNION
+         SELECT warehouse_clients.source_id
+           FROM (public.warehouse_clients
+             JOIN restricted_destinations ON ((restricted_destinations.client_id = warehouse_clients.destination_id)))
+          WHERE (warehouse_clients.deleted_at IS NULL)
+        UNION
+         SELECT client_retention_marks.client_id
+           FROM public.client_retention_marks
+        UNION
+         SELECT warehouse_clients.destination_id
+           FROM (public.warehouse_clients
+             JOIN public.client_retention_marks ON ((client_retention_marks.client_id = warehouse_clients.source_id)))
+          WHERE (warehouse_clients.deleted_at IS NULL)
+        )
+ SELECT "Client".id,
+    "Client".data_source_id,
+    "Client"."PersonalID",
+    (
+        CASE
+            WHEN (restricted_clients.client_id IS NOT NULL) THEN 'Redacted'::character varying
+            ELSE "Client"."FirstName"
+        END)::character varying(150) AS "FirstName",
+    (
+        CASE
+            WHEN (restricted_clients.client_id IS NOT NULL) THEN 'Redacted'::character varying
+            ELSE "Client"."MiddleName"
+        END)::character varying(150) AS "MiddleName",
+    (
+        CASE
+            WHEN (restricted_clients.client_id IS NOT NULL) THEN 'Redacted'::character varying
+            ELSE "Client"."LastName"
+        END)::character varying(150) AS "LastName",
+    (
+        CASE
+            WHEN (restricted_clients.client_id IS NOT NULL) THEN 'Redacted'::character varying
+            ELSE "Client"."NameSuffix"
+        END)::character varying(50) AS "NameSuffix",
+        CASE
+            WHEN (restricted_clients.client_id IS NOT NULL) THEN 'Redacted'::character varying
+            ELSE "Client"."SSN"
+        END AS "SSN",
+    "Client"."DOB"
+   FROM (public."Client"
+     LEFT JOIN restricted_clients ON ((restricted_clients.client_id = "Client".id)))
+  WHERE ("Client"."DateDeleted" IS NULL);
 
 
 --
@@ -2895,7 +2996,11 @@ CREATE TABLE public.data_sources (
     import_aggregators jsonb DEFAULT '{}'::jsonb,
     import_cleanups jsonb DEFAULT '{}'::jsonb,
     hmis character varying,
-    obey_consent boolean DEFAULT true
+    obey_consent boolean DEFAULT true,
+    disable_imports boolean DEFAULT false NOT NULL,
+    pre_process_hooks jsonb DEFAULT '{}'::jsonb NOT NULL,
+    hmis_go_live_at timestamp without time zone,
+    client_retention_years integer
 );
 
 
@@ -3242,7 +3347,8 @@ CREATE TABLE public."Enrollment" (
     lock_version integer DEFAULT 0 NOT NULL,
     "LivingSituation2022" integer,
     project_pk bigint,
-    "MentalHealthConsultation" integer
+    "MentalHealthConsultation" integer,
+    processing_error text
 );
 
 
@@ -4905,7 +5011,8 @@ CREATE TABLE public.project_groups (
     created_at timestamp without time zone,
     updated_at timestamp without time zone,
     deleted_at timestamp without time zone,
-    options jsonb DEFAULT '{}'::jsonb
+    options jsonb DEFAULT '{}'::jsonb,
+    notes text
 );
 
 
@@ -4916,6 +5023,7 @@ CREATE TABLE public.project_groups (
 CREATE VIEW analytics.project_groups AS
  SELECT id,
     name,
+    notes,
     created_at,
     updated_at,
     deleted_at,
@@ -5156,29 +5264,6 @@ CREATE VIEW analytics.users AS
     source_hash
    FROM public."User"
   WHERE ("DateDeleted" IS NULL);
-
-
---
--- Name: warehouse_clients; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.warehouse_clients (
-    id bigint NOT NULL,
-    id_in_source character varying NOT NULL,
-    data_source_id bigint,
-    proposed_at timestamp without time zone,
-    reviewed_at timestamp without time zone,
-    reviewd_by character varying,
-    approved_at timestamp without time zone,
-    rejected_at timestamp without time zone,
-    created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL,
-    deleted_at timestamp without time zone,
-    source_id bigint,
-    destination_id bigint,
-    client_match_id bigint,
-    source_hash character varying
-);
 
 
 --
@@ -25313,7 +25398,8 @@ CREATE TABLE public.ce_match_candidate_pools (
     priority_expression character varying NOT NULL,
     candidates_generated_at timestamp(6) without time zone,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    candidates_fully_generated_at timestamp(6) without time zone
 );
 
 
@@ -26251,6 +26337,40 @@ ALTER SEQUENCE public.clh_locations_id_seq OWNED BY public.clh_locations.id;
 
 
 --
+-- Name: client_attributes; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.client_attributes (
+    id bigint NOT NULL,
+    client_id bigint NOT NULL,
+    external_data_sharing_exclusion_flag boolean,
+    external_data_sharing_updated_by bigint,
+    external_data_sharing_updated_at timestamp(6) without time zone,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: client_attributes_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.client_attributes_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: client_attributes_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.client_attributes_id_seq OWNED BY public.client_attributes.id;
+
+
+--
 -- Name: client_contacts; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -26407,6 +26527,133 @@ CREATE SEQUENCE public.client_notes_id_seq
 --
 
 ALTER SEQUENCE public.client_notes_id_seq OWNED BY public.client_notes.id;
+
+
+--
+-- Name: client_retention_expiring_clients; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.client_retention_expiring_clients (
+    id bigint NOT NULL,
+    run_id bigint NOT NULL,
+    destination_client_id bigint NOT NULL,
+    source_clients jsonb DEFAULT '[]'::jsonb NOT NULL,
+    last_activity_on date NOT NULL,
+    retention_years integer NOT NULL,
+    basis character varying NOT NULL,
+    expires_on date NOT NULL
+);
+
+
+--
+-- Name: client_retention_expiring_clients_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.client_retention_expiring_clients_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: client_retention_expiring_clients_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.client_retention_expiring_clients_id_seq OWNED BY public.client_retention_expiring_clients.id;
+
+
+--
+-- Name: client_retention_log_entries; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.client_retention_log_entries (
+    id bigint NOT NULL,
+    run_id bigint NOT NULL,
+    action character varying NOT NULL,
+    destination_client_id bigint NOT NULL,
+    source_clients jsonb DEFAULT '[]'::jsonb NOT NULL,
+    last_activity_on date,
+    retention_years integer,
+    created_at timestamp without time zone NOT NULL
+);
+
+
+--
+-- Name: client_retention_log_entries_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.client_retention_log_entries_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: client_retention_log_entries_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.client_retention_log_entries_id_seq OWNED BY public.client_retention_log_entries.id;
+
+
+--
+-- Name: client_retention_marks_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.client_retention_marks_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: client_retention_marks_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.client_retention_marks_id_seq OWNED BY public.client_retention_marks.id;
+
+
+--
+-- Name: client_retention_runs; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.client_retention_runs (
+    id bigint NOT NULL,
+    started_at timestamp without time zone NOT NULL,
+    completed_at timestamp without time zone,
+    failed_at timestamp without time zone,
+    global_retention_years integer NOT NULL,
+    data_source_overrides jsonb DEFAULT '{}'::jsonb NOT NULL,
+    evaluated_count integer DEFAULT 0 NOT NULL,
+    marked_count integer DEFAULT 0 NOT NULL,
+    unmarked_count integer DEFAULT 0 NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: client_retention_runs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.client_retention_runs_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: client_retention_runs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.client_retention_runs_id_seq OWNED BY public.client_retention_runs.id;
 
 
 --
@@ -26966,7 +27213,6 @@ CREATE TABLE public.configs (
     project_type_override boolean DEFAULT true NOT NULL,
     eto_api_available boolean DEFAULT false NOT NULL,
     cas_available_method character varying DEFAULT 'cas_flag'::character varying NOT NULL,
-    healthcare_available boolean DEFAULT false NOT NULL,
     family_calculation_method character varying DEFAULT 'adult_child'::character varying,
     site_coc_codes character varying,
     default_coc_zipcodes character varying,
@@ -27058,7 +27304,13 @@ CREATE TABLE public.configs (
     number_lms_courses_required integer DEFAULT '-1'::integer,
     rds_s3_integration_role_arn character varying,
     default_lms_email_to_warehouse_email boolean,
-    relevant_state_codes character varying DEFAULT 'MA'::character varying NOT NULL
+    relevant_state_codes character varying DEFAULT 'MA'::character varying NOT NULL,
+    enable_external_data_sharing_exclusion boolean DEFAULT false NOT NULL,
+    client_demographic_columns jsonb,
+    created_at timestamp(6) without time zone,
+    updated_at timestamp(6) without time zone,
+    dob_selection_method character varying DEFAULT 'legacy'::character varying NOT NULL,
+    client_retention_years integer
 );
 
 
@@ -29031,7 +29283,7 @@ ALTER SEQUENCE public.grades_id_seq OWNED BY public.grades.id;
 
 CREATE TABLE public.grda_warehouse_monitoring_threshold_notification_logs (
     id bigint NOT NULL,
-    user_id integer NOT NULL,
+    user_id bigint NOT NULL,
     message_id bigint,
     email_type character varying NOT NULL,
     sent_at timestamp(6) without time zone NOT NULL,
@@ -35705,12 +35957,9 @@ CREATE TABLE public.hmis_assessments (
     confidential boolean DEFAULT false NOT NULL,
     exclude_from_window boolean DEFAULT false NOT NULL,
     details_in_window_with_release boolean DEFAULT false NOT NULL,
-    health boolean DEFAULT false NOT NULL,
     vispdat boolean DEFAULT false,
     pathways boolean DEFAULT false,
     ssm boolean DEFAULT false,
-    health_case_note boolean DEFAULT false,
-    health_has_qualifying_activities boolean DEFAULT false,
     hud_assessment boolean DEFAULT false,
     triage_assessment boolean DEFAULT false,
     rrh_assessment boolean DEFAULT false,
@@ -41372,6 +41621,38 @@ ALTER SEQUENCE public.hmis_csv_loader_logs_id_seq OWNED BY public.hmis_csv_loade
 
 
 --
+-- Name: hmis_csv_row_processing_notes; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_csv_row_processing_notes (
+    id bigint NOT NULL,
+    loader_log_id bigint NOT NULL,
+    file_name character varying NOT NULL,
+    "row" character varying,
+    reason character varying
+);
+
+
+--
+-- Name: hmis_csv_row_processing_notes_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_csv_row_processing_notes_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_csv_row_processing_notes_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_csv_row_processing_notes_id_seq OWNED BY public.hmis_csv_row_processing_notes.id;
+
+
+--
 -- Name: hmis_destination_client_latest_assessments; Type: VIEW; Schema: public; Owner: -
 --
 
@@ -41683,7 +41964,8 @@ CREATE TABLE public.hmis_dqt_enrollments (
     ncb_from_any_source_at_exit integer,
     insurance_from_any_source_at_entry integer,
     insurance_from_any_source_at_annual integer,
-    insurance_from_any_source_at_exit integer
+    insurance_from_any_source_at_exit integer,
+    employment_event_expected boolean
 );
 
 
@@ -41806,7 +42088,8 @@ CREATE TABLE public.hmis_dqt_goals (
     entry_date_entered_length integer DEFAULT 6,
     exit_date_entered_length integer DEFAULT 6,
     expose_ch_calculations boolean DEFAULT true NOT NULL,
-    show_annual_assessments boolean DEFAULT true
+    show_annual_assessments boolean DEFAULT true,
+    global_overlap_checks boolean DEFAULT false NOT NULL
 );
 
 
@@ -42349,7 +42632,8 @@ CREATE TABLE public.hmis_project_groups (
     exclusion_criteria jsonb,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    deleted_at timestamp without time zone
+    deleted_at timestamp without time zone,
+    notes text
 );
 
 
@@ -42536,14 +42820,14 @@ CREATE VIEW public.hmis_project_access_group_members AS
 CREATE TABLE public.hmis_project_configs (
     id bigint NOT NULL,
     type character varying NOT NULL,
-    enabled boolean DEFAULT true NOT NULL,
     config_options jsonb,
     project_type integer,
     organization_id bigint,
     project_id bigint,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    data_source_id bigint NOT NULL
+    data_source_id bigint NOT NULL,
+    deleted_at timestamp(6) without time zone
 );
 
 
@@ -42583,43 +42867,6 @@ CREATE SEQUENCE public.hmis_project_groups_id_seq
 --
 
 ALTER SEQUENCE public.hmis_project_groups_id_seq OWNED BY public.hmis_project_groups.id;
-
---
--- Name: hmis_workspaces; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.hmis_workspaces (
-    id bigint NOT NULL,
-    name character varying NOT NULL,
-    slug character varying NOT NULL,
-    applies_to character varying NOT NULL,
-    data_source_id bigint NOT NULL,
-    hmis_project_group_id bigint NOT NULL,
-    sort_order integer NOT NULL,
-    active boolean DEFAULT true NOT NULL,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL,
-    deleted_at timestamp without time zone
-);
-
-
---
--- Name: hmis_workspaces_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.hmis_workspaces_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: hmis_workspaces_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.hmis_workspaces_id_seq OWNED BY public.hmis_workspaces.id;
 
 
 --
@@ -42673,6 +42920,25 @@ CREATE SEQUENCE public.hmis_project_unit_type_mappings_id_seq
 --
 
 ALTER SEQUENCE public.hmis_project_unit_type_mappings_id_seq OWNED BY public.hmis_project_unit_type_mappings.id;
+
+
+--
+-- Name: hmis_restricted_records_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_restricted_records_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_restricted_records_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_restricted_records_id_seq OWNED BY public.hmis_restricted_records.id;
 
 
 --
@@ -42741,9 +43007,13 @@ CREATE TABLE public.hmis_scoring_rules (
     algorithm character varying NOT NULL,
     criteria_type character varying NOT NULL,
     criteria_config json DEFAULT '{}'::json NOT NULL,
-    weight numeric(14,12) NOT NULL,
+    weight numeric(30,24) NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    model_version integer NOT NULL,
+    secondary_link_id character varying,
+    secondary_criteria_type character varying,
+    secondary_criteria_config jsonb
 );
 
 
@@ -42771,7 +43041,7 @@ ALTER SEQUENCE public.hmis_scoring_rules_id_seq OWNED BY public.hmis_scoring_rul
 --
 
 CREATE VIEW public.hmis_services AS
- SELECT (concat('1', ("Services".id)::character varying))::integer AS id,
+ SELECT (concat('1', ("Services".id)::character varying))::bigint AS id,
     "Services".id AS owner_id,
     'Hmis::Hud::Service'::text AS owner_type,
     "Services"."RecordType",
@@ -42788,8 +43058,8 @@ CREATE VIEW public.hmis_services AS
    FROM public."Services"
   WHERE ("Services"."DateDeleted" IS NULL)
 UNION ALL
- SELECT (concat('2', ("CustomServices".id)::character varying))::integer AS id,
-    ("CustomServices".id)::integer AS owner_id,
+ SELECT (concat('2', ("CustomServices".id)::character varying))::bigint AS id,
+    "CustomServices".id AS owner_id,
     'Hmis::Hud::CustomService'::text AS owner_type,
     NULL::integer AS "RecordType",
     NULL::integer AS "TypeProvided",
@@ -42804,6 +43074,194 @@ UNION ALL
     "CustomServices".data_source_id
    FROM public."CustomServices"
   WHERE ("CustomServices"."DateDeleted" IS NULL);
+
+
+--
+-- Name: hmis_simulation_clients; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_simulation_clients (
+    id bigint NOT NULL,
+    data_source_id bigint NOT NULL,
+    hud_client_id bigint NOT NULL,
+    household_group_id bigint,
+    current_population character varying,
+    entered_current_population_at date,
+    hud_enrollment_id bigint,
+    next_transition_on date,
+    pending_enrollment_on date,
+    exited_system boolean DEFAULT false NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    next_population character varying,
+    track_name character varying
+);
+
+
+--
+-- Name: hmis_simulation_clients_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_simulation_clients_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_simulation_clients_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_simulation_clients_id_seq OWNED BY public.hmis_simulation_clients.id;
+
+
+--
+-- Name: hmis_simulation_concurrent_enrollments; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_simulation_concurrent_enrollments (
+    id bigint NOT NULL,
+    data_source_id bigint NOT NULL,
+    hud_client_id bigint NOT NULL,
+    hud_enrollment_id bigint,
+    project_name character varying,
+    exit_on date,
+    pending_reentry_on date,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    track_name character varying
+);
+
+
+--
+-- Name: hmis_simulation_concurrent_enrollments_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_simulation_concurrent_enrollments_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_simulation_concurrent_enrollments_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_simulation_concurrent_enrollments_id_seq OWNED BY public.hmis_simulation_concurrent_enrollments.id;
+
+
+--
+-- Name: hmis_simulation_household_groups; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_simulation_household_groups (
+    id bigint NOT NULL,
+    data_source_id bigint NOT NULL,
+    hoh_client_id bigint NOT NULL,
+    member_relationships jsonb DEFAULT '[]'::jsonb NOT NULL,
+    household_template_name character varying,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: hmis_simulation_household_groups_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_simulation_household_groups_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_simulation_household_groups_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_simulation_household_groups_id_seq OWNED BY public.hmis_simulation_household_groups.id;
+
+
+--
+-- Name: hmis_simulation_lifecycle_enrollments; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_simulation_lifecycle_enrollments (
+    id bigint NOT NULL,
+    data_source_id bigint NOT NULL,
+    hud_client_id bigint NOT NULL,
+    hud_enrollment_id bigint,
+    lifecycle_name character varying NOT NULL,
+    status character varying DEFAULT 'pending_open'::character varying NOT NULL,
+    opens_on date,
+    close_reason character varying,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: hmis_simulation_lifecycle_enrollments_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_simulation_lifecycle_enrollments_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_simulation_lifecycle_enrollments_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_simulation_lifecycle_enrollments_id_seq OWNED BY public.hmis_simulation_lifecycle_enrollments.id;
+
+
+--
+-- Name: hmis_simulation_run_logs; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_simulation_run_logs (
+    id bigint NOT NULL,
+    data_source_id bigint NOT NULL,
+    run_date date NOT NULL,
+    started_at timestamp(6) without time zone,
+    finished_at timestamp(6) without time zone,
+    clients_created integer DEFAULT 0,
+    enrollments_opened integer DEFAULT 0,
+    enrollments_closed integer DEFAULT 0,
+    services_created integer DEFAULT 0,
+    error_message text,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: hmis_simulation_run_logs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_simulation_run_logs_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_simulation_run_logs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_simulation_run_logs_id_seq OWNED BY public.hmis_simulation_run_logs.id;
 
 
 --
@@ -43095,6 +43553,44 @@ CREATE SEQUENCE public.hmis_units_id_seq
 --
 
 ALTER SEQUENCE public.hmis_units_id_seq OWNED BY public.hmis_units.id;
+
+
+--
+-- Name: hmis_workspaces; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_workspaces (
+    id bigint NOT NULL,
+    name character varying NOT NULL,
+    slug character varying NOT NULL,
+    applies_to character varying NOT NULL,
+    data_source_id bigint NOT NULL,
+    hmis_project_group_id bigint NOT NULL,
+    sort_order integer NOT NULL,
+    active boolean DEFAULT true NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp(6) without time zone
+);
+
+
+--
+-- Name: hmis_workspaces_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_workspaces_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_workspaces_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_workspaces_id_seq OWNED BY public.hmis_workspaces.id;
 
 
 --
@@ -43471,7 +43967,8 @@ CREATE TABLE public.hopwa_caper_enrollments (
     atc_maintained_contact boolean,
     atc_housing_plan boolean,
     atc_primary_health_contact boolean,
-    project_id bigint
+    project_id bigint,
+    total_project_cost numeric(10,2)
 );
 
 
@@ -47690,7 +48187,7 @@ CREATE TABLE public.non_hmis_uploads (
     data_source_id bigint,
     user_id bigint,
     delayed_job_id bigint,
-    file character varying NOT NULL,
+    file character varying,
     percent_complete double precision,
     import_errors json,
     content_type character varying,
@@ -48894,7 +49391,14 @@ CREATE TABLE public.public_report_settings (
     veterans_primary_color character varying,
     map_type character varying DEFAULT 'coc'::character varying NOT NULL,
     map_overall_population_method character varying DEFAULT 'state'::character varying NOT NULL,
-    iteration_type character varying DEFAULT 'quarter'::character varying NOT NULL
+    iteration_type character varying DEFAULT 'quarter'::character varying NOT NULL,
+    secondary_color character varying,
+    heading_color character varying,
+    text_color character varying,
+    border_color character varying,
+    surface_tint_color character varying,
+    focus_color character varying,
+    map_not_reporting_color character varying
 );
 
 
@@ -49348,7 +49852,6 @@ CREATE TABLE public.report_definitions (
     weight integer DEFAULT 0 NOT NULL,
     enabled boolean DEFAULT true NOT NULL,
     limitable boolean DEFAULT true NOT NULL,
-    health boolean DEFAULT false,
     created_at timestamp without time zone DEFAULT now() NOT NULL,
     updated_at timestamp without time zone DEFAULT now() NOT NULL,
     deleted_at timestamp without time zone
@@ -52339,7 +52842,8 @@ CREATE TABLE public.uploads (
     deidentified boolean DEFAULT false,
     project_whitelist boolean DEFAULT false,
     encrypted_content text,
-    encrypted_content_iv character varying
+    encrypted_content_iv character varying,
+    export_source_check jsonb
 );
 
 
@@ -56812,6 +57316,13 @@ ALTER TABLE ONLY public.clh_locations ALTER COLUMN id SET DEFAULT nextval('publi
 
 
 --
+-- Name: client_attributes id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.client_attributes ALTER COLUMN id SET DEFAULT nextval('public.client_attributes_id_seq'::regclass);
+
+
+--
 -- Name: client_contacts id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -56837,6 +57348,34 @@ ALTER TABLE ONLY public.client_merge_histories ALTER COLUMN id SET DEFAULT nextv
 --
 
 ALTER TABLE ONLY public.client_notes ALTER COLUMN id SET DEFAULT nextval('public.client_notes_id_seq'::regclass);
+
+
+--
+-- Name: client_retention_expiring_clients id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.client_retention_expiring_clients ALTER COLUMN id SET DEFAULT nextval('public.client_retention_expiring_clients_id_seq'::regclass);
+
+
+--
+-- Name: client_retention_log_entries id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.client_retention_log_entries ALTER COLUMN id SET DEFAULT nextval('public.client_retention_log_entries_id_seq'::regclass);
+
+
+--
+-- Name: client_retention_marks id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.client_retention_marks ALTER COLUMN id SET DEFAULT nextval('public.client_retention_marks_id_seq'::regclass);
+
+
+--
+-- Name: client_retention_runs id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.client_retention_runs ALTER COLUMN id SET DEFAULT nextval('public.client_retention_runs_id_seq'::regclass);
 
 
 --
@@ -58919,6 +59458,13 @@ ALTER TABLE ONLY public.hmis_csv_loader_logs ALTER COLUMN id SET DEFAULT nextval
 
 
 --
+-- Name: hmis_csv_row_processing_notes id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_csv_row_processing_notes ALTER COLUMN id SET DEFAULT nextval('public.hmis_csv_row_processing_notes_id_seq'::regclass);
+
+
+--
 -- Name: hmis_dqt_assessments id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -59078,12 +59624,6 @@ ALTER TABLE ONLY public.hmis_project_configs ALTER COLUMN id SET DEFAULT nextval
 
 ALTER TABLE ONLY public.hmis_project_groups ALTER COLUMN id SET DEFAULT nextval('public.hmis_project_groups_id_seq'::regclass);
 
---
--- Name: hmis_workspaces id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hmis_workspaces ALTER COLUMN id SET DEFAULT nextval('public.hmis_workspaces_id_seq'::regclass);
-
 
 --
 -- Name: hmis_project_project_groups id; Type: DEFAULT; Schema: public; Owner: -
@@ -59097,6 +59637,13 @@ ALTER TABLE ONLY public.hmis_project_project_groups ALTER COLUMN id SET DEFAULT 
 --
 
 ALTER TABLE ONLY public.hmis_project_unit_type_mappings ALTER COLUMN id SET DEFAULT nextval('public.hmis_project_unit_type_mappings_id_seq'::regclass);
+
+
+--
+-- Name: hmis_restricted_records id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_restricted_records ALTER COLUMN id SET DEFAULT nextval('public.hmis_restricted_records_id_seq'::regclass);
 
 
 --
@@ -59118,6 +59665,41 @@ ALTER TABLE ONLY public.hmis_scoring_calculation_logs ALTER COLUMN id SET DEFAUL
 --
 
 ALTER TABLE ONLY public.hmis_scoring_rules ALTER COLUMN id SET DEFAULT nextval('public.hmis_scoring_rules_id_seq'::regclass);
+
+
+--
+-- Name: hmis_simulation_clients id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_simulation_clients ALTER COLUMN id SET DEFAULT nextval('public.hmis_simulation_clients_id_seq'::regclass);
+
+
+--
+-- Name: hmis_simulation_concurrent_enrollments id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_simulation_concurrent_enrollments ALTER COLUMN id SET DEFAULT nextval('public.hmis_simulation_concurrent_enrollments_id_seq'::regclass);
+
+
+--
+-- Name: hmis_simulation_household_groups id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_simulation_household_groups ALTER COLUMN id SET DEFAULT nextval('public.hmis_simulation_household_groups_id_seq'::regclass);
+
+
+--
+-- Name: hmis_simulation_lifecycle_enrollments id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_simulation_lifecycle_enrollments ALTER COLUMN id SET DEFAULT nextval('public.hmis_simulation_lifecycle_enrollments_id_seq'::regclass);
+
+
+--
+-- Name: hmis_simulation_run_logs id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_simulation_run_logs ALTER COLUMN id SET DEFAULT nextval('public.hmis_simulation_run_logs_id_seq'::regclass);
 
 
 --
@@ -59195,6 +59777,13 @@ ALTER TABLE ONLY public.hmis_unit_types ALTER COLUMN id SET DEFAULT nextval('pub
 --
 
 ALTER TABLE ONLY public.hmis_units ALTER COLUMN id SET DEFAULT nextval('public.hmis_units_id_seq'::regclass);
+
+
+--
+-- Name: hmis_workspaces id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_workspaces ALTER COLUMN id SET DEFAULT nextval('public.hmis_workspaces_id_seq'::regclass);
 
 
 --
@@ -63418,6 +64007,14 @@ ALTER TABLE ONLY public.clh_locations
 
 
 --
+-- Name: client_attributes client_attributes_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.client_attributes
+    ADD CONSTRAINT client_attributes_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: client_contacts client_contacts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -63447,6 +64044,38 @@ ALTER TABLE ONLY public.client_merge_histories
 
 ALTER TABLE ONLY public.client_notes
     ADD CONSTRAINT client_notes_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: client_retention_expiring_clients client_retention_expiring_clients_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.client_retention_expiring_clients
+    ADD CONSTRAINT client_retention_expiring_clients_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: client_retention_log_entries client_retention_log_entries_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.client_retention_log_entries
+    ADD CONSTRAINT client_retention_log_entries_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: client_retention_marks client_retention_marks_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.client_retention_marks
+    ADD CONSTRAINT client_retention_marks_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: client_retention_runs client_retention_runs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.client_retention_runs
+    ADD CONSTRAINT client_retention_runs_pkey PRIMARY KEY (id);
 
 
 --
@@ -65850,6 +66479,14 @@ ALTER TABLE ONLY public.hmis_csv_loader_logs
 
 
 --
+-- Name: hmis_csv_row_processing_notes hmis_csv_row_processing_notes_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_csv_row_processing_notes
+    ADD CONSTRAINT hmis_csv_row_processing_notes_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: hmis_dqt_assessments hmis_dqt_assessments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -66032,13 +66669,6 @@ ALTER TABLE ONLY public.hmis_project_configs
 ALTER TABLE ONLY public.hmis_project_groups
     ADD CONSTRAINT hmis_project_groups_pkey PRIMARY KEY (id);
 
---
--- Name: hmis_workspaces hmis_workspaces_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hmis_workspaces
-    ADD CONSTRAINT hmis_workspaces_pkey PRIMARY KEY (id);
-
 
 --
 -- Name: hmis_project_project_groups hmis_project_project_groups_pkey; Type: CONSTRAINT; Schema: public; Owner: -
@@ -66054,6 +66684,14 @@ ALTER TABLE ONLY public.hmis_project_project_groups
 
 ALTER TABLE ONLY public.hmis_project_unit_type_mappings
     ADD CONSTRAINT hmis_project_unit_type_mappings_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_restricted_records hmis_restricted_records_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_restricted_records
+    ADD CONSTRAINT hmis_restricted_records_pkey PRIMARY KEY (id);
 
 
 --
@@ -66078,6 +66716,46 @@ ALTER TABLE ONLY public.hmis_scoring_calculation_logs
 
 ALTER TABLE ONLY public.hmis_scoring_rules
     ADD CONSTRAINT hmis_scoring_rules_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_simulation_clients hmis_simulation_clients_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_simulation_clients
+    ADD CONSTRAINT hmis_simulation_clients_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_simulation_concurrent_enrollments hmis_simulation_concurrent_enrollments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_simulation_concurrent_enrollments
+    ADD CONSTRAINT hmis_simulation_concurrent_enrollments_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_simulation_household_groups hmis_simulation_household_groups_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_simulation_household_groups
+    ADD CONSTRAINT hmis_simulation_household_groups_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_simulation_lifecycle_enrollments hmis_simulation_lifecycle_enrollments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_simulation_lifecycle_enrollments
+    ADD CONSTRAINT hmis_simulation_lifecycle_enrollments_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_simulation_run_logs hmis_simulation_run_logs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_simulation_run_logs
+    ADD CONSTRAINT hmis_simulation_run_logs_pkey PRIMARY KEY (id);
 
 
 --
@@ -66166,6 +66844,14 @@ ALTER TABLE ONLY public.hmis_unit_types
 
 ALTER TABLE ONLY public.hmis_units
     ADD CONSTRAINT hmis_units_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_workspaces hmis_workspaces_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_workspaces
+    ADD CONSTRAINT hmis_workspaces_pkey PRIMARY KEY (id);
 
 
 --
@@ -213178,6 +213864,13 @@ CREATE INDEX idx_client_custom_names_last_idx ON public."CustomClientName" USING
 
 
 --
+-- Name: idx_client_dob; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_client_dob ON public."Client" USING btree ("DOB");
+
+
+--
 -- Name: idx_client_name_full_gin; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -213196,6 +213889,13 @@ CREATE INDEX idx_client_name_last_gin ON public."Client" USING gin (search_name_
 --
 
 CREATE INDEX idx_client_ssn ON public."Client" USING btree ("SSN");
+
+
+--
+-- Name: idx_custom_assessments_on_en_id_p_id_ds_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_custom_assessments_on_en_id_p_id_ds_id ON public."CustomAssessments" USING btree ("EnrollmentID", "PersonalID", data_source_id) WHERE ("DateDeleted" IS NULL);
 
 
 --
@@ -213322,6 +214022,13 @@ CREATE INDEX idx_earned_stage ON public."IncomeBenefits" USING btree ("Earned", 
 --
 
 CREATE INDEX idx_enrollment_ds_id_hh_id_p_id ON public."Enrollment" USING btree (data_source_id, "HouseholdID", "ProjectID");
+
+
+--
+-- Name: idx_enrollment_on_lower_household_id_pattern; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_enrollment_on_lower_household_id_pattern ON public."Enrollment" USING btree (lower(("HouseholdID")::text) text_pattern_ops) WHERE ("DateDeleted" IS NULL);
 
 
 --
@@ -213570,6 +214277,41 @@ CREATE INDEX idx_on_data_source_id_c052f938ba ON public.hmis_csv_2026_custom_dat
 
 
 --
+-- Name: idx_on_data_source_id_exited_system_00f1664f40; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_on_data_source_id_exited_system_00f1664f40 ON public.hmis_simulation_clients USING btree (data_source_id, exited_system);
+
+
+--
+-- Name: idx_on_data_source_id_next_population_0fce94469b; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_on_data_source_id_next_population_0fce94469b ON public.hmis_simulation_clients USING btree (data_source_id, next_population);
+
+
+--
+-- Name: idx_on_data_source_id_restrictable_type_b03a962836; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_on_data_source_id_restrictable_type_b03a962836 ON public.hmis_restricted_records USING btree (data_source_id, restrictable_type);
+
+
+--
+-- Name: idx_on_data_source_id_status_c26af6b41d; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_on_data_source_id_status_c26af6b41d ON public.hmis_simulation_lifecycle_enrollments USING btree (data_source_id, status);
+
+
+--
+-- Name: idx_on_data_source_id_track_name_eab5731d1e; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_on_data_source_id_track_name_eab5731d1e ON public.hmis_simulation_concurrent_enrollments USING btree (data_source_id, track_name);
+
+
+--
 -- Name: idx_on_hoh_destination_client_id_77a94ca46b; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -213609,6 +214351,13 @@ CREATE INDEX idx_on_loader_id_083332ec0e ON public.hmis_csv_2026_custom_data_ele
 --
 
 CREATE INDEX idx_on_loader_id_c062b7be6d ON public.hmis_csv_2026_custom_enrollment_fy26_deprecations USING btree (loader_id);
+
+
+--
+-- Name: idx_on_pending_reentry_on_ae4c85c12b; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_on_pending_reentry_on_ae4c85c12b ON public.hmis_simulation_concurrent_enrollments USING btree (pending_reentry_on);
 
 
 --
@@ -215523,6 +216272,13 @@ CREATE INDEX index_clh_locations_on_source_type_and_source_id ON public.clh_loca
 
 
 --
+-- Name: index_client_attributes_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_client_attributes_on_client_id ON public.client_attributes USING btree (client_id);
+
+
+--
 -- Name: index_client_contacts_on_client_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -215604,6 +216360,34 @@ CREATE INDEX index_client_notes_on_service_id ON public.client_notes USING btree
 --
 
 CREATE INDEX index_client_notes_on_user_id ON public.client_notes USING btree (user_id);
+
+
+--
+-- Name: index_client_retention_expiring_on_run_id_and_expires_on; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_client_retention_expiring_on_run_id_and_expires_on ON public.client_retention_expiring_clients USING btree (run_id, expires_on);
+
+
+--
+-- Name: index_client_retention_log_entries_on_destination_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_client_retention_log_entries_on_destination_client_id ON public.client_retention_log_entries USING btree (destination_client_id);
+
+
+--
+-- Name: index_client_retention_log_entries_on_run_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_client_retention_log_entries_on_run_id ON public.client_retention_log_entries USING btree (run_id);
+
+
+--
+-- Name: index_client_retention_marks_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_client_retention_marks_on_client_id ON public.client_retention_marks USING btree (client_id);
 
 
 --
@@ -216374,6 +217158,13 @@ CREATE INDEX index_favorites_on_updated_at ON public.favorites USING btree (upda
 --
 
 CREATE INDEX index_favorites_on_user_id ON public.favorites USING btree (user_id);
+
+
+--
+-- Name: index_files_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_files_on_client_id ON public.files USING btree (client_id);
 
 
 --
@@ -218610,6 +219401,13 @@ CREATE INDEX index_hmis_project_configs_on_data_source_id ON public.hmis_project
 
 
 --
+-- Name: index_hmis_project_configs_on_deleted_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_project_configs_on_deleted_at ON public.hmis_project_configs USING btree (deleted_at);
+
+
+--
 -- Name: index_hmis_project_configs_on_organization_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -218628,20 +219426,6 @@ CREATE INDEX index_hmis_project_configs_on_project_id ON public.hmis_project_con
 --
 
 CREATE INDEX index_hmis_project_groups_on_data_source_id ON public.hmis_project_groups USING btree (data_source_id);
-
---
--- Name: index_hmis_workspaces_on_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_workspaces_on_data_source_id ON public.hmis_workspaces USING btree (data_source_id);
-
-
-
---
--- Name: index_hmis_workspaces_on_hmis_project_group_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_workspaces_on_hmis_project_group_id ON public.hmis_workspaces USING btree (hmis_project_group_id);
 
 
 --
@@ -218670,6 +219454,27 @@ CREATE INDEX index_hmis_project_unit_type_mappings_on_project_id ON public.hmis_
 --
 
 CREATE INDEX index_hmis_project_unit_type_mappings_on_unit_type_id ON public.hmis_project_unit_type_mappings USING btree (unit_type_id);
+
+
+--
+-- Name: index_hmis_restricted_records_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_restricted_records_on_data_source_id ON public.hmis_restricted_records USING btree (data_source_id);
+
+
+--
+-- Name: index_hmis_restricted_records_on_deleted_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_restricted_records_on_deleted_at ON public.hmis_restricted_records USING btree (deleted_at);
+
+
+--
+-- Name: index_hmis_restricted_records_on_restrictable; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_hmis_restricted_records_on_restrictable ON public.hmis_restricted_records USING btree (restrictable_type, restrictable_id) WHERE (deleted_at IS NULL);
 
 
 --
@@ -218705,6 +219510,83 @@ CREATE UNIQUE INDEX index_hmis_scan_card_codes_on_value ON public.hmis_scan_card
 --
 
 CREATE INDEX index_hmis_scoring_calculation_logs_on_owner ON public.hmis_scoring_calculation_logs USING btree (owner_type, owner_id);
+
+
+--
+-- Name: index_hmis_simulation_clients_on_data_source_id_and_track_name; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_simulation_clients_on_data_source_id_and_track_name ON public.hmis_simulation_clients USING btree (data_source_id, track_name);
+
+
+--
+-- Name: index_hmis_simulation_clients_on_hud_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_simulation_clients_on_hud_client_id ON public.hmis_simulation_clients USING btree (hud_client_id);
+
+
+--
+-- Name: index_hmis_simulation_clients_on_next_transition_on; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_simulation_clients_on_next_transition_on ON public.hmis_simulation_clients USING btree (next_transition_on);
+
+
+--
+-- Name: index_hmis_simulation_clients_on_pending_enrollment_on; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_simulation_clients_on_pending_enrollment_on ON public.hmis_simulation_clients USING btree (pending_enrollment_on);
+
+
+--
+-- Name: index_hmis_simulation_concurrent_enrollments_on_exit_on; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_simulation_concurrent_enrollments_on_exit_on ON public.hmis_simulation_concurrent_enrollments USING btree (exit_on);
+
+
+--
+-- Name: index_hmis_simulation_concurrent_enrollments_on_hud_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_simulation_concurrent_enrollments_on_hud_client_id ON public.hmis_simulation_concurrent_enrollments USING btree (hud_client_id);
+
+
+--
+-- Name: index_hmis_simulation_household_groups_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_simulation_household_groups_on_data_source_id ON public.hmis_simulation_household_groups USING btree (data_source_id);
+
+
+--
+-- Name: index_hmis_simulation_household_groups_on_hoh_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_simulation_household_groups_on_hoh_client_id ON public.hmis_simulation_household_groups USING btree (hoh_client_id);
+
+
+--
+-- Name: index_hmis_simulation_lifecycle_enrollments_on_hud_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_simulation_lifecycle_enrollments_on_hud_client_id ON public.hmis_simulation_lifecycle_enrollments USING btree (hud_client_id);
+
+
+--
+-- Name: index_hmis_simulation_lifecycle_enrollments_on_opens_on; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_simulation_lifecycle_enrollments_on_opens_on ON public.hmis_simulation_lifecycle_enrollments USING btree (opens_on);
+
+
+--
+-- Name: index_hmis_simulation_run_logs_on_data_source_id_and_run_date; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_hmis_simulation_run_logs_on_data_source_id_and_run_date ON public.hmis_simulation_run_logs USING btree (data_source_id, run_date);
 
 
 --
@@ -218796,6 +219678,20 @@ CREATE INDEX index_hmis_unit_occupancy_on_hmis_service_id ON public.hmis_unit_oc
 --
 
 CREATE INDEX index_hmis_unit_occupancy_on_unit_id ON public.hmis_unit_occupancy USING btree (unit_id);
+
+
+--
+-- Name: index_hmis_workspaces_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_workspaces_on_data_source_id ON public.hmis_workspaces USING btree (data_source_id);
+
+
+--
+-- Name: index_hmis_workspaces_on_hmis_project_group_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_workspaces_on_hmis_project_group_id ON public.hmis_workspaces USING btree (hmis_project_group_id);
 
 
 --
@@ -225916,12 +226812,6 @@ CREATE UNIQUE INDEX uidx_hmis_project_groups_on_data_source_and_name ON public.h
 
 CREATE UNIQUE INDEX uidx_hmis_project_unit_type_mappings ON public.hmis_project_unit_type_mappings USING btree (project_id, unit_type_id);
 
---
--- Name: uidx_hmis_workspaces_on_applies_to_slug_and_data_source; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX uidx_hmis_workspaces_on_applies_to_slug_and_data_source ON public.hmis_workspaces USING btree (applies_to, slug, data_source_id) WHERE (deleted_at IS NULL);
-
 
 --
 -- Name: uidx_hmis_staff_assignments; Type: INDEX; Schema: public; Owner: -
@@ -225935,6 +226825,13 @@ CREATE UNIQUE INDEX uidx_hmis_staff_assignments ON public.hmis_staff_assignments
 --
 
 CREATE UNIQUE INDEX uidx_hmis_supplemental_field_values_on_key ON public.hmis_supplemental_field_values USING btree (data_set_id, owner_key, field_key);
+
+
+--
+-- Name: uidx_hmis_workspaces_on_applies_to_slug_and_data_source; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uidx_hmis_workspaces_on_applies_to_slug_and_data_source ON public.hmis_workspaces USING btree (applies_to, slug, data_source_id) WHERE (deleted_at IS NULL);
 
 
 --
@@ -225956,6 +226853,13 @@ CREATE UNIQUE INDEX uidx_hopwa_caper_services ON public.hopwa_caper_services USI
 --
 
 CREATE UNIQUE INDEX uidx_import_overrides_rules ON public.import_overrides USING btree (data_source_id, file_name, replaces_column, COALESCE(matched_hud_key, 'ALL'::character varying), COALESCE(replaces_value, 'ALL'::character varying)) WHERE (deleted_at IS NULL);
+
+
+--
+-- Name: uidx_warehouse_clients_processed_on_client_id_and_routine; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uidx_warehouse_clients_processed_on_client_id_and_routine ON public.warehouse_clients_processed USING btree (client_id, routine);
 
 
 --
@@ -225990,7 +226894,7 @@ CREATE UNIQUE INDEX uniq_simple_report_universe_members ON public.simple_report_
 -- Name: unique_index_ensuring_one_key_per_record_type; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX unique_index_ensuring_one_key_per_record_type ON public."CustomDataElementDefinitions" USING btree (key, owner_type);
+CREATE UNIQUE INDEX unique_index_ensuring_one_key_per_record_type ON public."CustomDataElementDefinitions" USING btree (owner_type, key);
 
 
 --
@@ -359295,6 +360199,7 @@ ALTER TABLE ONLY public.ce_referrals
 ALTER TABLE ONLY public.contact_alert_subscriptions
     ADD CONSTRAINT fk_rails_e2462552bc FOREIGN KEY (contact_id) REFERENCES public.contacts(id);
 
+
 --
 -- Name: hmis_workspaces fk_rails_e480cf55b3; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
@@ -359406,6 +360311,52 @@ ALTER TABLE ONLY public.import_logs
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261104120200'),
+('20261104120100'),
+('20261104120000'),
+('20261028120000'),
+('20261027120000'),
+('20261014140000'),
+('20260921142542'),
+('20260918121000'),
+('20260918120000'),
+('20260916122000'),
+('20260916121000'),
+('20260916120000'),
+('20260911120000'),
+('20260908122000'),
+('20260908121000'),
+('20260908120000'),
+('20260831120000'),
+('20260827120000'),
+('20260825120000'),
+('20260819120200'),
+('20260819120000'),
+('20260818130528'),
+('20260818120000'),
+('20260814212023'),
+('20260814211958'),
+('20260812172057'),
+('20260812160243'),
+('20260804130000'),
+('20260728120000'),
+('20260717132223'),
+('20260624120000'),
+('20260624000001'),
+('20260622120000'),
+('20260618120000'),
+('20260614130000'),
+('20260608120622'),
+('20260608100701'),
+('20260605120000'),
+('20260605110000'),
+('20260605100000'),
+('20260604130000'),
+('20260604120000'),
+('20260527100001'),
+('20260527100000'),
+('20260522123000'),
+('20260521120000'),
 ('20260514123606'),
 ('20260511185204'),
 ('20260509142407'),
@@ -359457,6 +360408,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20251112140502'),
 ('20251109090000'),
 ('20251106123000'),
+('20251105111332'),
 ('20251104183938'),
 ('20251104032359'),
 ('20251030153000'),
@@ -360915,3 +361867,4 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20160729183141'),
 ('20160729135359'),
 ('20160727190957');
+

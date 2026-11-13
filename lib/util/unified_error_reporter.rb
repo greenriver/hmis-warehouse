@@ -1,10 +1,10 @@
-# frozen_string_literal: true
-
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 # Unified error reporting: logs, optionally notifies Slack, and captures to Sentry.
 # Decouples call sites from Sentry's API and makes the Slack opt-in explicit.

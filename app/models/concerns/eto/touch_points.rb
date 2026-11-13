@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -19,9 +19,6 @@ module Eto
       # Health Related TouchPoints
       has_many :self_sufficiency_assessments, -> { where(name: 'Self-Sufficiency Matrix') }, class_name: 'GrdaWarehouse::HmisForm', through: :source_clients, source: :hmis_forms
       has_many :case_management_notes, -> { where(name: ['SDH Case Management Note', 'Case Management Daily Note']) }, class_name: 'GrdaWarehouse::HmisForm', through: :source_clients, source: :hmis_forms
-      has_many :health_touch_points, -> do
-        merge(GrdaWarehouse::HmisForm.health)
-      end, class_name: 'GrdaWarehouse::HmisForm', through: :source_clients, source: :hmis_forms
       has_one :most_recent_tc_hat, -> do
         one_for_column(
           :collected_at,

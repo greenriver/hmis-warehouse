@@ -1,12 +1,12 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 # frozen_string_literal: true
 
-# @see docs/features/warehouse-permissions.md
+# @see docs/features/warehouse/warehouse-permissions.md
 #
 # Participates in both the "new" and "legacy" permissions systems
 #
@@ -21,15 +21,43 @@
 #   Role.ensure_permissions_exist
 #
 class Role < ApplicationRecord
+  # Columns pending removal in a later deploy; see db/migrate/20260804130000_remove_health_only_columns.rb
+  self.ignored_columns = [
+    'health_role',
+    'can_administer_health',
+    'can_edit_client_health',
+    'can_view_client_health',
+    'can_view_aggregate_health',
+    'can_manage_health_agency',
+    'can_approve_patient_assignments',
+    'can_manage_claims',
+    'can_manage_all_patients',
+    'can_manage_patients_for_own_agency',
+    'can_manage_care_coordinators',
+    'can_approve_cha',
+    'can_approve_ssm',
+    'can_approve_release',
+    'can_approve_participation',
+    'can_approve_careplan',
+    'can_edit_all_patient_items',
+    'can_edit_patient_items_for_own_agency',
+    'can_create_care_plans_for_own_agency',
+    'can_view_all_patients',
+    'can_view_patients_for_own_agency',
+    'can_add_case_management_notes',
+    'can_manage_accountable_care_organizations',
+    'can_view_member_health_reports',
+    'can_unsubmit_submitted_claims',
+    'can_edit_health_emergency_contact_tracing',
+  ].freeze
+
   acts_as_paranoid
   has_paper_trail
 
   include UserPermissionCache
   include HistoryDescriptions
 
-  # Keep for health roles
   has_many :user_roles
-  has_many :health_users, through: :user_roles
   # TODO: START_ACL remove after ACL migration is complete
   # has_many :user_roles, dependent: :destroy, inverse_of: :role
   has_many :legacy_users, through: :user_roles # FIXME: need to track down where we use this and update as appropriate
@@ -53,20 +81,12 @@ class Role < ApplicationRecord
     where(system: false)
   end
 
-  scope :health, -> do
-    where(health_role: true)
-  end
-
   scope :editable, -> do
-    not_system.where(health_role: false)
+    not_system
   end
 
   scope :homeless, -> do
     editable
-  end
-
-  scope :nurse_care_manager, -> do
-    health.where(name: 'Nurse Care Manager')
   end
 
   scope :with_all_permissions, ->(*perms) do
@@ -92,12 +112,12 @@ class Role < ApplicationRecord
     ).first_or_create
   end
 
-  def health?
-    health_role
-  end
+  # Remove the `can_view_own_hud_reports` entry from permissions_with_descriptions
+  # and write a migration dropping the `roles.can_view_own_hud_reports` column.
+  TodoOrDie('Remove the can_view_own_hud_reports permission and column', by: Date.new(2027, 1, 15))
 
   def editable?
-    system == false && health_role == false
+    system == false
   end
 
   def has_super_admin_permissions? # rubocop:disable Naming/PredicatePrefix
@@ -124,30 +144,24 @@ class Role < ApplicationRecord
     false
   end
 
-  def self.permissions(exclude_health: false)
-    perms = permissions_with_descriptions.keys
-    perms += self.health_permissions unless exclude_health # rubocop:disable Style/RedundantSelf
-    return perms
+  def self.permissions
+    permissions_with_descriptions.keys
   end
 
   def self.permission_categories
     permissions_with_descriptions.map { |_perm_key, perm| perm[:category] }
   end
 
-  def self.health_permissions
-    health_permissions_with_descriptions.keys
-  end
-
   def self.description_for permission:
-    permissions_with_descriptions.merge(health_permissions_with_descriptions)[permission][:description] rescue '' # rubocop:disable Style/RescueModifier
+    permissions_with_descriptions[permission][:description] rescue '' # rubocop:disable Style/RescueModifier
   end
 
   def self.category_for permission:
-    permissions_with_descriptions.merge(health_permissions_with_descriptions)[permission][:category] rescue [] # rubocop:disable Style/RescueModifier
+    permissions_with_descriptions[permission][:category] rescue [] # rubocop:disable Style/RescueModifier
   end
 
   def self.administrative? permission:
-    permissions_with_descriptions.merge(health_permissions_with_descriptions)[permission][:administrative] rescue true # rubocop:disable Style/RescueModifier
+    permissions_with_descriptions[permission][:administrative] rescue true # rubocop:disable Style/RescueModifier
   end
 
   def self.permissions_by_group
@@ -245,6 +259,12 @@ class Role < ApplicationRecord
       },
       can_audit_clients: {
         description: 'Access to see who has looked at or changed a client record. This should only be given to administrator level users.',
+        administrative: true,
+        category: 'Client Access',
+        sub_category: 'Administrative',
+      },
+      can_mark_clients_as_restricted: {
+        description: 'Ability to mark and unmark clients as restricted. A restricted client\'s name, SSN, date of birth, photo, and HIV status are hidden from every warehouse user. Applies to clients enrolled at projects the user can access. When removing a restriction, the confirmation shows the client\'s last name, subject to the user\'s name permission, so they can confirm the right client.',
         administrative: true,
         category: 'Client Access',
         sub_category: 'Administrative',
@@ -416,7 +436,7 @@ class Role < ApplicationRecord
         sub_category: 'Importing',
       },
       can_edit_translations: {
-        description: 'Ability to translate strings from the default OpenPath language to community specific langauge',
+        description: 'Ability to translate strings from the default OpenPath language to community specific language',
         administrative: true,
         category: 'Administration',
         sub_category: 'Site Configuration',
@@ -440,7 +460,7 @@ class Role < ApplicationRecord
         sub_category: 'General Client Access',
       },
       can_generate_homeless_verification_pdfs: {
-        description: 'Allows access to generate and view homeless verification PDFs for any client for which the user has access',
+        description: 'Allows access to generate and view homeless verification PDFs for any client for which the user has access. Generating a PDF also requires "Access to the calendar view of client enrollments" for that client.',
         administrative: false,
         category: 'Client Extras',
         sub_category: 'General Client Access',
@@ -692,7 +712,13 @@ class Role < ApplicationRecord
         sub_category: 'Relationships',
       },
       can_export_hmis_data: {
-        description: 'When combined with assignment of the appropriate report, allows a user to export HMIS data',
+        description: 'When combined with assignment of the appropriate report, allows a user to export HMIS data.  Note PII protections, other than HMIS Restricted clients, are not applied to exported data.',
+        administrative: false,
+        category: 'Reporting',
+        sub_category: 'Exporting',
+      },
+      can_download_lsa_source_data: {
+        description: 'Ability to download the source HMIS data attached to an LSA report run',
         administrative: false,
         category: 'Reporting',
         sub_category: 'Exporting',
@@ -741,7 +767,7 @@ class Role < ApplicationRecord
         sub_category: 'Report Administration',
       },
       can_view_project_related_filters: {
-        description: 'Ability to specify filters of project, organization, funding source and data sources for report universes. Most single CoC installations will want this enabled for anyone with reporting access. NOTE: This only provides access to the report filters. The filters are populated with data made accessible to the user through other permissions (e.g. the "Can view projects" permission).',
+        description: 'Ability to specify filters of project, organization, funding source and data sources for report universes. Most single CoC installations will want this enabled for anyone with reporting access. NOTE: This only provides access to the report filters. The filters are populated with data made accessible to the user through other permissions (e.g. the "Can view assigned reports" permission).',
         administrative: false,
         category: 'Reporting',
         sub_category: 'Data Access',
@@ -825,13 +851,14 @@ class Role < ApplicationRecord
         sub_category: 'Site Configuration',
       },
       can_view_all_hud_reports: {
-        description: 'This permission grants access to run all HUD reports, limited by data access assignments.  In addition, this grants access to all HUD reports that have ever been run regardless of access assignments.',
+        description: 'This permission grants access to all HUD report runs regardless of who initiated them. Access to run a HUD report is granted by assigning the report to a collection.',
         administrative: true,
         category: 'Reporting',
         sub_category: 'HUD Reports',
       },
+      # Delete this entry when the TodoOrDie at the top of this class fires.
       can_view_own_hud_reports: {
-        description: 'This permission grants access to run all HUD reports, limited by data access assignments.  Users can only see results for HUD reports they initiated.',
+        description: 'DEPRECATED: access to run a HUD report is granted by assigning the report to a collection; users see their own runs by default.',
         administrative: false,
         category: 'Reporting',
         sub_category: 'HUD Reports',
@@ -977,160 +1004,17 @@ class Role < ApplicationRecord
     }
   end
 
-  def self.health_permissions_with_descriptions
-    {
-      can_administer_health: {
-        description: 'Administrative access to all health sections and patient records',
-        administrative: true,
-        categories: [],
-      },
-      can_edit_client_health: {
-        description: 'Provides the ability to enter data for pilot patients. Pilot Permission',
-        administrative: false,
-        categories: [],
-      },
-      can_view_client_health: {
-        description: 'Ability to view pilot patient records. Pilot Permission',
-        administrative: false,
-        categories: [],
-      },
-      can_view_aggregate_health: {
-        description: 'Access to see the claims and ED use data provided from BHCHP',
-        administrative: true,
-        categories: [],
-      },
-      can_manage_health_agency: {
-        description: 'Ability to add and edit health agency records',
-        administrative: true,
-        categories: [],
-      },
-      can_approve_patient_assignments: {
-        description: 'Ability to convert patient referrals to patient records and assign patients to agencies',
-        administrative: true,
-        categories: [],
-      },
-      can_manage_claims: {
-        description: 'Can generate, review, and download claims files',
-        administrative: true,
-        categories: [],
-      },
-      can_manage_all_patients: {
-        description: 'Ability to claim patient referrals for any agency',
-        administrative: true,
-        categories: [],
-      },
-      can_manage_patients_for_own_agency: {
-        description: 'Ability to claim patient referrals for an agency, used in conjunction with user-agency assignments',
-        administrative: false,
-        categories: [],
-      },
-      can_manage_care_coordinators: {
-        description: 'Assign care coordinators to patients',
-        administrative: false,
-        categories: [],
-      },
-      can_approve_cha: {
-        description: 'Ability to approve Comprehensive Health Assessments',
-        administrative: false,
-        categories: [],
-      },
-      can_approve_ssm: {
-        description: 'Ability to approve Self-Sufficiency Matrix forms',
-        administrative: false,
-        categories: [],
-      },
-      can_approve_release: {
-        description: 'Ability to approve release forms',
-        administrative: false,
-        categories: [],
-      },
-      can_approve_participation: {
-        description: 'Ability to approve participation forms',
-        administrative: false,
-        categories: [],
-      },
-      can_approve_careplan: {
-        description: 'Ability to approve Care Plans',
-        administrative: false,
-        categories: [],
-      },
-      can_edit_all_patient_items: {
-        description: 'Unused',
-        administrative: true,
-        categories: [],
-      },
-      can_edit_patient_items_for_own_agency: {
-        description: 'Edit ability for patient records',
-        administrative: false,
-        categories: [],
-      },
-      can_create_care_plans_for_own_agency: {
-        description: 'Unused',
-        administrative: false,
-        categories: [],
-      },
-      can_view_all_patients: {
-        description: 'Unused',
-        administrative: true,
-        categories: [],
-      },
-      can_view_patients_for_own_agency: {
-        description: 'Allows access to patient records',
-        administrative: false,
-        categories: [],
-      }, # Read-only - not implemented as such yet
-      can_add_case_management_notes: {
-        description: 'Unused',
-        administrative: false,
-        categories: [],
-      },
-      can_manage_accountable_care_organizations: {
-        description: 'Administer ACO records',
-        administrative: true,
-        categories: [],
-      },
-      can_view_member_health_reports: {
-        description: 'Use for downloading individual member reports',
-        administrative: true,
-        categories: [],
-      },
-      can_unsubmit_submitted_claims: {
-        description: 'Can this user blank out the submitted date on QA, allowing resubmission?',
-        administrative: true,
-        categories: [],
-      },
-      can_edit_health_emergency_contact_tracing: {
-        description: 'Grants access to the contact tracing section when there is an active health emergency',
-        administrative: false,
-        categories: [],
-      },
-      can_view_all_vprs: {
-        description: 'Can view Flex Services information for all patients',
-        administrative: true,
-        categories: [],
-      },
-      can_view_my_vprs: {
-        description: 'Can view Flex Services information for assigned patients',
-        administrative: false,
-        categories: [],
-      },
-    }
-  end
-
   def self.ensure_permissions_exist
     Role.permissions.each do |permission|
       ActiveRecord::Migration.add_column(:roles, permission, :boolean, default: false) unless ActiveRecord::Base.connection.column_exists?(:roles, permission)
     end
   end
 
-  # Only used in the Healthcare context (once ACL migration is complete) START_ACL
   def add(users)
-    self.health_users = (health_users + Array.wrap(users)).uniq
     self.legacy_users = (legacy_users + Array.wrap(users)).uniq # START_ACL remove after ACL migration is complete
   end
 
   def remove(users)
-    self.health_users = (health_users - Array.wrap(users))
     self.legacy_users = (legacy_users - Array.wrap(users)) # START_ACL remove after ACL migration is complete
   end
 end

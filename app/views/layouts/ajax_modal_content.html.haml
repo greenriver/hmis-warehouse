@@ -11,7 +11,7 @@
         = subtitle
   %button.close.pull-right(aria-label="Close" data-ajax-modal-close type="button")
     %i.modal-icon-close
-.modal-body.clearfix
+.modal-body.clearfix{data: {controller: 'ajax-modal-content', 'ajax-modal-content-size-value': modal_size}}
   %div{"data-ajax-modal-body" => ""}
     = yield
   %div{"data-ajax-modal-loading" => "", :style => "display: none;"}
@@ -21,18 +21,3 @@
     = yield :modal_footer
 
 = yield :page_js
-:javascript
-  // initializing behaviors and modal size
-  'use strict'
-  $(function() {
-    var newModalClass = #{modal_size.to_json.html_safe};
-    var modalDialog = document.querySelector('#ajax-modal .modal-dialog');
-    if (modalDialog) {
-      $(modalDialog)
-        .removeClass('modal-xxl')
-        .removeClass('modal-xl')
-        .removeClass('modal-lg')
-        .addClass(newModalClass);
-    }
-    var modalBody = document.querySelector('#ajax-modal .modal-body')
-  });

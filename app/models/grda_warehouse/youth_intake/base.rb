@@ -1,10 +1,10 @@
-# frozen_string_literal: true
-
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 module GrdaWarehouse::YouthIntake
   class Base < GrdaWarehouseBase
@@ -38,7 +38,7 @@ module GrdaWarehouse::YouthIntake
       # if you can see all youth intakes, show them all
       if user.can_view_youth_intake? || user.can_edit_youth_intake?
         all
-      # If you can see your agancy's, then show yours and those for your agency
+      # If you can see your agency's, then show yours and those for your agency
       elsif user.can_view_own_agency_youth_intake? || user.can_edit_own_agency_youth_intake?
         where(user_id: agency_user_ids)
       else
@@ -56,7 +56,7 @@ module GrdaWarehouse::YouthIntake
       # if you can see all youth intakes, show them all
       if user.can_edit_youth_intake?
         all
-      # If you can edit your agancy's, then show yours and those for your agency
+      # If you can edit your agency's, then show yours and those for your agency
       elsif user.can_edit_own_agency_youth_intake?
         where(user_id: agency_user_ids)
       else

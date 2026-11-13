@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -16,9 +16,12 @@ class Hmis::UsersController < Hmis::BaseController
   # This is called by the frontend on initial page load, to determine whether
   # there is a currently active session.
   def show
-    payload = current_hmis_user&.current_user_api_values || {}
-    payload[:impersonating] = impersonating?
-    render json: payload
+    account_error = bootstrap_account_error
+    if account_error
+      render json: { impersonating: false, accountError: account_error }
+    else
+      render json: current_user_payload
+    end
   end
 
   # clear etag to prevent caching

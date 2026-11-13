@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -16,7 +16,6 @@ module GrdaWarehouse
 
     CONSENT_FORM_TAG_CACHE_KEY = 'consent_form_tagging_ids/tag_ids'
 
-    mount_uploader :file, FileUploader # This is probably no necessary, but added to be safe
     has_paper_trail
     acts_as_taggable
 
@@ -32,6 +31,10 @@ module GrdaWarehouse
     # because Rails cannot supply two contexts at once
     validates_presence_of :effective_date, on: :requires_expiration_and_effective_dates, message: 'Effective date is required'
     validates_presence_of :expiration_date, on: :requires_expiration_and_effective_dates, message: 'Expiration date is required'
+    # Under a Use Expiration Date release duration the ROI rebuild clears a client's consent when the
+    # confirmed form has no expiration date, so the form must carry one to grant anything. Only saves that
+    # change the consent are checked, so an existing undated form can still be deleted or annotated
+    validates_presence_of :expiration_date, if: :expiration_date_required_by_release_duration?, message: 'Expiration date is required'
 
     validates :data_source, presence: true, if: ->(o) { o.confidential? && o.enrollment_id.blank? }
     validates :enrollment, presence: true, if: ->(o) { o.confidential? && o.data_source_id.blank? }
@@ -42,9 +45,17 @@ module GrdaWarehouse
 
     private def clear_active_storage_url
       # Only set the URL for S3 storage services
-      return unless Rails.application.config.active_storage.service.in?([:amazon, :minio])
+      return unless Rails.application.config.active_storage.service.in?([:amazon, :local_s3])
 
       self.active_storage_url = nil
+    end
+
+    private def expiration_date_required_by_release_duration?
+      consent_change = new_record? || will_save_change_to_consent_form_confirmed? ||
+        will_save_change_to_consent_revoked_at? || will_save_change_to_expiration_date? || tag_list_changed?
+      consent_change && consent_form_confirmed && consent_revoked_at.blank? &&
+        GrdaWarehouse::Hud::Client.release_duration == 'Use Expiration Date' &&
+        GrdaWarehouse::AvailableFileTag.contains_consent_form?(tag_list)
     end
 
     scope :confidential, -> do
@@ -59,8 +70,8 @@ module GrdaWarehouse
       where(visible_in_window: true)
     end
 
-    # Confidential files are visible by users who have access to confidential files at the associated project,
-    # OR if the file does not have an associated enrollment and the user can view some confidential files
+    # Confidential files are visible by users who have access to confidential files at the associated enrollment's project,
+    # OR at any project in the file's data source (a file with both an enrollment and a data source matches through either)
     scope :confidential_visible_by, ->(user) do
       permission = :can_see_confidential_files
       return none unless user&.send("#{permission}?")
@@ -82,7 +93,7 @@ module GrdaWarehouse
         or(where(id: confidential_data_source_scope.select(:id)))
     end
 
-    scope :visible_by?, ->(user) do
+    scope :visible_by?, ->(user, client:) do
       return current_scope if user.can_manage_client_files?
 
       # setup sql statements
@@ -119,11 +130,14 @@ module GrdaWarehouse
       # You can only see files you uploaded
       elsif user.can_see_own_file_uploads? || user.can_use_separated_consent?
         where(sql)
-      # You have specific permission to generate homeless verification PDFs
-      elsif user.can_generate_homeless_verification_pdfs? && GrdaWarehouse::Config.get(:verified_homeless_history_visible_to_all)
-        where(is_verified_homeless_history)
-      elsif user.can_generate_homeless_verification_pdfs?
-        where(is_own_file.and(is_verified_homeless_history))
+      # The client's policy grants homeless verification PDFs for this client
+      elsif user.policy_for(client).can_generate_homeless_verification_pdfs?
+        verification_pdfs = where(client_id: client.id).where(is_verified_homeless_history)
+        if GrdaWarehouse::Config.get(:verified_homeless_history_visible_to_all)
+          verification_pdfs
+        else
+          verification_pdfs.where(is_own_file)
+        end
       else
         none
       end
@@ -235,16 +249,6 @@ module GrdaWarehouse
       where(coc_codes: coc_codes)
     end
 
-    scope :unprocessed_s3_migration, -> do
-      # plucking these seems to be 100x faster than where.not(id: migrated)
-      migrated = ActiveStorage::Attachment.where(record_type: 'GrdaWarehouse::File').pluck(:record_id)
-      all = pluck(:id)
-      unmigrated = all - migrated
-      return none if unmigrated.blank?
-
-      where(id: unmigrated)
-    end
-
     ####################
     # Callbacks
     ####################
@@ -279,6 +283,17 @@ module GrdaWarehouse
       client.consent_form_id == id
     end
 
+    def calculated_expiration_date
+      case GrdaWarehouse::Hud::Client.release_duration
+      when 'One Year', 'Two Years'
+        consent_form_signed_on && consent_form_signed_on + GrdaWarehouse::Hud::Client.consent_validity_period
+      when 'Use Expiration Date'
+        expiration_date
+      when 'Indefinite'
+        nil
+      end
+    end
+
     def consent_form?
       self.class.consent_forms.where(id: id).exists?
     end
@@ -309,10 +324,9 @@ module GrdaWarehouse
       full_string
     end
 
+    # The after_save and after_commit callbacks sync the client and rebuild its ROI row
     def confirm_consent!
       update(consent_form_confirmed: true)
-      note_changes_in_consent
-      set_client_consent
     end
 
     def adjust_consent_date
@@ -371,6 +385,7 @@ module GrdaWarehouse
           client.invalidate_consent!
         end
       end
+      GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask.rebuild_clients([client_id])
     end
 
     private def coc_available?
@@ -452,26 +467,6 @@ module GrdaWarehouse
         end
         upsert_all(batch, update_only: [:active_storage_url], record_timestamps: false) if batch.any?
       end
-    end
-
-    def copy_to_s3!
-      return unless content.present?
-      return if client_file.attached? # don't re-process
-
-      # Prevent any callbacks
-      @callbacks_skipped = true
-
-      puts "Migrating #{file} to S3 for client_id: #{client_id}"
-
-      Tempfile.create(binmode: true) do |tmp_file|
-        tmp_file.write(content)
-        tmp_file.rewind
-        client_file.attach(io: tmp_file, content_type: content_type, filename: file, identify: false)
-
-        # Save no-matter validity state
-        save!(validate: false)
-      end
-      @callbacks_skipped = nil
     end
   end
 end

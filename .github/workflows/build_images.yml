@@ -10,6 +10,7 @@ on:
     branches:
       - "*"
       - "**/*"
+  workflow_dispatch:
 
 # Branch pushes will cancel any running jobs to the same branch
 concurrency:
@@ -19,6 +20,7 @@ concurrency:
 jobs:
   build:
     name: Build
+    if: vars.CI_AUTO_RUN == 'true' || github.event_name == 'workflow_dispatch'
 
     runs-on: ubuntu-24.04
 
@@ -38,10 +40,10 @@ jobs:
             dockerfile: docker/app/Dockerfile
             keep_latest_tag: true
             cache_key: warehouse
-            hadolint_ignore: DL3008
+            hadolint_ignore: DL3008,DL3066
             trivy_skip_files: /app/config/key.pem,/app/docker/sftp/ssh_host_ed25519_key,/app/docker/sftp/ssh_host_rsa_key,/app/spec/fixtures/files/health/secret.key
             build-args: |
-              BUILD_TAG=3.4.9-slim-bookworm
+              BUILD_TAG=3.4.12-slim-trixie
               BUNDLER_VERSION=2.7.2
             tags: |
               type=sha,prefix=githash-
@@ -50,13 +52,16 @@ jobs:
 
     steps:
       - name: Log in to Docker Hub
-        uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Checkout
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 50
+          fetch-tags: true
 
       - name: Dockerfile Lint
         shell: bash
@@ -66,12 +71,21 @@ jobs:
             -v $(pwd)/${{ matrix.dockerfile }}:/Dockerfile \
             --rm -i ghcr.io/hadolint/hadolint:latest-alpine hadolint /Dockerfile
 
+      # The image build (buildkit state + load tarball + local layer cache) can exhaust
+      # the runner's disk. Remove preinstalled toolchains we don't use to make room.
+      - name: Free disk space
+        run: |
+          df -h /
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
+          sudo docker image prune -af
+          df -h /
+
       - name: Set up Docker Buildx
         id: buildx
-        uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2 # v3
+        uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
 
       - name: Cache Docker layers
-        uses: actions/cache@d4323d4df104b026a6aa633fdb11d772146be0bf # v4
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: /tmp/.buildx-cache
           key: ${{ runner.os }}-buildx-${{ matrix.cache_key }}-${{ github.run_id }}
@@ -79,7 +93,7 @@ jobs:
             ${{ runner.os }}-buildx-${{ matrix.cache_key }}
 
       - name: Configure AWS credentials for OIDC
-        uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # v4
+        uses: aws-actions/configure-aws-credentials@e6de054238d6b7531b4efff3b6587d9aade6a06c # v6.2.3
         with:
           aws-region: us-east-1
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/${{ secrets.AWS_ROLE_NAME }}
@@ -98,7 +112,7 @@ jobs:
       # https://github.com/docker/metadata-action#images-input
       - name: Docker metadata
         id: meta
-        uses: docker/metadata-action@902fa8ec7d6ecbf8d84d538b9b233a880e428804 # v5
+        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
         env:
           DOCKER_METADATA_SHORT_SHA_LENGTH: 7
         with:
@@ -121,7 +135,7 @@ jobs:
 
       # https://github.com/docker/build-push-action
       - name: Build image
-        uses: docker/build-push-action@ca052bb54ab0790a636c9b5f226502c73d547a25 # v5
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
         with:
           context: ${{ matrix.context }}
           builder: ${{ steps.buildx.outputs.name }}
@@ -133,6 +147,9 @@ jobs:
           build-args: ${{ matrix.build-args }}
           cache-from: type=local,src=/tmp/.buildx-cache/${{ matrix.cache_key }}
           cache-to: type=local,dest=/tmp/.buildx-cache/${{ matrix.cache_key }},mode=max
+
+      - name: Smoke test image
+        run: docker/app/smoke/run.sh ${{ secrets.ECR_REPOSITORY_URI }}
 
       - name: Push image with tags
         env:
@@ -158,17 +175,27 @@ jobs:
           docker volume prune -f || true
           docker builder prune -af || true
 
+      # The sha only builds the cache key, so a ghcr.io rate limit or outage falls back to a daily key
+      # instead of failing the job before trivy can try its fallback repositories
       - name: Check trivy db sha
         id: trivy-db
         run: |
-          token=$(curl -s "https://ghcr.io/token?scope=repository:aquasecurity/trivy-db:pull" | jq -r '.token')
-          sha=$(curl -sI -H "Authorization: Bearer ${token}" -H "Accept: application/vnd.oci.image.manifest.v1+json" \
-            "https://ghcr.io/v2/aquasecurity/trivy-db/manifests/latest" | grep -i docker-content-digest | awk '{print $2}' | tr -d '\r' | sed 's/sha256://')
-          echo "Trivy DB sha256:${sha}"
+          token=$(curl -sf "https://ghcr.io/token?scope=repository:aquasecurity/trivy-db:pull" | jq -r '.token' || true)
+          sha=$(curl -sfI -H "Authorization: Bearer ${token}" -H "Accept: application/vnd.oci.image.manifest.v1+json" \
+            "https://ghcr.io/v2/aquasecurity/trivy-db/manifests/latest" | grep -i docker-content-digest | awk '{print $2}' | tr -d '\r' | sed 's/sha256://' || true)
+
+          if [[ -n "${sha}" ]]
+          then
+            echo "Trivy DB sha256:${sha}"
+          else
+            sha="date-$(date -u +%Y-%m-%d)"
+            echo "::warning::Could not read trivy db sha from ghcr.io, using cache key ${sha}"
+          fi
+
           echo "sha=${sha}" >> $GITHUB_OUTPUT
 
       - name: Cache trivy db
-        uses: actions/cache@d4323d4df104b026a6aa633fdb11d772146be0bf # v4
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: .trivy
           key: ${{ runner.os }}-trivy-db-${{ steps.trivy-db.outputs.sha }}
@@ -176,10 +203,12 @@ jobs:
       # https://github.com/aquasecurity/trivy-action
       - name: Run vulnerability scan
         id: vuln_scan
-        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # 0.35.0
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         env:
-          TRIVY_DB_REPOSITORY: "public.ecr.aws/aquasecurity/trivy-db:2"
-          TRIVY_JAVA_DB_REPOSITORY: "public.ecr.aws/aquasecurity/trivy-java-db:1"
+          # Trivy tries each repository in order, moving to the next on a rate limit (429), server error (5xx), or timeout (408).
+          # Network errors (DNS, refused connections) and auth errors (401/403) stop the scan without trying the rest.
+          TRIVY_DB_REPOSITORY: "public.ecr.aws/aquasecurity/trivy-db:2,mirror.gcr.io/aquasec/trivy-db:2,ghcr.io/aquasecurity/trivy-db:2"
+          TRIVY_JAVA_DB_REPOSITORY: "public.ecr.aws/aquasecurity/trivy-java-db:1,mirror.gcr.io/aquasec/trivy-java-db:1,ghcr.io/aquasecurity/trivy-java-db:1"
         with:
           image-ref: ${{ secrets.ECR_REPOSITORY_URI }}
           format: "table"
@@ -189,6 +218,7 @@ jobs:
           cache-dir: .trivy
           skip-files: ${{ matrix.trivy_skip_files }}
           hide-progress: true
+          trivyignores: .trivyignore.yaml
           # trivy-flags: --debug
 
       - name: Fix .trivy permissions

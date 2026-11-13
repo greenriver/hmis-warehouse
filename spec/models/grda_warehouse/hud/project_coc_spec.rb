@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -58,6 +58,31 @@ RSpec.describe model, type: :model do
         it 'sees pc1' do
           expect(user_ids[user]).to eq ids[pc1]
         end
+      end
+    end
+
+    describe 'unknown_coc' do
+      let!(:pc_nil) { create :hud_project_coc, CoCCode: nil, data_source_id: ds1.id, project: p1 }
+      let!(:pc_blank) { create :hud_project_coc, CoCCode: '', data_source_id: ds1.id, project: p1 }
+      let!(:pc_whitespace) { create :hud_project_coc, CoCCode: '   ', data_source_id: ds1.id, project: p1 }
+
+      it 'matches nil, empty, and whitespace-only CoC codes but not real ones' do
+        expect(model.unknown_coc.pluck(:id)).to contain_exactly(pc_nil.id, pc_blank.id, pc_whitespace.id)
+      end
+    end
+
+    describe 'in_county' do
+      before do
+        GrdaWarehouse::Shape::County.create!(namelsad: 'Chittenden County')
+        GrdaWarehouse::Shape::County.create!(namelsad: 'Rutland County')
+        create :shape_zip_code, zcta5ce10: '05401', county_name_lower: 'chittenden county'
+        create :shape_zip_code, zcta5ce10: '05701', county_name_lower: 'rutland county'
+        pc1.update!(Zip: '05401')
+        pc2.update!(Zip: '05701')
+      end
+
+      it 'returns only project CoCs whose zip code lies in the named county' do
+        expect(model.in_county(county: ['Chittenden County']).pluck(:id)).to contain_exactly(pc1.id)
       end
     end
   end

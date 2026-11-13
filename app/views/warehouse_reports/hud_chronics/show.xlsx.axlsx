@@ -1,9 +1,15 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 
 wb = xlsx_package.workbook
 wb.add_worksheet(name: "HUD Chronic Clients") do |sheet|
   title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
   sheet.add_row(@report.headers_for_export, :style => title)
-  @report.rows_for_export.each do |row|
+  @report.rows_for_export(user: current_user).each do |row|
     sheet.add_row(row)
   end
 end

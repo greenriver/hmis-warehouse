@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -18,6 +18,11 @@ module ApplicationHelper
     define_method("#{permission}?") do
       current_user.try(permission)
     end
+  end
+
+  def hud_report_viewable?(key)
+    definitions = GrdaWarehouse::WarehouseReports::ReportDefinition
+    definitions.url_viewable_by?(definitions.hud_url(key), current_user)
   end
 
   # END Permissions
@@ -305,6 +310,14 @@ module ApplicationHelper
     end
   end
 
+  def release_info
+    return unless Git.release
+
+    content_tag :div, class: 'navbar-text' do
+      content_tag :span, Git.release, class: 'label label-warning'
+    end
+  end
+
   def git_revision
     Git.revision
   end
@@ -397,6 +410,13 @@ module ApplicationHelper
     user.report_filter_visible?(key)
   end
 
+  # Project picker URL for report filter forms; wraps api_projects_path. Scoped
+  # by the same permission report results use, so the picker offers the projects
+  # the report includes.
+  def report_filter_projects_api_path_helper(**params)
+    api_projects_path(permission: :can_view_assigned_reports, **params)
+  end
+
   # Added here to replace wicked_pdf_stylesheet_link_tag when we removed WickedPdf
   def inline_stylesheet_link_tag(*sources)
     AssetHelper.wicked_pdf_stylesheet_link_tag(*sources)
@@ -473,6 +493,7 @@ module ApplicationHelper
   # @param [String] list_partial The path to the partial used to render the list items.
   # @param [Hash] list_locals Optional additional local variables to pass to the list partial.
   # @param [String, nil] url Optional URL to use for pagination links. If not provided, uses current request path.
+  # @param [String, nil] empty_message Optional message shown when the scope is empty; replaces the default "No #{item_name.pluralize} found".
   #
   # @return [String] HTML markup for the paginated list with controls.
   #
@@ -480,10 +501,10 @@ module ApplicationHelper
   #   render_paginated_list(scope: users, item_name: 'user', list_partial: 'users/card')
   #   render_paginated_list(scope: users, item_name: 'user', list_partial: 'users/card', list_locals: { headers: headers })
   #
-  def render_paginated_list(scope:, item_name:, list_partial:, list_locals: {}.freeze, url: nil)
+  def render_paginated_list(scope:, item_name:, list_partial:, list_locals: {}.freeze, url: nil, empty_message: nil)
     pagy_sym = scope.is_a?(Array) ? :pagy_array : :pagy
     pagy, list = controller.send(pagy_sym, scope)
-    render_paginated_list_with_explicit_pagy(pagy: pagy, list: list, item_name: item_name, list_partial: list_partial, list_locals: list_locals, url: url)
+    render_paginated_list_with_explicit_pagy(pagy: pagy, list: list, item_name: item_name, list_partial: list_partial, list_locals: list_locals, url: url, empty_message: empty_message)
   end
 
   # Renders a paginated list of the items in `list` with pagination controls at the top and bottom based
@@ -496,14 +517,15 @@ module ApplicationHelper
   # @param [String] list_partial The path to the partial used to render the list items.
   # @param [Hash] list_locals Optional additional local variables to pass to the list partial.
   # @param [String, nil] url Optional URL to use for pagination links. If not provided, uses current request path.
+  # @param [String, nil] empty_message Optional message shown when the list is empty; replaces the default "No #{item_name.pluralize} found".
   # @return [String] HTML markup for the paginated list with controls.
   #
   # @example Usage:
   #   render_paginated_list_with_explicit_pagy(pagy: @pagy, scope: @user_array, item_name: 'user', list_partial: 'users/card')
   #   render_paginated_list_with_explicit_pagy(pagy: @pagy, list: @users, item_name: 'user', list_partial: 'users/card', list_locals: { show_actions: true })
   #
-  def render_paginated_list_with_explicit_pagy(pagy:, list:, item_name:, list_partial:, list_locals: {}.freeze, url: nil)
-    return content_tag(:div, "No #{item_name.pluralize} found", class: 'none-found') if pagy.count.zero?
+  def render_paginated_list_with_explicit_pagy(pagy:, list:, item_name:, list_partial:, list_locals: {}.freeze, url: nil, empty_message: nil)
+    return content_tag(:div, empty_message || "No #{item_name.pluralize} found", class: 'none-found') if pagy.count.zero?
 
     pagy.vars[:custom_url] = url if url.present?
 
@@ -534,8 +556,9 @@ module ApplicationHelper
     return super unless custom_url
 
     uri = URI.parse(custom_url)
-    base_params = Rack::Utils.parse_query(uri.query)
-    merged_params = base_params.merge(request.query_parameters)
+    # nested parsing keeps `filter[x][]` arrays intact through `to_query`
+    base_params = Rack::Utils.parse_nested_query(uri.query)
+    merged_params = base_params.deep_merge(request.query_parameters.deep_stringify_keys)
     page_key = pagy.vars[:page_param].to_s
 
     if page == 1

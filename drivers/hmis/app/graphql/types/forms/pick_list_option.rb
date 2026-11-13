@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -45,6 +45,13 @@ module Types
           sort_by_option(:organization_and_name).
           preload(:organization).
           map(&:to_pick_list_option)
+      when 'BULK_VOID_CE_PROJECTS'
+        return [] unless user.policy_for(Hmis::Ce::Opportunity, policy_type: :ce_opportunity).can_bulk_void_ce_clients?
+
+        Hmis::Hud::Project.ce_bulk_voidable_by(user).
+          preload(:organization).
+          sort_by_option(:organization_and_name).
+          map(&:to_pick_list_option)
       when 'RESIDENTIAL_PROJECTS'
         Hmis::Hud::Project.viewable_by(user).
           # TODO: replace with call to HudUtility once project type groupings are moved there.
@@ -61,6 +68,8 @@ module Types
           map(&:to_pick_list_option)
       when 'CE_ACCESS_POINT_PROJECT_NAMES'
         ce_access_point_project_names_picklist(user)
+      when 'OPEN_ORGANIZATION_NAMES'
+        open_organization_names_picklist(user)
       when 'ORGANIZATION'
         Hmis::Hud::Organization.viewable_by(user).sort_by_option(:name).map(&:to_pick_list_option)
       when 'AVAILABLE_SERVICE_TYPES'
@@ -82,7 +91,7 @@ module Types
       when 'EXTERNAL_FORM_TYPES_FOR_PROJECT'
         external_form_types_for_project(project)
       when 'ASSESSMENT_NAMES'
-        assessment_names_for_project(project)
+        assessment_names(user)
       when 'STAFF_ASSIGNMENT_RELATIONSHIPS'
         staff_assignment_relationships(project)
       when 'ELIGIBLE_STAFF_ASSIGNMENT_USERS'
@@ -153,18 +162,12 @@ module Types
         client_audit_event_record_type_picklist
       when 'PROJECTS_RECEIVING_REFERRALS'
         projects_receiving_referrals(user.hmis_data_source_id)
+      when 'PROJECTS_SENDING_DIRECT_CE_REFERRALS'
+        projects_sending_direct_ce_referrals(user: user)
       when 'FORM_TYPES'
-        # Used in the dropdown of form roles when creating/editing a form. We need a permission check here because
-        # not all users can access all form types:
-        form_types = if user.can_administrate_config?
-          # Super-admins should be able to select any form type when creating a form
-          Hmis::Form::Definition.form_role_enum_map.members
-        else
-          # Other users should only see the limited list roles that we have designated for general editing, like service and custom assessment
-          Hmis::Form::Definition.non_admin_form_role_enum_map.members
-        end
-
-        form_types.map { |ft| { code: ft[:value], label: ft[:desc] } }
+        visible_form_types_picklist(user: user)
+      when 'CREATABLE_FORM_TYPES'
+        creatable_form_types_picklist(user: user)
       when 'CONTINUUM_PROJECTS'
         Hmis::Hud::Project.
           where(data_source_id: user.hmis_data_source_id, continuum_project: true).
@@ -275,14 +278,7 @@ module Types
     end
 
     def self.user_picklist(current_user)
-      return [] unless current_user
-
-      # User picklist is currently used:
-      # - when filtering audit events
-      # - when filtering client merge history
-      # - when selecting users in the form builder
-      # (Most other user picklists in the app use a more restricted list of users, such as eligible_staff_assignment_users, eligible_referral_step_assignment_users, etc.)
-      return [] unless current_user.permissions?(:can_administrate_config, :can_audit_enrollments, :can_audit_clients, :can_merge_clients, mode: :any)
+      return [] unless current_user&.policy_for(Hmis::User, policy_type: :hmis_user)&.can_view_user_picklist?
 
       Hmis::User.with_deleted.map do |user|
         {
@@ -320,6 +316,7 @@ module Types
         [Hmis::Hud::Client],
         [Hmis::Hud::CustomClientAddress],
         [Hmis::Hud::CustomClientContactPoint, 'Contact Information'],
+        [Hmis::RestrictedRecord, 'Record Restriction'],
       ]
       # If installation has any custom client fields, include a general filter option for them
       has_client_cdes = Hmis::Hud::CustomDataElementDefinition.for_type(Hmis::Hud::Client.sti_name).exists?
@@ -398,6 +395,27 @@ module Types
         }
       end
     end
+
+    # Form types that appear in the Forms admin table, for filtering that table
+    def self.visible_form_types_picklist(user:)
+      return [] unless user.policy_for(Hmis::Form::Definition, policy_type: :form_definition).can_configure_forms?
+
+      visible_roles = Hmis::Form::Definition.configurable_by(user).latest_versions.distinct.pluck(:role)
+      form_types_picklist { |form_type| visible_roles.include?(form_type[:value]) }
+    end
+
+    # Form types the user can create, for the dropdown when creating a new form
+    def self.creatable_form_types_picklist(user:)
+      policy = user.policy_for(Hmis::Form::Definition, policy_type: :form_definition)
+      form_types_picklist { |form_type| policy.can_create?(role: form_type[:value]) }
+    end
+
+    def self.form_types_picklist(&included)
+      Hmis::Form::Definition.form_role_enum_map.members.
+        select(&included).
+        map { |form_type| { code: form_type[:value], label: form_type[:desc] } }
+    end
+    private_class_method :form_types_picklist
 
     def self.hud_service_types_picklist(user:)
       scope = Hmis::Hud::CustomServiceType.in_data_source(user.hmis_data_source_id).hud
@@ -541,16 +559,22 @@ module Types
         open_excluding_wip.
         heads_of_households.
         preload(:client).
-        preload(household: :enrollments)
+        preload(household: { enrollments: :exit }).
+        sort_by_option(:most_recent).
+        to_a
 
-      enrollments.sort_by_option(:most_recent).map do |en|
+      # Avoid an n+1 in the client policy check below
+      user.policy_context.preload_client_dependencies(enrollments.map { |en| en.client.id })
+
+      enrollments.map do |en|
         client = en.client
-        household_size = en.household&.enrollments&.size || 0
-        other_size = household_size - 1 # more than hoh
+        open_household_size = en.household&.enrollments&.count { |household_enrollment| household_enrollment.exit&.exit_date.nil? } || 0
+        other_size = open_household_size - 1 # more than hoh
         desc = other_size.positive? ? "and #{other_size} #{'other'.pluralize(other_size)}" : ''
+        name = user.policy_for(client, policy_type: :hmis_client).can_view_name? ? client.brief_name : client.masked_name
         {
           code: en.id,
-          label: "#{client.brief_name} #{desc} (Entered #{en.entry_date.strftime('%m/%d/%Y')})",
+          label: "#{name} #{desc} (Entered #{en.entry_date.strftime('%m/%d/%Y')})",
         }
       end
     end
@@ -627,19 +651,25 @@ module Types
       end
     end
 
-    def self.assessment_names_for_project(project)
+    def self.assessment_names(user)
       # It's a little odd to combine the "roles" (eg INTAKE) with the identifiers (eg housing_needs_assessment), but
       # we need to do that in order to get the desired behavior. The "Intake" option should show all Intakes,
       # regardless of what form they used.
 
-      # get all form rules for custom assessments (active and inactive)
-      scope = Hmis::Form::Instance.with_role(:CUSTOM_ASSESSMENT)
-      # filter down to rules that match this project, if project is specified
-      scope = scope.in_data_source(project.data_source_id).filter { |fi| fi.project_match(project) } if project
-      # { code: definition.identifier, label: definition.title }
-      custom_options = scope.map(&:to_pick_list_option).uniq.sort_by { |opt| opt[:label] }
-      hud_options = Hmis::Form::Definition::FORM_DATA_COLLECTION_STAGES.excluding(:CUSTOM_ASSESSMENT).keys.
-        map { |k| { code: k.to_s, label: k.to_s.humanize } }
+      # Include every custom assessment definition, regardless of applicability rules in the user's data source.
+      # An assessment may have migrated-in legacy data even if it has no rules for future collection.
+      # Pick the latest published/retired version of each assessment
+      custom_options = Hmis::Form::Definition.in_data_source(user.hmis_data_source_id).
+        with_role(:CUSTOM_ASSESSMENT).published_or_retired.
+        pluck(:identifier, :title, :version).
+        group_by(&:first).values.
+        map { |rows| rows.max_by(&:last) }.
+        map { |identifier, title, _| { code: identifier, label: title } }.
+        sort_by { |opt| opt[:label] }
+      # Match label text in the new assessment menu (with "HUD" prefix)
+      hud_options = Hmis::Form::Definition::FORM_DATA_COLLECTION_STAGES.excluding(:CUSTOM_ASSESSMENT).map do |role, stage|
+        { code: role.to_s, label: "HUD #{HudHelper.util.assessment_name_by_data_collection_stage[stage]}" }
+      end
 
       hud_options + custom_options
     end
@@ -650,6 +680,8 @@ module Types
       Hmis::StaffAssignmentRelationship.all.map(&:to_pick_list_option)
     end
 
+    # Added to use for CE Assessment AssessmentLocation picklist for a particular customer.
+    # Codes are "Project Name (ID)" so that stored values are human-readable but still unique.
     def self.ce_access_point_project_names_picklist(user)
       project_ids = Hmis::Hud::Project.viewable_by(user).
         open_on_date. # Projects that are currently active
@@ -663,15 +695,40 @@ module Types
         preload(:organization).
         sort_by_option(:organization_and_name).
         map do |project|
-          # Codes are "Project Name (ID)" so that stored values are human-readable but still unique.
-          # Use case: collecting CE Assessment Location
           project.to_pick_list_option.merge(code: "#{project.project_name} (#{project.id})")
+        end
+    end
+
+    # Added to use for CE Assessment AssessmentLocation picklist for a particular customer.
+    # Codes are "Organization Name (ID)" so that stored values are human-readable but still unique.
+    def self.open_organization_names_picklist(user)
+      Hmis::Hud::Organization.viewable_by(user).
+        joins(:projects).
+        merge(Hmis::Hud::Project.open_on_date).
+        distinct.
+        sort_by_option(:name).
+        map do |organization|
+          organization.to_pick_list_option.merge(code: "#{organization.organization_name} (#{organization.id})")
         end
     end
 
     def self.projects_receiving_referrals(data_source_id)
       Hmis::Hud::Project.receiving_legacy_referrals(data_source_id).
         joins(:organization).preload(:organization).
+        sort_by_option(:organization_and_name).
+        map(&:to_pick_list_option)
+    end
+
+    # Projects that an admin can name in a receiving project's "receives direct referrals from"
+    # allowlist. Deliberately filtered by neither viewable_by nor open_on_date: reaching the
+    # Project Config form already requires the global can_configure_data_collection permission,
+    # and PROJECTS_RECEIVING_DIRECT_CE_REFERRALS skips viewable_by for the same reason. Compose
+    # either filter here rather than in the scope if that changes.
+    def self.projects_sending_direct_ce_referrals(user:)
+      return [] unless Hmis::Ce.configuration.enabled?
+
+      Hmis::Hud::Project.sending_direct_ce_referrals(user.hmis_data_source_id).
+        preload(:organization).
         sort_by_option(:organization_and_name).
         map(&:to_pick_list_option)
     end

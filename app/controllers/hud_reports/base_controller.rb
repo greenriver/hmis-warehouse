@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -8,7 +8,14 @@
 
 module HudReports
   class BaseController < ApplicationController
-    before_action :require_can_view_hud_reports!
+    include WarehouseReportAuthorization
+    include HudReports::ReportUrls
+
+    # Drilldown controllers (questions, cells) nest under the report and have no
+    # index route of their own, so resolve the definition from the generator.
+    def related_report
+      GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: possible_generator_classes.values.first.report_definition_url)
+    end
     before_action :set_view_filter, only: [:history, :show, :running]
 
     def index
@@ -160,8 +167,13 @@ module HudReports
 
       # use the 'history' action for relative URLs in pagination. This keeps our
       # crude status polling from breaking pagination links (app/views/hud_reports/_list_refresher.haml)
+      #
+      # NB: use path_for_history rather than url_for(action: :history). The history
+      # action only exists on the reports controller (as a collection route), so
+      # url_for would raise ActionController::UrlGenerationError when set_reports runs
+      # under the questions controller, which has no :history route.
       pagy_opts = {}
-      pagy_opts[:request_path] = url_for(action: :history) if request.xhr?
+      pagy_opts[:request_path] = path_for_history if request.xhr?
       @pagy, @reports = pagy(@reports, **pagy_opts)
     end
 
@@ -182,10 +194,6 @@ module HudReports
 
       filter_range = Time.zone.parse(@view_filter[:start]) .. (Time.zone.parse(@view_filter[:end]) + 1.days)
       reports.where(created_at: filter_range)
-    end
-
-    def report_urls
-      @report_urls ||= Rails.application.config.hud_reports.values.map { |report| [report[:title], public_send(report[:helper])] }.uniq
     end
 
     private def report_param_name

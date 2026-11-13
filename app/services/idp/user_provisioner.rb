@@ -1,0 +1,149 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+# frozen_string_literal: true
+
+module Idp
+  class UserProvisioner
+    def self.call(jwt_helper:, user_class:, allow_create:, learn:)
+      new(jwt_helper: jwt_helper, user_class: user_class, allow_create: allow_create, learn: learn).call
+    end
+
+    private_class_method :new
+
+    def call
+      return nil unless validate_and_extract_claims
+
+      user = find_existing_user
+      if !user && @allow_create
+        user = create_user
+        Rails.logger.warn("JIT-provisioned user id=#{user.id} via connector #{@connector_id}")
+      end
+      return nil unless user
+
+      # Learn the durable connector link for every resolved user (existing or
+      # JIT-created), independent of whether JIT-creation was allowed.
+      if @learn && connector_identity?
+        ensure_authentication_source(user)
+        update_last_connector(user)
+      end
+
+      user
+    end
+
+    private
+
+    def initialize(jwt_helper:, user_class:, allow_create:, learn:)
+      @jwt_helper = jwt_helper
+      @user_class = user_class
+      @allow_create = allow_create
+      @learn = learn
+    end
+
+    def validate_and_extract_claims
+      return false unless @jwt_helper.token? && @jwt_helper.valid?
+
+      @email = @jwt_helper.payload_email
+      @connector_id = @jwt_helper.connector_id
+      @connector_user_id = @jwt_helper.connector_user_id
+
+      # Email is the only claim we require as it's used to link accounts on first-login
+      @email.present?
+    end
+
+    # Both halves of the link or neither: UserAuthenticationSource requires both columns.
+    def connector_identity?
+      @connector_id.present? && @connector_user_id.present?
+    end
+
+    def connector_identity
+      { connector_id: @connector_id, connector_user_id: @connector_user_id }
+    end
+
+    def find_existing_user
+      # hot path, called on every authenticated request.
+      # use eager_load for one query
+      if connector_identity?
+        auth_source = Idp::UserAuthenticationSource.
+          where(connector_identity).
+          eager_load(:user).
+          order(Idp::UserAuthenticationSource.arel_table[:id]).
+          first
+
+        return auth_source.user if auth_source
+      end
+
+      user = @user_class.find_by(email: @email)
+      Rails.logger.info("JWT email-fallback lookup matched user id=#{user.id} via connector #{@connector_id}") if user
+      user
+    end
+
+    def create_user
+      # create!, not upsert: upsert skips the callbacks/validations a User needs
+      # (create_access_group, paper_trail, presence checks). Rescue handles the
+      # rare concurrent-provision race on the unique email.
+      @user_class.create!(
+        email: @email,
+        first_name: @jwt_helper.first_name || 'User',
+        last_name: @jwt_helper.last_name || '',
+        active: true,
+        agency_id: 0,
+      )
+    rescue ActiveRecord::RecordNotUnique
+      @user_class.find_by!(email: @email)
+    end
+
+    def ensure_authentication_source(user)
+      # Common per-request path: the durable link already exists for this user.
+      # (find_existing_user resolves the live row first, so a live row always
+      # belongs to the resolved user — no cross-user case to handle here.)
+      return if user.user_authentication_sources.where(connector_identity).exists?
+
+      # The validated token carries an id we have no live link for. Any live link
+      # this user holds for the same connector under a *different* id is now stale
+      # (e.g. the upstream account was deleted and recreated with a new subject)
+
+      superseded_ids = nil
+      Idp::UserAuthenticationSource.transaction do
+        stale_links = user.user_authentication_sources.
+          where(connector_id: @connector_id).
+          where.not(connector_user_id: @connector_user_id)
+
+        superseded_ids = stale_links.map(&:connector_user_id)
+        stale_links.destroy_all
+        user.user_authentication_sources.create!(connector_identity)
+      end
+
+      report_identity_disagreement(user, superseded_ids) if superseded_ids.present?
+    rescue ActiveRecord::RecordNotUnique
+      # Lost a concurrent first-login/relink race; a live row for this pair now exists.
+      nil
+    end
+
+    def report_identity_disagreement(user, superseded_ids)
+      Rails.logger.warn(
+        "IdP identity disagreement on connector #{@connector_id}: token subject #{@connector_user_id} " \
+        "superseded stale link(s) #{superseded_ids.inspect} for user_id=#{user.id}",
+      )
+
+      Sentry.capture_message(
+        'IdP identity disagreement: token subject did not match the stored authentication source',
+        level: :warning,
+        extra: {
+          user_id: user.id,
+          connector_id: @connector_id,
+          token_connector_user_id: @connector_user_id,
+          superseded_connector_user_ids: superseded_ids,
+        },
+      )
+    end
+
+    def update_last_connector(user)
+      # update!, not update_column, so paper_trail records the change.
+      user.update!(last_connector_id: @connector_id) if user.last_connector_id != @connector_id
+    end
+  end
+end

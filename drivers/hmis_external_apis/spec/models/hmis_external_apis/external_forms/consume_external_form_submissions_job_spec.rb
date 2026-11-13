@@ -1,10 +1,10 @@
-# frozen_string_literal: true
-
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 require 'rails_helper'
 
@@ -82,5 +82,26 @@ RSpec.describe HmisExternalApis::ConsumeExternalFormSubmissionsJob, type: :model
     submission = submission_scope.order(:id).last
     expect(submission.spam_score).to eq(captcha_score)
     expect(JSON.parse(submission.raw_data.to_json)).to eq(JSON.parse(submission_document))
+  end
+
+  describe '.enabled?' do
+    it 'is true when both the bucket and shared key credentials are active' do
+      expect(described_class).to be_enabled
+    end
+
+    it 'is false when the submissions bucket credential is inactive' do
+      s3_cred.update!(active: false)
+      expect(described_class).not_to be_enabled
+    end
+
+    it 'is false when the shared key credential is inactive' do
+      encryption_key.update!(active: false)
+      expect(described_class).not_to be_enabled
+    end
+
+    it 'is false when the HMIS is not enabled for this installation' do
+      allow(HmisEnforcement).to receive(:hmis_enabled?).and_return(false)
+      expect(described_class).not_to be_enabled
+    end
   end
 end

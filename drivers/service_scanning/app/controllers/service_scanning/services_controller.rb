@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -148,7 +148,7 @@ module ServiceScanning
           )
           unless request.xhr?
             if @client.persisted? && destination_client.persisted? && warehouse_client.persisted?
-              flash[:notice] = "Client #{@client.full_name} created."
+              flash[:notice] = "Client #{@client.pii_provider(user: current_user).full_name} created."
               after_create_path = client_path_generator
               if @client.data_source.after_create_path.present?
                 after_create_path += [@client.data_source.after_create_path]

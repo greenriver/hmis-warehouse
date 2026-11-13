@@ -1,3 +1,9 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # frozen_string_literal: true
 
 require 'rails_helper'
@@ -173,11 +179,12 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
     describe 'policy that always matches' do
       let(:requirement_expression) { '1=1' }
 
-      it 'returns all candidates and updates the generation timestamp' do
+      it 'returns all candidates and updates the generation timestamps' do
         freeze_time do
           results = generate_candidates(pool)
           expect(results).to eq(destination_clients.map(&:id).sort)
           expect(pool.candidates_generated_at).to eq(Time.current)
+          expect(pool.candidates_fully_generated_at).to eq(Time.current)
         end
       end
     end
@@ -399,6 +406,47 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
     end
   end
 
+  context 'when evaluating household-based policies' do
+    let(:today) { Date.current }
+    let!(:hoh) { create(:hmis_hud_client_with_warehouse_client, data_source: data_source, dob: today - 40.years) }
+    let!(:child) { create(:hmis_hud_client_with_warehouse_client, data_source: data_source, dob: today + 1.week - 18.years) }
+    let!(:hoh_enrollment) { create(:hmis_hud_enrollment, data_source: data_source, project: project, client: hoh, household_id: 'HH1', relationship_to_ho_h: 1) }
+    let!(:child_enrollment) { create(:hmis_hud_enrollment, data_source: data_source, project: project, client: child, household_id: 'HH1', relationship_to_ho_h: 2) }
+
+    def candidate_ids(current_date: today)
+      described_class.call(pool, current_date: current_date)
+      pool.reload.candidates.map { |candidate| candidate.client_proxy.client_id }.sort
+    end
+
+    describe 'household.size > 1' do
+      let(:requirement_expression) { 'household.size > 1' }
+
+      it 'un-matches after a member exits' do
+        expect(candidate_ids).to eq([hoh.destination_client.id, child.destination_client.id].sort)
+
+        create(:hmis_hud_exit, enrollment: child_enrollment, client: child, data_source: data_source, exit_date: today - 1.day)
+        expect(candidate_ids).to be_empty
+      end
+    end
+
+    describe 'adult-only household (household.youngest_member_age >= 18)' do
+      let(:requirement_expression) { 'household.youngest_member_age >= 18' }
+
+      it 'matches once the youngest member turns 18' do
+        expect(candidate_ids).to be_empty
+        expect(candidate_ids(current_date: today + 1.week)).to eq([hoh.destination_client.id, child.destination_client.id].sort)
+      end
+    end
+
+    describe 'adult + child household' do
+      let(:requirement_expression) { 'household.youngest_member_age < 18 AND household.oldest_member_age >= 18' }
+
+      it 'matches both members' do
+        expect(candidate_ids).to eq([hoh.destination_client.id, child.destination_client.id].sort)
+      end
+    end
+  end
+
   context 'when destination client has multiple source clients' do
     def create_client_and_deduplicate
       client = create(:hmis_hud_client, personal_id: '100', data_source: data_source, first_name: 'Margaret', last_name: 'Blue', dob: '1999-12-01', ssn: '123-45-6789')
@@ -416,6 +464,40 @@ RSpec.describe Hmis::Ce::Match::Engine, type: :model do
       results = generate_candidates(pool)
       expect(results.size).to eq(1)
       expect(results.sole).to eq(destination_clients.sole.id)
+    end
+  end
+
+  describe 'generation timestamps' do
+    include_context 'with demographic test clients'
+
+    it 'sets both timestamps on full refresh' do
+      expect do
+        generate_candidates(pool)
+        pool.reload
+      end.to change { pool.candidates_generated_at }.from(nil).
+        and change { pool.candidates_fully_generated_at }.from(nil)
+    end
+
+    it 'updates candidates_generated_at but not candidates_fully_generated_at on incremental run' do
+      expect do
+        generate_candidates(pool, clients: destination_clients)
+        pool.reload
+      end.to change { pool.candidates_generated_at }.from(nil).
+        and(not_change { pool.candidates_fully_generated_at })
+    end
+
+    it 'sets candidates_fully_generated_at on a subsequent full refresh' do
+      generate_candidates(pool, clients: destination_clients)
+      pool.reload
+      expect(pool.candidates_generated_at).to be_present
+      expect(pool.candidates_fully_generated_at).to be_nil
+
+      travel 1.hour do
+        expect do
+          generate_candidates(pool)
+          pool.reload
+        end.to change { pool.candidates_fully_generated_at }.from(nil)
+      end
     end
   end
 

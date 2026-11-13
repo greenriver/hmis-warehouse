@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -25,6 +25,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               offset
               limit
               nodesCount
+              searchQueryId
               nodes {
                 id
                 status
@@ -33,6 +34,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
                   key
                   name
                 }
+                clientId
+                clientName
                 createdAt
                 opportunity {
                   id
@@ -76,6 +79,14 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(returned_referral['id']).to eq(referral.id.to_s)
       expect(returned_referral['status']).to eq('initialized')
       expect(returned_referral['targetProjectId']).to eq(project.id.to_s)
+    end
+
+    it 'does not persist a ClientSearchQuery for nested project ceReferrals search' do
+      expect do
+        response, result = post_graphql(id: project.id, filters: { searchTerm: 'anything' }) { query }
+        expect(response.status).to eq(200), result.inspect
+        expect(result.dig('data', 'project', 'ceReferrals', 'searchQueryId')).to be_nil
+      end.not_to change(Hmis::ClientSearchQuery, :count)
     end
 
     it 'returns empty when user lacks permission' do
@@ -126,7 +137,23 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             response, result = post_graphql(**variables) { query }
             expect(response.status).to eq(200), result.inspect
             expect(result.dig('data', 'project', 'ceReferrals', 'nodesCount')).to eq(32), result.inspect
-          end.to make_database_queries(count: 35..50)
+          end.to make_database_queries(count: 40..50)
+        end
+
+        context 'with restricted clients on the page' do
+          before do
+            project.ce_referrals.limit(15).each do |referral|
+              referral.client.mark_as_restricted!(user: hmis_user)
+            end
+          end
+
+          it 'queries the db a reasonable amount' do
+            expect do
+              response, result = post_graphql(**variables) { query }
+              expect(response.status).to eq(200), result.inspect
+              expect(result.dig('data', 'project', 'ceReferrals', 'nodesCount')).to eq(32), result.inspect
+            end.to make_database_queries(count: 40..50)
+          end
         end
       end
 

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -23,6 +23,7 @@ module ServiceScanning::WarehouseReports
       respond_to do |format|
         format.html {}
         format.xlsx do
+          current_user.policy_context.preload_client_dependencies(@services.map(&:client_id))
           filename = 'Service Details.xlsx'
           headers['Content-Disposition'] = "attachment; filename=#{filename}"
         end
@@ -35,6 +36,7 @@ module ServiceScanning::WarehouseReports
       ids = @dates[@filter.start].values.flat_map { |m| m[:services] }
       @services = service_class.where(id: ids).
         preload(:project, :client)
+      current_user.policy_context.preload_client_dependencies(@services.map(&:client_id))
       respond_to do |format|
         format.html {}
         format.xlsx do
@@ -92,7 +94,7 @@ module ServiceScanning::WarehouseReports
         date_scope = service_class.
           joins(:project).
           preload(:project).
-          where(project_id: @filter.effective_project_ids, provided_at: @filter.range)
+          where(project_id: @filter.effective_project_ids, provided_at: @filter.time_range)
         date_scope = date_scope.where(type: @filter.service_type_class) if @filter.service_type.present?
         date_scope = date_scope.where(other_type: @filter.other_type) if @filter.other_type.present?
         dates = {}

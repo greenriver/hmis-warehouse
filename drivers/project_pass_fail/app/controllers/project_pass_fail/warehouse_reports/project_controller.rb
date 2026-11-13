@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -27,7 +27,9 @@ module ProjectPassFail::WarehouseReports
     def show
       @report = report_scope.find(params[:project_pass_fail_id].to_i)
       @project = @report.projects.find(params[:id].to_i)
-      @clients = @project.clients.preload(client: :destination_client)
+      @clients = @project.clients.preload(:project, client: :destination_client)
+      current_user.policy_context.preload_project_dependencies([@project.project&.id].compact)
+      current_user.policy_context.preload_client_dependencies(@clients.map(&:client_id))
       respond_to do |format|
         format.html {}
         format.xlsx do

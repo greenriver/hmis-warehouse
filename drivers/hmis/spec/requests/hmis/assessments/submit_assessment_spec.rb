@@ -1,10 +1,10 @@
-# frozen_string_literal: true
-
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 require 'rails_helper'
 require_relative '../login_and_permissions'
@@ -130,7 +130,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     context 'when assessment is updated by a different user' do
       before(:each) do
-        delete destroy_hmis_user_session_path
+        hmis_logout
         hmis_login(other_user)
       end
 

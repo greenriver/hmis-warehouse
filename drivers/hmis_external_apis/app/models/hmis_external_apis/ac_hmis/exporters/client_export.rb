@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -32,9 +32,9 @@ module HmisExternalApis::AcHmis::Exporters
         client_values = [warehouse_id]
 
         # If the client has multiple MCI IDs, it doesn't matter which one we send
-        external_id_values = [client.ac_hmis_mci_ids&.first&.value]
+        external_id_values = [client.ac_hmis_mci_ids.max_by { |mci| [mci.updated_at, mci.id] }&.value]
 
-        best_address = client.addresses.to_a.max_by(&:DateUpdated)
+        best_address = client.addresses.to_a.max_by { |addr| [addr.date_updated, addr.id] }
 
         address_values = address_columns.map do |col|
           best_address&.send(col)

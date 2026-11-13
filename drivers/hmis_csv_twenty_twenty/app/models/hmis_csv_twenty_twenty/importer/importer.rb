@@ -1,16 +1,10 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 # frozen_string_literal: true
-
-###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
-#
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
-###
 
 # Assumptions:
 # The import is authoritative for the date range specified in the Export.csv file
@@ -78,7 +72,7 @@ module HmisCsvTwentyTwenty::Importer
 
     # Needs to return an import_log instance
     def import!(import_log = nil) # rubocop:disable Lint/UnusedMethodArgument
-      raise 'HmisCsvTwentyTwenty::Importer::Importer should no longer be used to import data, it has been superceded'
+      raise 'HmisCsvTwentyTwenty::Importer::Importer should no longer be used to import data, it has been superseded'
       # log that we're waiting, but then continue on.
       # already_running_for_data_source?
 

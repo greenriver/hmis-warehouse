@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -15,7 +15,7 @@ module Hmis::Hud::Concerns::FormSubmittable
 
     # All submittable forms support Custom Data Elements
     has_many :custom_data_elements, as: :owner, dependent: :destroy, class_name: 'Hmis::Hud::CustomDataElement'
-    # All the CDEDs that have values for this record. Note it will retun non-distinct scope for any types that have multiple values.
+    # All the CDEDs that have values for this record. Note it will return non-distinct scope for any types that have multiple values.
     has_many :custom_data_element_definitions, through: :custom_data_elements, source: :data_element_definition, class_name: 'Hmis::Hud::CustomDataElementDefinition'
 
     # Needed to support managing custom data elements via form processor

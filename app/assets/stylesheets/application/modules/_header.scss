@@ -41,14 +41,16 @@
   align-items: center;
 }
 
+// Hide the drawer toggle once the menu is on-canvas. See $nav-side-on-canvas-*
+// in _settings/_variables.scss.
 .l-content-width-md .c-header-nav__mobile-link {
-  @include media-breakpoint-up(lg) {
+  @include media-breakpoint-up($nav-side-on-canvas-md) {
     display: none;
   }
 }
 
 .l-content-width-lg .c-header-nav__mobile-link {
-  @include media-breakpoint-up(xl) {
+  @include media-breakpoint-up($nav-side-on-canvas-lg) {
     display: none;
   }
 }

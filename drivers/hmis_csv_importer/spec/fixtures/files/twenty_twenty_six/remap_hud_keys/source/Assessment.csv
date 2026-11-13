@@ -1,0 +1,2 @@
+AssessmentID,EnrollmentID,PersonalID,AssessmentDate,AssessmentLocation,AssessmentType,AssessmentLevel,PrioritizationStatus,DateCreated,DateUpdated,UserID,DateDeleted,ExportID
+ASSESS-1,E-1,C-1,2010-10-01,Program office,1,1,1,2012-10-01 12:00:00,2012-10-01 12:00:00,user,,TEST

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -10,5 +10,17 @@ namespace :cleanup do
   task :expire_and_delete, [] => [:environment] do
     # Determine if we should expire any new data and delete it
     HmisCsvImporter::Cleanup::ExpireImportersAndLoadersJob.perform_now(dry_run: false)
+  end
+
+  # rails driver:hmis_csv_importer:cleanup:remove_expired_import_overrides
+  desc 'Remove expired HMIS CSV import overrides'
+  task remove_expired_import_overrides: [:environment, 'log:info_to_stdout'] do
+    GrdaWarehouse::Tasks::TaskInstrumentation.call(
+      'HmisCsvImporter::ImportOverride.remove_expired!',
+      alert_threshold: 36.hours,
+    ) do |run|
+      HmisCsvImporter::ImportOverride.remove_expired!
+      run.complete!
+    end
   end
 end

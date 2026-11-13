@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -45,6 +45,7 @@ module WarehouseReports
 
       load_filter
       report = GrdaWarehouse::WarehouseReports::ChronicReport.new
+      report.user_id = report_params[:current_user_id]
       report.started_at = DateTime.now
       report.parameters = params.slice(:filter).merge(date: @filter.date)
       load_filter

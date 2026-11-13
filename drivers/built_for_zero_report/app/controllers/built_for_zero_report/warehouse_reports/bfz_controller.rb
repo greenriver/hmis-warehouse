@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -33,6 +33,7 @@ module BuiltForZeroReport::WarehouseReports
         :returned_from_inactivity
         @section.data.public_send(report_params[:key])
       end
+      current_user.policy_context.preload_client_dependencies(@data&.keys || [])
     end
 
     def set_report

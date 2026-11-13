@@ -1,3 +1,9 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # frozen_string_literal: true
 
 require 'rails_helper'
@@ -7,12 +13,13 @@ RSpec.describe Hmis::AuthPolicies::ProjectConfigPolicy, type: :model do
   let(:user) { create(:hmis_user, data_source: data_source) }
   let(:other_data_source) { create(:hmis_data_source) }
 
-  describe 'Global#can_create? and #can_view?' do
+  describe 'Global#can_create?, #can_view?, and #can_manage?' do
     let(:policy) { user.policy_for(Hmis::ProjectConfig, policy_type: :project_config) }
 
     it 'returns false' do
       expect(policy.can_create?).to be false
       expect(policy.can_view?).to be false
+      expect(policy.can_manage?).to be false
     end
 
     context 'when user has can_configure_data_collection in the data source' do
@@ -21,6 +28,7 @@ RSpec.describe Hmis::AuthPolicies::ProjectConfigPolicy, type: :model do
       it 'returns true' do
         expect(policy.can_create?).to be true
         expect(policy.can_view?).to be true
+        expect(policy.can_manage?).to be true
       end
     end
 
@@ -30,6 +38,7 @@ RSpec.describe Hmis::AuthPolicies::ProjectConfigPolicy, type: :model do
       it 'returns false' do
         expect(policy.can_create?).to be false
         expect(policy.can_view?).to be false
+        expect(policy.can_manage?).to be false
       end
     end
   end

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -47,14 +47,6 @@ module SystemPathways
       start
       create_universe
       complete
-    end
-
-    def start
-      update(started_at: Time.current)
-    end
-
-    def complete
-      update(completed_at: Time.current)
     end
 
     def self.untranslated_title
@@ -156,7 +148,7 @@ module SystemPathways
     end
 
     def self.url
-      'hmis_data_quality_tool/warehouse_reports/reports'
+      'system_pathways/warehouse_reports/reports'
     end
 
     def url
@@ -207,7 +199,7 @@ module SystemPathways
       [0, 1, 2, 3, 4, 8, 9, 10, 13, 14]
     end
 
-    def detail_headers
+    def detail_headers(user:)
       {
         'Warehouse ID' => ->(en) {
           en.client.client_id
@@ -216,10 +208,10 @@ module SystemPathways
           en.client.personal_ids
         },
         'First Name' => ->(en) {
-          en.client.first_name
+          detail_pii_provider(en.client, user: user).first_name
         },
         'Last Name' => ->(en) {
-          en.client.last_name
+          detail_pii_provider(en.client, user: user).last_name
         },
         'Race' => ->(en) {
           races = []
@@ -251,6 +243,14 @@ module SystemPathways
           yn(en.client.ce_assessment)
         },
       }
+    end
+
+    private def detail_pii_provider(client, user:)
+      @detail_pii_providers ||= {}
+      @detail_pii_providers[client.client_id] ||= begin
+        policy = user.reporting_policy_for_project(project_id: nil, client_id: client.client_id)
+        GrdaWarehouse::PiiProvider.from_attributes(policy: policy, first_name: client.first_name, last_name: client.last_name)
+      end
     end
 
     def race_columns
@@ -524,7 +524,7 @@ module SystemPathways
     end
 
     def enrollment_scope
-      # For compatability with filter_scopes
+      # For compatibility with filter_scopes
       filter.project_ids = filter.effective_project_ids
       scope = GrdaWarehouse::ServiceHistoryEnrollment.
         entry.

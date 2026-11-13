@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -28,8 +28,9 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
     describe 'and the user does not have a role' do
       it 'user cannot see any clients' do
         query = create(:grda_warehouse_client_search_query, created_by: user, params: { q: 'bob' })
-        get client_search_query_path(id: query.id)
-        expect(response).to redirect_to(regex_for_warehouse_sign_in)
+        expect_unauthenticated_warehouse_request do
+          get client_search_query_path(id: query.id)
+        end
       end
     end
     describe 'and the user has a role granting can view clients' do
@@ -62,6 +63,36 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
       it 'user cannot see client dashboard for non-window client' do
         get client_path(non_window_destination_client)
         expect(response).to redirect_to(user.my_root_path)
+      end
+    end
+    describe 'and the user has a role granting view with ROI on window clients' do
+      before do
+        setup_access_control(user, can_search_own_clients, Collection.system_collection(:window_data_sources))
+        setup_access_control(user, can_view_client_enrollments_with_roi, Collection.system_collection(:window_data_sources))
+        window_destination_client.update(
+          housing_release_status: window_destination_client.class.full_release_string,
+          consent_form_signed_on: 5.days.ago,
+          consent_expires_on: Date.current + 1.years,
+        )
+        GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask.rebuild_clients([window_destination_client.id])
+        sign_in user
+      end
+
+      it 'links only the released client to the dashboard, with no per-card ROI queries' do
+        # The search scope embeds visible_in_cocs as a subquery; only statements that read the
+        # ROI table directly count, which is the policy context's one preload
+        roi_queries = 0
+        counter = ->(*, payload) { roi_queries += 1 if payload[:sql].match?(/\ASELECT [^(]* FROM "client_roi_authorizations"/) }
+        doc = nil
+        ActiveSupport::Notifications.subscribed(counter, 'sql.active_record') do
+          _response, doc = post_search_query({ q: 'bob' })
+        end
+
+        expect(doc.text).to include('Displaying 2 client')
+        expect(doc.css("a[href='#{client_path(window_destination_client)}']")).not_to be_empty
+        expect(doc.css("a[href='#{client_path(both_destination_client)}']")).to be_empty
+        # Two cards are displayed, so a per-card lookup would count at least two
+        expect(roi_queries).to be <= 1
       end
     end
     describe 'and the user has a role granting can search window' do
@@ -100,7 +131,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
         expect(doc.text).to include('Bob')
         expect(doc.text).to_not include('Michele')
       end
-      it 'user can not see non-window client even with release' do
+      it 'hides the non-window source client from a user without an ROI permission, even with a release' do
         past_date = 5.days.ago
         future_date = Date.current + 1.years
         both_destination_client.update(
@@ -108,6 +139,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
           consent_form_signed_on: past_date,
           consent_expires_on: future_date,
         )
+        GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask.rebuild_clients([both_destination_client.id])
         get client_path(both_destination_client)
         doc = Nokogiri::HTML(response.body)
         expect(response).to have_http_status(200)
@@ -131,6 +163,36 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
         end
       end
     end
+
+    describe 'and the user has the ROI view permission on every data source' do
+      before do
+        setup_access_control(user, can_search_own_clients, Collection.system_collection(:window_data_sources))
+        setup_access_control(user, can_view_client_enrollments_with_roi, Collection.system_collection(:data_sources))
+        both_destination_client.update(
+          housing_release_status: both_destination_client.class.full_release_string,
+          consent_form_signed_on: 5.days.ago,
+          consent_expires_on: Date.current + 1.years,
+        )
+        GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask.rebuild_clients([both_destination_client.id])
+        sign_in user
+      end
+
+      it 'omits the released client\'s source client from the data source that does not obey consent' do
+        get client_path(both_destination_client)
+        doc = Nokogiri::HTML(response.body)
+        expect(response).to have_http_status(200)
+        expect(doc.text).to include('Bob')
+        expect(doc.text).not_to include('Michele')
+      end
+
+      it 'shows that source client once its data source obeys consent' do
+        non_window_visible_data_source.update!(obey_consent: true)
+        get client_path(both_destination_client)
+        doc = Nokogiri::HTML(response.body)
+        expect(response).to have_http_status(200)
+        expect(doc.text).to include('Michele')
+      end
+    end
   end
 
   context 'when config s is in effect' do
@@ -145,8 +207,9 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
     describe 'and the user does not have a role' do
       it 'user cannot see any clients' do
         query = create(:grda_warehouse_client_search_query, created_by: user, params: { q: 'bob' })
-        get client_search_query_path(id: query.id)
-        expect(response).to redirect_to(regex_for_warehouse_sign_in)
+        expect_unauthenticated_warehouse_request do
+          get client_search_query_path(id: query.id)
+        end
       end
     end
     describe 'and the user has a role granting can view clients' do
@@ -185,6 +248,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
           consent_form_signed_on: past_date,
           consent_expires_on: future_date,
         )
+        GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask.rebuild_clients([window_destination_client.id])
         get client_path(window_destination_client)
         expect(response).to have_http_status(200)
       end
@@ -196,6 +260,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
           consent_form_signed_on: past_date,
           consent_expires_on: future_date,
         )
+        GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask.rebuild_clients([both_destination_client.id])
 
         get client_path(both_destination_client)
         doc = Nokogiri::HTML(response.body)
@@ -271,8 +336,9 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
     describe 'and the user does not have a role' do
       it 'user cannot see any clients' do
         query = create(:grda_warehouse_client_search_query, created_by: user, params: { q: 'bob' })
-        get client_search_query_path(id: query.id)
-        expect(response).to redirect_to(regex_for_warehouse_sign_in)
+        expect_unauthenticated_warehouse_request do
+          get client_search_query_path(id: query.id)
+        end
       end
     end
     describe 'and the user has a role granting can view clients' do
@@ -358,8 +424,9 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
     describe 'and the user does not have a role' do
       it 'user cannot see any clients' do
         query = create(:grda_warehouse_client_search_query, created_by: user, params: { q: 'bob' })
-        get client_search_query_path(id: query.id)
-        expect(response).to redirect_to(regex_for_warehouse_sign_in)
+        expect_unauthenticated_warehouse_request do
+          get client_search_query_path(id: query.id)
+        end
       end
     end
     describe 'and the user has a role granting can view clients' do
@@ -447,8 +514,9 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
     describe 'and the user does not have a role' do
       it 'user cannot see any clients' do
         query = create(:grda_warehouse_client_search_query, created_by: user, params: { q: 'bob' })
-        get client_search_query_path(id: query.id)
-        expect(response).to redirect_to(regex_for_warehouse_sign_in)
+        expect_unauthenticated_warehouse_request do
+          get client_search_query_path(id: query.id)
+        end
       end
     end
     describe 'and the user has a role granting can view clients' do
@@ -486,6 +554,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
           consent_form_signed_on: past_date,
           consent_expires_on: future_date,
         )
+        GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask.rebuild_clients([window_destination_client.id])
         get client_path(window_destination_client)
         expect(response).to have_http_status(200)
       end
@@ -580,6 +649,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
               consent_expires_on: future_date,
               consented_coc_codes: [],
             )
+            GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask.rebuild_clients([non_window_destination_client.id])
           end
           it 'user can see client dashboard for assigned client' do
             get client_path(non_window_destination_client)
@@ -602,6 +672,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
               consent_expires_on: future_date,
               consented_coc_codes: ['ZZ-999'],
             )
+            GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask.rebuild_clients([non_window_destination_client.id])
           end
           it 'user can see client dashboard for assigned client' do
             get client_path(non_window_destination_client)
@@ -624,6 +695,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
               consent_expires_on: future_date,
               consented_coc_codes: ['ZZ-999', 'AA-000'],
             )
+            GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask.rebuild_clients([non_window_destination_client.id])
           end
           it 'user can see client dashboard for assigned client' do
             get client_path(non_window_destination_client)
@@ -646,6 +718,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
               consent_expires_on: future_date,
               consented_coc_codes: ['AA-000'],
             )
+            GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask.rebuild_clients([non_window_destination_client.id])
           end
           it 'user cannot see client dashboard for assigned client' do
             get client_path(non_window_destination_client)
@@ -672,8 +745,9 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
     describe 'and the user does not have a role' do
       it 'user cannot see any clients' do
         query = create(:grda_warehouse_client_search_query, created_by: user, params: { q: 'bob' })
-        get client_search_query_path(id: query.id)
-        expect(response).to redirect_to(regex_for_warehouse_sign_in)
+        expect_unauthenticated_warehouse_request do
+          get client_search_query_path(id: query.id)
+        end
       end
     end
     describe 'and the user has a role granting can view clients' do
@@ -715,6 +789,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
           consent_form_signed_on: past_date,
           consent_expires_on: future_date,
         )
+        GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask.rebuild_clients([window_destination_client.id])
         get client_path(window_destination_client)
         expect(response).to have_http_status(200)
       end
@@ -805,6 +880,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
               consent_expires_on: future_date,
               consented_coc_codes: [],
             )
+            GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask.rebuild_clients([non_window_destination_client.id])
           end
           it 'user can see client dashboard for assigned client' do
             get client_path(non_window_destination_client)
@@ -825,6 +901,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
               consent_expires_on: future_date,
               consented_coc_codes: ['ZZ-999'],
             )
+            GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask.rebuild_clients([non_window_destination_client.id])
           end
           it 'user can see client dashboard for assigned client' do
             get client_path(non_window_destination_client)
@@ -845,6 +922,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
               consent_expires_on: future_date,
               consented_coc_codes: ['ZZ-999', 'AA-000'],
             )
+            GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask.rebuild_clients([non_window_destination_client.id])
           end
           it 'user can see client dashboard for assigned client' do
             get client_path(non_window_destination_client)
@@ -865,6 +943,7 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
               consent_expires_on: future_date,
               consented_coc_codes: ['AA-000'],
             )
+            GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask.rebuild_clients([non_window_destination_client.id])
           end
           it 'user cannot see client dashboard for assigned client' do
             get client_path(non_window_destination_client)
@@ -876,6 +955,64 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
           end
         end
       end
+    end
+  end
+
+  context 'when config va (implied consent) is in effect' do
+    let!(:user) { create :acl_user }
+    let(:roi_collection) { create :collection }
+
+    after { GrdaWarehouse::Config.invalidate_cache }
+
+    before do
+      GrdaWarehouse::Config.delete_all
+      create :config_va
+      GrdaWarehouse::Config.invalidate_cache
+      roi_collection.set_viewables({ data_sources: [window_visible_data_source.id] })
+      setup_access_control(user, can_view_client_enrollments_with_roi, roi_collection)
+      sign_in user
+    end
+
+    def set_release!(client, status)
+      client.update_columns(housing_release_status: status, consented_coc_codes: [])
+      GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask.rebuild_clients([client.id])
+    end
+
+    it 'redirects away from the dashboard for a client with only implied consent' do
+      set_release!(window_destination_client, Consent::Implied.no_release_string)
+      get client_path(window_destination_client)
+      expect(response).to redirect_to(user.my_root_path)
+    end
+
+    it 'renders the dashboard for a client with expanded consent' do
+      set_release!(window_destination_client, Consent::Implied.full_release_string)
+      get client_path(window_destination_client)
+      expect(response).to have_http_status(200)
+      expect(response.body).to include(window_destination_client.FirstName)
+    end
+
+    it 'closes the dashboard and search after a confirmed full release is revoked' do
+      setup_access_control(user, can_search_clients_with_roi, roi_collection)
+      setup_access_control(user, can_search_own_clients, no_data_source_access_collection)
+      consent_tag = create :available_file_tag, consent_form: true, name: 'Consent Form', full_release: true
+      file = create :client_file, client: window_destination_client, tags: [consent_tag], effective_date: 5.days.ago
+      file.confirm_consent!
+
+      get client_path(window_destination_client)
+      expect(response).to have_http_status(200)
+      _response, doc = post_search_query({ q: 'bob' })
+      expect(doc.text).to include('Displaying 1 client')
+      expect(doc.css("a[href='#{client_path(window_destination_client)}']")).not_to be_empty
+
+      # Same order as Clients::FilesController#update
+      window_destination_client.invalidate_consent!(hr_status: Consent::Implied.revoked_consent_string)
+      file.update!(consent_revoked_at: Time.current)
+      expect(GrdaWarehouse::ClientRoiAuthorization.find_by(destination_client_id: window_destination_client.id).status).to eq('revoked')
+
+      get client_path(window_destination_client)
+      expect(response).to redirect_to(user.my_root_path)
+      _response, doc = post_search_query({ q: 'bob' })
+      expect(doc.text).to include('No clients found')
     end
   end
 end

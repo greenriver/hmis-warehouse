@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -44,6 +44,7 @@ class ClientMatchesController < ApplicationController
         ],
       ).order(ordering)
     @pagy, @matches = pagy(@matches)
+    current_user.policy_context.preload_client_dependencies(@matches.flat_map { |m| [m.destination_client_id, m.source_client_id] })
 
     client_ids = @matches.map do |m|
       [

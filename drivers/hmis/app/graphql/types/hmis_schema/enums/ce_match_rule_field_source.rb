@@ -1,0 +1,28 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+# frozen_string_literal: true
+
+module Types
+  class HmisSchema::Enums::CeMatchRuleFieldSource < Types::BaseEnum
+    graphql_name 'CeMatchRuleFieldSource'
+
+    # Client fields, such as current_age
+    value 'CLIENT', 'Client'
+
+    # Custom data element fields, such as cde.custom_assessment.my_score.
+    # Not using "Custom Assessment" field as the user-facing label,
+    # because we will also expose CDEs with other ownership types (e.g. custom field on Client or Enrollment)
+    value 'CUSTOM_DATA_ELEMENT', 'Custom'
+
+    # HUD Program Specific Data Elements, such as `psde.total_monthly_income` or `psde.hiv_aids`
+    # These use "HUD" as their user-facing label.
+    value 'PSDE', 'HUD'
+
+    # Household composition fields, such as `household.size` or `household.youngest_member_age`
+    value 'HOUSEHOLD', 'Household'
+  end
+end

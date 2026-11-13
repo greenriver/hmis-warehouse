@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -122,6 +122,7 @@ module SystemPathways::WarehouseReports
         @details_title = "#{@source_title} → #{@target}"
       end
       @clients = @clients.preload(:client)
+      current_user.policy_context.preload_client_dependencies(@clients.pluck(SystemPathways::Enrollment.arel_table[:client_id]))
     end
 
     private def filtering_show?
@@ -174,7 +175,7 @@ module SystemPathways::WarehouseReports
     helper_method :details_params
 
     private def set_report
-      @report = report_class.find(params[:id].to_i)
+      @report = report_scope.find(params[:id].to_i)
     end
 
     # Since this report uses the hud version of report instance, and it isn't STI

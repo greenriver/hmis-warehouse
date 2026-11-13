@@ -1,3 +1,9 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # frozen_string_literal: true
 
 # Manages the lifecycle of Candidate Pools, which are driven by rules associated with Unit Groups.
@@ -10,7 +16,6 @@
 # 3. Maintains the historical record of which pool a unit group was assigned to at a given time.
 # 4. Marks newly created or all pools as "dirty" to trigger reprocessing.
 # 5. Backfills `candidate_pool_id` for any `Opportunity` records that are missing it.
-# 6. Updates stale flags for Opportunities when their pool differs from their unit group's pool.
 
 # Semantics and concurrency notes:
 # - Opportunity's pool is always derived from unit → unit_group → candidate_pool (not stored on opportunity).

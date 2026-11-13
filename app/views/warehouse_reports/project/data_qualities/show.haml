@@ -32,11 +32,7 @@
     %p
       Contacts will not have access to the client-level details of the report,
       %strong unless
-      they are logged-in with a user account that has either the
-      %strong Can view project data quality client details
-      or the
-      %strong Can view projects
-      permission.
+      they are logged-in with a user account that can view the report and can view the project.
 
   = simple_form_for :project_data_quality, url: warehouse_reports_project_data_quality_path(filters: link_params[:filters].to_h) do |f|
     - select_scope = 'allOrgsProjects'
@@ -61,7 +57,8 @@
     Your search resulted in no projects,
     = link_to 'choose a less specific search.', warehouse_reports_project_data_quality_path
 = content_for :page_js do
-  :javascript
-    new App.SelectableList({
-      title: 'Organizations & Projects'
-    })
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      new App.SelectableList({
+        title: 'Organizations & Projects'
+      })

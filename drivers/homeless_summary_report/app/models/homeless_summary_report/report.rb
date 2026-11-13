@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -54,14 +54,6 @@ module HomelessSummaryReport
         raise e
       end
       complete
-    end
-
-    def start
-      update(started_at: Time.current)
-    end
-
-    def complete
-      update(completed_at: Time.current)
     end
 
     def describe_filter_as_html
@@ -487,10 +479,10 @@ module HomelessSummaryReport
       # With all the fields populated we need to process `exited_from_homeless_system`
       report_clients = report_clients.transform_values! do |client|
         client.spm_exited_from_homeless_system = (
-            client.spm_m7a1_c3 ||
-            client.spm_m7a1_c4 ||
-            client.spm_m7b1_c3
-          ) && !client.spm_m7b2_c3
+          client.spm_m7a1_c3 ||
+          client.spm_m7a1_c4 ||
+          client.spm_m7b1_c3
+        ) && !client.spm_m7b2_c3
         client
       end
 
@@ -504,7 +496,7 @@ module HomelessSummaryReport
       universe.add_universe_members(report_clients)
     end
 
-    # Identify members who have remainied housed in Meaasure 7b
+    # Identify members who have remained housed in Measure 7b
     private def measure_7b_remained_housed?(spm_field, spm_member)
       # We only want to calculate this for measure 7b
       return unless spm_field == :m7b2_destination
@@ -513,7 +505,7 @@ module HomelessSummaryReport
       valid_move_in = spm_member.move_in_date.present?
       valid_exit = spm_member.exit_date.blank? || spm_member.exit_date > @filter.end
 
-      # this must be for a PH project, exluding RRH
+      # this must be for a PH project, excluding RRH
       valid_project_types = HudHelper.util.permanent_housing_project_types - [HudHelper.util.project_type_number('PH - RRH')]
       valid_project = valid_project_types.include?(spm_member.enrollment&.project&.project_type)
 

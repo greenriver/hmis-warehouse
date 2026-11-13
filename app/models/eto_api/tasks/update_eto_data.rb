@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -468,7 +468,6 @@ module EtoApi::Tasks
 
       begin
         hmis_form.save
-        hmis_form.create_qualifying_activity!
         true
       rescue Exception
         # msg = "Failed to save, probably dirty: #{e.message}"

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -29,10 +29,11 @@ module CensusTracking::WarehouseReports
 
     def details
       @key = details_params[:key]
-      project_id = details_params[:project].to_i
-      @project_name = GrdaWarehouse::Hud::Project.viewable_by(current_user, permission: :can_view_assigned_reports).find(project_id)&.safe_project_name
-      @clients = @report.clients_by_project(project_id, @key).
+      @project_id = details_params[:project].to_i
+      @project_name = GrdaWarehouse::Hud::Project.viewable_by(current_user, permission: :can_view_assigned_reports).find(@project_id)&.safe_project_name
+      @clients = @report.clients_by_project(@project_id, @key).
         sort_by { |client| [client.project_name, client.last_name, client.first_name] }
+      current_user.policy_context.preload_client_dependencies(@clients.map(&:client_id))
     end
 
     private def filter

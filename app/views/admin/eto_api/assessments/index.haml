@@ -1,7 +1,6 @@
 - title = 'ETO Touch Points'
 - content_for :title, title
 %h1= content_for(:title)
-= render :partial => 'menus/admin_tabs'
 .overflow-x-scroll{style: "height: 800px"}
   %table.table.table-fixed.table-striped
     %thead
@@ -17,10 +16,7 @@
         %th Pathways
         %th Triage Assessment
         %th RRH Assessment
-        %th Health
         %th SSM (Health)
-        %th Health Case Note
-        %th Contains Qualifying Activities (Health)
         %th COVID-19 Impact Assessment
         %th Contains Location Data
     %tbody
@@ -41,9 +37,6 @@
           %td= checkmark(assessment.pathways)
           %td= checkmark(assessment.triage_assessment)
           %td= checkmark(assessment.rrh_assessment)
-          %td= checkmark(assessment.health)
           %td= checkmark(assessment.ssm)
-          %td= checkmark(assessment.health_case_note)
-          %td= checkmark(assessment.health_has_qualifying_activities)
           %td= checkmark(assessment.covid_19_impact_assessment)
           %td= checkmark(assessment.with_location_data)

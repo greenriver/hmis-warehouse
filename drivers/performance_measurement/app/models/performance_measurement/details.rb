@@ -1,12 +1,12 @@
-# frozen_string_literal: true
-
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# See @docs/features/coc-performance-measurement-dashboard.md
+# frozen_string_literal: true
+
+# See @docs/features/warehouse/coc-performance-measurement-dashboard.md
 module PerformanceMeasurement::Details
   extend ActiveSupport::Concern
 

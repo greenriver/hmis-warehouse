@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -17,6 +17,7 @@ OpenPath::Application.routes.draw do
       get :download, on: :member
       post :restore, on: :member
       get :download_intermediate, on: :member
+      get :download_source_data, on: :member
     end
     resources :lsa_hics do
       get :running, on: :collection
@@ -27,6 +28,7 @@ OpenPath::Application.routes.draw do
       get :download, on: :member
       post :restore, on: :member
       get :download_intermediate, on: :member
+      get :download_source_data, on: :member
     end
   end
 end

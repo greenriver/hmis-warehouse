@@ -1,10 +1,10 @@
-# frozen_string_literal: true
-
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 # provides less verbose versions of stuff that's useful for working with arel
 # these are all two letters both for maximum brevity and because this makes them more includable -- they are unlikely to be stomped on by other methods or functions
@@ -66,7 +66,10 @@ module ArelHelper
     def nf(name, args = [], aka = nil)
       raise 'args must be an Array' unless args.is_a?(Array)
 
-      Arel::Nodes::NamedFunction.new name, args.map { |v| qt v }, aka
+      # Rails 8's Arel dropped the alias argument from the NamedFunction constructor;
+      # apply the alias via #as instead.
+      function = Arel::Nodes::NamedFunction.new(name, args.map { |v| qt v })
+      aka ? function.as(aka) : function
     end
 
     def cl(*args)
@@ -163,6 +166,14 @@ module ArelHelper
       nf 'CAST', [exp.as(as)]
     end
 
+    # CAST(col AT TIME ZONE 'UTC' AT TIME ZONE '<app zone>' AS DATE). Timestamp columns hold naive
+    # UTC; a bare date cast would bucket evening local activity into the next day.
+    def local_date(column)
+      at_utc = Arel::Nodes::InfixOperation.new('AT TIME ZONE', column, Arel::Nodes.build_quoted('UTC'))
+      at_local = Arel::Nodes::InfixOperation.new('AT TIME ZONE', at_utc, Arel::Nodes.build_quoted(Time.zone.tzinfo.name))
+      nf 'CAST', [at_local.as('DATE')]
+    end
+
     # NOTE: you must join project and organization for this to work.
     def confidentialized_project_name(column)
       conditions = [
@@ -231,8 +242,6 @@ module ArelHelper
 
     # This will create a correlated exists clause and attach it to the relation it is called in
     # it functions similar to a merge, but can be used when you need two merges with the same key
-    # Usage:
-    # User.joins(:role).correlated_exists(Role.health)
     def correlated_exists(scope, quoted_table_name: scope.klass.quoted_table_name, alias_name: "t_#{SecureRandom.alphanumeric}", column_name: ['id'], negated: false)
       where(exists_sql(scope, quoted_table_name: quoted_table_name, alias_name: alias_name, column_name: column_name, negated: negated))
     end
@@ -410,80 +419,8 @@ module ArelHelper
       GrdaWarehouse::Vispdat::Base.arel_table
     end
 
-    def hp_t
-      Health::Patient.arel_table
-    end
-
-    def hpr_t
-      Health::PatientReferral.arel_table
-    end
-
-    def hapr_t
-      Health::AgencyPatientReferral.arel_table
-    end
-
-    def hqa_t
-      Health::QualifyingActivity.arel_table
-    end
-
-    def hpf_t
-      Health::ParticipationForm.arel_table
-    end
-
-    def hpff_t
-      Health::ParticipationFormFile.arel_table
-    end
-
-    def h_ssm_t
-      Health::SelfSufficiencyMatrixForm.arel_table
-    end
-
-    def h_epic_ssm_t
-      Health::EpicSsm.arel_table
-    end
-
-    def h_sdhcmn_t
-      Health::SdhCaseManagementNote.arel_table
-    end
-
-    def h_ehs_t
-      Health::EpicHousingStatus.arel_table
-    end
-
-    def h_ecn_t
-      Health::EpicCaseNote.arel_table
-    end
-
-    def h_cha_t
-      Health::ComprehensiveHealthAssessment.arel_table
-    end
-
-    def h_echa_t
-      Health::EpicCha.arel_table
-    end
-
-    def h_rf_t
-      Health::ReleaseForm.arel_table
-    end
-
-    def h_cp_t
-      Health::Careplan.arel_table
-    end
-
     def yib_t
       GrdaWarehouse::YouthIntake::Base.arel_table
-    end
-
-    def htca_t
-      Health::Tracing::Case.arel_table
-    end
-
-    def htco_t
-      Health::Tracing::Contact.arel_table
-    end
-
-    def h_sd_t
-      Health::StatusDate.arel_table
     end
 
     def r_monthly_t
@@ -544,9 +481,9 @@ module ArelHelper
     end
 
     # Table calls
-    delegate :she_t, :shs_t, :shsm_t, :s_t, :g_t, :e_t, :ec_t, :ex_t, :ds_t, :c_t, :cn_t, :p_t, :pc_t, :o_t, :i_t, :af_t, :as_t, :asq_t, :ev_t, :ch_t, :hc_t, :wc_t, :wcp_t, :ib_t, :d_t, :hdv_t, :f_t, :cls_t, :enx_t, :hmis_form_t, :hmis_c_t, :c_client_t, :c_c_change_t, :yib_t, :vispdat_t, :hp_t, :hpr_t, :hapr_t, :hqa_t, :hpf_t, :hpff_t, :h_ssm_t, :h_epic_ssm_t, :h_sdhcmn_t, :h_ehs_t, :h_ecn_t, :h_cha_t, :h_echa_t, :h_rf_t, :h_cp_t, :htca_t, :htco_t, :h_sd_t, :r_monthly_t, :hr_ri_t, :r_t, :ag_t, :collection_t, to: 'self.class'
+    delegate :she_t, :shs_t, :shsm_t, :s_t, :g_t, :e_t, :ec_t, :ex_t, :ds_t, :c_t, :cn_t, :p_t, :pc_t, :o_t, :i_t, :af_t, :as_t, :asq_t, :ev_t, :ch_t, :hc_t, :wc_t, :wcp_t, :ib_t, :d_t, :hdv_t, :f_t, :cls_t, :enx_t, :hmis_form_t, :hmis_c_t, :c_client_t, :c_c_change_t, :yib_t, :vispdat_t, :r_monthly_t, :hr_ri_t, :r_t, :ag_t, :collection_t, to: 'self.class'
 
     # Other methods
-    delegate :qt, :nf, :unionize, :add_alias, :cl, :ct, :greatest, :bool_or, :confidentialized_project_name, :checksum, :datepart, :seconds_diff, :datediff, :cast, :acase, :lit, to: 'self.class'
+    delegate :qt, :nf, :unionize, :add_alias, :cl, :ct, :greatest, :bool_or, :confidentialized_project_name, :checksum, :datepart, :seconds_diff, :datediff, :cast, :local_date, :acase, :lit, to: 'self.class'
   end
 end

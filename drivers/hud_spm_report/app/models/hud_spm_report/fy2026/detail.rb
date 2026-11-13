@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -20,10 +20,14 @@ module HudSpmReport::Fy2026::Detail
         'First Name'
       when 'enrollment.last_name', 'exit_enrollment.last_name'
         'Last Name'
-      when 'exit_enrollment.enrollment.project.project_name'
-        'Exited Project Name'
-      when 'return_enrollment.enrollment.project.project_name'
-        'Returned Project Name'
+      when 'enrollment.project.ProjectID'
+        'Project'
+      when 'exit_enrollment.enrollment.project.ProjectID'
+        'Exited Project'
+      when 'return_enrollment.enrollment.project.ProjectID'
+        'Returned Project'
+      when 'project_hmis_ids'
+        'Projects'
       when 'data_source_id'
         'Data Source ID'
       when 'los_under_threshold'

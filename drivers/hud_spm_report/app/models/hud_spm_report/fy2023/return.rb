@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -20,6 +20,8 @@ module HudSpmReport::Fy2023
 
     def self.apply_search_scope(scope) = scope.left_outer_joins(:exit_enrollment, :return_enrollment)
     def self.search_columns = HudSpmReport::Fy2023::SpmEnrollment.search_columns
+    def self.pii_search_columns = HudSpmReport::Fy2023::SpmEnrollment.pii_search_columns
+    def self.restricted_client_id_columns = HudSpmReport::Fy2023::SpmEnrollment.restricted_client_id_columns
     def project_id = [exit_enrollment, return_enrollment].detect(&:present?)&.enrollment&.project&.id
     def data_source_id = [exit_enrollment&.enrollment&.data_source_id, return_enrollment&.enrollment&.data_source_id].detect(&:present?)
 

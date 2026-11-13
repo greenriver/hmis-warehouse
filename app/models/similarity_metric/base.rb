@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -13,13 +13,6 @@ module SimilarityMetric
     # if no instances of a metric have been seen to calculate a mean and standard deviation (n == 0)
     # or if the metric has been assigned a weight of 0, then it is not usable
     scope :usable, -> { where arel_table[:n].gt(0).and( arel_table[:weight].gt 0 ) }
-
-    MD = Redcarpet::Markdown.new(
-      Redcarpet::Render::HTML,
-      autolink:  true,
-      hard_wrap: false,
-      quote: true
-    )
 
     # override this as appropriate in subclasses
     #
@@ -43,7 +36,7 @@ module SimilarityMetric
           method = Regexp.last_match[1]
           send(method)
         end
-        MD.render(str).strip.html_safe
+        SafeUserMarkdown.render(str, quote: true).strip.html_safe
       end
     end
 

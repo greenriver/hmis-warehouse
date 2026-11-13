@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -18,6 +18,7 @@ module HmisDataQualityTool
         :exit_date_entered_length,
         :expose_ch_calculations,
         :show_annual_assessments,
+        :global_overlap_checks,
       ]
       columns += stay_length_categories
       segment_numbers.each do |num|

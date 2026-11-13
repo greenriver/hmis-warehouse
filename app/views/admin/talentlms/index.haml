@@ -88,26 +88,27 @@
                     Remove Course
 
 = content_for :page_js do
-  :javascript
-    $(document).ready(function() {
-      $('.jRemoteSubmit').on('change', function(e){
-        form = $(this).closest('form');
-        $.ajax({
-          data: form.serialize(),
-          type: form.attr('method'),
-          url: form.attr('action'),
-          success: function(e) {
-            console.debug('success')
-            var html = '<div class="jAjaxSave alert alert-success">TalentLMS configuration saved successfully.</div>';
-            $('.utility').html(html);
-            $('.jAjaxSave').delay(5000).fadeOut(250);
-          },
-          error: function(e) {
-            console.debug('fail')
-            var html = '<div class="jAjaxSave alert alert-danger">Failed to save TalentLMS configuration.</div>';
-            $('.utility').html(html);
-            $('.jAjaxSave').delay(5000).fadeOut(250);
-          }
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      $(document).ready(function() {
+        $('.jRemoteSubmit').on('change', function(e){
+          form = $(this).closest('form');
+          $.ajax({
+            data: form.serialize(),
+            type: form.attr('method'),
+            url: form.attr('action'),
+            success: function(e) {
+              console.debug('success')
+              var html = '<div class="jAjaxSave alert alert-success">TalentLMS configuration saved successfully.</div>';
+              $('.utility').html(html);
+              $('.jAjaxSave').delay(5000).fadeOut(250);
+            },
+            error: function(e) {
+              console.debug('fail')
+              var html = '<div class="jAjaxSave alert alert-danger">Failed to save TalentLMS configuration.</div>';
+              $('.utility').html(html);
+              $('.jAjaxSave').delay(5000).fadeOut(250);
+            }
+          });
         });
       });
-    });

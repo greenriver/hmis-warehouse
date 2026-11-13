@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -11,6 +11,7 @@ class DataSourcesController < ApplicationController
   before_action :require_can_edit_data_sources!, only: [:new, :create, :destroy, :edit, :update]
   before_action :require_can_view_imports_projects_or_organizations!, only: [:show, :index]
   before_action :set_data_source, only: [:show, :edit, :update, :destroy]
+  before_action :load_hmis_hostname_options, only: [:new, :create, :edit, :update]
 
   def index
     # search
@@ -20,34 +21,36 @@ class DataSourcesController < ApplicationController
       data_source_scope
     end
     @pagy, @data_sources = pagy(@data_sources.order(name: :asc))
-    # @data_spans_by_id = GrdaWarehouse::DataSource.data_spans_by_id
-    @client_counts = @data_sources.map { |ds| [ds.id, ds.client_count] }.to_h
-    @project_counts = @data_sources.map { |ds| [ds.id, ds.project_count] }.to_h
+    data_source_ids = @data_sources.map(&:id)
+    @client_counts = GrdaWarehouse::DataSource.client_counts_by_id(data_source_ids)
+    @project_counts = GrdaWarehouse::DataSource.project_counts_by_id(data_source_ids)
+    @unprocessed_enrollment_counts = GrdaWarehouse::DataSource.unprocessed_enrollment_counts_by_id(data_source_ids)
+    @stalled_dates = GrdaWarehouse::DataSource.stalled_dates_by_id(data_source_ids)
   end
 
   def show
     @readonly = ! (can_edit_data_sources? || can_edit_projects?)
-    p_t = GrdaWarehouse::Hud::Project.arel_table
-    o_t = GrdaWarehouse::Hud::Organization.arel_table
-    if RailsDrivers.loaded.include?(:hmis_csv_importer)
-      @overrides = HmisCsvImporter::ImportOverride.
-        where(data_source: @data_source).
-        sorted
+    load_overrides
+    params[:coc_code] = nil unless valid_coc_code_param?
+    @require_coc_choice = @data_source.require_coc_choice?(viewable_projects)
+    if @require_coc_choice && params[:coc_code].blank?
+      @coc_summaries = @data_source.coc_summaries(viewable_projects)
+    else
+      @organizations = load_organizations.to_a
+      if @require_coc_choice
+        @coc_display_name = params[:coc_code] == 'unknown' ? Translation.translate('Unknown CoC') : HudHelper.util.coc_name(params[:coc_code])
+        @coc_project_count = project_scope.count
+        @coc_org_count = @organizations.size
+        @coc_project_types = @organizations.flat_map(&:projects).map(&:ProjectType).uniq
+      else
+        @project_types = @organizations.flat_map(&:projects).map(&:ProjectType).uniq
+      end
     end
-    @organizations = @data_source.organizations.
-      eager_load(:data_source, projects: :data_source).
-      merge(
-        GrdaWarehouse::Hud::Project.viewable_by(
-          current_user,
-          confidential_scope_limiter: :all,
-          permission: :can_view_projects,
-        ),
-      ).
-      order(o_t[:OrganizationName].asc, p_t[:ProjectName].asc)
   end
 
   def new
     @data_source = data_source_source.new
+    @per_page_js = ['data_source_form']
   end
 
   def create
@@ -59,26 +62,23 @@ class DataSourcesController < ApplicationController
       flash[:notice] = "#{@data_source.name} created."
       redirect_to action: :index
     else
+      @per_page_js = ['data_source_form']
       flash[:error] = Translation.translate('Unable to create new Data Source')
       render action: :new
     end
   end
 
   def edit
+    @per_page_js = ['data_source_form']
   end
 
   def update
-    error = false
-    begin
-      @data_source.update!(data_source_params)
-    rescue StandardError => e
-      error = true
-    end
-    if error
-      flash[:error] = "Unable to update data source. #{e}"
-      render :show
-    else
+    if @data_source.update(data_source_params)
       redirect_to data_source_path(@data_source), notice: 'Data Source updated'
+    else
+      @per_page_js = ['data_source_form']
+      flash[:error] = "Unable to update data source. #{@data_source.errors.full_messages.to_sentence}"
+      render :edit
     end
   end
 
@@ -90,8 +90,14 @@ class DataSourcesController < ApplicationController
     redirect_to action: :index
   end
 
+  private def load_hmis_hostname_options
+    @available_hmis_hostnames = GrdaWarehouse::DataSource.available_hmis_hostnames(
+      exclude_data_source_id: @data_source&.id,
+    )
+  end
+
   private def data_source_params
-    params.require(:grda_warehouse_data_source).
+    permitted = params.require(:grda_warehouse_data_source).
       permit(
         :name,
         :short_name,
@@ -100,10 +106,14 @@ class DataSourcesController < ApplicationController
         :after_create_path,
         :visible_in_window,
         :import_paused,
+        :disable_imports,
         :source_id,
         :munged_personal_id,
         :service_scannable,
         :obey_consent,
+        :hmis,
+        :hmis_go_live_at,
+        :client_retention_years,
         projects_attributes:
         [
           :id,
@@ -111,6 +121,9 @@ class DataSourcesController < ApplicationController
           :after_create_path,
         ],
       )
+    permitted.delete(:hmis) if @data_source.hmis?
+    permitted.delete(:client_retention_years) unless @data_source.client_retention_override_available?
+    permitted
   end
 
   private def new_data_source_params
@@ -125,9 +138,12 @@ class DataSourcesController < ApplicationController
         :authoritative_type,
         :after_create_path,
         :import_paused,
+        :disable_imports,
         :source_id,
         :service_scannable,
         :obey_consent,
+        :hmis,
+        :hmis_go_live_at,
       )
   end
 
@@ -141,5 +157,47 @@ class DataSourcesController < ApplicationController
 
   private def set_data_source
     @data_source = data_source_source.find(params[:id].to_i)
+  end
+
+  private def load_overrides
+    @overrides = HmisCsvImporter::ImportOverride.
+      where(data_source: @data_source).
+      sorted
+  end
+
+  private def load_organizations
+    p_t = GrdaWarehouse::Hud::Project.arel_table
+    o_t = GrdaWarehouse::Hud::Organization.arel_table
+    @data_source.organizations.
+      eager_load(:data_source, projects: :data_source).
+      merge(project_scope).
+      order(o_t[:OrganizationName].asc, p_t[:ProjectName].asc)
+  end
+
+  # 'unknown' is this feature's own bucket for projects with a blank/whitespace CoC
+  # code (see GrdaWarehouse::DataSource#coc_summaries), not a real HUD CoC code.
+  private def valid_coc_code_param?
+    params[:coc_code].blank? || params[:coc_code] == 'unknown' || HudHelper.util.valid_coc?(params[:coc_code])
+  end
+
+  private def viewable_projects
+    @viewable_projects ||= GrdaWarehouse::Hud::Project.viewable_by(
+      current_user,
+      confidential_scope_limiter: :all,
+      permission: :can_view_projects,
+    )
+  end
+
+  private def project_scope
+    coc_code = params[:coc_code]
+    return viewable_projects if coc_code.blank?
+
+    # Subquery so ProjectCoC joins stay off the Organization query.
+    matching = if coc_code == 'unknown'
+      GrdaWarehouse::Hud::Project.joins(:project_cocs).merge(GrdaWarehouse::Hud::ProjectCoc.unknown_coc)
+    else
+      GrdaWarehouse::Hud::Project.in_coc(coc_code: coc_code)
+    end
+    viewable_projects.where(id: matching.select(:id))
   end
 end

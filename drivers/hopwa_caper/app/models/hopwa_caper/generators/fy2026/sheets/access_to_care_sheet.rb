@@ -1,10 +1,10 @@
-# frozen_string_literal: true
-
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 module HopwaCaper::Generators::Fy2026::Sheets
   class AccessToCareSheet < Base
@@ -194,9 +194,7 @@ module HopwaCaper::Generators::Fy2026::Sheets
     def housing_subsidy_households_for_activity(activity_type)
       case activity_type
       when :tbra
-        HopwaCaper::Generators::Fy2026::EnrollmentFilters::ProjectFunderFilter.
-          tbra_hopwa(range: @report.report_range).
-          apply(@report.hopwa_caper_enrollments)
+        TbraSheet.relevant_enrollments(@report)
       when :strmu
         enrollments = HopwaCaper::Generators::Fy2026::EnrollmentFilters::ProjectFunderFilter.
           strmu_hopwa(range: @report.report_range).

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -101,6 +101,18 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         before(:each) { p1.update!(project_type: project_type) }
         it_behaves_like 'context matches rule'
       end
+    end
+
+    describe 'form definition with empty ALL custom_rule' do
+      let(:custom_rule) { { operator: 'ALL', parts: [] } }
+
+      it_behaves_like 'context matches rule'
+    end
+
+    describe 'form definition with empty ANY custom_rule' do
+      let(:custom_rule) { { operator: 'ANY', parts: [] } }
+
+      it_behaves_like 'context does not match rule'
     end
 
     describe 'form definition with projectType rule AND projectType custom_rule' do

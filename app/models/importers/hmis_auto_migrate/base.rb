@@ -1,10 +1,10 @@
-# frozen_string_literal: true
-
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 require 'zip'
 module Importers::HmisAutoMigrate
@@ -67,6 +67,7 @@ module Importers::HmisAutoMigrate
         project_cleanup: @project_cleanup,
         stop_version: @stop_version,
         dry_run: @dry_run,
+        source_id_override: @source_id_override || false,
       )
 
       loader.import!(log)
@@ -78,7 +79,7 @@ module Importers::HmisAutoMigrate
       zip_file = reconstitute_upload
       Zip::File.open(zip_file) do |zipped_file|
         zipped_file.each do |entry|
-          entry.extract([@local_path, File.basename(entry.name)].join('/'))
+          entry.extract(File.basename(entry.name), destination_directory: @local_path)
         end
       end
     ensure

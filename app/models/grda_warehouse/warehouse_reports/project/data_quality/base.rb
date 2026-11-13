@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -583,6 +583,9 @@ module GrdaWarehouse::WarehouseReports::Project::DataQuality
         where(Project: { id: projects.map(&:id) })
     end
 
+    # Covers every project in the group, including ones the requestor can't report on. Scoping
+    # to the requestor here wouldn't help, since everyone who can see the group shares the report.
+    # See "In reports" in docs/features/warehouse/project-groups.md
     def projects
       @projects ||= if project_group_id.present?
         project_group.projects

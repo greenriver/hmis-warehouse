@@ -1,11 +1,13 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 # frozen_string_literal: true
 
+# Retired. This class exists solely so legacy `reports` rows still load via STI.
+# The HIC is now produced by the LSA HIC (HudLsa::LsaHicsController).
 module Reports::Hic::Fy2017
   class Base < Report
     def self.report_name
@@ -22,14 +24,6 @@ module Reports::Hic::Fy2017
 
     def download_type
       nil
-    end
-
-    def has_options?
-      false
-    end
-
-    def results_path
-      reports_hic_export_path(version: 'fy2017')
     end
   end
 end

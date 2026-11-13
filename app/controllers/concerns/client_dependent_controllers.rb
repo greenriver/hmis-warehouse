@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -16,6 +16,10 @@ module ClientDependentControllers
 
     def destination_searchable_client_scope
       client_source.destination_from_searchable_to(current_user)
+    end
+
+    def destination_visible_client_scope
+      client_source.destination_visible_to(current_user)
     end
   end
 end

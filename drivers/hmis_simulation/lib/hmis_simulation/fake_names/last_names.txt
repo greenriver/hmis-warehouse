@@ -1,0 +1,866 @@
+Abies Alba
+Balsamea
+Concolor
+Grandis
+Lasiocarpa
+Magnifica
+Procera
+Acer Campestre
+Macrophyllum
+Negundo
+Palmatum
+Pensylvanicum
+Platanoides
+Pseudoplatanus
+Rubrum
+Saccharinum
+Saccharum
+Achillea Millefolium
+Ptarmica
+Aconitum Napellus
+Uncinatum
+Acorus Calamus
+Actaea Pachypoda
+Racemosa
+Rubra
+Adiantum Capillus Veneris
+Pedatum
+Aegopodium Podagraria
+Aesculus Glabra
+Hippocastanum
+Pavia
+Agrostis Capillaris
+Stolonifera
+Ailanthus Altissima
+Ajuga Reptans
+Alcea Rosea
+Alchemilla Vulgaris
+Alisma Plantago Aquatica
+Allium Ampeloprasum
+Cepa
+Sativum
+Schoenoprasum
+Tricoccum
+Ursinum
+Alnus Glutinosa
+Incana
+Rhombifolia
+Serrulata
+Alopecurus Pratensis
+Althaea Officinalis
+Amelanchier Arborea
+Canadensis
+Laevis
+Lamarckii
+Amorpha Fruticosa
+Anaphalis Margaritacea
+Andromeda Polifolia
+Anemone Canadensis
+Hepatica
+Nemorosa
+Pulsatilla
+Sylvestris
+Angelica Archangelica
+Antennaria Dioica
+Anthoxanthum Odoratum
+Anthriscus Sylvestris
+Apium Graveolens
+Aquilegia Canadensis
+Vulgaris
+Arabidopsis Thaliana
+Aralia Nudicaulis
+Arbutus Menziesii
+Unedo
+Arctium Lappa
+Minus
+Arctostaphylos Manzanita
+Uva Ursi
+Arisaema Triphyllum
+Armeria Maritima
+Arnica Montana
+Artemisia Absinthium
+Campestris
+Dracunculus
+Ludoviciana
+Tridentata
+Arum Italicum
+Maculatum
+Aruncus Dioicus
+Asarum Canadense
+Europaeum
+Asclepias Incarnata
+Syriaca
+Tuberosa
+Asimina Triloba
+Asparagus Officinalis
+Asplenium Scolopendrium
+Trichomanes
+Aster Alpinus
+Amellus
+Novi Belgii
+Astilbe Chinensis
+Astragalus Canadensis
+Glycyphyllos
+Athyrium Filix Femina
+Atriplex Halimus
+Hortensis
+Atropa Belladonna
+Avena Fatua
+Sativa
+Baptisia Australis
+Tinctoria
+Berberis Thunbergii
+Betula Alleghaniensis
+Lenta
+Nigra
+Occidentalis
+Papyrifera
+Pendula
+Populifolia
+Pubescens
+Bidens Frondosa
+Pilosa
+Borago Officinalis
+Brassica Napus
+Oleracea
+Rapa
+Bromus Inermis
+Japonicus
+Sterilis
+Calamint Nepeta
+Sylvatica
+Calendula Arvensis
+Officinalis
+Caltha Palustris
+Calystegia Sepium
+Campanula Rotundifolia
+Trachelium
+Cannabis Sativa
+Cardamine Hirsuta
+Pratensis
+Carduus Nutans
+Carex Acuta
+Aquatilis
+Flacca
+Hirta
+Carlina Acaulis
+Carpinus Betulus
+Caroliniana
+Carum Carvi
+Castanea Dentata
+Mollissima
+Catalpa Bignonioides
+Speciosa
+Caulophyllum Thalictroides
+Ceanothus Americanus
+Celastrus Scandens
+Celtis Occidentalis
+Centaurea Cyanus
+Jacea
+Scabiosa
+Cerastium Fontanum
+Cercis Canadensis
+Chinensis
+Chamaecyparis Lawsoniana
+Nootkatensis
+Thyoides
+Chamerion Angustifolium
+Chenopodium Album
+Bonus Henricus
+Chrysanthemum Leucanthemum
+Chrysosplenium Alternifolium
+Cichorium Intybus
+Cicuta Maculata
+Virosa
+Circaea Lutetiana
+Cirsium Arvense
+Oleraceum
+Palustre
+Vulgare
+Claytonia Perfoliata
+Virginica
+Clematis Alpina
+Tangutica
+Vitalba
+Clinopodium Vulgare
+Coeloglossum Viride
+Colchicum Autumnale
+Comptonia Peregrina
+Conium Maculatum
+Conopodium Majus
+Convallaria Majalis
+Convolvulus Arvensis
+Conyza Canadensis
+Cornus Alternifolia
+Amomum
+Florida
+Kousa
+Mas
+Nuttallii
+Sericea
+Corylus Americana
+Avellana
+Cornuta
+Maxima
+Crataegus Crus Galli
+Laevigata
+Mollis
+Monogyna
+Oxyacantha
+Pedicellata
+Punctata
+Crepis Biennis
+Capillaris
+Cryptomeria Japonica
+Cupressus Macrocarpa
+Cuscuta Campestris
+Dactylis Glomerata
+Dactylorhiza Fuchsii
+Maculata
+Majalis
+Daphne Laureola
+Mezereum
+Datura Stramonium
+Daucus Carota
+Delphinium Consolida
+Elatum
+Dentaria Bulbifera
+Diphylla
+Deschampsia Cespitosa
+Flexuosa
+Dianthus Armeria
+Barbatus
+Carthusianorum
+Deltoides
+Plumarius
+Dictamnus Albus
+Digitalis Grandiflora
+Lutea
+Purpurea
+Dioscorea Villosa
+Diospyros Virginiana
+Dipsacus Fullonum
+Laciniatus
+Doronicum Pardalianches
+Draba Verna
+Dryopteris Affinis
+Carthusiana
+Dilatata
+Filix Mas
+Echinacea Angustifolia
+Pallida
+Echium Vulgare
+Elytrigia Repens
+Empetrum Nigrum
+Epilobium Hirsutum
+Montanum
+Epimedium Alpinum
+Epipactis Helleborine
+Palustris
+Equisetum Arvense
+Hyemale
+Sylvaticum
+Eragrostis Minor
+Erica Carnea
+Cinerea
+Tetralix
+Vagans
+Eriophorum Angustifolium
+Erodium Cicutarium
+Eryngium Campestre
+Maritimum
+Planum
+Euonymus Europaeus
+Eupatorium Cannabinum
+Perfoliatum
+Euphorbia Amygdaloides
+Cyparissias
+Helioscopia
+Lathyris
+Peplus
+Platyphyllos
+Euphrasia Rostkoviana
+Fagus Grandifolia
+Festuca Altissima
+Ovina
+Filipendula Ulmaria
+Foeniculum Vulgare
+Fragaria Vesca
+Virginiana
+Frangula Alnus
+Purshiana
+Fraxinus Americana
+Excelsior
+Pennsylvanica
+Profunda
+Fumaria Officinalis
+Galeopsis Tetrahit
+Galium Aparine
+Mollugo
+Odoratum
+Saxatile
+Verum
+Geranium Molle
+Pratense
+Robertianum
+Sanguineum
+Geum Rivale
+Urbanum
+Gleditsia Triacanthos
+Glyceria Fluitans
+Glycine Max
+Gymnocarpium Dryopteris
+Hamamelis Virginiana
+Hedera Helix
+Helianthus Annuus
+Tuberosus
+Helictochloa Pratensis
+Helleborus Foetidus
+Niger
+Viridis
+Hepatica Nobilis
+Heracleum Lanatum
+Sphondylium
+Hesperis Matronalis
+Hieracium Aurantiacum
+Pilosella
+Umbellatum
+Holcus Lanatus
+Hordeum Jubatum
+Murinum
+Hosta Plantaginea
+Humulus Lupulus
+Hyacinthoides Non Scripta
+Hydrangea Arborescens
+Paniculata
+Hydrophyllum Virginianum
+Hypericum Calycinum
+Perforatum
+Prolificum
+Punctatum
+Impatiens Capensis
+Noli Tangere
+Inula Helenium
+Iris Germanica
+Pseudacorus
+Sibirica
+Versicolor
+Juncus Bufonius
+Effusus
+Inflexus
+Juniperus Communis
+Horizontalis
+Scopulorum
+Kalmia Angustifolia
+Latifolia
+Knautia Arvensis
+Laburnum Anagyroides
+Lactuca Serriola
+Lamium Album
+Galeobdolon
+Purpureum
+Larix Decidua
+Kaempferi
+Laricina
+Lathraea Squamaria
+Lathyrus Japonicus
+Latifolius
+Odoratus
+Lavandula Angustifolia
+Lemna Gibba
+Minor
+Leonurus Cardiaca
+Leucanthemum Vulgare
+Ligustrum Vulgare
+Lilium Bulbiferum
+Candidum
+Martagon
+Philadelphicum
+Linaria Vulgaris
+Linum Catharticum
+Usitatissimum
+Liriodendron Tulipifera
+Listera Ovata
+Lobelia Cardinalis
+Inflata
+Siphilitica
+Lonicera Caprifolium
+Japonica
+Periclymenum
+Xylosteum
+Lotus Corniculatus
+Lupinus Angustifolius
+Luteus
+Perennis
+Polyphyllus
+Luzula Campestris
+Lychnis Flos Cuculi
+Lycopus Europaeus
+Lysimachia Nummularia
+Thyrsiflora
+Lythrum Salicaria
+Magnolia Acuminata
+Grandiflora
+Tripetala
+Mahonia Aquifolium
+Malus Baccata
+Domestica
+Malva Moschata
+Neglecta
+Marrubium Vulgare
+Matricaria Chamomilla
+Medicago Lupulina
+Melampyrum Pratense
+Melilotus Albus
+Melissa Officinalis
+Mentha Aquatica
+Arvensis
+Longifolia
+Piperita
+Pulegium
+Spicata
+Mercurialis Annua
+Moehringia Trinervia
+Molinia Caerulea
+Monarda Didyma
+Fistulosa
+Muscari Armeniacum
+Myosotis Arvensis
+Scorpioides
+Myrica Gale
+Pensylvanica
+Narcissus Cyclamineus
+Poeticus
+Pseudonarcissus
+Nardus Stricta
+Nasturtium Officinale
+Neottia Ovata
+Nepeta Cataria
+Nicotiana Tabacum
+Nigella Damascena
+Nuphar Lutea
+Nymphaea Alba
+Odorata
+Tetragona
+Nyssa Sylvatica
+Oenanthe Aquatica
+Crocata
+Oenothera Biennis
+Fruticosa
+Ophrys Apifera
+Insectifera
+Orchis Mascula
+Militaris
+Morio
+Simia
+Origanum Vulgare
+Osmunda Cinnamomea
+Claytoniana
+Regalis
+Oxalis Acetosella
+Stricta
+Oxyria Digyna
+Paeonia Lactiflora
+Mascula
+Panicum Virgatum
+Papaver Rhoeas
+Somniferum
+Parietaria Officinalis
+Parthenocissus Quinquefolia
+Petasites Hybridus
+Petroselinum Crispum
+Phaseolus Coccineus
+Phleum Pratense
+Phlox Divaricata
+Physalis Alkekengi
+Picea Abies
+Glauca
+Mariana
+Pungens
+Rubens
+Sitchensis
+Pieris Floribunda
+Pimpinella Major
+Saxifraga
+Pinus Banksiana
+Cembra
+Contorta
+Echinata
+Jeffreyi
+Lambertiana
+Monticola
+Muricata
+Pinaster
+Pinea
+Ponderosa
+Radiata
+Resinosa
+Rigida
+Serotina
+Strobus
+Taeda
+Platanthera Bifolia
+Chlorantha
+Ciliaris
+Platanus Occidentalis
+Orientalis
+Poa Annua
+Nemoralis
+Trivialis
+Podophyllum Peltatum
+Polygala Vulgaris
+Polygonatum Multiflorum
+Polygonum Amphibium
+Aviculare
+Bistorta
+Polypodium Glycyrrhiza
+Polystichum Aculeatum
+Munitum
+Setiferum
+Populus Alba
+Balsamifera
+Grandidentata
+Tremula
+Tremuloides
+Trichocarpa
+Potamogeton Crispus
+Natans
+Potentilla Anserina
+Erecta
+Reptans
+Primula Elatior
+Farinosa
+Veris
+Prunus Americana
+Armeniaca
+Avium
+Cerasus
+Laurocerasus
+Mahaleb
+Padus
+Persica
+Spinosa
+Pseudotsuga Menziesii
+Pteridium Aquilinum
+Pulmonaria Officinalis
+Quercus Alba
+Bicolor
+Coccinea
+Ellipsoidalis
+Falcata
+Imbricaria
+Lyrata
+Macrocarpa
+Marilandica
+Michauxii
+Muehlenbergii
+Petraea
+Prinus
+Robur
+Stellata
+Velutina
+Ranunculus Acris
+Ficaria
+Flammula
+Repens
+Sceleratus
+Raphanus Raphanistrum
+Sativus
+Rhinanthus Minor
+Rhodiola Rosea
+Rhododendron Catawbiense
+Ferrugineum
+Maximum
+Ponticum
+Rhus Aromatica
+Glabra
+Typhina
+Ribes Alpinum
+Americanum
+Glandulosum
+Nigrum
+Uva Crispa
+Robinia Pseudoacacia
+Rosa Arvensis
+Canina
+Carolina
+Damascena
+Eglanteria
+Gallica
+Rugosa
+Spinosissima
+Rubus Allegheniensis
+Arcticus
+Chamaemorus
+Flagellaris
+Idaeus
+Parviflorus
+Spectabilis
+Ursinus
+Rumex Acetosa
+Acetosella
+Crispus
+Obtusifolius
+Sagittaria Latifolia
+Sagittifolia
+Salix Alba
+Babylonica
+Caprea
+Exigua
+Fragilis
+Interior
+Lucida
+Pentandra
+Viminalis
+Sambucus Canadensis
+Ebulus
+Sanguinaria Canadensis
+Sanguisorba Minor
+Scirpus Lacustris
+Scrophularia Nodosa
+Umbrosa
+Securigera Varia
+Sedum Acre
+Album
+Rosea
+Telephium
+Selaginella Selaginoides
+Senecio Aquaticus
+Jacobaea
+Sylvaticus
+Silene Dioica
+Flos Cuculi
+Nutans
+Uniflora
+Sinapis Arvensis
+Alba
+Sisymbrium Officinale
+Sium Latifolium
+Solanum Dulcamara
+Lycopersicum
+Tuberosum
+Solidago Canadensis
+Virgaurea
+Sorbus Americana
+Aria
+Aucuparia
+Intermedia
+Torminalis
+Sparganium Erectum
+Spartina Alternifolia
+Pectinata
+Spergula Arvensis
+Stachys Betonica
+Byzantina
+Stellaria Graminea
+Holostea
+Media
+Streptopus Amplexifolius
+Succisa Pratensis
+Symphoricarpos Albus
+Orbiculatus
+Symphytum Officinale
+Syringa Vulgaris
+Tanacetum Parthenium
+Taraxacum Officinale
+Taxus Baccata
+Brevifolia
+Thalictrum Aquilegiifolium
+Dioicum
+Flavum
+Thuja Occidentalis
+Plicata
+Thymus Praecox
+Pulegioides
+Serpyllum
+Tilia Americana
+Cordata
+Trifolium Hybridum
+Medium
+Trillium Erectum
+Grandiflorum
+Ovatum
+Tsuga Canadensis
+Heterophylla
+Mertensiana
+Tussilago Farfara
+Typha Angustifolia
+Ulmus Americana
+Pumila
+Thomasii
+Urtica Dioica
+Vaccinium Angustifolium
+Corymbosum
+Macrocarpon
+Myrtillus
+Oxycoccos
+Uliginosum
+Vitis Idaea
+Valeriana Dioica
+Verbascum Nigrum
+Thapsus
+Verbena Hastata
+Veronica Beccabunga
+Chamaedrys
+Serpyllifolia
+Viburnum Acerifolium
+Dentatum
+Lantana
+Lentago
+Opulus
+Prunifolium
+Recognitum
+Vicia Cracca
+Faba
+Sepium
+Vinca Minor
+Viola Arvensis
+Reichenbachiana
+Riviniana
+Tricolor
+Waldsteinia Fragarioides
+Geoides
+Weigela Florida
+Xanthium Strumarium
+Zea Mays
+Zigadenus Elegans
+Venenosus
+Aira Caryophyllea
+Praecox
+Geniculatus
+Myosuroides
+Aristatum
+Apera Spica Venti
+Brachypodium Pinnatum
+Briza Media
+Erectus
+Hordeaceus
+Ramosus
+Calamagrostis Canescens
+Epigejos
+Acutiformis
+Arenaria
+Bigelowii
+Binervis
+Caryophyllea
+Diandra
+Dioica
+Distans
+Elata
+Elongata
+Flava
+Hostiana
+Lachenalii
+Limosa
+Maritima
+Ovalis
+Panicea
+Pilulifera
+Pseudocyperus
+Pulicaris
+Remota
+Riparia
+Rostrata
+Strigosa
+Vesicaria
+Viridula
+Vulpina
+Cynosurus Cristatus
+Danthonia Decumbens
+Digitaria Sanguinalis
+Elymus Caninus
+Declinata
+Notata
+Acutiflorus
+Articulatus
+Compressus
+Conglomeratus
+Gerardii
+Maritimus
+Squarrosus
+Subnodulosus
+Koeleria Macrantha
+Lolium Multiflorum
+Perenne
+Melica Nutans
+Milium Effusum
+Arundinacea
+Phalaris Arundinacea
+Phragmites Australis
+Bulbosa
+Compressa
+Cespitosus
+Fluitans
+Setaria Pumila
+Anglica
+Trisetum Flavescens
+Spicatum
+Bartramiana
+Aronia Arbutifolia
+Melanocarpa
+Chaenomeles Speciosa
+Cotoneaster Horizontalis
+Lacteus
+Chrysocarpa
+Douglasii
+Flabellata
+Succulenta
+Canadense
+Laciniatum
+Rossii
+Floribunda
+Physocarpus Capitatus
+Opulifolius
+Arguta
+Norvegica
+Alleghaniensis
+Angustifolia
+Besseyi
+Mexicana
+Munsoniana
+Acicularis
+Blanda
+Californica
+Nutkana
+Woodsii
+Acaulis
+Hispidus
+Setosus
+Strigosus
+Scopulina
+Spiraea Alba
+Tomentosa
+Arachis Hypogaea
+Cicer
+Danicus
+Caragana Arborescens
+Frutex
+Colutea Arborescens
+Coronilla Emerus
+Varia
+Galega Officinalis
+Aquatica
+Gymnocladus Dioicus
+Hippocrepis Comosa
+Vernus
+Uliginosus
+Minima
+Onobrychis Viciifolia
+Ornithopus Perpusillus
+Lunatus
+Pisum Sativum
+Viscosa
+Montana
+Aureum
+Campestre
+Dubium
+Fragiferum
+Trigonella Foenum Graecum
+Ulex Europaeus
+Hirsuta
+Tenuifolia
+Tetrasperma
+Villosa
+Wisteria Frutescens
+Sinensis
+Zanthoxylum Americanum

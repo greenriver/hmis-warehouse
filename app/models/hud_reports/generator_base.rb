@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -7,7 +7,7 @@
 # frozen_string_literal: true
 
 require 'memery'
-# @see docs/features/hud-report-framework.md
+# @see docs/features/warehouse/hud-report-framework.md
 module HudReports
   class GeneratorBase
     include ArelHelper
@@ -36,6 +36,12 @@ module HudReports
 
     def self.title
       "#{generic_title} - #{fiscal_year}"
+    end
+
+    # The report definition url (e.g. 'hud_reports/aprs') this generator is served under.
+    def self.report_definition_url
+      helper = Rails.application.config.hud_reports.fetch(name).fetch(:helper)
+      Rails.application.routes.url_helpers.public_send(helper).delete_prefix('/')
     end
 
     def self.report_year_slug
@@ -156,6 +162,14 @@ module HudReports
         table_id: table_id,
         report_type: report_type,
       )
+    end
+
+    def self.valid_cell_name(cell_name)
+      ::HudReports::DrilldownContext.valid_cell_name(cell_name)
+    end
+
+    def self.valid_table_name(table_name)
+      ::HudReports::DrilldownContext.valid_table_name(table_name)
     end
 
     def self.allowed_options(_)

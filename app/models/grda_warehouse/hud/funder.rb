@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -11,7 +11,11 @@ module GrdaWarehouse::Hud
     include HudSharedScopes
     include ::HmisStructure::Funder
     include ::HmisStructure::Shared
-    include RailsDrivers::Extensions
+    # Extensions from drivers — see ADR 0007
+    include HmisCsvImporter::GrdaWarehouse::Hud::FunderExtension
+    include HmisCsvTwentyTwenty::GrdaWarehouse::Hud::FunderExtension
+    include HmisCsvTwentyTwentyFour::GrdaWarehouse::Hud::FunderExtension
+    include HmisCsvTwentyTwentySix::GrdaWarehouse::Hud::FunderExtension
 
     attr_accessor :source_id
 
@@ -79,8 +83,8 @@ module GrdaWarehouse::Hud
       "#{self.StartDate} - #{self.EndDate}"
     end
 
-    def self.options_for_select(user:, funder_codes: nil)
-      scope = viewable_by(user)
+    def self.options_for_select(user:, funder_codes: nil, permission: :can_view_projects)
+      scope = viewable_by(user, permission: permission)
       scope = scope.where(Funder: funder_codes) if funder_codes.present?
       scope.distinct.
         order(Funder: :asc).
@@ -93,8 +97,8 @@ module GrdaWarehouse::Hud
         end
     end
 
-    def self.options_for_select_other(user:)
-      viewable_by(user).
+    def self.options_for_select_other(user:, permission: :can_view_projects)
+      viewable_by(user, permission: permission).
         distinct.
         order(OtherFunder: :asc).
         pluck(:OtherFunder).

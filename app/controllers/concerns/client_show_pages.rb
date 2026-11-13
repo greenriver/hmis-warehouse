@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -13,6 +13,7 @@ module ClientShowPages
 
   included do
     include ArelHelper
+    include ClientEnrollmentVisibility
 
     def title_for_show
       @client.pii_provider(user: current_user).full_name
@@ -29,8 +30,8 @@ module ClientShowPages
         '/clients/rollup/assessments',
         '/clients/rollup/verifications',
         '/clients/rollup/assessments_without_data',
+        '/clients/rollup/boston_assessments_with_limited_data',
         '/clients/rollup/case_manager',
-        '/clients/rollup/chronic_days',
         '/clients/rollup/contact_information',
         '/clients/rollup/demographics',
         '/clients/rollup/disabilities',
@@ -38,7 +39,6 @@ module ClientShowPages
         '/clients/rollup/entry_assessments',
         '/clients/rollup/error',
         '/clients/rollup/exit_assessments',
-        '/clients/rollup/family',
         '/clients/rollup/income_benefits',
         '/clients/rollup/ongoing_residential_enrollments',
         '/clients/rollup/other_enrollments',
@@ -107,6 +107,16 @@ module ClientShowPages
       @source_clients ||= @client.source_clients.source_visible_to(current_user, client_ids: @client.source_client_ids).preload(:data_source, :organizations)
     end
     helper_method :source_clients
+
+    def visible_source_assessments
+      @client.source_assessments.where(visible_enrollment_condition)
+    end
+    helper_method :visible_source_assessments
+
+    def visible_hmis_source_custom_assessments
+      @client.hmis_source_custom_assessments.where(visible_enrollment_condition)
+    end
+    helper_method :visible_hmis_source_custom_assessments
 
     def ds_short_name_for(source_client_id)
       js_clients.dig(source_client_id, 2)

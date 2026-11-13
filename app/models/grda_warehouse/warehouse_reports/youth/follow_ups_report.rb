@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -20,6 +20,10 @@ module GrdaWarehouse::WarehouseReports::Youth
     end
 
     def clients
+      @clients ||= load_clients
+    end
+
+    private def load_clients
       ids_for_seen = intake_source.where(engagement_date: @cut_off_date .. @end_date).pluck(:client_id) +
         GrdaWarehouse::Youth::YouthCaseManagement.visible_by?(@current_user).where(engaged_on: @cut_off_date .. @end_date).pluck(:client_id) +
         GrdaWarehouse::Youth::DirectFinancialAssistance.visible_by?(@current_user).where(provided_on: @cut_off_date .. @end_date).pluck(:client_id) +

@@ -1,0 +1,41 @@
+# Standard CE Workflows
+
+## Overview
+This directory contains utilities and workflow definitions for the Standard Referral CE workflow template.
+
+This workflow is intended as an out-of-the-box baseline for QA, staging, demo, and new client onboarding. It can be customized per customer as needed. It includes CE team initial review, provider decision, enrollment, placement confirmation, and decline review.
+
+*Forms* associated with this workflow need to be added to the desired installation's form directory, e.g. `drivers/hmis/lib/form_data/{env}/ce_referral_steps/`. (They cannot be added to the `default` env because they will fail in multi-HMIS installations. See #9035)
+
+See [CE Workflow Builders](../../../../../docs/features/hmis/ce-workflow-builders.md) for general documentation on the CE workflow builder pattern.
+
+### Usage
+These workflows are generated and updated using the `CeWorkflows::Standard::WorkflowBuilder` utility class and the `ce_define_standard_workflows` rake task. See usage comments on the rake task.
+
+### Standard Referral Workflow
+This is a simplified diagram of the standard referral workflow. To see the full generated diagram, run the rake task or Standard WorkflowBuilder.
+
+```mermaid
+flowchart TD
+start_referral(("Start Referral"))
+start_referral--> initial_review
+initial_review("Initial Review"):::yellow_node
+initial_review--> referral_declined
+initial_review--> provider_decision
+referral_declined(("Referral Declined"))
+provider_decision("Provider Decision"):::blue_node
+provider_decision--> review_decline
+provider_decision--> create_enrollment
+review_decline("Review Decline"):::pink_node
+review_decline--> referral_declined
+review_decline--> provider_decision
+create_enrollment("Create Enrollment")
+create_enrollment--> confirm_placement
+confirm_placement("Confirm Placement"):::yellow_node
+confirm_placement--> referral_accepted
+referral_accepted(("Referral Accepted"))
+
+classDef pink_node fill:#ffe6e6,stroke:#ffcccc,stroke-width:2px;
+classDef yellow_node fill:#ffffcc,stroke:#ffeb99,stroke-width:2px;
+classDef blue_node fill:#e6f7ff,stroke:#99d6ff,stroke-width:2px;
+```

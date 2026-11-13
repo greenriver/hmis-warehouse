@@ -1,0 +1,8 @@
+%h1= Translation.translate('You do not have a warehouse account')
+%p= Translation.translate('You signed in successfully, but there is no warehouse account for you yet. Please contact your administrator to request access.')
+-# Without this the page is a dead end: current_user is nil, so the layout drops the site menu that
+-# normally holds Sign Out, and the header offers a Sign In link that goes back to a proxy which
+-# already has a session. Signing out is the only thing left that can help — on a shared computer
+-# it's also the only way to stop the next person inheriting a live IdP session.
+%p
+  = link_to Translation.translate('Sign out'), destroy_user_session_path, method: :delete, class: 'btn btn-primary'

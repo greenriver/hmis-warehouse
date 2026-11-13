@@ -1,17 +1,20 @@
-# frozen_string_literal: true
-
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 module GrdaWarehouse::Hud
   class YouthEducationStatus < Base
     include HudSharedScopes
     include ::HmisStructure::YouthEducationStatus
     include ::HmisStructure::Shared
-    include RailsDrivers::Extensions
+    # Extensions from drivers — see ADR 0007
+    include HmisCsvImporter::GrdaWarehouse::Hud::YouthEducationStatusExtension
+    include HmisCsvTwentyTwentyFour::GrdaWarehouse::Hud::YouthEducationStatusExtension
+    include HmisCsvTwentyTwentySix::GrdaWarehouse::Hud::YouthEducationStatusExtension
 
     attr_accessor :source_id
 

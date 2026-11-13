@@ -1,3 +1,9 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # frozen_string_literal: true
 
 require 'active_support/core_ext/integer/time'
@@ -54,7 +60,7 @@ Rails.application.configure do
   config.cache_store = :null_store if ENV.fetch('DISABLE_RAILS_CACHE', 'false') == 'true'
 
   # Store uploaded files on the local file system (see config/storage.yml for options).
-  config.active_storage.service = ENV.fetch('ACTIVE_STORAGE_SERVICE', 'minio').to_sym
+  config.active_storage.service = ENV.fetch('ACTIVE_STORAGE_SERVICE', 'local_s3').to_sym
 
   if ENV['SMTP_SERVER']
     config.action_mailer.delivery_method = :smtp

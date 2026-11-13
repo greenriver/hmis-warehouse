@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -15,6 +15,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   include ::HmisStructure::Client
   include ::Hmis::Hud::Concerns::Shared
   include ::Hmis::Hud::Concerns::FormSubmittable
+  include ::Hmis::Concerns::Restrictable
   include ::HudConcerns::Client
   include ClientSearch
   # this may be invoked multiple times for the same record as IdentifyDuplicates may also mark clients as dirty
@@ -90,7 +91,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   validates_with Hmis::Hud::Validators::ClientValidator, on: [:client_form, :new_client_enrollment_form]
 
   # Order is: before_save => save => after_create|after_update > after_save
-  after_create :warehouse_identify_duplicate_clients
+  after_commit :warehouse_identify_duplicates_for_new_client, on: :create # using after_commit `on: :create` because Delayed::Job enqueues to a different database.  `after_create` calls are run before the transaction is committed, and could lead to a missing client record.
   after_update :warehouse_match_existing_clients
   before_save :set_source_hash
 
@@ -100,16 +101,17 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   #  2. The Client has NO enrollments AND the User can view clients at _any_ project
   #
   # NOTE: This could include clients that are enrolled at projects that the User can't necessarily see (e.g. they lack can_view_projects at that project).
-  scope :visible_to, ->(user) do
+  # @param client_ids [Array, ActiveRecord::Relation, nil] limit to these clients; nil means no limit
+  scope :visible_to, ->(user, client_ids: nil) do
     # Confirm that user has access to view clients *somewhere* in the current data source.
     # This is not a pure optimization; we need to confirm this before we return unenrolled clients.
     global_policy = user.policy_for(Hmis::Hud::Client, policy_type: :hmis_client)
     return none unless global_policy.can_view?
 
     project_ids = Hmis::Hud::Project.with_access(user, :can_view_clients).pluck(:id)
-    client_ids = union_sql_for_clients_in_projects_or_unenrolled(project_ids: project_ids, data_source_id: user.hmis_data_source_id)
+    union_sql = union_sql_for_clients_in_projects_or_unenrolled(project_ids: project_ids, data_source_id: user.hmis_data_source_id, client_ids: client_ids)
 
-    where(c_t[:id].in(client_ids))
+    where(c_t[:id].in(union_sql))
   end
 
   class << self
@@ -121,9 +123,8 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   # Does not include viewable clients where the user can only see their "own" files (can_manage_own_client_files),
   # which is checked for separately by the File#viewable_by scope.
   scope :files_viewable_by, ->(user) do
-    # optimization: return early if the user has NO access to view clients and files in the current data source
-    global_policy = user.policy_for(Hmis::Hud::Client, policy_type: :hmis_client)
-    return none unless global_policy.can_view? && global_policy.can_view_some_files?
+    # optimization: return early if the user has NO access to view files in the current data source
+    return none unless user.policy_for(Hmis::File, policy_type: :hmis_file).can_index?
 
     project_ids = Hmis::Hud::Project.
       # User must be able to view clients at the project
@@ -140,17 +141,53 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   #   1. Clients enrolled in any of the given projects
   #   2. Unenrolled clients belonging to the given data source
   # Callers must use `c_t[:id].in(result)` rather than `where(id: result)`
-  def self.union_sql_for_clients_in_projects_or_unenrolled(project_ids:, data_source_id:)
+  # client_ids is applied inside each branch; Postgres does not push an outer id filter into the union.
+  def self.union_sql_for_clients_in_projects_or_unenrolled(project_ids:, data_source_id:, client_ids: nil)
     scopes = [
       unenrolled.joins(:data_source).merge(GrdaWarehouse::DataSource.where(id: data_source_id)),
       joins(:projects).where(p_t[:id].in(project_ids)),
     ]
+    scopes = scopes.map { |s| s.where(id: client_ids) } unless client_ids.nil?
     sql = scopes.map { |s| s.select(c_t[:id].to_sql).to_sql }.join(' UNION ALL ')
     Arel.sql(sql)
   end
 
-  scope :searchable_to, ->(user) do
-    visible_to(user)
+  # Restricted clients are omitted from search unless the user can view restricted clients at a project
+  # where the client is or was enrolled. They remain reachable by other means, such as a direct link,
+  # with their PII redacted.
+  # See docs/features/hmis/hmis-restricted-records.md
+  scope :searchable_to, ->(user, client_ids: nil) do
+    permitted_project_ids = user.policy_context.project_ids_with_permissions(:can_view_restricted_clients, mode: :any)
+    rr_t = Hmis::RestrictedRecord.arel_table
+
+    # OFFSET 0 stops the planner from rewriting this EXISTS into a hashed subplan over every
+    # enrollment in the permitted projects; with it the probe runs only for restricted candidates.
+    enrolled_where_permitted = e_t.project(Arel.sql('1')).
+      join(p_t).on(p_t[:id].eq(e_t[:project_pk]).and(p_t[:DateDeleted].eq(nil))).
+      where(p_t[:id].in(permitted_project_ids)).
+      where(e_t[:DateDeleted].eq(nil)).
+      where(e_t[:PersonalID].eq(c_t[:PersonalID]).and(e_t[:data_source_id].eq(c_t[:data_source_id]))).
+      skip(0)
+    hidden = rr_t.project(Arel.sql('1')).
+      where(rr_t[:restrictable_type].eq(Hmis::RestrictedRecord::CLIENT_RESTRICTABLE_TYPE)).
+      where(rr_t[:deleted_at].eq(nil)).
+      where(rr_t[:restrictable_id].eq(c_t[:id])).
+      where(enrolled_where_permitted.exists.not)
+
+    visible_to(user, client_ids: client_ids).where(hidden.exists.not)
+  end
+
+  # Above this many matches, visibility is checked with a subquery instead of an id list.
+  MAX_SEARCH_CANDIDATES = 20_000
+
+  # Clients searchable_to the user that match text. Visibility is checked against the matches only;
+  # building the user's whole searchable set takes seconds for users who can see most clients.
+  def self.searchable_to_matching(user, text)
+    matches = where(data_source_id: user.hmis_data_source_id).text_searcher(text, sorted: false)
+    candidate_ids = matches.limit(MAX_SEARCH_CANDIDATES + 1).pluck(:id)
+    return searchable_to(user).where(id: matches.select(:id)) if candidate_ids.size > MAX_SEARCH_CANDIDATES
+
+    searchable_to(user, client_ids: candidate_ids)
   end
 
   scope :matching_search_term, ->(text_search) do
@@ -263,13 +300,21 @@ class Hmis::Hud::Client < Hmis::Hud::Base
 
   def self.client_search(input:, user: nil, sorted: false)
     # Apply ID searches directly, as they can only ever return a single client
-    return searchable_to(user).where(id: input.id) if input.id.present?
-    return searchable_to(user).where(PersonalID: input.personal_id) if input.personal_id
+    return searchable_to(user, client_ids: [input.id]) if input.id.present?
+
+    if input.personal_id
+      personal_id_matches = where(data_source_id: user.hmis_data_source_id, PersonalID: input.personal_id).select(:id)
+      return searchable_to(user, client_ids: personal_id_matches)
+    end
+
+    if input.text_search.present?
+      scope = Hmis::Hud::Client.where(id: searchable_to_matching(user, input.text_search).select(:id))
+      # early return to preserve sort order, avoids client.where(id: scope.select(:id))
+      return scope.text_searcher(input.text_search, sorted: sorted)
+    end
 
     # Build search scope
     scope = Hmis::Hud::Client.where(id: searchable_to(user).select(:id))
-    # early return to preserve sort order, avoids client.where(id: scope.select(:id))
-    return scope.text_searcher(input.text_search, sorted: sorted) if input.text_search.present?
 
     if input.first_name.present?
       query = c_t[:FirstName].matches("#{input.first_name}%")
@@ -356,7 +401,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   end
 
   def delete_image
-    client_files&.client_photos&.newest_first&.first&.destroy!
+    client_files&.client_photos&.newest_first&.first&.soft_delete!
     @image = nil
   end
 
@@ -395,15 +440,16 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     GrdaWarehouse::Tasks::IdentifyDuplicates.new.delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)).match_existing!
   end
 
+  # Bulk callers (fake enrollment generation, MCI imports, undo-merge) enqueue a full run of identify duplicates.
   def self.warehouse_identify_duplicate_clients
-    return if Delayed::Job.where(failed_at: nil, locked_at: nil).jobs_for_class('GrdaWarehouse::Tasks::IdentifyDuplicates').jobs_for_class('run!').exists?
-
-    GrdaWarehouse::Tasks::IdentifyDuplicates.new.delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)).run!
+    GrdaWarehouse::Tasks::IdentifyDuplicates.enqueue_full_run!
   end
 
-  # Run when we add a new client to the system
-  private def warehouse_identify_duplicate_clients
-    self.class.warehouse_identify_duplicate_clients
+  # After creation of a single client run a more efficient per-client identify duplicates.
+  private def warehouse_identify_duplicates_for_new_client
+    GrdaWarehouse::Tasks::IdentifyDuplicates.new.
+      delay(queue: ENV.fetch('DJ_SHORT_QUEUE_NAME', :short_running)).
+      ensure_source_client_linked!(id)
   end
 
   private def warehouse_columns_changed?
@@ -411,7 +457,9 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     (saved_changes.keys & ['FirstName', 'LastName', 'DOB', 'SSN', 'DateDeleted']).any?
   end
 
-  include RailsDrivers::Extensions
+  # Extensions from drivers — see ADR 0007
+  include ::ClientLocationHistory::Hmis::Hud::ClientExtension
+  include HmisExternalApis::Hmis::Hud::ClientExtension
 
   # The warehouse uses the source hash to determine if the record has changed and to maintain the
   # associated warehouse record for reporting.

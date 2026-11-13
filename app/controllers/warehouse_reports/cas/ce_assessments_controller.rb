@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -20,8 +20,12 @@ module WarehouseReports::Cas
             select(@report.columns).
             order(@report.order)
           @pagy, @clients = pagy(@clients, items: 50)
+          current_user.policy_context.preload_client_dependencies(@clients.map(&:id))
         end
         format.xlsx do
+          # Instantiates every row. The xlsx view iterates this same memoized relation, so this adds
+          # no memory beyond what the view loads and avoids running the report query twice.
+          current_user.policy_context.preload_client_dependencies(@report.clients.map(&:id))
           filename = 'CE Assessments.xlsx'
           headers['Content-Disposition'] = "attachment; filename=#{filename}"
         end

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -9,20 +9,11 @@
 module UserDirectoryReport::DocumentExports
   class CasUserDirectoryExcelExport < ::GrdaWarehouse::DocumentExport
     include ApplicationHelper
-    def authorized?
-      user.can_view_any_reports?
-    end
+    include UserDirectoryReport::DirectoryUsers
 
-    private def _users(user_model)
-      if params[:q].present?
-        users = user_model.in_directory.
-          text_search(params[:q]).
-          order(:last_name, :first_name)
-      else
-        users = user_model.in_directory.
-          order(:last_name, :first_name)
-      end
-      return users
+    def authorized?
+      user.can_view_any_reports? &&
+        GrdaWarehouse::WarehouseReports::ReportDefinition.url_viewable_by?(REPORT_DEFINITION_URL, user)
     end
 
     def perform
@@ -51,7 +42,7 @@ module UserDirectoryReport::DocumentExports
               'Count of Closed Matches',
             ], style: title
           )
-          _users(CasAccess::User).each do |user|
+          directory_users(CasAccess::User).each do |user|
             sheet.add_row(
               [
                 user.name,

@@ -1,10 +1,10 @@
-# frozen_string_literal: true
-
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 require 'rails_helper'
 
@@ -30,10 +30,10 @@ RSpec.shared_context 'FBH sheet shared context' do
     )
   end
 
-  let!(:leasing_service) do
+  def create_leasing_service(enrollment)
     create(
       :hud_service,
-      enrollment: hoh_enrollment,
+      enrollment: enrollment,
       record_type: hopwa_financial_assistance,
       type_provided: 2, # Security deposits
       fa_amount: 500,
@@ -41,6 +41,8 @@ RSpec.shared_context 'FBH sheet shared context' do
       data_source: data_source,
     )
   end
+
+  let!(:leasing_service) { create_leasing_service(hoh_enrollment) }
 
   let!(:income_benefit) do
     create(

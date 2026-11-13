@@ -1,4 +1,12 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # frozen_string_literal: true
+
+return unless AuthMethod.devise?
 
 Doorkeeper.configure do
   # Change the ORM that doorkeeper will use (requires ORM extensions installed).
@@ -10,7 +18,7 @@ Doorkeeper.configure do
     # raise "Please configure doorkeeper resource_owner_authenticator block located in #{__FILE__}"
     # Put your resource owner authentication logic here.
     # Example implementation:
-    #User.find_by(id: session[:user_id]) || redirect_to(new_user_session_url)
+    # User.find_by(id: session[:user_id]) || redirect_to(new_user_session_url)
     current_user || warden.authenticate!(scope: :user)
   end
 

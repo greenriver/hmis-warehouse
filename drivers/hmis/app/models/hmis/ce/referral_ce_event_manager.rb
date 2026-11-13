@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -32,6 +32,7 @@ module Hmis::Ce
         user: Hmis::Hud::User.from_user(message.user),
         ce_referral: referral,
       )
+      referral.reload_ce_event # ensure referral.ce_event is accessible after creation, for cases where event result is set immediately
     end
 
     def set_ce_event_result(message) # rubocop:disable Naming/AccessorMethodName

@@ -4,6 +4,7 @@ on:
     branches:
       - '*'
       - '**/*'
+  workflow_dispatch:
 concurrency:
   group: ${{ github.ref }}-audit
   cancel-in-progress: true
@@ -11,9 +12,10 @@ concurrency:
 jobs:
   # Label of the container job
   audit:
+    if: vars.CI_AUTO_RUN == 'true' || github.event_name == 'workflow_dispatch'
     # Containers must run in Linux based operating systems
     runs-on: ubuntu-24.04
-    container: ruby:3.4.9-slim-bookworm
+    container: ruby:3.4.12-slim-trixie
 
     permissions:
       contents: read
@@ -21,7 +23,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: 'Container Setup'
         id: container-setup

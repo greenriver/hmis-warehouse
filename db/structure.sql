@@ -363,7 +363,9 @@ CREATE TABLE public.activity_logs (
     session_hash character varying,
     referrer text,
     created_at timestamp without time zone,
-    updated_at timestamp without time zone
+    updated_at timestamp without time zone,
+    reporting_path character varying,
+    client_id bigint
 );
 
 
@@ -981,7 +983,9 @@ CREATE TABLE public.hmis_roles (
     can_assign_referral_tasks boolean DEFAULT false,
     can_print_client_case_notes boolean DEFAULT false,
     can_update_unit_availability boolean DEFAULT false,
-    can_view_outgoing_referral_details boolean DEFAULT false
+    can_view_outgoing_referral_details boolean DEFAULT false,
+    can_view_restricted_clients boolean DEFAULT false,
+    can_mark_clients_as_restricted boolean DEFAULT false
 );
 
 
@@ -1002,39 +1006,6 @@ CREATE SEQUENCE public.hmis_roles_id_seq
 --
 
 ALTER SEQUENCE public.hmis_roles_id_seq OWNED BY public.hmis_roles.id;
-
-
---
--- Name: hmis_user_access_controls; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.hmis_user_access_controls (
-    id bigint NOT NULL,
-    access_control_id bigint,
-    user_id bigint,
-    deleted_at timestamp without time zone,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
-);
-
-
---
--- Name: hmis_user_access_controls_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.hmis_user_access_controls_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: hmis_user_access_controls_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.hmis_user_access_controls_id_seq OWNED BY public.hmis_user_access_controls.id;
 
 
 --
@@ -1130,6 +1101,51 @@ CREATE SEQUENCE public.hmis_user_groups_id_seq
 --
 
 ALTER SEQUENCE public.hmis_user_groups_id_seq OWNED BY public.hmis_user_groups.id;
+
+
+--
+-- Name: idp_service_configs; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.idp_service_configs (
+    id bigint NOT NULL,
+    provider character varying NOT NULL,
+    connector_id character varying NOT NULL,
+    name character varying NOT NULL,
+    api_url character varying NOT NULL,
+    encrypted_service_token character varying NOT NULL,
+    encrypted_service_token_iv character varying,
+    client_id character varying,
+    keycloak_realm character varying,
+    okta_org_id character varying,
+    active boolean DEFAULT true NOT NULL,
+    deleted_at timestamp(6) without time zone,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    skip_ssl_verification boolean DEFAULT false NOT NULL,
+    manage_users boolean DEFAULT true NOT NULL,
+    browser_url character varying,
+    account_client_id character varying
+);
+
+
+--
+-- Name: idp_service_configs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.idp_service_configs_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: idp_service_configs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.idp_service_configs_id_seq OWNED BY public.idp_service_configs.id;
 
 
 --
@@ -1559,74 +1575,6 @@ ALTER SEQUENCE public.old_passwords_id_seq OWNED BY public.old_passwords.id;
 
 
 --
--- Name: pghero_query_stats; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.pghero_query_stats (
-    id bigint NOT NULL,
-    database text,
-    "user" text,
-    query text,
-    query_hash bigint,
-    total_time double precision,
-    calls bigint,
-    captured_at timestamp without time zone
-);
-
-
---
--- Name: pghero_query_stats_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.pghero_query_stats_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: pghero_query_stats_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.pghero_query_stats_id_seq OWNED BY public.pghero_query_stats.id;
-
-
---
--- Name: pghero_space_stats; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.pghero_space_stats (
-    id bigint NOT NULL,
-    database text,
-    schema text,
-    relation text,
-    size bigint,
-    captured_at timestamp without time zone
-);
-
-
---
--- Name: pghero_space_stats_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.pghero_space_stats_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: pghero_space_stats_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.pghero_space_stats_id_seq OWNED BY public.pghero_space_stats.id;
-
-
---
 -- Name: puma_scaling_login_demand; Type: VIEW; Schema: public; Owner: -
 --
 
@@ -1900,31 +1848,6 @@ CREATE TABLE public.roles (
     can_use_service_register boolean DEFAULT false,
     can_view_service_register_on_client boolean DEFAULT false,
     can_manage_auto_client_de_duplication boolean DEFAULT false,
-    can_administer_health boolean DEFAULT false,
-    can_edit_client_health boolean DEFAULT false,
-    can_view_client_health boolean DEFAULT false,
-    can_view_aggregate_health boolean DEFAULT false,
-    can_manage_health_agency boolean DEFAULT false,
-    can_approve_patient_assignments boolean DEFAULT false,
-    can_manage_claims boolean DEFAULT false,
-    can_manage_all_patients boolean DEFAULT false,
-    can_manage_patients_for_own_agency boolean DEFAULT false,
-    can_manage_care_coordinators boolean DEFAULT false,
-    can_approve_cha boolean DEFAULT false,
-    can_approve_ssm boolean DEFAULT false,
-    can_approve_release boolean DEFAULT false,
-    can_approve_participation boolean DEFAULT false,
-    can_edit_all_patient_items boolean DEFAULT false,
-    can_edit_patient_items_for_own_agency boolean DEFAULT false,
-    can_create_care_plans_for_own_agency boolean DEFAULT false,
-    can_view_all_patients boolean DEFAULT false,
-    can_view_patients_for_own_agency boolean DEFAULT false,
-    can_add_case_management_notes boolean DEFAULT false,
-    can_manage_accountable_care_organizations boolean DEFAULT false,
-    can_view_member_health_reports boolean DEFAULT false,
-    can_unsubmit_submitted_claims boolean DEFAULT false,
-    can_edit_health_emergency_contact_tracing boolean DEFAULT false,
-    health_role boolean DEFAULT false NOT NULL,
     can_view_all_vprs boolean DEFAULT false,
     can_view_my_vprs boolean DEFAULT false,
     can_search_own_clients boolean DEFAULT false,
@@ -1941,7 +1864,6 @@ CREATE TABLE public.roles (
     can_manage_inactive_cohort_clients boolean DEFAULT false,
     can_view_deleted_cohort_clients boolean DEFAULT false,
     can_view_cohort_client_changes_report boolean DEFAULT false,
-    can_approve_careplan boolean DEFAULT false,
     can_manage_inbound_api_configurations boolean DEFAULT false,
     can_view_client_enrollments_with_roi boolean DEFAULT false,
     can_search_clients_with_roi boolean DEFAULT false,
@@ -1957,7 +1879,9 @@ CREATE TABLE public.roles (
     can_view_project_locations boolean DEFAULT false,
     can_view_supplemental_client_data boolean DEFAULT false,
     can_edit_cohort_columns boolean DEFAULT false,
-    can_receive_cohort_note_notifications boolean DEFAULT false
+    can_receive_cohort_note_notifications boolean DEFAULT false,
+    can_download_lsa_source_data boolean DEFAULT false,
+    can_mark_clients_as_restricted boolean DEFAULT false
 );
 
 
@@ -2306,6 +2230,40 @@ ALTER SEQUENCE public.uploads_id_seq OWNED BY public.uploads.id;
 
 
 --
+-- Name: user_authentication_sources; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.user_authentication_sources (
+    id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    connector_id character varying NOT NULL,
+    connector_user_id character varying NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: user_authentication_sources_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.user_authentication_sources_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: user_authentication_sources_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.user_authentication_sources_id_seq OWNED BY public.user_authentication_sources.id;
+
+
+--
 -- Name: user_group_members; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2475,14 +2433,15 @@ CREATE TABLE public.users (
     exclude_from_directory boolean DEFAULT false,
     exclude_phone_from_directory boolean DEFAULT false,
     notify_on_new_account boolean DEFAULT false NOT NULL,
-    credentials character varying,
     hmis_unique_session_id character varying,
     permission_context character varying DEFAULT 'role_based'::character varying,
     superset_roles jsonb DEFAULT '[]'::jsonb,
     talent_lms_email character varying,
     training_courses jsonb,
     custom_session_invalidator character varying,
-    theme character varying DEFAULT 'legacy'::character varying
+    theme character varying DEFAULT 'legacy'::character varying,
+    last_connector_id character varying,
+    otp_secret character varying
 );
 
 
@@ -2736,13 +2695,6 @@ ALTER TABLE ONLY public.hmis_roles ALTER COLUMN id SET DEFAULT nextval('public.h
 
 
 --
--- Name: hmis_user_access_controls id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hmis_user_access_controls ALTER COLUMN id SET DEFAULT nextval('public.hmis_user_access_controls_id_seq'::regclass);
-
-
---
 -- Name: hmis_user_group_members id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -2754,6 +2706,13 @@ ALTER TABLE ONLY public.hmis_user_group_members ALTER COLUMN id SET DEFAULT next
 --
 
 ALTER TABLE ONLY public.hmis_user_groups ALTER COLUMN id SET DEFAULT nextval('public.hmis_user_groups_id_seq'::regclass);
+
+
+--
+-- Name: idp_service_configs id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.idp_service_configs ALTER COLUMN id SET DEFAULT nextval('public.idp_service_configs_id_seq'::regclass);
 
 
 --
@@ -2838,20 +2797,6 @@ ALTER TABLE ONLY public.oauth_identities ALTER COLUMN id SET DEFAULT nextval('pu
 --
 
 ALTER TABLE ONLY public.old_passwords ALTER COLUMN id SET DEFAULT nextval('public.old_passwords_id_seq'::regclass);
-
-
---
--- Name: pghero_query_stats id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.pghero_query_stats ALTER COLUMN id SET DEFAULT nextval('public.pghero_query_stats_id_seq'::regclass);
-
-
---
--- Name: pghero_space_stats id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.pghero_space_stats ALTER COLUMN id SET DEFAULT nextval('public.pghero_space_stats_id_seq'::regclass);
 
 
 --
@@ -2943,6 +2888,13 @@ ALTER TABLE ONLY public.unique_names ALTER COLUMN id SET DEFAULT nextval('public
 --
 
 ALTER TABLE ONLY public.uploads ALTER COLUMN id SET DEFAULT nextval('public.uploads_id_seq'::regclass);
+
+
+--
+-- Name: user_authentication_sources id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_authentication_sources ALTER COLUMN id SET DEFAULT nextval('public.user_authentication_sources_id_seq'::regclass);
 
 
 --
@@ -3164,14 +3116,6 @@ ALTER TABLE ONLY public.hmis_roles
 
 
 --
--- Name: hmis_user_access_controls hmis_user_access_controls_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hmis_user_access_controls
-    ADD CONSTRAINT hmis_user_access_controls_pkey PRIMARY KEY (id);
-
-
---
 -- Name: hmis_user_group_members hmis_user_group_members_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3185,6 +3129,14 @@ ALTER TABLE ONLY public.hmis_user_group_members
 
 ALTER TABLE ONLY public.hmis_user_groups
     ADD CONSTRAINT hmis_user_groups_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: idp_service_configs idp_service_configs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.idp_service_configs
+    ADD CONSTRAINT idp_service_configs_pkey PRIMARY KEY (id);
 
 
 --
@@ -3281,22 +3233,6 @@ ALTER TABLE ONLY public.oauth_identities
 
 ALTER TABLE ONLY public.old_passwords
     ADD CONSTRAINT old_passwords_pkey PRIMARY KEY (id);
-
-
---
--- Name: pghero_query_stats pghero_query_stats_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.pghero_query_stats
-    ADD CONSTRAINT pghero_query_stats_pkey PRIMARY KEY (id);
-
-
---
--- Name: pghero_space_stats pghero_space_stats_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.pghero_space_stats
-    ADD CONSTRAINT pghero_space_stats_pkey PRIMARY KEY (id);
 
 
 --
@@ -3412,6 +3348,14 @@ ALTER TABLE ONLY public.uploads
 
 
 --
+-- Name: user_authentication_sources user_authentication_sources_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_authentication_sources
+    ADD CONSTRAINT user_authentication_sources_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: user_group_members user_group_members_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3471,6 +3415,13 @@ CREATE INDEX delayed_jobs_priority ON public.delayed_jobs USING btree (priority,
 --
 
 CREATE UNIQUE INDEX idx_oauth_on_provider_and_uid ON public.oauth_identities USING btree (provider, uid);
+
+
+--
+-- Name: idx_on_connector_user_id_connector_id_2c69cda92c; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX idx_on_connector_user_id_connector_id_2c69cda92c ON public.user_authentication_sources USING btree (connector_user_id, connector_id) WHERE (deleted_at IS NULL);
 
 
 --
@@ -3583,6 +3534,13 @@ CREATE INDEX index_activity_logs_on_item_model_and_user_id ON public.activity_lo
 --
 
 CREATE INDEX index_activity_logs_on_item_model_and_user_id_and_created_at ON public.activity_logs USING btree (item_model, user_id, created_at);
+
+
+--
+-- Name: index_activity_logs_on_reporting_path_and_created_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_activity_logs_on_reporting_path_and_created_at ON public.activity_logs USING btree (reporting_path varchar_pattern_ops, created_at);
 
 
 --
@@ -3726,20 +3684,6 @@ CREATE INDEX index_hmis_activity_logs_on_user_id ON public.hmis_activity_logs US
 
 
 --
--- Name: index_hmis_user_access_controls_on_access_control_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_user_access_controls_on_access_control_id ON public.hmis_user_access_controls USING btree (access_control_id);
-
-
---
--- Name: index_hmis_user_access_controls_on_user_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_user_access_controls_on_user_id ON public.hmis_user_access_controls USING btree (user_id);
-
-
---
 -- Name: index_hmis_user_group_members_on_user_group_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3751,6 +3695,13 @@ CREATE INDEX index_hmis_user_group_members_on_user_group_id ON public.hmis_user_
 --
 
 CREATE INDEX index_hmis_user_group_members_on_user_id ON public.hmis_user_group_members USING btree (user_id);
+
+
+--
+-- Name: index_idp_service_configs_on_connector_active_deleted; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_idp_service_configs_on_connector_active_deleted ON public.idp_service_configs USING btree (connector_id, active, deleted_at) WHERE ((active = true) AND (deleted_at IS NULL));
 
 
 --
@@ -3849,20 +3800,6 @@ CREATE UNIQUE INDEX index_oauth_identities_on_user_id_and_provider ON public.oau
 --
 
 CREATE INDEX index_password_archivable ON public.old_passwords USING btree (password_archivable_type, password_archivable_id);
-
-
---
--- Name: index_pghero_query_stats_on_database_and_captured_at; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_pghero_query_stats_on_database_and_captured_at ON public.pghero_query_stats USING btree (database, captured_at);
-
-
---
--- Name: index_pghero_space_stats_on_database_and_captured_at; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_pghero_space_stats_on_database_and_captured_at ON public.pghero_space_stats USING btree (database, captured_at);
 
 
 --
@@ -4003,6 +3940,20 @@ CREATE INDEX index_two_factors_memorized_devices_on_user_id ON public.two_factor
 --
 
 CREATE INDEX index_uploads_on_deleted_at ON public.uploads USING btree (deleted_at);
+
+
+--
+-- Name: index_user_auth_sources_on_user_connector_live; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_user_auth_sources_on_user_connector_live ON public.user_authentication_sources USING btree (user_id, connector_id) WHERE (deleted_at IS NULL);
+
+
+--
+-- Name: index_user_authentication_sources_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_user_authentication_sources_on_user_id ON public.user_authentication_sources USING btree (user_id);
 
 
 --
@@ -4234,10 +4185,31 @@ ALTER TABLE ONLY public.oauth_access_tokens
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261105120000'),
+('20261015120000'),
+('20261014120000'),
+('20260917120000'),
+('20260908120000'),
+('20260827151000'),
+('20260827150000'),
+('20260820120000'),
+('20260805120000'),
+('20260804130000'),
+('20260804120000'),
+('20260803120000'),
+('20260724120000'),
+('20260715120000'),
+('20260623120001'),
+('20260620000000'),
+('20260614130000'),
+('20260611120000'),
+('20260520213800'),
 ('20260207120000'),
 ('20251215205826'),
 ('20251120143000'),
 ('20251106020333'),
+('20251102194520'),
+('20251102033229'),
 ('20251016194806'),
 ('20251001174258'),
 ('20250918155525'),

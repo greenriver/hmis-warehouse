@@ -1,0 +1,26 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+wb = xlsx_package.workbook
+
+wb.add_worksheet name: @cell_name[0..30] do |sheet|
+  title_style = sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
+  summary = [
+    'SPM Report Cell:',
+    @cell_name,
+  ]
+  sheet.add_row(summary, style: title_style)
+  headers = ['Client', 'First Name', 'Last Name'] + @data_cells.map { |cell| cell.to_s.gsub('_', ' ') }
+  sheet.add_row(headers, style: title_style)
+  @detail_clients.each do |client|
+    pii_policy = current_user.reporting_policy_for_client(client: client.hud_client, mode: :download)
+    values = [client.client_id, client.display_value(:first_name, pii_policy: pii_policy), client.display_value(:last_name, pii_policy: pii_policy)] + @data_cells.map do |cell|
+      val = client.send("spm_#{cell}")
+      client.show_cell?(cell, val) ? val : nil
+    end
+    sheet.add_row values
+  end
+end

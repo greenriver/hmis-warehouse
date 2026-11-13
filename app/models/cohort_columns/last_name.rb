@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -27,7 +27,7 @@ module CohortColumns
     end
 
     def value(cohort_client) # OK
-      cohort_client.client.LastName
+      pii_provider(cohort_client).last_name
     end
 
     def display_for(user)

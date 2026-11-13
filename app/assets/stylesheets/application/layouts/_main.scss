@@ -15,15 +15,18 @@
   overflow-x: auto;
 }
 
+// Give back the width the on-canvas menu takes. Must stay in lockstep with the
+// drawer breakpoints in objects/_menu.scss — see $nav-side-on-canvas-* in
+// _settings/_variables.scss.
 .l-content-width-md .l-main__content {
-  @include media-breakpoint-up(lg) {
+  @include media-breakpoint-up($nav-side-on-canvas-md) {
     flex: 0 0 calc(100vw - #{$nav-side-width});
     max-width: calc(100vw - #{$nav-side-width});
   }
 }
 
 .l-content-width-lg .l-main__content {
-  @include media-breakpoint-up(xl) {
+  @include media-breakpoint-up($nav-side-on-canvas-lg) {
     flex: 0 0 calc(100vw - #{$nav-side-width});
     max-width: calc(100vw - #{$nav-side-width});
   }

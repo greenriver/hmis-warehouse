@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -96,7 +96,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   belongs_to :household, **hmis_relation(:HouseholdID, 'Household'), inverse_of: :enrollments, optional: true
 
   # Unit occupancy
-  # All unit occupancies, including historical. @see docs/features/hmis_units.md For detailed documentation on unit occupancy workflows
+  # All unit occupancies, including historical. @see docs/features/hmis/hmis-units.md For detailed documentation on unit occupancy workflows
   has_many :unit_occupancies, class_name: 'Hmis::UnitOccupancy', inverse_of: :enrollment, dependent: :destroy
   has_one :active_unit_occupancy, -> { active }, class_name: 'Hmis::UnitOccupancy', inverse_of: :enrollment, autosave: true
   has_one :current_unit, through: :active_unit_occupancy, class_name: 'Hmis::Unit', source: :unit
@@ -152,12 +152,14 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   }.freeze
 
   # Enrollments that the user has full enrollment details access to (e.g. they can see the full Enrollment Dashboard)
+  # can_view_enrollment_details requires can_view_project and can_view_clients, which with_access resolves.
   scope :enrollment_details_viewable_by, ->(user) do
-    project_ids = Hmis::Hud::Project.with_access(user, :can_view_enrollment_details, :can_view_project, mode: :all).select(:id)
+    project_ids = Hmis::Hud::Project.with_access(user, :can_view_enrollment_details).select(:id)
     where(project_pk: project_ids)
   end
 
   # Enrollments that the user has limited enrollment details access to (e.g. they can see that the Enrollments exist on the Client dashboard)
+  # can_view_limited_enrollment_details requires can_view_clients, which with_access resolves.
   scope :limited_enrollment_details_viewable_by, ->(user) do
     project_ids = Hmis::Hud::Project.with_access(user, :can_view_limited_enrollment_details).select(:id)
     where(project_pk: project_ids)
@@ -185,7 +187,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   scope :files_viewable_by, ->(user) do
     project_ids = Hmis::Hud::Project.
       # Projects where the user can see enrollment details
-      with_access(user, :can_view_enrollment_details, :can_view_project, mode: :all).
+      with_access(user, :can_view_enrollment_details).
       # Projects where the user has one of the listed file perms
       with_access(user, :can_view_any_nonconfidential_client_files, :can_view_any_confidential_client_files, mode: :any).
       select(:id)
@@ -211,9 +213,23 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
       return matching_enrollments if matching_enrollments.exists?
     end
 
-    # If alphanumeric, check if it's a Household ID
+    # If alphanumeric, check if it's a Household ID.
+    # Both sides are already lowercased, so match case-sensitively: LIKE (unlike ILIKE)
+    # can use the lower("HouseholdID") text_pattern_ops index. The alpha_numeric guard
+    # keeps LIKE wildcards (% and _) out of the search term.
     if alpha_numeric
-      household_matches = where(e_t[:household_id].lower.matches("#{search_term.downcase}%")) if search_term.size == Hmis::Hud::Household::TRIMMED_HOUSEHOLD_ID_LENGTH
+      if search_term.size == Hmis::Hud::Household::TRIMMED_HOUSEHOLD_ID_LENGTH
+        household_id_prefix_pattern = "#{search_term.downcase}%"
+        escape_character = nil
+        case_sensitive = true # emits LIKE rather than ILIKE
+        household_matches = where(
+          e_t[:household_id].lower.matches(
+            household_id_prefix_pattern,
+            escape_character,
+            case_sensitive,
+          ),
+        )
+      end
       household_matches = where(e_t[:household_id].lower.eq(search_term.downcase)) unless household_matches&.exists?
       return household_matches if household_matches&.exists?
     end
@@ -588,5 +604,19 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     ]).any?
   end
 
-  include RailsDrivers::Extensions
+  # Columns that change which enrollments make up a household, or the HoH EntryDate that HouseholdSelector ranks by
+  CE_HOUSEHOLD_COLUMNS = ['HouseholdID', 'PersonalID', 'ProjectID', 'EntryDate', 'RelationshipToHoH'].freeze
+
+  # Hmis::MarkClientAsDirtyBehavior hook: this household, plus the previous one if the enrollment moved
+  protected def ce_affected_household_keys
+    # Soft delete writes DateDeleted via update_columns, so it isn't in saved_changes; check deleted? instead.
+    return [] unless deleted? || saved_changes.keys.intersect?(CE_HOUSEHOLD_COLUMNS)
+
+    household_ids = [household_id]
+    household_ids << attribute_before_last_save('HouseholdID') if saved_change_to_attribute?('HouseholdID')
+    household_ids.compact.uniq.map { |id| [data_source_id, id] }
+  end
+
+  # Extensions from drivers — see ADR 0007
+  include HmisExternalApis::Hmis::Hud::EnrollmentExtension
 end

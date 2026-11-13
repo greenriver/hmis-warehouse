@@ -25,10 +25,11 @@
 = render 'warehouse_reports/filters', f:f
 
 = content_for :page_js do
-  :javascript
-    $(function(){
-      $('.jTrigger').on('change', function(e){
-        $('.jDependent :input').val('');
-        $(this).closest('form').submit();
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      $(function(){
+        $('.jTrigger').on('change', function(e){
+          $('.jDependent :input').val('');
+          $(this).closest('form').submit();
+        });
       });
-    });

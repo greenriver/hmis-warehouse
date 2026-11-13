@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -12,8 +12,7 @@ class WarehouseReportsController < ApplicationController
   skip_before_action :report_visible?
   def index
     @per_page_js = ['favorites', 'list_search']
-    report_definitions = current_user.reports.order(name: :asc)
-    report_definitions = report_definitions.select { |r| r.health == false } unless GrdaWarehouse::Config.get(:healthcare_available)
+    report_definitions = GrdaWarehouse::WarehouseReports::ReportDefinition.viewable_by(current_user).order(name: :asc)
     report_definitions = report_definitions.group_by(&:report_group)
     @report_definitions = report_definitions.to_a.sort_by { |group, _| group }
     report_paths = report_definitions.values.flatten.map(&:url)

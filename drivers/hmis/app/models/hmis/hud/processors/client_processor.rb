@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -87,7 +87,7 @@ module Hmis::Hud::Processors
       any_race = client.race_fields.excluding('RaceNone').any?
       race_none = any_race ? nil : client.RaceNone || 99
 
-      any_gender = client.race_fields.excluding('GenderNone').any?
+      any_gender = client.gender_fields.excluding('GenderNone').any?
       gender_none = any_gender ? nil : client.GenderNone || 99
 
       client.assign_attributes({ RaceNone: race_none, GenderNone: gender_none })
@@ -177,6 +177,8 @@ module Hmis::Hud::Processors
       name_attributes.merge(client_attributes)
     end
 
+    # Used by external forms like the PIT. Option codes must match HudHelper age_range keys exactly, or processing raises.
+    # See "Gotchas" in docs/features/hmis/hmis-external-forms.md
     private def process_age_range(value)
       case value
       when *HudHelper.util.age_range.keys

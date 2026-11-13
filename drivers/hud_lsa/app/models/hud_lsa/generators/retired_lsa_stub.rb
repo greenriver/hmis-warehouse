@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -69,7 +69,7 @@ module HudLsa::Generators::RetiredLsaStub
   end
 
   def hic?
-    options&.with_indifferent_access&.dig(:lsa_scope).to_i == HudLsa::Fy2026::Report.available_lsa_scopes['HIC']
+    options&.with_indifferent_access&.dig(:lsa_scope).to_i == HudLsa::Fy2027::Report.available_lsa_scopes['HIC']
   end
 
   def filter

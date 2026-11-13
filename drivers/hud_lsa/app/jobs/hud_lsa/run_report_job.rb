@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -15,7 +15,8 @@ module HudLsa
       # Just set attempts to 2 now so we don't try again
       dj = Delayed::Job.jobs_for_class(job_id)&.first
       dj&.update(attempts: 2)
-      report = HudLsa::LsasController.new.report_class.find(report_id)
+      # Load from the STI base so the report runs the fiscal year it was queued for
+      report = ::HudReports::ReportInstance.find(report_id)
       report.start_report
       report.run!
       report.complete_report

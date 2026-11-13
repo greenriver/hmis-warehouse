@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -12,7 +12,11 @@ module GrdaWarehouse::Hud
     include ::HmisStructure::ProjectCoc
     include ::HmisStructure::Shared
     include ArelHelper
-    include RailsDrivers::Extensions
+    # Extensions from drivers — see ADR 0007
+    include HmisCsvImporter::GrdaWarehouse::Hud::ProjectCocExtension
+    include HmisCsvTwentyTwenty::GrdaWarehouse::Hud::ProjectCocExtension
+    include HmisCsvTwentyTwentyFour::GrdaWarehouse::Hud::ProjectCocExtension
+    include HmisCsvTwentyTwentySix::GrdaWarehouse::Hud::ProjectCocExtension
     require 'csv'
 
     attr_accessor :source_id
@@ -42,6 +46,11 @@ module GrdaWarehouse::Hud
 
     scope :with_coc, -> do
       where.not(CoCCode: nil)
+    end
+
+    scope :unknown_coc, -> do
+      coc = arel_table[:CoCCode]
+      where(coc.eq(nil).or(nf('TRIM', [coc]).eq('')))
     end
 
     scope :in_zip, ->(zip_code:) do
@@ -99,7 +108,7 @@ module GrdaWarehouse::Hud
 
     def self.zip_code_shapes
       joins(<<~SQL)
-        INNER JOIN shape_zip_codes ON ( shape_zip_codes.zcta5ce10 = "ProjectCoC"."Zip" OR shape_zip_codes.zcta5ce10 = "ProjectCoC"."zip_override")
+        INNER JOIN shape_zip_codes ON shape_zip_codes.zcta5ce10 = "ProjectCoC"."Zip"
       SQL
     end
 

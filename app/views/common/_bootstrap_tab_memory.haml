@@ -1,35 +1,36 @@
 = content_for :page_js do
-  :javascript
-    // watch for tab changes and update the URL hash
-    document.querySelectorAll('ul.nav-tabs a[data-bs-toggle="tab"]').forEach(triggerEl => {
-      triggerEl.addEventListener('shown.bs.tab', event => {
-        const href = event.target.getAttribute('href');
-        if (href) {
-          const id = href.substring(1);
-          history.pushState({}, id, href);
-        }
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      // watch for tab changes and update the URL hash
+      document.querySelectorAll('ul.nav-tabs a[data-bs-toggle="tab"]').forEach(triggerEl => {
+        triggerEl.addEventListener('shown.bs.tab', event => {
+          const href = event.target.getAttribute('href');
+          if (href) {
+            const id = href.substring(1);
+            history.pushState({}, id, href);
+          }
+        });
       });
-    });
 
-    let hash = window.location.hash
-    // If an anchor/hash is present, show the tab that matches it
-    if (hash) {
-      const tabEl = document.querySelector('.nav-tabs a[href="' + hash + '"]');
-      if (tabEl) {
-        const tab = new window.bootstrap.Tab(tabEl);
-        tab.show();
-      }
-    } else {
-      // Otherwise, show the first tab that has an anchor/hash
-      $('ul.nav-tabs').each(function() {
-        if ($(this).find('a.nav-link.active').length > 0) {
-          return;
-        }
-
-        let $first_tab = $(this).find('li:first-child a');
-        if($first_tab.length && $first_tab.attr('href').includes('#')) {
-          const tab = window.bootstrap.Tab.getOrCreateInstance($first_tab.get(0));
+      let hash = window.location.hash
+      // If an anchor/hash is present, show the tab that matches it
+      if (hash) {
+        const tabEl = document.querySelector('.nav-tabs a[href="' + hash + '"]');
+        if (tabEl) {
+          const tab = new window.bootstrap.Tab(tabEl);
           tab.show();
         }
-      });
-    }
+      } else {
+        // Otherwise, show the first tab that has an anchor/hash
+        $('ul.nav-tabs').each(function() {
+          if ($(this).find('a.nav-link.active').length > 0) {
+            return;
+          }
+
+          let $first_tab = $(this).find('li:first-child a');
+          if($first_tab.length && $first_tab.attr('href').includes('#')) {
+            const tab = window.bootstrap.Tab.getOrCreateInstance($first_tab.get(0));
+            tab.show();
+          }
+        });
+      }

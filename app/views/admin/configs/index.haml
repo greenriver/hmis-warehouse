@@ -2,7 +2,6 @@
 - content_for :title, title
 
 %h1= content_for :title
-= render :partial => 'menus/admin_tabs'
 = simple_form_for @config, url: admin_configs_path do |f|
   .row
     .col-sm-3
@@ -13,10 +12,12 @@
         = link_to 'TalentLMS', admin_talentlms_path, class: 'nav-item nav-link'
     .col-sm-4
       = render 'schedule'
-      = render 'security', f: f
+      -# Password/lockout/expiration/timeout are Devise settings; the IdP owns them under JWT.
+      = render 'security', f: f if AuthMethod.devise?
       = render 'roi', f: f
       = render 'client_calculations', f: f
       = render 'client_display', f: f
+      = render 'data_retention', f: f
       = render 'system_cohorts', f: f
     .col-sm-4
       = render 'connections', f: f
@@ -26,43 +27,44 @@
 
       = f.submit value: 'Save Site Configuration', class: 'btn btn-primary'
 = content_for :page_js do
-  :javascript
-    // Conditionally show certain input elements
-    const conditionalSelectors = {
-      '.jSyncMethod': [
-        {
-          value: 'active_clients',
-          show: '.jCasSyncMonths',
-        },
-        {
-          value: ['active_clients', 'project_group', 'boston'],
-          show: '.jCasSyncProjectGroup',
-        }
-      ],
-      '.jYouthHohCohort': [
-        {
-          value: true,
-          show: '.jYouthHohProjectGroup',
-        },
-      ],
-      '.jCasCalculator': [
-        {
-          value: 'GrdaWarehouse::CasProjectClientCalculator::Boston',
-          show: '.jCasSyncSelfReportDate',
-        }
-      ]
-    };
-    for (const conditionClass of Object.keys(conditionalSelectors)) {
-      $(conditionClass).on('change', function(e) {
-        const selectors = conditionalSelectors[conditionClass]
-        selectors.forEach(({ value, show }) => {
-          const currentValue = typeof value === 'boolean' ? $(conditionClass).is(":checked") : $(conditionClass).val();
-          if (currentValue == value || (typeof value.includes === "function" && value.includes(currentValue))) {
-            $(show).show();
-          } else {
-            $(show).hide();
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      // Conditionally show certain input elements
+      const conditionalSelectors = {
+        '.jSyncMethod': [
+          {
+            value: 'active_clients',
+            show: '.jCasSyncMonths',
+          },
+          {
+            value: ['active_clients', 'project_group', 'boston'],
+            show: '.jCasSyncProjectGroup',
           }
-        })
-      });
-      $(conditionClass).trigger('change');
-    }
+        ],
+        '.jYouthHohCohort': [
+          {
+            value: true,
+            show: '.jYouthHohProjectGroup',
+          },
+        ],
+        '.jCasCalculator': [
+          {
+            value: 'GrdaWarehouse::CasProjectClientCalculator::Boston',
+            show: '.jCasSyncSelfReportDate',
+          }
+        ]
+      };
+      for (const conditionClass of Object.keys(conditionalSelectors)) {
+        $(conditionClass).on('change', function(e) {
+          const selectors = conditionalSelectors[conditionClass]
+          selectors.forEach(({ value, show }) => {
+            const currentValue = typeof value === 'boolean' ? $(conditionClass).is(":checked") : $(conditionClass).val();
+            if (currentValue == value || (typeof value.includes === "function" && value.includes(currentValue))) {
+              $(show).show();
+            } else {
+              $(show).hide();
+            }
+          })
+        });
+        $(conditionClass).trigger('change');
+      }

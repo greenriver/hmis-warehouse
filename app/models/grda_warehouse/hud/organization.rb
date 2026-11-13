@@ -1,10 +1,10 @@
-# frozen_string_literal: true
-
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 # these are also sometimes called agencies
 module GrdaWarehouse::Hud
@@ -13,7 +13,11 @@ module GrdaWarehouse::Hud
     include HudSharedScopes
     include ::HmisStructure::Organization
     include ::HmisStructure::Shared
-    include RailsDrivers::Extensions
+    # Extensions from drivers — see ADR 0007
+    include HmisCsvImporter::GrdaWarehouse::Hud::OrganizationExtension
+    include HmisCsvTwentyTwenty::GrdaWarehouse::Hud::OrganizationExtension
+    include HmisCsvTwentyTwentyFour::GrdaWarehouse::Hud::OrganizationExtension
+    include HmisCsvTwentyTwentySix::GrdaWarehouse::Hud::OrganizationExtension
 
     attr_accessor :source_id
 
@@ -58,7 +62,9 @@ module GrdaWarehouse::Hud
         # If have a set (not a nil) and it's empty, this user can't access any projects
         return none if ids.is_a?(Set) && ids.empty?
 
-        where(id: ids)
+        # A string predicate, unlike a hash or Arel predicate, is ANDed by a later
+        # `merge` on the same column instead of being replaced by it
+        where(%(#{quoted_table_name}."id" IN (?)), ids.to_a)
       else
         qc = ->(s) { connection.quote_column_name s }
         q  = ->(s) { connection.quote s }
@@ -299,6 +305,10 @@ module GrdaWarehouse::Hud
       select(:OrganizationID, :OrganizationName).distinct.pluck(:OrganizationName, :OrganizationID)
     end
 
+    def policy_class
+      GrdaWarehouse::AuthPolicies::OrganizationPolicy
+    end
+
     def project_names
       projects.order(ProjectName: :asc).pluck(:ProjectName)
     end
@@ -338,11 +348,11 @@ module GrdaWarehouse::Hud
       confidential_organization_ids.include?([organization_id, data_source_id])
     end
 
-    def self.options_for_select(user:, ids: nil)
+    def self.options_for_select(user:, ids: nil, permission: :can_view_projects)
       # don't cache this, it's a class method
       @options = begin
         options = {}
-        scope = viewable_by(user)
+        scope = viewable_by(user, permission: permission)
         scope = scope.where(confidential: false) unless user.can_view_confidential_project_names?
         scope = scope.where(id: ids) if ids.present?
         scope.joins(:data_source).

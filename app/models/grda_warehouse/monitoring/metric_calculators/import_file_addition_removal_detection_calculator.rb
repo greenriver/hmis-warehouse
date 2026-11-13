@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -8,7 +8,7 @@
 
 # Positive: "Added at least X rows from CSV" - alert when added < X (expect minimum additions).
 # Negative: "Removed no more than X rows from CSV" - alert when removed > X (expect limited removals).
-# @see docs/features/import-csv-monitoring.md
+# @see docs/features/warehouse/import-csv-monitoring.md
 module GrdaWarehouse::Monitoring::MetricCalculators
   class ImportFileAdditionRemovalDetectionCalculator
     # @param monitor [GrdaWarehouse::ImportCsvMonitor]

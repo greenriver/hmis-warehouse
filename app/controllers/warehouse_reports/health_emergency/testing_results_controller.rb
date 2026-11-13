@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -41,8 +41,10 @@ module WarehouseReports::HealthEmergency
       respond_to do |format|
         format.html do
           @pagy, @results = pagy(@results)
+          current_user.policy_context.preload_client_dependencies(@results.map(&:client_id))
         end
         format.xlsx do
+          current_user.policy_context.preload_client_dependencies(@results.map(&:client_id))
         end
       end
     end

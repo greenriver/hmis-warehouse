@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -12,9 +12,11 @@ module WarehouseReports
     before_action :set_filter
 
     def index
-      @projects = GrdaWarehouse::Hud::Project.
-        active_during(@filter.range).distinct
-      @projects = @projects.where(id: @filter.effective_project_ids) if @filter.any_effective_project_ids?
+      @projects = @filter.all_project_scope.
+        active_during(@filter.range).
+        distinct
+      # A selection that resolves to no project the user can report on means none, not all
+      @projects = @projects.where(id: @filter.effective_project_ids) if any_project_selection?
       @projects = @projects.with_project_type(@filter.project_type_ids) if @filter.project_type_numbers.any?
       @organizations = GrdaWarehouse::Hud::Organization.joins(:projects).merge(@projects).distinct
       @inventories = GrdaWarehouse::Hud::Inventory.within_range(@filter.range).joins(:project).merge(@projects).distinct
@@ -36,6 +38,16 @@ module WarehouseReports
       @filter.start = Date.new(year - 1, 10, 1) unless filter_params.dig(:filters, :start)
       @filter.end = Date.new(year, 9, 30) unless filter_params.dig(:filters, :end)
       @filter.set_from_params(filter_params[:filters].merge(enforce_one_year_range: false)) if filter_params[:filters].present?
+    end
+
+    private def any_project_selection?
+      [
+        @filter.project_ids,
+        @filter.project_group_ids,
+        @filter.organization_ids,
+        @filter.data_source_ids,
+        @filter.coc_codes,
+      ].any? { |ids| ids.compact_blank.present? }
     end
 
     private def filter_params

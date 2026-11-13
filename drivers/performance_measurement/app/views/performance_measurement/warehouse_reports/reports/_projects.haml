@@ -30,71 +30,72 @@
         = render 'performance_measurement/warehouse_reports/reports/details_row', key: key, result: result, class_name: "jProjectLevelPerformance_#{key}_#{project_id}", show_label_detail: result.percentage?
 
 = content_for :page_js do
-  :javascript
-    $(document).ready(function(){
-      let all_project_data = $('.#{all_projects_class_name}').data('chart');
-      let all_project_height = 35 * all_project_data.columns[0].length * (all_project_data.columns.length - 1);
-      let max = Math.max(...all_project_data.columns[1].slice(1));
-      let include_percent = $('.#{all_projects_class_name}').data('includePercent');
-      all_project_data.labels['format'] = function (v, id, i, texts) {
-        if(v < max * 0.15) {
-          return '';
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      $(document).ready(function(){
+        let all_project_data = $('.#{all_projects_class_name}').data('chart');
+        let all_project_height = 35 * all_project_data.columns[0].length * (all_project_data.columns.length - 1);
+        let max = Math.max(...all_project_data.columns[1].slice(1));
+        let include_percent = $('.#{all_projects_class_name}').data('includePercent');
+        all_project_data.labels['format'] = function (v, id, i, texts) {
+          if(v < max * 0.15) {
+            return '';
+          }
+          if(include_percent) {
+            return d3.format(".0%")(v / 100)
+          } else {
+            return d3.format(',')(v)
+          }
         }
-        if(include_percent) {
-          return d3.format(".0%")(v / 100)
-        } else {
-          return d3.format(',')(v)
-        }
-      }
-      let all_project_chart = bb.generate({
-        data: all_project_data,
-        size: { height: all_project_height },
-        legend: { show: false },
-        bindto: '.#{all_projects_class_name}',
-        legend: {
-          show: false,
-        },
-        axis: {
-          width: 150,
-          rotated: true,
-          y: {
-            max: max,
-            min: 0,
-            padding: {
-              bottom: 0,
-            },
-            outer: false,
-            tick: {
-              rotate: -35,
-              autorotate: true,
-              format: function(x) { return `${d3.format(',d')(x)}${include_percent ? '%' : ''}`},
-            },
+        let all_project_chart = bb.generate({
+          data: all_project_data,
+          size: { height: all_project_height },
+          legend: { show: false },
+          bindto: '.#{all_projects_class_name}',
+          legend: {
+            show: false,
           },
-          x: {
-            type: 'category',
-            outer: false,
-            tick: {
-              rotate: -35,
-              autorotate: true,
-              fit: true,
-              culling: false,
-              width: 300,
+          axis: {
+            width: 150,
+            rotated: true,
+            y: {
+              max: max,
+              min: 0,
+              padding: {
+                bottom: 0,
+              },
+              outer: false,
+              tick: {
+                rotate: -35,
+                autorotate: true,
+                format: function(x) { return `${d3.format(',d')(x)}${include_percent ? '%' : ''}`},
+              },
+            },
+            x: {
+              type: 'category',
+              outer: false,
+              tick: {
+                rotate: -35,
+                autorotate: true,
+                fit: true,
+                culling: false,
+                width: 300,
+              },
             },
           },
-        },
-        grid: {
-          y: {
-            show: true,
+          grid: {
+            y: {
+              show: true,
+            },
           },
-        },
-        bar: {
-          width: 20,
-          padding: 5,
-        },
-        padding: {
-          left: 300,
-          top: 0,
-        },
-      });
+          bar: {
+            width: 20,
+            padding: 5,
+          },
+          padding: {
+            left: 300,
+            top: 0,
+          },
+        });
 
-    });
+      });

@@ -1,16 +1,10 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 # frozen_string_literal: true
-
-###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
-#
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
-###
 
 module TxClientReports::AttachmentThreeReportExports
   class AttachmentThreeReportExcelExport < ::GrdaWarehouse::DocumentExport
@@ -33,14 +27,7 @@ module TxClientReports::AttachmentThreeReportExports
 
     def perform
       with_status_progression do
-        ActionController::Renderer::RACK_KEY_TRANSLATION['warden'] ||= 'warden'
-        warden_proxy = Warden::Proxy.new({}, Warden::Manager.new({})).tap do |i|
-          i.set_user(user, scope: :user, store: false, run_callbacks: false)
-        end
-
-        renderer = controller_class.renderer.new(
-          'warden' => warden_proxy,
-        )
+        renderer = controller_class.renderer.new(WardenProxyFactory.renderer_env(user))
 
         write_tmp_file(
           renderer.render(

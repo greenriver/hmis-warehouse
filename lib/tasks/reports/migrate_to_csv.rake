@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -66,6 +66,8 @@ namespace :reports do
               error_msg = "SimpleReport #{report.class.name} ##{report.id}: #{result[:errors].join(', ')}"
               errors << error_msg
               Rails.logger.error(error_msg)
+              report.update_archival_metadata('purge_failed_at', Time.current.iso8601)
+              report.update_archival_metadata('purge_failure_reason', result[:errors].join(', '))
               Sentry.capture_exception_with_info(
                 StandardError.new(error_msg),
                 "Failed to archive and purge SimpleReport #{report.class.name} ##{report.id}",
@@ -92,6 +94,8 @@ namespace :reports do
             },
           )
           puts "SimpleReport ##{report.id} - Error: #{error_msg}"
+        ensure
+          GC.start # release report objects between iterations to reduce peak memory
         end
 
         puts ''
@@ -168,6 +172,8 @@ namespace :reports do
               error_msg = "HUD Report #{report.report_name} ##{report.id}: #{result[:errors].join(', ')}"
               errors << error_msg
               Rails.logger.error(error_msg)
+              report.update_archival_metadata('purge_failed_at', Time.current.iso8601)
+              report.update_archival_metadata('purge_failure_reason', result[:errors].join(', '))
               Sentry.capture_exception_with_info(
                 StandardError.new(error_msg),
                 "Failed to archive and purge HUD Report #{report.report_name} ##{report.id}",
@@ -194,6 +200,8 @@ namespace :reports do
             },
           )
           puts "HUD Report ##{report.id} - Error: #{error_msg}"
+        ensure
+          GC.start # release report objects between iterations to reduce peak memory
         end
 
         puts ''
@@ -214,8 +222,11 @@ namespace :reports do
     desc 'Archive (if needed) and purge database data for reports where grace period has expired'
     task :archive_and_purge_eligible, [:dry_run] => :environment do |_t, args|
       dry_run = args[:dry_run]
-      Rake::Task['reports:csv:archive_and_purge_simple_reports'].invoke(dry_run)
-      Rake::Task['reports:csv:archive_and_purge_hud_reports'].invoke(dry_run)
+      GrdaWarehouse::Tasks::TaskInstrumentation.call('reports:csv:archive_and_purge_eligible', alert_threshold: 36.hours) do |run|
+        Rake::Task['reports:csv:archive_and_purge_simple_reports'].invoke(dry_run)
+        Rake::Task['reports:csv:archive_and_purge_hud_reports'].invoke(dry_run)
+        run.complete!
+      end
     end
   end
 end

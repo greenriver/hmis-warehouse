@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -28,9 +28,9 @@ module Types
 
       private
 
-      def scoped_funders(scope, sort_order: nil)
+      def scoped_funders(scope, sort_order: :start_date)
         scope = scope.viewable_by(current_user)
-        scope = scope.sort_by_option(sort_order) if sort_order.present?
+        scope = scope.sort_by_option(sort_order)
         scope
       end
     end

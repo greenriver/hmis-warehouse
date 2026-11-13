@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -99,6 +99,16 @@ module EntityAccess
     end
   end
 
+  # Tears down this entity's system collection(s) when it is deleted. Queries by
+  # +source+ (not +system_collection+, which would create one). Errors are logged
+  # and reported, not raised, so teardown never blocks the delete.
+  def remove_system_collections!
+    Collection.system.where(source: self).find_each(&:destroy_with_associated_records!)
+  rescue StandardError => e
+    Rails.logger.error("EntityAccess#remove_system_collections! failed for #{self.class.sti_name}##{id}: #{e.message}")
+    Sentry.capture_exception_with_info(e, info: { source_type: self.class.sti_name, source_id: id })
+  end
+
   ##
   # Finds or creates a "system" +UserGroup+ that grants viewable access
   # to this entity to users through the `viewable_access_control``.
@@ -193,7 +203,7 @@ module EntityAccess
   #   The unique list of users who have the specified type of access.
   #
   def users_with_access(access_type:)
-    collection_ids = group_viewable_entities.where.not(collection_id: nil).pluck(:collection_id)
+    collection_ids = group_viewable_entities.using_acls.pluck(:collection_id)
     return [] unless collection_ids
 
     permissions = case access_type

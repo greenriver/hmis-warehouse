@@ -1,6 +1,0 @@
-<%= ENV['RAILS_ENV'] %>:
-  host: <%= ENV['HEALTH_SFTP_HOST'] %>
-  path: <%= ENV['HEALTH_SFTP_PATH'] %>
-  username: <%= ENV['HEALTH_SFTP_USER'] %>
-  password: <%= ENV['HEALTH_SFTP_PASS'] %>
-  destination: <%= ENV['HEALTH_SFTP_DESTINATION'] %>

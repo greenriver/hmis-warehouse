@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -11,6 +11,7 @@ require 'nokogiri'
 # render and upload static forms
 #
 # currently this needs to be run manually
+# See docs/features/hmis/hmis-external-forms.md for more details.
 class HmisExternalApis::PublishExternalFormsJob
   include SafeInspectable
 

@@ -1,10 +1,10 @@
-# frozen_string_literal: true
-
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 require 'rails_helper'
 require 'shared_contexts/visibility_test_context'
@@ -24,69 +24,76 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
 
   describe 'logged out' do
     it 'doesn\'t allow index' do
-      get clients_path
-      expect(response).to redirect_to(regex_for_warehouse_sign_in)
+      expect_unauthenticated_warehouse_request do
+        get clients_path
+      end
     end
 
     it 'doesn\'t allow search results' do
       query = create(:grda_warehouse_client_search_query)
-      get client_search_query_path(id: query.id)
-      expect(response).to redirect_to(regex_for_warehouse_sign_in)
+      expect_unauthenticated_warehouse_request do
+        get client_search_query_path(id: query.id)
+      end
     end
 
     it 'doesn\'t allow show' do
-      get client_path(window_destination_client)
-      expect(response).to redirect_to(regex_for_warehouse_sign_in)
+      expect_unauthenticated_warehouse_request do
+        get client_path(window_destination_client)
+      end
     end
 
     it 'doesn\'t allow new' do
-      get new_client_path
-      expect(response).to redirect_to(regex_for_warehouse_sign_in)
+      expect_unauthenticated_warehouse_request do
+        get new_client_path
+      end
     end
 
     it 'doesn\'t allow create' do
-      post clients_path
-      expect(response).to redirect_to(regex_for_warehouse_sign_in)
+      expect_unauthenticated_warehouse_request do
+        post clients_path
+      end
     end
 
     it 'doesn\'t allow edit' do
-      get edit_client_path(window_destination_client)
-      expect(response).to redirect_to(regex_for_warehouse_sign_in)
+      expect_unauthenticated_warehouse_request do
+        get edit_client_path(window_destination_client)
+      end
     end
 
     it 'doesn\'t allow service_range' do
-      get service_range_client_path(window_destination_client)
-      expect(response).to redirect_to(regex_for_warehouse_sign_in)
+      expect_unauthenticated_warehouse_request do
+        get service_range_client_path(window_destination_client)
+      end
     end
 
     it 'doesn\'t allow rollup' do
-      get rollup_client_path(window_destination_client, partial: :residential_enrollments)
-      expect(response).to redirect_to(regex_for_warehouse_sign_in)
+      expect_unauthenticated_warehouse_request do
+        get rollup_client_path(window_destination_client, partial: :residential_enrollments)
+      end
     end
 
     it 'doesn\'t allow assessment' do
-      get assessment_client_path(window_destination_client)
-      expect(response).to redirect_to(regex_for_warehouse_sign_in)
+      expect_unauthenticated_warehouse_request do
+        get assessment_client_path(window_destination_client)
+      end
     end
 
     it 'doesn\'t allow image' do
-      get image_client_path(window_destination_client)
-      expect(response).to redirect_to(regex_for_warehouse_sign_in)
-    end
-
-    it 'doesn\'t allow chronic_days' do
-      get chronic_days_client_path(window_destination_client)
-      expect(response).to redirect_to(regex_for_warehouse_sign_in)
+      expect_unauthenticated_warehouse_request do
+        get image_client_path(window_destination_client)
+      end
     end
 
     it 'doesn\'t allow merge' do
-      patch merge_client_path(window_destination_client)
-      expect(response).to redirect_to(regex_for_warehouse_sign_in)
+      expect_unauthenticated_warehouse_request do
+        patch merge_client_path(window_destination_client)
+      end
     end
 
     it 'doesn\'t allow unmerge' do
-      patch unmerge_client_path(window_destination_client)
-      expect(response).to redirect_to(regex_for_warehouse_sign_in)
+      expect_unauthenticated_warehouse_request do
+        patch unmerge_client_path(window_destination_client)
+      end
     end
   end
 
@@ -151,12 +158,6 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
     it 'doesn\'t allow image' do
       sign_in user
       get image_client_path(window_destination_client)
-      expect(response).to redirect_to(user.my_root_path)
-    end
-
-    it 'doesn\'t allow chronic_days' do
-      sign_in user
-      get chronic_days_client_path(window_destination_client, format: :json)
       expect(response).to redirect_to(user.my_root_path)
     end
 
@@ -273,13 +274,6 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
       expect(response).to redirect_to(user.my_root_path)
     end
 
-    it 'doesn\'t allow chronic_days' do
-      sign_in user
-      get chronic_days_client_path(window_destination_client, format: :json)
-      follow_redirect!
-      expect(response.body).to include('Sorry you are not authorized to do that.')
-    end
-
     it 'doesn\'t allow merge' do
       sign_in user
       patch merge_client_path(window_destination_client)
@@ -290,6 +284,14 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
     it 'doesn\'t allow unmerge' do
       sign_in user
       patch unmerge_client_path(window_destination_client)
+      follow_redirect!
+      expect(response.body).to include('Sorry you are not authorized to do that.')
+    end
+
+    it 'redirects instead of erroring when no client page is visible' do
+      sign_in user
+      get appropriate_client_path(window_destination_client)
+      expect(response).to redirect_to(user.my_root_path)
       follow_redirect!
       expect(response.body).to include('Sorry you are not authorized to do that.')
     end
@@ -402,12 +404,6 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
       expect(response).to have_http_status(403)
     end
 
-    it 'allows chronic_days' do
-      sign_in user
-      get chronic_days_client_path(window_destination_client, format: :json)
-      expect(response).to have_http_status(200)
-    end
-
     it 'doesn\'t allow merge' do
       sign_in user
       patch merge_client_path(window_destination_client)
@@ -500,12 +496,6 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
       expect(response).to have_http_status(403)
     end
 
-    it 'allows chronic_days' do
-      sign_in user
-      get chronic_days_client_path(window_destination_client, format: :json)
-      expect(response).to have_http_status(200)
-    end
-
     it 'allow merge' do
       sign_in user
       patch merge_client_path(window_destination_client, grda_warehouse_hud_client: { merge: [''] })
@@ -592,13 +582,6 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
       sign_in user
       get image_client_path(window_destination_client)
       expect(response).to redirect_to(user.my_root_path)
-    end
-
-    it 'doesn\'t allow chronic_days' do
-      sign_in user
-      get chronic_days_client_path(window_destination_client, format: :json)
-      follow_redirect!
-      expect(response.body).to include('Sorry you are not authorized to do that.')
     end
 
     it 'doesn\'t allow merge' do
@@ -719,6 +702,237 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
 
         get image_client_path(window_destination_client)
         expect(response).to have_http_status(403)
+      end
+    end
+
+    context 'client_dashboard config variants' do
+      variants = {
+        default: {
+          dispatcher: 'client_access_control/clients/_default',
+          full_rollup: 'client_access_control/clients/_rollups',
+          limited_rollup: 'client_access_control/clients/_rollups_limited',
+        },
+        va: {
+          dispatcher: 'client_access_control/clients/_va',
+          full_rollup: 'client_access_control/clients/va/_rollups',
+          limited_rollup: 'client_access_control/clients/va/_rollups',
+        },
+        boston: {
+          dispatcher: 'client_access_control/clients/_boston',
+          full_rollup: 'client_access_control/clients/boston/_rollups',
+          limited_rollup: 'client_access_control/clients/boston/_rollups_limited',
+        },
+      }
+
+      variants.each do |variant, templates|
+        context "when client_dashboard config is #{variant}" do
+          before { config.update(client_dashboard: variant) }
+
+          it 'renders the full rollups partial for a user with full dashboard permission' do
+            setup_access_control(user, can_view_clients, Collection.system_collection(:window_data_sources))
+            setup_access_control(user, can_search_own_clients, Collection.system_collection(:window_data_sources))
+            setup_access_control(user, can_view_full_client_dashboard, Collection.system_collection(:window_data_sources))
+            sign_in user
+
+            get client_path(window_destination_client)
+
+            expect(response).to render_template(templates[:dispatcher])
+            expect(response).to render_template(templates[:full_rollup])
+          end
+
+          it 'renders the limited rollups partial for a user with limited dashboard permission' do
+            setup_access_control(user, can_view_clients, Collection.system_collection(:window_data_sources))
+            setup_access_control(user, can_search_own_clients, Collection.system_collection(:window_data_sources))
+            setup_access_control(user, can_view_limited_client_dashboard, Collection.system_collection(:window_data_sources))
+            sign_in user
+
+            get client_path(window_destination_client)
+
+            expect(response).to render_template(templates[:dispatcher])
+            expect(response).to render_template(templates[:limited_rollup])
+          end
+        end
+      end
+    end
+
+    context 'boston assessments_with_limited_data rollup' do
+      let!(:limited_dashboard_role) { create :role, can_view_clients: true, can_view_client_name: true, can_search_own_clients: true, can_view_full_client_dashboard: false, can_view_limited_client_dashboard: true }
+      let!(:full_dashboard_role) { create :role, can_view_clients: true, can_view_client_name: true, can_search_own_clients: true, can_view_full_client_dashboard: true, can_view_limited_client_dashboard: false }
+
+      def build_pathways_assessment(date: Date.current)
+        assessment = create(:hud_assessment, data_source_id: window_visible_data_source.id, PersonalID: window_source_client.PersonalID, EnrollmentID: window_enrollment.EnrollmentID, AssessmentDate: date)
+        GrdaWarehouse::AssessmentAnswerLookup.create!(assessment_question: 'c_housing_assessment_name', response_code: assessment.AssessmentID.to_s, response_text: 'Pathways 2024')
+        create(
+          :hud_assessment_question,
+          data_source_id: window_visible_data_source.id,
+          AssessmentID: assessment.AssessmentID,
+          AssessmentQuestion: 'c_housing_assessment_name',
+          AssessmentAnswer: assessment.AssessmentID.to_s,
+        )
+        assessment
+      end
+
+      let!(:pathways_assessment) { build_pathways_assessment }
+      let!(:non_qualifying_assessment) do
+        create(:hud_assessment, data_source_id: window_visible_data_source.id, PersonalID: window_source_client.PersonalID, EnrollmentID: window_enrollment.EnrollmentID, AssessmentLevel: 2)
+      end
+
+      it 'shows a link to the pathways assessment when config is boston and the user has limited dashboard permission' do
+        config.update(client_dashboard: :boston)
+        setup_access_control(user, limited_dashboard_role, Collection.system_collection(:window_data_sources))
+        sign_in user
+
+        get rollup_client_path(window_destination_client, partial: :boston_assessments_with_limited_data)
+
+        expect(response.body).to include(client_coordinated_entry_hud_assessment_path(window_destination_client, pathways_assessment))
+      end
+
+      it 'shows a row for a non-qualifying assessment without a link to it, alongside the linked pathways assessment' do
+        config.update(client_dashboard: :boston)
+        setup_access_control(user, limited_dashboard_role, Collection.system_collection(:window_data_sources))
+        sign_in user
+
+        get rollup_client_path(window_destination_client, partial: :boston_assessments_with_limited_data)
+
+        expect(response.body).to include(client_coordinated_entry_hud_assessment_path(window_destination_client, pathways_assessment))
+        expect(response.body).to include(non_qualifying_assessment.name)
+        expect(response.body).not_to include(client_coordinated_entry_hud_assessment_path(window_destination_client, non_qualifying_assessment))
+      end
+
+      it 'collapses multiple assessments of the same type, showing the newest by default with a toggle to expand' do
+        older_pathways_assessment = build_pathways_assessment(date: 6.months.ago.to_date)
+        config.update(client_dashboard: :boston)
+        setup_access_control(user, limited_dashboard_role, Collection.system_collection(:window_data_sources))
+        sign_in user
+
+        get rollup_client_path(window_destination_client, partial: :boston_assessments_with_limited_data)
+
+        doc = Nokogiri::HTML(response.body)
+        newer_link = doc.at_css("a[href='#{client_coordinated_entry_hud_assessment_path(window_destination_client, pathways_assessment)}']")
+        older_link = doc.at_css("a[href='#{client_coordinated_entry_hud_assessment_path(window_destination_client, older_pathways_assessment)}']")
+
+        expect(newer_link).to be_present
+        expect(older_link).to be_present
+        expect(newer_link.ancestors('tr').first[:style]).to be_nil
+        expect(older_link.ancestors('tr').first[:style]).to match(/display:\s*none/)
+        expect(doc.css('.jAssessmentTypeToggle')).to be_present
+      end
+
+      it 'does not show a link when config is default, even with limited dashboard permission' do
+        config.update(client_dashboard: :default)
+        setup_access_control(user, limited_dashboard_role, Collection.system_collection(:window_data_sources))
+        sign_in user
+
+        get rollup_client_path(window_destination_client, partial: :boston_assessments_with_limited_data)
+
+        expect(response.body).not_to include(client_coordinated_entry_hud_assessment_path(window_destination_client, pathways_assessment))
+      end
+
+      it 'does not show a link when config is boston but the user has full (not limited) dashboard permission' do
+        config.update(client_dashboard: :boston)
+        setup_access_control(user, full_dashboard_role, Collection.system_collection(:window_data_sources))
+        sign_in user
+
+        get rollup_client_path(window_destination_client, partial: :boston_assessments_with_limited_data)
+
+        expect(response.body).not_to include(client_coordinated_entry_hud_assessment_path(window_destination_client, pathways_assessment))
+      end
+    end
+
+    context 'household member name redaction' do
+      before { window_project.update!(ProjectType: 1, OrganizationID: window_organization.OrganizationID) }
+
+      let!(:household_member_a_destination) { create :grda_warehouse_hud_client, data_source_id: warehouse_data_source.id, FirstName: 'Alpha', LastName: 'Member' }
+      let!(:household_member_a_source) { create :grda_warehouse_hud_client, data_source_id: window_visible_data_source.id }
+      let!(:household_member_a_warehouse_client) do
+        create(
+          :warehouse_client,
+          data_source_id: window_visible_data_source.id,
+          id_in_source: household_member_a_source.PersonalID,
+          source_id: household_member_a_source.id,
+          destination_id: household_member_a_destination.id,
+        )
+      end
+      let!(:household_member_a_enrollment) do
+        create(
+          :grda_warehouse_hud_enrollment,
+          data_source_id: window_visible_data_source.id,
+          PersonalID: household_member_a_source.PersonalID,
+          ProjectID: window_project.ProjectID,
+          EntryDate: 1.month.ago.to_date,
+        )
+      end
+      let!(:household_member_a_service_history_entry) do
+        create(
+          :grda_warehouse_service_history,
+          :service_history_entry,
+          project_id: window_project.ProjectID,
+          organization_id: window_organization.OrganizationID,
+          client_id: household_member_a_destination.id,
+          enrollment_group_id: household_member_a_enrollment.EnrollmentID,
+          first_date_in_program: household_member_a_enrollment.EntryDate,
+          data_source_id: window_visible_data_source.id,
+          household_id: 'shared-household',
+        )
+      end
+
+      let!(:household_member_b_destination) { create :grda_warehouse_hud_client, data_source_id: warehouse_data_source.id, FirstName: 'Bravo', LastName: 'Restricted' }
+      let!(:household_member_b_source) { create :grda_warehouse_hud_client, data_source_id: window_visible_data_source.id }
+      let!(:household_member_b_warehouse_client) do
+        create(
+          :warehouse_client,
+          data_source_id: window_visible_data_source.id,
+          id_in_source: household_member_b_source.PersonalID,
+          source_id: household_member_b_source.id,
+          destination_id: household_member_b_destination.id,
+        )
+      end
+      let!(:household_member_b_enrollment) do
+        create(
+          :grda_warehouse_hud_enrollment,
+          data_source_id: window_visible_data_source.id,
+          PersonalID: household_member_b_source.PersonalID,
+          ProjectID: window_project.ProjectID,
+          EntryDate: 1.month.ago.to_date,
+        )
+      end
+      let!(:household_member_b_service_history_entry) do
+        create(
+          :grda_warehouse_service_history,
+          :service_history_entry,
+          project_id: window_project.ProjectID,
+          organization_id: window_organization.OrganizationID,
+          client_id: household_member_b_destination.id,
+          enrollment_group_id: household_member_b_enrollment.EnrollmentID,
+          first_date_in_program: household_member_b_enrollment.EntryDate,
+          data_source_id: window_visible_data_source.id,
+          household_id: 'shared-household',
+        )
+      end
+
+      before do
+        Hmis::RestrictedRecord.mark!(Hmis::Hud::Client.find(household_member_b_source.id), user: create(:hmis_user, data_source: window_visible_data_source))
+        setup_access_control(user, can_view_clients, Collection.system_collection(:window_data_sources))
+        setup_access_control(user, can_search_own_clients, Collection.system_collection(:window_data_sources))
+        setup_access_control(user, can_view_full_client_dashboard, Collection.system_collection(:window_data_sources))
+        sign_in user
+      end
+
+      def household_names_shown(response_body)
+        Nokogiri::HTML(response_body).css('.client__enrollment--household a').map { |node| node.text.strip }
+      end
+
+      it "shows the real name of a non-restricted household member on a restricted client's dashboard" do
+        get rollup_client_path(household_member_b_destination, partial: :residential_enrollments)
+
+        expect(household_names_shown(response.body).join).to include('Alpha Member')
+      end
+
+      it "redacts the name of a restricted household member on a non-restricted member's dashboard" do
+        get rollup_client_path(household_member_a_destination, partial: :residential_enrollments)
+
+        expect(household_names_shown(response.body).join).to include('Name Redacted')
+        expect(household_names_shown(response.body).join).not_to include('Bravo')
       end
     end
   end

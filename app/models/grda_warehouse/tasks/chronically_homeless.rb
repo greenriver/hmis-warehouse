@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -171,7 +171,8 @@ module GrdaWarehouse::Tasks
     # that is open within the range
     # NOTE, if the non-homeless enrollment is PH, it must also have a move-in date
     def homeless_reset(client_id:)
-      @homeless_reset ||= service_history_enrollments_source.hud_residential_non_homeless.
+      @homeless_reset ||= service_history_enrollments_source.
+        hud_project_type(HudHelper.util.residential_project_type_numbers_by_code.values_at(:ph, :th).flatten).
         open_between(start_date: @date - 3.years, end_date: @date).
         where(
           she_t[:move_in_date].not_eq(nil).and(

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -26,4 +26,3 @@ Rails.application.config.assets.precompile += ['dashboard_pdf.css']
 Rails.application.config.assets.precompile += ['roi_pdf.css']
 Rails.application.config.assets.precompile += ['chart.js']
 Rails.application.config.assets.precompile += ['pdf.js']
-Rails.application.config.assets.precompile += ['theme/styles/*.css']

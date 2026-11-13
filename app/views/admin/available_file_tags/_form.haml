@@ -25,22 +25,23 @@
     = f.submit 'Save', class: 'btn btn-primary'
 
 = content_for :page_js do
-  :javascript
-    $('.jDocumentReady').on('change', function(e){
-      var dependent = $('.jDocumentReadyDependent').closest('.form-group')
-      if($(this).is(':checked')) {
-        dependent.removeClass('hidden');
-      } else {
-        dependent.addClass('hidden');
-      }
-    });
-    $('.jDocumentReady').trigger('change');
-    $('.jConsentForm').on('change', function(e){
-      var dependent = $('.jConsentFormDependent').closest('.form-group')
-      if($(this).is(':checked')) {
-        dependent.removeClass('hidden');
-      } else {
-        dependent.addClass('hidden');
-      }
-    });
-    $('.jConsentForm').trigger('change');
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      $('.jDocumentReady').on('change', function(e){
+        var dependent = $('.jDocumentReadyDependent').closest('.form-group')
+        if($(this).is(':checked')) {
+          dependent.removeClass('hidden');
+        } else {
+          dependent.addClass('hidden');
+        }
+      });
+      $('.jDocumentReady').trigger('change');
+      $('.jConsentForm').on('change', function(e){
+        var dependent = $('.jConsentFormDependent').closest('.form-group')
+        if($(this).is(':checked')) {
+          dependent.removeClass('hidden');
+        } else {
+          dependent.addClass('hidden');
+        }
+      });
+      $('.jConsentForm').trigger('change');

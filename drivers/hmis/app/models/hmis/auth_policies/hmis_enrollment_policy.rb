@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -8,7 +8,18 @@
 
 class Hmis::AuthPolicies::HmisEnrollmentPolicy < Hmis::AuthPolicies::ResourcePolicy
   class Instance < Hmis::AuthPolicies::BasePolicy
-    # TODO: Add policy methods for can_view and can_view_limited and use them in GraphQL queries
+    # Whether the user can view the full enrollment details (grants access to the Enrollment Dashboard).
+    # Note: "can_view_enrollment_details" requires the "can_view_project" and "can_view_clients" permissions
+    # as dependencies, so the user must have all 3 permissions (enforced already by UserContext#project_permissions)
+    def can_view_details?
+      project_permissions.include?(:can_view_enrollment_details)
+    end
+
+    # Whether the user can view limited enrollment details (Entry/Exit date, project name, project type, move-in date, last bed night date).
+    # Note: user can have access to view limited enrollment details even if they cannot view the project.
+    def can_view_limited?
+      project_permissions.include?(:can_view_limited_enrollment_details)
+    end
 
     def can_edit?
       project_permissions.include?(:can_edit_enrollments)
@@ -22,8 +33,31 @@ class Hmis::AuthPolicies::HmisEnrollmentPolicy < Hmis::AuthPolicies::ResourcePol
       project_permissions.include?(:can_delete_enrollments)
     end
 
-    def can_view_details?
-      project_permissions.include?(:can_view_enrollment_details) # can_view_enrollment_details? requires can_view_project?
+    def can_create_file?
+      # User can create a file for this enrollment if they:
+      # - can manage client files in the project, OR
+      # - have the global permission can_manage_own_client_files
+      project_permissions.include?(:can_manage_any_client_files) || global_permissions.include?(:can_manage_own_client_files)
+    end
+
+    def can_split_household?
+      project_permissions.include?(:can_split_households)
+    end
+
+    def can_audit?
+      project_permissions.include?(:can_audit_enrollments)
+    end
+
+    def can_view_location_map?
+      project_permissions.include?(:can_view_enrollment_location_map)
+    end
+
+    # Whether the user can see a summary of all of this client's other open enrollments on the
+    # Enrollment Details card (linked number that opens a modal). Unlike normal enrollment visibility, this
+    # permission intentionally exposes minimal info for open enrollments at any project, even
+    # projects the user cannot otherwise access (via HmisSchema::EnrollmentSummary type).
+    def can_view_open_enrollment_summary?
+      project_permissions.include?(:can_view_open_enrollment_summary)
     end
 
     protected
@@ -44,11 +78,19 @@ class Hmis::AuthPolicies::HmisEnrollmentPolicy < Hmis::AuthPolicies::ResourcePol
 
   class Global < Hmis::AuthPolicies::BasePolicy
     # Whether the user can view some enrollments with full details
+    #
+    # Note: "can_view_enrollment_details" requires the "can_view_project" and "can_view_clients" permissions
+    # as dependencies, so the user must have all 3 at SOME projects (not necessarily the same project).
+    # Enforced by UserContext#global_permissions.
     def can_view?
-      global_permissions.include?(:can_view_enrollment_details) && global_permissions.include?(:can_view_project)
+      global_permissions.include?(:can_view_enrollment_details)
     end
 
     # Whether the user can view some enrollments with limited details
+    #
+    # Note: "can_view_limited_enrollment_details" requires the "can_view_clients" permission as a dependency,
+    # so the user must have both at SOME projects (not necessarily the same project).
+    # Enforced by UserContext#global_permissions.
     def can_view_limited?
       global_permissions.include?(:can_view_limited_enrollment_details)
     end

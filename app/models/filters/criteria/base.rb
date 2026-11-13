@@ -1,3 +1,9 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # frozen_string_literal: true
 
 class Filters::Criteria::Base
@@ -23,6 +29,6 @@ class Filters::Criteria::Base
   end
 
   def viewable_project_scope
-    GrdaWarehouse::Hud::Project.viewable_by(input.user, permission: :can_view_assigned_reports)
+    input.criteria_project_scope
   end
 end

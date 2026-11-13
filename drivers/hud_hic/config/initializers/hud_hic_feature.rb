@@ -1,18 +1,10 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 # frozen_string_literal: true
-
-# The core app (or other drivers) can check the presence of the
-# HudHic driver with the following code snippet
-#
-#   do_something if RailsDrivers.loaded.include(:hud_hic)
-#
-# use with caution!
-RailsDrivers.loaded << :hud_hic
 
 Rails.application.config.hud_reports['HudHic::Generators::Hic::Fy2022::Generator'] = {
   title: 'Housing Inventory Count',

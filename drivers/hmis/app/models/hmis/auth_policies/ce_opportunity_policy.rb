@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -31,5 +31,27 @@ class Hmis::AuthPolicies::CeOpportunityPolicy < Hmis::AuthPolicies::ResourcePoli
 
     def opportunity = resource
     def validate_resource!(arg) = ensure_arg_type!(arg, Hmis::Ce::Opportunity)
+  end
+
+  class Global < Hmis::AuthPolicies::BasePolicy
+    def can_index_opportunities?
+      global_permissions.include?(:can_administrate_coordinated_entry)
+    end
+
+    def can_index_eligible_clients?
+      global_permissions.include?(:can_administrate_coordinated_entry)
+    end
+
+    # Whether the user can bulk void CE clients in the data source.
+    # In addition to having permission, the feature flag must also be enabled.
+    def can_bulk_void_ce_clients?
+      return false unless Hmis::Ce.configuration.bulk_void_enabled?
+
+      global_permissions.include?(:can_administrate_coordinated_entry)
+    end
+
+    protected
+
+    def validate_resource!(arg) = ensure_arg_class!(arg, Hmis::Ce::Opportunity)
   end
 end

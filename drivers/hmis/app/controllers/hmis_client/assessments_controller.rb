@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -9,6 +9,7 @@
 class HmisClient::AssessmentsController < ApplicationController
   include AjaxModalRails::Controller
   include ClientDependentControllers
+  include ClientEnrollmentVisibility
 
   before_action :require_can_view_enrollment_details!
   before_action :client
@@ -21,11 +22,13 @@ class HmisClient::AssessmentsController < ApplicationController
   end
 
   def client
-    @client ||= destination_searchable_client_scope.find(params[:client_id].to_i)
+    @client ||= destination_visible_client_scope.find(params[:client_id].to_i)
   end
 
   def assessment
-    @assessment ||= @client.hmis_source_custom_assessments.preload(:user, :custom_data_elements, enrollment: :project, form_processor: :definition).
+    @assessment ||= @client.hmis_source_custom_assessments.
+      where(visible_enrollment_condition).
+      preload(:user, :custom_data_elements, enrollment: :project, form_processor: :definition).
       find(params[:id].to_i)
   end
 end

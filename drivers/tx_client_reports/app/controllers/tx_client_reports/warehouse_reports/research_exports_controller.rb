@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -38,7 +38,7 @@ module TxClientReports::WarehouseReports
       filename = "Research Export - #{Time.current.to_fs(:db)}.xlsx"
       headers['Content-Disposition'] = "attachment; filename=#{filename}"
       export = report.export
-      send_data(export.content, type: export.content_type, filename: filename)
+      send_data(export.file_data, type: export.content_type, filename: filename)
     end
 
     def create
@@ -72,7 +72,7 @@ module TxClientReports::WarehouseReports
     end
 
     private def report
-      @report ||= report_class.find(params[:id].to_i)
+      @report ||= report_class.viewable_by(current_user).find(params[:id].to_i)
     end
 
     private def report_class

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -8,7 +8,8 @@
 
 class DataQualityReportsController < ApplicationController
   include AjaxModalRails::Controller
-  skip_before_action :authenticate_user!, only: [:show, :answers]
+  include WarehouseReports::PiiDetailRows
+  helper DataQualityReportsHelper
   before_action :require_valid_token_or_report_access!, except: [:index]
   before_action :require_valid_token_or_project_access!
 
@@ -51,6 +52,8 @@ class DataQualityReportsController < ApplicationController
   end
 
   def support
+    not_authorized! unless can_view_dq_drilldowns?
+
     if params[:individual].present?
       @data = @report.support_for(support_params)
 
@@ -66,9 +69,11 @@ class DataQualityReportsController < ApplicationController
       @method = params[:method]
       respond_to do |format|
         format.xlsx do
+          @data[:counts] = redact_support_rows(@data, mode: :download)
           render support_render_path, filename: "support-#{@method}.xlsx"
         end
         format.html do
+          @data[:counts] = redact_support_rows(@data, mode: :browse)
           set_client_path
           # The view is versioned using the model name
           layout = if request.xhr?
@@ -85,6 +90,15 @@ class DataQualityReportsController < ApplicationController
     end
   end
 
+  # Drilldowns list clients, so they require can_view_clients on at least one of the report's projects.
+  helper_method def can_view_dq_drilldowns?
+    return @can_view_dq_drilldowns if defined?(@can_view_dq_drilldowns)
+
+    projects = @report.projects.to_a
+    current_user.policy_context.preload_project_dependencies(projects.map(&:id))
+    @can_view_dq_drilldowns = projects.any? { |project| current_user.policy_for(project).can_view_clients? }
+  end
+
   def describe_computations
     path = "app/views/data_quality_reports/#{@report.model_name.element}/project/README.md"
     description = File.read(path)
@@ -94,8 +108,7 @@ class DataQualityReportsController < ApplicationController
   helper_method :describe_computations
 
   def set_client_path
-    @client_path = [:destination, :window, :source_client]
-    @client_path = [:destination, :source_client] if can_view_clients?
+    @client_path = [:destination, :source_client]
   end
 
   def support_render_path
@@ -120,20 +133,52 @@ class DataQualityReportsController < ApplicationController
   def legacy_support
     @key = params[:key].to_s
     if @key.blank?
-      render json: @report.support
+      head :not_found
     else
       support = @report.support
       @data = support[@key].with_indifferent_access
       respond_to do |format|
         format.xlsx do
+          @data[:counts] = redact_support_rows(@data, mode: :download)
           render xlsx: 'index', filename: "support-#{@key}.xlsx"
         end
         format.html do
+          @data[:counts] = redact_support_rows(@data, mode: :browse)
           render layout: 'ajax_modal_rails/content' if params[:layout].present? && params[:layout] == 'false'
         end
         format.js {}
       end
     end
+  end
+
+  # Redacts each row with the viewer's PII policy for the row's project. Rows with no
+  # project to check get no PII.
+  private def redact_support_rows(data, mode:)
+    headers = data[:headers]
+    project_id_index = headers.find_index('Project ID')
+    rows = data[:counts]
+    project_ids = rows.map { |row| support_row_project_id(row, project_id_index) }
+    context = current_user.policy_context
+    context.preload_client_dependencies(rows.map { |row| row[0] })
+    context.preload_project_dependencies(project_ids.compact.uniq)
+
+    rows.zip(project_ids).map do |row, project_id|
+      if project_id
+        redact_pii_in_row(row, headers: headers, user: current_user, mode: mode, project_id: project_id)
+      else
+        redact_pii_in_row(row, headers: headers, user: current_user, mode: mode, policy: GrdaWarehouse::AuthPolicies::DenyPiiPolicy.instance)
+      end
+    end
+  end
+
+  private def support_row_project_id(row, project_id_index)
+    return fallback_pii_project_id unless project_id_index
+
+    Integer(row[project_id_index], exception: false)
+  end
+
+  private def fallback_pii_project_id
+    @project&.id
   end
 
   def support_params
@@ -177,11 +222,11 @@ class DataQualityReportsController < ApplicationController
     if notification_id.present?
       token = GrdaWarehouse::ReportToken.find_by_token(notification_id)
       raise ActionController::RoutingError, 'Not Found' if token.blank?
-      return true if token.valid?
+      return true if token.valid_for?(report_id: params[:id], user: current_user)
     else
       set_report
       report_viewable = GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: 'warehouse_reports/project/data_quality').viewable_by(current_user).exists?
-      return true if report_viewable
+      return true if report_viewable && (can_view_all_reports? || @report.requestor_id == current_user.id)
 
       not_authorized!
       return
@@ -193,7 +238,7 @@ class DataQualityReportsController < ApplicationController
     if notification_id.present?
       token = GrdaWarehouse::ReportToken.find_by_token(notification_id)
       raise ActionController::RoutingError, 'Not Found' if token.blank?
-      return true if token.valid?
+      return true if token.valid_for?(report_id: params[:id], user: current_user)
     else
       set_project
       project_viewable = project_scope.where(id: @project.id).exists?

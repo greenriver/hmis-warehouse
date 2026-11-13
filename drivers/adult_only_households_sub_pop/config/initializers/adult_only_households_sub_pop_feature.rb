@@ -1,18 +1,11 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 # frozen_string_literal: true
 
-# The core app (or other drivers) can check the presence of the
-# AdultOnlyHouseholdsSubPop driver with the following code snippet
-#
-#   do_something if RailsDrivers.loaded.include(:adult_only_households_sub_pop)
-#
-# use with caution!
-RailsDrivers.loaded << :adult_only_households_sub_pop
 Rails.application.reloader.to_prepare do
   AvailableSubPopulations.add_sub_population(
     'Adult only Households',

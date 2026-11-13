@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -38,18 +38,16 @@ module HudTwentyTwentyTwoToTwentyTwentyFour
         # HudTwentyTwentyTwoToTwentyTwentyFour::Service::Db, # Only adds nils, so processing not required
       }
 
-      if RailsDrivers.loaded.include?(:hmis_csv_importer)
-        classes.merge!(
-          {
-            HudTwentyTwentyTwoToTwentyTwentyFour::AggregatedEnrollment::Db => {
-              enrollment_coc: {
-                model: GrdaWarehouse::Hud::EnrollmentCoc,
-              },
+      classes.merge!(
+        {
+          HudTwentyTwentyTwoToTwentyTwentyFour::AggregatedEnrollment::Db => {
+            enrollment_coc: {
+              model: GrdaWarehouse::Hud::EnrollmentCoc,
             },
-            HudTwentyTwentyTwoToTwentyTwentyFour::AggregatedExit::Db => {},
           },
-        )
-      end
+          HudTwentyTwentyTwoToTwentyTwentyFour::AggregatedExit::Db => {},
+        },
+      )
 
       classes.each do |klass, references|
         puts klass

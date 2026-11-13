@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -12,11 +12,22 @@ require_relative '../../lib/util/git'
 class ApplicationController < ActionController::Base
   self.responder = ApplicationResponder
   respond_to :html, :js, :json, :csv
-  impersonates :user
+
+  # AUTH_METHOD seam: under JWT, current_user / authenticate_user! / true_user / warden are
+  # provided by Idp::JwtCurrentUser (off a validated forwarded JWT); under Devise they come from
+  # the pretender macro + Warden. before_action :authenticate_user! (below) is satisfied either
+  # way.
+  if AuthMethod.jwt?
+    include Idp::JwtCurrentUser
+  else
+    impersonates :user
+    include DeviseCurrentUser
+  end
 
   include ActivityLogger
   include LogRagePayloadBehavior
   include Pagy::Backend
+  include ControllerCacheBehavior
 
   # conditional includes support the migration away from deprecated authorization methods.
   # New controllers should inherit from ApplicationControllerV2 which replaces older auth
@@ -30,6 +41,12 @@ class ApplicationController < ActionController::Base
 
   before_action :authenticate_user!
 
+  # Registered separately from authenticate_user! so `skip_before_action :authenticate_user!` doesn't
+  # take it with it: deactivation bars an account from the app, not just from the routes that require
+  # a user, and under JWT the IdP keeps handing that person a valid token. Both auth strategies
+  # respond to it (the Devise arm no-ops; see DeviseCurrentUser).
+  before_action :reject_deactivated_user!
+
   before_action :set_sentry_user
 
   before_action :set_paper_trail_whodunnit
@@ -40,13 +57,20 @@ class ApplicationController < ActionController::Base
   after_action :log_activity, except: [:poll, :active, :rollup, :image] # , only: [:show, :index, :merge, :unmerge, :edit, :destroy, :create, :new]
 
   helper_method :locale
+  # Both auth strategies respond to enforce_2fa! (Devise enforces; JWT no-ops since the IdP gates
+  # MFA). Registered here, not in an auth concern's `included` block, to preserve filter order: an
+  # `included` block registers at the top of the class body, ahead of authenticate_user! and the
+  # chain above.
   before_action :enforce_2fa!
   before_action :require_compliance_agreement!
   before_action :require_training!
 
   before_action :prepare_exception_notifier
 
+  # Both auth strategies respond to skip_timeout (JWT no-ops); see enforce_2fa! note above re: position.
   prepend_before_action :skip_timeout
+
+  before_action :set_anti_caching_headers, if: :user_signed_in?
 
   # raise NotAuthorizedError which we can rescue from. This stops flow on a failed authorization check
   protected def not_authorized!(message = nil)
@@ -74,11 +98,6 @@ class ApplicationController < ActionController::Base
     @user = User.new
   end
   helper_method :resource
-
-  def devise_mapping
-    @devise_mapping ||= Devise.mappings[:user]
-  end
-  helper_method :devise_mapping
 
   # Send any exceptions on production to slack
   def set_notification
@@ -112,9 +131,20 @@ class ApplicationController < ActionController::Base
 
   private
 
-  # don't extend the user's session if its an ajax request.
-  def skip_timeout
-    request.env['devise.skip_trackable'] = true if request.xhr?
+  # Overrides ActionController::RequestForgeryProtection#valid_per_form_csrf_token?, which
+  # verify_authenticity_token reaches via valid_authenticity_token?.
+  #
+  # A per-form token is minted for the form's action, which carries encoded ids. IdProtector
+  # decodes them in PATH_INFO before routing, so also check the path the browser submitted to.
+  def valid_per_form_csrf_token?(token, session = nil)
+    return true if super
+    return false unless per_form_csrf_tokens
+
+    submitted_path = request.original_fullpath.split('?', 2).first.chomp('/')
+    return false if submitted_path == request.path.chomp('/')
+
+    correct_token = per_form_csrf_token(session, submitted_path, request.request_method)
+    ActiveSupport::SecurityUtils.fixed_length_secure_compare(token, correct_token)
   end
 
   def _basic_auth
@@ -131,14 +161,6 @@ class ApplicationController < ActionController::Base
     payload[:user_id] = current_user&.id
   end
 
-  def info_for_paper_trail
-    {
-      user_id: warden&.user&.id,
-      session_id: session&.id&.to_s,
-      request_id: request.uuid,
-    }
-  end
-
   # Sets whodunnit
   def user_for_paper_trail
     return 'unauthenticated' unless current_user.present?
@@ -151,23 +173,9 @@ class ApplicationController < ActionController::Base
   def colorize(object)
     # make a hash of the object, truncate it to an appropriate size and then turn it into
     # a css friendly hash code
-    format('#%06x', (Zlib.crc32(Marshal.dump(object)) & 0xffffff))
+    format('#%06x', Zlib.crc32(Marshal.dump(object)) & 0xffffff)
   end
   helper_method :colorize
-
-  # the identity authenticated for the current session
-  # @example get the okta user id
-  #   current_user_identity&.uid
-  # @return [OauthIdentity, nil]
-  def current_user_identity
-    return nil unless current_user
-
-    provider = cookies.signed[:active_provider]
-    return nil unless provider
-
-    @current_user_identity ||= OauthIdentity.for_user(current_user).where(provider: provider).first
-  end
-  helper_method :current_user_identity
 
   def sentry_frontend_config
     {
@@ -182,69 +190,21 @@ class ApplicationController < ActionController::Base
 
   protected
 
-  def configure_permitted_parameters
-    devise_parameter_sanitizer.permit(:sign_in, keys: [:otp_attempt, :remember_device, :device_name])
-  end
-
-  # Redirect to window page after signin if you have
-  # no where else to go (and you can see it)
-  def after_sign_in_path_for(resource)
-    # alert users if their password has been compromised
-    set_flash_message! :alert, :warn_pwned if resource.respond_to?(:pwned?) && resource.pwned?
-
-    last_url = session['user_return_to']
-    if last_url.present?
-      last_url
-    else
-      current_user&.my_root_path || root_path
-    end
-  end
-
-  def after_sign_out_path_for(_scope)
-    user = request.env['last_user']
-    if user
-      provider = cookies.signed[:active_provider]
-      if provider
-        # If a provider exists, user is from Okta, due to the complexity of single log-out, we'll
-        # just log you out of okta in this case
-        identity = OauthIdentity.for_user(user).where(provider: provider).first
-        identity&.idp_signout_url(post_logout_redirect_uri: root_url) || root_url
-      else
-        # If no provider exists, attempt to log the user out of superset (if they have access)
-        # this will redirect back to the warehouse
-        superset_logout = "#{Superset.superset_base_url}/logout/?next=#{CGI.escape(root_url)}" if RailsDrivers.loaded.include?(:superset) && Superset.available_to_user?(user)
-        superset_logout || root_url
-      end
-    else
-      root_url
-    end
-  end
-
   def allowed_setup_controllers
-    controller_path.in?(
-      [
-        'users/sessions',
-        'accounts',
-        'account_two_factors',
-        'account_emails',
-        'account_passwords',
-        'user_training',
-        'compliance_agreements',
-        'content_pages',
-      ],
-    ) || controller_path == 'admin/users' && action_name == 'stop_impersonating'
-  end
+    portal_controllers = ['user_training', 'compliance_agreements', 'content_pages']
 
-  # If a user must have Two-factor authentication turned on, only let them go
-  # to their 2FA page and their account page
-  def enforce_2fa!
-    return unless current_user
-    return unless current_user.enforced_2fa?
-    return if current_user.two_factor_enabled?
-    return if allowed_setup_controllers
+    # Without the sessions controllers, a user held in the portal, which links to no other
+    # route, can never sign out. While a password is expired, devise-security redirects every
+    # non-Devise page to devise/password_expired, so blocking that page loops forever.
+    account_controllers = if AuthMethod.jwt?
+      ['idp/sessions', 'idp/accounts', 'idp/account_emails']
+    else
+      ['users/sessions', 'accounts', 'account_two_factors', 'account_emails', 'account_passwords', 'devise/password_expired']
+    end
 
-    flash[:alert] = 'Two factor authentication must be enabled for this account.'
-    redirect_to edit_account_two_factor_path
+    return true if controller_path.in?(portal_controllers + account_controllers)
+
+    controller_path == 'admin/users' && action_name == 'stop_impersonating'
   end
 
   def require_training!
@@ -286,20 +246,10 @@ class ApplicationController < ActionController::Base
   end
   helper_method :health_emergency_test_status
 
-  def healthcare_available?
-    GrdaWarehouse::Config.get(:healthcare_available)
-  end
-  helper_method :healthcare_available?
-
   def ajax_modal_request?
     false
   end
   helper_method :ajax_modal_request?
-
-  def bypass_2fa_enabled?
-    GrdaWarehouse::Config.get(:bypass_2fa_duration)&.positive?
-  end
-  helper_method :bypass_2fa_enabled?
 
   def set_hostname
     @op_hostname ||= begin # rubocop:disable Naming/MemoizedInstanceVariableName
@@ -326,5 +276,11 @@ class ApplicationController < ActionController::Base
   before_action :set_app_user_header
   def set_app_user_header
     response.headers['X-app-user-id'] = current_user&.id
+    # Every response that can extend the IdP session moves the inactivity countdown, not just page loads.
+    # Sent as Server-Timing because the browser's Resource Timing API exposes it for every request type
+    # (fetch, XHR, iframes) without wrapping each client. Rails' ServerTiming middleware appends to it.
+    # Absent on the Devise arm, whose countdown rolls forward from X-app-user-id alone.
+    remaining_secs = inactive_session_countdown_values[:session_remaining_secs_value]
+    response.headers['Server-Timing'] = "app-session-remaining;desc=\"#{remaining_secs}\"" if remaining_secs
   end
 end

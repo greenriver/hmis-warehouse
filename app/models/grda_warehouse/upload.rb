@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -28,16 +28,6 @@ module GrdaWarehouse
 
     scope :completed, -> do
       where(percent_complete: 100)
-    end
-
-    scope :unprocessed_s3_migration, -> do
-      # plucking these seems to be 100x faster than where.not(id: migrated)
-      migrated = ActiveStorage::Attachment.where(record_type: 'GrdaWarehouse::Upload').pluck(:record_id)
-      all = pluck(:id)
-      unmigrated = all - migrated
-      return none if unmigrated.blank?
-
-      where(id: unmigrated)
     end
 
     scope :viewable_by, ->(user) do
@@ -90,21 +80,59 @@ module GrdaWarehouse
       end
     end
 
-    def copy_to_s3!
-      return unless content.present?
-      return unless valid? # Ignore uploads that are already invalid (data source deleted?)
-      return if hmis_zip.attached? # don't re-process
+    # Written by UploadsController#confirm when a user acknowledged a SourceID
+    # HmisCsvImporter::UploadValidityCheck could not match against the data source.
+    # What the check observed is written when the upload is created; the
+    # acknowledgment keys are added by UploadsController#confirm.
+    # Keys: typed_short_name, data_source_source_id, file_source_id,
+    # file_source_name, file_export_start_date, file_export_end_date, check_error,
+    # acknowledged_at, acknowledged_by_user_id.
+    def export_source_acknowledged?
+      export_source_check.present? && export_source_check['acknowledged_at'].present?
+    end
 
-      puts "Migrating #{file} to S3"
+    # The acknowledgment let an unmatched SourceID through, so the Loader's own
+    # comparison was skipped for this import.
+    def source_id_overridden?
+      return false unless export_source_acknowledged?
 
-      Tempfile.create(binmode: true) do |tmp_file|
-        tmp_file.write(content)
-        tmp_file.rewind
-        hmis_zip.attach(io: tmp_file, content_type: content_type, filename: file, identify: false)
+      expected = export_source_check['data_source_source_id']
+      return false if expected.blank?
+
+      observed = export_source_check['file_source_id']
+      if observed.blank?
+        # No SourceID was read here, either because Export.csv carried none or
+        # because the archive could not be opened. Only the first needs an
+        # override; in the second the Loader can still read the file itself
+        # once the import has expanded it, so leave its comparison in place.
+        return export_source_check['check_error'].blank?
       end
+
+      !expected.casecmp(observed).zero?
+    end
+
+    # Went through UploadsController#create's check, was held for acknowledgment, and
+    # was then abandoned. The automated importers build their own Upload records
+    # without a check, so export_source_check is what separates an upload that stopped
+    # at the confirmation screen from one that was never offered it.
+    def awaiting_confirmation?
+      export_source_check.present? &&
+        !export_source_acknowledged? &&
+        delayed_job_id.nil? &&
+        percent_complete.to_f.zero?
+    end
+
+    def export_source_expected_id
+      export_source_check&.dig('data_source_source_id')
+    end
+
+    def export_source_file_id
+      export_source_check&.dig('file_source_id')
     end
 
     # Overrides some methods, so must be included at the end
-    include RailsDrivers::Extensions
+    # Extensions from drivers — see ADR 0007
+    include HmisCsvImporter::GrdaWarehouse::UploadExtension
+    include HmisCsvTwentyTwenty::GrdaWarehouse::UploadExtension
   end
 end

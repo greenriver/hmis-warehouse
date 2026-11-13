@@ -1,3 +1,9 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # frozen_string_literal: true
 
 # Add a bunch a reports
@@ -40,6 +46,7 @@ namespace :reports do
       'Reports::Pit::Fy2017::Base',
       'Reports::Pit::Fy2017::ByProject',
       'Reports::Hic::Fy2017::Base',
+      'Reports::Hic::Fy2019::Base',
       'Reports::DataQuality::Fy2016::Q1',
       'Reports::DataQuality::Fy2016::Q2',
       'Reports::DataQuality::Fy2016::Q3',
@@ -54,6 +61,8 @@ namespace :reports do
       'Reports::DataQuality::Fy2017::Q5',
       'Reports::DataQuality::Fy2017::Q6',
       'Reports::DataQuality::Fy2017::Q7',
+      'Reports::Pit::Fy2018::Base',
+      'Reports::Pit::Fy2018::ByProject',
     ]
     # SPM 2018 should be removed after 10/1/2020 to allow for comparisons
     # If we've never run it, go ahead and remove it.
@@ -81,19 +90,6 @@ namespace :reports do
     ]
     removed += spm_2019 if Date.current > '2021-07-01'.to_date || Rails.env.development? || ! ReportResult.joins(:report).merge(Reports::SystemPerformance::Fy2018::MeasureOne.where(type: spm_2018)).exists?
     Report.where(type: removed).update_all(enabled: false)
-
-    rs = ReportResultsSummaries::Pit::Fy2018.where(name: 'Point in Time Counts - FY 2018').first_or_create
-    rs.update(weight: 0)
-    r = Reports::Pit::Fy2018::Base.where(name: 'PIT - 2018').first_or_create
-    r.update(weight: 1, report_results_summary: rs, enabled: true)
-    r = Reports::Pit::Fy2018::ByProject.where(name: 'PIT By Project - 2018').first_or_create
-    r.update(weight: 2, report_results_summary: rs, enabled: true)
-
-    rs = ReportResultsSummaries::Hic::Fy2019.where(name: 'Housing Inventory Counts - FY 2019').first_or_create
-    rs.update(weight: 0)
-
-    r = Reports::Hic::Fy2019::Base.where(name: 'HIC').first_or_create
-    r.update(weight: 1, report_results_summary: rs, enabled: true)
   end
 
   desc 'Remove all report types'

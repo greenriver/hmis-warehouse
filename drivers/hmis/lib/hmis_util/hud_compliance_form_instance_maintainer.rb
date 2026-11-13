@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -10,7 +10,7 @@ module HmisUtil
   # Encapsulates HUD compliance rules for form system instances. Creates (or in dry run, reports)
   # the system form instances required for record forms and assessments.
   #
-  # @see docs/features/hmis-form-seeding.md
+  # @see docs/features/hmis/hmis-form-seeding.md
   class HudComplianceFormInstanceMaintainer
     include NotifierConfig
 

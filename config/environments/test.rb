@@ -1,3 +1,9 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # frozen_string_literal: true
 
 require 'active_support/core_ext/integer/time'
@@ -18,13 +24,11 @@ Rails.application.configure do
     config.enable_reloading = true
   end
 
-  # Eager loading loads your entire application. When running a single test locally,
-  # this is usually not necessary, and can slow down your test suite. However, it's
-  # recommended that you enable it in continuous integration systems to ensure eager
-  # loading is working properly before deploying your code.
-  # config.eager_load = ENV['CI'].present?
-  # disabling this in an attempt to reduce memory usage in CI
-  config.eager_load = false
+  # Off locally so a single spec boots quickly. CI spec runs set EAGER_LOAD=true so specs
+  # run against the app loaded the way production loads it: load-time errors (bad constants,
+  # class-body failures, zeitwerk naming) and load-order differences (e.g. `.descendants`
+  # registries) fail in CI instead of on deploy. Booting eagerly needs a database.
+  config.eager_load = ENV.fetch('EAGER_LOAD', 'false') == 'true'
 
   config.action_view.cache_template_loading = true
 

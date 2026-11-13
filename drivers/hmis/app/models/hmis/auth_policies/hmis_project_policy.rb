@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -50,11 +50,25 @@ class Hmis::AuthPolicies::HmisProjectPolicy < Hmis::AuthPolicies::ResourcePolicy
       project_permissions.include?(:can_perform_any_referral_tasks) || project_permissions.include?(:can_perform_own_referral_tasks)
     end
 
+    # Whether the user can view full enrollment details at this project.
+    # Note: "can_view_enrollment_details" requires the "can_view_project" and "can_view_clients" permissions
+    # as dependencies, so the user must have all 3 permissions (enforced already by UserContext#project_permissions)
+    def can_view_enrollment_details?
+      project_permissions.include?(:can_view_enrollment_details)
+    end
+
+    # Whether the user can edit enrollments at this project.
+    # Note: "can_edit_enrollments" requires the "can_view_enrollment_details" and "can_view_project" permissions as a dependency,
+    # so the user must have all three (enforced already by UserContext#project_permissions)
+    def can_edit_enrollments?
+      project_permissions.include?(:can_edit_enrollments)
+    end
+
     # Whether the user can create a new Enrollment in the project by submitting the ENROLLMENT form.
     # TODO(#7475) - This should be updated to take permission 'can_enroll_clients' into account,
     # but leaving the legacy behavior in place for now.
     def can_create_enrollments?
-      project_permissions.include?(:can_edit_enrollments)
+      can_edit_enrollments?
     end
 
     # Whether the user can create a new Client and Enrollment in the project by submitting
@@ -71,5 +85,18 @@ class Hmis::AuthPolicies::HmisProjectPolicy < Hmis::AuthPolicies::ResourcePolicy
     end
 
     def validate_resource!(arg) = ensure_arg_type!(arg, Hmis::Hud::Project)
+  end
+
+  class Global < Hmis::AuthPolicies::BasePolicy
+    # Whether the user can manage external form submissions at any project in the data source.
+    # Used to authorize actions that operate across projects and therefore have no single
+    # project to check against, such as re-processing the external submission queue.
+    def can_manage_external_form_submissions?
+      global_permissions.include?(:can_manage_external_form_submissions)
+    end
+
+    protected
+
+    def validate_resource!(arg) = ensure_arg_class!(arg, Hmis::Hud::Project)
   end
 end

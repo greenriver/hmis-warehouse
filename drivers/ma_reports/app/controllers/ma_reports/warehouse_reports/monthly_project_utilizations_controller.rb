@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -55,6 +55,8 @@ module MaReports::WarehouseReports
     def details
       @key = params[:key]
       @sub_key = params[:sub_key]
+      @enrollments = @report.enrollments_for(@key, @sub_key)
+      current_user.policy_context.preload_client_dependencies(@enrollments.map(&:client_id))
     end
 
     def report_class

@@ -1,12 +1,12 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 # frozen_string_literal: true
 
-# @see docs/features/metric-tracking.md
+# @see docs/features/warehouse/metric-tracking.md
 # This metric tracks the smallest household size across all enrollments for a given client.
 # It is calculated as the count of members for each unique [data_source_id, HouseholdID] combination.
 # It is designed to alert on the situation where history has been rewritten or erased

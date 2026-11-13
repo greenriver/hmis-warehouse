@@ -1,17 +1,21 @@
-# frozen_string_literal: true
-
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 module GrdaWarehouse::Hmis
   class Assessment < Base
+    # Columns pending removal in a later deploy; see db/warehouse/migrate/20260804130000_remove_health_only_columns_from_warehouse.rb
+    self.ignored_columns = ['health', 'health_case_note', 'health_has_qualifying_activities'].freeze
+
     dub 'assessments'
     has_paper_trail
 
-    include RailsDrivers::Extensions
+    # Extensions from drivers — see ADR 0007
+    include ClientLocationHistory::GrdaWarehouse::Hmis::AssessmentExtension
 
     belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource', foreign_key: :data_source_id, primary_key: GrdaWarehouse::DataSource.primary_key
 
@@ -34,10 +38,6 @@ module GrdaWarehouse::Hmis
       where(active: true)
     end
 
-    scope :health, -> do
-      where(health: true)
-    end
-
     scope :rrh_assessment, -> do
       where(rrh_assessment: true)
     end
@@ -54,14 +54,6 @@ module GrdaWarehouse::Hmis
       where(ssm: true)
     end
 
-    scope :health_case_note, -> do
-      where(health_case_note: true)
-    end
-
-    scope :health_has_qualifying_activities, -> do
-      where(health_has_qualifying_activities: true)
-    end
-
     scope :hud_assessment, -> do
       where(hud_assessment: true)
     end
@@ -74,18 +66,8 @@ module GrdaWarehouse::Hmis
       where(covid_19_impact_assessment: true)
     end
 
-    scope :health_for_user, ->(user) do
-      if user.can_administer_health?
-        joins(:hmis_forms).merge(GrdaWarehouse::HmisForm.health_touch_points)
-      else
-        none
-      end
-    end
-
     scope :for_user, ->(user) do
-      user_scope = all
-      # remove confidential if you don't have health access
-      user_scope = non_confidential unless user.can_administer_health?
+      user_scope = non_confidential
 
       # limit to the window if you can't edit clients
       user_scope = user_scope.window unless user.can_edit_clients?

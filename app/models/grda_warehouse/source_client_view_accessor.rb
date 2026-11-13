@@ -1,3 +1,9 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # frozen_string_literal: true
 
 # The SourceClientViewAccessor implements view-specific optimizations to prevent N+1 queries
@@ -45,6 +51,8 @@ class GrdaWarehouse::SourceClientViewAccessor
       source_client_ids = GrdaWarehouse::WarehouseClient.where(destination_id: destination_client_ids).pluck(:source_id)
       return if source_client_ids.empty?
 
+      @user.policy_context.preload_client_dependencies(source_client_ids)
+
       source_clients = @block.call(source_client_ids)
       source_clients.each do |client|
         key = client.destination_client&.id
@@ -68,10 +76,10 @@ class GrdaWarehouse::SourceClientViewAccessor
     @user = user
     arbiter = GrdaWarehouse::Hud::Client.arbiter(@user)
     @searchable_cache = Cache.new(user) do |ids|
-      arbiter.clients_source_searchable_to(@user, client_ids: ids).preload(:destination_client, :data_source, :patient)
+      arbiter.clients_source_searchable_to(@user, client_ids: ids).preload(:destination_client, :data_source)
     end
     @viewable_cache = Cache.new(user) do |ids|
-      arbiter.clients_source_visible_to(@user, client_ids: ids).preload(:destination_client, :data_source, :patient)
+      arbiter.clients_source_visible_to(@user, client_ids: ids).preload(:destination_client, :data_source)
     end
   end
 
@@ -106,7 +114,6 @@ class GrdaWarehouse::SourceClientViewAccessor
   #   variations from source records
   def searchable_client_names(client)
     GrdaWarehouse::SourceClientNameSet.new(
-      destination_client: client,
       source_clients: searchable_clients(client),
       user: @user,
     )
@@ -114,7 +121,6 @@ class GrdaWarehouse::SourceClientViewAccessor
 
   def viewable_client_names(client)
     GrdaWarehouse::SourceClientNameSet.new(
-      destination_client: client,
       source_clients: viewable_clients(client),
       user: @user,
     )

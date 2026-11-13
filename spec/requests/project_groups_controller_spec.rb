@@ -1,8 +1,16 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # frozen_string_literal: true
 
 require 'rails_helper'
 
 RSpec.describe ProjectGroupsController, type: :request do
+  include AccessControlSetup
+
   let!(:user) { create(:user) }
   let!(:project_group) { create(:project_group, name: 'Test Group') }
   let!(:project_group_2) { create(:project_group, name: 'Another Group') }
@@ -34,6 +42,12 @@ RSpec.describe ProjectGroupsController, type: :request do
       expect(assigns(:project_groups)).to include(project_group)
       expect(assigns(:project_groups)).not_to include(project_group_2)
     end
+
+    it 'displays notes in the response' do
+      create(:project_group, name: 'Notes Group', notes: 'Visible note text')
+      get project_groups_path
+      expect(response.body).to include('Visible note text')
+    end
   end
 
   describe 'POST #create' do
@@ -42,6 +56,7 @@ RSpec.describe ProjectGroupsController, type: :request do
         {
           filters: { # expectation that we end up with only projects 1 and 3
             name: 'Test Project Group',
+            notes: 'Some notes',
             project_ids: [project1.id, project2.id, project3.id].map(&:to_s),
             organization_ids: [organization1.id].map(&:to_s), # projects 1 and 2
             project_type_numbers: ['1', '2'], # projects 1, 2, and 3
@@ -63,6 +78,7 @@ RSpec.describe ProjectGroupsController, type: :request do
 
         # Test that the basic attributes are saved
         expect(project_group.name).to eq('Test Project Group')
+        expect(project_group.notes).to eq('Some notes')
 
         # Test inclusion criteria are saved in the filter
         expect(project_group.filter.project_ids).to match_array([project1.id, project2.id, project3.id])
@@ -89,6 +105,7 @@ RSpec.describe ProjectGroupsController, type: :request do
         {
           filters: {
             name: 'Updated Project Group', # expectation that we end up with only project 4
+            notes: 'Updated notes',
             project_ids: [project1.id, project4.id].map(&:to_s), # projects 1 and 4
             organization_ids: [organization2.id].map(&:to_s), # projects 3 and 4
             project_type_numbers: ['3'], # project 4
@@ -108,6 +125,7 @@ RSpec.describe ProjectGroupsController, type: :request do
 
         # Test that basic attributes are updated
         expect(project_group.name).to eq('Updated Project Group')
+        expect(project_group.notes).to eq('Updated notes')
 
         # Test inclusion criteria are updated in the filter
         expect(project_group.filter.project_ids).to match_array([project1.id, project4.id])
@@ -122,6 +140,56 @@ RSpec.describe ProjectGroupsController, type: :request do
         expected_project_ids = [project4.id]
         expect(project_group.projects.pluck(:id)).to match_array(expected_project_ids)
       end
+    end
+  end
+
+  describe 'deleting project groups' do
+    it "DELETE #destroy removes the project group's system collection" do
+      collection = project_group.editable_access_control.collection # project groups support editable only
+
+      delete project_group_path(project_group)
+
+      expect(response).to redirect_to(project_groups_path)
+      expect(GrdaWarehouse::ProjectGroup.find_by(id: project_group.id)).to be_nil
+      expect(Collection.find_by(id: collection.id)).to be_nil
+    end
+
+    it "delete_multiple removes each project group's system collection" do
+      collection_1 = project_group.editable_access_control.collection
+      collection_2 = project_group_2.editable_access_control.collection
+
+      post delete_multiple_project_groups_path, params: { selections: { group: [project_group.id.to_s, project_group_2.id.to_s] } }
+
+      expect(response).to redirect_to(project_groups_path)
+      expect(GrdaWarehouse::ProjectGroup.find_by(id: project_group.id)).to be_nil
+      expect(GrdaWarehouse::ProjectGroup.find_by(id: project_group_2.id)).to be_nil
+      expect(Collection.find_by(id: collection_1.id)).to be_nil
+      expect(Collection.find_by(id: collection_2.id)).to be_nil
+    end
+
+    it 'delete_multiple does not delete project groups that were not selected' do
+      selected_collection = project_group.editable_access_control.collection
+      unselected = create(:project_group, name: 'Keep Me')
+      unselected_collection = unselected.editable_access_control.collection
+
+      post delete_multiple_project_groups_path, params: { selections: { group: [project_group.id.to_s] } }
+
+      # selected group is torn down...
+      expect(GrdaWarehouse::ProjectGroup.find_by(id: project_group.id)).to be_nil
+      expect(Collection.find_by(id: selected_collection.id)).to be_nil
+      # ...but an unselected group and its collection survive
+      expect(GrdaWarehouse::ProjectGroup.find_by(id: unselected.id)).to be_present
+      expect(Collection.find_by(id: unselected_collection.id)).to be_present
+    end
+
+    it 'delete_multiple with no selection redirects without deleting anything' do
+      collection = project_group.editable_access_control.collection
+
+      post delete_multiple_project_groups_path
+
+      expect(response).to redirect_to(project_groups_path)
+      expect(GrdaWarehouse::ProjectGroup.find_by(id: project_group.id)).to be_present
+      expect(Collection.find_by(id: collection.id)).to be_present
     end
   end
 
@@ -155,6 +223,39 @@ RSpec.describe ProjectGroupsController, type: :request do
       # Should now have 2 projects (project2 excluded)
       expect(project_group.projects.count).to eq(2)
       expect(project_group.projects.pluck(:id)).to match_array([project1.id, project3.id])
+    end
+  end
+
+  # Regression coverage: this form is a project-management CRUD context (gated
+  # by can_edit_some_project_groups), not a report-queuing context, so its
+  # Organizations/Data Sources dropdowns must be scoped by can_view_projects,
+  # not the can_view_assigned_reports default used by report filter forms.
+  describe 'GET #new for an ACL user with can_view_projects but not can_view_assigned_reports' do
+    let!(:acl_user) { create(:acl_user) }
+    let!(:project_groups_role) { create(:role, can_edit_project_groups: true, can_view_projects: true) }
+    let!(:collection) { create(:collection) }
+
+    before do
+      collection.set_viewables(data_sources: [data_source.id])
+      setup_access_control(acl_user, project_groups_role, collection)
+      sign_in(acl_user)
+    end
+
+    it 'populates the Organizations and Data Sources dropdowns' do
+      get new_project_group_path
+      expect(response).to have_http_status(:ok)
+      doc = Nokogiri::HTML(response.body)
+      expect(doc.at_css('select[name="filters[organization_ids][]"]').css('option')).not_to be_empty
+      expect(doc.at_css('select[name="filters[data_source_ids][]"]').css('option')).not_to be_empty
+    end
+
+    it 'scopes the Projects pickers by can_view_projects' do
+      get new_project_group_path
+      doc = Nokogiri::HTML(response.body)
+      paths = ['project_ids', 'excluded_project_ids'].map do |field|
+        doc.at_css("select[name=\"filters[#{field}][]\"]")['data-collection-path']
+      end
+      expect(paths).to all(include('permission=can_view_projects'))
     end
   end
 end

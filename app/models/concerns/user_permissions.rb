@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -33,13 +33,8 @@ module UserPermissions
         :can_edit_window_client_notes_or_own_window_client_notes,
         :can_view_any_reports,
         :can_view_user_audit_report,
-        :can_view_client_and_history,
-        :can_view_or_edit_client_health,
         :can_view_imports_projects_or_organizations,
         :can_view_some_secure_files,
-        :has_administrative_access_to_health,
-        :has_patient_referral_review_access,
-        :has_some_patient_access,
         :can_access_some_version_of_clients,
         :can_view_some_client_dashboard,
         :has_some_edit_access_to_youth_intakes,
@@ -51,17 +46,16 @@ module UserPermissions
         :can_access_window_search, # TODO: START_ACL remove after ACL migration is complete
         :can_delete_projects_or_data_sources,
         :can_manage_some_ad_hoc_ds,
-        :can_view_some_vprs,
         :can_edit_some_project_groups,
       ].freeze
     end
 
-    def self.can_receive_secure_files?
-      can_view_assigned_secure_uploads || can_view_all_secure_uploads
-    end
+    scope :can_receive_secure_files, -> {
+      can_view_assigned_secure_uploads.or(can_view_all_secure_uploads)
+    }
 
     def can_see_admin_menu
-      can_edit_users? || can_edit_translations? || can_administer_health? || can_manage_config?
+      can_edit_users? || can_edit_translations? || can_manage_config?
     end
 
     # You must have permission to upload, and access to at least one Data Source
@@ -134,7 +128,7 @@ module UserPermissions
     end
 
     def can_view_any_reports
-      can_view_all_reports? || can_view_assigned_reports?
+      can_view_all_reports? || can_view_assigned_reports? || can_view_hud_reports?
     end
 
     def can_view_user_audit_report
@@ -143,14 +137,6 @@ module UserPermissions
 
     def can_manage_an_agency
       can_manage_agency? || can_manage_all_agencies?
-    end
-
-    def can_view_client_and_history
-      can_view_clients? && can_view_client_history_calendar?
-    end
-
-    def can_view_or_edit_client_health
-      can_view_client_health? || can_edit_client_health?
     end
 
     def can_view_imports_projects_or_organizations
@@ -162,19 +148,11 @@ module UserPermissions
     end
 
     def can_view_hud_reports
+      # Once every install has run GrdaWarehouse::Tasks::GrantAllHudReports, collapse
+      # this to `can_view_all_hud_reports?`. Callers (can_view_any_reports and the
+      # legacy branch of ReportDefinition.viewable_by) need no other change.
+      TodoOrDie('Drop can_view_own_hud_reports from can_view_hud_reports', by: Date.new(2027, 1, 15))
       can_view_own_hud_reports? || can_view_all_hud_reports?
-    end
-
-    def has_administrative_access_to_health # rubocop:disable Naming/PredicatePrefix
-      can_administer_health? || can_manage_health_agency? || can_manage_claims? || can_manage_all_patients? || has_patient_referral_review_access?
-    end
-
-    def has_patient_referral_review_access # rubocop:disable Naming/PredicatePrefix
-      can_approve_patient_assignments? || can_manage_patients_for_own_agency?
-    end
-
-    def has_some_patient_access # rubocop:disable Naming/PredicatePrefix
-      can_approve_cha? || can_approve_ssm? || can_approve_participation? || can_approve_release? || can_edit_all_patient_items? || can_edit_patient_items_for_own_agency? || can_view_all_patients? || can_view_patients_for_own_agency?
     end
 
     # High level access to clients in any situation
@@ -214,10 +192,6 @@ module UserPermissions
 
     def can_manage_some_ad_hoc_ds
       can_manage_ad_hoc_data_sources? || can_manage_own_ad_hoc_data_sources?
-    end
-
-    def can_view_some_vprs
-      can_view_all_vprs? || can_view_my_vprs?
     end
 
     def can_edit_some_project_groups

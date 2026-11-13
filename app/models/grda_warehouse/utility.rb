@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -76,6 +76,7 @@ class GrdaWarehouse::Utility
       UserGroup,
       AccessControl,
       User,
+      Idp::ServiceConfig,
       HudReports::ReportCheckpoint,
       HudReports::ReportInstance,
       HudReports::HouseholdContext,
@@ -109,49 +110,39 @@ class GrdaWarehouse::Utility
       Hmis::Hud::CustomDataElementDefinition,
       Hmis::Hud::CustomDataElement,
     ]
-    if RailsDrivers.loaded.include?(:hud_apr)
-      tables << HudApr::Fy2020::AprClient
-      tables << HudApr::Fy2020::AprLivingSituation
-      tables << HudApr::Fy2020::CeAssessment
-      tables << HudApr::Fy2020::CeEvent
-    end
+    tables << HudApr::Fy2020::AprClient
+    tables << HudApr::Fy2020::AprLivingSituation
+    tables << HudApr::Fy2020::CeAssessment
+    tables << HudApr::Fy2020::CeEvent
 
-    tables << HudPathReport::Fy2020::PathClient if RailsDrivers.loaded.include?(:hud_path_report)
-    if RailsDrivers.loaded.include?(:hud_spm_report)
-      tables << HudSpmReport::Fy2020::SpmClient
-      tables << HudSpmReport::Fy2026::SpmEnrollment
-      tables << HudSpmReport::Fy2026::Episode
-      tables << HudSpmReport::Fy2026::BedNight
-      tables << HudSpmReport::Fy2026::EnrollmentLink
-      tables << HudSpmReport::Fy2026::Return
-    end
+    tables << HudPathReport::Fy2020::PathClient
+    tables << HudSpmReport::Fy2020::SpmClient
+    tables << HudSpmReport::Fy2026::SpmEnrollment
+    tables << HudSpmReport::Fy2026::Episode
+    tables << HudSpmReport::Fy2026::BedNight
+    tables << HudSpmReport::Fy2026::EnrollmentLink
+    tables << HudSpmReport::Fy2026::Return
 
-    if RailsDrivers.loaded.include?(:hud_data_quality_report)
-      tables << HudDataQualityReport::Fy2020::DqClient
-      tables << HudDataQualityReport::Fy2020::DqLivingSituation
-    end
+    tables << HudDataQualityReport::Fy2020::DqClient
+    tables << HudDataQualityReport::Fy2020::DqLivingSituation
 
-    if RailsDrivers.loaded.include?(:performance_measurement)
-      tables << PerformanceMeasurement::Report
-      tables << PerformanceMeasurement::Client
-      tables << PerformanceMeasurement::Project
-      tables << PerformanceMeasurement::Goal
-      tables << PerformanceMeasurement::Result
-      tables << PerformanceMeasurement::StaticSpm
-      tables << PerformanceMeasurement::PitCount
-      tables << PerformanceMeasurement::ClientProject
-    end
+    tables << PerformanceMeasurement::Report
+    tables << PerformanceMeasurement::Client
+    tables << PerformanceMeasurement::Project
+    tables << PerformanceMeasurement::Goal
+    tables << PerformanceMeasurement::Result
+    tables << PerformanceMeasurement::StaticSpm
+    tables << PerformanceMeasurement::PitCount
+    tables << PerformanceMeasurement::ClientProject
 
-    tables << CustomImportsBostonService::Row if RailsDrivers.loaded.include?(:custom_imports_boston_services)
+    tables << CustomImportsBostonService::Row
 
-    if RailsDrivers.loaded.include?(:cas_ce_data)
-      tables << CasCeData::GrdaWarehouse::CasReferralEvent
-      tables << CasCeData::Synthetic::Assessment
-    end
+    tables << CasCeData::GrdaWarehouse::CasReferralEvent
+    tables << CasCeData::Synthetic::Assessment
 
-    tables << SyntheticCeAssessment::ProjectConfig if RailsDrivers.loaded.include?(:synthetic_ce_assessment)
+    tables << SyntheticCeAssessment::ProjectConfig
 
-    HmisCsvImporter::Utility.clear! if RailsDrivers.loaded.include?(:hmis_csv_importer)
+    HmisCsvImporter::Utility.clear!
 
     # Remove reports after associated clients
     tables << HudReports::ReportInstance

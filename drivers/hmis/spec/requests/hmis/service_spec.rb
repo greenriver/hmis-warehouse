@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -60,6 +60,16 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     expect(service['serviceType']['id']).to eq(cst1.id.to_s)
     expect(service['serviceType']['name']).to eq(cst1.name)
     expect(service['serviceType']['hud']).to eq(false)
+  end
+
+  it 'returns nil for a service at a project the user cannot view' do
+    p2 = create :hmis_hud_project, data_source: ds1, organization: o1
+    e2 = create :hmis_hud_enrollment, data_source: ds1, client: c1, project: p2
+    hidden = Hmis::Hud::HmisService.find_by(owner: create(:hmis_hud_service, data_source: ds1, client: c1, enrollment: e2))
+
+    response, result = post_graphql(id: hidden.id) { query }
+    expect(response.status).to eq(200), result.inspect
+    expect(result.dig('data', 'service')).to be_nil
   end
 end
 

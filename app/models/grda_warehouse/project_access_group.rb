@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -8,7 +8,8 @@
 
 # Contrary to rails convention, this does not use STI
 
-# Used to provide access to the projects within a project group
+# Used to provide access to the projects within a project group. Granting the same row as a
+# ProjectGroup only lets the user pick the group in reports, see ProjectGroup
 module GrdaWarehouse
   class ProjectAccessGroup < ProjectGroup
     self.table_name = :project_groups

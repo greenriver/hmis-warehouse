@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -26,7 +26,7 @@ module Types
       end
 
       def scoped_arguments(scope)
-        scope.viewable_by(current_user)
+        scope.viewable_by(current_user).order(date_updated: :desc, id: :desc)
       end
     end
   end

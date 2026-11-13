@@ -1,3 +1,9 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # frozen_string_literal: true
 
 module Hmis::Ce::Match::Expression
@@ -55,6 +61,10 @@ module Hmis::Ce::Match::Expression
     def arel_field(_field)
       # CDE fields are resolved via queries, not direct arel fields
       nil
+    end
+
+    def self.field_key_for(entity_type, cde_key)
+      "#{FieldMap::CDE}.#{entity_type}.#{cde_key}"
     end
 
     def cdeds_for(fields)

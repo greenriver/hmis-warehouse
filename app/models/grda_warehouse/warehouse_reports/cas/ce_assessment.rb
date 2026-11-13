@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -62,6 +62,7 @@ class GrdaWarehouse::WarehouseReports::Cas::CeAssessment < OpenStruct
   def columns
     [
       c_t[:id],
+      c_t[:data_source_id], # needed by Client#pii_provider/#policy_for, via Client#destination?
       c_t[:FirstName],
       c_t[:LastName],
       c_t[:SSN],

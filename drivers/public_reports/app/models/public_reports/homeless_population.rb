@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -152,7 +152,7 @@ module PublicReports
     end
 
     private def report_scope
-      # for compatability with FilterScopes
+      # for compatibility with FilterScopes
       @filter = filter_object
       @project_types = @filter.project_type_numbers
       scope = GrdaWarehouse::ServiceHistoryEnrollment.entry
@@ -620,8 +620,7 @@ module PublicReports
       scope = filter_for_range(report_scope)
 
       @coc_codes ||= begin
-        result = scope.joins(project: :project_cocs).distinct.
-          pluck(pc_t[:CoCCode])
+        result = scope.joins_project_cocs(coc_codes: filter_object.coc_codes).distinct.pluck(pc_t[:CoCCode])
         reasonable_cocs_count = GrdaWarehouse::Shape::Coc.my_states.where(cocnum: result).count
         result = GrdaWarehouse::Shape::Coc.my_states.map(&:cocnum) if reasonable_cocs_count.zero? && !Rails.env.production?
 

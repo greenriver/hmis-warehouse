@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -19,9 +19,15 @@ module Admin
 
     def create
       file = file_params[:file]
-      @file = file_source.create(file_params.merge(user_id: current_user.id, content: file&.read))
+      @file = file_source.new(file_params.except(:file).merge(user_id: current_user.id))
+      if file.present?
+        @file.public_file.attach(file)
+        # Use file type detected by Active Storage over the client-supplied one
+        @file.content_type = @file.detected_content_type
+      end
+      @file.save
       if @file.invalid?
-        flash[:error] = @file.errors.full_messages.join('; ') + params.inspect.to_s
+        flash[:error] = @file.errors.full_messages.join('; ')
         redirect_to admin_public_files_path
         return
       end

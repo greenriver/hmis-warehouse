@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -9,6 +9,7 @@
 module GrdaWarehouse::HealthEmergency
   class Test < GrdaWarehouseBase
     include ::HealthEmergency
+    belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
 
     validates_presence_of :tested_on, :result, on: :create
     scope :visible_to, -> (user) do

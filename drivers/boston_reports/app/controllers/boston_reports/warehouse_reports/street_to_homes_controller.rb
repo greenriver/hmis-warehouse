@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -41,6 +41,7 @@ module BostonReports::WarehouseReports
       @detail_options = {}
       @detail_options[:sets] = params[:sets] if (@report.clients.keys & params[:sets]).present?
       @clients = @report.client_details(params[:sets])
+      @report.filter.user.policy_context.preload_client_dependencies(Array(@clients).map(&:client_id))
       respond_to do |format|
         format.html {}
         format.xlsx do

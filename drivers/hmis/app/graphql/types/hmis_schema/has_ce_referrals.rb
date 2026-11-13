@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -12,9 +12,10 @@ module Types
       extend ActiveSupport::Concern
 
       class_methods do
+        # Keep include_search_query_id consistent for CeReferral; BaseObject.page_type memoizes its first setting.
         def ce_referrals_field(name = :ce_referrals, description = nil, filter_args: {}, **override_options, &block)
           default_field_options = {
-            type: Types::HmisSchema::CeReferral.page_type,
+            type: Types::HmisSchema::CeReferral.page_type(include_search_query_id: true),
             null: false,
             description: description,
             after_paginate: ->(nodes, ctx) {
@@ -41,7 +42,7 @@ module Types
         raise unless Hmis::Ce.configuration.enabled?
 
         scope = scope.viewable_by(user) unless dangerous_skip_permission_check
-        scope = scope.apply_filters(filters) if filters.present?
+        scope = scope.apply_filters(filters, user: user) if filters.present?
         scope = scope.sort_by_option(sort_order) if sort_order.present?
 
         scope

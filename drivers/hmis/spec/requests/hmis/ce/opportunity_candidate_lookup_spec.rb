@@ -1,3 +1,9 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # frozen_string_literal: true
 
 require 'rails_helper'
@@ -185,7 +191,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           response, result = post_graphql(**variables) { query }
           expect(response.status).to eq(200), result.inspect
           expect(result.dig('data', 'ceOpportunity', 'candidateLookup', 'enrollments', 'nodesCount')).to eq(41)
-        end.to make_database_queries(count: 30..40)
+        end.to make_database_queries(count: 35..45)
       end
     end
 

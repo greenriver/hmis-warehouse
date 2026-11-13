@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -22,10 +22,10 @@ class ClientsController < ApplicationController
   before_action :require_can_access_some_version_of_clients!, only: [:show, :service_range, :rollup, :image, :assessment]
   before_action :require_can_view_some_client_dashboard!, only: [:show, :service_range, :rollup, :image]
   before_action :require_can_view_enrollment_details!, only: [:enrollment_details]
-  before_action :require_can_see_this_client_demographics!, except: [:new, :create, :simple, :appropriate, :assessment, :health_assessment]
+  before_action :require_can_see_this_client_demographics!, except: [:new, :create, :simple, :appropriate, :assessment]
   before_action :require_can_edit_clients!, only: [:edit, :merge, :unmerge]
   before_action :require_can_create_clients!, only: [:new, :create]
-  before_action :set_client, only: [:show, :edit, :merge, :unmerge, :service_range, :rollup, :image, :chronic_days, :enrollment_details]
+  before_action :set_client, only: [:show, :edit, :merge, :unmerge, :service_range, :rollup, :image, :enrollment_details]
   before_action :set_search_client, only: [:simple, :appropriate]
   before_action :set_client_start_date, only: [:show, :edit, :rollup]
   before_action :set_potential_matches, only: [:edit]
@@ -52,6 +52,8 @@ class ClientsController < ApplicationController
       clean_params[gender_column] = 1
     end
     clean_params.delete(:Gender)
+    @exclude_from_external_data_sharing = clean_params[:exclude_from_external_data_sharing] == '1'
+    clean_params.delete(:exclude_from_external_data_sharing)
     @client = client_source.new(clean_params.merge(PersonalID: SecureRandom.uuid.gsub(/-/, '')))
 
     params_valid = validate_new_client_params(clean_params)
@@ -68,10 +70,12 @@ class ClientsController < ApplicationController
       @existing_matches = client_source.where(id: existing_matches).
         joins(:warehouse_client_source).
         includes(:warehouse_client_source, :data_source)
+      current_user.policy_context.preload_client_dependencies(existing_matches)
       render action: :new
     elsif clean_params[:bypass_search].present? || existing_matches.empty?
       # Create a new source and destination client
       # and redirect to the new client show page
+      created_dest = nil
       client_source.transaction do
         destination_ds_id = GrdaWarehouse::DataSource.destination.first.id
         @client.save
@@ -92,7 +96,8 @@ class ClientsController < ApplicationController
           data_source_id: @client.data_source_id,
         )
         if @client.persisted? && destination_client.persisted? && warehouse_client.persisted?
-          flash[:notice] = "Client #{@client.full_name} created."
+          created_dest = destination_client
+          flash[:notice] = "Client #{@client.pii_provider(user: current_user).full_name} created."
           after_create_path = client_path_generator
           if @client.data_source.after_create_path.present?
             after_create_path += [@client.data_source.after_create_path]
@@ -105,11 +110,19 @@ class ClientsController < ApplicationController
           render action: :new
         end
       end
+      ClientExternalDataSharing.new(created_dest).set_exclusion!(value: true, user: current_user) if created_dest && @exclude_from_external_data_sharing && ClientExternalDataSharing.enabled?
     end
   end
 
   def edit
-    @search_clients = client_source.text_search(params[:q], client_scope: client_source).where.not(id: @client.id).limit(50) if params[:q].present?
+    @search_clients = client_source.text_search(params[:q], client_scope: client_source, sorted: true).where.not(id: @client.id).limit(50) if params[:q].present?
+    current_user.policy_context.preload_client_dependencies(
+      [@client.id] +
+      @potential_matches.values.flat_map { |clients| clients.pluck(:id) } +
+      Array(@search_clients&.pluck(:id)) +
+      @client.splits_from.pluck(:split_from) +
+      @client.splits_to.pluck(:split_into),
+    )
   end
 
   # display an assessment form in a modal
@@ -121,19 +134,6 @@ class ClientsController < ApplicationController
       @client = client
     else
       @form = assessment_scope.new
-    end
-    render 'assessment_form'
-  end
-
-  def health_assessment
-    form = health_assessment_scope.find(params.require(:id).to_i)
-    client = form.client&.destination_client
-    patient = client&.patient
-    if patient&.visible_to(current_user)
-      @form = form
-      @client = client
-    else
-      @form = health_assessment_scope.new
     end
     render 'assessment_form'
   end
@@ -184,11 +184,11 @@ class ClientsController < ApplicationController
     to_unmerge = client_params['unmerge']&.reject(&:empty?) # Set of source client ids
     redirect_to({ action: :edit }, alert: 'No clients selected.') and return unless to_unmerge
 
-    hmis_receiver = client_params['hmis_receiver']
-    health_receiver = client_params['health_receiver']
+    receiver_id = client_params['receiver']
+    item_categories = Array(client_params['item_categories']).map(&:to_sym)
 
     Rails.logger.info "Unmerging #{to_unmerge.inspect}"
-    client_names = @client.split(to_unmerge, hmis_receiver, health_receiver, current_user)
+    client_names = @client.split(to_unmerge, receiver_id, item_categories, current_user)
 
     Rails.logger.info '@client.invalidate_service_history'
     @client.invalidate_service_history
@@ -206,22 +206,6 @@ class ClientsController < ApplicationController
     respond_to do |format|
       format.json do
         render json: @range.map(&:to_s)
-      end
-    end
-  end
-
-  # This is only valid for Potentially chronic (not HUD Chronic)
-  def chronic_days
-    days = @client.
-      chronics.
-      # where(date: 1.year.ago.to_date..Date.current).
-      order(date: :asc).
-      map do |c|
-        [c[:date], c[:days_in_last_three_years]]
-      end.to_h
-    respond_to do |format|
-      format.json do
-        render json: days
       end
     end
   end
@@ -264,10 +248,10 @@ class ClientsController < ApplicationController
 
     params.require(:grda_warehouse_hud_client).
       permit(
-        :hmis_receiver,
-        :health_receiver,
+        :receiver,
         merge: [],
         unmerge: [],
+        item_categories: [],
       )
   end
 
@@ -289,10 +273,6 @@ class ClientsController < ApplicationController
     else
       GrdaWarehouse::HmisForm.window_with_details
     end
-  end
-
-  private def health_assessment_scope
-    GrdaWarehouse::HmisForm.health
   end
 
   private def log_client

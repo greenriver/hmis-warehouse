@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -158,13 +158,7 @@ module HudApr::Generators::Shared::Fy2026::Dq::QuestionFour
       answer.update(summary: members.count)
 
       # HMIS Reporting Glossary Reference: Data Quality - Q1-17: Heads of households and adult stayers in the project 365 days or more
-      # Per HMIS Glossary, ES-NBN (project_type 1) uses bed_nights, all others use length_of_stay
-      stayers_over_365_days = adults_and_hohs.where(
-        stayers_clause.and(
-          a_t[:project_type].eq(1).and(a_t[:bed_nights].gteq(365)).
-            or(a_t[:project_type].not_eq(1).and(a_t[:length_of_stay].gteq(365))),
-        ),
-      )
+      stayers_over_365_days = adults_and_hohs.where(hoh_and_adult_lts_stayer_clause)
 
       answer = @report.answer(question: table_name, cell: 'F4')
       answer.update(summary: percentage(members.count / stayers_over_365_days.count.to_f))

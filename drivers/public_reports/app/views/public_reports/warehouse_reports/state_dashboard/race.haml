@@ -1,0 +1,6 @@
+- if @report.renderable?
+  - who = @report.parsed_pre_calculated_data['who'].merge('breakdown' => {})
+  = render 'public_reports/state_dashboard/population_section', who: who, include_breakdown: false
+  = render 'public_reports/state_dashboard/glossary'
+- else
+  = render 'public_reports/state_dashboard/stale'

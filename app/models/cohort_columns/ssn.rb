@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -19,7 +19,11 @@ module CohortColumns
     end
 
     def value(cohort_client)
-      ssn(cohort_client.client.SSN)
+      content_tag(:span, text_value(cohort_client))
+    end
+
+    def text_value(cohort_client)
+      pii_provider(cohort_client).ssn
     end
 
     # Don't report PII in Cohort Data, this can be obtained from the PII store

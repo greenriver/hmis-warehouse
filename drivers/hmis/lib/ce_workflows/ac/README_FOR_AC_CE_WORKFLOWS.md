@@ -1,7 +1,7 @@
 # Ac CE Workflows
 
 ## Overview
-This directory contains utilities and workflow definitions specific to the AC implementation of Coordinated Entry (CE) workflows.
+This directory contains utilities and workflow definitions specific to the AC implementation of Coordinated Entry (CE) workflows. See [CE Workflow Builders](../../../../../docs/features/hmis/ce-workflow-builders.md) for general documentation on the CE workflow builder pattern.
 
 ### Workflow Templates
 - **Housing Workflow**: Handles referrals for housing opportunities, including multiple stages of client engagement, provider outcomes, and denial reviews.

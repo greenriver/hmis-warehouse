@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -62,6 +62,8 @@ RSpec.feature 'Data collection features', type: :system do
         expect(side_nav_elements).to include('Current Living Situations')
 
         click_link 'Current Living Situations'
+        assert_current_path("/projects/#{p1.id}/current-living-situations")
+        expect(page).to have_css('tbody tr', count: 1) # wait for the table rows to load
         table_row = find('tbody').find_all('tr').sole.text
         expect(table_row).to include(spouse.first_name)
         expect(table_row).to include('Safe Haven')
@@ -80,6 +82,8 @@ RSpec.feature 'Data collection features', type: :system do
         expect(side_nav_elements).to include('Current Living Situations')
 
         click_link 'Current Living Situations'
+        assert_current_path("/client/#{spouse.id}/enrollments/#{spouse_enrollment.id}/current-living-situations")
+        expect(page).to have_css('tbody tr', count: 1) # wait for the table rows to load
 
         table_row = find('tbody').find_all('tr').sole.text
         expect(table_row).to include('Safe Haven')
@@ -151,6 +155,8 @@ RSpec.feature 'Data collection features', type: :system do
       expect(side_nav_elements).to include('Case Notes')
 
       click_link 'Case Notes'
+      assert_current_path("/client/#{hoh.id}/enrollments/#{hoh_enrollment.id}/case-notes")
+      expect(page).to have_css('tbody tr', count: 1) # wait for the table rows to load
 
       table_row = find('tbody').find_all('tr').sole.text
       expect(table_row).to include('A legacy custom case note')
@@ -205,6 +211,8 @@ RSpec.feature 'Data collection features', type: :system do
         visit "/client/#{spouse.id}/enrollments/#{spouse_enrollment.id}/overview"
         expect(side_nav_elements).to include('Current Living Situations')
         click_link 'Current Living Situations'
+        assert_current_path("/client/#{spouse.id}/enrollments/#{spouse_enrollment.id}/current-living-situations")
+        expect(page).to have_css('tbody tr', count: 1) # wait for the table rows to load
         table_row = find('tbody').find_all('tr').sole.text
         expect(table_row).to include('Safe Haven')
         expect(table_row).to include('Legacy!')

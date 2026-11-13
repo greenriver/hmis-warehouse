@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -13,8 +13,11 @@ module WarehouseReports
 
     def index
       @attribute_name = attributes.detect { |a| a == params.dig(:report, :attribute) } || 'DOB'
-      @clients = client_scope.where(id: destination_client_ids).order(:LastName, :FirstName)
+      @clients = GrdaWarehouse::Hud::Client.destination_visible_to(current_user).
+        where(id: destination_client_ids).
+        order(:LastName, :FirstName)
       @pagy, @clients = pagy(@clients)
+      current_user.policy_context.preload_client_dependencies(@clients.map(&:id))
     end
 
     def attributes

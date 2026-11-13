@@ -1,12 +1,12 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 # frozen_string_literal: true
 
-# @see docs/features/hud-pit-report.md
+# @see docs/features/warehouse/hud-pit-report.md
 # This is a wrapper around PIT Clients to associate version-specific logic with a name space,
 # it does not use STI as there is no per-instance behavior associated with these models
 module HudPit::Fy2025

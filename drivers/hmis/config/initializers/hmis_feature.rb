@@ -1,19 +1,10 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# The core app (or other drivers) can check the presence of the
-# Hmis driver with the following code snippet
-#
-#   do_something if RailsDrivers.loaded.include(:hmis)
-#
-# use with caution!
-
 # frozen_string_literal: true
-
-RailsDrivers.loaded << :hmis
 
 Rails.application.config.queued_tasks[:hmis_check_constraints] = -> do
   Hmis::Tasks::CheckConstraints.check_hud_constraints

@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+#
+# worktrunk pre-start hook: prepare a freshly-created git worktree for isolated
+# development. Copies the gitignored env/compose files a new worktree lacks from
+# the primary worktree, then rewrites them (isolated DB names, per-worktree
+# domain, compose project, traefik router) via update_worktree_env.rb.
+#
+# Wired up in .config/wt.toml:
+#   pre-start = "bash lib/development/scripts/worktree_pre_start.sh {{ worktree_path }} {{ branch }} {{ primary_worktree_path }}"
+#
+# Idempotent: files already present in the worktree are left in place and the
+# Ruby rewrite never double-applies its changes.
+
+set -euo pipefail
+
+worktree_path="${1:?worktree path required}"
+branch="${2:?branch required}"
+primary_path="${3:?primary worktree path required}"
+
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+echo "Preparing worktree $worktree_path (branch $branch)"
+
+# Files/dirs that are gitignored (so absent in a fresh worktree) but required to
+# boot and to isolate the worktree. .env.test and docker-compose.yml are tracked.
+#   .pgpass - the spec container's entrypoint copies this rather than generating
+#             it; without it, spec/test-db commands fail.
+for f in .env.local .env.development.local .envrc docker-compose.override.yml .pgpass; do
+  if [ ! -e "$primary_path/$f" ]; then
+    echo "  WARNING: $primary_path/$f not found; skipping"
+  elif [ -e "$worktree_path/$f" ]; then
+    echo "  $f already present; leaving as-is"
+  else
+    cp -r "$primary_path/$f" "$worktree_path/$f"
+    echo "  copied $f"
+  fi
+done
+
+# Optional files, copied only when the primary has them:
+#   .env.test.local - a primary that sets its own test database names (e.g. a second
+#                     install using NAME_PREFIX); without it the rewrite starts from .env.test.
+#   CLAUDE.local.md - personal agent instructions; gitignored, so a new worktree lacks them.
+#   .local-overcommit.yml, .overcommit-plugins - overcommit signs the merged
+#                     .overcommit.yml + .local-overcommit.yml and stores that signature in
+#                     the git config all worktrees share, so every tree needs the same local
+#                     config or each one fails the others' signature check.
+for f in .env.test.local CLAUDE.local.md .local-overcommit.yml .overcommit-plugins; do
+  if [ -e "$primary_path/$f" ] && [ ! -e "$worktree_path/$f" ]; then
+    cp -r "$primary_path/$f" "$worktree_path/$f"
+    echo "  copied $f"
+  fi
+done
+
+ruby "$script_dir/update_worktree_env.rb" "$worktree_path" "$branch"

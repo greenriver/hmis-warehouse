@@ -1,7 +1,5 @@
 - unless ajax_modal_request?
   :ruby
-    show_health_pilot = @client.show_health_pilot_for?(current_user) rescue false
-    show_health_hpc = @client.show_health_hpc_for?(current_user) rescue false
     show_demographic = @client.show_demographics_to?(current_user) rescue false
     @note_count = 0
     show_notes = can_edit_window_client_notes_or_own_window_client_notes?
@@ -33,7 +31,7 @@
       },
       client_history_path(@client) => {
         title: 'History',
-        permission: show_demographic,
+        permission: show_demographic && current_user.policy_for(@client).can_view_history_calendar?,
       },
     })
     hmis.merge!({
@@ -41,13 +39,13 @@
         title: 'Transactions',
         permission: can_access_some_version_of_clients? && @client.financial_clients.exists?,
       },
-    }) if RailsDrivers.loaded.include?(:financial)
+    })
     hmis.merge!({
       map_client_location_history_client_path(@client) => {
         title: 'Locations',
         permission: show_demographic && can_view_client_locations?,
       },
-    }) if RailsDrivers.loaded.include?(:client_location_history)
+    })
     hmis.merge!({
       polymorphic_path(client_chronic_path_generator, client_id: @client) => {
         title: 'Chronic',
@@ -103,91 +101,24 @@
         title: 'Scan Card IDs',
         permission: can_use_service_register?,
       },
-    }) if RailsDrivers.loaded.include?(:service_scanning) && GrdaWarehouse::Config.get(:service_register_visible)
+    }) if GrdaWarehouse::Config.get(:service_register_visible)
 
-    if RailsDrivers.loaded.include?(:hmis_supplemental)
-      source_clients_by_data_source = @client.source_clients.preload(:data_source, :destination_client).group_by(&:data_source_id)
-      supplemental_data_sets = HmisSupplemental::DataSet.viewable_by(current_user).where(data_source_id: source_clients_by_data_source.keys)
+    current_user.policy_context.preload_client_dependencies([@client.id])
+    source_clients_by_data_source = @client.source_clients.preload(:data_source, :destination_client).group_by(&:data_source_id)
+    supplemental_data_sets = HmisSupplemental::DataSet.viewable_by(current_user).where(data_source_id: source_clients_by_data_source.keys)
 
-      supplemental_data_sets.each do |data_set|
-        source_clients = source_clients_by_data_source[data_set.data_source_id] || []
-        next unless source_clients.any? { |sc| current_user.policy_for(sc).can_view_supplemental_data? }
+    supplemental_data_sets.each do |data_set|
+      source_clients = source_clients_by_data_source[data_set.data_source_id] || []
+      next unless source_clients.any? { |sc| current_user.policy_for(sc).can_view_supplemental_data? }
 
-        key = hmis_supplemental_data_set_client_data_set_path(id: @client.id, data_set_id: data_set.id)
-        hmis.merge!({
-          key => {
-            title: data_set.name,
-            permission: true,
-          }
-        })
-      end
-    end
-
-    health = {
-      # BH CP Pages
-      polymorphic_path(health_path_generator + [:patient, :index], client_id: @client) => {
-       title: 'Health Dashboard',
-       permission: show_health_hpc,
-      },
-      polymorphic_path(careplans_path_generator, client_id: @client) => {
-       title: 'Care Plan',
-       permission: show_health_hpc,
-      },
-      polymorphic_path(team_members_path_generator, client_id: @client) => {
-        title: 'Team Members',
-        permission: show_health_hpc,
-      },
-      polymorphic_path(health_path_generator + [:services], client_id: @client) => {
-       title: 'Services',
-       permission: show_health_hpc,
-      },
-      polymorphic_path(health_path_generator + [:backup_plans], client_id: @client) => {
-        title: 'Backup Plans',
-        permission: show_health_hpc,
-      },
-      polymorphic_path(goals_path_generator, client_id: @client) => {
-        title: 'Goals',
-        permission: show_health_hpc,
-      },
-      polymorphic_path(health_path_generator + [:files], client_id: @client) => {
-       title: 'Files',
-       permission: show_health_hpc,
-      },
-      client_health_patient_referrals_path(client_id: @client) => {
-        title: 'Enrollment History',
-        permission: show_health_hpc,
-      },
-      client_health_qualifying_activities_path(client_id: @client) => {
-        title: 'Qualifying Activities',
-        permission: show_health_hpc,
-      },
-
-      # Pilot Pages
-      polymorphic_path(health_pilot_path_generator + [:patient, :index], client_id: @client) => {
-       title: 'Health Dashboard',
-       permission: show_health_pilot,
-      },
-      polymorphic_path(careplan_pilot_path_generator, client_id: @client) => {
-       title: 'Care Plan',
-       permission: show_health_pilot,
-      },
-      polymorphic_path(health_pilot_path_generator + [:metrics], client_id: @client) => {
-        title: 'Metrics',
-        permission: show_health_pilot,
-      },
-      polymorphic_path(health_path_generator + [:metrics], client_id: @client) => {
-        title: 'Metrics',
-        permission: show_health_hpc,
-      },
-    }
-    if RailsDrivers.loaded.include?(:health_flexible_service)
-      can_see_vpr = current_user.can_view_my_vprs? && @client.health_housing_navigator_id == current_user.id
-      health.merge!({
-        client_health_flexible_service_vprs_path(@client) => {
-          title: 'Flex Services',
-          permission: can_see_vpr || current_user.can_view_all_vprs?,
-        },
+      key = hmis_supplemental_data_set_client_data_set_path(id: @client.id, data_set_id: data_set.id)
+      hmis.merge!({
+        key => {
+          title: data_set.name,
+          permission: true,
+        }
       })
     end
+
   = render 'clients/pre_navigation_bar'
-  = render 'menus/client_tab_navigation', current: current, always_visible: always_visible, hmis: hmis, health: health
+  = render 'menus/client_tab_navigation', current: current, always_visible: always_visible, hmis: hmis

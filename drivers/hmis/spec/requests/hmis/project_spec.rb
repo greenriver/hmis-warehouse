@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -15,6 +15,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     hmis_login(user)
   end
 
+  before { allow_any_instance_of(Hmis::Ce::Configuration).to receive(:enabled?).and_return(true) }
+
   let!(:access_control) { create_access_control(hmis_user, p1) }
   let!(:ds1) { create :hmis_primary_data_source }
   let!(:user) { create(:user).tap { |u| u.add_viewable(ds1) } }
@@ -26,8 +28,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let!(:pc2) { create :hmis_hud_project_coc, data_source: ds1, project: p1, coc_code: 'CO-503' }
   let!(:i1) { create :hmis_hud_inventory, data_source: ds1, project: p1, coc_code: pc1.coc_code, inventory_start_date: '2020-01-01' }
   let!(:i2) { create :hmis_hud_inventory, data_source: ds1, project: p1, coc_code: pc2.coc_code, inventory_start_date: '2022-01-01' }
-  let!(:f1) { create :hmis_hud_funder, data_source: ds1, project: p1 }
-  let!(:f2) { create :hmis_hud_funder, data_source: ds1, project: p1 }
+  let!(:f1) { create :hmis_hud_funder, data_source: ds1, project: p1, start_date: '2020-01-01' }
+  let!(:f2) { create :hmis_hud_funder, data_source: ds1, project: p1, start_date: '2022-01-01' }
   let!(:cep1) { create :hmis_hud_ce_participation, data_source: ds1, project: p1 }
   let!(:hp1) { create :hmis_hud_hmis_participation, data_source: ds1, project: p1 }
 
@@ -93,7 +95,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       response, result = post_graphql(id: p1.id) { query }
 
       aggregate_failures 'checking response' do
-        expect(response.status).to eq 200
+        expect(response.status).to eq(200), result.inspect
         record = result.dig('data', 'project')
         expect(record['id']).to be_present
         to_id = proc { |x| x['id'].to_i }
@@ -102,7 +104,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(record.dig('projectCocs', 'nodesCount').to_i).to eq(2)
         expect(record.dig('projectCocs', 'nodes').map(&to_id)).to contain_exactly(pc1.id, pc2.id)
         expect(record.dig('funders', 'nodesCount').to_i).to eq(2)
-        expect(record.dig('funders', 'nodes').map(&to_id)).to contain_exactly(f1.id, f2.id)
+        expect(record.dig('funders', 'nodes').map(&to_id)).to eq([f2.id, f1.id])
         expect(record.dig('organization', 'id').to_i).to eq(o1.id)
         expect(record.dig('ceParticipations', 'nodes', 0, 'id')).to eq(cep1.id&.to_s)
         expect(record.dig('hmisParticipations', 'nodes', 0, 'id')).to eq(hp1.id&.to_s)
@@ -156,7 +158,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     it 'resolves both WIP and non-WIP assessments on the project' do
       response, result = post_graphql(id: p1.id) { project_assessments_query }
-      expect(response.status).to eq 200
+      expect(response.status).to eq(200), result.inspect
       records = result.dig('data', 'project', 'assessments', 'nodes')
       expect(records.size).to eq(4)
       expect(records.pluck('id')).to contain_exactly(a1.id.to_s, a2.id.to_s, a3.id.to_s, a4.id.to_s)

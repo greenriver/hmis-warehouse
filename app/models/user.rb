@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -10,8 +10,10 @@ require 'memery'
 class User < ApplicationRecord
   include Memery
   include UserConcern
-  include RailsDrivers::Extensions
-  include DeviseUserPatch
+
+  # Extensions from drivers — see ADR 0007
+  include CasAccess::UserExtension
+  include Hmis::UserExtension
 
   validates :talent_lms_email, format: { with: URI::MailTo::EMAIL_REGEXP }, unless: -> { talent_lms_email.blank? }
 
@@ -32,9 +34,8 @@ class User < ApplicationRecord
 
   has_many :user_roles, dependent: :destroy, inverse_of: :user
   has_many :legacy_roles, through: :user_roles # TODO: START_ACL remove after ACL migration is complete
-  has_many :health_roles, -> { health }, through: :user_roles
 
-  has_many :client_search_queries, class_name: 'GrdaWarehouse::ClientSearchQuery', dependent: :destroy
+  has_many :client_search_queries, class_name: 'GrdaWarehouse::ClientSearchQuery', foreign_key: :created_by_id, dependent: :destroy
 
   has_many :contacts, class_name: 'GrdaWarehouse::Contact::Base', foreign_key: :user_id
   has_one :system_contact, -> { where(type: 'GrdaWarehouse::Contact::User') }, class_name: 'GrdaWarehouse::Contact::User', foreign_key: :user_id
@@ -60,18 +61,7 @@ class User < ApplicationRecord
     @load_effective_permissions ||= {}.tap do |h|
       role_source = if using_acls? then roles else legacy_roles end
       role_source.each do |role|
-        Role.permissions(exclude_health: true).each do |permission|
-          h[permission] ||= role.send(permission)
-        end
-      end
-    end
-  end
-
-  # Health related permissions are tied to roles through user_roles
-  def load_health_effective_permissions
-    @load_health_effective_permissions ||= {}.tap do |h|
-      health_roles.each do |role|
-        Role.health_permissions.each do |permission|
+        Role.permissions.each do |permission|
           h[permission] ||= role.send(permission)
         end
       end
@@ -82,18 +72,18 @@ class User < ApplicationRecord
   # user has an permission through one of its roles
   Role.permissions.each do |permission|
     define_method(permission) do
-      @permissions ||= load_effective_permissions.merge(load_health_effective_permissions)
+      @permissions ||= load_effective_permissions
       @permissions[permission] || false
     end
 
     # Methods for determining if a user has permission
-    # e.g. the_user.can_administer_health?
+    # e.g. the_user.can_manage_agency?
     define_method("#{permission}?") do
       send(permission)
     end
 
     # Provide a scope for each permission to get any user who qualifies
-    # e.g. User.can_administer_health
+    # e.g. User.can_manage_agency
     scope permission, -> do
       roles = Role.where(permission => true)
       legacy = User.joins(:legacy_roles).merge(roles)
@@ -146,6 +136,18 @@ class User < ApplicationRecord
     batch = ids.uniq.map do |item_id|
       GrdaWarehouse::ExternalReportingCohortPermission.new(user_id: id, email: email, cohort_id: item_id, permission: :can_view_cohorts)
     end
+
+    name_ids = if using_acls?
+      GrdaWarehouse::Cohort.viewable_by(self, permission: :can_view_client_name).pluck(:id)
+    elsif can_view_client_name?
+      ids
+    else
+      []
+    end
+    batch += (ids & name_ids).uniq.map do |item_id|
+      GrdaWarehouse::ExternalReportingCohortPermission.new(user_id: id, email: email, cohort_id: item_id, permission: :can_view_client_name)
+    end
+
     GrdaWarehouse::ExternalReportingCohortPermission.transaction do
       GrdaWarehouse::ExternalReportingCohortPermission.where(user_id: id).delete_all
       GrdaWarehouse::ExternalReportingCohortPermission.import(batch)
@@ -213,6 +215,14 @@ class User < ApplicationRecord
     as_hmis_user&.can_access_hmis_data_source?(data_source_id)
   end
 
+  # Should the warehouse show this user a link into the HMIS at this data_source?
+  def can_sign_in_to_hmis_data_source?(data_source)
+    hmis_user = as_hmis_user
+    return false unless hmis_user&.can_access_hmis_data_source?(data_source.id)
+
+    hmis_user.hmis_access_error_for(data_source).nil?
+  end
+
   # list any cohort this user has some level of access to
   def cohorts
     GrdaWarehouse::Cohort.where(id: ids_for_relations(:cohort_ids))
@@ -256,17 +266,48 @@ class User < ApplicationRecord
   end
 
   # Retrieve the user's PII Policy for a specific project. To account for reports where the project record
-  # does not exist or did not at the time the report was run, a blank project_id will return the AllowPiiPolicy.
-  # This is to remain consistent with the how reports were responding prior to the PII policies being implemented.
+  # does not exist or did not at the time the report was run, a blank project_id returns AllowPiiPolicy for
+  # mode: :browse, and for mode: :download follows GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
+  # (AllowPiiPolicy when the toggle is on, DenyPiiPolicy when it's off).
   #
   # Note: if multiple projects will need retrieving, preloading the policies may be helpful
   # preloaded projects example:
-  #   current_user.client_view_accessor.preload_project_dependencies(project_ids)
+  #   current_user.policy_context.preload_project_dependencies(project_ids)
   #   project_ids.each do |project_id|
   #     pii_policy = current_user.reporting_policy_for_project(project_id)
   #   end
-  def reporting_policy_for_project(project_id:, mode: :browse)
-    return GrdaWarehouse::AuthPolicies::AllowPiiPolicy.instance if project_id.nil?
+  def reporting_policy_for_project(project_id:, mode: :browse, client_id: nil)
+    restricted = policy_context.client_restricted?(client_id)
+    allowed = reporting_pii_allowed_in_mode?(mode)
+
+    if project_id.nil?
+      policy = allowed ? GrdaWarehouse::AuthPolicies::AllowPiiPolicy.instance : GrdaWarehouse::AuthPolicies::DenyPiiPolicy.instance
+      return GrdaWarehouse::PiiProvider.restrict(policy, restricted: restricted)
+    end
+
+    policy = policy_for(project_id, policy_class: GrdaWarehouse::AuthPolicies::ProjectPiiPolicy) if allowed
+    policy ||= GrdaWarehouse::AuthPolicies::DenyPiiPolicy.instance
+    GrdaWarehouse::PiiProvider.restrict(policy, restricted: restricted)
+  end
+
+  # False when report detail rows in this mode must carry no PII, whatever the project role allows.
+  def reporting_pii_allowed_in_mode?(mode)
+    case mode.to_sym
+    when :download
+      ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
+    when :browse
+      true
+    else
+      raise ArgumentError, "Bad mode #{mode}"
+    end
+  end
+
+  # Retrieve the user's PII Policy for a specific client (used by reports whose detail rows
+  # are client-level, not scoped to a single project — e.g. homeless_summary_report). Delegates
+  # to policy_for(client), which resolves to DestinationClientPolicy/SourceClientPolicy based
+  # on Client#policy_class.
+  def reporting_policy_for_client(client:, mode: :browse)
+    return GrdaWarehouse::AuthPolicies::DenyPiiPolicy.instance if client.nil?
 
     allowed = false
     case mode.to_sym
@@ -278,11 +319,12 @@ class User < ApplicationRecord
       raise ArgumentError, "Bad mode #{mode}"
     end
 
-    policy = policy_for(project_id, policy_class: GrdaWarehouse::AuthPolicies::ProjectPiiPolicy) if allowed
-    policy || GrdaWarehouse::AuthPolicies::DenyPiiPolicy.instance
+    policy = policy_for(client) if allowed
+    policy ||= GrdaWarehouse::AuthPolicies::DenyPiiPolicy.instance
+    GrdaWarehouse::PiiProvider.restrict(policy, restricted: policy_context.client_restricted?(client.id))
   end
 
-  # @see docs/features/warehouse-auth-policies.md
+  # @see docs/features/warehouse/warehouse-auth-policies.md
   memoize def policy_for(resource, policy_class: nil)
     if policy_class
       raise ArgumentError, "policy class not supported: #{policy_class.name}" unless policy_class < GrdaWarehouse::AuthPolicies::BasePolicy

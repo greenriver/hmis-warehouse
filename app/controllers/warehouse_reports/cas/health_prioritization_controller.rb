@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -33,13 +33,14 @@ module WarehouseReports::Cas
         format.xlsx do
         end
       end
+      current_user.policy_context.preload_client_dependencies(@clients.map(&:id))
     end
 
     # patch client with health_prioritization
     def client
       @client = GrdaWarehouse::Hud::Client.destination.find(params[:id])
-      health_prioritized = params.dig(:client, :health_prioritized)
-      @client.update(health_prioritized: health_prioritized.presence)
+      health_prioritized = params.dig(:client, :health_prioritized).presence_in(['Yes', 'No'])
+      @client.update(health_prioritized: health_prioritized)
       respond_with(@client, location: warehouse_reports_cas_health_prioritization_index_path(filter: filter_params))
     end
 

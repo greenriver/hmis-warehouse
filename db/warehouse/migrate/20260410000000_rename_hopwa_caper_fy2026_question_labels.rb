@@ -1,10 +1,10 @@
-# frozen_string_literal: true
-
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 # Removes the Q\d+: numeric prefixes from FY2026 HOPWA CAPER question labels.
 # These labels are persisted in hud_report_cells.question (universe rows) and in

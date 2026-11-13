@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -10,7 +10,7 @@ module GrdaWarehouse::Compliance
   # Records user acceptance of a compliance requirement.
   # Tracks which requirement revision was agreed to for audit purposes.
   #
-  # @see docs/features/compliance-requirements.md
+  # @see docs/features/warehouse/compliance-requirements.md
   class Agreement < GrdaWarehouseBase
     self.table_name = 'compliance_agreements'
 

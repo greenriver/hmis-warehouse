@@ -1,0 +1,6 @@
+-# Keep this a real click — no auto-submit, no meta refresh, no onload. A forged cross-site GET can
+-# reach this page, and the click is the only thing distinguishing it from a real sign-out.
+%h1= Translation.translate('Finish signing out')
+%p= Translation.translate('You signed out of the training site. You are still signed in here.')
+%p
+  = link_to Translation.translate('Finish signing out'), destroy_user_session_path, method: :delete, class: 'btn btn-primary'

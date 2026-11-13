@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -28,6 +28,12 @@ module WarehouseReports
           ::OpenStruct.new(Hash[columns.keys.zip(row)])
         end.group_by do |row|
           row[:client_id]
+        end
+      mode = request.format.symbol == :html ? :browse : :download
+      current_user.policy_context.preload_client_dependencies(@clients.keys)
+      @pii_providers = client_source.where(id: @clients.keys).preload(:source_clients).index_by(&:id).
+        transform_values do |client|
+          GrdaWarehouse::PiiProvider.new(client, policy: current_user.reporting_policy_for_client(client: client, mode: mode))
         end
     end
 

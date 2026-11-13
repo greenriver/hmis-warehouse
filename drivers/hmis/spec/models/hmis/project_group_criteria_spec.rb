@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -97,6 +97,84 @@ RSpec.describe Hmis::ProjectGroupCriteria, type: :model do
         expect(criteria.effective_project_ids).to include(p2_o2.id) # from project_ids
         expect(criteria.effective_project_ids).to include(p1_o1.id) # from organization_ids
         expect(criteria.effective_project_ids).to include(p3_o2.id) # from project_type_numbers
+      end
+    end
+
+    context 'when coc_codes are specified' do
+      let!(:p1_coc) { create(:hmis_hud_project_coc, data_source: hmis_ds, project: p1_o1, CoCCode: 'MA-500') }
+      let!(:p2_coc) { create(:hmis_hud_project_coc, data_source: hmis_ds, project: p2_o2, CoCCode: 'MA-501') }
+
+      let(:criteria) do
+        Hmis::ProjectGroupCriteria.new(
+          { coc_codes: ['MA-500'] },
+          data_source_id: hmis_ds.id,
+        )
+      end
+
+      it 'includes projects with a matching ProjectCoC record' do
+        expect(criteria.effective_project_ids).to contain_exactly(p1_o1.id)
+      end
+
+      it 'does not include projects when the matching ProjectCoC record is soft-deleted' do
+        p1_coc.destroy
+
+        expect(criteria.effective_project_ids).to be_empty
+      end
+
+      it 'does not include projects from another data source, even if specified' do
+        other_ds = create(:hmis_data_source)
+        other_project = create(:hmis_hud_project, data_source: other_ds)
+        create(:hmis_hud_project_coc, data_source: other_ds, project: other_project, CoCCode: 'MA-500')
+
+        expect(criteria.effective_project_ids).to contain_exactly(p1_o1.id)
+      end
+    end
+
+    context 'when a project serves multiple CoCs' do
+      let!(:multi_coc_project) { create(:hmis_hud_project, data_source: hmis_ds, organization: o1) }
+
+      before do
+        create(:hmis_hud_project_coc, data_source: hmis_ds, project: multi_coc_project, CoCCode: 'MA-500')
+        create(:hmis_hud_project_coc, data_source: hmis_ds, project: multi_coc_project, CoCCode: 'MA-501')
+      end
+
+      it 'includes the project when criteria include MA-500' do
+        criteria = described_class.new({ coc_codes: ['MA-500'] }, data_source_id: hmis_ds.id)
+
+        expect(criteria.effective_project_ids).to include(multi_coc_project.id)
+      end
+
+      it 'includes the project when criteria include MA-500 and MA-501' do
+        criteria = described_class.new({ coc_codes: ['MA-500', 'MA-501'] }, data_source_id: hmis_ds.id)
+
+        expect(criteria.effective_project_ids).to include(multi_coc_project.id)
+      end
+
+      it 'does not include the project when inclusion includes MA-500 and exclusion includes MA-501' do
+        inclusion = described_class.new({ coc_codes: ['MA-500'] }, data_source_id: hmis_ds.id)
+        exclusion = described_class.new({ coc_codes: ['MA-501'] }, data_source_id: hmis_ds.id)
+
+        expect(inclusion.effective_project_ids - exclusion.effective_project_ids).not_to include(multi_coc_project.id)
+      end
+    end
+
+    context 'when closed_projects is true' do
+      let!(:closed_project) do
+        create(:hmis_hud_project, data_source: hmis_ds, organization: o1, OperatingEndDate: 1.day.ago)
+      end
+      let!(:future_project) do
+        create(:hmis_hud_project, data_source: hmis_ds, organization: o1, OperatingStartDate: 1.day.from_now)
+      end
+      let(:criteria) do
+        described_class.new(
+          { closed_projects: true },
+          data_source_id: hmis_ds.id,
+        )
+      end
+
+      it 'includes projects that are not currently open' do
+        expect(criteria.effective_project_ids).to include(closed_project.id, future_project.id)
+        expect(criteria.effective_project_ids).not_to include(p1_o1.id, p2_o2.id)
       end
     end
   end

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -16,7 +16,7 @@ class ErrorsController < ApplicationController
     render status: 422
   end
 
-  def internal_error
+  def internal_server_error
     render status: 500
   end
 end

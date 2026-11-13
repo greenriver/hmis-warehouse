@@ -4,30 +4,17 @@
 class App.Users.Messages
   constructor: (@polling_url, @seen_url) ->
     @messages = []
-    @poll()
-    @polled_count = 0
-    @interval = setInterval @poll, 60000
-  # look for messages to display
-  poll: () =>
-    # console.log "polling for messages...(#{@polled_count})"
-    @polled_count += 1
-    if @polled_count > 5
-      console.log "No longer polling for messages after #{@polled_count} times polling"
-      clearInterval(@interval)
-      return
+    @fetchMessages()
+  # look for messages to display. Fetched once per page load, under JWT authentication
+  # each request potentially extends the users's session
+  fetchMessages: () =>
     $.ajax
       method: 'get'
       url: @polling_url
       dataType: 'json'
-      data: ids: ( n.id for n in @messages )
       success: (data) =>
-        # console.log 'polled', data
-        seen = new Set()
-        for n in @messages
-          seen.add n.id
-        for n in data.messages
-          unless seen.has n.id
-            @messages.push n
+        # console.log 'fetched', data
+        @messages = data.messages
         @unseen_count = data.count
         @ringBell()
   # mark a message as seen

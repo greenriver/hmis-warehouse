@@ -80,5 +80,6 @@
       = f.button :submit, value: 'Update Clients', input_html: {class: 'btn btn-primary'}
 
 = content_for :page_js do
-  :javascript
-    $('.datatable').DataTable({searching: false, paging: false, order: []});
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      $('.datatable').DataTable({searching: false, paging: false, order: []});

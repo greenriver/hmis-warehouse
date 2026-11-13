@@ -1,12 +1,12 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 # frozen_string_literal: true
 
-# @see docs/features/boston-project-scorecard.md
+# @see docs/features/warehouse/boston-project-scorecard.md
 module BostonProjectScorecard
   class Report < GrdaWarehouseBase
     include Rails.application.routes.url_helpers
@@ -29,8 +29,15 @@ module BostonProjectScorecard
     belongs_to :apr, class_name: 'HudReports::ReportInstance', optional: true
     belongs_to :comparison_apr, class_name: 'HudReports::ReportInstance', optional: true
 
+    scope :viewable_by, ->(user) do
+      return all if user.can_view_all_reports?
+      return none unless user.can_view_assigned_reports?
+
+      where(user_id: user.id).or(where(secondary_reviewer_id: user.id))
+    end
+
     scope :started_between, ->(start_date:, end_date:) do
-      where(started_at: (start_date..end_date))
+      where(started_at: start_date.in_time_zone.beginning_of_day..end_date.in_time_zone.end_of_day)
     end
 
     def completed?
@@ -39,11 +46,6 @@ module BostonProjectScorecard
 
     def pending?
       status == 'pending'
-    end
-
-    def authorized?(_user)
-      # TODO: determine if the user is authorized to access the report
-      true
     end
 
     def locked?(field, _user)
@@ -79,6 +81,14 @@ module BostonProjectScorecard
     def admin?(user)
       # The user that created the report is the admin
       user_id == user.id
+    end
+
+    def rrh?
+      project_type == 13
+    end
+
+    def psh?
+      project_type.in?([3, 9, 10])
     end
 
     def field_input_options(field, user)
@@ -178,13 +188,8 @@ module BostonProjectScorecard
     def run_and_save!
       update(started_at: Time.current)
 
-      apr = nil
-      comparison_apr = nil
-
-      if RailsDrivers.loaded.include?(:hud_apr)
-        apr = apr_report
-        comparison_apr = apr_compmarison_report
-      end
+      apr = apr_report
+      comparison_apr = apr_compmarison_report
       project_type = if project_id.present?
         project.project_type
       else
@@ -267,6 +272,8 @@ module BostonProjectScorecard
     end
 
     def send_email_to_secondary_reviewer
+      return unless secondary_reviewer.present?
+
       BostonProjectScorecard::ScorecardMailer.scorecard_ready(self).deliver_later
     end
 

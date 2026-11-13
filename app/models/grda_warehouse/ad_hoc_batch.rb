@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -88,6 +88,7 @@ class GrdaWarehouse::AdHocBatch < GrdaWarehouseBase
       start
       if check_header!
         match_clients!
+        clear_client_matching_data
       else
         self.import_errors = "Headers do not match expected headers: #{self.class.csv_headers.join(',')}; found: #{headers_from_csv.join(',')}"
       end
@@ -159,33 +160,4 @@ class GrdaWarehouse::AdHocBatch < GrdaWarehouseBase
       client.save
     end
   end
-
-  # for file migration
-  scope :unprocessed_s3_migration, -> do
-    migrated = ActiveStorage::Attachment.where(record_type: 'GrdaWarehouse::AdHocBatch').pluck(:record_id)
-    all = pluck(:id)
-    unmigrated = all - migrated
-    return none if unmigrated.blank?
-
-    where(id: unmigrated)
-  end
-
-  def copy_to_s3!
-    return unless content.present?
-    return unless valid? # Ignore uploads that are already invalid (data source deleted?)
-    return if batch_file.attached? # don't re-process
-
-    puts "Migrating #{file} to S3"
-
-    Tempfile.create(binmode: true) do |tmp_file|
-      tmp_file.write(content)
-      tmp_file.rewind
-      batch_file.attach(io: tmp_file, content_type: content_type, filename: file, identify: false)
-    end
-
-    # Save no-matter validity state
-    self.content = nil
-    save!(validate: false)
-  end
-  # END for file migration
 end

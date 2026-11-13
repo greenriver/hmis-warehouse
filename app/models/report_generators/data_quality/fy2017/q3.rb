@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -102,7 +102,7 @@ module ReportGenerators::DataQuality::Fy2017
       @clients_with_issues += poor_quality.keys
       @answers[:q3_b2][:value] = poor_quality.size
       @support[:q3_b2][:support] = add_support(
-        headers: ['Client ID', 'Personal IDs', 'Vetetan Status', 'Age'],
+        headers: ['Client ID', 'Personal IDs', 'Veteran Status', 'Age'],
         data: poor_quality.map do |id, enrollment|
           [
             id,

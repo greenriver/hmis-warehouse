@@ -1,3 +1,9 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # frozen_string_literal: true
 
 require 'rails_helper'
@@ -65,7 +71,12 @@ RSpec.describe ApplicationHelper, type: :helper do
     before do
       allow(ENV).to receive(:fetch).with('CLIENT').and_return('test-client')
       allow(helper).to receive(:params).and_return(ActionController::Parameters.new(controller: 'test/nested', action: 'show'))
-      allow(helper).to receive(:current_user).and_return(nil)
+      # Without this wrapper, stubbing current_user verifies under devise (mixed into
+      # ActionController::Base globally) but raises under jwt (defined only on ApplicationController,
+      # which this bare helper spec's controller does not inherit).
+      without_partial_double_verification do
+        allow(helper).to receive(:current_user).and_return(nil)
+      end
       helper.instance_variable_set(:@layout__width, 'lg')
     end
 
@@ -83,7 +94,9 @@ RSpec.describe ApplicationHelper, type: :helper do
 
     context 'with signed in user' do
       before do
-        allow(helper).to receive(:current_user).and_return(double('User'))
+        without_partial_double_verification do
+          allow(helper).to receive(:current_user).and_return(double('User'))
+        end
       end
 
       it 'does not include not-signed-in class' do
@@ -307,7 +320,9 @@ RSpec.describe ApplicationHelper, type: :helper do
         before do
           allow(ENV).to receive(:fetch).with('CLIENT').and_return('test-client')
           allow(helper).to receive(:params).and_return(ActionController::Parameters.new(controller: 'admin/users', action: 'index'))
-          allow(helper).to receive(:current_user).and_return(nil)
+          without_partial_double_verification do
+            allow(helper).to receive(:current_user).and_return(nil)
+          end
           helper.instance_variable_set(:@layout__width, 'md')
         end
 
@@ -334,6 +349,35 @@ RSpec.describe ApplicationHelper, type: :helper do
           expect(result).to include('non-responsive') # line 254: result << 'non-responsive' unless enable_responsive?
         end
       end
+    end
+  end
+
+  describe '#pagy_url_for' do
+    let(:custom_url) { '/reports?filter[start]=2023-01-01&filter[project_type_codes][]=es&filter[project_type_codes][]=so&page=3' }
+    let(:pagy) { Pagy.new(count: 100, page: 1).tap { |p| p.vars[:custom_url] = custom_url } }
+
+    def query_for(url)
+      Rack::Utils.parse_nested_query(URI(url).query)
+    end
+
+    it 'keeps array filters from the custom URL' do
+      expect(query_for(helper.pagy_url_for(pagy, 2))).to eq(
+        'filter' => { 'start' => '2023-01-01', 'project_type_codes' => ['es', 'so'] },
+        'page' => '2',
+      )
+    end
+
+    it 'overrides a custom URL filter with the request value and keeps the other filters' do
+      helper.request.query_string = 'filter[start]=2024-01-01'
+
+      expect(query_for(helper.pagy_url_for(pagy, 2))['filter']).to eq(
+        'start' => '2024-01-01',
+        'project_type_codes' => ['es', 'so'],
+      )
+    end
+
+    it 'drops the page param for page 1' do
+      expect(query_for(helper.pagy_url_for(pagy, 1))).not_to have_key('page')
     end
   end
 end

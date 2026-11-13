@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -41,6 +41,10 @@ module HmisCsvTwentyTwentySix
 
       def required_filenames
         @definitions.select(&:required?).map(&:filename)
+      end
+
+      def hmis_owned_filenames
+        @definitions.select(&:hmis_owned?).map(&:filename)
       end
 
       def class_name_mapping

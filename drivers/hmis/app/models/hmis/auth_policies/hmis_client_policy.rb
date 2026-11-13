@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -20,8 +20,42 @@ class Hmis::AuthPolicies::HmisClientPolicy < Hmis::AuthPolicies::ResourcePolicy
       client_permissions.include?(:can_delete_clients)
     end
 
+    def can_mark_restricted?
+      client_permissions.include?(:can_mark_clients_as_restricted)
+    end
+
     def can_view_name?
-      client_permissions.include?(:can_view_client_name)
+      !pii_redacted? && client_permissions.include?(:can_view_client_name)
+    end
+
+    def can_view_dob?
+      !pii_redacted? && client_permissions.include?(:can_view_dob)
+    end
+
+    def can_view_full_ssn?
+      !pii_redacted? && client_permissions.include?(:can_view_full_ssn)
+    end
+
+    def can_view_partial_ssn?
+      !pii_redacted? && client_permissions.include?(:can_view_partial_ssn)
+    end
+
+    def can_view_contact_info?
+      !pii_redacted? && client_permissions.include?(:can_view_client_contact_info)
+    end
+
+    def can_view_photo?
+      !pii_redacted? && client_permissions.include?(:can_view_client_photo)
+    end
+
+    # Whether the user can see 'Chronic at PIT' status, which summarizes enrollments that the user may
+    # not otherwise be able to see.
+    def can_view_hud_chronic_status?
+      client_permissions.include?(:can_view_hud_chronic_status)
+    end
+
+    def can_view_alerts?
+      client_permissions.include?(:can_view_client_alerts)
     end
 
     def can_manage_alerts?
@@ -32,6 +66,42 @@ class Hmis::AuthPolicies::HmisClientPolicy < Hmis::AuthPolicies::ResourcePolicy
       client_permissions.include?(:can_manage_scan_cards)
     end
 
+    def can_audit?
+      client_permissions.include?(:can_audit_clients)
+    end
+
+    def can_print_case_notes?
+      client_permissions.include?(:can_print_client_case_notes)
+    end
+
+    # Whether the user can edit at least one of this client's enrollments.
+    # Delegates to client_permissions: unions permissions from enrolled projects, or global
+    # permissions when the client has no enrollments.
+    def can_edit_some_enrollments?
+      client_permissions.include?(:can_edit_enrollments)
+    end
+
+    # Whether the user can view full enrollment details for at least one of this client's enrollments.
+    def can_view_some_enrollment_details?
+      client_permissions.include?(:can_view_enrollment_details)
+    end
+
+    def can_index_files?
+      # User can index files if they can manage own files (global perm),
+      # or can view nonconfidential or confidential files for this client
+      global_permissions.include?(:can_manage_own_client_files) ||
+        client_permissions.include?(:can_view_any_nonconfidential_client_files) ||
+        client_permissions.include?(:can_view_any_confidential_client_files)
+    end
+
+    def can_create_file?
+      return false unless can_index_files?
+
+      # User can create a file if they can manage "any" (meaning "all" in this case) files for this client,
+      # OR if they can manage own files (global perm)
+      client_permissions.include?(:can_manage_any_client_files) || global_permissions.include?(:can_manage_own_client_files)
+    end
+
     protected
 
     def validate_resource!(arg) = ensure_arg_type!(arg, Hmis::Hud::Client)
@@ -40,19 +110,19 @@ class Hmis::AuthPolicies::HmisClientPolicy < Hmis::AuthPolicies::ResourcePolicy
     memoize def client_permissions
       context.client_permissions(resource.id)
     end
+
+    # Whether this client's PII is redacted for this user, because they are restricted and the user can't
+    # view restricted clients. Restriction is not a denial of access: a restricted client remains viewable
+    # and editable, and only the PII predicates above (name, DOB, SSN, photo, and contact info) are affected.
+    # See docs/features/hmis/hmis-restricted-records.md for more details.
+    def pii_redacted?
+      context.pii_redacted_for_client?(resource.id)
+    end
   end
 
   class Global < Hmis::AuthPolicies::BasePolicy
     def can_view?
       global_permissions.include?(:can_view_clients)
-    end
-
-    def can_view_some_files?
-      global_permissions.include?(:can_view_any_nonconfidential_client_files) || global_permissions.include?(:can_view_any_confidential_client_files)
-    end
-
-    def can_manage_own_client_files?
-      global_permissions.include?(:can_manage_own_client_files)
     end
 
     def can_create?
@@ -65,6 +135,24 @@ class Hmis::AuthPolicies::HmisClientPolicy < Hmis::AuthPolicies::ResourcePolicy
 
     def can_merge_clients?
       global_permissions.include?(:can_merge_clients)
+    end
+
+    # Whether the user can view DOB for *some* clients in the data source.
+    # This global permission is used on the frontend to determine whether to show the column title as "DOB" or "Age" in Client Search.
+    def can_view_dob?
+      global_permissions.include?(:can_view_dob)
+    end
+
+    # Whether the user can view client alerts for *some* clients in the data source.
+    # The global permission is used mainly as an optimization on the frontend to skip the query if the user doesn't have any access.
+    def can_view_client_alerts?
+      global_permissions.include?(:can_view_client_alerts)
+    end
+
+    # Whether the user can view eligible opportunities lists for clients in the data source.
+    # This permission is marked "global" on the Role definition; granting it anywhere is meant to grant it for all clients in the data source.
+    def can_view_eligible_opportunities_lists?
+      global_permissions.include?(:can_view_client_eligible_opportunities)
     end
 
     protected

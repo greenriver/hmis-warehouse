@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -15,7 +15,7 @@ require 'memery'
 # enabling efficient bulk data loading and caching.
 #
 # Authorization is scoped to the user's current HMIS data source (user.hmis_data_source_id).
-# @see docs/architecture/multi-hmis-support.md
+# @see docs/features/hmis/multi-hmis-support.md
 class Hmis::AuthPolicies::UserContext
   include Memery
 
@@ -62,6 +62,30 @@ class Hmis::AuthPolicies::UserContext
     permission_loader.for_access_group_ids(access_group_ids)
   end
 
+  # IDs of the projects in the current data source where the user has the given permission(s), evaluated
+  # the same way as #project_permissions: permissions are unioned across the user's roles at each project,
+  # and requirements are resolved. Callers therefore name only the permissions they care about, not the
+  # requirements behind them.
+  #
+  # mode: :any matches projects granting at least one of the permissions, :all matches projects granting
+  # every one of them.
+  #
+  # This is the bulk counterpart to #project_permissions, for scopes that filter projects (or records
+  # that hang off projects) rather than authorizing a single record.
+  memoize def project_ids_with_permissions(*permissions, mode:)
+    raise ArgumentError, "unknown mode #{mode.inspect}" unless mode.in?([:any, :all])
+    raise ArgumentError, 'no permissions given' if permissions.empty?
+
+    groups_by_project = access_group_ids_by_project
+    granted = mode == :all ? :all? : :any?
+    permitted = groups_by_project.values.uniq.select do |access_group_ids|
+      resolved = permission_loader.for_access_group_ids(access_group_ids)
+      permissions.public_send(granted) { |permission| resolved.include?(permission) }
+    end.to_set
+
+    groups_by_project.select { |_project_id, access_group_ids| permitted.include?(access_group_ids) }.keys
+  end
+
   # Set of permissions that the user has for the given organization.
   # Unlike for Project, where we built loaders to ensure efficient queries against multiple projects,
   # we can just load all permissions for the given organization directly,
@@ -81,14 +105,34 @@ class Hmis::AuthPolicies::UserContext
 
   def preload_client_dependencies(client_ids)
     client_project_loader.preload(client_ids)
+    client_data_source_loader.preload(client_ids)
+    restricted_client_loader.preload(client_ids)
     project_ids = client_project_loader.cached_project_ids
     project_data_source_loader.preload(project_ids)
     project_access_group_loader.preload(project_ids)
   end
 
+  # Clear cached restriction data when a client is marked or unmarked during a mutation
+  def clear_client_restriction_cache!
+    restricted_client_loader.clear_cache!
+  end
+
+  # Whether this client's PII is redacted for this user, because the client is restricted and the user
+  # can't view restricted clients at a project where the client is or was enrolled.
+  # See docs/features/hmis/hmis-restricted-records.md for more details.
+  def pii_redacted_for_client?(client_id)
+    return false unless client_restricted?(client_id)
+    return true if unenrolled_client_id?(client_id) # restricted clients with no enrollments are always redacted
+
+    !client_permissions(client_id).include?(:can_view_restricted_clients)
+  end
+
   # Client permissions are based on the user's permissions at projects they are enrolled in.
   # If they have no enrollments, it's based on the user's global permissions.
   def client_permissions(client_id)
+    return EMPTY_SET if client_id.blank?
+    return EMPTY_SET unless client_belongs_to_current_data_source?(client_id)
+
     project_ids = client_project_loader.get(client_id)
 
     if project_ids.empty?
@@ -136,6 +180,26 @@ class Hmis::AuthPolicies::UserContext
 
   protected
 
+  # Whether the client is marked as restricted. Whether the user may *see* them is the separate question
+  # answered by #pii_redacted_for_client?.
+  def client_restricted?(client_id)
+    restricted_client_loader.restricted?(client_id)
+  end
+
+  # Whether the client is unenrolled, i.e. has no enrollments in the current data source.
+  def unenrolled_client_id?(client_id)
+    client_project_loader.get(client_id).empty?
+  end
+
+  # {project_id => [access_group_id, ...]} for every project in the current data source that the user
+  # reaches through an AccessControl, including indirectly via organization, data source, or project group.
+  def access_group_ids_by_project
+    project_access_group_loader.access_group_ids_by_project(
+      user.access_groups.pluck(:id),
+      data_source_id: @data_source_id,
+    )
+  end
+
   def project_belongs_to_current_data_source?(project_id)
     project_data_source_id = project_data_source_loader.get(project_id)
     return true if project_data_source_id == user.hmis_data_source_id
@@ -155,6 +219,17 @@ class Hmis::AuthPolicies::UserContext
       "attempted to access Organization #{organization.id} (DS: #{organization.data_source_id})",
     )
 
+    false
+  end
+
+  def client_belongs_to_current_data_source?(client_id)
+    client_data_source_id = client_data_source_loader.get(client_id)
+    return true if client_data_source_id == user.hmis_data_source_id
+
+    Sentry.capture_message(
+      "HMIS Data Source Mismatch: User #{user.id} (DS: #{user.hmis_data_source_id}) " \
+      "attempted to access Client #{client_id} (DS: #{client_data_source_id})",
+    )
     false
   end
 
@@ -185,5 +260,13 @@ class Hmis::AuthPolicies::UserContext
 
   memoize def client_project_loader
     Hmis::AuthPolicies::ContextLoaders::ClientProjectLoader.new
+  end
+
+  memoize def client_data_source_loader
+    Hmis::AuthPolicies::ContextLoaders::ClientDataSourceLoader.new
+  end
+
+  memoize def restricted_client_loader
+    Hmis::AuthPolicies::ContextLoaders::RestrictedClientLoader.new
   end
 end

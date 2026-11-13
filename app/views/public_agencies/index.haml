@@ -26,10 +26,11 @@
     %img{src: "data:image/png;base64,#{Base64.strict_encode64(@coc_map)}"}
 
 = content_for :page_js do
-  :javascript
-    $('.datatable').DataTable({
-      searching: true,
-      ordering: true,
-      pageLength: 50,
-      lengthChange: false
-    });
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      $('.datatable').DataTable({
+        searching: true,
+        ordering: true,
+        pageLength: 50,
+        lengthChange: false
+      });

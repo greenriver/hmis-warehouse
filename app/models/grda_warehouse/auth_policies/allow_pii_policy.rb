@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -16,6 +16,7 @@ class GrdaWarehouse::AuthPolicies::AllowPiiPolicy
     :can_view_photo,
     :can_view_full_dob,
     :can_view_full_ssn,
+    :can_view_partial_ssn,
     :can_view_hiv_status,
   ].each do |permission|
     method_name = :"#{permission}?"

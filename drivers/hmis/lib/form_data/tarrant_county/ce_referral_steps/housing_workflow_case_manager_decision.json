@@ -1,0 +1,125 @@
+{
+  "item": [
+    {
+      "text": "Decision",
+      "type": "CHOICE",
+      "link_id": "case_manager_decision",
+      "mapping": {
+        "custom_field_key": "housing_workflow_case_manager_decision"
+      },
+      "required": true,
+      "component": "RADIO_BUTTONS",
+      "pick_list_options": [
+        { "code": "accept", "label": "Accept" },
+        { "code": "decline", "label": "Decline" }
+      ]
+    },
+    {
+      "text": "Is a CORI hearing needed?",
+      "type": "CHOICE",
+      "link_id": "cori_hearing_needed",
+      "mapping": {
+        "custom_field_key": "housing_workflow_case_manager_decision_cori_hearing_needed"
+      },
+      "required": true,
+      "component": "RADIO_BUTTONS",
+      "pick_list_options": [
+        { "code": "yes", "label": "Yes" },
+        { "code": "no", "label": "No" }
+      ],
+      "enable_when": [
+        {
+          "operator": "EQUAL",
+          "question": "case_manager_decision",
+          "answer_code": "accept"
+        }
+      ],
+      "enable_behavior": "ALL"
+    },
+    {
+      "item": [
+        {
+          "text": "CORI Hearing Date",
+          "type": "DATE",
+          "link_id": "cori_hearing_date",
+          "mapping": {
+            "custom_field_key": "housing_workflow_case_manager_decision_cori_hearing_date"
+          },
+          "required": true
+        },
+        {
+          "text": "CORI Hearing Time",
+          "type": "TIME_OF_DAY",
+          "link_id": "cori_hearing_time",
+          "mapping": {
+            "custom_field_key": "housing_workflow_case_manager_decision_cori_hearing_time"
+          },
+          "required": true
+        }
+      ],
+      "text": "CORI Hearing",
+      "type": "GROUP",
+      "link_id": "cori_hearing_group",
+      "enable_when": [
+        {
+          "operator": "EQUAL",
+          "question": "cori_hearing_needed",
+          "answer_code": "yes"
+        }
+      ],
+      "enable_behavior": "ALL"
+    },
+    {
+      "text": "The client will be added to the project as Incomplete. Complete and submit the Intake Assessment to finalize the enrollment.",
+      "type": "DISPLAY",
+      "link_id": "case_manager_decision_enroll_message",
+      "component": "ALERT_SUCCESS",
+      "enable_when": [
+        {
+          "operator": "EQUAL",
+          "question": "cori_hearing_needed",
+          "answer_code": "no"
+        }
+      ],
+      "enable_behavior": "ALL"
+    },
+    {
+      "text": "Decline Reason",
+      "type": "CHOICE",
+      "link_id": "case_manager_decision_decline_reason",
+      "mapping": {
+        "custom_field_key": "housing_workflow_case_manager_decision_decline_reason"
+      },
+      "required": true,
+      "component": "RADIO_BUTTONS",
+      "pick_list_options": [
+        { "code": "another_housing_option", "label": "Client has another housing option" },
+        { "code": "client_refused_unit_non_sro", "label": "Client refused unit (non-SRO)" },
+        { "code": "client_refused_voucher", "label": "Client refused voucher" },
+        { "code": "does_not_agree_to_services", "label": "Does not agree to services" },
+        { "code": "does_not_want_housing_at_this_time", "label": "Does not want housing at this time" },
+        { "code": "unsafe_environment_for_this_person", "label": "Unsafe environment for this person" },
+        { "code": "unwilling_to_live_in_sro", "label": "Unwilling to live in SRO" },
+        { "code": "unwilling_to_live_in_that_neighborhood", "label": "Unwilling to live in that neighborhood" },
+        { "code": "other", "label": "Other (specify in Notes)" }
+      ],
+      "enable_when": [
+        {
+          "operator": "EQUAL",
+          "question": "case_manager_decision",
+          "answer_code": "decline"
+        }
+      ],
+      "enable_behavior": "ALL"
+    },
+    {
+      "text": "Notes",
+      "type": "TEXT",
+      "link_id": "notes",
+      "mapping": {
+        "custom_field_key": "housing_workflow_case_manager_decision_note"
+      },
+      "required": false
+    }
+  ]
+}

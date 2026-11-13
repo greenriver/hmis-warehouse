@@ -1,0 +1,19 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+# frozen_string_literal: true
+
+module AdultsWithChildrenTwentyfivePlusHohSubPop::Reporting
+  module HousedExtension
+    extend ActiveSupport::Concern
+
+    included do
+      def client_source
+        GrdaWarehouse::Hud::Client.destination.adults_with_children_twentyfive_plus_hoh
+      end
+    end
+  end
+end

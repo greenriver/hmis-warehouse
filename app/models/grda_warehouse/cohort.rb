@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -9,7 +9,7 @@
 require 'memery'
 
 module GrdaWarehouse
-  # @see docs/features/cohorts.md
+  # @see docs/features/warehouse/cohorts.md
   class Cohort < GrdaWarehouseBase
     include ArelHelper
     include AccessGroups # TODO: START_ACL remove this after permission migration is complete
@@ -26,7 +26,9 @@ module GrdaWarehouse
     validates :static_column_count, numericality: { only_integer: true }
     validates :automation_sub_population, inclusion: { in: ->(_) { AvailableSubPopulations.available_sub_populations.values.map(&:to_s) }, allow_blank: true, message: 'is not a valid sub-population' }
     validate :require_project_group_for_automation
-    serialize :column_state, type: Array
+    # permitted_classes here is unioned with the global yaml_column_permitted_classes
+    # (config/application.rb), so it only needs to add the app-defined CohortColumns::* classes.
+    serialize :column_state, type: Array, yaml: { permitted_classes: GrdaWarehouse::Cohorts::CohortColumn.known_cohort_columns.map(&:constantize) }
 
     after_create :maintain_system_group
     before_validation :clear_automation_filters_without_project_group, if: -> { project_group_id.blank? }
@@ -83,25 +85,30 @@ module GrdaWarehouse
       where.not(project_group_id: nil)
     end
 
-    scope :viewable_by, ->(user) do
+    # @param permission [Symbol, Array<Symbol>] despite the singular name, this accepts either
+    #   a single permission or an array of permissions to OR together (defaults to every
+    #   view or edit permission, since being able to edit a cohort implies being able to see it)
+    scope :viewable_by, ->(user, permission: viewable_permissions + editable_permissions) do
       return none unless user.present?
+
+      permissions = Array.wrap(permission)
 
       # TODO: START_ACL cleanup after permission migration is complete
       if user.using_acls?
-        return none unless GrdaWarehouse::Cohort.viewable_permissions.map { |perm| user.send("#{perm}?") }.any?
+        return none unless permissions.any? { |perm| user.send("#{perm}?") }
 
-        ids = GrdaWarehouse::Cohort.viewable_permissions.flat_map do |perm|
-          group_ids = user.collections_for_permission(perm)
-          next [] if group_ids.empty?
+        group_ids = permissions.flat_map { |perm| user.collections_for_permission(perm) }.uniq
+        return none if group_ids.empty?
 
-          GrdaWarehouse::GroupViewableEntity.where(
-            collection_id: group_ids,
-            entity_type: 'GrdaWarehouse::Cohort',
-          ).pluck(:entity_id)
-        end.compact
+        ids = GrdaWarehouse::GroupViewableEntity.where(
+          collection_id: group_ids,
+          entity_type: 'GrdaWarehouse::Cohort',
+        ).pluck(:entity_id)
         return none if ids.empty?
 
-        where(id: ids)
+        # A string predicate, unlike a hash or Arel predicate, is ANDed by a later
+        # `merge` on the same column instead of being replaced by it
+        where(%(#{quoted_table_name}."id" IN (?)), ids)
       elsif user.can_access_some_cohorts
         if current_scope.present?
           current_scope.merge(user.cohorts)
@@ -116,7 +123,6 @@ module GrdaWarehouse
 
     scope :editable_by, ->(user) do
       return none unless user.present?
-      return none if user.using_acls? && viewable_permissions.map { |perm| user.send("#{perm}?") }.none? # TODO: START_ACL cleanup after permission migration is complete
 
       # TODO: START_ACL cleanup after permission migration is complete
       if user.using_acls?
@@ -125,13 +131,13 @@ module GrdaWarehouse
           next [] if group_ids.empty?
 
           GrdaWarehouse::GroupViewableEntity.where(
-            access_group_id: group_ids,
+            collection_id: group_ids,
             entity_type: 'GrdaWarehouse::Cohort',
           ).pluck(:entity_id)
         end.compact
         return none if ids.empty?
 
-        where(id: ids)
+        where(%(#{quoted_table_name}."id" IN (?)), ids)
       else
         if user.can_edit_some_cohorts? # rubocop:disable Style/IfInsideElse
           if current_scope.present?
@@ -172,8 +178,8 @@ module GrdaWarehouse
     def available_owners
       # Pluck IDs from the warehouse DB first to avoid cross-DB join errors.
       # Two paths exist depending on where the installation is in the legacy -> ACL migration.
-      collection_ids = group_viewable_entities.where.not(collection_id: nil).pluck(:collection_id)
-      access_group_ids = group_viewable_entities.where.not(access_group_id: nil).pluck(:access_group_id)
+      collection_ids = group_viewable_entities.using_acls.pluck(:collection_id)
+      access_group_ids = group_viewable_entities.legacy.pluck(:access_group_id)
 
       user_ids = []
       user_ids += User.joins(:access_controls).where(access_controls: { collection_id: collection_ids }).pluck(:id) if collection_ids.any?
@@ -281,7 +287,7 @@ module GrdaWarehouse
     end
 
     def user_can_edit_cohort_clients user
-      user.can_edit_some_cohorts && user.cohorts.where(id: id).exists?
+      self.class.editable_by(user).where(id: id).exists?
     end
     memoize :user_can_edit_cohort_clients
 
@@ -318,8 +324,6 @@ module GrdaWarehouse
     end
 
     def visible_columns(user:)
-      return self.class.default_visible_columns unless column_state.present?
-
       active_columns.each do |column|
         column.current_user = user
       end
@@ -416,11 +420,15 @@ module GrdaWarehouse
     def refresh_time_dependant_client_data(cohort_client_ids: nil)
       scope = cohort_clients
       scope = scope.where(id: cohort_client_ids) if cohort_client_ids.present?
-      scope.joins(:client).preload(client: :processed_service_history).find_in_batches do |batch|
+      scope.joins(:client).preload(:client).find_in_batches do |batch|
+        stats = length_of_time_stats(batch.map(&:client_id))
         rows = []
         batch.each do |cc|
           time_dependent_methods.each do |column, meth|
             cc[column] = send(meth, cc.client)
+          end
+          length_of_time_counts.each do |column, count|
+            cc[column] = stats.public_send(count)[cc.client_id] || 0
           end
           rows << cc
         end
@@ -429,7 +437,7 @@ module GrdaWarehouse
             rows,
             on_duplicate_key_update: {
               conflict_target: [:id],
-              columns: time_dependent_methods.keys,
+              columns: time_dependent_methods.keys + length_of_time_counts.keys,
             },
           )
         end
@@ -453,20 +461,31 @@ module GrdaWarehouse
       acquired
     end
 
+    # Length-of-time counts for a batch of clients as of the effective date, or today when none is set
+    def length_of_time_stats(client_ids)
+      GrdaWarehouse::WarehouseClientsProcessed::StatsCalculator.new(client_ids: client_ids, on_date: effective_date_or_today, live: true)
+    end
+
+    # Length-of-time columns, counted for a whole batch of clients at once as of the effective date
+    private def length_of_time_counts
+      {
+        calculated_days_homeless_on_effective_date: :homeless_counts,
+        days_homeless_last_three_years_on_effective_date: :all_homeless_in_last_three_years,
+        days_literally_homeless_last_three_years_on_effective_date: :all_literally_homeless_last_three_years,
+        days_homeless_plus_overrides: :homeless_counts_plus_overrides,
+        sheltered_days_homeless_last_three_years: :sheltered_homeless_last_three_years,
+        unsheltered_days_homeless_last_three_years: :unsheltered_homeless_last_three_years,
+      }
+    end
+
     private def time_dependent_methods
       {
-        calculated_days_homeless_on_effective_date: :calculated_days_homeless,
-        days_homeless_last_three_years_on_effective_date: :days_homeless_last_three_years,
-        days_literally_homeless_last_three_years_on_effective_date: :days_literally_homeless_last_three_years,
         destination_from_homelessness: :destination_from_homelessness,
         related_users: :related_users,
         disability_verification_date: :disability_verification_date,
         missing_documents: :missing_documents,
-        days_homeless_plus_overrides: :days_homeless_plus_overrides,
         individual_in_most_recent_homeless_enrollment: :individual_in_most_recent_homeless_enrollment,
         most_recent_date_to_street: :most_recent_date_to_street,
-        sheltered_days_homeless_last_three_years: :sheltered_days_homeless_last_three_years,
-        unsheltered_days_homeless_last_three_years: :unsheltered_days_homeless_last_three_years,
         most_recent_cls: :calculated_most_recent_cls,
         most_recent_prior_living_situation: :calculated_most_recent_prior_living_situation,
         most_recent_household_type: :calculated_most_recent_household_type,
@@ -479,33 +498,9 @@ module GrdaWarehouse
       Date.current - days_of_inactivity.days
     end
 
-    private def calculated_days_homeless(client)
-      client.days_homeless(on_date: effective_date || Date.current)
-
-      # TODO, make this work on a batch of clients
-      # Convert GrdaWarehouse::WarehouseClientsProcessed.homeless_counts to accept client_ids and a date
-    end
-
-    private def sheltered_days_homeless_last_three_years(client)
-      client.sheltered_days_homeless_last_three_years
-    end
-
-    private def unsheltered_days_homeless_last_three_years(client)
-      client.unsheltered_days_homeless_last_three_years
-    end
-
-    private def days_homeless_last_three_years(client)
-      client.days_homeless_in_last_three_years(on_date: effective_date || Date.current)
-
-      # TODO, make this work on a batch of clients
-      # Convert GrdaWarehouse::WarehouseClientsProcessed.all_homeless_in_last_three_years to accept client_ids and a date
-    end
-
-    private def days_literally_homeless_last_three_years(client)
-      client.literally_homeless_last_three_years(on_date: effective_date || Date.current)
-
-      # TODO, make this work on a batch of clients
-      # Convert GrdaWarehouse::WarehouseClientsProcessed.all_literally_homeless_last_three_years to accept client_ids and a date
+    # Length-of-time columns are calculated as of the effective date, or today when none is set
+    private def effective_date_or_today
+      effective_date || Date.current
     end
 
     private def destination_from_homelessness(client)
@@ -553,10 +548,6 @@ module GrdaWarehouse
 
     private def disability_verification_date(client)
       client.most_recent_verification_of_disability&.created_at&.to_date
-    end
-
-    private def days_homeless_plus_overrides(client)
-      client.processed_service_history&.days_homeless_plus_overrides
     end
 
     private def most_recent_automaintained_data_item(scope, client)
@@ -655,7 +646,11 @@ module GrdaWarehouse
     end
 
     def self.maintain_auto_maintained!
-      auto_maintained.find_each(&:maintain)
+      auto_maintained.find_each do |cohort|
+        cohort.maintain
+      rescue AvailableSubPopulations::UnknownSubPopulation => e
+        Sentry.capture_exception_with_info(e, 'Skipped cohort automation', { cohort_id: cohort.id })
+      end
     end
 
     # automation filter configured?
@@ -742,17 +737,12 @@ module GrdaWarehouse
     end
 
     private def build_automation_filter
-      filter = ::Filters::FilterBase.new
-      filter.user_id = User.setup_system_user.id
-      # Match the historic behavior of automation: include only clients with
-      # enrollments that are open today so we don't linger closed participants.
+      filter = ::Filters::SystemProjectFilter.for_project_group(project_group)
+      # Include only clients with enrollments open today, so closed participants drop off
       today = Date.current
       filter.start = today
       filter.end = today
-      return filter unless project_group_id.present?
-
-      filter.project_group_ids = [project_group_id]
-      filter.sub_population = automation_sub_population.to_sym if automation_sub_population.present?
+      filter.sub_population = automation_sub_population if automation_sub_population.present?
       filter.hoh_only = automation_hoh_only
       filter.require_service_during_range = false
       filter
@@ -764,20 +754,23 @@ module GrdaWarehouse
       client_ids -= cohort_clients.pluck(:client_id) # Do not touch existing clients
       cohort_clients_by_client_id = cohort_clients.only_deleted.where(client_id: client_ids).index_by(&:client_id)
       cohort_client_batch = []
-      client_ids.uniq.each do |client_id|
+      client_ids = client_ids.uniq
+      # Calculate default columns for all added clients at once
+      defaults = self.class.available_columns.select(&:default_value?).to_h do |column|
+        column.cohort = self
+        [column.column, column.default_values(client_ids)]
+      end
+      client_ids.each do |client_id|
         # Create (or resurrect) added clients
         cohort_client = cohort_clients_by_client_id[client_id] || GrdaWarehouse::CohortClient.new(cohort_id: id, client_id: client_id)
         cohort_client.deleted_at = nil
 
         # Set any default columns
-        self.class.available_columns.each do |column|
-          if column.default_value?
-            column.cohort = self
-            cohort_client[column.column] = column.default_value(client_id)
-          end
-          # Enforce that we added the client on the processing date
-          cohort_client[:date_added_to_cohort] = @processing_date
+        defaults.each do |column, values|
+          cohort_client[column] = values[client_id]
         end
+        # Enforce that we added the client on the processing date
+        cohort_client[:date_added_to_cohort] = @processing_date
 
         cohort_client_batch << cohort_client
       end

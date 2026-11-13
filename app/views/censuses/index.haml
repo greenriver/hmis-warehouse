@@ -16,10 +16,11 @@
         .none-found No filters applied.
 
 - content_for :page_js do
-  :javascript
-    (function($) {
-      if ('#{filter_params.present?}' === 'true') {
-        census = new App.Census.Base('#{date_range_censuses_path()}', '#{filter_params.to_json.html_safe}', { follow_link: '#{can_view_clients?}' });
-        census.load();
-      }
-    })(jQuery);
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      (function($) {
+        if ('#{filter_params.present?}' === 'true') {
+          census = new App.Census.Base('#{date_range_censuses_path()}', '#{filter_params.to_json.html_safe}', { follow_link: '#{can_view_clients?}' });
+          census.load();
+        }
+      })(jQuery);

@@ -1,12 +1,12 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 # frozen_string_literal: true
 
-# @see docs/features/warehouse-permissions.md
+# @see docs/features/warehouse/warehouse-permissions.md
 #
 # AccessGroup is part of the "legacy" permissions model
 #
@@ -136,7 +136,7 @@ class AccessGroup < ApplicationRecord
   def self.system_groups
     {
       hmis_reports: AccessGroup.where(name: 'All HMIS Reports').first_or_create,
-      health_reports: AccessGroup.where(name: 'All Health Reports').first_or_create,
+      hud_reports: AccessGroup.where(name: 'All HUD Reports').first_or_create,
       cohorts: AccessGroup.where(name: 'All Cohorts').first_or_create,
       project_groups: AccessGroup.where(name: 'All Project Groups').first_or_create,
       data_sources: AccessGroup.where(name: 'All Data Sources').first_or_create,
@@ -156,16 +156,15 @@ class AccessGroup < ApplicationRecord
       # Reports
       all_reports = GrdaWarehouse::WarehouseReports::ReportDefinition.enabled
 
+      # HUD reports have their own system group; All HMIS Reports excludes them.
+      hud_ids = all_reports.hud.pluck(:id)
       all_hmis_reports = system_group(:hmis_reports)
       all_hmis_reports.update(system: ['Entities'], must_exist: true)
-      ids = all_reports.where(health: false).pluck(:id)
-      all_hmis_reports.set_viewables({ reports: ids })
+      all_hmis_reports.set_viewables({ reports: all_reports.pluck(:id) - hud_ids })
 
-      all_health_reports = system_group(:health_reports)
-      all_health_reports.update(system: ['Entities'], must_exist: true)
-      ids = all_reports.where(health: true).pluck(:id)
-      all_health_reports.set_viewables({ reports: ids })
-      all_health_reports.add(system_user)
+      all_hud_reports = system_group(:hud_reports)
+      all_hud_reports.update(system: ['Entities'], must_exist: true)
+      all_hud_reports.set_viewables({ reports: hud_ids })
     end
 
     if group.blank? || group == :cohorts

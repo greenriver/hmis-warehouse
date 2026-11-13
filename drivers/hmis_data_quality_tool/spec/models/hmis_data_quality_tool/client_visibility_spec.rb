@@ -1,3 +1,9 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # frozen_string_literal: true
 
 require 'rails_helper'
@@ -169,7 +175,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
                       first_name: 'Valid',
                       last_name: 'Client',
                       name_data_quality: 1,
-                      ssn: '987654321',
+                      ssn: '123456780',
                       ssn_data_quality: 1)
       destination_client = create(:hud_client, data_source: destination_data_source)
       create(:warehouse_client, destination_id: destination_client.id, source_id: client.id)
@@ -199,7 +205,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
                       first_name: nil, # Blank first name
                       last_name: 'LastOnly',
                       name_data_quality: 1, # But says "Full name reported"
-                      ssn: '987654321',
+                      ssn: '223456780',
                       ssn_data_quality: 1)
       destination_client = create(:hud_client, data_source: destination_data_source)
       create(:warehouse_client, destination_id: destination_client.id, source_id: client.id)

@@ -1,3 +1,9 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # frozen_string_literal: true
 
 module HopwaCaper
@@ -73,6 +79,7 @@ module HopwaCaper
       @user.reporting_policy_for_project(
         project_id: record.project_id,
         mode: html? ? :browse : :download,
+        client_id: record.destination_client_id_for_pii,
       )
     end
 

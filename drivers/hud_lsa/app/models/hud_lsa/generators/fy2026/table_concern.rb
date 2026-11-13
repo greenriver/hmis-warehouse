@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -23,6 +23,15 @@ module HudLsa::Generators::Fy2026::TableConcern
     ::Rds.identifier = sql_server_identifier unless Rds.static_rds?
     ::Rds.database = sql_server_database
     load 'lib/rds_sql_server/lsa/fy2026/lsa_table_structure.rb'
+    reset_lsa_column_information
+  end
+
+  # Every fiscal year loads its definitions into the same LsaSqlServer classes,
+  # and ActiveRecord keeps each class's column list across reports run in one
+  # process. Clear it so inserts match the tables this year just created.
+  private def reset_lsa_column_information
+    load 'lib/rds_sql_server/lsa/fy2026/lsa_sql_server.rb'
+    (LsaSqlServer.models_by_filename.values + LsaSqlServer.intermediate_models_by_filename.values).each(&:reset_column_information)
   end
 
   def add_missing_identity_columns

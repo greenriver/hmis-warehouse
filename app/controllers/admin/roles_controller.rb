@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -86,14 +86,14 @@ module Admin
     end
 
     def batch_params
-      params.permit(role: [*Role.permissions(exclude_health: true)])
+      params.permit(role: [*Role.permissions])
     end
 
     def role_params
       params.require(:role).
         permit(
           :name,
-          Role.permissions(exclude_health: true),
+          Role.permissions,
         )
     end
   end

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -19,6 +19,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
     SO_PROJECT_TYPES = HudHelper.util.residential_project_type_numbers_by_code[:so]
     PH_PROJECT_TYPES = HudHelper.util.residential_project_type_numbers_by_code[:ph]
     TH_PROJECT_TYPES = HudHelper.util.residential_project_type_numbers_by_code[:th]
+    EARLIEST_ALLOWED_DATE = '1970-01-01'.to_date
 
     def self.batch_job_ids
       builder_batch_job_scope.pluck(:id)
@@ -117,9 +118,8 @@ module GrdaWarehouse::Tasks::ServiceHistory
     # use patch_service_history! or create_service_history! directly
     def rebuild_service_history!
       reset_service_history_memos!
-      return false if self.EntryDate < '1970-01-01'.to_date
-      return false if destination_client.blank? || project.blank?
-      return false if data_source.blank?
+      return false if self.EntryDate < EARLIEST_ALLOWED_DATE
+      return false if structural_issue?
       return false if already_processed?
 
       self.history_generated_on = Date.current
@@ -130,6 +130,10 @@ module GrdaWarehouse::Tasks::ServiceHistory
       end
 
       action
+    end
+
+    def structural_issue?
+      destination_client.blank? || project.blank? || data_source.blank?
     end
 
     # Appends new service-day rows to an existing service history without
@@ -312,7 +316,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
     end
 
     # Builds SHS attribute hashes for each date. PH enrollments flip homeless
-    # flags to false after the move-in date; all other project types are constant.
+    # flags to false starting on the move-in date; all other project types are constant.
     private def build_service_days(date_pairs, record_type_value = :service)
       dob = destination_client.attributes['DOB']&.to_date
       pt = project.project_type
@@ -323,13 +327,13 @@ module GrdaWarehouse::Tasks::ServiceHistory
 
       if PH_PROJECT_TYPES.include?(pt) && mid.present?
         date_pairs.map do |date, service_type|
-          after_move_in = date > mid
+          moved_in = date >= mid
           base.merge(
             date: date,
             age: dob ? GrdaWarehouse::Hud::Client.age(date: date, dob: dob) : nil,
             service_type: service_type,
-            homeless: after_move_in ? false : homeless,
-            literally_homeless: after_move_in ? false : literally_homeless,
+            homeless: moved_in ? false : homeless,
+            literally_homeless: moved_in ? false : literally_homeless,
           )
         end
       else

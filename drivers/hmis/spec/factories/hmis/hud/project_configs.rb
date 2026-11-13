@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -32,8 +32,6 @@ FactoryBot.define do
   end
 
   factory :hmis_project_ce_config, parent: :hmis_project_config_base, class: 'Hmis::ProjectCeConfig' do
-    enabled { true }
-
     transient do
       receives_direct_referrals { false }
       supports_waitlist_referrals { true }

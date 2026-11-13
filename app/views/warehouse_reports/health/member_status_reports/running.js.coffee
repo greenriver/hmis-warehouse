@@ -1,1 +1,0 @@
-$('.report-listing').html "<%=j render 'table' %>"

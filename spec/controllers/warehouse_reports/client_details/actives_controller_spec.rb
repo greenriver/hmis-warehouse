@@ -1,3 +1,9 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # frozen_string_literal: true
 
 require 'rails_helper'
@@ -89,6 +95,44 @@ RSpec.describe WarehouseReports::ClientDetails::ActivesController, type: :contro
         # Should exclude enrollments outside date range
         expect(enrollment_ids).not_to include(outside_date_range_enrollment.id)
       end
+    end
+  end
+
+  describe 'GET #index rendering' do
+    render_views
+
+    it 'does not run the report count queries in the request' do
+      queries = []
+      callback = ->(*, payload) { queries << payload[:sql] if payload[:sql].include?('COUNT(DISTINCT') }
+      ActiveSupport::Notifications.subscribed(callback, 'sql.active_record') do
+        get :index, params: { filter: filter_params }
+      end
+
+      expect(response).to have_http_status(:ok)
+      expect(queries).to eq([])
+      expect(response.body).to include('data-background-render-url-value')
+    end
+  end
+
+  describe 'POST #render_section' do
+    it 'enqueues the render job with the filter, user, and page' do
+      expect do
+        post :render_section, params: { render_id: 'render-1', filter: filter_params, page: '2' }
+      end.to have_enqueued_job(BackgroundRender::ActiveClientsReportJob).with(
+        'render-1',
+        filter: satisfy { |json| JSON.parse(json).dig('filters', 'start') == '2023-01-01' },
+        user_id: user.id,
+        page: '2',
+      )
+    end
+
+    it 'enqueues nothing for a user who cannot see the report' do
+      # no ReportDefinition grants this report, so the real check denies access
+      allow(controller).to receive(:report_visible?).and_call_original
+
+      expect do
+        post :render_section, params: { render_id: 'render-1', filter: filter_params }
+      end.not_to have_enqueued_job(BackgroundRender::ActiveClientsReportJob)
     end
   end
 

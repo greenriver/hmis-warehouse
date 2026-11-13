@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -102,7 +102,7 @@ module DestinationReport
         data = {}
         data[:all] ||= destination_buckets.map { |b| [b, Set.new] }.to_h
         data[:by_coc] ||= {}
-        report_scope.joins(project: :project_cocs).
+        report_scope.joins_project_cocs(coc_codes: filter.coc_codes).
           order(:CoCCode, :first_date_in_program).
           pluck(
             :client_id,

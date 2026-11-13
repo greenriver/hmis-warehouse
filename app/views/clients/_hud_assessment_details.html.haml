@@ -1,0 +1,37 @@
+.well
+  .d-flex
+    .assessment
+      %h3 Assessment Details
+      %dl
+        %dt Project
+        %dd= assessment.enrollment.project&.name(current_user)
+        %dt Assessment Date
+        %dd= assessment.AssessmentDate
+        %dt Assessment Level
+        %dd= HudHelper.util.assessment_level assessment.AssessmentLevel
+        %dt Assessment Type
+        %dd= HudHelper.util.assessment_type assessment.AssessmentType
+        %dt Prioritization Status
+        %dd= HudHelper.util.prioritization_status assessment.PrioritizationStatus
+        %dt Created
+        %dd= assessment.DateCreated
+        %dt Updated
+        %dd= assessment.DateUpdated
+    - if assessment.assessment_results.any?
+      .assessment-results.ml-8
+        %h3 Assessment Results
+        - assessment.assessment_results.each do |result|
+          %dl
+            %dt Assessment Result Type
+            %dd= result.AssessmentResultType
+            %dt Assessment Result
+            %dd= result.AssessmentResult
+- if assessment.assessment_questions.any?
+  %h2 Questions
+  .well
+    - assessment.assessment_questions.sort_by { |q| [q.AssessmentQuestionGroup, q.AssessmentQuestionOrder] }.each do |q|
+      %dl
+        %dt= Translation.translate(q.AssessmentQuestion)
+        %dd= q.human_readable
+- else
+  .none-found No questions provided.

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -20,7 +20,6 @@ class Hmis::User < ApplicationRecord
 
   include UserConcern
   include HasRecentItems
-  include DeviseUserPatch
 
   self.table_name = :users
 
@@ -39,7 +38,7 @@ class Hmis::User < ApplicationRecord
 
   # Request-scoped attribute storing the data_source_id of the current HMIS request for the current user.
   # All HMIS access is scoped to this data source.
-  # @see docs/architecture/multi-hmis-support.md
+  # @see docs/features/hmis/multi-hmis-support.md
   attr_accessor :hmis_data_source_id
 
   # Returns application users who have some permissions in the given data source.
@@ -99,7 +98,7 @@ class Hmis::User < ApplicationRecord
     end
 
     # Methods for determining if a user has permission
-    # e.g. the_user.can_administer_health?
+    # e.g. the_user.can_manage_agency?
     define_method("#{permission}?") do
       send(permission)
     end
@@ -117,7 +116,7 @@ class Hmis::User < ApplicationRecord
     end
 
     # Provide a scope for each permission to get any user who qualifies
-    # e.g. User.can_administer_health
+    # e.g. User.can_manage_agency
     scope permission, -> do
       joins(:roles).
         where(roles: { permission => true })
@@ -166,7 +165,11 @@ class Hmis::User < ApplicationRecord
     check_permissions_with_mode(*permissions, mode: mode) { |perm| permission_for?(entity, perm) }
   end
 
-  def entities_with_permissions(model, *permissions, mode: :any)
+  # NOTE:
+  # - this matches Role columns directly, so it does not resolve permission requirements.
+  #   Project.with_access does, and should be preferred for anything project-scoped.
+  # - Project.viewable_by is the only caller, so mode: :all is exercised only by specs.
+  private def entities_with_permissions(model, *permissions, mode: :any)
     raise "missing data source on user id #{id}" unless hmis_data_source_id
 
     # Get all the roles that have this permission
@@ -247,13 +250,15 @@ class Hmis::User < ApplicationRecord
     @editable_project_ids ||= Hmis::Hud::Project.viewable_by(self).pluck(:id)
   end
 
-  def current_user_api_values
+  def current_user_api_values(session_duration:)
     {
       id: id.to_s,
       name: name,
       email: email,
       phone: phone,
-      sessionDuration: Devise.timeout_in.in_seconds,
+      sessionDuration: session_duration,
+      # primary_idp is only defined under AuthMethod.jwt?
+      primaryIdp: AuthMethod.jwt? ? primary_idp : nil,
     }
   end
 
@@ -278,6 +283,16 @@ class Hmis::User < ApplicationRecord
     Hmis::Filter::ApplicationUserFilter.new(input).filter_scope(self)
   end
 
+  # Batch counterpart to can_access_hmis_data_source?, for listing many users at once.
+  # Returns { user_id => [hmis data source id, ...] }, omitting users with no HMIS access.
+  def self.accessible_hmis_data_source_ids_by_user_id
+    GrdaWarehouse::DataSource.hmis.each_with_object({}) do |data_source, result|
+      with_hmis_access_in_data_source(data_source.id).
+        pluck(:id).
+        each { |user_id| (result[user_id] ||= []) << data_source.id }
+    end
+  end
+
   # Determine whether this user has _any_ access to a given HMIS data source.
   # Returns true even if they can only access 1 project or org within the DS.
   # This doesn't check for permissions (so, they don't necessarily have can_view_projects within the DS).
@@ -293,6 +308,26 @@ class Hmis::User < ApplicationRecord
     @accessible_data_source_ids[data_source_id] = can_access_ds
 
     can_access_ds
+  end
+
+  # Check the ability of the user to administer HMIS in a data source.
+  def can_administer_hmis_in_data_source?(data_source)
+    admin_collection_ids = access_controls.
+      joins(:role).
+      merge(Hmis::Role.with_permissions(:can_administer_hmis)).
+      pluck(:access_group_id)
+
+    Hmis::GroupViewableEntity.
+      where(collection_id: admin_collection_ids).
+      includes_any_entity_in_data_source(data_source).
+      exists?
+  end
+
+  # Terminal error type the HMIS shows, or nil when this user may use the HMIS at a data source
+  def hmis_access_error_for(data_source)
+    return nil if data_source.hmis_live? || can_administer_hmis_in_data_source?(data_source)
+
+    :no_hmis_access
   end
 
   memoize def policy_for(resource, policy_type:)

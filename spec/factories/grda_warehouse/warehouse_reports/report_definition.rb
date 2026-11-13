@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -14,11 +14,10 @@ FactoryBot.define do
     description { '' }
   end
 
-  factory :confidential_touch_point_report, class: 'GrdaWarehouse::WarehouseReports::ReportDefinition' do
-    report_group { 'Reports' }
-    url { 'warehouse_reports/confidential_touch_point_exports' }
-    name { 'TouchPoint Export' }
-    description { '' }
+  factory :touch_point_report_instance, class: 'GrdaWarehouse::WarehouseReports::TouchPoint' do
+    user { nil }
+    parameters { {} }
+    data { {} }
   end
 
   factory :core_demographics_report, class: 'GrdaWarehouse::WarehouseReports::ReportDefinition' do
@@ -47,5 +46,33 @@ FactoryBot.define do
     url { 'warehouse_reports/hmis_exports' }
     name { 'HUD HMIS CSV Exports' }
     description { 'Export data in the HUD standard CSV format.' }
+  end
+
+  factory :client_lookups_report, class: 'GrdaWarehouse::WarehouseReports::ReportDefinition' do
+    report_group { 'Operational Reports' }
+    url { 'warehouse_reports/client_lookups' }
+    name { 'Client PersonalID Lookup' }
+    description { 'Mapping table to translate warehouse IDs to HMIS Personal IDs' }
+  end
+
+  factory :client_retention_report, class: 'GrdaWarehouse::WarehouseReports::ReportDefinition' do
+    report_group { 'Audit' }
+    url { 'warehouse_reports/client_retention' }
+    name { 'Client Data Retention' }
+    description { 'Retention runs, marked clients and clients expiring soon' }
+  end
+
+  factory :data_source_report, class: 'GrdaWarehouse::WarehouseReports::ReportDefinition' do
+    report_group { 'Operational Reports' }
+    url { 'data_source_report/warehouse_reports/reports' }
+    name { 'Data Source Report' }
+    description { '' }
+  end
+
+  factory :access_logs_report, class: 'GrdaWarehouse::WarehouseReports::ReportDefinition' do
+    report_group { 'Audit' }
+    url { 'access_logs/warehouse_reports/reports' }
+    name { 'User Access Logs' }
+    description { 'Download access logs for offline analysis' }
   end
 end

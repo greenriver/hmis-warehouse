@@ -1,0 +1,8 @@
+%ul.nav.nav-tabs{role: :tablist}
+  %li.nav-item{role: :presentation}
+    = link_to 'Received Files', secure_files_path, role: :tab, class: ['nav-link', active_tab == :received ? 'active' : '']
+  %li.nav-item{role: :presentation}
+    = link_to 'Sent Files', sent_secure_files_path, role: :tab, class: ['nav-link', active_tab == :sent ? 'active' : '']
+  - if current_user.can_view_all_secure_uploads?
+    %li.nav-item{role: :presentation}
+      = link_to 'All Files', all_files_secure_files_path, role: :tab, class: ['nav-link', active_tab == :all ? 'active' : '']

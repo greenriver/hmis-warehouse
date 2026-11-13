@@ -1,3 +1,9 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # frozen_string_literal: true
 
 class RemoveCurrentLivingSituationVerifiedByLimit1 < ActiveRecord::Migration[7.0]
@@ -15,7 +21,7 @@ class RemoveCurrentLivingSituationVerifiedByLimit1 < ActiveRecord::Migration[7.0
   end
 
   def down
-    # Including the revese steps for rollbacks
+    # Including the reverse steps for rollbacks
     # Bi::ViewMaintainer.new.safe_create_role
     # Bi::ViewMaintainer.new.non_client_view(GrdaWarehouse::Hud::CurrentLivingSituation)
   end

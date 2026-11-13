@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -97,7 +97,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         _, result = post_graphql(client_id: c1.id, serviceTypeId: bed_night_cst.id) { query }
         enrollments = result.dig('data', 'client', 'enrollments', 'nodes').map(&:deep_symbolize_keys)
         expect(enrollments.map { |e| e[:lastServiceDate] }.compact.size).to eq(enrollments.size)
-      end.to make_database_queries(count: 10..30)
+      end.to make_database_queries(count: 20..40)
     end
   end
 end

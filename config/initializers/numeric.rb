@@ -1,3 +1,9 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # Provide a mechanism to go from a number to a CSV/Excel column equivalent
 # Thanks to sawa https://stackoverflow.com/questions/14632304/generate-letters-to-represent-number-using-ruby
 

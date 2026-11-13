@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -105,6 +105,10 @@ module Filters
       # Cache @user instance to avoid extra database lookups while still setting user_id for consistency
       @user = user if user
       self.user_id = user.id if user
+    end
+
+    def sub_population=(value)
+      super(value.blank? ? :clients : AvailableSubPopulations.fetch!(value, available_sub_populations.values))
     end
 
     # Incorporate anything that might change the results
@@ -456,7 +460,10 @@ module Filters
         opts[label(:sub_population, labels)] = chosen_sub_population
         opts[label(:data_sources, labels)] = data_source_names if data_source_ids.any?
         opts[label(:organizations, labels)] = organization_names if organization_ids.any?
-        opts[label(:projects, labels)] = project_names(project_ids) if project_ids.any?
+        # Show the actual (e.g. CoC/funder-narrowed) project set the report will
+        # run against, not the raw picks, so this agrees with both the live
+        # "N Projects Included" count on the new-report page and the report run itself.
+        opts[label(:projects, labels)] = project_names(effective_project_ids) if project_ids.any?
         opts[label(:project_groups, labels)] = project_groups if project_group_ids.any?
         opts[label(:funders, labels)] = funder_names if funder_ids.any?
         opts[label(:funder_others, labels)] = funder_others if funder_others.any?
@@ -500,6 +507,11 @@ module Filters
 
     def range
       start .. self.end
+    end
+
+    # For datetime columns. A Date upper bound casts to midnight and drops the end day.
+    def time_range
+      as_date_range.time_range
     end
 
     def as_date_range
@@ -672,16 +684,21 @@ module Filters
       )
     end
 
-    def all_projects?
-      effective_project_ids.sort == all_project_ids.sort
-    end
-
     def project_ids
       @project_ids.reject(&:blank?)
     end
 
+    # Memoized because the All Neighbors report calls this once per enrollment
     def secondary_project_ids
-      @secondary_project_ids.reject(&:blank?)
+      @visible_secondary_project_ids ||= begin # rubocop:disable Naming/MemoizedInstanceVariableName -- @secondary_project_ids holds the raw param
+        submitted_ids = @secondary_project_ids.reject(&:blank?).map(&:to_i)
+        submitted_ids.empty? ? [] : all_project_scope.where(id: submitted_ids).pluck(:id)
+      end
+    end
+
+    def secondary_project_ids=(ids)
+      @visible_secondary_project_ids = nil
+      super
     end
 
     def coc_codes
@@ -721,27 +738,40 @@ module Filters
     end
 
     def effective_project_ids_from_projects
-      @effective_project_ids_from_projects ||= project_ids.reject(&:blank?).map(&:to_i)
+      @effective_project_ids_from_projects ||= begin
+        submitted_ids = project_ids.reject(&:blank?).map(&:to_i)
+        submitted_ids.empty? ? [] : all_project_scope.where(id: submitted_ids).pluck(:id)
+      end
     end
 
     def effective_project_ids_from_project_groups
       pgs = project_group_ids.reject(&:blank?).map(&:to_i)
       return [] if pgs.empty? # if there are no project groups selected, there are no projects
 
-      @effective_project_ids_from_project_groups ||= GrdaWarehouse::ProjectGroup.joins(:projects).
-        merge(GrdaWarehouse::ProjectGroup.viewable_by(user)).
-        where(id: pgs).
-        pluck(p_t[:id].as('project_id'))
+      @effective_project_ids_from_project_groups ||= visible_project_ids_in_project_groups(pgs)
     end
 
     def effective_project_ids_from_secondary_project_groups
       pgs = secondary_project_group_ids.reject(&:blank?).map(&:to_i)
       return [] if pgs.empty? # if there are no project groups selected, there are no projects
 
-      @effective_project_ids_from_secondary_project_groups ||= GrdaWarehouse::ProjectGroup.joins(:projects).
-        merge(GrdaWarehouse::ProjectGroup.viewable_by(user)).
-        where(id: pgs).
-        pluck(p_t[:id].as('project_id'))
+      @effective_project_ids_from_secondary_project_groups ||= visible_project_ids_in_project_groups(pgs)
+    end
+
+    # A project group limits which projects a report covers, it doesn't grant access to them:
+    # users only get the group's projects they can already report on
+    private def visible_project_ids_in_project_groups(project_group_ids)
+      group_project_ids = GrdaWarehouse::ProjectGroup.joins(:projects).
+        merge(viewable_project_group_scope).
+        where(id: project_group_ids).
+        select(p_t[:id])
+
+      all_project_scope.where(id: group_project_ids).pluck(:id)
+    end
+
+    # The project groups a selection may use
+    private def viewable_project_group_scope
+      GrdaWarehouse::ProjectGroup.viewable_by(user)
     end
 
     def effective_project_ids_from_organizations
@@ -787,6 +817,13 @@ module Filters
       GrdaWarehouse::Hud::Project.viewable_by(user, permission: :can_view_assigned_reports)
     end
 
+    # The projects whose enrollments `apply_criteria` may return. Unlike `all_project_scope`,
+    # subclasses don't narrow it by project type, so criteria keep enrollments in any
+    # project the user can report on
+    def criteria_project_scope
+      GrdaWarehouse::Hud::Project.viewable_by(user, permission: :can_view_assigned_reports)
+    end
+
     def all_organizations_scope
       GrdaWarehouse::Hud::Organization.joins(:projects).
         merge(all_project_scope)
@@ -827,24 +864,24 @@ module Filters
       HudHelper.util.project_type_group_titles.select { |k, _| k.in?(default_project_type_codes) }.invert.freeze
     end
 
-    def project_options_for_select(user:, ids: nil)
-      all_project_scope.options_for_select(user: user, ids: ids)
+    def project_options_for_select(user:, ids: nil, permission: :can_view_assigned_reports)
+      all_project_scope.options_for_select(user: user, ids: ids, permission: permission)
     end
 
-    def organization_options_for_select(user:, ids: nil)
-      all_organizations_scope.distinct.options_for_select(user: user, ids: ids)
+    def organization_options_for_select(user:, ids: nil, permission: :can_view_assigned_reports)
+      all_organizations_scope.distinct.options_for_select(user: user, ids: ids, permission: permission)
     end
 
-    def data_source_options_for_select(user:, ids: nil)
-      all_data_sources_scope.options_for_select(user: user, ids: ids)
+    def data_source_options_for_select(user:, ids: nil, permission: :can_view_assigned_reports)
+      all_data_sources_scope.options_for_select(user: user, ids: ids, permission: permission)
     end
 
-    def funder_options_for_select(user:, funder_codes: nil)
-      all_funders_scope.options_for_select(user: user, funder_codes: funder_codes)
+    def funder_options_for_select(user:, funder_codes: nil, permission: :can_view_assigned_reports)
+      all_funders_scope.options_for_select(user: user, funder_codes: funder_codes, permission: permission)
     end
 
-    def funder_other_options_for_select(user:)
-      all_funders_scope.options_for_select_other(user: user)
+    def funder_other_options_for_select(user:, permission: :can_view_assigned_reports)
+      all_funders_scope.options_for_select_other(user: user, permission: permission)
     end
 
     def coc_code_options_for_select(user:, permission: :can_view_assigned_reports)
@@ -1055,7 +1092,10 @@ module Filters
       @available_coc_codes ||= begin
         return GrdaWarehouse::Hud::ProjectCoc.distinct.pluck(GrdaWarehouse::Hud::ProjectCoc.coc_code_coalesce) if user.system_user?
 
-        GrdaWarehouse::Lookups::CocCode.viewable_by(user).distinct.pluck(:coc_code)
+        # Must match the permission used to populate the coc_codes select
+        # (coc_code_options_for_select) or submitted codes get silently
+        # filtered out here and validation fails with "can't be blank".
+        GrdaWarehouse::Lookups::CocCode.viewable_by(user, permission: :can_view_assigned_reports).distinct.pluck(:coc_code)
       end
     end
 
@@ -1361,9 +1401,12 @@ module Filters
     def chosen_projects
       return nil unless project_ids.reject(&:blank?).present?
 
+      # Use effective_project_ids (not the raw picks) so this agrees with both
+      # the live "N Projects Included" count on the new-report page and the
+      # report run itself, both of which narrow by CoC/funder/etc.
       # OK to use non-confidentialized ProjectName because confidential projects
       # are only select-able if user has permission to view their names
-      GrdaWarehouse::Hud::Project.where(id: project_ids).pluck(:ProjectName)
+      GrdaWarehouse::Hud::Project.where(id: effective_project_ids).pluck(:ProjectName)
     end
 
     def chosen_excluded_projects

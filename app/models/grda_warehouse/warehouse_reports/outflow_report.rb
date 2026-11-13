@@ -1,10 +1,10 @@
-# frozen_string_literal: true
-
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 module GrdaWarehouse::WarehouseReports
   class OutflowReport
@@ -328,7 +328,7 @@ module GrdaWarehouse::WarehouseReports
       housed = housed_source.
         where(client_id: entries_scope.residential.pluck(:client_id)).
         viewable_by(@user)
-      housed = housed.send(@filter.sub_population) if @filter.sub_population.to_s.starts_with?('youth')
+      housed = housed.public_send(@filter.sub_population) if @filter.sub_population.to_s.starts_with?('youth')
 
       housed
     end
@@ -342,7 +342,7 @@ module GrdaWarehouse::WarehouseReports
       sub_population = :youth if sub_population.to_s.starts_with?('youth')
 
       scope = report_scope_source.
-        send(sub_population).
+        public_send(sub_population).
         joins(:organization)
 
       scope = filter_for_user_access(scope)
@@ -399,6 +399,7 @@ module GrdaWarehouse::WarehouseReports
       headers += ['First Name', 'Last Name'] if ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
       headers += [
         'Project Name',
+        'Project Type',
         'First Date In Program',
         'Last Date In Program',
         'Destination',
@@ -408,11 +409,14 @@ module GrdaWarehouse::WarehouseReports
 
     def rows_for_export(key)
       rows = []
-      enrollments_for(key).values.each do |enrollments|
+      grouped_enrollments = enrollments_for(key)
+      @user.policy_context.preload_client_dependencies(grouped_enrollments.keys)
+      grouped_enrollments.values.each do |enrollments|
         enrollments.each do |enrollment|
           client = enrollment.client
+          pii = GrdaWarehouse::PiiProvider.new(client, policy: @user.reporting_policy_for_client(client: client, mode: :download))
           row = [client.id]
-          row += [client.FirstName, client.LastName] if ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
+          row += [pii.first_name, pii.last_name] if ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
           row += [
             enrollment.project_name,
             enrollment.service_type_brief,

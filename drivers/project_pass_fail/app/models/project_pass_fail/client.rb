@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -87,6 +87,23 @@ module ProjectPassFail
       return detail_headers(include_gender_data: include_gender_data) if GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
 
       detail_headers(include_gender_data: include_gender_data).except(:first_name, :last_name, :dob, :ssn)
+    end
+
+    PII_KEYS = [:first_name, :last_name, :dob, :ssn].freeze
+
+    def detail_value(key, user:, mode:)
+      return self[key] unless key.in?(PII_KEYS)
+
+      pii = pii_provider(user: user, mode: mode)
+      key == :dob ? GrdaWarehouse::PiiProvider.viewable_dob(dob, policy: pii.policy) : pii.public_send(key)
+    end
+
+    private def pii_provider(user:, mode:)
+      @pii_providers ||= {}
+      @pii_providers[mode] ||= begin
+        policy = user.reporting_policy_for_project(project_id: project&.project_id, mode: mode, client_id: client_id)
+        GrdaWarehouse::PiiProvider.from_attributes(policy: policy, first_name: first_name, last_name: last_name, dob: dob, ssn: ssn)
+      end
     end
   end
 end

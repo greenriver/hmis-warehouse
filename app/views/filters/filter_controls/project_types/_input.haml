@@ -26,17 +26,18 @@
     = f.input :project_type_codes, as: :select_two, collection: HudHelper.util.project_type_group_titles.invert, required: false, input_html: { multiple: @report.multiple_project_types?, class: klasses, id: 'filters_project_type_codes'}, label: 'Project Types'
 
 - content_for :page_js do
-  :javascript
-    'use strict';
-    var defaultValues = #{homless_codes.map(&:to_s).to_json.html_safe};
-    $('.j-project-type-choice').change(function() {
-      var $radio = $(this);
-      var isHomeless = $radio.is(':checked') && $radio.val() == 'homeless';
-      if (isHomeless) {
-        var $input = $('#filters_project_type_codes')
-        $input.val(defaultValues);
-        $input.trigger('change');
-      }
-      $('#j-custom-project-type').toggleClass('d-none', isHomeless);
-      $('#j-custom-project-type').attr('aria-hidden', isHomeless);
-    });
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      'use strict';
+      var defaultValues = #{homless_codes.map(&:to_s).to_json.html_safe};
+      $('.j-project-type-choice').change(function() {
+        var $radio = $(this);
+        var isHomeless = $radio.is(':checked') && $radio.val() == 'homeless';
+        if (isHomeless) {
+          var $input = $('#filters_project_type_codes')
+          $input.val(defaultValues);
+          $input.trigger('change');
+        }
+        $('#j-custom-project-type').toggleClass('d-none', isHomeless);
+        $('#j-custom-project-type').attr('aria-hidden', isHomeless);
+      });

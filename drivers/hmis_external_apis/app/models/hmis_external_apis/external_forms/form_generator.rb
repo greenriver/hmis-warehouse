@@ -1,12 +1,13 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 # frozen_string_literal: true
 
-# render html from a from definition
+# Render HTML from a form definition. Supports a subset of the form definition schema and raises on anything else.
+# See docs/features/hmis/hmis-external-forms.md for more details.
 module HmisExternalApis::ExternalForms
   class FormGenerator
     attr_reader :context

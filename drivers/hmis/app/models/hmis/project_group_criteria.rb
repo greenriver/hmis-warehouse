@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -21,13 +21,13 @@ module Hmis
     attribute :organization_ids, Array, default: [].freeze
     attribute :all_projects_in_data_source, Boolean, default: false
     attribute :project_type_numbers, Array, default: [].freeze
+    attribute :coc_codes, Array, default: [].freeze
+    attribute :closed_projects, Boolean, default: false
     # TODO: add more filtering capabilities:
     # attribute :hmis_participation_status, Integer, default: nil
     # attribute :ce_participation_access_point, Boolean, default: nil
     # attribute :funder_ids, Array, default: []
-    # attribute :coc_codes, Array, default: []
     # attribute :project_group_ids, Array, default: []
-    # attribute :coc_codes, Array, default: []
     # attribute :project_status, String, default: 'all'
 
     # Allowed attributes for validation and updates
@@ -36,6 +36,8 @@ module Hmis
       :organization_ids,
       :all_projects_in_data_source,
       :project_type_numbers,
+      :coc_codes,
+      :closed_projects,
       # :hmis_participation_status,
       # :project_status,
     ].freeze
@@ -87,13 +89,17 @@ module Hmis
       ids << organization_scope.joins(:projects).where(id: organization_ids).pluck(p_t[:id]) if organization_ids.any?
       # Add projects selected by project type
       ids << project_scope.where(project_type: project_type_numbers).pluck(:id) if project_type_numbers.any?
+      # Add projects selected by CoC code
+      ids << project_scope.in_coc(coc_code: coc_codes).pluck(:id) if coc_codes.any?
+      # Add projects that are not currently open
+      ids << closed_projects_scope.pluck(:id) if closed_projects
       # Flatten and remove duplicates
       ids.flatten.uniq
     end
 
     # Describe criteria as HTML
     def describe_criteria_as_html
-      return ''.html_safe if project_ids.blank? && organization_ids.blank? && !all_projects_in_data_source && project_type_numbers.blank?
+      return ''.html_safe if project_ids.blank? && organization_ids.blank? && !all_projects_in_data_source && project_type_numbers.blank? && coc_codes.blank? && !closed_projects
 
       criteria = []
 
@@ -118,6 +124,10 @@ module Hmis
         criteria << { label: 'Project Types', values: project_type_names }
       end
 
+      criteria << { label: 'CoC Codes', values: coc_codes.uniq.sort } if coc_codes.any?
+
+      criteria << { label: 'Project Status', values: ['Closed'] } if closed_projects
+
       # Generate HTML. This is based on Filter::FilterBase#describe_criteria_as_html
       criteria_inner = criteria.map do |criterion|
         wrapper_classes = ['report-parameters__parameter', 'd-flex']
@@ -133,7 +143,7 @@ module Hmis
 
         content_tag(:div, class: wrapper_classes) do
           label = content_tag(:label, label_text, class: 'label label-default parameter-label pl-0')
-          value = content_tag(:label, values.to_sentence, class: ['label', 'label-primary', 'parameter-value', 'pl-0', 'mb-0'])
+          value = content_tag(:label, values.to_sentence(two_words_connector: ' or ', last_word_connector: ', or '), class: ['label', 'label-primary', 'parameter-value', 'pl-0', 'mb-0'])
           label.concat(value)
         end
       end.join.html_safe
@@ -153,6 +163,10 @@ module Hmis
 
     def organization_scope
       ::GrdaWarehouse::Hud::Organization.where(data_source_id: data_source_id)
+    end
+
+    def closed_projects_scope
+      project_scope.merge(Hmis::Hud::Project.closed_on_date)
     end
 
     def data_source

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -43,7 +43,7 @@ module ClientLocationHistory
       [
         label_attributes.include?(:name) ? name_for_label(user) : nil,
         label_attributes.include?(:seen_on) ? "Seen on: #{located_at || located_on}" : nil,
-        label_attributes.include?(:collected_by) ? "by #{collected_by}" : nil,
+        label_attributes.include?(:collected_by) ? "by #{ERB::Util.html_escape(collected_by)}" : nil,
       ].compact
     end
 
@@ -60,7 +60,7 @@ module ClientLocationHistory
     end
 
     private def link_for(path, text)
-      "<a href=\"#{path}\" target=\"_blank\">#{text}</a>"
+      "<a href=\"#{ERB::Util.html_escape(path)}\" target=\"_blank\">#{ERB::Util.html_escape(text)}</a>"
     end
 
     def self.bounds(locations)
@@ -83,6 +83,7 @@ module ClientLocationHistory
       markers
     end
 
-    include RailsDrivers::Extensions
+    # Extensions from drivers — see ADR 0007
+    include ::Hmis::ClientLocationHistory::LocationExtension
   end
 end

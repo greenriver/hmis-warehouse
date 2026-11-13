@@ -104,14 +104,38 @@ $table-border-color-secondary: #F0F0F0;
 
 table.table-fixed {
   position: relative;
+  // Required for sticky thead to properly cover body cell borders.
+  // border-collapse: collapse paints borders at the table level, ignoring z-index,
+  // so body cell borders bleed through the sticky header.
+  border-collapse: separate;
+  border-spacing: 0;
 }
 
-.table-fixed th {
+// Bootstrap's .table-bordered sets both left+right on cells and top+bottom on rows.
+// With border-collapse: separate those borders double at shared edges. Restore
+// single-pixel lines by keeping only one side at each shared boundary, then
+// restoring the outer edges explicitly.
+table.table-fixed.table-bordered {
+  > :not(caption) > * {
+    border-bottom-width: 0;
+  }
+  > :not(caption) > * > * {
+    border-right-width: 0;
+  }
+  > :not(caption) > * > *:last-child {
+    border-right-width: 1px;
+  }
+  > :not(caption):last-child > *:last-child {
+    border-bottom-width: 1px;
+  }
+}
+
+.table-fixed thead th {
   position: sticky;
   top: 0;
   background-color: var(--white);
   z-index: 100;
-
+  border-bottom: 1px solid $table-border-color-secondary;
 }
 
 .table-fixed .table-dark th,

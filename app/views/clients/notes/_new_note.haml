@@ -12,17 +12,18 @@
   = f.submit value: 'Add Note', class: 'btn btn-secondary'
 
 = content_for :page_js do
-  :javascript
-    $(document).ready(function() {
-      $('.jNotifications').on('change', function(e) {
-        if($(this).is(':checked')){
-          $('.jRecipients').show();
-          $('.select2-select-all').remove();
-        } else {
-          $('.jRecipients option:selected').prop('selected', false);
-          $('.jRecipients').hide();
-          $('.jRecipients select').trigger('change');
-        }
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      $(document).ready(function() {
+        $('.jNotifications').on('change', function(e) {
+          if($(this).is(':checked')){
+            $('.jRecipients').show();
+            $('.select2-select-all').remove();
+          } else {
+            $('.jRecipients option:selected').prop('selected', false);
+            $('.jRecipients').hide();
+            $('.jRecipients select').trigger('change');
+          }
+        });
+        $('.jNotifications').trigger('change');
       });
-      $('.jNotifications').trigger('change');
-    });

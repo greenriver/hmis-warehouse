@@ -1,0 +1,661 @@
+###
+# Copyright 2016 - 2025 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+# frozen_string_literal: true
+
+require 'webmock/rspec'
+
+RSpec.describe Idp::Keycloak::UserImporter, type: :model do
+  let(:api_url) { 'http://keycloak.test:8080' }
+  let(:realm) { 'openpath' }
+  let(:client_id) { 'rails-service-account' }
+  let(:client_secret) { 'test-secret' }
+  let(:token_url) { "#{api_url}/realms/#{realm}/protocol/openid-connect/token" }
+
+  let(:service) do
+    Idp::KeycloakService.new(
+      config: {
+        api_url: api_url,
+        realm: realm,
+        client_id: client_id,
+        client_secret: client_secret,
+      },
+    )
+  end
+
+  let(:importer) { described_class.new(service: service) }
+
+  before do
+    WebMock.disable_net_connect!
+    stub_request(:post, token_url).
+      to_return(
+        status: 200,
+        body: { access_token: 'test-token', expires_in: 300 }.to_json,
+        headers: { 'Content-Type' => 'application/json' },
+      )
+  end
+
+  after do
+    WebMock.reset!
+    WebMock.allow_net_connect!
+  end
+
+  describe '.migration_scope' do
+    let(:connector_id) { 'keycloak' }
+    let!(:confirmed_active) { create(:user, confirmed_at: 1.day.ago, active: true) }
+    let!(:inactive) { create(:user, confirmed_at: 1.day.ago, active: false) }
+    let!(:invited_not_accepted) do
+      create(:user, confirmed_at: nil, invitation_accepted_at: nil, active: true)
+    end
+
+    it 'includes confirmed, active users' do
+      expect(described_class.migration_scope(connector_id: connector_id, since: nil)).to include(confirmed_active)
+    end
+
+    it 'excludes inactive users' do
+      expect(described_class.migration_scope(connector_id: connector_id, since: nil)).not_to include(inactive)
+    end
+
+    it 'excludes invited-but-not-accepted users (confirmed_at is nil)' do
+      expect(described_class.migration_scope(connector_id: connector_id, since: nil)).not_to include(invited_not_accepted)
+    end
+
+    it 'excludes users already linked to the connector' do
+      confirmed_active.user_authentication_sources.create!(connector_id: connector_id, connector_user_id: 'kc-uuid-1')
+
+      expect(described_class.migration_scope(connector_id: connector_id, since: nil)).not_to include(confirmed_active)
+    end
+
+    it 'includes users whose only link is to a different connector' do
+      confirmed_active.user_authentication_sources.create!(connector_id: 'other-idp', connector_user_id: 'other-uuid-1')
+
+      expect(described_class.migration_scope(connector_id: connector_id, since: nil)).to include(confirmed_active)
+    end
+
+    it 'includes users whose link to the connector was deleted' do
+      source = confirmed_active.user_authentication_sources.create!(connector_id: connector_id, connector_user_id: 'kc-uuid-1')
+      source.destroy!
+
+      expect(described_class.migration_scope(connector_id: connector_id, since: nil)).to include(confirmed_active)
+    end
+
+    it 'excludes soft-deleted users' do
+      deleted_user = create(:user, confirmed_at: 1.day.ago, active: true)
+      deleted_user.destroy
+
+      # User is acts_as_paranoid, so the default scope is the only thing keeping a
+      # deleted account's password hash and TOTP secret out of the IdP.
+      expect(described_class.migration_scope(connector_id: connector_id, since: nil)).not_to include(deleted_user)
+    end
+
+    it 'with since: nil returns the full base population' do
+      old_user = create(:user, confirmed_at: 1.day.ago, active: true, updated_at: 1.year.ago)
+
+      expect(described_class.migration_scope(connector_id: connector_id, since: nil)).to include(confirmed_active, old_user)
+    end
+
+    it 'with a since value excludes users whose updated_at is older' do
+      old_user = create(:user, confirmed_at: 1.day.ago, active: true, updated_at: 10.days.ago)
+      recent_user = create(:user, confirmed_at: 1.day.ago, active: true, updated_at: 1.hour.ago)
+
+      scope = described_class.migration_scope(connector_id: connector_id, since: 1.day.ago)
+
+      expect(scope).to include(recent_user)
+      expect(scope).not_to include(old_user)
+    end
+  end
+
+  # Requires Devise's expirable module (User.expire_after, the date-based User.inactive).
+  describe '.deactivate_expired_users!', :devise_only do
+    around do |example|
+      PaperTrail.enabled = true
+      example.run
+    ensure
+      PaperTrail.enabled = false
+    end
+
+    let!(:stale) { create(:user, active: true, last_activity_at: User.expire_after.ago - 1.day) }
+    let!(:recent) { create(:user, active: true, last_activity_at: User.expire_after.ago + 1.day) }
+    let!(:never_active) { create(:user, active: true, last_activity_at: nil) }
+    let!(:past_expired_at) { create(:user, active: true, last_activity_at: 1.day.ago, expired_at: 1.day.ago) }
+    let!(:already_inactive) { create(:user, active: false, last_activity_at: User.expire_after.ago - 1.day) }
+
+    it 'deactivates users Devise treats as expired and leaves the rest active' do
+      expect(described_class.deactivate_expired_users!).to eq(2)
+
+      expect(stale.reload.active).to be(false)
+      expect(past_expired_at.reload.active).to be(false)
+      expect(recent.reload.active).to be(true)
+      expect(never_active.reload.active).to be(true)
+    end
+
+    it 'records an "Account deactivated" edit-history entry attributed to the System User' do
+      described_class.deactivate_expired_users!
+
+      version = GrPaperTrail::Version.find(stale.versions.last.id)
+      expect(version.whodunnit).to eq(User.system_user.id.to_s)
+      expect(UserEditHistory::UserVersionChangeSummary.new.perform(version, version.changeset)).to eq(['Account deactivated'])
+    end
+
+    it 'leaves the System User active even when Devise treats it as expired' do
+      system_user = User.system_user
+      system_user.update_columns(active: true, last_activity_at: User.expire_after.ago - 1.day)
+
+      expect(described_class.deactivate_expired_users!).to eq(2)
+      expect(system_user.reload.active).to be(true)
+    end
+
+    it 'adds no version for a user that is already inactive' do
+      expect { described_class.deactivate_expired_users! }.not_to(change { already_inactive.versions.count })
+    end
+  end
+
+  describe '#build_import_user_data' do
+    let(:user) do
+      create(
+        :user,
+        email: 'test@example.com',
+        first_name: 'John',
+        last_name: 'Doe',
+        phone: '+15551234567',
+        confirmed_at: 1.day.ago,
+      )
+    end
+
+    it 'builds correct import structure with basic fields' do
+      result = importer.build_import_user_data(user)
+
+      expect(result).to match(
+        hash_including(
+          username: 'test@example.com',
+          email: 'test@example.com',
+          firstName: 'John',
+          lastName: 'Doe',
+          enabled: true,
+          emailVerified: true,
+        ),
+      )
+      expect(result).not_to have_key(:id)
+    end
+
+    it 'does not include phone field' do
+      result = importer.build_import_user_data(user)
+
+      expect(result).not_to have_key(:phone)
+    end
+
+    it 'includes warehouse group for a legacy user with a legacy role' do
+      user.user_roles.create!(role: create(:role))
+      result = importer.build_import_user_data(user)
+
+      expect(result[:groups]).to include('/warehouse-users')
+      expect(result[:groups]).not_to include('/hmis-users')
+    end
+
+    it 'includes warehouse group for a legacy user with access-group membership' do
+      create(:access_group_member, user: user)
+      result = importer.build_import_user_data(user)
+
+      expect(result[:groups]).to include('/warehouse-users')
+    end
+
+    it 'excludes warehouse group for a legacy user with no warehouse access' do
+      result = importer.build_import_user_data(user)
+
+      expect(result[:groups]).not_to include('/warehouse-users')
+    end
+
+    it 'includes hmis group when user is in an HMIS UserGroup' do
+      hmis_user_group = create(:hmis_user_group)
+      hmis_user_group.add(user)
+      result = importer.build_import_user_data(user)
+
+      expect(result[:groups]).to include('/hmis-users')
+    end
+
+    # Regression: a legacy (non-ACL) user whose only access is HMIS must not be
+    # tagged /warehouse-users just for being legacy. The legacy branch used to
+    # return true unconditionally and over-assigned the warehouse group.
+    it 'excludes warehouse group for an HMIS-only legacy user' do
+      hmis_user_group = create(:hmis_user_group)
+      hmis_user_group.add(user)
+      result = importer.build_import_user_data(user)
+
+      expect(result[:groups]).to include('/hmis-users')
+      expect(result[:groups]).not_to include('/warehouse-users')
+    end
+
+    it 'excludes warehouse group for an ACL user with no warehouse UserGroup membership' do
+      acl_user = create(:acl_user)
+      result = importer.build_import_user_data(acl_user)
+
+      expect(result[:groups]).not_to include('/warehouse-users')
+    end
+
+    it 'includes warehouse group for an ACL user who has warehouse UserGroup membership' do
+      acl_user = create(:acl_user)
+      acl_user.user_group_members.create!(user_group: create(:user_group))
+      result = importer.build_import_user_data(acl_user)
+
+      expect(result[:groups]).to include('/warehouse-users')
+    end
+
+    # Every access predicate behind keycloak_groups_for reads an acts_as_paranoid
+    # membership model, so revocation is a soft delete and the default scope is the
+    # only thing keeping a revoked user out of the group. Reading through
+    # with_deleted would hand a revoked account warehouse or HMIS access in the IdP,
+    # which is why each revocation path gets its own example.
+    context 'when access has been revoked' do
+      it 'excludes hmis group after the user is removed from the HMIS UserGroup' do
+        hmis_user_group = create(:hmis_user_group)
+        hmis_user_group.add(user)
+        expect(importer.build_import_user_data(user)[:groups]).to include('/hmis-users')
+
+        hmis_user_group.remove(user)
+
+        expect(importer.build_import_user_data(user)[:groups]).not_to include('/hmis-users')
+      end
+
+      it 'excludes warehouse group after a legacy role is removed' do
+        user_role = user.user_roles.create!(role: create(:role))
+        expect(importer.build_import_user_data(user)[:groups]).to include('/warehouse-users')
+
+        user_role.destroy
+
+        expect(importer.build_import_user_data(user)[:groups]).not_to include('/warehouse-users')
+      end
+
+      it 'excludes warehouse group after access-group membership is removed' do
+        member = create(:access_group_member, user: user)
+        expect(importer.build_import_user_data(user)[:groups]).to include('/warehouse-users')
+
+        member.destroy
+
+        expect(importer.build_import_user_data(user)[:groups]).not_to include('/warehouse-users')
+      end
+
+      it 'excludes warehouse group after an ACL user\'s UserGroup membership is removed' do
+        acl_user = create(:acl_user)
+        member = acl_user.user_group_members.create!(user_group: create(:user_group))
+        expect(importer.build_import_user_data(acl_user)[:groups]).to include('/warehouse-users')
+
+        member.destroy
+
+        expect(importer.build_import_user_data(acl_user)[:groups]).not_to include('/warehouse-users')
+      end
+    end
+
+    # The grants are created first so emptiness is attributable to the system_user?
+    # guard: without them the system user has no roles or groups and would come back
+    # empty whether or not the guard exists.
+    it 'returns no groups for a system user, even one holding warehouse and HMIS access' do
+      system_user = User.setup_system_user
+      system_user.user_roles.create!(role: create(:role))
+      create(:hmis_user_group).add(system_user)
+
+      result = importer.build_import_user_data(system_user)
+
+      expect(result[:groups]).to be_empty
+    end
+
+    it 'always marks the account enabled, leaving deactivation to migration_scope' do
+      # enabled is hardcoded, not derived from user.active?. bulk_import_users imports
+      # whatever list it is handed, so migration_scope's active: true filter is the only
+      # thing keeping deactivated accounts out of the IdP — callers must not bypass it.
+      inactive_user = create(:user, confirmed_at: 1.day.ago, active: false)
+
+      expect(importer.build_import_user_data(inactive_user)[:enabled]).to be true
+    end
+
+    it 'marks email as unverified when confirmed_at is nil' do
+      user.update(confirmed_at: nil)
+      result = importer.build_import_user_data(user)
+
+      expect(result[:emailVerified]).to be false
+    end
+
+    context 'with password hash' do
+      before do
+        user.update(encrypted_password: '$2a$12$test_hash_value')
+      end
+
+      it 'includes hashed password as a non-temporary bcrypt credential' do
+        result = importer.build_import_user_data(user)
+
+        password_cred = result[:credentials].find { |c| c[:type] == 'password' }
+        expect(password_cred).to be_present
+        # A migrated hash is final, not a one-time password Keycloak forces the
+        # user to reset.
+        expect(password_cred[:temporary]).to be false
+
+        secret_data = JSON.parse(password_cred[:secretData])
+        expect(secret_data['value']).to eq('$2a$12$test_hash_value')
+
+        cred_data = JSON.parse(password_cred[:credentialData])
+        expect(cred_data['algorithm']).to eq('bcrypt')
+        # Cost is read from the hash ($2a$12$...), not hardcoded, so Keycloak
+        # records the real work factor and does not force a rehash.
+        expect(cred_data['hashIterations']).to eq(12)
+      end
+
+      it 'reports the actual bcrypt cost when it differs from the common case' do
+        user.update(encrypted_password: '$2a$10$some_other_hash_value')
+        result = importer.build_import_user_data(user)
+
+        password_cred = result[:credentials].find { |c| c[:type] == 'password' }
+        cred_data = JSON.parse(password_cred[:credentialData])
+        expect(cred_data['hashIterations']).to eq(10)
+      end
+    end
+
+    # devise-two-factor only loads on the devise arm, and only it has 2FA to migrate.
+    context 'with 2FA enabled', :devise_only do
+      # A real Base32 secret stored through devise-two-factor's encryption, so
+      # the importer must actually decrypt encrypted_otp_secret to recover it.
+      let(:real_otp_secret) { User.generate_otp_secret }
+
+      before do
+        user.update(otp_secret: real_otp_secret, otp_required_for_login: true)
+        # Drop the in-memory plaintext so the importer reads it back via a real
+        # decrypt from the DB column, not a cached value.
+        user.reload
+      end
+
+      it 'includes OTP credential with the real decrypted secret and correct format' do
+        result = importer.build_import_user_data(user)
+
+        otp_cred = result[:credentials].find { |c| c[:type] == 'otp' }
+        expect(otp_cred).to be_present
+        secret_data = JSON.parse(otp_cred[:secretData])
+        # Proves the encrypt -> DB -> decrypt round-trip yields the original
+        # Base32 secret Keycloak will Base32-decode; a broken decrypt path or a
+        # source change reading encrypted_otp_secret instead fails here.
+        expect(secret_data['value']).to eq(real_otp_secret)
+        expect(secret_data.keys).to eq(['value'])
+        cred_data = JSON.parse(otp_cred[:credentialData])
+        expect(cred_data['subType']).to eq('totp')
+        expect(cred_data['digits']).to eq(6)
+        expect(cred_data['period']).to eq(30)
+        expect(cred_data['algorithm']).to eq('HmacSHA1')
+        expect(cred_data['secretEncoding']).to eq('BASE32')
+      end
+
+      it 'does not migrate otp_backup_codes' do
+        user.update(otp_backup_codes: ['code1', 'code2', 'code3'])
+        result = importer.build_import_user_data(user)
+
+        serialized = result[:credentials].map { |c| c.values.join }.join
+        expect(serialized).not_to include('code1')
+        expect(result.to_json).not_to include('backup')
+      end
+    end
+
+    context 'when OTP decryption fails' do
+      before do
+        user.update(encrypted_otp_secret: 'encrypted_value', otp_required_for_login: true)
+        allow(user).to receive(:otp_secret).
+          and_raise(OpenSSL::Cipher::CipherError, 'unsupported cipher algorithm')
+        allow(Rails.logger).to receive(:warn)
+      end
+
+      it 'logs warning and excludes OTP credential' do
+        result = importer.build_import_user_data(user)
+
+        otp_cred = result[:credentials].find { |c| c[:type] == 'otp' }
+        expect(otp_cred).to be_nil
+        expect(Rails.logger).to have_received(:warn).
+          with(/Failed to decrypt OTP secret/)
+      end
+    end
+
+    context 'when 2FA is required but no secret is configured' do
+      before { user.update(otp_required_for_login: true) }
+
+      it 'excludes the OTP credential when neither the new nor legacy secret is set' do
+        # otp_secret bridges both storage locations; nil means 2FA was never set up
+        # despite the requirement flag, so we must not emit an (empty) OTP credential.
+        expect(user.otp_secret).to be_nil
+
+        result = importer.build_import_user_data(user)
+
+        expect(result[:credentials].find { |c| c[:type] == 'otp' }).to be_nil
+      end
+    end
+  end
+
+  describe '#bulk_import_users' do
+    let(:users) { create_list(:user, 3, confirmed_at: 1.day.ago) }
+
+    context 'with successful import' do
+      before do
+        # Deliberately none of these equal the attempted size (3) or each other, so
+        # substituting users.size — or a hardcoded 0 — for any of them fails here.
+        stub_request(:post, "#{api_url}/admin/realms/#{realm}/partialImport").
+          to_return(
+            status: 200,
+            body: { overwritten: 1, added: 1, skipped: 1 }.to_json,
+          )
+      end
+
+      it 'reports the counts Keycloak returned, not the attempted size' do
+        result = importer.bulk_import_users(users, policy: 'OVERWRITE')
+
+        expect(result[:success]).to be true
+        expect(result[:added]).to eq(1)
+        expect(result[:skipped]).to eq(1)
+        expect(result[:overwritten]).to eq(1)
+        expect(result[:attempted]).to eq(3)
+        expect(result[:response]).to eq('overwritten' => 1, 'added' => 1, 'skipped' => 1)
+      end
+
+      it 'sends every user and the conflict policy in the request body' do
+        importer.bulk_import_users(users, policy: 'OVERWRITE')
+
+        expect(WebMock).to(
+          have_requested(:post, "#{api_url}/admin/realms/#{realm}/partialImport").
+            with do |request|
+              payload = JSON.parse(request.body)
+              payload['ifResourceExists'] == 'OVERWRITE' &&
+                payload['users'].map { |u| u['username'] }.sort == users.map(&:email).sort
+            end,
+        )
+      end
+
+      it 'tolerates a non-JSON success body' do
+        stub_request(:post, "#{api_url}/admin/realms/#{realm}/partialImport").
+          to_return(status: 204, body: '')
+
+        result = importer.bulk_import_users(users, policy: 'OVERWRITE')
+
+        expect(result[:success]).to be true
+        expect(result[:response]).to eq({})
+      end
+    end
+
+    context 'with API error' do
+      before do
+        stub_request(:post, "#{api_url}/admin/realms/#{realm}/partialImport").
+          to_return(
+            status: 500,
+            body: { error: 'Internal server error' }.to_json,
+          )
+      end
+
+      it 'returns failure result with error message' do
+        result = importer.bulk_import_users(users, policy: 'OVERWRITE')
+
+        expect(result[:success]).to be false
+        expect(result[:error]).to include('500')
+        expect(result[:failed_count]).to eq(3)
+      end
+    end
+
+    context 'with network timeout' do
+      before do
+        stub_request(:post, "#{api_url}/admin/realms/#{realm}/partialImport").
+          to_timeout
+      end
+
+      it 'handles timeout gracefully' do
+        result = importer.bulk_import_users(users, policy: 'OVERWRITE')
+
+        expect(result[:success]).to be false
+        expect(result[:error]).to be_present
+        expect(result[:failed_count]).to eq(3)
+      end
+    end
+
+    context 'with large batch' do
+      let(:large_batch) { create_list(:user, 100, confirmed_at: 1.day.ago) }
+
+      before do
+        stub_request(:post, "#{api_url}/admin/realms/#{realm}/partialImport").
+          to_return(status: 200, body: { overwritten: 0, added: 100, skipped: 0 }.to_json)
+      end
+
+      it 'sends the whole batch in a single request' do
+        result = importer.bulk_import_users(large_batch, policy: 'OVERWRITE')
+
+        expect(result[:success]).to be true
+        expect(result[:attempted]).to eq(100)
+        # Asserted against the request, not the stubbed added count: chunking the batch
+        # into several calls would leave that count looking correct while only the last
+        # response was reported.
+        expect(WebMock).to(
+          have_requested(:post, "#{api_url}/admin/realms/#{realm}/partialImport").
+            with { |request| JSON.parse(request.body)['users'].size == 100 }.once,
+        )
+      end
+    end
+  end
+
+  describe '#export_users_to_import_format' do
+    let(:users) { create_list(:user, 3, confirmed_at: 1.day.ago) }
+
+    it 'builds correct export structure without making API call' do
+      result = importer.export_users_to_import_format(users, policy: 'OVERWRITE')
+
+      expect(result[:ifResourceExists]).to eq('OVERWRITE')
+      expect(result[:users].length).to eq(3)
+      expect(result[:users].map { |u| u[:username] }).to match_array(users.map(&:email))
+      expect(result[:users].first.keys).to include(
+        :username, :email, :firstName, :lastName, :enabled, :emailVerified, :groups, :credentials
+      )
+    end
+
+    it 'does not make any HTTP requests' do
+      importer.export_users_to_import_format(users, policy: 'OVERWRITE')
+      expect(WebMock).not_to have_requested(:post, /#{Regexp.escape(api_url)}/)
+    end
+
+    it 'handles single user' do
+      user = create(:user, confirmed_at: 1.day.ago)
+      result = importer.export_users_to_import_format([user], policy: 'OVERWRITE')
+
+      expect(result[:users].length).to eq(1)
+      expect(result[:users].first[:username]).to eq(user.email)
+    end
+
+    it 'handles empty user list' do
+      result = importer.export_users_to_import_format([], policy: 'OVERWRITE')
+
+      expect(result[:users]).to be_empty
+    end
+  end
+
+  describe '#import_from_file' do
+    let(:file_path) { 'tmp/test_keycloak_import.json' }
+    let(:import_data) do
+      {
+        ifResourceExists: 'SKIP',
+        users: [
+          { id: '1', username: 'test1@example.com' },
+        ],
+      }
+    end
+
+    before do
+      File.write(file_path, JSON.generate(import_data))
+    end
+
+    after do
+      File.delete(file_path) if File.exist?(file_path)
+    end
+
+    context 'with valid file' do
+      before do
+        stub_request(:post, "#{api_url}/admin/realms/#{realm}/partialImport").
+          to_return(status: 200, body: { added: 1, skipped: 0 }.to_json)
+      end
+
+      it 'posts the parsed file contents to Keycloak and returns its response' do
+        result = importer.import_from_file(file_path)
+
+        expect(result[:success]).to be true
+        expect(result[:response]).to eq('added' => 1, 'skipped' => 0)
+        expect(WebMock).to(
+          have_requested(:post, "#{api_url}/admin/realms/#{realm}/partialImport").
+            with do |request|
+              payload = JSON.parse(request.body)
+              payload['ifResourceExists'] == 'SKIP' &&
+                payload['users'].map { |u| u['username'] } == ['test1@example.com']
+            end,
+        )
+      end
+    end
+
+    context 'with missing file' do
+      it 'raises ServiceError' do
+        expect do
+          importer.import_from_file('nonexistent.json')
+        end.to raise_error(Idp::ServiceError)
+      end
+    end
+
+    context 'with API error' do
+      before do
+        stub_request(:post, "#{api_url}/admin/realms/#{realm}/partialImport").
+          to_return(status: 400, body: { error: 'Invalid data' }.to_json)
+      end
+
+      it 'raises ServiceError with API error message' do
+        expect do
+          importer.import_from_file(file_path)
+        end.to raise_error(Idp::ServiceError)
+      end
+    end
+  end
+
+  describe '#ensure_groups!' do
+    let(:groups_url) { "#{api_url}/admin/realms/#{realm}/groups" }
+
+    it 'creates both required groups and reports them as created' do
+      stub_request(:post, groups_url).
+        with(body: { name: 'warehouse-users' }.to_json).to_return(status: 201)
+      stub_request(:post, groups_url).
+        with(body: { name: 'hmis-users' }.to_json).to_return(status: 201)
+
+      expect(importer.ensure_groups!).to eq(created: ['warehouse-users', 'hmis-users'], existing: [])
+    end
+
+    it 'reports already-present groups as existing' do
+      stub_request(:post, groups_url).
+        with(body: { name: 'warehouse-users' }.to_json).to_return(status: 409)
+      stub_request(:post, groups_url).
+        with(body: { name: 'hmis-users' }.to_json).to_return(status: 201)
+
+      expect(importer.ensure_groups!).to eq(created: ['hmis-users'], existing: ['warehouse-users'])
+    end
+
+    it 'propagates a ServiceError when a group cannot be ensured' do
+      stub_request(:post, groups_url).
+        with(body: { name: 'warehouse-users' }.to_json).
+        to_return(status: 500, body: { errorMessage: 'boom' }.to_json)
+
+      expect { importer.ensure_groups! }.to raise_error(Idp::ServiceError, /boom/)
+    end
+  end
+end

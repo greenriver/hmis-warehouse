@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -181,6 +181,60 @@ RSpec.describe Filters::HmisExport, type: :model do
       expect(filter.available_custom_file_types).to be_empty
       expect(filter.custom_file_types).to eq(['CustomGender.csv']) # Still stored
       expect(filter.valid_custom_file_types).to be_empty # But not valid
+    end
+  end
+
+  describe 'submitted project ids the user cannot see' do
+    let!(:acl_user) { create :acl_user }
+    let!(:can_view_projects_role) { create :role, can_view_projects: true }
+    let!(:collection) { create :collection }
+    let!(:data_source) { create :source_data_source }
+    # viewable_project_scope applies non_confidential, which inner-joins the organization
+    let!(:organization) { create :hud_organization, data_source_id: data_source.id }
+    let!(:visible_project) { create :hud_project, data_source_id: data_source.id, OrganizationID: organization.OrganizationID }
+    let!(:invisible_project) { create :hud_project, data_source_id: data_source.id, OrganizationID: organization.OrganizationID }
+
+    before do
+      collection.set_viewables({ projects: [visible_project.id] })
+      setup_access_control(acl_user, can_view_projects_role, collection)
+    end
+
+    it 'drops the invisible project from effective_project_ids' do
+      filter = described_class.new(user_id: acl_user.id, project_ids: [visible_project.id, invisible_project.id])
+      expect(filter.effective_project_ids).to eq [visible_project.id]
+    end
+
+    it 'exports no projects, not every viewable project, when every submitted project is invisible' do
+      filter = described_class.new(user_id: acl_user.id, project_ids: [invisible_project.id])
+      expect(filter.effective_project_ids).to be_empty
+    end
+
+    it 'exports every viewable project when nothing is selected' do
+      filter = described_class.new(user_id: acl_user.id)
+      expect(filter.effective_project_ids).to eq [visible_project.id]
+    end
+
+    it 'exports no projects when a selected project group holds only invisible projects' do
+      project_group = create :project_group, projects: [invisible_project]
+      filter = described_class.new(user_id: acl_user.id, project_group_ids: [project_group.id])
+      expect(filter.effective_project_ids).to be_empty
+    end
+
+    describe '#project_selection_hidden?' do
+      it 'is true when every selected project is invisible' do
+        filter = described_class.new(user_id: acl_user.id, project_ids: [invisible_project.id])
+        expect(filter.project_selection_hidden?).to be true
+      end
+
+      it 'is false when a selected project is visible' do
+        filter = described_class.new(user_id: acl_user.id, project_ids: [visible_project.id, invisible_project.id])
+        expect(filter.project_selection_hidden?).to be false
+      end
+
+      it 'is false when nothing is selected' do
+        filter = described_class.new(user_id: acl_user.id)
+        expect(filter.project_selection_hidden?).to be false
+      end
     end
   end
 end

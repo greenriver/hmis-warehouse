@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -15,7 +15,7 @@
 #
 # Records are considered "dirty" when current_version > processed_version.
 #
-# See ./README_FOR_CE_PROCESSING.md
+# See docs/features/hmis/ce-processing.md
 class Hmis::Ce::ChangeMarker < GrdaWarehouseBase
   # Bulk-managed, does not log to paper_trail
   self.table_name = 'hmis_ce_change_markers'
@@ -41,6 +41,9 @@ class Hmis::Ce::ChangeMarker < GrdaWarehouseBase
         processed_version: mark.current_version,
       }
     end
+    # Sort by the conflict target so concurrent bulk upserts against this table always
+    # acquire row locks in the same order, avoiding deadlocks between overlapping batches.
+    records.sort_by! { |record| [record[:trackable_id], record[:trackable_type]] }
     import!(
       records,
       validate: false,
@@ -59,7 +62,7 @@ class Hmis::Ce::ChangeMarker < GrdaWarehouseBase
     raise ArgumentError, "Trackable type not supported \"#{trackable_type}\"" unless trackable_type.in?(KNOWN_TRACKABLE_TYPES)
     return if trackable_ids.empty?
 
-    records = trackable_ids.uniq.map do |trackable_id|
+    records = trackable_ids.uniq.sort.map do |trackable_id|
       {
         trackable_id: trackable_id,
         trackable_type: trackable_type,
@@ -75,6 +78,17 @@ class Hmis::Ce::ChangeMarker < GrdaWarehouseBase
         columns: "current_version = #{safe_table_name}.current_version + 1",
       },
     )
+  end
+
+  # Marks destination clients dirty, along with everyone who shares an open household with them. household.* CE
+  # match fields read every member's destination demographics (e.g. DOB for ages), so a change to one client's
+  # destination record can change their co-members' values too.
+  # @param destination_client_ids [Array<Integer>]
+  def self.mark_destination_clients_dirty(destination_client_ids)
+    return unless Hmis::Ce.configuration.enabled?
+
+    client_ids = Hmis::Ce::HouseholdMemberLookup.with_open_household_members(destination_client_ids)
+    upsert_or_bump_version('GrdaWarehouse::Hud::Client', trackable_ids: client_ids)
   end
 
   def mark_processed = self.class.mark_processed([self])

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -13,7 +13,9 @@ module Types
     argument :config_type, HmisSchema::Enums::ProjectConfigType, required: false
     argument :length_of_absence_days, Int, required: false
     argument :receives_direct_referrals, Boolean, required: false
-    # receives_direct_referrals_from not yet supported in the UI (requires multi-select project dropdown)
+    # Allowlist of Project primary keys. Optional as a whole, so omitting it leaves any existing
+    # allowlist alone and an explicit empty array clears it.
+    argument :receives_direct_referrals_from, [ID], required: false
     argument :supports_waitlist_referrals, Boolean, required: false
     argument :project_type, Types::HmisSchema::Enums::ProjectType, required: false
     argument :project_id, ID, required: false

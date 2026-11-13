@@ -1,0 +1,22 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+# frozen_string_literal: true
+
+module ClientLocationHistory::GrdaWarehouse
+end
+
+module ClientLocationHistory::GrdaWarehouse::Hmis
+  module AssessmentExtension
+    extend ActiveSupport::Concern
+
+    included do
+      scope :with_location_data, -> do
+        where(with_location_data: true)
+      end
+    end
+  end
+end

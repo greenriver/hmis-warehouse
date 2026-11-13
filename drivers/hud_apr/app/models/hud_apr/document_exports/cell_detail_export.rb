@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -10,6 +10,10 @@ module HudApr
   module DocumentExports
     class CellDetailExport < ::HudReports::CellDetailExportBase
       private
+
+      def required_params
+        super + ['report_type']
+      end
 
       def builder
         @builder ||= HudApr::CellDetailExportBuilder.new(

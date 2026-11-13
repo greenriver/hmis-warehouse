@@ -15,6 +15,7 @@
 ////////////////////
 //= require jquery3
 //= require jquery_ujs
+//= require csp_nonce_relay
 //= require DataTables/datatables.min
 //= require handlebars.runtime
 //= require select2/dist/js/select2.full.min
@@ -47,8 +48,6 @@
 //= require ajax_modal_rails
 //= require util
 //= require site_menu
-//= require ssm
-//= require cha
 //= require vispdats
 //= require files
 //= require selectable_list

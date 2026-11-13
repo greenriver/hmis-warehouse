@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -54,7 +54,7 @@ module HudReports
           end
 
           # reset_sequences uses DDL (setval). In PostgreSQL DDL *is* transactional,
-          # so a rollback will undo the sequence reset — the correct behaviour here.
+          # so a rollback will undo the sequence reset — the correct behavior here.
           reset_sequences(config)
           clear_purged_at
         end

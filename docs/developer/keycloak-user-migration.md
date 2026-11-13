@@ -1,0 +1,50 @@
+# Keycloak user migration (`rails keycloak:*`)
+
+`lib/tasks/keycloak.rake` seeds Keycloak from the legacy Devise/warehouse `User` records before a
+Deployment switches to JWT auth. It is **temporary, human-run, console-only** tooling — run by hand,
+per Deployment, in the window between migrating data and flipping auth; it never runs on boot or in a
+request. It drives `Idp::Keycloak::UserImporter` over `Idp::KeycloakService#partial_import`, and is
+deleted along with the importer once every Deployment has migrated.
+
+Run `rails -T keycloak` for the task list and the rake header (`lib/tasks/keycloak.rake`) for usage.
+
+## Requirements
+
+The credential tasks (`migrate_users`, `export_users`, `import_single_user`) must run with
+`AUTH_METHOD=devise` (the default). Building a TOTP credential reads `User#otp_secret`, an accessor the
+`:two_factor_authenticatable` Devise macro provides only in devise mode. For a catch-up migration
+after transition to JWT mode, run: `AUTH_METHOD=devise bin/rails keycloak:migrate_users`
+
+## Scope
+
+`Idp::Keycloak::UserImporter.migration_scope` migrates **confirmed, active** users that aren't already
+linked to Keycloak. The `confirmed_at` filter also excludes invited-but-not-accepted users — accepting
+an invitation is what sets `confirmed_at`, so they have no credential to carry and are instead
+provisioned on first JWT login. Already-linked users have an account in Keycloak, so there is nothing
+left to carry.
+
+Before selecting users, `migrate_users` and `export_users` run
+`UserImporter.deactivate_expired_users!`. Devise expires an account by date (no activity within
+`ACCOUNT_EXPIRATION_DAYS`, or a past `expired_at`) without clearing `active`. JWT mode checks only
+`active`, so these users are set to `active: false` first, which keeps them out of the migration and
+inactive after the switch. Each change is recorded in the user's edit history as "Account deactivated"
+by the System User. An admin can reactivate them the usual way.
+
+## Re-running and the pre-flip pass
+
+The importer is safe to re-run, and a final re-run is the intended last step before switching auth.
+Both `migrate_users` and `export_users` accept a `since` timestamp to limit the pass to users changed
+during migration, keeping the switchover gap to minutes.
+
+Re-imports default to the `OVERWRITE` conflict policy so that edits made after the first pass — a
+password reset, a new TOTP secret — are carried over. `SKIP` (`migrate_users[,,SKIP]`) leaves existing
+Keycloak users untouched and would silently drop those edits.
+
+Do the final pass before `backfill_authentication_sources` — linking is what takes a user out of scope,
+so a pass after the backfill skips everyone it linked.
+
+## 2FA backup codes are not migrated
+
+The importer carries the TOTP secret but drops `otp_backup_codes`: Keycloak's recovery-code format
+differs and there is no clean `partialImport` mapping. A user who relied on backup codes must use their
+authenticator app at first login, or have an admin reset 2FA in Keycloak.

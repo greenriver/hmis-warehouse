@@ -7,19 +7,20 @@
   = f.input :zip_code, hidden: true, label: 'In What Zip Code?'
 
 - content_for :page_js do
-  :javascript
-    $(function() {
-      $('.jHousingStatus').change(function() {
-        if ($('.jHousingStatus').val() == "Other:") {
-          $('.jOtherHousingStatus').show()
-        } else {
-          $('.jOtherHousingStatus').hide()
-        }
-        if ($('.jHousingStatus').val() == '#{j(GrdaWarehouse::Youth::YouthCaseManagement.stably_housed_string)}') {
-          $('.jZipCode').show()
-        } else {
-          $('.jZipCode').hide()
-        }
-      });
-      $('.jHousingStatus').trigger('change');
-    })
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      $(function() {
+        $('.jHousingStatus').change(function() {
+          if ($('.jHousingStatus').val() == "Other:") {
+            $('.jOtherHousingStatus').show()
+          } else {
+            $('.jOtherHousingStatus').hide()
+          }
+          if ($('.jHousingStatus').val() == '#{j(GrdaWarehouse::Youth::YouthCaseManagement.stably_housed_string)}') {
+            $('.jZipCode').show()
+          } else {
+            $('.jZipCode').hide()
+          }
+        });
+        $('.jHousingStatus').trigger('change');
+      })

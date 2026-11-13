@@ -1,6 +1,13 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # frozen_string_literal: true
 
 require 'rails_helper'
+require_relative '../../drivers/hmis/spec/requests/hmis/login_and_permissions'
 
 RSpec.describe User, type: :model do
   let(:user) { create :user }
@@ -16,7 +23,7 @@ RSpec.describe User, type: :model do
     end
   end
 
-  describe 'invitation handling' do
+  describe 'invitation handling', :devise_only do
     context 'when user has an outstanding invitation' do
       before do
         User.invite!({ email: 'unconfirmed@example.com', first_name: 'Unconfirmed', last_name: 'User', agency_id: agency.id }, User.system_user)
@@ -91,6 +98,38 @@ RSpec.describe User, type: :model do
       results = User.text_search('green')
       expect(results).to include(user2, user3) # accounts with email domain 'green.com'
       expect(results).not_to include(user1)
+    end
+
+    it 'finds a user by id' do
+      expect(User.text_search(" #{user3.id} ")).to eq([user3])
+    end
+
+    it 'still text searches a bare number' do
+      user4 = create(:user, email: 'case.worker.8675309@example.com')
+      expect(User.text_search('8675309')).to include(user4)
+    end
+
+    it 'finds a user by a short id' do
+      # any free id under 100 keeps the query below 3 characters
+      user4 = create(:user, id: (1..99).find { |i| !User.with_deleted.exists?(id: i) })
+      expect(User.text_search(user4.id.to_s)).to eq([user4])
+    end
+
+    it 'matches a short number by id only, not by email' do
+      create(:user, email: 'case.worker.0@example.com')
+      expect(User.text_search('0')).to be_empty
+    end
+
+    it 'ranks the id match ahead of email matches when sorting by best match' do
+      # zero-padded so the query stays at least 3 characters, whatever user3's id is
+      query = user3.id.to_s.rjust(3, '0')
+      user4 = create(:user, email: "case.worker.#{query}@example.com")
+      expect(User.text_search(query, sort_by_best_match: true).to_a).to eq([user3, user4])
+    end
+
+    it 'returns none for an id wider than bigint' do
+      expect(User.text_search('99999999999999999999')).to be_empty
+      expect(User.text_search('99999999999999999999', sort_by_best_match: true)).to be_empty
     end
 
     it 'returns none for no match' do
@@ -172,6 +211,61 @@ RSpec.describe User, type: :model do
       expect(cohort_records.map(&:cohort_id)).to contain_exactly(*cohort_ids.uniq)
       expect(cohort_records).to all(have_attributes(user_id: user.id, email: user.email, permission: 'can_view_cohorts'))
     end
+
+    context 'when the user is on ACLs' do
+      let(:user) { create(:acl_user, email: 'reporter@example.com') }
+      let(:cohort_b) { 404 }
+      let(:cohort_c) { 505 }
+      let(:cohort_ids) { [cohort_a, cohort_b] }
+      let(:name_scope) { instance_double(ActiveRecord::Relation, pluck: [cohort_b, cohort_c]) }
+
+      before do
+        allow(GrdaWarehouse::Cohort).to receive(:viewable_by).with(user, permission: :can_view_client_name).and_return(name_scope)
+      end
+
+      it 'adds a can_view_client_name row only for cohorts that are both viewable and name-permitted' do
+        populate_permissions
+
+        pairs = cohort_records.map { |record| [record.cohort_id, record.permission] }
+        expect(pairs).to contain_exactly(
+          [cohort_a, 'can_view_cohorts'],
+          [cohort_b, 'can_view_cohorts'],
+          [cohort_b, 'can_view_client_name'],
+        )
+      end
+    end
+
+    context 'when the user is on legacy roles' do
+      context 'and none of their roles grant can_view_client_name' do
+        before { user.legacy_roles = [create(:cohort_client_viewer)] }
+
+        it 'does not add a can_view_client_name row' do
+          populate_permissions
+
+          pairs = cohort_records.map { |record| [record.cohort_id, record.permission] }
+          expect(pairs).to contain_exactly([cohort_a, 'can_view_cohorts'])
+        end
+      end
+
+      context 'and a role unrelated to cohort access grants can_view_client_name' do
+        before do
+          user.legacy_roles = [
+            create(:cohort_client_viewer),
+            create(:role, can_view_client_name: true),
+          ]
+        end
+
+        it 'adds a can_view_client_name row for every legacy-viewable cohort' do
+          populate_permissions
+
+          pairs = cohort_records.map { |record| [record.cohort_id, record.permission] }
+          expect(pairs).to contain_exactly(
+            [cohort_a, 'can_view_cohorts'],
+            [cohort_a, 'can_view_client_name'],
+          )
+        end
+      end
+    end
   end
 
   describe '#all_access_group_ids' do
@@ -188,7 +282,11 @@ RSpec.describe User, type: :model do
     end
   end
 
-  describe 'CVE-2026-32700 - confirmation token/unconfirmed_email sync' do
+  # Regression coverage for CVE-2026-32700: confirmation_token/unconfirmed_email desync.
+  # The app previously carried a monkey patch (DeviseUserPatch) working around this on
+  # Devise 4; Devise 5.0.4 fixes it natively, so the patch was removed. This spec confirms
+  # the native behavior still holds.
+  describe 'CVE-2026-32700 - confirmation token/unconfirmed_email sync', :devise_only do
     it 'prevents desync when a concurrent request modifies unconfirmed_email mid-flight' do
       attacker_email = 'attacker@example.com'
       victim_email   = 'victim@example.com'
@@ -204,15 +302,374 @@ RSpec.describe User, type: :model do
         confirmation_token: 'injected_token',
       )
 
-      # Second update with the same email — without the patch, AR considers
+      # Second update with the same email — without the fix, AR would consider
       # unconfirmed_email unchanged (still 'attacker_email' in memory) and
-      # omits it from the UPDATE, leaving 'victim_email' in the DB
+      # omit it from the UPDATE, leaving 'victim_email' in the DB
       user.update!(email: attacker_email)
 
       user.reload
-      # The patch ensures unconfirmed_email is always written, correcting the DB
+      # Devise 5 ensures unconfirmed_email is always written, correcting the DB
       expect(user.unconfirmed_email).to eq(attacker_email)
       expect(user.confirmation_token).not_to eq('injected_token')
+    end
+  end
+
+  describe 'devise-security password_archivable', :devise_only do
+    around do |example|
+      original = Devise.deny_old_passwords
+      Devise.deny_old_passwords = 2
+      example.run
+      Devise.deny_old_passwords = original
+    end
+
+    let(:user) { create(:user) }
+
+    def change_password!(user, password)
+      user.update!(password: password, password_confirmation: password)
+    end
+
+    it 'accepts a new password that has never been used' do
+      change_password!(user, 'Unique-Password-1')
+
+      expect(user).to be_valid
+    end
+
+    it 'rejects a password that is still within the archived window' do
+      # user starts on the factory-default password (pw0); build a chain of changes
+      # so pw1 and pw2 remain archived (deny_old_passwords: 2) after the 3rd change.
+      change_password!(user, 'History-Pass-1')
+      change_password!(user, 'History-Pass-2')
+      change_password!(user, 'History-Pass-3')
+
+      expect(user.old_passwords.count).to eq(2)
+
+      user.assign_attributes(password: 'History-Pass-2', password_confirmation: 'History-Pass-2')
+
+      expect(user).to be_invalid
+      expect(user.errors[:password]).to include('was used previously.')
+    end
+
+    it 'allows reusing a password once it has aged out of the archive window' do
+      original_password = user.password
+
+      change_password!(user, 'History-Pass-1')
+      change_password!(user, 'History-Pass-2')
+      change_password!(user, 'History-Pass-3') # pushes the original factory password out of the 2-entry window
+
+      user.assign_attributes(password: original_password, password_confirmation: original_password)
+
+      expect(user).to be_valid
+    end
+  end
+
+  describe 'devise-security expirable', :devise_only do
+    let(:user) { create(:user) }
+
+    it 'is active when recently active' do
+      user.update_column(:last_activity_at, Time.current)
+
+      expect(user.expired?).to be false
+      expect(user.active_for_authentication?).to be true
+    end
+
+    it 'is not expired just inside the configured expire_after window (boundary)' do
+      user.update_column(:last_activity_at, (Devise.expire_after - 1.hour).ago)
+
+      expect(user.expired?).to be false
+    end
+
+    it 'is expired once inactivity exceeds the configured expire_after window' do
+      user.update_column(:last_activity_at, (Devise.expire_after + 1.day).ago)
+
+      expect(user.expired?).to be true
+      expect(user.active_for_authentication?).to be false
+      expect(user.inactive_message).to eq(:expired)
+    end
+
+    it 'treats a manually-set expired_at as authoritative even when recently active' do
+      user.update_column(:last_activity_at, Time.current)
+      user.expire!(1.day.ago)
+
+      expect(user.expired?).to be true
+      expect(user.active_for_authentication?).to be false
+    end
+  end
+
+  describe 'devise-security secure_validatable password complexity', :devise_only do
+    around do |example|
+      original = Devise.password_complexity
+      Devise.password_complexity = { digit: 1, lower: 1, upper: 1, symbol: 1 }
+      example.run
+      Devise.password_complexity = original
+    end
+
+    it 'accepts a password satisfying every configured character class' do
+      user = build(:user, password: 'Abcdefgh1!', password_confirmation: 'Abcdefgh1!')
+
+      expect(user).to be_valid
+    end
+
+    it 'rejects a password missing a required character class' do
+      user = build(:user, password: 'Abcdefgh12', password_confirmation: 'Abcdefgh12')
+
+      expect(user).to be_invalid
+      expect(user.errors[:password]).to include('must contain at least one punctuation mark or symbol')
+    end
+
+    it 'does not enforce complexity when disabled' do
+      Devise.password_complexity = {}
+      user = build(:user, password: 'alllowercase123', password_confirmation: 'alllowercase123')
+
+      expect(user).to be_valid
+    end
+  end
+
+  describe '#can_sign_in_to_hmis_data_source?' do
+    include LoginAndPermissionsSpecHelper
+
+    let(:ds) { create(:hmis_primary_data_source) }
+    let(:user) { create(:user) }
+
+    before { create_access_control(user.as_hmis_user, ds, without_permission: [:can_administer_hmis]) }
+
+    it 'is true for a user with HMIS access in a live HMIS' do
+      expect(user.can_sign_in_to_hmis_data_source?(ds)).to eq(true)
+    end
+
+    it 'is false before the go-live time for a user who cannot administer HMIS' do
+      ds.update!(hmis_go_live_at: 1.day.from_now)
+      expect(user.can_sign_in_to_hmis_data_source?(ds)).to eq(false)
+    end
+
+    it 'is false for a user with no HMIS access in the data source' do
+      expect(create(:user).can_sign_in_to_hmis_data_source?(ds)).to eq(false)
+    end
+  end
+
+  describe '.hmis_users' do
+    let!(:hmis_user) { create(:user) }
+    let!(:group_only_user) { create(:user) }
+    let!(:plain_user) { create(:user) }
+    let!(:revoked_user) { create(:user) }
+
+    before do
+      create(:hmis_access_control, with_users: [hmis_user])
+      create(:hmis_user_group).add([group_only_user])
+      create(:hmis_access_control, with_users: [revoked_user]).destroy!
+    end
+
+    it 'returns only users reachable from a live Hmis::AccessControl through a user group' do
+      expect(User.hmis_users).to contain_exactly(hmis_user)
+    end
+
+    it 'chains with other User scopes' do
+      expect(User.where(id: [hmis_user.id, plain_user.id]).hmis_users).to contain_exactly(hmis_user)
+    end
+  end
+
+  describe '.current_or_former_hmis_users' do
+    let!(:hmis_user) { create(:user) }
+    let!(:revoked_grant_user) { create(:user) }
+    let!(:removed_member_user) { create(:user) }
+    let!(:group_only_user) { create(:user) }
+    let!(:plain_user) { create(:user) }
+
+    before do
+      create(:hmis_access_control, with_users: [hmis_user])
+      create(:hmis_access_control, with_users: [revoked_grant_user]).destroy!
+      create(:hmis_access_control, with_users: [removed_member_user])
+      Hmis::UserGroupMember.where(user_id: removed_member_user.id).destroy_all
+      create(:hmis_user_group).add([group_only_user])
+    end
+
+    it 'includes users whose HMIS grant or group membership was later removed, but not users who never held one' do
+      expect(User.current_or_former_hmis_users).to contain_exactly(hmis_user, revoked_grant_user, removed_member_user)
+    end
+  end
+
+  describe '.warehouse_users' do
+    let!(:acl_user) { create(:acl_user) }
+    let!(:legacy_role_user) { create(:user) }
+    let!(:hmis_only_user) { create(:user) }
+    let!(:plain_user) { create(:user) }
+
+    before do
+      user_group = create(:user_group)
+      user_group.add([acl_user])
+      create(:access_control, user_group: user_group, role: create(:role), collection: create(:collection))
+      legacy_role_user.legacy_roles << create(:role)
+      create(:hmis_access_control, with_users: [hmis_only_user])
+    end
+
+    it 'returns users with a warehouse access control or a legacy role, but not HMIS-only users' do
+      expect(User.warehouse_users).to contain_exactly(acl_user, legacy_role_user)
+    end
+
+    it 'chains with other User scopes' do
+      expect(User.where(id: [acl_user.id, legacy_role_user.id, hmis_only_user.id]).where.not(id: legacy_role_user.id).warehouse_users).to contain_exactly(acl_user)
+    end
+  end
+
+  describe '#reporting_policy_for_project' do
+    let(:data_source) { create(:data_source_fixed_id) }
+    let(:organization) { create(:hud_organization, data_source: data_source) }
+    let(:project) { create(:grda_warehouse_hud_project, organization: organization, data_source: data_source) }
+
+    it 'returns AllowPiiPolicy when project_id is nil' do
+      expect(user.reporting_policy_for_project(project_id: nil)).to eq(GrdaWarehouse::AuthPolicies::AllowPiiPolicy.instance)
+    end
+
+    it 'wraps AllowPiiPolicy when project_id is nil and the given client is restricted' do
+      allow(user.policy_context).to receive(:client_restricted?).with(42).and_return(true)
+      policy = user.reporting_policy_for_project(project_id: nil, client_id: 42)
+      expect(policy).to be_a(GrdaWarehouse::PiiProvider::RestrictedPolicy)
+      expect(policy.can_view_name?).to eq(false)
+    end
+
+    it 'does not wrap AllowPiiPolicy when project_id is nil and the given client is not restricted' do
+      allow(user.policy_context).to receive(:client_restricted?).with(42).and_return(false)
+      policy = user.reporting_policy_for_project(project_id: nil, client_id: 42)
+      expect(policy).to eq(GrdaWarehouse::AuthPolicies::AllowPiiPolicy.instance)
+    end
+
+    it 'is unaffected by restriction when client_id is not provided' do
+      expect(user.reporting_policy_for_project(project_id: project.id)).to be_a(GrdaWarehouse::AuthPolicies::ProjectPiiPolicy)
+    end
+
+    it 'wraps the resolved policy when the given client is restricted' do
+      allow(user.policy_context).to receive(:client_restricted?).with(42).and_return(true)
+      policy = user.reporting_policy_for_project(project_id: project.id, client_id: 42)
+      expect(policy).to be_a(GrdaWarehouse::PiiProvider::RestrictedPolicy)
+    end
+
+    it 'does not wrap the resolved policy when the given client is not restricted' do
+      allow(user.policy_context).to receive(:client_restricted?).with(42).and_return(false)
+      policy = user.reporting_policy_for_project(project_id: project.id, client_id: 42)
+      expect(policy).to be_a(GrdaWarehouse::AuthPolicies::ProjectPiiPolicy)
+    end
+
+    context 'when project_id is nil and mode is :download' do
+      it 'denies name access when include_pii_in_detail_downloads is off' do
+        allow(GrdaWarehouse::Config).to receive(:get).with(:include_pii_in_detail_downloads).and_return(false)
+        policy = user.reporting_policy_for_project(project_id: nil, mode: :download)
+        expect(policy.can_view_name?).to eq(false)
+      end
+
+      it 'allows name access when include_pii_in_detail_downloads is on' do
+        allow(GrdaWarehouse::Config).to receive(:get).with(:include_pii_in_detail_downloads).and_return(true)
+        policy = user.reporting_policy_for_project(project_id: nil, mode: :download)
+        expect(policy.can_view_name?).to eq(true)
+      end
+
+      it 'denies name access for a restricted client even when include_pii_in_detail_downloads is on' do
+        allow(GrdaWarehouse::Config).to receive(:get).with(:include_pii_in_detail_downloads).and_return(true)
+        allow(user.policy_context).to receive(:client_restricted?).with(42).and_return(true)
+        policy = user.reporting_policy_for_project(project_id: nil, mode: :download, client_id: 42)
+        expect(policy.can_view_name?).to eq(false)
+      end
+    end
+
+    context 'with a real HMIS-restricted client and project-level name access' do
+      let(:acl_user) { create(:acl_user) }
+      let(:role) { create(:role, can_view_client_name: true) }
+      let(:collection) { create(:collection) }
+      let!(:hmis_ds) { create(:hmis_primary_data_source) }
+      let!(:hmis_user) { create(:hmis_user, data_source: hmis_ds) }
+      let!(:restricted_source_client) { create(:hmis_hud_client, data_source: hmis_ds) }
+      let!(:restricted_destination_client) { create(:grda_warehouse_hud_client) }
+      let!(:open_source_client) { create(:hmis_hud_client, data_source: hmis_ds) }
+      let!(:open_destination_client) { create(:grda_warehouse_hud_client) }
+
+      before do
+        Collection.maintain_system_groups
+        collection.set_viewables({ projects: [project.id] })
+        setup_access_control(acl_user, role, collection)
+        GrdaWarehouse::WarehouseClient.create!(destination_id: restricted_destination_client.id, source_id: restricted_source_client.id, data_source_id: hmis_ds.id, id_in_source: restricted_source_client.id.to_s)
+        GrdaWarehouse::WarehouseClient.create!(destination_id: open_destination_client.id, source_id: open_source_client.id, data_source_id: hmis_ds.id, id_in_source: open_source_client.id.to_s)
+        restricted_source_client.mark_as_restricted!(user: hmis_user)
+      end
+
+      after { GrdaWarehouse::Config.invalidate_cache }
+
+      it 'denies name access for the restricted client and allows it for the unrestricted client in browse mode' do
+        restricted_policy = acl_user.reporting_policy_for_project(project_id: project.id, client_id: restricted_destination_client.id)
+        open_policy = acl_user.reporting_policy_for_project(project_id: project.id, client_id: open_destination_client.id)
+
+        expect(restricted_policy.can_view_name?).to eq(false)
+        expect(open_policy.can_view_name?).to eq(true)
+      end
+
+      it 'denies name access for the restricted client in download mode with include_pii_in_detail_downloads on, and allows it for the unrestricted client' do
+        GrdaWarehouse::Config.first_or_create.update!(include_pii_in_detail_downloads: true)
+        GrdaWarehouse::Config.invalidate_cache
+
+        restricted_policy = acl_user.reporting_policy_for_project(project_id: project.id, mode: :download, client_id: restricted_destination_client.id)
+        open_policy = acl_user.reporting_policy_for_project(project_id: project.id, mode: :download, client_id: open_destination_client.id)
+
+        expect(restricted_policy.can_view_name?).to eq(false)
+        expect(open_policy.can_view_name?).to eq(true)
+      end
+    end
+  end
+
+  describe '#reporting_policy_for_client' do
+    let(:destination_data_source) { create(:destination_data_source) }
+    let(:client) { create(:grda_warehouse_hud_client, data_source: destination_data_source) }
+    let!(:warehouse_client) { create(:warehouse_client, destination: client) }
+
+    it 'returns DenyPiiPolicy when client is nil' do
+      expect(user.reporting_policy_for_client(client: nil)).to eq(GrdaWarehouse::AuthPolicies::DenyPiiPolicy.instance)
+    end
+
+    it 'wraps the resolved policy when the given client is restricted' do
+      allow(user.policy_context).to receive(:client_restricted?).with(client.id).and_return(true)
+      policy = user.reporting_policy_for_client(client: client, mode: :browse)
+      expect(policy).to be_a(GrdaWarehouse::PiiProvider::RestrictedPolicy)
+    end
+
+    it 'does not wrap the resolved policy when the given client is not restricted' do
+      allow(user.policy_context).to receive(:client_restricted?).with(client.id).and_return(false)
+      policy = user.reporting_policy_for_client(client: client, mode: :browse)
+      expect(policy).not_to be_a(GrdaWarehouse::PiiProvider::RestrictedPolicy)
+    end
+
+    context 'with a real HMIS-restricted client' do
+      let!(:hmis_ds) { create(:hmis_primary_data_source) }
+      let!(:hmis_user) { create(:hmis_user, data_source: hmis_ds) }
+      let!(:restricted_source_client) { create(:hmis_hud_client, data_source: hmis_ds) }
+      let!(:restricted_destination_client) { create(:grda_warehouse_hud_client) }
+      let!(:open_source_client) { create(:hmis_hud_client, data_source: hmis_ds) }
+      let!(:open_destination_client) { create(:grda_warehouse_hud_client) }
+
+      before do
+        GrdaWarehouse::WarehouseClient.create!(destination_id: restricted_destination_client.id, source_id: restricted_source_client.id, data_source_id: hmis_ds.id, id_in_source: restricted_source_client.id.to_s)
+        GrdaWarehouse::WarehouseClient.create!(destination_id: open_destination_client.id, source_id: open_source_client.id, data_source_id: hmis_ds.id, id_in_source: open_source_client.id.to_s)
+        restricted_source_client.mark_as_restricted!(user: hmis_user)
+        # Stub the base PII policy permissive so the assertions below are attributable
+        # only to the real Hmis::RestrictedRecord -> client_restricted? chain, not to
+        # this permission-less user's underlying (also-denying) DestinationClientPolicy.
+        allow(user).to receive(:policy_for).and_return(GrdaWarehouse::AuthPolicies::AllowPiiPolicy.instance)
+      end
+
+      it 'redacts PII for a client restricted via a real Hmis::RestrictedRecord, but not for an unrestricted one' do
+        restricted_policy = user.reporting_policy_for_client(client: restricted_destination_client, mode: :browse)
+        open_policy = user.reporting_policy_for_client(client: open_destination_client, mode: :browse)
+
+        expect(restricted_policy.can_view_name?).to eq(false)
+        expect(open_policy.can_view_name?).to eq(true)
+      end
+
+      it 'redacts PII for a restricted source client that has no destination client yet' do
+        unmerged_restricted = create(:hmis_hud_client, data_source: hmis_ds)
+        unmerged_open = create(:hmis_hud_client, data_source: hmis_ds)
+        unmerged_restricted.mark_as_restricted!(user: hmis_user)
+
+        restricted_policy = user.reporting_policy_for_client(client: unmerged_restricted, mode: :browse)
+        open_policy = user.reporting_policy_for_client(client: unmerged_open, mode: :browse)
+
+        expect(restricted_policy.can_view_name?).to eq(false)
+        expect(open_policy.can_view_name?).to eq(true)
+      end
     end
   end
 end

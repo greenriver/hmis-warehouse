@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -22,6 +22,19 @@ module CohortColumns
     attribute :cohort_client
     attribute :editable, Boolean, lazy: false, default: true
     attribute :current_user
+
+    def client_restricted?(cohort_client)
+      current_user.policy_context.client_restricted?(cohort_client.client.id)
+    end
+
+    # If a client has been marked restricted in HMIS, we prevent their PII from showing on the cohort.
+    # We use CohortPiiPolicy so name/DOB/photo/HIV status stay visible to any cohort viewer
+    # regardless of their other access, while the full SSN still gates on the viewer's
+    # global permission (see GrdaWarehouse::AuthPolicies::CohortPiiPolicy).
+    def pii_provider(cohort_client)
+      policy = GrdaWarehouse::PiiProvider.restrict(GrdaWarehouse::AuthPolicies::CohortPiiPolicy.new(user: current_user), restricted: client_restricted?(cohort_client))
+      GrdaWarehouse::PiiProvider.new(cohort_client.client, policy: policy)
+    end
 
     def cohort_column
       @cohort_column ||= GrdaWarehouse::Cohorts::CohortColumn.find_by!(class_name: class_name)
@@ -80,6 +93,11 @@ module CohortColumns
 
     def default_value(_client_id)
       nil
+    end
+
+    # Default values for a batch of clients being added, keyed by client_id
+    def default_values(client_ids)
+      client_ids.index_with { |client_id| default_value(client_id) }
     end
 
     def comments

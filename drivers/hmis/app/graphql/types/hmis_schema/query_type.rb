@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -48,12 +48,7 @@ module Types
       has_service_filter = args[:filters]&.service_in_range&.project_id.present?
       raise 'Invalid search. At least 1 search param is required.' unless has_search_term || has_service_filter
 
-      # Find or create a ClientSearchQuery for the given params and user.
-      query = Hmis::ClientSearchQuery.find_or_create_by_params(input.to_h, user: current_user)
-      raise query.errors.full_messages.join(', ') unless query.valid?
-
-      # Add the ClientSearchQuery ID to the context so it can be returned on the Paginated object
-      context[:search_query_id] = query.id
+      persist_client_search_query(input.to_h)
 
       # if the search should also sort by rank
       sorted = args[:sort_order] == :best_match
@@ -78,12 +73,9 @@ module Types
     end
 
     def client_omni_search(text_search:)
-      query = Hmis::ClientSearchQuery.find_or_create_by_params({ 'text_search' => text_search }, user: current_user)
-      raise query.errors.full_messages.join(', ') unless query.valid?
+      persist_client_search_query({ 'text_search' => text_search })
 
-      context[:search_query_id] = query.id
-
-      Hmis::Hud::Client.searchable_to(current_user).
+      Hmis::Hud::Client.searchable_to_matching(current_user, text_search).
         matching_search_term(text_search).
         sort_by_option(:recently_added)
     end
@@ -182,14 +174,14 @@ module Types
       argument :id, ID, required: true
     end
     def service(id:)
-      Hmis::Hud::HmisService.viewable_by(current_user).find_by(id: id)
+      Hmis::Hud::HmisService.viewable_by(current_user).with_service_ids(id).take
     end
 
     field :service_type, Types::HmisSchema::ServiceType, 'Service type lookup', null: true do
       argument :id, ID, required: true
     end
     def service_type(id:)
-      Hmis::Hud::CustomServiceType.find_by(id: id)
+      Hmis::Hud::CustomServiceType.in_data_source(current_user.hmis_data_source_id).find_by(id: id)
     end
 
     field :file, Types::HmisSchema::File, null: true do
@@ -238,8 +230,7 @@ module Types
       raise 'unexpected role' if role && !Hmis::Form::Definition::ASSESSMENT_FORM_ROLES.include?(role.to_sym)
 
       project = Hmis::Hud::Project.find(project_id)
-      # Ensure that user can view enrollments for this project. There is no need to expose assessment forms otherwise.
-      raise 'Access denied' unless current_user.can_view_enrollment_details_for?(project)
+      access_denied! unless policy_for(project, policy_type: :hmis_project).can_view_enrollment_details?
 
       if id
         # If ID is specified, we assume that it's correct for this project.
@@ -326,20 +317,9 @@ module Types
       current_user
     end
 
-    access_field do
-      # TODO(#8995) - Update access fields to match the new pattern (see below) and remove any that are unused by the frontend
-      Hmis::Role.permissions_with_descriptions.keys.each do |perm|
-        root_can perm
-      end
-      field :can_edit_users_in_warehouse, Boolean, null: false # warehouse permission
-
-      bool_field(:can_index_referrals) { policy_for(Hmis::Ce::Referral, policy_type: :ce_referral).can_index? }
-    end
-
+    field :access, Types::HmisSchema::RootQueryAccess, null: false
     def access
-      {
-        can_edit_users_in_warehouse: User.find(current_user.id).can_edit_users?,
-      }
+      {}
     end
 
     field :referral_posting, Types::HmisSchema::ReferralPosting, null: true do
@@ -366,7 +346,7 @@ module Types
 
     field :merge_candidates, Types::HmisSchema::ClientMergeCandidate.page_type, null: false
     def merge_candidates
-      raise 'Access denied' unless current_user.can_merge_clients?
+      raise 'Access denied' unless policy_for(Hmis::Hud::Client, policy_type: :hmis_client).can_merge_clients?
 
       # Find all destination clients that have more than 1 source client in the HMIS
       destination_ids_with_multiple_sources = GrdaWarehouse::WarehouseClient.
@@ -382,7 +362,8 @@ module Types
 
     application_users_field :application_users
     def application_users(**args)
-      raise 'Access denied' unless current_user.can_audit_users? || current_user.can_impersonate_users?
+      user_policy = policy_for(Hmis::User, policy_type: :hmis_user)
+      access_denied! unless user_policy.can_index_application_users?
 
       user_scope = Hmis::User.active.with_hmis_access_in_data_source(current_user.hmis_data_source_id)
       resolve_application_users(user_scope, **args)
@@ -392,17 +373,18 @@ module Types
       argument :id, ID, required: true
     end
     def user(id:)
-      raise 'Access denied' unless id == current_user.id.to_s || current_user.can_audit_users? || current_user.can_impersonate_users?
-
       user_scope = Hmis::User.with_hmis_access_in_data_source(current_user.hmis_data_source_id)
-      load_ar_scope(scope: user_scope, id: id)
+      user = load_ar_scope(scope: user_scope, id: id)
+      access_denied! unless user && policy_for(user, policy_type: :hmis_user).can_view?
+
+      user
     end
 
     field :merge_audit_history, Types::HmisSchema::MergeAuditEvent.page_type, null: false do
       filters_argument Types::HmisSchema::MergeAuditEvent
     end
     def merge_audit_history(filters: nil)
-      raise 'Access denied' unless current_user.can_merge_clients?
+      raise 'Access denied' unless policy_for(Hmis::Hud::Client, policy_type: :hmis_client).can_merge_clients?
 
       # can_merge_clients is a global permission (not limited to specific clients), but MergeAuditEvent resolves
       # the client record which requires object-level authorization. Filter by viewable_by to prevent authorization failures.
@@ -418,6 +400,8 @@ module Types
     end
 
     def esg_funding_report(client_ids:)
+      access_denied! unless HmisExternalApis::AcHmis.configuration.esg_funding_report_enabled?
+
       cst = Hmis::Hud::CustomServiceType.where(name: 'ESG Funding Assistance').first!
       raise HmisErrors::ApiError, 'ESG Funding Assistance service not configured' unless cst.present?
 
@@ -435,9 +419,9 @@ module Types
       filters_argument HmisSchema::ServiceType
     end
     def service_types(filters: nil)
-      raise 'Access denied' unless current_user.can_configure_data_collection?
+      access_denied! unless policy_for(Hmis::Hud::CustomServiceType, policy_type: :service_type).can_manage?
 
-      scope = Hmis::Hud::CustomServiceType.all
+      scope = Hmis::Hud::CustomServiceType.in_data_source(current_user.hmis_data_source_id)
       scope = scope.apply_filters(filters) if filters
       scope.order(:name, :id)
     end
@@ -449,9 +433,10 @@ module Types
       # NOTE: this query is only used for form management. It probably should
       # not be used for the application, because there is no project context passed
       # to the definition.
-      access_denied! unless current_user.can_configure_data_collection?
+      definition = Hmis::Form::Definition.in_data_source(current_user.hmis_data_source_id).find_by(id: id)
+      return nil unless definition && policy_for(definition, policy_type: :form_definition).can_configure_form?
 
-      Hmis::Form::Definition.in_data_source(current_user.hmis_data_source_id).find(id)
+      definition
     end
 
     field :external_form_submission, Types::HmisSchema::ExternalFormSubmission, null: true do
@@ -467,25 +452,25 @@ module Types
       argument :identifier, String, required: true
     end
     def form_identifier(identifier:)
-      access_denied! unless current_user.can_configure_data_collection?
+      # return early if the user has no permission to configure forms at all
+      access_denied! unless policy_for(Hmis::Form::Definition, policy_type: :form_definition).can_configure_forms?
 
-      scope = Hmis::Form::Definition.
-        in_data_source(current_user.hmis_data_source_id).
-        non_static.latest_versions.where(identifier: identifier)
+      definition = Hmis::Form::Definition.configurable_by(current_user).
+        latest_versions.where(identifier: identifier).first
 
-      # Return nil (Not Found in the UI) if the user doesn't have can_administrate_config permission and is trying to access a non-admin form
-      scope = scope.with_role(Hmis::Form::Definition::NON_ADMIN_FORM_ROLES) unless current_user.can_administrate_config?
-      scope.first
+      # Return nil (Not Found in the UI) if the user doesn't have permission to access this form
+      return nil unless definition && policy_for(definition, policy_type: :form_definition).can_configure_form?
+
+      definition
     end
 
     field :form_identifiers, Types::Forms::FormIdentifier.page_type, null: false do
       filters_argument Forms::FormIdentifier
     end
     def form_identifiers(filters: nil)
-      access_denied! unless current_user.can_configure_data_collection?
+      access_denied! unless policy_for(Hmis::Form::Definition, policy_type: :form_definition).can_configure_forms?
 
-      scope = Hmis::Form::Definition.in_data_source(current_user.hmis_data_source_id).non_static.valid.latest_versions
-      scope = scope.with_role(Hmis::Form::Definition::NON_ADMIN_FORM_ROLES) unless current_user.can_administrate_config?
+      scope = Hmis::Form::Definition.configurable_by(current_user).latest_versions
       scope = scope.apply_filters(filters) if filters
       # Sort system-managed forms last, because they aren't edited through the config tool. Then sort by most recently updated.
       scope.order(managed_in_version_control: :asc, updated_at: :desc, id: :desc)
@@ -607,8 +592,14 @@ module Types
       resolve_ce_opportunities(Hmis::Ce::Opportunity.viewable_by(current_user), **args)
     end
 
-    ce_referrals_field
+    # Omit assigned_to_user for now. Enabling it will require a frontend change to map the filter to a user picklist
+    ce_referrals_field(filter_args: { omit: [:assigned_to_user], type_name: 'CeReferral' })
     def ce_referrals(**args)
+      # Persist text search for top-level CE Referrals URL restore only.
+      # Nested ce_referrals resolvers do not call this method, so they won't create search rows.
+      search_term = args[:filters]&.search_term.to_s.strip
+      persist_client_search_query({ 'text_search' => search_term }) if search_term.present?
+
       resolve_ce_referrals(Hmis::Ce::Referral.viewable_by(current_user), **args)
     end
 
@@ -624,18 +615,33 @@ module Types
       {}
     end
 
-    field :ce_clients, HmisSchema::CeClient.page_type, null: false, description: 'Clients who belong to at least one CE candidate pool', nodes_count: ->(all_nodes) { all_nodes.count(:id) } do
+    field :ce_candidate_pool_summary, HmisSchema::CeCandidatePoolSummary, null: false,
+                                                                          description: 'Generation and refresh status for active CE candidate pools' do
+      argument :project_group_id, ID, required: false
+    end
+    def ce_candidate_pool_summary(project_group_id: nil)
+      access_denied! unless current_user.can_administrate_coordinated_entry?
+
+      { project_group_id: project_group_id }
+    end
+
+    # Keep include_search_query_id consistent for CeClient; BaseObject.page_type memoizes its first setting.
+    field :ce_clients, HmisSchema::CeClient.page_type(include_search_query_id: true), null: false, description: 'Clients who belong to at least one CE candidate pool', nodes_count: ->(all_nodes) { all_nodes.count(:id) } do
       filters_argument HmisSchema::CeClient
     end
     def ce_clients(filters: nil)
       access_denied! unless current_user.can_administrate_coordinated_entry?
 
+      search_term = filters&.search_term.to_s.strip
+      persist_client_search_query({ 'text_search' => search_term }) if search_term.present?
+
       scope = Hmis::Ce::ClientProxy.for_warehouse_clients.
         joins(ce_match_candidates: :candidate_pool).
         merge(Hmis::Ce::Match::CandidatePool.active).
-        distinct.order(:id)
+        distinct
 
       scope = scope.apply_filters(filters) if filters
+      scope = scope.order(:id)
       scope
     end
 
@@ -672,11 +678,92 @@ module Types
       Hmis::UnitGroup.viewable_by(current_user).find_by(id: id)
     end
 
+    field :unit_groups, HmisSchema::UnitGroup.page_type, null: false do
+      filters_argument HmisSchema::UnitGroup
+    end
+    def unit_groups(filters: nil)
+      scope = Hmis::UnitGroup.viewable_by(current_user)
+      scope = scope.apply_filters(filters) if filters.present?
+      scope.order(:name, :id)
+    end
+
     field :unit, HmisSchema::Unit, null: true do
       argument :id, ID, required: true
     end
     def unit(id:)
       Hmis::Unit.viewable_by(current_user).find_by(id: id)
+    end
+
+    field :ce_match_rule, HmisSchema::CeMatchRule, null: true do
+      argument :id, ID, required: true
+    end
+    def ce_match_rule(id:)
+      rule = Hmis::Ce::Match::Rule.find_by(id: id)
+      return nil unless rule && policy_for(rule, policy_type: :ce_match_rule).can_view?
+
+      rule
+    end
+
+    field :ce_match_rules, HmisSchema::CeMatchRule.page_type, null: false, description: 'Coordinated Entry Match Rules in the current data source.' do
+      filters_argument HmisSchema::CeMatchRule
+    end
+    def ce_match_rules(filters: nil)
+      access_denied! unless policy_for(Hmis::Ce::Match::Rule, policy_type: :ce_match_rule).can_manage?
+
+      # TODO(#9337) Support viewing and editing priority schemes
+      scope = Hmis::Ce::Match::Rule.in_data_source(current_user.hmis_data_source_id).eligibility_requirement
+      scope = scope.apply_filters(filters) if filters.present?
+      scope.order(:id)
+    end
+
+    field :ce_match_client_fields, [HmisSchema::CeMatchField], null: false, description: 'Client fields available for CE Match Rule expressions.', deprecation_reason: 'Use ceMatchFields(fieldSource: CLIENT)'
+    def ce_match_client_fields
+      access_denied! unless policy_for(Hmis::Ce::Match::Rule, policy_type: :ce_match_rule).can_manage?
+
+      Hmis::Ce::Match::FieldCatalog.new.client_fields
+    end
+
+    field :ce_match_fields, [HmisSchema::CeMatchField], null: false, description: 'Fields available for CE Match Rule expressions. CUSTOM_DATA_ELEMENT fields are scoped to a form, so request those through ceMatchCustomAssessmentFields instead.' do
+      argument :field_source, HmisSchema::Enums::CeMatchRuleFieldSource, required: true
+    end
+    def ce_match_fields(field_source:)
+      access_denied! unless policy_for(Hmis::Ce::Match::Rule, policy_type: :ce_match_rule).can_manage?
+
+      catalog = Hmis::Ce::Match::FieldCatalog.new
+      case field_source
+      when 'CLIENT'
+        catalog.client_fields
+      when 'PSDE'
+        catalog.psde_fields
+      when 'HOUSEHOLD'
+        catalog.household_fields
+      else
+        raise HmisErrors::ApiError, "Unsupported CE match field source: #{field_source}"
+      end
+    end
+
+    field :ce_match_custom_assessment_forms, [Forms::FormDefinition], null: false, description: 'Custom assessment form definitions for use in CE match rule management.'
+    def ce_match_custom_assessment_forms
+      access_denied! unless policy_for(Hmis::Ce::Match::Rule, policy_type: :ce_match_rule).can_manage?
+
+      Hmis::Form::Definition.
+        with_role(:CUSTOM_ASSESSMENT).
+        published_or_retired.
+        where(data_source_id: current_user.hmis_data_source_id).
+        latest_versions.
+        order(:title)
+    end
+
+    field :ce_match_custom_assessment_fields, [HmisSchema::CeMatchField], null: false, description: 'Fields on the form that are usable as CE Match Rule condition fields.' do
+      argument :form_definition_identifier, String, required: true
+    end
+    def ce_match_custom_assessment_fields(form_definition_identifier:)
+      access_denied! unless policy_for(Hmis::Ce::Match::Rule, policy_type: :ce_match_rule).can_manage?
+
+      Hmis::Ce::Match::FieldCatalog.new.custom_assessment_fields_for(
+        data_source_id: current_user.hmis_data_source_id,
+        form_definition_identifier: form_definition_identifier,
+      )
     end
   end
 end

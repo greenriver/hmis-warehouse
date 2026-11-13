@@ -1,3 +1,9 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # frozen_string_literal: true
 
 require 'rails_helper'
@@ -38,11 +44,11 @@ RSpec.describe Importing::RunDailyImportsJob, type: :job do
     allow(HudReports::HouseholdContext).to receive(:prune!)
     allow(Reporting::PopulationDashboardPopulateJob).to receive(:set).and_return(double(perform_later: true))
     allow(PruneDocumentExportsJob).to receive(:perform_later)
-    allow(Health::PruneDocumentExportsJob).to receive(:perform_later)
     allow(YouthFollowUpsJob).to receive(:set).and_return(double(perform_later: true))
     allow(SystemCohortsJob).to receive(:set).and_return(double(perform_later: true))
     allow(AccessGroup).to receive(:delayed_system_group_maintenance)
     allow(Collection).to receive(:delayed_system_group_maintenance)
+    allow(GrdaWarehouse::Tasks::CleanupOrphanedSystemCollections).to receive(:new).and_return(double(delay: double(run!: true)))
     allow(GrdaWarehouse::Cohort).to receive(:delay).and_return(double(maintain_auto_maintained!: true))
     allow(SyncSyntheticDataJob).to receive(:perform_later)
     allow(CasBase).to receive(:db_exists?).and_return(false)
@@ -108,10 +114,140 @@ RSpec.describe Importing::RunDailyImportsJob, type: :job do
         end
       end
 
+      it 'queues the client retention pass at maintenance priority instead of running it inline' do
+        expect { job.perform }.to have_enqueued_job(ClientRetentionJob).at_priority(BaseJob::MAINTENANCE_PRIORITY_15)
+      end
+
       it 'sends completion notification' do
         job.perform
 
         expect(notifier).to have_received(:ping).with(a_string_matching(/Nightly Process completed in/))
+      end
+
+      describe 'chronic list recalculation' do
+        def configure_months_to_build(value)
+          create(:app_config_property, key: 'chronic_list_recalculation/months_to_build', value: value)
+        end
+
+        def chronic_dates_calculated
+          [
+            GrdaWarehouse::Tasks::ChronicallyHomeless,
+            GrdaWarehouse::Tasks::DmhChronicallyHomeless,
+            GrdaWarehouse::Tasks::HudChronicallyHomeless,
+          ].map do |task_class|
+            calculated = []
+            expect(task_class).to have_received(:new).at_least(:once) do |date:|
+              calculated << date
+            end
+            calculated
+          end
+        end
+
+        around do |example|
+          travel_to(Time.zone.local(run_date.year, run_date.month, run_date.day, 3)) { example.run }
+        end
+
+        context 'when it is not the 1st or 15th' do
+          let(:run_date) { Date.new(2026, 11, 14) }
+
+          it 'does not recalculate' do
+            job.perform
+
+            expect(GrdaWarehouse::Tasks::ChronicallyHomeless).not_to have_received(:new)
+          end
+        end
+
+        context 'on the 15th' do
+          let(:run_date) { Date.new(2026, 11, 15) }
+
+          it 'recalculates the 1st and 15th of the last 6 months when unset' do
+            job.perform
+
+            expected_dates = (0...6).flat_map do |i|
+              month = run_date.months_ago(i)
+              [month.change(day: 15), month.change(day: 1)]
+            end
+            chronic_dates_calculated.each do |dates|
+              expect(dates).to match_array(expected_dates)
+            end
+          end
+
+          it 'follows the configured number of months' do
+            configure_months_to_build(2)
+
+            job.perform
+
+            expected_dates = [
+              Date.new(2026, 11, 15),
+              Date.new(2026, 11, 1),
+              Date.new(2026, 10, 15),
+              Date.new(2026, 10, 1),
+            ]
+            chronic_dates_calculated.each do |dates|
+              expect(dates).to match_array(expected_dates)
+            end
+          end
+
+          it 'skips the recalculation but still maintains ChEnrollment when set to 0' do
+            configure_months_to_build(0)
+
+            job.perform
+
+            expect(GrdaWarehouse::ChEnrollment).to have_received(:maintain!)
+            expect(GrdaWarehouse::Tasks::ChronicallyHomeless).not_to have_received(:new)
+            expect(GrdaWarehouse::Tasks::DmhChronicallyHomeless).not_to have_received(:new)
+            expect(GrdaWarehouse::Tasks::HudChronicallyHomeless).not_to have_received(:new)
+          end
+        end
+
+        context 'with days of the month configured' do
+          before do
+            create(:app_config_property, key: 'chronic_list_recalculation/days_of_month', value: [10, 25])
+            configure_months_to_build(2)
+          end
+
+          context 'on a configured day' do
+            let(:run_date) { Date.new(2026, 11, 25) }
+
+            it 'recalculates the configured days' do
+              job.perform
+
+              expected_dates = [
+                Date.new(2026, 11, 25),
+                Date.new(2026, 11, 10),
+                Date.new(2026, 10, 25),
+                Date.new(2026, 10, 10),
+              ]
+              chronic_dates_calculated.each do |dates|
+                expect(dates).to match_array(expected_dates)
+              end
+            end
+          end
+
+          context 'on the 15th' do
+            let(:run_date) { Date.new(2026, 11, 15) }
+
+            it 'does not recalculate' do
+              job.perform
+
+              expect(GrdaWarehouse::Tasks::ChronicallyHomeless).not_to have_received(:new)
+            end
+          end
+        end
+
+        context 'on the 1st with one month configured' do
+          let(:run_date) { Date.new(2026, 11, 1) }
+
+          it 'recalculates only the 1st' do
+            configure_months_to_build(1)
+
+            job.perform
+
+            chronic_dates_calculated.each do |dates|
+              expect(dates).to eq([Date.new(2026, 11, 1)])
+            end
+          end
+        end
       end
     end
   end

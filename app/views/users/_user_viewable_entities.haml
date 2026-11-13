@@ -59,19 +59,20 @@
         = render 'users/entity_column', entity: cohort_editability(base).merge(lazy_load: true, entity_type: 'cohorts', base: base, load_options_url: load_select_options_admin_users_path(base_url_options.merge(entity_type: 'cohorts'))), entity_type: :cohorts, associations: [], f: f
 
   - content_for :page_js do
-    :javascript
-      document.addEventListener('DOMContentLoaded', function() {
-        // Wait for App namespace to be available
-        if (typeof window.App !== 'undefined' && window.App.ViewableEntities) {
-          new App.ViewableEntities();
-        } else {
-          // Fallback: wait a bit more and try again
-          setTimeout(function() {
-            if (typeof window.App !== 'undefined' && window.App.ViewableEntities) {
-              new App.ViewableEntities();
-            } else {
-              console.error('App.ViewableEntities not found - check JavaScript load order');
-            }
-          }, 100);
-        }
-      });
+    %script{ nonce: content_security_policy_nonce }
+      :plain
+        document.addEventListener('DOMContentLoaded', function() {
+          // Wait for App namespace to be available
+          if (typeof window.App !== 'undefined' && window.App.ViewableEntities) {
+            new App.ViewableEntities();
+          } else {
+            // Fallback: wait a bit more and try again
+            setTimeout(function() {
+              if (typeof window.App !== 'undefined' && window.App.ViewableEntities) {
+                new App.ViewableEntities();
+              } else {
+                console.error('App.ViewableEntities not found - check JavaScript load order');
+              }
+            }, 100);
+          }
+        });

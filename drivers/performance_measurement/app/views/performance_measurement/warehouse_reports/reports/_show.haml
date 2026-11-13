@@ -5,18 +5,19 @@
 
 - unless @report.include_in_summary_only_version
   = content_for :page_js do
-    :javascript
-      $(document).ready(function() {
-        $('.j-summary-row').addClass('cursor-pointer');
-        $('.j-summary-row').on('click', function(e) {
-          $('html, body').animate({
-            scrollTop: $($(this).data('target')).offset().top
-          }, 500);
+    %script{ nonce: content_security_policy_nonce }
+      :plain
+        $(document).ready(function() {
+          $('.j-summary-row').addClass('cursor-pointer');
+          $('.j-summary-row').on('click', function(e) {
+            $('html, body').animate({
+              scrollTop: $($(this).data('target')).offset().top
+            }, 500);
+          });
+          $('.j-click-row').addClass('cursor-pointer');
+          $('.j-click-row').on('click', function(e) {
+            e.preventDefault();
+            var link = $(this).find('.j-click-row-source');
+            window.open(link.attr('href'), '_blank');
+          });
         });
-        $('.j-click-row').addClass('cursor-pointer');
-        $('.j-click-row').on('click', function(e) {
-          e.preventDefault();
-          var link = $(this).find('.j-click-row-source');
-          window.open(link.attr('href'), '_blank');
-        });
-      });

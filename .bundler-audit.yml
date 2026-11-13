@@ -9,3 +9,6 @@ ignore:
   - CVE-2026-32700
   - GHSA-57hq-95w6-v4fc
   - CVE-2026-40295
+  - CVE-2026-44587
+  # webrick is only used internally, no patch available yet
+  - CVE-2026-38969

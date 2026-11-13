@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -65,7 +65,8 @@ module Reporting::DataQualityReports
         report_range.range.each do |date|
           counts[date] ||= 0
         end
-        counts
+        # Explicit ISO keys: the jsonb encoder would otherwise use Date#to_s ("Jan 29, 2025")
+        counts.transform_keys(&:iso8601)
       end
     end
 
@@ -81,7 +82,8 @@ module Reporting::DataQualityReports
         report_range.range.each do |date|
           counts[date] ||= 0
         end
-        counts
+        # Explicit ISO keys: the jsonb encoder would otherwise use Date#to_s ("Jan 29, 2025")
+        counts.transform_keys(&:iso8601)
       end
     end
 

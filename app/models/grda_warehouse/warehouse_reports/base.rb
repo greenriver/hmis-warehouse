@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -20,6 +20,13 @@ module GrdaWarehouse::WarehouseReports
 
     scope :for_user, ->(user) do
       where(user_id: user.id)
+    end
+
+    scope :visible_to, ->(user) do
+      return all if user.can_view_all_reports?
+      return where(user_id: user.id) if user.can_view_assigned_reports?
+
+      none
     end
 
     def completed_in

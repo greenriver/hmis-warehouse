@@ -6,7 +6,8 @@
   %div{data: {actioncable: 'here'}}
 
 = content_for :page_js do
-  :javascript
-    $(document).ready(function() {
-      window.App.initTestChannel();
-    });
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      $(document).ready(function() {
+        window.App.initTestChannel();
+      });

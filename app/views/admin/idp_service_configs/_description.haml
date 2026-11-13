@@ -1,0 +1,9 @@
+.alert.alert-info.mb-4.d-block
+  %p
+    %strong Each row connects the warehouse to an external identity provider (IDP).
+    A config is
+    %strong not
+    required for sign-in. Adding a config lets the warehouse manage user accounts (where supported) and show a friendly IDP name.
+  %p
+    %strong Connector ID
+    is the routing key the auth proxy sends with each login. It must exactly match the value the proxy is configured with, or users from that IDP won't be matched to a config.

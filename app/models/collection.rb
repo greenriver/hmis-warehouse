@@ -1,12 +1,12 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 # frozen_string_literal: true
 
-# @see docs/features/warehouse-permissions.md
+# @see docs/features/warehouse/warehouse-permissions.md
 #
 # Part of the "new" permissions system
 #
@@ -108,6 +108,27 @@ class Collection < ApplicationRecord
         entity_id: coc_lookup_ids,
       ).pluck(:collection_id),
     )
+  end
+
+  scope :contains_with_inherited, ->(entity) do
+    case entity
+    when GrdaWarehouse::DataSource
+      contains(entity)
+    when GrdaWarehouse::Hud::Organization
+      entity.data_source ? contains(entity).or(contains(entity.data_source)) : contains(entity)
+    when GrdaWarehouse::Hud::Project
+      # project_collection_members does not include membership through CoC codes
+      where(id: GrdaWarehouse::ProjectCollectionMember.where(project_id: entity.id).pluck(:collection_id)).
+        or(for_coc_codes(entity.project_cocs.pluck(:CoCCode)))
+    else
+      none
+    end
+  end
+
+  scope :contains_coc_code_with_inherited, ->(coc_code) do
+    project_ids = GrdaWarehouse::Hud::Project.in_coc(coc_code: coc_code).select(:id)
+    where(id: GrdaWarehouse::ProjectCollectionMember.where(project_id: project_ids).pluck(:collection_id)).
+      or(for_coc_codes([coc_code]))
   end
 
   scope :with_source_entity, -> do
@@ -332,7 +353,7 @@ class Collection < ApplicationRecord
         g.system = ['Entities']
         g.collection_type = 'Reports'
       end,
-      health_reports: Collection.where(name: 'All Health Reports', must_exist: true).first_or_create do |g|
+      hud_reports: Collection.where(name: 'All HUD Reports', must_exist: true).first_or_create do |g|
         g.system = ['Entities']
         g.collection_type = 'Reports'
       end,
@@ -387,17 +408,12 @@ class Collection < ApplicationRecord
       # Reports
       all_reports = GrdaWarehouse::WarehouseReports::ReportDefinition.enabled
 
-      all_report_ids = []
-      all_hmis_reports = system_collection(:hmis_reports)
-      ids = all_reports.where(health: false).pluck(:id)
-      all_hmis_reports.set_viewables({ reports: ids })
-      all_report_ids += ids
-
-      all_health_reports = system_collection(:health_reports)
-      ids = all_reports.where(health: true).pluck(:id)
-      all_health_reports.set_viewables({ reports: ids })
-      all_report_ids += ids
-      system_user_access_group.set_viewables({ reports: all_report_ids })
+      # HUD reports have their own system collection; All HMIS Reports excludes them so
+      # granting it does not also grant HUD reports. The system user still gets everything.
+      hud_ids = all_reports.hud.pluck(:id)
+      system_collection(:hmis_reports).set_viewables({ reports: all_reports.pluck(:id) - hud_ids })
+      system_user_access_group.set_viewables({ reports: all_reports.pluck(:id) })
+      system_collection(:hud_reports).set_viewables({ reports: hud_ids })
     end
 
     if group.blank? || group == :cohorts
@@ -558,6 +574,16 @@ class Collection < ApplicationRecord
 
   def associated_entity_set
     @associated_entity_set ||= group_viewable_entities.pluck(:entity_type, :entity_id).sort.to_set
+  end
+
+  # UserGroups are matched by source_type/source_id, so we only run that query when both are
+  # present -- otherwise a sourceless Collection would run UserGroup.where(source_type: nil,
+  # source_id: nil), destroying every sourceless UserGroup rather than just this Collection's
+  # own. destroy_all/destroy! soft-delete (acts_as_paranoid), so all of this remains recoverable.
+  def destroy_with_associated_records!
+    access_controls.destroy_all
+    UserGroup.where(source_type: source_type, source_id: source_id).destroy_all if source_type.present? && source_id.present?
+    destroy!
   end
 
   def class_name_for_viewable_type(type)

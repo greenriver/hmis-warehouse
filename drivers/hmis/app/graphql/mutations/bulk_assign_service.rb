@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -15,7 +15,7 @@ module Mutations
     def resolve(input:)
       project = Hmis::Hud::Project.viewable_by(current_user).find_by(id: input.project_id)
       access_denied! unless project
-      access_denied! unless current_user.permissions_for?(project, :can_edit_enrollments, :can_view_enrollment_details, mode: :all)
+      access_denied! unless policy_for(project, policy_type: :hmis_project).can_edit_enrollments?
 
       clients = Hmis::Hud::Client.viewable_by(current_user).where(id: input.client_ids)
       access_denied! unless clients.count == input.client_ids.uniq.length

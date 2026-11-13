@@ -1,8 +1,17 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # frozen_string_literal: true
 
 Rails.application.routes.draw do
-  use_doorkeeper
-  get 'oauth/user-data', to: 'oauth#user'
+  # Doorkeeper's /oauth routes are Devise-path only; under JWT the IdP owns OAuth.
+  if AuthMethod.devise?
+    use_doorkeeper
+    get 'oauth/user-data', to: 'oauth#user'
+  end
 
   # For details on the DSL available within this file, see http://guides.rubyonrails.org/routing.html
   match '/404', to: 'errors#not_found', via: :all
@@ -14,26 +23,33 @@ Rails.application.routes.draw do
       request.xhr?
     end
   end
-  devise_for :users, controllers: {
-    invitations: 'users/invitations',
-    sessions: 'users/sessions',
-  }
+  # AUTH_METHOD seam: Devise mounts its session/invitation routes; under JWT the same route
+  # names are served by flat routes pointing at the oauth2-proxy-aware sessions controller
+  if AuthMethod.devise?
+    devise_for :users, controllers: {
+      invitations: 'users/invitations',
+      sessions: 'users/sessions',
+    }
 
-  devise_scope :user do
-    match 'session_keepalive' => 'users/sessions#keepalive', via: :post
-    match 'users/invitations/confirm', via: :post
-    match 'logout_talentlms' => 'users/sessions#destroy', via: :get
-    if ENV['OKTA_DOMAIN'].present?
-      get '/users/auth/okta/callback' => 'users/omniauth_callbacks#okta' if ENV['OKTA_CLIENT_ID']
+    devise_scope :user do
+      match 'session_keepalive' => 'users/sessions#keepalive', via: :post
+      match 'users/invitations/confirm', via: :post, as: :confirm_users_invitations
+      match 'logout_talentlms' => 'users/sessions#destroy', via: :get
+      if ENV['OKTA_DOMAIN'].present?
+        get '/users/auth/okta/callback' => 'users/omniauth_callbacks#okta' if ENV['OKTA_CLIENT_ID']
+      end
     end
+  else
+    # Same route names Devise, served by Idp::SessionsController
+    get    'users/sign_in',     to: 'idp/sessions#new',       as: :new_user_session
+    post   'users/sign_in',     to: 'idp/sessions#create',    as: :user_session
+    delete 'users/sign_out',    to: 'idp/sessions#destroy',   as: :destroy_user_session
+    match  'session_keepalive', to: 'idp/sessions#keepalive', as: :session_keepalive, via: [:get, :post]
+    # Not #destroy — cross-site GET with no CSRF token, so it renders a logout form
+    get    'logout_talentlms',  to: 'idp/sessions#logout_talentlms', as: :logout_talentlms
   end
 
   namespace :users do
-    resources :invitations do
-      collection do
-        post :confirm
-      end
-    end
     resources :account_requests, only: [:new, :create]
   end
 
@@ -41,122 +57,31 @@ Rails.application.routes.draw do
   resources :content_pages, only: [:show], param: :slug, path: 'public/pages'
   resource :compliance_agreement, only: [:show, :create], controller: 'compliance_agreements'
 
-  def healthcare_routes
-    namespace :health do
-      resources :patient, only: [:index, :update], controller: '/health/patient'
-      resources :utilization, only: [:index], controller: '/health/utilization'
-      resources :appointments, only: [:index], controller: '/health/appointments' do
-        collection do
-          get :upcoming
-          get :calendar
-        end
-      end
-      resources :ed_ip_visits, only: [:index], controller: '/health/ed_ip_visits'
-      resources :medications, only: [:index], controller: '/health/medications'
-      resources :problems, only: [:index], controller: '/health/problems'
-      resources :self_sufficiency_matrix_forms, controller: '/health/self_sufficiency_matrix_forms' do
-        member do
-          delete :remove_file
-          get :download
-          patch :upload
-        end
-      end
-      resources :sdh_case_management_notes, only: [:show, :new, :create, :edit, :update, :destroy], controller: '/health/sdh_case_management_notes' do
-        member do
-          delete :remove_file
-          get :download
-        end
-      end
-      resources :services, controller: '/health/services'
-      resources :backup_plans, controller: '/health/backup_plans'
-      resources :qualifying_activities, controller: '/health/qualifying_activities'
-      resources :patient_referrals, only: [:index], controller: '/health/patient_referrals'
-      resources :durable_equipments, except: [:index], controller: '/health/durable_equipments'
-      resources :files, only: [:index, :show], controller: '/health/files'
-      resources :team_members, controller: '/health/patient_team_members'
-      resources :goals, controller: '/health/patient_goals'
-      resources :epic_case_notes, only: [:show], controller: '/health/epic_case_notes'
-      resources :epic_ssms, only: [:show], controller: '/health/epic_ssms'
-      resources :epic_chas, only: [:show], controller: '/health/epic_chas'
-      resources :epic_careplans, only: [:show], controller: '/health/epic_careplans'
-      resources :careplans, except: [:create], controller: '/health/careplans' do
-        resources :team_members, except: [:index, :show], controller: '/health/team_members'
-        resources :goals, except: [:index, :show], controller: '/health/goals'
-        get :self_sufficiency_assessment
-        get :print
-        get :revise, on: :member
-        get :coversheet, on: :member
-        get :pctp, on: :member
-        member do
-          delete :remove_file
-          get :download
-          patch :upload
-        end
-      end
-      resources :participation_forms, controller: '/health/participation_forms' do
-        member do
-          delete :remove_file
-          get :download
-        end
-      end
-      resources :release_forms, controller: '/health/release_forms' do
-        member do
-          delete :remove_file
-          get :download
-        end
-      end
-      resources :comprehensive_health_assessments, path: :chas, as: :chas, controller: '/health/comprehensive_health_assessments' do
-        member do
-          delete :remove_file
-          get :download
-          patch :upload
-        end
-      end
-      resources :metrics, only: [:index], controller: '/health/metrics'
-      namespace :pilot do
-        resources :patient, only: [:index], controller: '/health/pilot/patient'
-        resources :metrics, only: [:index], controller: '/health/pilot/metrics'
-        resource :careplan, except: [:destroy], controller: '/health/pilot/careplans' do
-          get :self_sufficiency_assessment
-          get :print
-        end
-      end
-      resources :contacts, only: [:index], controller: '/health/contacts'
-    end
-  end
-
   # obfuscation of links sent out via email
   resources :tokens, only: [:show]
 
   match 'filter', to: 'filters#show', via: [:post]
 
-  resources :reports do
+  # Pre-framework HUD report results
+  resources :reports, only: [] do
     resources :report_results, path: 'results', only: [:index, :show, :create, :update, :destroy] do
       get :download_support, on: :member
       resources :support, only: [:index], controller: 'report_results/support'
     end
   end
 
-  resources :secure_files, only: [:show, :create, :index, :destroy]
+  resources :secure_files, only: [:show, :create, :index, :destroy] do
+    collection do
+      get :sent
+      get :all_files
+    end
+  end
   resources :help
   resources :maintenance, only: [:index]
   resources :maintenance_saver, only: [:index], controller: 'maintenance'
 
-  namespace :reports do
-    namespace :hic do
-      resource :export, only: [:show, :create]
-      resource :organization, only: [:show]
-      resource :project, only: [:show]
-      resource :inventory, only: [:show]
-      resource :site, only: [:show]
-      resource :geography, only: [:show]
-      resource :funder, only: [:show]
-      resource :project_coc, only: [:show]
-    end
-  end
-  resources :hud_reports, only: [:index]
+  get 'hud_reports', to: redirect('/warehouse_reports') # bookmarks from the removed HUD Reports index
   namespace :hud_reports do
-    resources :historic_pits, only: [:index]
     resources :historic_lsas, only: [:index], controller: 'lsas'
   end
   resources :report_results_summary, only: [:show]
@@ -169,6 +94,12 @@ Rails.application.routes.draw do
   end
   namespace :warehouse_reports do
     resources :client_lookups, only: [:index]
+    resources :client_retention, only: [:index] do
+      collection do
+        get :expired
+        get :runs
+      end
+    end
     resources :overlapping_coc_utilization, only: [:index] do
       collection do
         get :overlap
@@ -225,7 +156,6 @@ Rails.application.routes.draw do
     end
     resources :anomalies, only: [:index]
     resources :touch_point_exports, only: [:index, :create, :show, :destroy]
-    resources :confidential_touch_point_exports, only: [:index, :create, :show, :destroy]
     resources :hmis_exports, except: [:new] do
       collection do
         get :running
@@ -352,77 +282,6 @@ Rails.application.routes.draw do
         patch :match, on: :collection
       end
     end
-    namespace :health do
-      resources :overview, only: [:index]
-      resources :aco_performance, only: [:index]
-      resources :agency_performance, only: [:index] do
-        collection do
-          post :detail
-        end
-      end
-      resources :member_status_reports, only: [:index, :show, :create, :destroy] do
-        collection do
-          get :running
-        end
-      end
-      resources :claims, only: [:index, :show, :destroy] do
-        collection do
-          get :running
-          post :precalculate
-          post :qualifying_activities
-          get :precalculated
-          get :patients
-        end
-        member do
-          post :generate_claims_file
-          post :revise
-          post :submit
-          post :acknowledge
-          get :details
-          get :accept
-        end
-      end
-      resources :patient_referrals, only: [:index] do
-        collection do
-          patch :update
-        end
-      end
-      resources :premium_payments, only: [:index, :show, :create, :destroy]
-      resources :eligibility
-      resources :eligibility_results, only: [:show]
-      resources :enrollments do
-        get :download, on: :member
-        post :override, on: :member
-      end
-      resources :expiring_items, only: [:index]
-      resources :ssm_exports, only: [:index, :show, :create, :destroy]
-      resources :encounters, only: [:index, :show, :create, :destroy]
-      resources :housing_status, only: [:index] do
-        get :details, on: :collection
-      end
-      resources :housing_status_changes, only: [:index] do
-        collection do
-          get :detail
-        end
-      end
-      resources :cp_roster, only: [:index, :show, :destroy] do
-        collection do
-          post :roster
-          post :enrollment
-        end
-      end
-      resources :ed_ip_visits, only: [:index, :show, :create, :destroy]
-      resources :contact_tracing, only: [:index] do
-        get :download, on: :collection
-        get :single_case, on: :member
-      end
-      resources :completed_contact_tracing, only: [:index] do
-        get :download, on: :collection
-      end
-      resources :enrollments_disenrollments, only: [:index, :create] do
-        get :download, on: :member
-      end
-    end
   end
 
   resources :client_matches, only: [:index, :update] do
@@ -447,20 +306,22 @@ Rails.application.routes.draw do
       get :service_range
       get 'rollup/:partial', to: 'clients#rollup', as: :rollup
       get :assessment
-      get :health_assessment
       # get :image
-      get :chronic_days
       patch :merge
       patch :unmerge
+
       resource :cas_active, only: :update
       resources :enrollment_history, only: :index, controller: 'clients/enrollment_history'
       # get :enrollment_details
     end
     resources :hud_assessments, only: [:show], controller: 'clients/hud_assessments'
+    resources :coordinated_entry_hud_assessments, only: [:show], controller: 'clients/coordinated_entry_hud_assessments'
     # resource :history, only: [:show], controller: 'clients/history' do
     #   get :pdf, on: :collection
     #   post :queue, on: :collection
     # end
+    resource :external_data_sharing, only: [:show, :update], controller: 'clients/external_data_sharing'
+    resource :restriction, only: [:show, :update], controller: 'clients/restrictions'
     resource :cas_readiness, only: [:edit, :update], controller: 'clients/cas_readiness' do
       post :render_content, on: :member
       get :render_content, on: :member if Rails.env.development?
@@ -507,7 +368,6 @@ Rails.application.routes.draw do
     resources :anomalies, except: [:show], controller: 'clients/anomalies'
     resources :audits, only: [:index], controller: 'clients/audits'
     resources :hud_lots, only: [:index], controller: 'clients/hud_lots'
-    healthcare_routes
     namespace :he do
       get :boston_covid_19
       get :covid_19_vaccinations_only
@@ -588,6 +448,14 @@ Rails.application.routes.draw do
     end
     resource :report, on: :member, only: [:show], controller: 'cohorts/reports'
     resource :copy, only: [:new, :create], controller: 'cohorts/copy'
+    resource :acl_access_audit, only: [:show], controller: 'cohorts/acl_access_audits' do
+      get :export, on: :member
+    end
+    # START_ACL remove this route when the legacy permission model is removed
+    resource :legacy_access_audit, only: [:show], controller: 'cohorts/legacy_access_audits' do
+      get :export, on: :member
+    end
+    # END_ACL
 
     # Client search queries
     resources :client_searches, only: [:create], controller: 'cohorts/clients/search_queries', as: :client_search_queries
@@ -602,11 +470,14 @@ Rails.application.routes.draw do
   resources :match_logs, only: [:index]
   resources :service_history_logs, only: [:index]
   resources :data_sources do
-    resources :uploads, except: [:update, :destroy, :edit]
+    resources :uploads, except: [:update, :destroy, :edit] do
+      post :confirm, on: :member
+    end
     resources :non_hmis_uploads, except: [:update, :destroy, :edit]
     resources :custom_imports, controller: 'data_sources/custom_imports' do
       get :download, on: :member
     end
+    resources :unprocessed_enrollments, only: [:index], controller: 'data_sources/unprocessed_enrollments'
     resource :api_config
     resource :hmis_import_config do
       get :download
@@ -618,9 +489,14 @@ Rails.application.routes.draw do
       resources :notification_configurations, only: [:new, :edit, :create, :update, :destroy], controller: 'import_csv_monitors/notification_configurations'
     end
     resource :external_hmis_configuration, only: [:show, :update]
+    resource :user_access, only: [:show], controller: 'user_access'
   end
+  # Bookmarkable link to a data source's CoC-scoped show page. Declared after
+  # `resources :data_sources` so its own routes (edit, uploads, etc.) still win
+  # over this catch-all shape.
+  get 'data_sources/:id/:coc_code', to: 'data_sources#show', as: :data_source_with_coc_code
   resources :ad_hoc_data_sources do
-    resources :uploads, except: [:edit], controller: 'ad_hoc_data_sources/uploads' do
+    resources :uploads, except: [:edit, :index], controller: 'ad_hoc_data_sources/uploads' do
       get :download, on: :member
     end
     get :download, on: :collection
@@ -676,118 +552,97 @@ Rails.application.routes.draw do
     end
   end
 
-  namespace :health do
-    resources :patients, only: [:index] do
-      collection do
-        post :detail
-        # Patient search queries
-        resources :searches, only: [:create], to: 'patients#create_search_queries', as: :create_patient_searches
-        get 'searches/:id', to: 'patients#search', as: :patient_search_query
-      end
-    end
-    resources :team_patients, only: [:index] do
-      collection do
-        post :detail
-        post :render_section
-
-        # Patient search queries
-        resources :searches, only: [:create], to: 'team_patients#create_search_queries', as: :create_team_patient_searches
-        get 'searches/:id', to: 'team_patients#search', as: :team_patient_search_query
-      end
-    end
-    resources :my_patients, only: [:index] do
-      collection do
-        # Patient search queries
-        resources :searches, only: [:create], to: 'my_patients#create_search_queries', as: :create_my_patient_searches
-        get 'searches/:id', to: 'my_patients#search', as: :my_patient_search_query
-      end
-    end
-    namespace :he do
-      get :search
-      resources :cases do
-        resources :locations, except: [:index]
-        resources :contacts do
-          resources :results
-        end
-        resources :site_managers
-        resources :staff
-      end
-    end
-    resources :document_exports, only: [:show, :create] do
-      get :download, on: :member
-    end
-  end
-
   namespace :api do
-    namespace :health do
-      namespace :claims do
-        resources :patients, only: [] do
-          resources :amount_paid, only: [:index], controller: 'patients/amount_paid'
-          resources :claims_volume, only: [:index], controller: 'patients/claims_volume'
-          resources :ed_nyu_severity, only: [:index], controller: 'patients/ed_nyu_severity'
-          resources :roster, only: [:index], controller: 'patients/roster'
-          resources :top_conditions, only: [:index], controller: 'patients/top_conditions'
-          resources :top_ip_conditions, only: [:index], controller: 'patients/top_ip_conditions'
-          resources :top_providers, only: [:index], controller: 'patients/top_providers'
-        end
-        resources :amount_paid, only: [:index]
-        resources :claims_volume, only: [:index]
-        resources :ed_nyu_severity, only: [:index]
-        resources :roster, only: [:index]
-        resources :top_conditions, only: [:index]
-        resources :top_ip_conditions, only: [:index]
-        resources :top_providers, only: [:index]
-      end
-    end
-    resources :projects, only: [:none] do
+    resources :projects, only: [] do
       post :index, on: :collection
     end
-    resources :hud_filters, only: [:none] do
+    resources :hud_filters, only: [] do
       post :index, on: :collection
     end
-    resources :reports, only: [:none] do
+    resources :reports, only: [] do
       put :favorite, on: :member
       put :unfavorite, on: :member
     end
     resources :clients, only: [:show]
+    get :ping, to: 'pings#show'
+
+    # Superset (the M2M caller, not oauth2-proxy) presents a bearer JWT directly; the JWT-side
+    # mirror of the Doorkeeper-gated 'oauth/user-data' route declared under AuthMethod.devise? at
+    # the top of this file.
+    get 'superset/user_roles', to: 'superset#user_roles' if AuthMethod.jwt?
   end
 
   namespace :admin do
-    # resolves route clash w/ devise
-    resources :users, except: [:show, :new, :create] do
-      resource :resend_invitation, only: :create
-      resource :recreate_invitation, only: :create
-      resource :audit, only: :show
-      resource :edit_history, only: :show
-      resource :locations, only: :show
-      patch :reactivate, on: :member
-      collection do
-        # User search queries
-        resources :searches, only: [:create], controller: 'users/search_queries', as: :user_search_queries
-        get '/searches/:id', to: 'users#search', as: 'user_search_query'
-        get :load_select_options
-        post :stop_impersonating
+    # Auth-method seam: one boot-time gate selects each arm's controllers. Only one block is
+    # ever valid so there is no route-name conflict and the helper names are constant
+    if AuthMethod.jwt?
+      # JWT arm: IdP-backed user management. Devise-only routes are omitted; new/create are
+      # supported here because the IdP (e.g. Keycloak) can provision the remote account.
+      resources :users, except: [:show], controller: 'idp/users' do
+        resource :audit, only: :show
+        resource :edit_history, only: :show
+        collection do
+          # Storing a query is auth-agnostic, so both arms share Admin::Users::SearchQueriesController.
+          resources :searches, only: [:create], controller: 'users/search_queries', as: :user_search_queries
+          get '/searches/:id', to: 'idp/users#search', as: 'user_search_query'
+          get :load_select_options
+          post :stop_impersonating
+        end
+        member do
+          post :confirm
+          post :impersonate
+          patch :expire_password
+        end
+        resources :threshold_notification_logs, only: [:index, :show]
       end
-      member do
-        post :unlock
-        post :un_expire
-        post :confirm
-        post :impersonate
-        patch :expire_password
+
+      resources :inactive_users, except: [:show, :new, :create], controller: 'idp/inactive_users' do
+        patch :reactivate, on: :member
+        collection do
+          resources :searches, only: [:create], controller: 'inactive_users/search_queries', as: :inactive_user_search_queries
+          # Search comes from the shared Admin::Concerns::InactiveUserManagementBehavior and ends in
+          # `render :index`, which resolves against whichever controller handled the request. So this route
+          # names the arm's controller: the `controller:` option above does not reach a `to:` string.
+          get '/searches/:id', to: 'idp/inactive_users#search', as: 'inactive_user_search_query'
+        end
       end
-      resources :threshold_notification_logs, only: [:index, :show]
+    else
+      # Devise arm: existing local-account management
+      # resolves route clash w/ devise
+      resources :users, except: [:show, :new, :create] do
+        resource :resend_invitation, only: :create
+        resource :recreate_invitation, only: :create
+        resource :audit, only: :show
+        resource :edit_history, only: :show
+        resource :locations, only: :show
+        collection do
+          # User search queries
+          resources :searches, only: [:create], controller: 'users/search_queries', as: :user_search_queries
+          get '/searches/:id', to: 'users#search', as: 'user_search_query'
+          get :load_select_options
+          post :stop_impersonating
+        end
+        member do
+          post :unlock
+          post :un_expire
+          post :confirm
+          post :impersonate
+          patch :expire_password
+        end
+        resources :threshold_notification_logs, only: [:index, :show]
+      end
+
+      resources :inactive_users, except: [:show, :new, :create] do
+        patch :reactivate, on: :member
+        collection do
+          # Inactive user search queries
+          resources :searches, only: [:create], controller: 'inactive_users/search_queries', as: :inactive_user_search_queries
+          get '/searches/:id', to: 'inactive_users#search', as: 'inactive_user_search_query'
+        end
+      end
     end
 
     resources :inbound_api_configurations, only: [:index, :new, :create, :destroy]
-
-    resources :inactive_users, except: [:show, :new, :create] do
-      patch :reactivate, on: :member
-      collection do
-        # Inactive user search queries
-        resources :searches, only: [:create], controller: 'inactive_users/search_queries', as: :inactive_user_search_queries
-        get '/searches/:id', to: 'inactive_users#search', as: 'inactive_user_search_query'
-      end
-    end
     resources :account_requests, only: [:index, :edit, :update, :destroy] do
       post :confirm
     end
@@ -822,6 +677,7 @@ Rails.application.routes.draw do
         get :export, on: :member
       end
       post :assign, on: :collection
+      post :project_options, on: :collection
       get :audits, on: :collection, to: 'access_controls#audits', as: :audits
       post :render_audits, on: :collection, to: 'access_controls#render_audits', as: :render_audits
     end
@@ -845,56 +701,14 @@ Rails.application.routes.draw do
         patch :update
       end
     end
-    resources :links
+    resources :links, except: [:show]
     resources :content_pages
     resources :app_config_properties
     resources :compliance_requirements, except: [:show] do
       post :activate, on: :member
       post :deactivate, on: :member
     end
-    namespace :health do
-      resources :admin, only: [:index]
-      resources :agencies, except: [:show]
-      resources :coordination_teams, only: [:index, :create, :update, :destroy]
-      resources :team_members, only: [:index, :create, :destroy]
-      resources :patients, only: [:index] do
-        post :update, on: :collection
-      end
-      resources :accountable_care_organizations, only: [:index, :create, :edit, :update, :new]
-      resources :scheduled_documents
-      resources :patient_referrals, only: [:edit, :update] do
-        patch :reject
-        collection do
-          get :review
-          get :assigned
-          get :rejected
-          get :disenrolled
-          get :disenrollment_accepted
-          post :bulk_assign_agency
-          post :bulk_assign_agency_and_care_staff
-          # Patient search queries
-          resources :searches, only: [:create], to: 'patient_referrals#create_search_queries', as: :create_patient_referral_searches
-          get 'searches/:id', to: 'patient_referrals#search', as: :patient_referral_search_query
-        end
-        post :assign_agency
-      end
-      resources :agency_patient_referrals, only: [:create, :update] do
-        get :claim_buttons
-        collection do
-          get :review
-          get :reviewed
-          # Patient search queries
-          resources :searches, only: [:create], to: 'agency_patient_referrals#create_search_queries', as: :create_agency__patient_referral_searches
-          get 'searches/:id', to: 'agency_patient_referrals#search', as: :agency_patient_referral_search_query
-        end
-      end
-      resources :users, only: [:index] do
-        post :update, on: :collection
-        resources :agency_users, only: [:new, :create]
-      end
-      resources :roles, only: [:index, :edit, :update]
-    end
-    resources :translation_keys, only: [:index, :update]
+    resources :translation_keys, only: [:index]
     resources :translation_text, only: [:update]
     resources :configs, only: [:index] do
       patch :update, on: :collection
@@ -924,17 +738,38 @@ Rails.application.routes.draw do
     end
 
     resources :system_maintenance_tasks, only: [:index]
+
+    resources :idp_service_configs, except: [:show] do
+      member do
+        post :test
+      end
+    end
   end
 
-  resource :account, only: [:edit, :update] do
-    get :locations, on: :member
+  # Auth-method seam: the account self-service surface forks by boot-time arm. Under JWT the IdP
+  # owns credentials (password/2FA) and login history, so those routes are omitted entirely and
+  # the arm's own controllers/views render profile + email. account_downloads forks too — only so
+  # its shared tabs partial resolves to the JWT variant that drops the IdP-owned tabs.
+  if AuthMethod.jwt?
+    resource :account, only: [:edit, :update], controller: 'idp/accounts'
+    # No :update — the JWT arm never writes email locally; the IdP owns the change (see
+    # Idp::AccountEmailsController). begin_change hands the browser off to the IdP and writes nothing
+    # about the address.
+    resource :account_email, only: [:edit], controller: 'idp/account_emails' do
+      post :begin_change
+    end
+    resources :account_downloads, only: [:index], controller: 'idp/account_downloads'
+  else
+    resource :account, only: [:edit, :update] do
+      get :locations, on: :member
+    end
+    resource :account_email, only: [:edit, :update]
+    resource :account_password, only: [:edit, :update]
+    resource :account_two_factor, only: [:show, :edit, :update, :destroy] do
+      get :remove_device
+    end
+    resources :account_downloads, only: [:index]
   end
-  resource :account_email, only: [:edit, :update]
-  resource :account_password, only: [:edit, :update]
-  resource :account_two_factor, only: [:show, :edit, :update, :destroy] do
-    get :remove_device
-  end
-  resources :account_downloads, only: [:index]
 
   resources :document_exports, only: [:show, :create] do
     get :download, on: :member
@@ -943,20 +778,20 @@ Rails.application.routes.draw do
   resources :public_files, only: [:show]
   resources :public_agencies, only: [:index]
   get 'logo/:logo', to: 'public_logos#show', as: :logo
+  namespace :theme do
+    get 'css', to: 'css#show', as: :css
+    get 'logo/:logo', to: 'logo#show', as: :logo
+  end
 
   unless Rails.env.production?
-    resource :style_guide, only: :none do
+    resource :style_guide, only: [] do
       get :index
-      get :add_goal
-      get :add_team_member
       get :alerts
       get :buttons
-      get :careplan
       get :client_dashboard
       get :colors
       get :datepicker
       get :form
-      get :health_dashboard
       get :icon_font
       get :menu
       get :modals
@@ -968,11 +803,6 @@ Rails.application.routes.draw do
       get :tags
       get :js_example
       get :system_colors
-    end
-    authenticate :user, lambda(&:can_manage_config?) do
-      # not quite sure why but we get double-prefixed routes in this engine
-      get '/pghero/pghero(/*path)', to: redirect { |params, _| "/pghero/#{params[:path]}" }
-      mount PgHero::Engine, at: '/pghero'
     end
   end
 

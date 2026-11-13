@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -73,7 +73,10 @@ module Types
     end
 
     def hoh_name
-      hoh_member&.client&.brief_name
+      client = hoh_member&.client
+      return unless client
+
+      policy_for(client, policy_type: :hmis_client).can_view_name? ? client.brief_name : client.masked_name
     end
 
     def hoh_mci_id
@@ -163,14 +166,6 @@ module Types
     def referral
       load_ar_association(object, :referral)
     end
-
-    # Decided not to add this yet, but leaving comment in case there is a request in the future to link them up.
-    # def source_enrollment
-    #   return unless current_permission?(permission: :can_view_project, entity: enrollment_project)
-    #   return unless current_permission?(permission: :can_view_enrollment_details, entity: enrollment_project)
-
-    #   protected_source_enrollment
-    # end
 
     protected
 

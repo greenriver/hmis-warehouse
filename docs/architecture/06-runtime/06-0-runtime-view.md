@@ -28,5 +28,5 @@ See [6.1 Login Flow](06-1-login-flow.md) for the established format.
 
 ## Scenarios
 
-- **[6.1 Login Flow](06-1-login-flow.md)** — Authentication from browser through OAuth2-Proxy, Dex, and Keycloak back to the Warehouse Application.
+- **[6.1 Authentication: Login & Logout](06-1-login-flow.md)** — Authentication from browser through OAuth2-Proxy, Dex, and a configured Identity Provider back to the Warehouse Application; logout propagation across the three session layers.
 - **[6.2 HUD CSV Import](06-2-data-sync.md)** — Ingestion of HUD CSV data from S3 into the Warehouse, including file validation and record normalization.

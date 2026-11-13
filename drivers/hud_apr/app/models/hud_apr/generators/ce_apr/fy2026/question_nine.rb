@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -71,7 +71,8 @@ module HudApr::Generators::CeApr::Fy2026
     private def q9b_table_rows
       {
         'Placed on Prioritization List (Prioritized)' => a_t[:ce_assessment_prioritization_status].eq(1),
-        'Not Placed on Prioritization List' => a_t[:ce_assessment_prioritization_status].eq(2),
+        # HUD spec: assessments missing prioritization status are reported on this row.
+        'Not Placed on Prioritization List' => a_t[:ce_assessment_prioritization_status].eq(2).or(a_t[:ce_assessment_prioritization_status].eq(nil)),
         'Percent of Assessed Prioritized Of the total HH Assessed report the percent of those placed on the prioritization list' => Arel.sql('0=1'), # This will be calculated as a separate step
       }.freeze
     end
@@ -116,6 +117,10 @@ module HudApr::Generators::CeApr::Fy2026
       end
     end
 
+    private def q9d_residential_referral_events
+      (10..15).to_a + [17, 18]
+    end
+
     private def q9d_table_rows
       {
         'Post-placement/follow-up case management' => a_t[:ce_event_event].eq(5),
@@ -134,13 +139,13 @@ module HudApr::Generators::CeApr::Fy2026
         'Referral to a Housing Stability Voucher' => a_t[:ce_event_event].eq(18),
         'Total' => a_t[:ce_event_event].in((5..18).to_a),
         'Of the total HH prioritized (Q9b row 1) what percentage received a referral' => Arel.sql('0=1'), # This will be calculated as a separate step
-        'Result: successful referral: client accepted' => a_t[:ce_event_referral_result].eq(1).and(a_t[:ce_event_event].in((5..18).to_a)),
-        'Result: Unsuccessful referral: client rejected' => a_t[:ce_event_referral_result].eq(2).and(a_t[:ce_event_event].in((5..18).to_a)),
-        'Result: Unsuccessful referral: provider rejected' => a_t[:ce_event_referral_result].eq(3).and(a_t[:ce_event_event].in((5..18).to_a)),
+        'Result: successful referral: client accepted' => a_t[:ce_event_referral_result].eq(1).and(a_t[:ce_event_event].in(q9d_residential_referral_events)),
+        'Result: Unsuccessful referral: client rejected' => a_t[:ce_event_referral_result].eq(2).and(a_t[:ce_event_event].in(q9d_residential_referral_events)),
+        'Result: Unsuccessful referral: provider rejected' => a_t[:ce_event_referral_result].eq(3).and(a_t[:ce_event_event].in(q9d_residential_referral_events)),
         # Based on 2022 Data Dictionary p. 43 instead of the CE APR spec, pending AAQ
         'No result recorded' => a_t[:ce_event_event].eq(2).and(a_t[:ce_event_problem_sol_div_rr_result].eq(nil)).
           or(a_t[:ce_event_event].eq(5).and(a_t[:ce_event_referral_case_manage_after].eq(nil))).
-          or(a_t[:ce_event_event].in((10..15).to_a + (17..18).to_a).and(a_t[:ce_event_referral_result].eq(nil))),
+          or(a_t[:ce_event_event].in(q9d_residential_referral_events).and(a_t[:ce_event_referral_result].eq(nil))),
         'Result: Enrolled in Aftercare project' => a_t[:ce_event_referral_case_manage_after].eq(1),
         'Percent of successful referrals to residential projects' => Arel.sql('0=1'), # This will be calculated as a separate step
       }.freeze

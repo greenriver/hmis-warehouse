@@ -1,6 +1,0 @@
-# frozen_string_literal: true
-
-FactoryBot.define do
-  factory :epic_patient, class: 'Health::EpicPatient' do
-  end
-end

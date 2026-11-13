@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -55,6 +55,14 @@ module HudSpmReport::Fy2026
       HudSpmReport::Fy2026::SpmEnrollment.search_columns
     end
 
+    def self.pii_search_columns
+      HudSpmReport::Fy2026::SpmEnrollment.pii_search_columns
+    end
+
+    def self.restricted_client_id_columns
+      HudSpmReport::Fy2026::SpmEnrollment.restricted_client_id_columns
+    end
+
     def self.pluck_project_ids
       project_table = GrdaWarehouse::Hud::Project.arel_table
       joins(enrollments: { enrollment: :project }).distinct.pluck(project_table[:id])
@@ -68,10 +76,27 @@ module HudSpmReport::Fy2026
       enrollment.data_source_id
     end
 
+    def project_hmis_ids
+      projects.map(&:ProjectID).join('; ')
+    end
+
+    def projects_by_column
+      @projects_by_column ||= { 'project_hmis_ids' => projects }
+    end
+
+    def projects
+      @projects ||= enrollments.
+        sort_by { |spm_enrollment| [spm_enrollment.entry_date, spm_enrollment.id] }.
+        map { |spm_enrollment| spm_enrollment.enrollment&.project }.
+        compact.
+        uniq
+    end
+
     def self.detail_headers
-      client_columns = ['client_id', 'enrollment.first_name', 'enrollment.last_name', 'enrollment.personal_id']
+      client_columns = ['client_id', 'enrollment.first_name', 'enrollment.last_name', 'enrollment.personal_id', 'data_source_id']
       hidden_columns = ['id', 'report_instance_id'] + client_columns
-      columns = client_columns + (column_names - hidden_columns)
+      project_columns = ['project_hmis_ids']
+      columns = client_columns + (column_names + project_columns - hidden_columns)
       columns.map do |col|
         [col, header_label(col)]
       end.to_h

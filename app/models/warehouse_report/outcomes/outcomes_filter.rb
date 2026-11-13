@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -29,6 +29,17 @@ class WarehouseReport::Outcomes::OutcomesFilter < Filters::FilterBase
     scope = scope.with_project_type(project_type_numbers) if project_type_numbers.present?
 
     scope
+  end
+
+  def any_project_selection?
+    selections = [
+      project_ids,
+      project_group_ids,
+      organization_ids,
+      data_source_ids,
+      coc_codes,
+    ]
+    selections.any?(&:present?)
   end
 
   def project_id

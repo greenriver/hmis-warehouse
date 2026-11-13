@@ -108,6 +108,15 @@ YYA with an enrollment that started before reporting period
 
 **or** enrollment was in Emergency Shelter (ES), Safe Haven (SH), Street Outreach (SO), or Transitional Housing (TH) project.
 
+#### 5. Direct Financial Assistance (Flex Funds)
+This subsection only appears when the HMIS has a "Flex Funds" Custom Service Type and a `flex_funds_types` Custom Data Element Definition configured.
+
+##### a. Total number of YYA who received direct financial assistance/flex funds
+YYA who were referred to emergency assistance/flex fund/furniture assistance (CE Event 16) during the reporting period, **or** who received a Flex Funds custom service during the reporting period.
+
+##### b-n. Number of YYA who received assistance by type
+Of 5a, broken out by the type recorded on the Flex Funds custom service: Move-in (b), Rent (c), Rent arrears (d), Utilities (e), Transportation (f), Education (g), Legal (h), Child care (i), Work (j), Medical (k), Cell phone (l), Food/Groceries (m), Other (n).
+
 #### Totals
 ##### TOTAL YYA SERVED: Prevention
 Unduplicated count of A1b, A2b, A3a, and A3b.

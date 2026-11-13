@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -126,7 +126,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       let(:other_hud_user) { Hmis::Hud::User.from_user(other_hmis_user) }
 
       before(:each) do
-        delete destroy_hmis_user_session_path
+        hmis_logout
         hmis_login(other_user)
       end
 

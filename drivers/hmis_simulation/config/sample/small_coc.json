@@ -1,0 +1,390 @@
+{
+  "name": "Demo CoC (Small)",
+  "data_source_id": 0,
+  "seed": 20250101,
+  "coc_codes": {
+    "primary": "XX-500",
+    "secondary": "XX-501"
+  },
+
+  "organizations": [
+    {
+      "name": "Community Action Agency_",
+      "projects": [
+        {
+          "name": "Harbor ES NBN_",
+          "project_type": 1,
+          "capacity": 80,
+          "funders": [{ "funder": 2, "grant_id": "FAKE-ESG-001_" }]
+        },
+        {
+          "name": "Crossroads ES Entry Exit_",
+          "project_type": 0,
+          "capacity": 40
+        },
+        {
+          "name": "Transitional Steps TH_",
+          "project_type": 2,
+          "capacity": 30
+        }
+      ]
+    },
+    {
+      "name": "Pathways Housing Alliance_",
+      "projects": [
+        {
+          "name": "Stable Futures PSH_",
+          "project_type": 3,
+          "capacity": 60,
+          "funders": [{ "funder": 3, "grant_id": "FAKE-CoC-PSH-001_" }]
+        },
+        {
+          "name": "Rapid Rehouse Program_",
+          "project_type": 13,
+          "capacity": 30
+        }
+      ]
+    },
+    {
+      "name": "Street Outreach Coalition_",
+      "projects": [
+        {
+          "name": "Street Outreach Team_",
+          "project_type": 4
+        },
+        {
+          "name": "CE Coordinating Agency_",
+          "project_type": 14,
+          "ce_participation": {
+            "access_point": 1,
+            "prevention_assessment": 0,
+            "crisis_assessment": 1,
+            "housing_assessment": 1,
+            "direct_services": 1,
+            "receives_referrals": 1
+          }
+        },
+        {
+          "name": "Case Management Services_",
+          "project_type": 6
+        }
+      ]
+    }
+  ],
+
+  "data_quality": {
+    "missing_dob_rate": 0.02,
+    "missing_ssn_rate": 0.05,
+    "missing_name_rate": 0.01,
+    "approximate_dob_rate": 0.03,
+    "record_miss_rate": 0.0025
+  },
+
+  "tracks": [
+    {
+      "name": "general_population",
+      "type": "primary",
+      "new_clients_per_month": {
+        "distribution": "poisson",
+        "lambda": 15
+      },
+      "household_cohesion_probability": 0.85,
+
+      "household_templates": {
+        "adult_only": {
+          "hoh": {
+            "age": { "distribution": "normal", "mean": 42, "stddev": 12, "min": 18 },
+            "gender": { "woman": 0.35, "man": 0.55, "non_binary": 0.05, "transgender": 0.05 },
+            "veteran_probability": 0.12,
+            "race": {
+              "white": 0.4, "black_af_american": 0.35,
+              "hispanic_latinaeo": 0.15, "other": 0.1
+            }
+          }
+        },
+        "adult_and_child": {
+          "hoh": {
+            "age": { "distribution": "normal", "mean": 32, "stddev": 8, "min": 18 },
+            "gender": { "woman": 0.75, "man": 0.20, "non_binary": 0.05 }
+          },
+          "members": [
+            {
+              "role": "child",
+              "count": { "distribution": "poisson", "lambda": 2, "min": 1, "max": 5 },
+              "age": { "distribution": "uniform", "min": 0, "max": 17 },
+              "relationship": 2
+            }
+          ]
+        },
+        "child_only": {
+          "hoh": { "age": { "distribution": "uniform", "min": 12, "max": 17 } }
+        }
+      },
+
+      "populations": [
+        {
+          "name": "street",
+          "label": "On Street / Unsheltered",
+          "project_ref": "Street Outreach Team_",
+          "household_templates": { "adult_only": 0.7, "adult_and_child": 0.2, "child_only": 0.1 },
+          "entry_point": 5,
+          "exit_point": 0.05,
+          "prior_living_situation": {
+            "distribution": "weighted",
+            "weights": { "116": 70, "101": 10, "118": 5, "302": 5, "99": 10 }
+          }
+        },
+        {
+          "name": "es_nbn",
+          "label": "Emergency Shelter (Night-by-Night)",
+          "project_ref": "Harbor ES NBN_",
+          "household_templates": { "adult_only": 0.8, "adult_and_child": 0.15, "child_only": 0.05 },
+          "entry_point": 4,
+          "exit_point": 0.08,
+          "prior_living_situation": {
+            "distribution": "weighted",
+            "weights": { "116": 50, "101": 20, "335": 10, "336": 10, "302": 5, "99": 5 }
+          }
+        },
+        {
+          "name": "es_entry_exit",
+          "label": "Emergency Shelter (Entry/Exit)",
+          "project_ref": "Crossroads ES Entry Exit_",
+          "household_templates": { "adult_only": 0.5, "adult_and_child": 0.45, "child_only": 0.05 },
+          "entry_point": 3,
+          "exit_point": 0.08,
+          "prior_living_situation": {
+            "distribution": "weighted",
+            "weights": { "116": 45, "101": 20, "335": 10, "336": 10, "302": 5, "99": 10 }
+          }
+        },
+        {
+          "name": "th",
+          "label": "Transitional Housing",
+          "project_ref": "Transitional Steps TH_",
+          "household_templates": { "adult_only": 0.6, "adult_and_child": 0.4 },
+          "entry_point": 0,
+          "exit_point": 0.25,
+          "prior_living_situation": {
+            "distribution": "weighted",
+            "weights": { "101": 30, "116": 30, "302": 10, "336": 10, "99": 20 }
+          }
+        },
+        {
+          "name": "psh",
+          "label": "Permanent Supportive Housing",
+          "project_ref": "Stable Futures PSH_",
+          "household_templates": { "adult_only": 0.9, "adult_and_child": 0.1 },
+          "entry_point": 0,
+          "exit_point": 0.5,
+          "prior_living_situation": {
+            "distribution": "weighted",
+            "weights": { "101": 30, "302": 30, "116": 20, "410": 5, "99": 15 }
+          }
+        },
+        {
+          "name": "rrh",
+          "label": "Rapid Rehousing",
+          "project_ref": "Rapid Rehouse Program_",
+          "household_templates": { "adult_only": 0.4, "adult_and_child": 0.6 },
+          "entry_point": 0,
+          "exit_point": 0.65,
+          "prior_living_situation": {
+            "distribution": "weighted",
+            "weights": { "101": 35, "116": 25, "302": 25, "99": 15 }
+          }
+        }
+      ],
+
+      "transitions": [
+        {
+          "from": "street", "to": "es_nbn",
+          "weight": 6,
+          "timing": { "distribution": "uniform", "min": 1, "max": 14 },
+          "gap_before_entry": { "distribution": "uniform", "min": 0, "max": 3 },
+          "exit_destinations": { "101": 5, "116": 3, "17": 2 }
+        },
+        {
+          "from": "street", "to": "es_entry_exit",
+          "weight": 4,
+          "timing": { "distribution": "uniform", "min": 1, "max": 21 },
+          "gap_before_entry": { "distribution": "uniform", "min": 0, "max": 3 },
+          "exit_destinations": { "101": 6, "116": 3, "17": 1 }
+        },
+        {
+          "from": "es_nbn", "to": "street",
+          "weight": 5,
+          "timing": { "distribution": "normal", "mean": 21, "stddev": 14, "min": 1, "max": 180 },
+          "gap_before_entry": { "distribution": "uniform", "min": 0, "max": 7 },
+          "exit_destinations": { "116": 6, "101": 3, "17": 1 }
+        },
+        {
+          "from": "es_nbn", "to": "th",
+          "weight": 2,
+          "timing": { "distribution": "normal", "mean": 45, "stddev": 20, "min": 7 },
+          "gap_before_entry": { "distribution": "uniform", "min": 1, "max": 14 },
+          "exit_destinations": { "2": 1 }
+        },
+        {
+          "from": "es_nbn", "to": "psh",
+          "weight": 2,
+          "timing": { "distribution": "normal", "mean": 90, "stddev": 30, "min": 14 },
+          "gap_before_entry": { "distribution": "uniform", "min": 1, "max": 30 },
+          "exit_destinations": { "435": 1 }
+        },
+        {
+          "from": "es_nbn", "to": "rrh",
+          "weight": 1,
+          "timing": { "distribution": "normal", "mean": 60, "stddev": 20, "min": 7 },
+          "gap_before_entry": { "distribution": "uniform", "min": 1, "max": 21 },
+          "exit_destinations": { "435": 1 }
+        },
+        {
+          "from": "es_entry_exit", "to": "street",
+          "weight": 4,
+          "timing": { "distribution": "normal", "mean": 30, "stddev": 20, "min": 3 },
+          "gap_before_entry": { "distribution": "uniform", "min": 0, "max": 7 },
+          "exit_destinations": { "116": 5, "101": 4, "17": 1 }
+        },
+        {
+          "from": "es_entry_exit", "to": "psh",
+          "weight": 2,
+          "timing": { "distribution": "normal", "mean": 90, "stddev": 30, "min": 14 },
+          "gap_before_entry": { "distribution": "uniform", "min": 1, "max": 30 },
+          "exit_destinations": { "435": 1 }
+        },
+        {
+          "from": "es_entry_exit", "to": "rrh",
+          "weight": 2,
+          "timing": { "distribution": "normal", "mean": 60, "stddev": 20, "min": 7 },
+          "gap_before_entry": { "distribution": "uniform", "min": 1, "max": 21 },
+          "exit_destinations": { "435": 1 }
+        },
+        {
+          "from": "es_entry_exit", "to": "th",
+          "weight": 2,
+          "timing": { "distribution": "normal", "mean": 45, "stddev": 20, "min": 7 },
+          "gap_before_entry": { "distribution": "uniform", "min": 1, "max": 14 },
+          "exit_destinations": { "2": 1 }
+        },
+        {
+          "from": "th", "to": "psh",
+          "weight": 3,
+          "timing": { "distribution": "normal", "mean": 365, "stddev": 90, "min": 60 },
+          "gap_before_entry": { "distribution": "uniform", "min": 1, "max": 21 },
+          "exit_destinations": { "435": 1 }
+        },
+        {
+          "from": "th", "to": "rrh",
+          "weight": 3,
+          "timing": { "distribution": "normal", "mean": 270, "stddev": 60, "min": 60 },
+          "gap_before_entry": { "distribution": "uniform", "min": 1, "max": 14 },
+          "exit_destinations": { "435": 1 }
+        },
+        {
+          "from": "th", "to": "street",
+          "weight": 4,
+          "timing": { "distribution": "normal", "mean": 90, "stddev": 60, "min": 14 },
+          "gap_before_entry": { "distribution": "uniform", "min": 0, "max": 14 },
+          "exit_destinations": { "116": 5, "101": 3, "17": 2 }
+        },
+        {
+          "from": "psh", "to": "street",
+          "weight": 1,
+          "timing": { "distribution": "normal", "mean": 1095, "stddev": 365, "min": 180 },
+          "gap_before_entry": { "distribution": "uniform", "min": 0, "max": 30 },
+          "exit_destinations": { "426": 7, "116": 2, "17": 1 }
+        },
+        {
+          "from": "rrh", "to": "street",
+          "weight": 1,
+          "timing": { "distribution": "normal", "mean": 365, "stddev": 120, "min": 90 },
+          "gap_before_entry": { "distribution": "uniform", "min": 0, "max": 14 },
+          "exit_destinations": { "426": 8, "116": 1, "17": 1 }
+        }
+      ],
+
+      "enrollment_config": {
+        "disabilities": {
+          "disabling_condition_probability": 0.75,
+          "types": {
+            "mental_health": 0.6,
+            "substance_use": 0.5,
+            "chronic_health": 0.35,
+            "physical": 0.25,
+            "developmental": 0.08,
+            "hiv_aids": 0.05
+          }
+        },
+        "income_at_entry": {
+          "no_income_probability": 0.4,
+          "sources": { "ssi": 0.2, "ssdi": 0.15, "earned": 0.1, "ga": 0.2 }
+        },
+        "health_and_dv": {
+          "dv_survivor_probability": 0.2,
+          "currently_fleeing_probability": 0.4,
+          "general_health": { "poor": 0.3, "fair": 0.4, "good": 0.25, "excellent": 0.05 }
+        },
+        "annual_collection": {
+          "miss_rate": 0.005,
+          "timing_jitter": {
+            "distribution": "normal", "mean": 0, "stddev": 30, "min": -90, "max": 90
+          }
+        },
+        "ph_move_in": {
+          "probability": 0.75,
+          "delay_days": { "distribution": "normal", "mean": 45, "stddev": 20, "min": 1, "max": 180 }
+        }
+      }
+    },
+
+    {
+      "name": "street_outreach",
+      "type": "concurrent",
+      "applies_to_tracks": [],
+      "projects": ["Street Outreach Team_"],
+      "count_distribution": { "0": 60, "1": 28, "2": 10, "3": 2 },
+      "data_error_rate": 0.01,
+      "duration": { "distribution": "uniform", "min": 14, "max": 120 },
+      "reentry": {
+        "gap": { "distribution": "uniform", "min": 0, "max": 30 },
+        "probability": 0.7
+      }
+    },
+
+    {
+      "name": "case_management",
+      "type": "concurrent",
+      "applies_to_tracks": [],
+      "projects": ["Case Management Services_"],
+      "count_distribution": { "0": 65, "1": 25, "2": 10 },
+      "data_error_rate": 0.005,
+      "duration": { "distribution": "normal", "mean": 90, "stddev": 30, "min": 14 },
+      "reentry": {
+        "gap": { "distribution": "uniform", "min": 14, "max": 60 },
+        "probability": 0.5
+      }
+    },
+
+    {
+      "name": "coordinated_entry",
+      "type": "lifecycle",
+      "applies_to_tracks": [],
+      "project_ref": "CE Coordinating Agency_",
+      "trigger_populations": ["street", "es_nbn", "es_entry_exit"],
+      "trigger_probability": 0.4,
+      "days_before_trigger": { "distribution": "uniform", "min": 0, "max": 14 },
+      "close_conditions": {
+        "housing_move_in": 0.50,
+        "disengagement": {
+          "probability": 0.35,
+          "after_days": { "distribution": "normal", "mean": 365, "stddev": 120, "min": 90 }
+        },
+        "pre_entry_exit": {
+          "probability": 0.15,
+          "after_days": { "distribution": "uniform", "min": 7, "max": 60 }
+        }
+      }
+    }
+  ]
+}

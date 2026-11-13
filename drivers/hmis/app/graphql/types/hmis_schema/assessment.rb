@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -42,9 +42,13 @@ module Types
     field :client, HmisSchema::Client, null: false
     field :in_progress, Boolean, null: false
     access_field do
-      can :edit_enrollments
-      can :delete_enrollments
-      can :delete_assessments
+      define_method(:assessment_policy) { @assessment_policy ||= policy_for(object, policy_type: :hmis_custom_assessment) }
+
+      bool_field(:can_delete_assessment, description: 'Whether the user can delete this assessment') { assessment_policy.can_delete? }
+
+      can :edit_enrollments, deprecation_reason: 'Use enrollment.access.canEditEnrollments for enrollment edit checks'
+      can :delete_enrollments, deprecation_reason: 'Use assessment.access.canDeleteAssessment'
+      can :delete_assessments, deprecation_reason: 'Use assessment.access.canDeleteAssessment'
     end
     # Related records that were created by this Assessment, if applicable
     field :ce_assessment, Types::HmisSchema::CeAssessment, null: true
@@ -85,12 +89,16 @@ module Types
     end
 
     # EXPENSIVE! Do not use in batch
+    #
+    # Assessments are unique in upgrading to the latest published form when edited. Record forms (case notes,
+    # services, CLS, etc) always edit with the definition on their form processor.
+    # @see docs/features/hmis/hmis-form-resolution.md#choosing-a-definition-for-an-existing-record
     def upgraded_definition_for_editing
       return if object.in_progress? # WIP assessments should use the original form for editing
       return unless form_processor.definition_id # tiny optimization: avoid calling 'definition' if it will invoke find_definition_for_role twice
 
       previous_definition = definition
-      # If original form is not retired, then we should stil use it for editing.
+      # If original form is not retired, then we should still use it for editing.
       return unless previous_definition.retired?
 
       # Find the published version of the previous definition. If this resolves nil, then the original form will be used.
@@ -101,6 +109,10 @@ module Types
 
     def in_progress
       object.in_progress?
+    end
+
+    def client
+      load_ar_client_association(object)
     end
 
     def ce_assessment

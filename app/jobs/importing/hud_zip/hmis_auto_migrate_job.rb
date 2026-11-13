@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -7,7 +7,7 @@
 # frozen_string_literal: true
 
 module Importing::HudZip
-  # @see docs/features/hmis-csv-importer.md
+  # @see docs/features/warehouse/hmis-csv-importer.md
   class HmisAutoMigrateJob < BaseJob
     queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
     WAIT_MINUTES = 15
@@ -16,7 +16,10 @@ module Importing::HudZip
       false
     end
 
-    def perform(upload_id:, data_source_id:, deidentified: false, allowed_projects: false, stop_version: nil, dry_run: false)
+    def perform(upload_id:, data_source_id:, deidentified: false, allowed_projects: false, stop_version: nil, dry_run: false, source_id_override: false)
+      data_source = GrdaWarehouse::DataSource.find(data_source_id)
+      raise "Data source #{data_source_id} is not importable" unless data_source.importable?
+
       lock_obtained = nil
       GrdaWarehouse::DataSource.with_advisory_lock(advisory_lock_name(data_source_id), timeout_seconds: 60) do
         importer = Importers::HmisAutoMigrate::UploadedZip.new(
@@ -26,6 +29,7 @@ module Importing::HudZip
           allowed_projects: allowed_projects,
           stop_version: stop_version,
           dry_run: dry_run,
+          source_id_override: source_id_override,
         )
         importer.import!
         lock_obtained = true

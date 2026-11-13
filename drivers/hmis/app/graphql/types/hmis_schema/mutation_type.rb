@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -21,6 +21,7 @@ module Types
     field :delete_funder, mutation: Mutations::DeleteFunder
     field :delete_inventory, mutation: Mutations::DeleteInventory
     field :delete_client, mutation: Mutations::DeleteClient
+    field :set_client_restricted, mutation: Mutations::SetClientRestricted
     field :delete_ce_assessment, mutation: Mutations::DeleteCeAssessment
     field :delete_ce_event, mutation: Mutations::DeleteCeEvent
     field :delete_current_living_situation, mutation: Mutations::DeleteCurrentLivingSituation
@@ -51,13 +52,7 @@ module Types
     field :add_recent_item, mutation: Mutations::AddRecentItem
     field :clear_recent_items, mutation: Mutations::ClearRecentItems
     field :submit_form, mutation: Mutations::SubmitForm
-
-    field :clear_mci, mutation: Mutations::AcHmis::ClearMci
-    field :update_referral_posting, mutation: Mutations::AcHmis::UpdateReferralPosting
     field :delete_custom_case_note, mutation: Mutations::DeleteCustomCaseNote
-    field :fetch_aha_score, mutation: Mutations::AcHmis::FetchAhaScore
-    field :calculate_alt_aha_score, mutation: Mutations::AcHmis::CalculateAltAhaScore
-    field :calculate_client_ce_eligibility, mutation: Mutations::Ce::CalculateClientCeEligibility
 
     field :merge_clients, mutation: Mutations::MergeClients
     field :bulk_merge_clients, mutation: Mutations::BulkMergeClients
@@ -95,6 +90,7 @@ module Types
     field :unassign_staff, mutation: Mutations::UnassignStaff
 
     # CE
+    field :calculate_client_ce_eligibility, mutation: Mutations::Ce::CalculateClientCeEligibility
     field :create_ce_referral, mutation: Mutations::Ce::CreateCeReferral
     field :create_direct_ce_referral, mutation: Mutations::Ce::CreateDirectCeReferral
     field :start_ce_referral_step, mutation: Mutations::Ce::StartCeReferralStep
@@ -102,9 +98,20 @@ module Types
     field :assign_referral_participants, mutation: Mutations::Ce::AssignReferralParticipants
     field :create_ce_referral_note, mutation: Mutations::Ce::CreateCeReferralNote
     field :assign_ce_default_contacts, mutation: Mutations::Ce::AssignCeDefaultContacts
+    field :create_ce_match_rule, mutation: Mutations::Ce::CreateCeMatchRule
+    field :update_ce_match_rule, mutation: Mutations::Ce::UpdateCeMatchRule
+    field :delete_ce_match_rule, mutation: Mutations::Ce::DeleteCeMatchRule
 
     # CE Unit management
     field :mark_units_available, mutation: Mutations::Ce::MarkUnitsAvailable
     field :mark_units_unavailable, mutation: Mutations::Ce::MarkUnitsUnavailable
+
+    # AC HMIS — community-specific mutations
+    field :clear_mci, mutation: Mutations::AcHmis::ClearMci
+    field :update_referral_posting, mutation: Mutations::AcHmis::UpdateReferralPosting, deprecation_reason: 'Deprecated in favor of CE Referrals'
+    field :fetch_aha_score, mutation: Mutations::AcHmis::FetchAhaScore
+    field :fetch_vision_link_flags, mutation: Mutations::AcHmis::FetchVisionLinkFlags
+    field :calculate_alt_aha_score, mutation: Mutations::AcHmis::CalculateAltAhaScore
+    field :bulk_void_ce_clients, mutation: Mutations::AcHmis::BulkVoidCeClients
   end
 end

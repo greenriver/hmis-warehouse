@@ -1,3 +1,9 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # frozen_string_literal: true
 
 require 'rails_helper'
@@ -9,6 +15,7 @@ RSpec.describe GrdaWarehouse::AuthPolicies::DenyPiiPolicy, type: :model do
     expect(policy.can_view_photo?).to be false
     expect(policy.can_view_full_dob?).to be false
     expect(policy.can_view_full_ssn?).to be false
+    expect(policy.can_view_partial_ssn?).to be false
     expect(policy.can_view_hiv_status?).to be false
   end
 end

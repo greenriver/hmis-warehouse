@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -11,8 +11,6 @@
 # == AuthenticatesWithTwoFactor
 #
 # Controller concern to handle two-factor authentication
-#
-# Upon inclusion, skips `require_no_authentication` on `:create`.
 module AuthenticatesWithTwoFactor
   extend ActiveSupport::Concern
 
@@ -44,8 +42,9 @@ module AuthenticatesWithTwoFactor
     user = resource
     return locked_user_redirect(user) unless user.active?
 
-    # bypass 2fa if user has device
-    if using_memorized_device?(user) && bypass_2fa_enabled?
+    # bypass 2fa if user has device; the password is still required. A wrong password
+    # falls through to the Devise strategies, which handle the failure and lockout.
+    if using_memorized_device?(user) && bypass_2fa_enabled? && user.valid_password?(user_params[:password])
       two_factor_successful(user)
     elsif user_params[:otp_attempt].present? && session[:otp_user_id].present?
       authenticate_with_two_factor_via_otp(user)
@@ -87,12 +86,22 @@ module AuthenticatesWithTwoFactor
     user.two_factors_memorized_devices.active.exists?(uuid: cookie_uuid)
   end
 
+  # Included controllers can override this to run logic that must happen on every successful
+  # sign-in, since it completes inside a before_action and Users::SessionsController#create
+  # never runs for this flow.
+  def after_two_factor_sign_in(user)
+  end
+
   private def two_factor_successful(user)
     # Remove any lingering user data from login
     session.delete(:otp_user_id)
 
     user.save!
+    # Calling `sign_in` directly causes devise to skip `require_no_authentication`, which
+    # effectively skips anything in `Users::SessionsController#create`.  We have some logic
+    # that needs to run even after a successful sign-in, so we queue it up with `after_two_factor_sign_in`
     sign_in(two_factor_resource_name, user, message: :two_factor_authenticated, event: :authentication)
+    after_two_factor_sign_in(user)
 
     # add 2fa device if true
     return unless user_params[:remember_device] == 'true' && bypass_2fa_enabled?

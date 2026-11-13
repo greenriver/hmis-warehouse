@@ -1,3 +1,9 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # frozen_string_literal: true
 
 require 'rails_helper'
@@ -25,6 +31,33 @@ RSpec.describe GrdaWarehouse::Cohort, type: :model do
     viewer.legacy_roles = [cohort_viewer]
     user.add_viewable(cohort)
     admin.add_viewable(cohort)
+  end
+
+  describe '#user_can_edit_cohort_clients' do
+    before do
+      editor.add_viewable(cohort)
+      viewer.add_viewable(cohort)
+    end
+
+    it 'allows a user whose role can edit to edit a cohort they can see' do
+      expect(cohort.user_can_edit_cohort_clients(editor)).to be true
+    end
+
+    it 'denies a user whose role can edit on a cohort they were not given' do
+      expect(cohort_2.user_can_edit_cohort_clients(editor)).to be false
+    end
+
+    it 'denies a user whose role can only view' do
+      expect(cohort.user_can_edit_cohort_clients(viewer)).to be false
+    end
+
+    it 'allows a user whose role has only a feature permission such as can_add_cohort_clients' do
+      feature_user = create :user
+      feature_user.legacy_roles = [create(:cohort_client_viewer, can_add_cohort_clients: true)]
+      feature_user.add_viewable(cohort)
+
+      expect(cohort.user_can_edit_cohort_clients(feature_user)).to be true
+    end
   end
 
   describe 'when a user with no roles accesses a cohort column' do

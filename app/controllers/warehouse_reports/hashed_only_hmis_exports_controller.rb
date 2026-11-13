@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -27,6 +27,10 @@ module WarehouseReports
 
     def export_scope
       super().where(hash_status: 4)
+    end
+
+    private def queued_report_visible?(report)
+      super && report.hash_status == 4
     end
 
     def report_params

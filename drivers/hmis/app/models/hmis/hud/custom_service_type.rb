@@ -1,10 +1,10 @@
-# frozen_string_literal: true
-
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 # "CustomServiceType" is NOT a HUD defined record type. Although it uses CamelCase conventions, this model is particular to Open Path. CamelCase is used for compatibility with "Appendix C - Custom file transfer template"in the HUD HMIS CSV spec. This specifies optional additional CSV files with the naming convention of Custom*.csv
 
@@ -23,13 +23,22 @@ class Hmis::Hud::CustomServiceType < Hmis::Hud::Base
   end
 
   has_many :custom_services
-  has_many :form_instances, class_name: 'Hmis::Form::Instance'
+  # Deleting a form rule in the frontend marks it inactive rather than destroying it, so only
+  # active rules indicate that a form is currently enabled for this service type.
+  has_many :form_instances, -> { active }, class_name: 'Hmis::Form::Instance'
   has_many :definitions, through: :form_instances, source: :definitions
 
   validates :hud_record_type, uniqueness: { scope: [:hud_type_provided, :data_source_id] }, allow_nil: true
   validates :name, uniqueness: { scope: [:custom_service_category, :data_source_id] }
   validates_presence_of :name, allow_blank: false
   validates_with Hmis::Hud::Validators::CustomServiceTypeValidator
+
+  scope :matching_search_term, ->(search_term) do
+    return none unless search_term.present?
+
+    query = "%#{search_term.strip.split(/\W+/).join('%')}%"
+    where(arel_table[:name].matches(query))
+  end
 
   scope :custom, -> { where(hud_record_type: nil) }
   scope :hud, -> { where.not(hud_record_type: nil) }

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -22,10 +22,8 @@ class Menu::Menu
     [].tap do |menu|
       menu << reports_menu
       menu << clients_menu
-      menu << health_menu
       menu << data_menu
       menu << warehouse_admin_menu
-      menu << health_admin_menu
       menu << hmis_admin_menu
       menu << support_menu
       links_menu.each do |item|
@@ -55,11 +53,12 @@ class Menu::Menu
     menu
   end
 
+  # HUD reports are a section of the warehouse reports page; this is a shortcut to it.
   def hud_reports_menu
     Menu::Item.new(
       user: user,
-      path: hud_reports_path,
-      visible: ->(user) { user.can_view_hud_reports? }, # rubocop:disable Style/SymbolProc
+      path: warehouse_reports_path(anchor: GrdaWarehouse::WarehouseReports::ReportDefinition::HUD_REPORT_GROUP.parameterize),
+      visible: ->(user) { GrdaWarehouse::WarehouseReports::ReportDefinition.viewable_by(user).hud.exists? },
       title: Translation.translate('HUD Reports'),
       id: 'hud-reports',
     )
@@ -78,8 +77,8 @@ class Menu::Menu
   def op_analytics_menu
     Menu::Item.new(
       user: user,
-      visible: ->(user) { RailsDrivers.loaded.include?(:superset) && Superset.available_to_user?(user) },
-      path: Superset.warehouse_login_url,
+      visible: ->(user) { Superset.available_to_user?(user) },
+      path: Superset.warehouse_login_url(user),
       title: Translation.translate('OP Analytics'),
       id: 'superset',
       target: :_blank,
@@ -126,11 +125,7 @@ class Menu::Menu
         title: Translation.translate('All Assigned Clients'),
       ),
     )
-    title = if user.can_view_aggregate_health? || user.can_view_patients_for_own_agency?
-      Translation.translate('My Agency\'s HMIS Clients')
-    else
-      Translation.translate('My Agency\'s Clients')
-    end
+    title = Translation.translate('My Agency\'s Clients')
     menu.add_child(
       Menu::Item.new(
         user: user,
@@ -139,11 +134,7 @@ class Menu::Menu
         title: title,
       ),
     )
-    title = if user.can_view_aggregate_health? || user.can_view_patients_for_own_agency?
-      Translation.translate('My HMIS Clients')
-    else
-      Translation.translate('My Clients')
-    end
+    title = Translation.translate('My Clients')
     menu.add_child(
       Menu::Item.new(
         user: user,
@@ -168,58 +159,6 @@ class Menu::Menu
         visible: ->(user) { user.can_access_some_cohorts? }, # rubocop:disable Style/SymbolProc
         path: cohorts_path,
         title: Translation.translate('Cohorts'),
-      ),
-    )
-
-    menu
-  end
-
-  def health_menu
-    menu = Menu::Item.new(
-      user: user,
-      title: Translation.translate('Care Hub'),
-      icon: 'icon-heart-empty',
-      id: 'care-hub',
-      always_open: true,
-    )
-    menu.add_child(
-      Menu::Item.new(
-        user: user,
-        visible: ->(user) { GrdaWarehouse::Config.get(:health_emergency_tracing).present? && user.can_edit_health_emergency_contact_tracing? },
-        path: health_he_search_path,
-        title: "#{GrdaWarehouse::Config.current_health_emergency_tracing_title} #{Translation.translate('Contact Tracing')}",
-      ),
-    )
-    menu.add_child(
-      Menu::Item.new(
-        user: user,
-        visible: ->(user) { user.can_view_patients_for_own_agency? && user.health_agencies.any? },
-        path: health_patients_path,
-        title: Translation.translate('My Agency\'s Patients'),
-      ),
-    )
-    menu.add_child(
-      Menu::Item.new(
-        user: user,
-        visible: ->(user) { user.can_administer_health? || user.team_mates.exists? },
-        path: health_team_patients_path,
-        title: Translation.translate('My Team\'s Patients'),
-      ),
-    )
-    menu.add_child(
-      Menu::Item.new(
-        user: user,
-        visible: ->(user) { user.can_view_patients_for_own_agency? && user.health_agencies.any? },
-        path: health_my_patients_path,
-        title: Translation.translate('My Patients'),
-      ),
-    )
-    menu.add_child(
-      Menu::Item.new(
-        user: user,
-        visible: ->(user) { !(user.can_view_patients_for_own_agency? && user.health_agencies.any?) && user.can_view_some_vprs? },
-        path: health_flexible_service_my_vprs_path,
-        title: Translation.translate('My Patients'),
       ),
     )
 
@@ -388,7 +327,7 @@ class Menu::Menu
     menu.add_child(
       Menu::Item.new(
         user: user,
-        visible: ->(user) { user.can_manage_config? }, # rubocop:disable Style/SymbolProc
+        visible: ->(user) { user.can_edit_translations? }, # rubocop:disable Style/SymbolProc
         path: admin_translation_keys_path,
         title: 'Translations',
       ),
@@ -497,12 +436,23 @@ class Menu::Menu
         title: 'Inbound APIs',
       ),
     )
+    if AuthMethod.devise?
+      # legacy oauth integration
+      menu.add_child(
+        Menu::Item.new(
+          user: user,
+          visible: ->(user) { user.can_manage_config? }, # rubocop:disable Style/SymbolProc
+          path: oauth_applications_path,
+          title: 'Oauth',
+        ),
+      )
+    end
     menu.add_child(
       Menu::Item.new(
         user: user,
         visible: ->(user) { user.can_manage_config? }, # rubocop:disable Style/SymbolProc
-        path: oauth_applications_path,
-        title: 'Oauth',
+        path: admin_idp_service_configs_path,
+        title: 'IDP Configuration',
       ),
     )
     menu
@@ -522,7 +472,7 @@ class Menu::Menu
         title: 'Imports',
       ),
     )
-    if RailsDrivers.loaded.include?(:ma_reports) && MaReports::CsgEngage::Credential.active.present?
+    if MaReports::CsgEngage::Credential.active.present?
       menu.add_child(
         Menu::Item.new(
           user: user,
@@ -554,31 +504,6 @@ class Menu::Menu
         visible: lambda(&:can_manage_config?),
         path: admin_system_maintenance_tasks_path,
         title: 'System Tasks',
-      ),
-    )
-    menu
-  end
-
-  def health_admin_menu
-    menu = Menu::Item.new(
-      user: user,
-      title: Translation.translate('Healthcare Admin'),
-      icon: 'icon-cog',
-      id: 'health-administration',
-    )
-    path = if user.can_approve_patient_assignments?
-      review_admin_health_patient_referrals_path
-    elsif (user.can_manage_health_agency? || user.can_manage_patients_for_own_agency?) && user.health_agencies.any?
-      review_admin_health_agency_patient_referrals_path
-    else
-      admin_health_admin_index_path
-    end
-    menu.add_child(
-      Menu::Item.new(
-        user: user,
-        visible: ->(user) { GrdaWarehouse::Config.get(:healthcare_available) && (user.can_administer_health? || user.can_manage_health_agency? || user.has_patient_referral_review_access?) },
-        path: path,
-        title: Translation.translate('Healthcare Admin'),
       ),
     )
     menu
@@ -675,8 +600,8 @@ class Menu::Menu
       default_link_text = hmis_data_sources.size == 1 ? 'Open HMIS' : "Open #{hmis_ds.short_name}"
       Menu::Item.new(
         user: user,
-        visible: ->(user) { user.can_access_hmis_data_source?(hmis_ds.id) },
-        path: "//#{hmis_ds.hmis}",
+        visible: ->(user) { user.can_sign_in_to_hmis_data_source?(hmis_ds) },
+        path: hmis_ds.hmis_login_url(user: user),
         title: Translation.translate(default_link_text),
         icon: 'icon-link-ext',
         target: :_blank,

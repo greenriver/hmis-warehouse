@@ -1,3 +1,9 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # frozen_string_literal: true
 
 require_relative '../../../support/ce_spec_helper'
@@ -41,6 +47,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
                 clientId
                 clientName
                 relationshipToHoH
+                exitDate
                 access {
                   canViewClients
                 }
@@ -127,6 +134,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       context 'with source enrollment and household members' do
         let!(:source_project) { create(:hmis_hud_project, data_source: ds1, user: u1, project_name: 'Source Project') }
         let!(:household_id) { 'referred_household_id' }
+        let!(:household_member_exit_date) { Date.current }
 
         # Create additional clients for household members
         let!(:household_client_2) { create(:hmis_hud_client, data_source: ds1, first_name: 'Jane', last_name: 'Doe') }
@@ -152,6 +160,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             data_source: ds1,
             household_id: household_id,
             relationship_to_hoh: 2, # Child
+            exit_date: household_member_exit_date,
           )
         end
 
@@ -183,6 +192,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               'clientName' => client.brief_name,
               'access' => { 'canViewClients' => true },
               'clientId' => client.id.to_s,
+              'exitDate' => nil,
             ),
             a_hash_including(
               'id' => household_enrollment_2.id.to_s,
@@ -190,6 +200,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               'clientName' => household_client_2.brief_name,
               'access' => { 'canViewClients' => true },
               'clientId' => household_client_2.id.to_s,
+              'exitDate' => household_member_exit_date.iso8601,
             ),
           )
         end
@@ -404,6 +415,76 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
         expect(steps[0]['status']).to eq('completed')
         expect(steps[1]['status']).to eq('available')
+      end
+    end
+
+    context 'when many steps have custom data elements' do
+      let(:query) do
+        <<~GRAPHQL
+          query GetCeReferral($id: ID!) {
+            ceReferral(id: $id) {
+              id
+              steps {
+                id
+                name
+                status
+                customDataElements {
+                  id
+                  key
+                  value {
+                    valueString
+                    valueDate
+                  }
+                  values {
+                    valueString
+                    valueDate
+                  }
+                }
+              }
+            }
+          }
+        GRAPHQL
+      end
+
+      let(:step_count) { 25 }
+      # Reuse the CDEDs generated for the CE referral step form by the 'ce_referral_step_form_definition' factory
+      # (see ce_step_definition `generate_cdeds` in ce_spec_helper.rb)
+      let(:cdeds) do
+        Hmis::Hud::CustomDataElementDefinition.where(
+          data_source: ds1,
+          owner_type: Hmis::WorkflowExecution::Step.sti_name,
+          key: ['contact_date', 'client_accepted'],
+        ).order(:id).to_a
+      end
+
+      before do
+        step_count.times do |i|
+          task = create(
+            :hmis_workflow_definition_user_task,
+            template: workflow_template,
+            name: "task with cde #{i}",
+            swimlane: case_manager_swimlane,
+            form_definition: ce_step_definition,
+          )
+          start_event.connect_to!(task)
+
+          step = workflow_instance.steps.create!(node: task, status: 'completed', available_at: Time.current, form_definition: ce_step_definition, updated_by: hmis_user)
+          cdeds.each do |cded|
+            value_attr = cded.field_type.to_sym == :date ? { value_date: Date.current } : { value_string: 'value' }
+            create(:hmis_custom_data_element, owner: step, data_element_definition: cded, data_source: ds1, user: u1, **value_attr)
+          end
+        end
+      end
+
+      it 'resolves custom data elements without n+1 queries' do
+        expect do
+          response, result = post_graphql(**variables) { query }
+          expect(response.status).to eq(200), result.inspect
+          steps = result.dig('data', 'ceReferral', 'steps')
+          steps_with_cdes = steps.select { |step| step['customDataElements'].present? }
+          expect(steps_with_cdes.count).to eq(step_count)
+          expect(steps_with_cdes).to all(satisfy { |step| step['customDataElements'].count == cdeds.count })
+        end.to make_database_queries(count: 25..35)
       end
     end
 

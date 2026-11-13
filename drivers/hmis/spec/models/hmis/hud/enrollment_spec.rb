@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -530,6 +530,37 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
       end.not_to raise_error
 
       expect(hh_member.current_unit).to eq(unit)
+    end
+  end
+
+  describe 'matching_search_term by HouseholdID' do
+    let!(:mixed_case_household_id) { 'AbCdEf0123456789XyZ' }
+    let!(:matching_enrollment) do
+      create(:hmis_hud_enrollment, data_source: ds1, project: p1, household_id: mixed_case_household_id)
+    end
+    let!(:other_enrollment) do
+      create(:hmis_hud_enrollment, data_source: ds1, project: p1, household_id: 'ZzZzZz9876543210')
+    end
+
+    # matching_search_term calls strip! on its argument, so pass mutable strings
+    def search(term)
+      Hmis::Hud::Enrollment.matching_search_term(term.dup)
+    end
+
+    it 'matches a 6-character prefix regardless of case' do
+      expect(search('ABCDEF')).to contain_exactly(matching_enrollment)
+      expect(search('abcdef')).to contain_exactly(matching_enrollment)
+    end
+
+    it 'matches the full HouseholdID regardless of case' do
+      expect(search(mixed_case_household_id.upcase)).to contain_exactly(matching_enrollment)
+      expect(search(mixed_case_household_id.downcase)).to contain_exactly(matching_enrollment)
+    end
+
+    it 'searches the prefix with a case-sensitive LIKE on the lowercased column' do
+      sql = search('ABCDEF').to_sql
+      expect(sql).to include(%(LOWER("Enrollment"."HouseholdID") LIKE 'abcdef%'))
+      expect(sql).not_to include('ILIKE')
     end
   end
 end

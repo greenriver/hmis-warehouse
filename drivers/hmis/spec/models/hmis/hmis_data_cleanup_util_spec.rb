@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -8,8 +8,11 @@
 
 require 'rails_helper'
 require_relative '../../support/hmis_base_setup'
+require_relative '../../support/hmis_data_cleanup_spec_helpers'
 
 RSpec.describe HmisDataCleanup::Util, type: :model do
+  include_context 'hmis data cleanup spec helpers'
+
   let!(:hmis_ds) { create :hmis_data_source }
   let(:today) { Date.current }
   let(:yesterday) { today - 1.day }
@@ -27,49 +30,6 @@ RSpec.describe HmisDataCleanup::Util, type: :model do
   let!(:e2) { create :hmis_hud_enrollment, DateCreated: last_year, DateUpdated: last_year, data_source: hmis_ds, project: p1 }
   let!(:e3) { create :hmis_hud_enrollment, DateCreated: last_year, DateUpdated: last_year, data_source: hmis_ds }
   let!(:e4) { create :hmis_hud_enrollment, DateCreated: last_year, DateUpdated: last_year, data_source: hmis_ds }
-
-  let!(:other_dest_ds) { create(:destination_data_source) }
-  let!(:other_source_ds) { create(:source_data_source) }
-  let!(:other_enrollments) do
-    other_enrollments = []
-    # create cruft in other data sources
-    [other_dest_ds, other_source_ds].each do |ds|
-      proj = create(:hud_project, data_source_id: ds.id)
-      client = create(:grda_warehouse_hud_client, data_source_id: ds.id)
-      5.times do
-        other_enrollments << create(:grda_warehouse_hud_enrollment, data_source_id: ds.id, client: client, project: proj, DateCreated: 1.year.ago, DateUpdated: 1.year.ago)
-      end
-    end
-    other_enrollments
-  end
-
-  let(:hmis_hud_classes) { Hmis::Hud::Project.hmis_classes.excluding(Hmis::Hud::Export) }
-
-  def expect_leaves_non_hmis_data_alone(&block)
-    expect do
-      yield block
-    end.to not_change(GrdaWarehouse::Version, :count).
-      # Data in non-HMIS data sources should not be changed
-      and(
-        not_change do
-          hmis_hud_classes.flat_map do |scope|
-            scope.order(:id).with_deleted.where.not(data_source: hmis_ds).map(&:attributes)
-          end
-        end,
-      ).
-      # DateUpdated should not be changed on any records in any data source
-      and(
-        not_change do
-          # {'Exit" => 1, 'Service' => 2, etc}
-          hmis_hud_classes.map do |scope|
-            [
-              scope.name.demodulize,
-              scope.where(DateUpdated: 5.minutes.ago..).count,
-            ]
-          end.to_h
-        end,
-      )
-  end
 
   describe '#clear_enrollment_export_ids!' do
     before(:each)  { GrdaWarehouse::Hud::Enrollment.update_all(ExportID: 'XYZ') }
@@ -102,31 +62,6 @@ RSpec.describe HmisDataCleanup::Util, type: :model do
     it 'does not make unexpected changes' do
       expect_leaves_non_hmis_data_alone do
         HmisDataCleanup::Util.clear_enrollment_export_ids!
-      end
-    end
-  end
-
-  describe '#make_sole_member_hoh!' do
-    before(:each) do
-      e1.update!(relationship_to_hoh: 99, household_id: 'multi-member-household')
-      e2.update!(relationship_to_hoh: 99, household_id: 'multi-member-household')
-      e3.update!(relationship_to_hoh: 99, household_id: 'individual-household') # should be updated
-
-      # cruft in other data sources that shouldn't be touched
-      GrdaWarehouse::Hud::Enrollment.where.not(data_source: hmis_ds).update_all(relationship_to_hoh: 99)
-    end
-
-    it 'assigns HoH' do
-      HmisDataCleanup::Util.make_sole_member_hoh!
-
-      expect(e1.reload.relationship_to_hoh).to eq(99)
-      expect(e2.reload.relationship_to_hoh).to eq(99)
-      expect(e3.reload.relationship_to_hoh).to eq(1)
-    end
-
-    it 'does not make unexpected changes' do
-      expect_leaves_non_hmis_data_alone do
-        HmisDataCleanup::Util.make_sole_member_hoh!
       end
     end
   end
@@ -314,110 +249,6 @@ RSpec.describe HmisDataCleanup::Util, type: :model do
     end
   end
 
-  describe '#fix_incorrect_personal_id_references!' do
-    let(:related_record_factories) do
-      [
-        :hmis_hud_service,
-        :hmis_income_benefit,
-        :hmis_health_and_dv,
-        :hmis_youth_education_status,
-        :hmis_employment_education,
-        :hmis_disability,
-        :hmis_hud_exit,
-        :hmis_current_living_situation,
-        :hmis_hud_assessment,
-        :hmis_assessment_question,
-        :hmis_assessment_result,
-        :hmis_hud_event,
-        :hmis_custom_service, # custom HUD-style table, uses PersonalID+EnrollmentID association
-        :hmis_custom_assessment, # custom HUD-style table, uses PersonalID+EnrollmentID association
-        :hmis_hud_custom_case_note, # custom HUD-style table, uses PersonalID+EnrollmentID association
-      ]
-    end
-    let!(:records_with_bad_references) do
-      records = []
-      shared_attributes = {
-        data_source: hmis_ds,
-        enrollment: e1,
-        PersonalID: 'not-real',
-        DateCreated: last_year,
-        DateUpdated: last_year,
-      }
-      related_record_factories.each do |factory|
-        records << create(factory, :skip_validate, **shared_attributes)
-      end
-      records
-    end
-
-    let!(:records_with_good_references) do
-      records = []
-      shared_attributes = {
-        data_source: hmis_ds,
-        enrollment: e1,
-        client: e1.client,
-        DateCreated: last_year,
-        DateUpdated: last_year,
-      }
-      related_record_factories.each do |factory|
-        records << create(factory, **shared_attributes)
-      end
-    end
-
-    it 'works for services' do
-      bad_service = create(:hmis_hud_service, :skip_validate, enrollment: e1, PersonalID: 'unmatched-id', data_source: hmis_ds)
-      good_service = create(:hmis_hud_service, :skip_validate, enrollment: e1, data_source: hmis_ds)
-
-      HmisDataCleanup::Util.fix_incorrect_personal_id_references!(classes: [Hmis::Hud::Service])
-      [bad_service, good_service].each(&:reload)
-      expect(bad_service.personal_id).to eq(e1.personal_id)
-      expect(bad_service.enrollment).to be_present
-      expect(good_service.enrollment).to be_present
-    end
-
-    it 'works for all record types' do
-      expect(records_with_bad_references.map(&:PersonalID).uniq).to contain_exactly('not-real')
-
-      HmisDataCleanup::Util.fix_incorrect_personal_id_references!
-
-      records_with_bad_references.each(&:reload)
-      expect(records_with_bad_references.map(&:PersonalID).uniq).to contain_exactly(e1.personal_id)
-    end
-
-    it 'does not make unexpected changes' do
-      expect_leaves_non_hmis_data_alone do
-        HmisDataCleanup::Util.fix_incorrect_personal_id_references!
-      end
-    end
-
-    it 'dry run does nothing' do
-      HmisDataCleanup::Util.fix_incorrect_personal_id_references!(dry_run: true)
-
-      records_with_bad_references.each(&:reload)
-      expect(records_with_bad_references.map(&:PersonalID).uniq).to contain_exactly('not-real')
-    end
-
-    context 'with enrollment scope' do
-      let!(:bad_service_e1) { create(:hmis_hud_service, :skip_validate, enrollment: e1, PersonalID: 'wrong-id-1', data_source: hmis_ds) }
-      let!(:bad_service_e2) { create(:hmis_hud_service, :skip_validate, enrollment: e2, PersonalID: 'wrong-id-2', data_source: hmis_ds) }
-      let!(:bad_income_e1) { create(:hmis_income_benefit, :skip_validate, enrollment: e1, PersonalID: 'wrong-id-1', data_source: hmis_ds) }
-      let!(:bad_income_e2) { create(:hmis_income_benefit, :skip_validate, enrollment: e2, PersonalID: 'wrong-id-2', data_source: hmis_ds) }
-
-      it 'only fixes records for enrollments in the scope' do
-        enrollment_scope = Hmis::Hud::Enrollment.where(id: e1.id)
-
-        HmisDataCleanup::Util.fix_incorrect_personal_id_references!(enrollment_scope: enrollment_scope)
-
-        [bad_service_e1, bad_service_e2, bad_income_e1, bad_income_e2].each(&:reload)
-        # Records for e1 should be fixed
-        expect(bad_service_e1.personal_id).to eq(e1.personal_id)
-        expect(bad_income_e1.personal_id).to eq(e1.personal_id)
-        # Records for e2 should NOT be fixed
-        expect(bad_service_e2.personal_id).to eq('wrong-id-2')
-        expect(bad_income_e2.personal_id).to eq('wrong-id-2')
-      end
-    end
-  end
-
   context 'with duplicate custom assessments' do
     let(:form_definition) { create(:hmis_form_definition) }
     let(:cded) { create(:hmis_custom_data_element_definition, owner_type: 'Hmis::Hud::CustomAssessment') }
@@ -530,116 +361,6 @@ RSpec.describe HmisDataCleanup::Util, type: :model do
       expect_leaves_non_hmis_data_alone do
         HmisDataCleanup::Util.delete_duplicate_exit_records!
       end
-    end
-  end
-
-  context 'with missing total monthly income' do
-    let(:income_attrs) do
-      [:EarnedAmount, :UnemploymentAmount, :SSIAmount, :SSDIAmount, :VADisabilityServiceAmount, :VADisabilityNonServiceAmount, :PrivateDisabilityAmount, :WorkersCompAmount, :TANFAmount, :GAAmount, :SocSecRetirementAmount, :PensionAmount, :ChildSupportAmount, :AlimonyAmount, :OtherIncomeAmount].map.with_index do |field, idx|
-        [field, 2**(idx + 1)] # Sidon sequence
-      end.to_h
-    end
-    before(:each) do
-      # canary records
-      create(:hmis_income_benefit, enrollment: e1, client: e1.client, **default_enrollment_attrs)
-    end
-    let(:missing) do
-      create(:hmis_income_benefit, :skip_validate, income_from_any_source: 1, total_monthly_income: nil, enrollment: e1, client: e1.client, **income_attrs, **default_enrollment_attrs)
-    end
-
-    it 'sums total income correctly' do
-      expected_total = income_attrs.values.sum
-      expect { HmisDataCleanup::Util.fix_missing_monthly_total_income! }.to(
-        [
-          change { Hmis::Hud::IncomeBenefit.find(missing.id).total_monthly_income.to_i }.to(expected_total),
-          not_change { Hmis::Hud::IncomeBenefit.where.not(id: missing.id).order(:id).map(&:attributes) },
-        ].reduce(&:and),
-      )
-    end
-
-    it 'has no side-effects' do
-      expect_leaves_non_hmis_data_alone do
-        HmisDataCleanup::Util.fix_missing_monthly_total_income!
-      end
-    end
-  end
-
-  context 'with incorrect total income via form processor' do
-    let!(:form_definition) { create(:hmis_form_definition) }
-    let!(:non_system_user) { create(:hmis_hud_user, data_source: hmis_ds) }
-    let!(:income_benefit) do
-      create(:hmis_income_benefit,
-             enrollment: e1,
-             client: e1.client,
-             user: non_system_user,
-             income_from_any_source: 1,
-             earned_amount: 100,
-             earned: 1,
-             ssi_amount: 200,
-             ssi: 1,
-             total_monthly_income: 250, # incorrect total
-             **default_enrollment_attrs)
-    end
-    let!(:custom_assessment) do
-      create(:hmis_custom_assessment,
-             enrollment: e1,
-             client: e1.client,
-             user: non_system_user,
-             data_source: hmis_ds,
-             definition: form_definition,
-             values: { 'test' => 'value' })
-    end
-    let!(:form_processor) do
-      custom_assessment.form_processor.tap do |fp|
-        fp.update!(income_benefit: income_benefit)
-      end
-    end
-
-    # Canary records that should be skipped
-    let!(:system_user) { Hmis::Hud::User.system_user(data_source_id: hmis_ds.id) }
-    let!(:income_with_system_user) do
-      create(:hmis_income_benefit,
-             enrollment: e2,
-             client: e2.client,
-             user: system_user,
-             income_from_any_source: 1,
-             earned: 1,
-             earned_amount: 50,
-             total_monthly_income: 75, # incorrect total, but should be skipped
-             **default_enrollment_attrs)
-    end
-    let!(:assessment_with_nil_values) do
-      create(:hmis_custom_assessment,
-             enrollment: e3,
-             client: e3.client,
-             user: non_system_user,
-             data_source: hmis_ds,
-             definition: form_definition,
-             values: nil) # nil values should be skipped
-    end
-    let!(:income_with_nil_values) do
-      create(:hmis_income_benefit,
-             enrollment: e3,
-             client: e3.client,
-             user: non_system_user,
-             income_from_any_source: 1,
-             earned_amount: 75,
-             earned: 1,
-             total_monthly_income: 100, # incorrect total, but should be skipped
-             **default_enrollment_attrs)
-    end
-    before do
-      assessment_with_nil_values.form_processor.update!(income_benefit: income_with_nil_values)
-    end
-
-    it 'corrects total income records via form processor' do
-      expect { HmisDataCleanup::Util.correct_total_income_records! }.to(
-        [
-          change { income_benefit.reload.total_monthly_income.to_i }.from(250).to(300),
-          not_change { income_with_system_user.reload.total_monthly_income.to_i },
-          not_change { income_with_nil_values.reload.total_monthly_income.to_i },
-        ].reduce(&:and),
-      )
     end
   end
 

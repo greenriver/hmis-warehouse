@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -26,6 +26,11 @@ module Filters
 
     def range
       self.start .. self.end # rubocop:disable Style/RedundantSelf
+    end
+
+    # For datetime columns. A Date upper bound casts to midnight and drops the end day.
+    def time_range
+      start.beginning_of_day .. self.end.end_of_day
     end
 
     def first

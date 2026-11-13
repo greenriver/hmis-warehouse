@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -182,7 +182,7 @@ class Dba::PartitionMaker
   def _compare
     [partitioned_table, old_table].each do |_schema|
       p(<<~SQL)
-        EXPLAIN (ANALZYE, BUFFERS, COSTS, VERBOSE)
+        EXPLAIN (ANALYZE, BUFFERS, COSTS, VERBOSE)
         select * from ...
       SQL
     end

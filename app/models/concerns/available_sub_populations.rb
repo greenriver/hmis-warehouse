@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -138,6 +138,15 @@ module AvailableSubPopulations
       # 'Individual Adults' => :individual_adults,
       # 'Non-Veterans' => :non_veteran,
     }.sort.to_h
+  end
+
+  class UnknownSubPopulation < ArgumentError; end
+
+  def self.fetch!(value, allowed = available_sub_populations.values)
+    sub_population = value&.to_sym
+    raise UnknownSubPopulation, "unknown sub-population: #{value}" unless sub_population.in?(allowed)
+
+    sub_population
   end
 
   def self.add_sub_population(name, symbol, package)

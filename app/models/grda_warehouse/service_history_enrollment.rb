@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -12,9 +12,18 @@
 # generated automatically. There is a 1:1 correspondence with Hud Enrollment records
 #   created by GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find_each(&:rebuild_service_history!)
 #
-# @see docs/features/service_history.md
+# @see docs/features/warehouse/service-history.md
 class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
-  include RailsDrivers::Extensions
+  # Extensions from drivers — see ADR 0007
+  include AdultOnlyHouseholdsSubPop::GrdaWarehouse::ServiceHistoryEnrollmentExtension
+  include AdultsWithChildrenSubPop::GrdaWarehouse::ServiceHistoryEnrollmentExtension
+  include AdultsWithChildrenTwentyfivePlusHohSubPop::GrdaWarehouse::ServiceHistoryEnrollmentExtension
+  include AdultsWithChildrenYouthHohSubPop::GrdaWarehouse::ServiceHistoryEnrollmentExtension
+  include ChildOnlyHouseholdsSubPop::GrdaWarehouse::ServiceHistoryEnrollmentExtension
+  include ClientAccessControl::GrdaWarehouse::ServiceHistoryEnrollmentExtension
+  include ClientsSubPop::GrdaWarehouse::ServiceHistoryEnrollmentExtension
+  include NonVeteransSubPop::GrdaWarehouse::ServiceHistoryEnrollmentExtension
+  include VeteransSubPop::GrdaWarehouse::ServiceHistoryEnrollmentExtension
   include ClientRaceAndEthnicityMixin
   include ArelHelper
 
@@ -144,7 +153,7 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
 
     housed_scope = entry.ongoing(on_date: date).
       in_project_type(residential_project_types).
-      with_move_in_date_before(date)
+      with_move_in_date_on_or_before(date)
 
     where(id: homeless_scope).
       where.not(client_id: housed_scope.select(:client_id))
@@ -162,7 +171,7 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
 
     housed_scope = entry.ongoing(on_date: date).
       hud_project_type(residential_project_types).
-      with_move_in_date_before(date)
+      with_move_in_date_on_or_before(date)
 
     where(id: homeless_scope).
       where.not(client_id: housed_scope.select(:client_id))
@@ -217,8 +226,19 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
 
   # Takes advantage of the HUD reporting override for CoC code
   scope :in_coc, ->(coc_code:) do
-    joins(project: :project_cocs).
+    joins_project_cocs.
       merge(GrdaWarehouse::Hud::ProjectCoc.in_coc(coc_code: coc_code))
+  end
+
+  # Joins every ProjectCoC row for the enrollment's project, limited to coc_codes when given. Uses an
+  # Arel join so it passes Filters::Criteria::FilterForCocs::ProjectCocJoinGuard.
+  scope :joins_project_cocs, ->(coc_codes: nil) do
+    project_coc_join = p_t.join(pc_t).
+      on(pc_t[:data_source_id].eq(p_t[:data_source_id]).and(pc_t[:ProjectID].eq(p_t[:ProjectID]))).
+      join_sources
+    project_cocs = coc_codes.present? ? GrdaWarehouse::Hud::ProjectCoc.in_coc(coc_code: coc_codes) : GrdaWarehouse::Hud::ProjectCoc.all
+    # merge brings in ProjectCoc's soft-delete condition, which the Arel join doesn't have
+    joins(:project).joins(project_coc_join).merge(project_cocs)
   end
 
   scope :in_enrollment_coc, ->(coc_code:) do
@@ -231,17 +251,17 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
   end
 
   scope :in_zip, ->(zip_code:) do
-    joins(project: :project_cocs).
+    joins_project_cocs.
       merge(GrdaWarehouse::Hud::ProjectCoc.in_zip(zip_code: zip_code))
   end
 
   scope :in_place, ->(place:) do
-    joins(project: :project_cocs).
+    joins_project_cocs.
       merge(GrdaWarehouse::Hud::ProjectCoc.in_place(place: place))
   end
 
   scope :in_county, ->(county:) do
-    joins(project: :project_cocs).
+    joins_project_cocs.
       merge(GrdaWarehouse::Hud::ProjectCoc.in_county(county: county))
   end
 
@@ -333,12 +353,8 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
     joins(:enrollment).merge(GrdaWarehouse::Hud::Enrollment.visible_to(user))
   end
 
-  scope :with_move_in_date_before, ->(date) do
-    where(she_t[:move_in_date].lt(date))
-  end
-
-  scope :with_move_in_date_after_or_blank, ->(date) do
-    where(she_t[:move_in_date].gteq(date).or(she_t[:move_in_date].eq(nil)))
+  scope :with_move_in_date_on_or_before, ->(date) do
+    where(she_t[:move_in_date].lteq(date))
   end
 
   scope :in_age_ranges, ->(age_ranges, on_date: Date.current) do

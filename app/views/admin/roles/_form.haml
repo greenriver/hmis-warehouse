@@ -10,7 +10,7 @@
           %th Administrative?
           %th Description
       %tbody
-        - Role.permissions(exclude_health: true).each do |permission|
+        - Role.permissions.each do |permission|
           %tr
             %td
               = f.input permission, as: :boolean

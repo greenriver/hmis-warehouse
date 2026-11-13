@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -39,6 +39,9 @@ class AccountTwoFactorsController < ApplicationController
   def destroy
     @user.disable_2fa!
     redirect_to edit_account_two_factor_path
+  rescue ActiveRecord::RecordInvalid => e
+    flash[:error] = "Two-factor authentication was not turned off because your account has information that needs to be corrected first: #{e.record.errors.full_messages.to_sentence}. Please contact your administrator for help."
+    redirect_to edit_account_two_factor_path
   end
 
   def users_warehouse_path
@@ -72,6 +75,6 @@ class AccountTwoFactorsController < ApplicationController
   end
 
   private def clean_code
-    account_params[:otp_attempt].gsub(/[^0-9a-z]/, '')
+    account_params[:otp_attempt].to_s.gsub(/[^0-9a-z]/, '')
   end
 end

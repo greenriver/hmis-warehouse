@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -39,11 +39,23 @@ class Hmis::AuthPolicies::CeReferralPolicy < Hmis::AuthPolicies::ResourcePolicy
       # Users who can manage outgoing referrals from the source project
       return true if source_project_permissions.include?(:can_manage_outgoing_referrals)
 
-      # Users who can view the target enrollment. Bakes in the assumption that the target enrollment is in the referral's project, which is validated on the referral
-      # TODO(8549) - encapsulate this check requiring both can_view_enrollment_details and can_view_project in the Enrollment Policy
-      return true if referral.target_enrollment_id.present? && project_permissions.include?(:can_view_enrollment_details) && project_permissions.include?(:can_view_project)
+      # Users who can view the target enrollment. Bakes in the assumption that the target enrollment is in the referral's project, which is validated on the referral.
+      # Equivalent to EnrollmentPolicy#can_view_details? — UserContext applies the can_view_project dependency.
+      return true if referral.target_enrollment_id.present? && project_permissions.include?(:can_view_enrollment_details)
 
       false
+    end
+
+    # Whether the user can see the name of the referred client on this referral.
+    # Users who can view the full referral see the name even without access to the client record itself,
+    # as long as they can view client names somewhere in the data source. Users who can only view the
+    # referral summary need name access on the client record.
+    # A restricted client's name is never shown to a user who can't view restricted clients.
+    def can_view_client_name?(client)
+      return false if context.pii_redacted_for_client?(client.id)
+      return global_permissions.include?(:can_view_client_name) if can_view?
+
+      can_view_summary? && user.policy_for(client, policy_type: :hmis_client).can_view_name?
     end
 
     def can_assign_referral_tasks?

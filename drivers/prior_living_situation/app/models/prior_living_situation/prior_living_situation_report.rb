@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -100,7 +100,7 @@ module PriorLivingSituation
     def data_for_living_situations
       @data_for_living_situations ||= begin
         data = {}
-        report_scope.joins(:enrollment, project: :project_cocs).
+        report_scope.joins(:enrollment).joins_project_cocs(coc_codes: filter.coc_codes).
           order(:CoCCode, :first_date_in_program).
           pluck(
             :client_id,

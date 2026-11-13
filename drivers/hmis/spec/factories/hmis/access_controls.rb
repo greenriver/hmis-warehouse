@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -17,10 +17,5 @@ FactoryBot.define do
     after(:create) do |access_control, evaluator|
       access_control.user_group.add(evaluator.with_users) if evaluator.with_users.present?
     end
-  end
-
-  factory :hmis_user_access_control, class: 'Hmis::UserAccessControl' do
-    user { association :hmis_user }
-    access_control { association :hmis_access_control }
   end
 end

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -10,7 +10,7 @@ module GrdaWarehouse
   # Simple content pages with paper_trail versioning (auditing only).
   # Can be used standalone (help, about) or linked to Compliance::Requirement.
   #
-  # @see docs/features/compliance-requirements.md
+  # @see docs/features/warehouse/compliance-requirements.md
   class ContentPage < GrdaWarehouseBase
     acts_as_paranoid
     has_paper_trail
@@ -28,16 +28,7 @@ module GrdaWarehouse
     end
 
     def render_content
-      markdown = Redcarpet::Markdown.new(
-        Redcarpet::Render::HTML,
-        autolink: true,
-        tables: true,
-        underline: true,
-        superscript: true,
-        space_after_headers: true,
-        strikethrough: true,
-      )
-      markdown.render(content).html_safe
+      SafeUserMarkdown.render(content, underline: true, superscript: true)
     end
   end
 end

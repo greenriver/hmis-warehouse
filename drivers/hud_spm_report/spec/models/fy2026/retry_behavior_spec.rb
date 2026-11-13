@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -15,6 +15,8 @@ RSpec.describe 'HUD SPM FY2026 retry behavior', type: :model do
   let(:generator_class) { HudSpmReport::Generators::Fy2026::Generator }
 
   def create_and_queue_report(project_ids)
+    grant_report_projects(project_ids)
+
     filter = default_filter.dup
     filter.update(project_ids: project_ids)
 
@@ -78,6 +80,38 @@ RSpec.describe 'HUD SPM FY2026 retry behavior', type: :model do
 
       expect(episodes_after_retry).to eq(initial_episode_count)
       expect(returns_after_retry).to eq(initial_return_count)
+    end
+  end
+
+  describe 'worker shutdown mid-run' do
+    it 'keeps the report started and resumes from the last completed question' do
+      project = create_project(project_type: 0)
+      report = create_and_queue_report([project.id])
+      first_question = generator_class.questions.keys.first
+
+      # Run as an inline job under an interruptible delayed job, and raise SIGTERM
+      # once the first question completes so the next halt check stops the run.
+      stopping = false
+      allow(Reporting::Hud::RunReportJob).to receive(:queue_adapter_name).and_return('delayed_job')
+      allow(SignalHandlerPlugin).to receive(:current_job_interruptible?).and_return(true)
+      allow(SignalHandlerPlugin).to receive(:current_worker_stopping?) { stopping }
+      allow_any_instance_of(HudReports::ReportInstance).to receive(:complete).and_wrap_original do |original, *args|
+        original.call(*args)
+        stopping = true
+      end
+
+      expect { run_job_for(report) }.to raise_error(ApplicationJob::JobInterrupted)
+      report.reload
+      expect(report.state).to eq('Started')
+      expect(report.error_details).to be_nil
+      expect(report.checkpoints.find_by(name: first_question).status).to eq('success')
+
+      stopping = false
+      allow_any_instance_of(HudReports::ReportInstance).to receive(:complete).and_call_original
+      run_job_for(report)
+
+      expect(report).to be_completed
+      expect(report.checkpoints.where(name: first_question).count).to eq(1)
     end
   end
 

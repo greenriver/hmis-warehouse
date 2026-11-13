@@ -1,3 +1,9 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # frozen_string_literal: true
 
 require 'rails_helper'
@@ -51,6 +57,15 @@ RSpec.describe Hmis::Ce::Match::CandidatePool do
 
         it 'excludes the pool' do
           expect(described_class.active).not_to include(pool_in_non_ce_project)
+        end
+      end
+
+      context 'when pool is only referenced by unit group without a waitlist workflow template' do
+        let!(:pool_without_waitlist_template) { create :hmis_ce_match_candidate_pool }
+        let!(:unit_group_without_waitlist_template) { create :hmis_unit_group, project: p1, workflow_template: nil, candidate_pool: pool_without_waitlist_template }
+
+        it 'excludes the pool' do
+          expect(described_class.active).not_to include(pool_without_waitlist_template)
         end
       end
 

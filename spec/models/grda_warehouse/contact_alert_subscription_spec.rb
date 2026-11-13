@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -14,14 +14,7 @@ RSpec.describe GrdaWarehouse::ContactAlertSubscription, type: :model do
   let(:contact) { create(:grda_warehouse_contact_user, entity: user, user: user) }
 
   describe 'PaperTrail tracking' do
-    around(:example) do |ex|
-      PaperTrailHelper.with_paper_trail do
-        PaperTrail.request.enabled = true
-        ex.run
-      ensure
-        PaperTrail.request.enabled = false
-      end
-    end
+    around(:example) { |ex| PaperTrailHelper.with_paper_trail { ex.run } }
 
     it 'tracks creation with referenced_user_id' do
       subscription = nil
@@ -75,14 +68,7 @@ RSpec.describe GrdaWarehouse::ContactAlertSubscription, type: :model do
   end
 
   describe '.describe_changes' do
-    around(:example) do |ex|
-      PaperTrailHelper.with_paper_trail do
-        PaperTrail.request.enabled = true
-        ex.run
-      ensure
-        PaperTrail.request.enabled = false
-      end
-    end
+    around(:example) { |ex| PaperTrailHelper.with_paper_trail { ex.run } }
 
     let(:subscription) do
       create(

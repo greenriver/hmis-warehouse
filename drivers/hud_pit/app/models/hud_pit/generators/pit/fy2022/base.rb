@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -279,7 +279,7 @@ module HudPit::Generators::Pit::Fy2022
           title: 'Number of parenting youth (under age 18)',
           query: hoh_clause.and(child_clause),
         },
-        hoh_for_youth: { # note because the question is already limted to youth households, this is just here to provide the title
+        hoh_for_youth: { # note because the question is already limited to youth households, this is just here to provide the title
           title: 'Number of parenting youth (youth parents only)',
           query: hoh_clause,
         },

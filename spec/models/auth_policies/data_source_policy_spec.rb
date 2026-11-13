@@ -1,3 +1,9 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # frozen_string_literal: true
 
 require 'rails_helper'
@@ -135,7 +141,7 @@ RSpec.describe GrdaWarehouse::AuthPolicies::DataSourcePolicy, type: :model do
     let(:invalid_resource) { create(:hud_organization) }
 
     it 'raises an argument error' do
-      expect { user.policy_for(invalid_resource) }.to raise_error(ArgumentError)
+      expect { user.policy_for(invalid_resource, policy_class: described_class) }.to raise_error(ArgumentError)
     end
   end
 end

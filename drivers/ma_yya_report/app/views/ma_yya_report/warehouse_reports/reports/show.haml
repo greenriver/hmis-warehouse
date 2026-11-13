@@ -20,6 +20,7 @@
           Run by: #{@report.user&.name}
           %br
           = @report.created_at
+          (ID: #{@report.id})
     .well.d-flex
       = @report.describe_filter_as_html
   .card

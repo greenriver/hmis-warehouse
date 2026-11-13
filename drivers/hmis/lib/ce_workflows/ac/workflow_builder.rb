@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -12,6 +12,8 @@
 #
 # WARNING! Building these workflows will delete existing referrals and opportunities associated with the workflow templates.
 # Not intended for use in production.
+#
+# Pattern: destroy-and-recreate (preferred). @see docs/features/hmis/ce-workflow-builders.md
 module CeWorkflows::Ac
   class WorkflowBuilder
     CE_STEP_FORMS = {
@@ -56,7 +58,7 @@ module CeWorkflows::Ac
     def build_housing_workflow
       identifier = 'housing_workflow_v1'
       template_name = 'Housing Referral Workflow V1'
-      CeWorkflows::Shared::CeBuilderUtils.delete_template_and_associated_data(identifier) unless @unsafe_run_in_production
+      CeWorkflows::Shared::CeBuilderUtils.delete_template_and_associated_data(identifier, data_source: @data_source) unless @unsafe_run_in_production
 
       puts "Creating workflow definition template '#{identifier}'"
       template = CeWorkflows::Shared::CeBuilderUtils.create_template(identifier, template_name, @data_source)
@@ -151,7 +153,7 @@ module CeWorkflows::Ac
     def build_admin_assign_workflow
       identifier = 'admin_assign_workflow'
       template_name = 'Admin Assign Workflow'
-      CeWorkflows::Shared::CeBuilderUtils.delete_template_and_associated_data(identifier) unless @unsafe_run_in_production
+      CeWorkflows::Shared::CeBuilderUtils.delete_template_and_associated_data(identifier, data_source: @data_source) unless @unsafe_run_in_production
 
       puts "Creating workflow definition template '#{identifier}'"
       template = CeWorkflows::Shared::CeBuilderUtils.create_template(identifier, template_name, @data_source)

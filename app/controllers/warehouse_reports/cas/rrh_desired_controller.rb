@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -20,6 +20,7 @@ module WarehouseReports::Cas
         order(collected_at: :desc)
       @forms = @forms.where(collection_location: @collection_location) if @collection_location
       @forms = @forms.group_by { |f| f.destination_client.id }
+      current_user.policy_context.preload_client_dependencies(@forms.keys)
     end
 
     def set_filter

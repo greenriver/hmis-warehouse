@@ -1,10 +1,10 @@
-# frozen_string_literal: true
-
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 require 'rails_helper'
 
@@ -31,29 +31,14 @@ RSpec.describe ClientAccessControl::HistoryController, type: :request do
 
   describe 'logged out' do
     it 'doesn\'t allow show' do
-      get client_history_path(destination)
-      expect(response).to redirect_to(regex_for_warehouse_sign_in)
-    end
-
-    it 'doesn\'t allow queue' do
-      post queue_client_history_path(destination)
-      expect(response).to redirect_to(regex_for_warehouse_sign_in)
-    end
-
-    it 'does not allow pdf if client not set to generate pdf' do
-      get pdf_client_history_path(destination)
-      aggregate_failures 'validating' do
-        expect(response).to have_http_status(302)
-        expect(destination.client_files.count).to eq(0)
+      expect_unauthenticated_warehouse_request do
+        get client_history_path(destination)
       end
     end
 
-    it 'allows pdf if client set to generate pdf' do
-      destination.update(generate_history_pdf: true)
-      get pdf_client_history_path(destination)
-      aggregate_failures 'validating' do
-        expect(response).to have_http_status(200)
-        expect(destination.client_files.count).to eq(1)
+    it 'doesn\'t allow queue' do
+      expect_unauthenticated_warehouse_request do
+        post queue_client_history_path(destination)
       end
     end
   end

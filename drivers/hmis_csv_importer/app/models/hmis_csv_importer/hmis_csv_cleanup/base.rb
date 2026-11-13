@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -29,8 +29,20 @@ module HmisCsvImporter::HmisCsvCleanup
       raise 'cleanup! must be implemented'
     end
 
+    # Pre-ingest cleanups run against staging data in cleanup_data_set!.
+    # Post-ingest cleanups (see HmisCsvImporter::PostIngestCleanup::Base) run
+    # against warehouse data after ingest!.
+    def self.post_ingest?
+      false
+    end
+
     def self.description
       name.split('::').last.underscore.humanize
+    end
+
+    # Lower runs first. Same-priority cleanups keep stored JSON order.
+    def self.run_order
+      0
     end
 
     def self.associated_model

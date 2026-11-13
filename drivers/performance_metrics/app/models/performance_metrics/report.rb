@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -240,14 +240,6 @@ module PerformanceMetrics
         periods << filter.to_comparison.range if include_comparison?
         periods << filter.range
       end
-    end
-
-    def start
-      update(started_at: Time.current)
-    end
-
-    def complete
-      update(completed_at: Time.current)
     end
 
     def filter=(filter_object)

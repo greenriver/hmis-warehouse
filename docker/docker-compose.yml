@@ -1,15 +1,17 @@
+# NAME_PREFIX (default empty) prefixes container names and image tags so a second
+# full install, and its worktrees, can run beside this one without sharing them.
 x-app: &app
-  image: hmis-warehouse:5.3
+  image: ${NAME_PREFIX:-}hmis-warehouse:5.3
   build:
     context: .
     dockerfile: docker/app/Dockerfile
     target: dev-build
     args:
-      RUBY_VERSION: 3.4.9
+      RUBY_VERSION: 3.4.12
       BUNDLER_VERSION: "2.7.2"
       USER_ID: ${USER_ID:-1001}
       GROUP_ID: ${GROUP_ID:-1001}
-      BUILD_TAG: 3.4.9-slim-bookworm
+      BUILD_TAG: 3.4.12-slim-trixie
   environment: &env
     AWS_REGION: ${AWS_REGION:-us-east-1}
     AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
@@ -28,6 +30,10 @@ x-app: &app
     BUNDLE_FORCE_RUBY_PLATFORM: "true"
     KUBE_CONFIG_PATH: ${KUBE_CONFIG_PATH:-/home/app-user/.kube/config}
     K8S_API_HOST_AND_PORT: ${K8S_API_HOST_AND_PORT:-}
+    IDP_AUD: ${IDP_AUD:-hmis-warehouse,hmis-frontend,superset}
+    JWT_ALGORITHM: ${JWT_ALGORITHM:-RS256}
+    ISS_URL: ${ISS_URL:-https://dex.dev.test/dex}
+    JWKS_URL: ${JWKS_URL:-http://dex.dev.test:4443/dex/keys}
 
   env_file:
     - .env.development.local
@@ -40,11 +46,11 @@ x-backend: &backend
   volumes:
     # NOTE: you may need to run `docker-compose run -u 0 shell chown -R app-user:app-user /bundle /app /node_modules` to fix permission issues
     - .:/app:cached
-    - rails_cache_bookworm:/app/tmp/cache
-    - bundle_bookworm:/bundle
+    - rails_cache_trixie:/app/tmp/cache
+    - bundle_trixie:/bundle
     - /usr/local/share/ca-certificates:/usr/local/share/ca-certificates
     - /etc/ssl/certs:/etc/ssl/certs
-    - node_modules_bookworm:/node_modules
+    - node_modules_trixie:/node_modules
 
 services:
   shell:
@@ -69,8 +75,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_started
-      minio:
-        condition: service_started
+      s3:
+        condition: service_healthy
     env_file:
       - .env.local
       - .env.test
@@ -93,8 +99,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_started
-      minio:
-        condition: service_started
+      s3:
+        condition: service_healthy
 
   dj:
     <<: *backend
@@ -105,8 +111,22 @@ services:
         condition: service_healthy
       redis:
         condition: service_started
-      minio:
+      s3:
+        condition: service_healthy
+
+  # Production runs dedicated short_running workers, so background renders don't wait behind long jobs.
+  dj-short:
+    <<: *backend
+    # $$ defers expansion to the container shell, which sees the env_file values.
+    command: sh -c './bin/rake jobs:work QUEUES=$${DJ_SHORT_QUEUE_NAME:-short_running}'
+    entrypoint: ""
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
         condition: service_started
+      s3:
+        condition: service_healthy
 
   # once we're fully on EKS, we can refactor this into the main dj service.
   dj-eks:
@@ -115,6 +135,9 @@ services:
       - eks
     entrypoint: "tini -- /usr/bin/entrypoint.dj-eks-test.sh"
     command: "delayed_job run --pool=*:1"
+    environment:
+      <<: *env
+      ENABLE_DJ_METRICS: 'true'
     ports:
       # visit localhost:34533/metrics
       - "${DJ_METRICS_PORT:-34533}:9292"
@@ -130,12 +153,12 @@ services:
         condition: service_healthy
       redis:
         condition: service_started
-      minio:
-        condition: service_started
+      s3:
+        condition: service_healthy
 
   yarn:
     <<: *backend
-    container_name: hmis-warehouse-yarn
+    container_name: ${NAME_PREFIX:-}hmis-warehouse-yarn
     stdin_open: true
     tty: true
     command: yarn build --watch
@@ -144,25 +167,28 @@ services:
         condition: service_healthy
       redis:
         condition: service_started
-      minio:
-        condition: service_started
+      s3:
+        condition: service_healthy
 
   web:
     <<: *backend
-    container_name: hmis-warehouse-web
+    container_name: ${NAME_PREFIX:-}hmis-warehouse-web
     stdin_open: true
     tty: true
     command: bin/rails server -b 0.0.0.0
     labels:
+      # Router name defaults to `op` (main). Worktrees set TRAEFIK_ENABLED=false in
+      # .envrc (they have no web service). A second install sets TRAEFIK_ROUTER_NAME
+      # in .envrc; labels merge by append, so it can't be overridden from the override file.
       - traefik.enable=${TRAEFIK_ENABLED:-false}
-      - traefik.http.routers.op.entrypoints=web
-      - traefik.http.routers.op.rule=Host(`${FQDN:-hmis-warehouse.dev.test}`)
-      - traefik.http.services.op_https.loadbalancer.server.port=3000
-      - traefik.http.routers.op_https.rule=Host(`${FQDN:-hmis-warehouse.dev.test}`)
-      - traefik.http.routers.op_https.tls=true
-      - traefik.http.routers.op_https.entrypoints=web-secure
-      - traefik.http.middlewares.op_https.redirectscheme.scheme=https
-      - traefik.http.routers.op.middlewares=op_https
+      - traefik.http.routers.${TRAEFIK_ROUTER_NAME:-op}.entrypoints=web
+      - traefik.http.routers.${TRAEFIK_ROUTER_NAME:-op}.rule=Host(`${FQDN:-hmis-warehouse.dev.test}`)
+      - traefik.http.services.${TRAEFIK_ROUTER_NAME:-op}_https.loadbalancer.server.port=3000
+      - traefik.http.routers.${TRAEFIK_ROUTER_NAME:-op}_https.rule=Host(`${FQDN:-hmis-warehouse.dev.test}`)
+      - traefik.http.routers.${TRAEFIK_ROUTER_NAME:-op}_https.tls=true
+      - traefik.http.routers.${TRAEFIK_ROUTER_NAME:-op}_https.entrypoints=web-secure
+      - traefik.http.middlewares.${TRAEFIK_ROUTER_NAME:-op}_https.redirectscheme.scheme=https
+      - traefik.http.routers.${TRAEFIK_ROUTER_NAME:-op}.middlewares=${TRAEFIK_ROUTER_NAME:-op}_https
     ports:
       - "3000"
       - "9394"
@@ -178,8 +204,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_started
-      minio:
-        condition: service_started
+      s3:
+        condition: service_healthy
       yarn:
         condition: service_started
 
@@ -187,8 +213,8 @@ services:
   db_previous:
     build:
       context: docker/pg16
-    container_name: db_previous
-    image: warehousepg:16
+    container_name: ${NAME_PREFIX:-}db_previous
+    image: ${NAME_PREFIX:-}warehousepg:16
     profiles:
       - manual
     environment:
@@ -214,8 +240,8 @@ services:
     build:
       context: docker/pg17
       shm_size: 1g
-    container_name: hmis-warehouse-db
-    image: warehousepg:17
+    container_name: ${NAME_PREFIX:-}hmis-warehouse-db
+    image: ${NAME_PREFIX:-}warehousepg:17
     environment:
       POSTGRES_PASSWORD: postgres
       POSTGRES_USER: postgres
@@ -243,8 +269,36 @@ services:
     stop_grace_period: 30s
     shm_size: 1g # used during vacuum operations
 
+  # SQL Server for the LSA integration test (driver:hud_lsa:ci_integration_test).
+  # Off by default (profile: lsa). Start with: docker compose --profile lsa up -d mssql
+  # No arm64 image exists, so it runs under amd64 emulation (Rosetta) on Apple Silicon.
+  mssql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    platform: linux/amd64
+    profiles:
+      - lsa
+    container_name: ${NAME_PREFIX:-}hmis-warehouse-mssql
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD:-LsaLocal!Passw0rd}
+      MSSQL_PID: Developer
+    ports:
+      - "${MSSQL_PORT:-1433}:1433"
+    expose:
+      - 1433
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          '/opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P "$$MSSQL_SA_PASSWORD" -Q ''SELECT 1'' || exit 1',
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+
   redis:
-    container_name: hmis-warehouse-redis
+    container_name: ${NAME_PREFIX:-}hmis-warehouse-redis
     image: redis:alpine
     env_file:
       - .env.development.local
@@ -263,7 +317,7 @@ services:
       - 6379
 
   sftp:
-    container_name: hmis-warehouse-sftp
+    container_name: ${NAME_PREFIX:-}hmis-warehouse-sftp
     build:
       context: docker/sftp
     volumes: []
@@ -272,35 +326,34 @@ services:
     #- ./tmp/sftp_spec:/home/user/sftp
 
   # See config/storage.yml for setup
-  minio:
-    container_name: s3
-    image: minio/minio
+  s3:
+    container_name: ${NAME_PREFIX:-}s3
+    build:
+      context: docker/s3
     volumes:
-      - ./dev/minio/data:/data
-      - ./dev/minio/certs:/certs
-    hostname: s3.dev.test
+      - ./dev/s3/data:/data
+      - ./dev/s3/certs:/certs
+    hostname: ${LOCAL_S3_DOMAIN:-s3.dev.test}
     environment:
-      MINIO_ROOT_USER: local_access_key
-      MINIO_ROOT_PASSWORD: local_secret_key
+      S3_PORT: ${S3_PORT:-9000}
     ports:
-      - 9000:9000
-      - 9001:9001 # enable for UI access
-    command: server --certs-dir /certs /data --console-address ":9001"
+      - ${S3_PORT:-9000}:${S3_PORT:-9000}
+      - ${S3_FILER_PORT:-8888}:8888 # filer web UI for browsing buckets (http://localhost:8888/buckets/), stands in for the minio console
     labels:
       - traefik.enable=${TRAEFIK_ENABLED:-false}
-      - traefik.http.routers.minio.entrypoints=web
-      - traefik.http.routers.minio.rule=Host(`${MINIO_DOMAIN:-s3.dev.test}`)
-      - traefik.http.services.minio_https.loadbalancer.server.port=9000
-      - traefik.http.routers.minio_https.rule=Host(`${MINIO_DOMAIN:-s3.dev.test}`)
-      - traefik.http.routers.minio_https.tls=true
-      - traefik.http.routers.minio_https.entrypoints=web-secure
-      - traefik.http.middlewares.minio_https.redirectscheme.scheme=https
-      - traefik.http.routers.minio.middlewares=op_https
+      - traefik.http.routers.${NAME_PREFIX:-}s3.entrypoints=web
+      - traefik.http.routers.${NAME_PREFIX:-}s3.rule=Host(`${LOCAL_S3_DOMAIN:-s3.dev.test}`)
+      - traefik.http.services.${NAME_PREFIX:-}s3_https.loadbalancer.server.port=${S3_PORT:-9000}
+      - traefik.http.routers.${NAME_PREFIX:-}s3_https.rule=Host(`${LOCAL_S3_DOMAIN:-s3.dev.test}`)
+      - traefik.http.routers.${NAME_PREFIX:-}s3_https.tls=true
+      - traefik.http.routers.${NAME_PREFIX:-}s3_https.entrypoints=web-secure
+      - traefik.http.middlewares.${NAME_PREFIX:-}s3_https.redirectscheme.scheme=https
+      - traefik.http.routers.${NAME_PREFIX:-}s3.middlewares=${TRAEFIK_ROUTER_NAME:-op}_https
 
 volumes:
-  bundle_bookworm:
-  node_modules_bookworm:
-  rails_cache_bookworm:
+  bundle_trixie:
+  node_modules_trixie:
+  rails_cache_trixie:
   dbdata:
   dbdata_pg13:
   dbdata_pg16:

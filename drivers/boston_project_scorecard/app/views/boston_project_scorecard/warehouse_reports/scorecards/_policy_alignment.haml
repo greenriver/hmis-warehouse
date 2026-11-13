@@ -11,34 +11,34 @@
       %th Score
   %tbody
     %tr
-      %th.bg-info.align-middle.text-center{rowspan: 4} Alignment with HUD and  Boston CoC system-wide policy priorities
-      %td 16. Type of housing project proposal; RRH, PSH, Joint TH-RRH
+      %th.bg-info.align-middle.text-center{rowspan: 7} Alignment with HUD and  Boston CoC system-wide policy priorities
+      %td 14. Type of housing project proposal; RRH, PSH, Joint TH-RRH
       %td Project Application
       %td
         6: PSH
         %br
         3: RRH/Joint TH-RRH
-      %th.align-middle.text-center{rowspan: 4}
+      %th.align-middle.text-center{rowspan: 7}
         Weight
         #{@report.policy_alignment_weight}%
       %td= @report.project_type_value
       %td= @report.project_type_score
     %tr
-      %td 17. Serving sub-populations in line with HUD and Boston CoC priorities
+      %td 15. Serving sub-populations in line with HUD and Boston CoC priorities
       %td Project Application
       %td Up to 6 pts: 1.2 pts for each sub-population served
       %td= f.input :subpopulations_served, collection: @report.subpopulations_served_options, as: :pretty_boolean_group, multiple: true, label: 'Select all sub-populations served:'
       %td= @report.subpopulations_served_score
     %tr
       %td
-        18. Does project provide the following substance use treatment services?
+        16. Does project provide the following substance use treatment services?
       %td Project Application
       %td Up to 6 points with 2 points for each
       %td= f.input :substance_use_treatment_service, collection: @report.substance_use_treatment_service_options, as: :pretty_boolean_group, multiple: true, label: 'Select all substance use treatment services provided:'
       %td= @report.substance_use_treatment_service_score
     %tr
       %td
-        19. Project will require participants to take part in supportive services
+        17. Project will require participants to take part in supportive services
       %td
         Project Application
       %td
@@ -47,3 +47,47 @@
         0 pts: No
       %td= f.input :supportive_services, as: :pretty_boolean, label: 'Project will require participants to take part in supportive services'
       %td= @report.supportive_services_score
+    %tr
+      %td 18. Project utilization rate from current project operating year
+      %td
+        APR (quarterly average for operating year)
+        %br
+        APR Table
+        = link_to_apr('Q8b', 'Question 8')
+        %hr
+        %small
+          Average of cells B2, B3, B4, B5 / Total Number of Households Served (Q13 from the financial performance section)
+      %td
+        6 pts: 85 - over 100%
+        %br
+        3 pt: 84 - 75%
+        %br
+        0 pts: under 74%
+      %td= @report.utilization_rate_value
+      %td= @report.utilization_rate_score
+    %tr
+      %td 19a. % of "No Concern" the project recevied as a result of the most recent program self-monitoring evaluation
+      %td
+        2026 Program Monitoring Development Officer Review Sheet & CoC Program Monitoring Report
+      %td
+        3pts: 100 - 90%
+        %br
+        2pts: 89 - 85%
+        %br
+        1pt: 84 - 80%
+        %br
+        0pts: 79 - 0%
+      %td= f.input :no_concern, collection: @report.no_concern_options, as: :pretty_boolean_group, label: "Choose one:"
+      %td= @report.no_concern_score
+    %tr
+      %td 19b. For providers that participated in the 2026 process, were all requested materials submitted by the MOH deadline of 5/4/26?
+      %td
+        Program Monitoring Development Officer Confirmation
+      %td
+        3pts: All materials were submitted on time
+        %br
+        1pt: Materials were submitted but deadline was missed
+        %br
+        0pts: Materials were not submitted
+      %td= f.input :materials_concern, collection: @report.materials_concern_options, as: :pretty_boolean_group, label: "Choose one:"
+      %td= @report.materials_concern_score

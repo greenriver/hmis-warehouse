@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -7,12 +7,12 @@
 # frozen_string_literal: true
 
 # HMIS uses similar but separate permissions system from the warehouse
-# See drivers/hmis/doc/PERMISSIONS.md
+# @see docs/features/hmis/hmis-permissions.md
 
 class Hmis::AccessGroup < ApplicationRecord
   self.table_name = :hmis_access_groups
-  include RailsDrivers::Extensions
   include HmisEnabled
+  include HistoryDescriptions
 
   acts_as_paranoid
   has_paper_trail
@@ -54,6 +54,13 @@ class Hmis::AccessGroup < ApplicationRecord
       includes_entity(entity).
       pluck(:collection_id)
     where(id: collection_ids)
+  end
+
+  scope :contains_coc_code_with_inherited, ->(coc_code) do
+    project_ids = Hmis::Hud::Project.joins(:project_cocs).
+      merge(Hmis::Hud::ProjectCoc.where(CoCCode: coc_code)).
+      select(:id)
+    where(id: Hmis::ProjectAccessGroupMember.where(project_id: project_ids).pluck(:access_group_id))
   end
 
   def self.text_search(text)

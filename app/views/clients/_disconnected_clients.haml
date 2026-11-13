@@ -4,53 +4,59 @@
 .row
   .col-sm-6
     %h4 Client Split From
-    %table.table
-      %thead
-        %th Name
-        %th DOB
-        %th SSN
-        %th Split
-        %th Split By
-      - split_froms = false
-      - @client.splits_from.each do |split|
-        - if c = split.source_client
-          - split_froms = true
-          - pii = c.pii_provider(user: current_user)
+    .card
+      %table.table
+        - split_froms = @client.splits_from
+        - if split_froms.any?{ |split| split.source_client }
+          %thead
+            %th Name
+            %th DOB
+            %th SSN
+            %th Split
+            %th Split By
+          %tbody
+            - split_froms.each do |split|
+              - c = split.source_client
+              - if c
+                - pii = c.pii_provider(user: current_user)
+                %tr
+                  %td= link_to pii.full_name, edit_client_path(c)
+                  %td= pii.dob_or_age
+                  %td= pii.ssn
+                  %td= @client.warehouse_client_destination.last.reviewed_at
+                  %td
+                    - reviewer_id = @client.warehouse_client_destination.last.reviewd_by.to_i
+                    - if reviewer_id != 0 && user = User.find(reviewer_id)
+                      = user.name
+        - else
           %tr
-            %td= link_to pii.full_name, edit_client_path(c)
-            %td= pii.dob_or_age
-            %td= pii.ssn
-            %td= @client.warehouse_client_destination.last.reviewed_at
-            %td
-              - reviewer_id = @client.warehouse_client_destination.last.reviewd_by.to_i
-              - if reviewer_id != 0 && user = User.find(reviewer_id)
-                = user.name
-      - if ! split_froms
-        %tr
-          %td None.
+            %td None.
   .col-sm-6
-    %h4 Client Split To
-    %table.table
-      %thead
-        %th Name
-        %th DOB
-        %th SSN
-        %th Split
-        %th Split By
-      - split_tos = false
-      - @client.splits_to.each do |split|
-        - if c = split.destination_client
-          - split_tos = true
-          - pii = c.pii_provider(user: current_user)
+    %h4 Client Split Into
+    .card
+      %table.table
+        - split_into = @client.splits_to
+        - if split_into.any?
+          %thead
+            %th Name
+            %th DOB
+            %th SSN
+            %th Split
+            %th Split By
+          %tbody
+            - split_into.each do |split|
+              - c = split.destination_client
+              - if c
+                - pii = c.pii_provider(user: current_user)
+                %tr
+                  %td= link_to pii.full_name, edit_client_path(c)
+                  %td= pii.dob_or_age
+                  %td= pii.ssn
+                  %td= c.warehouse_client_destination.first.reviewed_at
+                  %td
+                    - reviewer_id = @client.warehouse_client_destination.last.reviewd_by.to_i
+                    - if reviewer_id != 0 && user = User.find(reviewer_id)
+                      = user.name
+        - else
           %tr
-            %td= link_to pii.full_name, edit_client_path(c)
-            %td= pii.dob_or_age
-            %td= pii.ssn
-            %td= c.warehouse_client_destination.first.reviewed_at
-            %td
-              - reviewer_id = @client.warehouse_client_destination.last.reviewd_by.to_i
-              - if reviewer_id != 0 && user = User.find(reviewer_id)
-                = user.name
-      - if ! split_tos
-        %tr
-          %td None.
+            %td None.

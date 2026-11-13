@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -15,6 +15,7 @@ module Types
     field :relationship_to_ho_h, Types::HmisSchema::Enums::Hud::RelationshipToHoH, null: false
     field :client_id, ID, null: false
     field :client_name, String, null: false, description: 'The name of the client. Returns masked name if the user does not have permission to view the client name.'
+    field :exit_date, GraphQL::Types::ISO8601Date, null: true
 
     # Access field informs whether the frontend can display a link to the Client profile for this household member.
     # Use plural "can view clients" to match the permission name resolved elsewhere in application
@@ -27,22 +28,25 @@ module Types
     end
 
     def client_name
-      client = load_ar_client_association(object)
-      if can_view_client && current_permission?(permission: :can_view_client_name, entity: client)
+      if policy.can_view_name?
         client.brief_name
       else
         client.masked_name
       end
     end
 
+    def exit_date
+      load_ar_association(object, :exit)&.exit_date
+    end
+
     def access
-      { can_view_clients: can_view_client }
+      { can_view_clients: policy.can_view? }
     end
 
     private
 
-    def can_view_client
-      current_permission?(permission: :can_view_clients, entity: client)
+    def policy
+      @policy ||= policy_for(client, policy_type: :hmis_client)
     end
 
     def client

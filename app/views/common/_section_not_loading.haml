@@ -6,5 +6,6 @@
     %code= CGI.parse(path_to_section)
 
 = content_for :page_js do
-  :javascript
-    new App.Rollups.Checker('#{path_to_section.html_safe}', #{checktime})
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      new App.Rollups.Checker('#{path_to_section.html_safe}', #{checktime})

@@ -1,2 +1,3 @@
-:javascript
-  window.location.href = #{@redirect.to_json.html_safe}
+%script{ nonce: content_security_policy_nonce }
+  :plain
+    window.location.href = #{@redirect.to_json.html_safe}

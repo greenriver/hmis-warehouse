@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -20,7 +20,16 @@ module Types
           **override_options,
           &block
         )
-          default_field_options = { type: type, null: false, description: description }
+          default_field_options = {
+            type: type,
+            null: false,
+            description: description,
+            after_paginate: ->(nodes, ctx) {
+              # Preload project dependencies to avoid N+1 queries when invoking HmisEnrollmentPolicy
+              # across a set of Enrollments that span multiple projects.
+              ctx[:current_user].policy_context.preload_project_dependencies(nodes.map(&:project_pk))
+            },
+          }
           field_options = default_field_options.merge(override_options)
           field(name, **field_options) do
             argument :sort_order, HmisSchema::EnrollmentSortOption, required: false

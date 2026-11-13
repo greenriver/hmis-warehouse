@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -7,6 +7,19 @@
 # frozen_string_literal: true
 
 module HmisExternalApis::AcHmis
+  # Calculates an alternate AHA (Alt-AHA) score from Housing Needs Assessment responses. The user
+  # initiates this calculation via the CalculateAltAhaScore which is exposed on the Housing Needs Assessment form.
+  #
+  # Customer-specific documentation:
+  #   https://docs.google.com/document/d/1Gcz9-t_utRcqGV9xCzQvTehjQOCqqPv_5-JY_IhhL4Q/edit?tab=t.0#heading=h.sgvee3a7ds1h
+  #
+  # How scoring works:
+  # The Alt-AHA score is built from three hard-coded component algorithms (alt_aha_1, alt_aha_2, and alt_aha_3).
+  # Each component converts weighted assessment responses into a probability, then into 0–5 points.
+  # Points from all three are summed and mapped to a final 0–10 Alt-AHA score.
+  #
+  # Per-question weights and match criteria are stored as Hmis::Scoring::Rule records (see that model),
+  # keyed by form definition identifier, algorithm name, and assessment link_id.
   class AltAhaCalculator
     ALT_AHA_NAMESPACE = 'alt_aha'
     CLIENT_AGE_LINK_ID = 'client_demographics_age'
@@ -26,7 +39,7 @@ module HmisExternalApis::AcHmis
       # Cache all scoring rules
       @all_rules = Hmis::Scoring::Rule.
         for_form(@form_definition_identifier).
-        where(algorithm: ['alt_aha_1', 'alt_aha_2', 'alt_aha_3'])
+        where(model_version: 1, algorithm: ['alt_aha_1', 'alt_aha_2', 'alt_aha_3'])
     end
 
     def calculate_score

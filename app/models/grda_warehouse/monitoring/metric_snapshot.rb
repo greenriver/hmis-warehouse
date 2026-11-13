@@ -1,12 +1,12 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 # frozen_string_literal: true
 
-# @see docs/features/metric-tracking.md
+# @see docs/features/warehouse/metric-tracking.md
 module GrdaWarehouse::Monitoring
   class MetricSnapshot < GrdaWarehouseBase
     self.table_name = 'metric_snapshots'

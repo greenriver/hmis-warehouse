@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -8,7 +8,7 @@
 
 # Calculator-like component for extracting row counts from import summaries.
 # Not a BaseCalculator subclass - uses import logs instead of warehouse tables.
-# @see docs/features/import-csv-monitoring.md
+# @see docs/features/warehouse/import-csv-monitoring.md
 module GrdaWarehouse::Monitoring
   class CsvRowCountCalculator
     # @param importer_log [HmisCsvImporter::Importer::ImporterLog]

@@ -1,10 +1,10 @@
-# frozen_string_literal: true
-
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 # Per-field comprehensive coverage for `client { access { ... } }`,
 # testing each access field based on the raw permissions the user must have.
@@ -53,8 +53,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     ['canViewEnrollmentDetails', 'can_view_enrollment_details'],
     ['canDeleteClient', 'can_delete_clients'],
     ['canEditClient', 'can_edit_clients'],
-    ['canManageAnyClientFiles', 'can_manage_any_client_files'],
-    ['canManageOwnClientFiles', 'can_manage_own_client_files'],
     ['canAuditClients', 'can_audit_clients'],
     ['canManageScanCards', 'can_manage_scan_cards'],
     ['canViewClientAlerts', 'can_view_client_alerts'],
@@ -62,7 +60,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     ['canPrintClientCaseNotes', 'can_print_client_case_notes'],
     ['canViewClientEligibleOpportunities', 'can_view_client_eligible_opportunities'],
     ['canUploadClientFiles', ['can_manage_any_client_files', 'can_manage_own_client_files']],
-    ['canViewAnyFiles', ['can_manage_own_client_files', 'can_view_any_nonconfidential_client_files', 'can_view_any_confidential_client_files']],
+    ['canIndexFiles', ['can_manage_own_client_files', 'can_view_any_nonconfidential_client_files', 'can_view_any_confidential_client_files']],
   ].freeze
 
   describe 'client { access }' do

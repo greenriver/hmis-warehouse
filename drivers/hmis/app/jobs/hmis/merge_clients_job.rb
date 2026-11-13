@@ -1,12 +1,12 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 # frozen_string_literal: true
 
-# See docs/features/hmis_client_merges.md
+# See docs/features/hmis/hmis-client-merges.md
 
 module Hmis
   class MergeClientsJob < BaseJob
@@ -22,7 +22,7 @@ module Hmis
 
       self.actor = User.find(actor_id)
       self.clients = Hmis::Hud::Client.
-        preload(:names, :contact_points, :addresses, :custom_data_elements).
+        preload(:names, :contact_points, :addresses, :custom_data_elements, :restricted_record).
         find(client_ids).
         map do |client|
           # set some defaults
@@ -47,6 +47,7 @@ module Hmis
         merge_and_find_primary_name
         merge_custom_data_elements
         update_client_id_foreign_keys
+        carry_warehouse_restriction
         delete_warehouse_clients
         update_personal_id_foreign_keys
         merge_mci_ids
@@ -131,6 +132,7 @@ module Hmis
       Rails.logger.info "Saving merged values to client #{client_to_retain.id}"
 
       client_to_retain.attributes = merged_attributes
+      client_to_retain.mark_as_restricted!(user: actor) if clients.any?(&:restricted?) && !client_to_retain.restricted?
       client_to_retain.save!(validate: false)
     end
 
@@ -247,6 +249,7 @@ module Hmis
       candidates = [
         [Hmis::File, 'files'],
         [Hmis::Ce::Referral, 'ce_referrals'],
+        [Hmis::ClientAlert, 'client_alerts'],
       ]
 
       Rails.logger.info "Updating #{candidates.length} tables with foreign keys to merged clients (client_id)"
@@ -337,6 +340,41 @@ module Hmis
       build_and_update_merge_mappings(key: 'client_locations', scope: location_scope, attributes: 'client_id')
 
       location_scope.update_all(client_id: client_to_retain.id)
+    end
+
+    # A warehouse restriction is a row on a destination id. Deleting the merged clients' links
+    # would otherwise leave this person under an unrestricted destination. Runs before
+    # delete_warehouse_clients, which leaves some merged destinations without sources.
+    def carry_warehouse_restriction
+      merged_ids = clients_needing_reference_updates.map(&:id)
+      merged_destination_ids = ::GrdaWarehouse::WarehouseClient.where(source_id: merged_ids, deleted_at: nil).pluck(:destination_id)
+      restricted_destination_ids = Hmis::RestrictedRecord.for_clients.where(restrictable_id: merged_destination_ids).pluck(:restrictable_id)
+      return if restricted_destination_ids.empty?
+
+      DestinationClientRestriction.new(::GrdaWarehouse::Hud::Client.find(retained_destination_id!)).restrict!(user: actor)
+
+      kept_destination_ids = ::GrdaWarehouse::WarehouseClient.
+        where(destination_id: restricted_destination_ids, deleted_at: nil).
+        where.not(source_id: merged_ids).
+        pluck(:destination_id)
+      (restricted_destination_ids - kept_destination_ids).each do |destination_id|
+        DestinationClientRestriction.unrestrict_merged_away!(destination_id, user: actor)
+      end
+    end
+
+    # A client created moments before the merge may not be linked yet, since linking runs in
+    # a background job after creation.
+    # Known gap: ensure_source_client_linked! waits only PER_CLIENT_LOCK_TIMEOUT_SECONDS for the
+    # identify_duplicates lock. While a full IdentifyDuplicates run holds it, the client stays
+    # unlinked, this raises, and the merge rolls back. Retrying after that run finishes succeeds.
+    # @return [Integer]
+    def retained_destination_id!
+      destination_id = -> { ::GrdaWarehouse::WarehouseClient.where(source_id: client_to_retain.id, deleted_at: nil).pick(:destination_id) }
+      found = destination_id.call
+      return found if found
+
+      ::GrdaWarehouse::Tasks::IdentifyDuplicates.new.ensure_source_client_linked!(client_to_retain.id)
+      destination_id.call || raise("Client #{client_to_retain.id} could not be linked to a warehouse destination; a merged client is restricted in the warehouse, so the merge was not performed")
     end
 
     def delete_warehouse_clients

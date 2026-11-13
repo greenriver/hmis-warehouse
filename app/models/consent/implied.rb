@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -53,6 +53,11 @@ class Consent::Implied
 
   def self.release_string_query
     GrdaWarehouse::Hud::Client.arel_table[:housing_release_status].in([full_release_string, partial_release_string])
+  end
+
+  # partial_release_string is the implied consent itself, so partial authorizations make a client visible
+  def self.visible_roi_statuses
+    [GrdaWarehouse::ClientRoiAuthorization::PARTIAL_STATUS, GrdaWarehouse::ClientRoiAuthorization::FULL_STATUS]
   end
 
   def release_current_status

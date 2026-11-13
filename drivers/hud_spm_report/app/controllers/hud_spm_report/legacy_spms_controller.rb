@@ -1,20 +1,16 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 # frozen_string_literal: true
 
-###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
-#
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
-###
-
 module HudSpmReport
   class LegacySpmsController < BaseController
-    before_action :require_can_view_hud_reports!
+    def related_report
+      GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: GrdaWarehouse::WarehouseReports::ReportDefinition.hud_url(:spms))
+    end
 
     LEGACY_REPORT_TYPES = [
       'Reports::SystemPerformance::Fy2019::MeasureOne',
@@ -46,7 +42,7 @@ module HudSpmReport
     end
 
     private def report_results(report_id)
-      report_result_source.viewable_by(current_user).
+      report_result_source.runs_visible_to(current_user).
         joins(:user).
         where(report_id: report_id)
     end

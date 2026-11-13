@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -7,17 +7,32 @@
 # frozen_string_literal: true
 
 class Hmis::BaseController < ActionController::Base
-  include BaseApplicationControllerBehavior
+  include HmisBaseApplicationControllerBehavior
   include LogRagePayloadBehavior
+  include ControllerCacheBehavior
 
   before_action :authenticate_hmis_user!
-  impersonates :hmis_user, with: ->(id) { Hmis::User.find_by(id: id) }
+
+  # AUTH_METHOD seam: under JWT, current_hmis_user / authenticate_hmis_user! / true_hmis_user / the
+  # impersonation write-side / session_duration_seconds are provided by
+  # Hmis::Concerns::JwtHmisCurrentUser (off a validated forwarded JWT); under Devise they come from
+  # the pretender macro + the devise :hmis_user scope + Hmis::Concerns::DeviseHmisCurrentUser.
+  # The before_action :authenticate_hmis_user! (above) and the set_anti_caching_headers
+  # hmis_user_signed_in? guard (below) are satisfied either way.
+  if AuthMethod.jwt?
+    include Hmis::Concerns::JwtHmisCurrentUser
+  else
+    impersonates :hmis_user, with: ->(id) { Hmis::User.find_by(id: id) }
+    include Hmis::Concerns::DeviseHmisCurrentUser
+  end
 
   include Hmis::Concerns::JsonErrors
+  include Hmis::Concerns::RequestDataSource
   respond_to :json
   before_action :set_csrf_cookie
   before_action :set_app_user_header
   before_action :set_git_revision_header
+  before_action :set_anti_caching_headers, if: :hmis_user_signed_in?
 
   private def set_csrf_cookie
     cookies['CSRF-Token'] = form_authenticity_token
@@ -30,30 +45,30 @@ class Hmis::BaseController < ActionController::Base
     render_json_error(401, :unverified_request)
   end
 
-  # HMIS domain for this request; used to resolve the data source (DataSource.hmis).
-  # @see docs/architecture/multi-hmis-support.md
-  def current_hmis_host
-    # In development, use untrusted header X-Hmis-Dev-Host.
-    # Trusted header 'request.host' cannot be used because the dev server setup makes it appear to come from the backend host.
-    return request.headers['X-Hmis-Dev-Host'].presence || raise('X-Hmis-Dev-Host header required in development') if Rails.env.development?
-
-    # Trust Rack/Rails host resolution (respects trusted proxies and allowed hosts)
-    return request.host if request.host.present?
-
-    raise 'cannot determine HMIS host'
-  end
-
-  def current_data_source
-    data_source = GrdaWarehouse::DataSource.hmis.find_by(hmis: current_hmis_host)
-    raise "HMIS data source not configured: #{current_hmis_host}" unless data_source.present?
-
-    data_source
-  end
-
-  # Binds the current request to an HMIS data source using the request host
-  # @see docs/architecture/multi-hmis-support.md
+  # Binds the current request to an HMIS data source using the request host, then refuses the
+  # request if the signed-in person may not use that HMIS.
+  # @see docs/features/hmis/multi-hmis-support.md
   def attach_data_source_id
-    current_hmis_user.hmis_data_source_id = current_data_source.id
+    data_source = current_data_source
+    current_hmis_user.hmis_data_source_id = data_source.id
+    true_hmis_user.hmis_data_source_id = data_source.id if true_hmis_user.present?
+
+    error = hmis_access_error
+    # 403, not 401: signing in again cannot grant access, and a 401 sends the SPA to a sign-in screen.
+    render_json_error(403, error) if error
+  end
+
+  # Checks the real person (true_hmis_user), so an admin impersonating a blocked user is not
+  # locked out of the impersonation they are using to test.
+  def hmis_access_error
+    (true_hmis_user || current_hmis_user)&.hmis_access_error_for(current_data_source)
+  end
+
+  # Terminal state for the SPA bootstrap:
+  # Checks the auth arm's account-level state first,
+  # then the per-data-source check for a signed-in user.
+  def bootstrap_account_error
+    terminal_account_error || (current_hmis_user && hmis_access_error)
   end
 
   # PaperTrail whodunnit (set in ApplicationController) uses this method to determine the label to be stored
@@ -75,6 +90,10 @@ class Hmis::BaseController < ActionController::Base
 
   def set_app_user_header
     response.headers['X-app-user-id'] = current_hmis_user&.id
+    # The SPA re-anchors its inactivity countdown on this, since any request can refresh the token.
+    # Absent on the Devise arm, whose countdown rolls forward from X-app-user-id alone.
+    remaining_secs = session_remaining_seconds
+    response.headers['X-app-session-remaining-secs'] = remaining_secs.to_s if remaining_secs
   end
 
   def set_git_revision_header
@@ -83,6 +102,13 @@ class Hmis::BaseController < ActionController::Base
 
   def impersonating?
     true_hmis_user != current_hmis_user
+  end
+
+  # Shared shape for any endpoint that reports the signed-in HMIS user (user.json, impersonations).
+  def current_user_payload
+    payload = current_hmis_user&.current_user_api_values(session_duration: session_duration_seconds) || {}
+    payload[:impersonating] = impersonating?
+    payload
   end
 
   # for mixins

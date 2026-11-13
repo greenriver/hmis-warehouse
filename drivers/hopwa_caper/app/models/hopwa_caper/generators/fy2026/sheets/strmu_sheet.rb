@@ -1,10 +1,10 @@
-# frozen_string_literal: true
-
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 module HopwaCaper::Generators::Fy2026::Sheets
   class StrmuSheet < BaseProgramSheet
@@ -108,7 +108,7 @@ module HopwaCaper::Generators::Fy2026::Sheets
       service_type_filters.all.each do |filter|
         sheet.append_row(label: "STRMU #{filter.label}") do |row|
           services = filter.apply(relevant_services)
-          value = services.sum(&:fa_amount)
+          value = services.sum { |service| service.fa_amount || 0 }
           total_expenditures += value
           row.append_cell_members(value: value, members: services.as_report_members)
         end

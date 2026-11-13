@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -112,6 +112,17 @@ FactoryBot.define do
     source_type { :sftp }
   end
 
+  factory :importer_fix_incorrect_personal_ids_ds, class: 'GrdaWarehouse::DataSource' do
+    name { 'Fix Incorrect Personal IDs' }
+    short_name { 'Personal IDs' }
+    source_type { :sftp }
+    import_cleanups do
+      {
+        'Enrollment': ['HmisCsvImporter::PostIngestCleanup::FixIncorrectPersonalIdReferences'],
+      }
+    end
+  end
+
   factory :fix_blank_household_ids, class: 'GrdaWarehouse::DataSource' do
     name { 'Fix blank household ids' }
     short_name { 'Household IDs' }
@@ -120,6 +131,47 @@ FactoryBot.define do
       {
         'HouseholdID': ['HmisCsvImporter::HmisCsvCleanup::FixBlankHouseholdIds'],
       }
+    end
+  end
+
+  factory :fix_missing_total_monthly_income, class: 'GrdaWarehouse::DataSource' do
+    name { 'Fix missing total monthly income' }
+    short_name { 'Total Income' }
+    source_type { :sftp }
+    import_cleanups do
+      {
+        'IncomeBenefit': ['HmisCsvImporter::HmisCsvCleanup::FixMissingTotalMonthlyIncome'],
+      }
+    end
+  end
+
+  factory :make_sole_member_hoh, class: 'GrdaWarehouse::DataSource' do
+    name { 'Make sole member HoH' }
+    short_name { 'Sole HoH' }
+    source_type { :sftp }
+    import_cleanups do
+      {
+        'Enrollment': ['HmisCsvImporter::HmisCsvCleanup::MakeSoleMemberHoh'],
+      }
+    end
+  end
+
+  factory :remap_hud_keys_ds, class: 'GrdaWarehouse::DataSource' do
+    name { 'Remap HUD Keys' }
+    short_name { 'Remap Keys' }
+    source_type { :sftp }
+    source_id { 'TEST-SRC' }
+    pre_process_hooks do
+      { 'HmisCsvImporter::Loader::HudKeyRemapper' => true }
+    end
+  end
+
+  factory :strip_unlinked_records_ds, class: 'GrdaWarehouse::DataSource' do
+    name { 'Strip Unlinked Records' }
+    short_name { 'Strip Unlinked' }
+    source_type { :sftp }
+    pre_process_hooks do
+      { 'HmisCsvImporter::Loader::UnlinkedRecordFilter' => true }
     end
   end
 end

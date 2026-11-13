@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -7,7 +7,7 @@
 # frozen_string_literal: true
 
 # generic key value store for db-managed config
-# @see docs/features/app-config-property.md
+# @see docs/features/warehouse/app-config-property.md
 class AppConfigProperty < ApplicationRecord
   before_validation :strip_whitespace
 

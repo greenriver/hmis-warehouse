@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -40,16 +40,7 @@ import_prefetch_schedule = (Time.parse(import_schedule) - 4.hours).strftime('%I:
 monthly_schedule = (Time.parse(import_schedule) - 5.hours).strftime('%I:%M %P')
 import_cleanup_time = Time.parse(import_schedule) + 9.hours
 
-health_trigger = ENV['HEALTH_SFTP_HOST'].to_s != '' && ENV['HEALTH_SFTP_HOST'] != 'hostname' && ENV['RAILS_ENV'] == 'production'
-
 tasks = [
-  # temporary task to move files to S3 and ActiveStorage
-  {
-    task: 'storage:move_to_s3',
-    frequency: 1.day,
-    at: '5:00pm',
-    interruptable: true,
-  },
   {
     task: 'grda_warehouse:daily',
     frequency: 1.day,
@@ -83,12 +74,6 @@ tasks = [
     task: 'reporting:frequent',
     frequency: 5.minutes,
     interruptable: false,
-  },
-  {
-    task: 'jobs:arbitrate_workoff',
-    frequency: 2.minutes,
-    trigger: ENV['ECS'] == 'true',
-    interruptable: true,
   },
   # {
   #   task: 'grda_warehouse:save_service_history_snapshots',
@@ -142,20 +127,6 @@ tasks = [
     interruptable: false,
   },
   {
-    task: 'health:daily',
-    frequency: 1.day,
-    at: '11:03 am',
-    trigger: health_trigger,
-    interruptable: false,
-  },
-  {
-    task: 'health:enrollments_and_eligibility',
-    frequency: 1.day,
-    at: '6:01 am',
-    trigger: health_trigger,
-    interruptable: false,
-  },
-  {
     task: 'driver:medicaid_hmis_interchange:medicaid_hmis_transfer',
     frequency: :sunday,
     at: '5:01am',
@@ -174,11 +145,12 @@ tasks = [
     at: '11:00am',
     interruptable: true,
   },
+  # on-demand capacity: a pg_repack killed partway leaves its table copies behind, holding disk
   {
     task: 'dba:unbloat',
     frequency: :sunday,
     at: '2:00 am',
-    interruptable: true,
+    interruptable: false,
   },
   {
     task: 'driver:hmis_csv_importer:cleanup:expire_and_delete',
@@ -186,24 +158,76 @@ tasks = [
     at: import_cleanup_time,
     interruptable: false,
   },
-  # Archive and purge SimpleReports and HUD Reports
-  # Once both are enabled on production, we can remove the individual tasks and use the archive_and_purge_eligible task instead.
   {
-    task: 'reports:csv:archive_and_purge_simple_reports',
+    task: 'reports:csv:archive_and_purge_eligible',
     frequency: 1.day,
     at: '2:00 am',
     interruptable: true,
   },
   {
-    task: 'reports:csv:archive_and_purge_hud_reports',
+    task: 'grda_warehouse:collect_client_metrics',
     frequency: 1.day,
-    at: '3:00 am',
-    trigger: ENV['RAILS_ENV'] != 'production',
-    interruptable: true,
+    at: '2:15 am',
+    interruptable: false,
+  },
+  {
+    task: 'grda_warehouse:maintain_cohort_intermediate_data',
+    frequency: 1.day,
+    at: '2:45 am',
+    interruptable: false,
+  },
+  {
+    task: 'driver:hmis_supplemental:import',
+    frequency: 1.day,
+    at: '4:15 am',
+    interruptable: false,
+  },
+  {
+    task: 'driver:hmis:auto_exit',
+    frequency: 1.day,
+    at: '5:10 am',
+    interruptable: false,
+  },
+  {
+    task: 'grda_warehouse:purge_soft_deleted_records',
+    frequency: 1.day,
+    at: '5:20 am',
+    interruptable: false,
+  },
+  {
+    task: 'driver:hmis_csv_importer:cleanup:remove_expired_import_overrides',
+    frequency: 1.day,
+    at: '5:05 pm',
+    interruptable: false,
+  },
+  {
+    task: 'driver:hmis_external_apis:export:ac_clients',
+    frequency: 1.day,
+    at: '8:10 pm',
+    interruptable: false,
+  },
+  {
+    task: 'grda_warehouse:generate_client_roi_authorizations',
+    frequency: 1.day,
+    at: '8:20 pm',
+    interruptable: false,
+  },
+  {
+    task: 'driver:hmis:ce_candidate_pool_builder',
+    frequency: 1.day,
+    at: '11:15 pm',
+    interruptable: false,
+  },
+  # HMIS simulation — only runs on servers where ENABLE_HMIS_SIMULATION=true (for demo) or any staging environment
+  {
+    task: 'driver:hmis_simulation:run_all',
+    frequency: 1.day,
+    at: '4:30 am',
+    trigger: ENV['ENABLE_HMIS_SIMULATION'] == 'true' || ENV['RAILS_ENV'] == 'staging',
+    interruptable: false,
   },
 ]
 
-job_type :rake_short, 'cd :path && :environment_variable=:environment bundle exec rake :task --silent #capacity_provider:short-term'
 job_type :rake_eks, 'bundle exec rake :task --silent ##interruptable=:interruptable##'
 
 tasks.each do |task|
@@ -212,14 +236,6 @@ tasks.each do |task|
   options = {}
   options[:at] = task[:at] if task[:at].present?
   every task[:frequency], options do
-    if ENV['EKS'] == 'true'
-      rake_eks task[:task], interruptable: task[:interruptable].to_s
-    elsif ENV['ECS'] == 'true' && task[:interruptable]
-      rake_short task[:task]
-    else
-      # For the time being, move all cron tasks to the "short-term" capacity provider
-      rake_short task[:task]
-      # rake task[:task]
-    end
+    rake_eks task[:task], interruptable: task[:interruptable].to_s
   end
 end

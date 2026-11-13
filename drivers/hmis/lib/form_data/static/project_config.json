@@ -8,9 +8,19 @@
       "mapping": {
         "field_name": "configType"
       },
-      "helper_text": "Select the configuration to enable",
+      "helper_text": "Select the type of configuration to create. Config type cannot be changed once set.",
       "component": "DROPDOWN",
-      "required": true
+      "required": true,
+      "disabled_display": "PROTECTED_WITH_VALUE",
+      "enable_behavior": "ALL",
+      "enable_when": [
+        {
+          "local_constant": "$projectConfigId",
+          "operator": "EXISTS",
+          "answer_boolean": false,
+          "_comment": "Only enable this question when creating a new project config"
+        }
+      ]
     },
     {
       "type": "CHOICE",
@@ -76,6 +86,31 @@
           "question": "configType",
           "operator": "EQUAL",
           "answer_code": "COORDINATED_ENTRY"
+        }
+      ]
+    },
+    {
+      "link_id": "receivesDirectReferralsFrom",
+      "required": false,
+      "type": "CHOICE",
+      "repeats": true,
+      "text": "Receives direct referrals from",
+      "helper_text": "(Optional) Limit which projects can send direct referrals to this project. Leave blank to accept direct referrals from all sending projects.",
+      "pick_list_reference": "PROJECTS_SENDING_DIRECT_CE_REFERRALS",
+      "mapping": {
+        "field_name": "receivesDirectReferralsFrom"
+      },
+      "enable_behavior": "ALL",
+      "enable_when": [
+        {
+          "question": "configType",
+          "operator": "EQUAL",
+          "answer_code": "COORDINATED_ENTRY"
+        },
+        {
+          "question": "receivesDirectReferrals",
+          "operator": "EQUAL",
+          "answer_boolean": true
         }
       ]
     },

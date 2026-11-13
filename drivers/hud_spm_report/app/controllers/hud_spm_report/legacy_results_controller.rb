@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -10,7 +10,8 @@ module HudSpmReport
   class LegacyResultsController < BaseController
     def show
       @report = Report.find(params[:legacy_spm_id].to_i)
-      @result = ReportResult.find(params[:id].to_i)
+      # Going through @report keeps a mismatched id pair from resolving.
+      @result = @report.report_results.runs_visible_to(current_user).find(params[:id].to_i)
       respond_to do |format|
         format.html {} # render the default template
         format.csv do

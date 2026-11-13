@@ -14,53 +14,54 @@
           %div{ id: legend_id }
           %div{ id: chart_id }
         = content_for :page_js do
-          :javascript
-            var chart = bb.generate({
-              data: {
-                columns: #{data.last.to_json.html_safe},
-                type: "bar", // for ESM specify as: bar()
-                labels: {
-                  format: function(v, id, i, j) {
-                    return v + " days"
-                  },
-                  centered: true,
-                  colors: 'white',
-                },
-              },
-              legend: {
-                contents: {
-                  bindto: "##{legend_id}",
-                  template: function (title, color) {
-                    var swatch = `<svg class="chart-legend-item-swatch-prs1" viewBox="0 0 10 10" xmlns="http://www.w3.org/2000/svg"><rect width="10" height="10" fill="${color}"/></svg>`;
-                    return `<div class="chart-legend-item-prs1"><div class="swatch">${swatch}</div><div class="chart-legend-item-label-prs1">${title}</div></div>`;
+          %script{ nonce: content_security_policy_nonce }
+            :plain
+              var chart = bb.generate({
+                data: {
+                  columns: #{data.last.to_json.html_safe},
+                  type: "bar", // for ESM specify as: bar()
+                  labels: {
+                    format: function(v, id, i, j) {
+                      return v + " days"
+                    },
+                    centered: true,
+                    colors: 'white',
                   },
                 },
-              },
-              bar: {
-                width: {
-                  ratio: 0.5
+                legend: {
+                  contents: {
+                    bindto: "##{legend_id}",
+                    template: function (title, color) {
+                      var swatch = `<svg class="chart-legend-item-swatch-prs1" viewBox="0 0 10 10" xmlns="http://www.w3.org/2000/svg"><rect width="10" height="10" fill="${color}"/></svg>`;
+                      return `<div class="chart-legend-item-prs1"><div class="swatch">${swatch}</div><div class="chart-legend-item-label-prs1">${title}</div></div>`;
+                    },
+                  },
                 },
-                label: {
-                  threshold: 0,
+                bar: {
+                  width: {
+                    ratio: 0.5
+                  },
+                  label: {
+                    threshold: 0,
+                  },
+                  padding: 5
                 },
-                padding: 5
-              },
-              tooltip: {
-                format: {
-                  title: function(x) { return "#{@report.support_title(key)}" },
+                tooltip: {
+                  format: {
+                    title: function(x) { return "#{@report.support_title(key)}" },
+                  },
                 },
-              },
-              axis: {
-                rotated: true,
-                x: {
-                  show: true,
-                  tick: {
+                axis: {
+                  rotated: true,
+                  x: {
                     show: true,
-                  }
+                    tick: {
+                      show: true,
+                    }
+                  },
                 },
-              },
-              bindto: "##{chart_id}"
-            });
+                bindto: "##{chart_id}"
+              });
 
 
         - data.last.each do |label, count|

@@ -1,16 +1,17 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 # frozen_string_literal: true
 
-class AccessControlsController < ApplicationController
+class AccessControlsController < ApplicationControllerV2
   include ViewableEntities
   include ArelHelper
   include AjaxModalRails::Controller
 
+  authorize_with { current_user.can_edit_users? }
   before_action :set_access_control, only: [:show]
 
   def show

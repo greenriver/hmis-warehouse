@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -39,6 +39,7 @@ module WarehouseReports
       @enrollments = scope
       # go back for the re-entries for those we actually have permission to see
       @re_entries = reporting_class.re_entry.where(enrollment_id: @enrollments.pluck(:id)).index_by(&:enrollment_id)
+      current_user.policy_context.preload_client_dependencies(@enrollments.map(&:client_id))
 
       @filter.errors.add(:project_type_codes, message: 'are required') if @filter.project_type_codes.blank?
       respond_to do |format|
@@ -83,8 +84,9 @@ module WarehouseReports
         client = enrollment.client
         re_entry = @re_entries[enrollment.id]
         project = enrollment.project
+        pii = client.project_pii_provider(project: project, user: current_user, mode: :download)
         row = [client.id]
-        row += [client.FirstName, client.LastName] if ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
+        row += [pii.first_name, pii.last_name] if ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
         row += [
           HudHelper.util.no_yes_reasons_for_missing_data(client.VeteranStatus),
           enrollment.first_date_in_program,

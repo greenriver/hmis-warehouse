@@ -1,0 +1,116 @@
+{
+  "item": [
+    {
+      "_comment": "override that does not collect move-in address, but does collect location field",
+      "link_id": "q_3_20",
+      "type": "DATE",
+      "text": "Move-in Date",
+      "mapping": {
+        "record_type": "ENROLLMENT",
+        "field_name": "moveInDate"
+      },
+      "bounds": [
+        {
+          "id": "min-date",
+          "type": "MIN",
+          "value_local_constant": "$entryDate"
+        },
+        {
+          "id": "max-date",
+          "type": "MAX",
+          "value_local_constant": "$exitDate"
+        },
+        {
+          "id": "max-future-date",
+          "type": "MAX",
+          "value_local_constant": "$today",
+          "offset": 7
+        }
+      ]
+    },
+    {
+      "type": "CHOICE",
+      "link_id": "locationofhousingmove",
+      "text": "Location of Housing Move-In",
+      "required": true,
+      "warn_if_empty": false,
+      "mapping": {
+        "record_type": "ENROLLMENT",
+        "custom_field_key": "mar_locationofhousingmove"
+      },
+      "enable_when": [
+        {
+          "question": "q_3_20",
+          "operator": "EXISTS",
+          "answer_boolean": true
+        }
+      ],
+      "enable_behavior": "ALL",
+      "pick_list_options": [
+        {
+          "code": "Avondale"
+        },
+        {
+          "code": "Buckeye"
+        },
+        {
+          "code": "Chandler"
+        },
+        {
+          "code": "Fountain Hills"
+        },
+        {
+          "code": "Gilbert"
+        },
+        {
+          "code": "Glendale"
+        },
+        {
+          "code": "Goodyear"
+        },
+        {
+          "code": "Mesa"
+        },
+        {
+          "code": "Peoria"
+        },
+        {
+          "code": "Phoenix"
+        },
+        {
+          "code": "Scottsdale"
+        },
+        {
+          "code": "Surprise"
+        },
+        {
+          "code": "Tempe"
+        },
+        {
+          "code": "Tolleson"
+        },
+        {
+          "code": "Tonopah"
+        },
+        {
+          "code": "Other city in Maricopa County"
+        },
+        {
+          "code": "Outside Maricopa County but inside Arizona"
+        },
+        {
+          "code": "Outside Arizona"
+        },
+        {
+          "code": "Client Doesn't Know"
+        },
+        {
+          "code": "Client Refused"
+        },
+        {
+          "code": "Data Not Collected"
+        }
+      ]
+    }
+  ]
+}

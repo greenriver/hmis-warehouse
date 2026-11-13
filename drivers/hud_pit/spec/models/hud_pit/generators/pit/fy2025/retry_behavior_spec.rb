@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -94,6 +94,32 @@ RSpec.describe 'HUD PIT FY2025 retry behavior', type: :model do
       expect { run_job_for(report) }.to raise_error(Reporting::Hud::RunReportJob::NonIdempotentRetryError) do |error|
         expect(error.message).to eq(report.error_details)
       end
+    end
+  end
+
+  describe 'interrupted mid-run' do
+    before do
+      allow_any_instance_of(generator_class).to receive(:prepare_report).and_wrap_original do |original|
+        original.call
+        raise ApplicationJob::JobInterrupted, 'Job interrupted by SIGTERM'
+      end
+    end
+
+    it 'fails the report and discards the job when the generator cannot resume' do
+      report = create_and_queue_report([project.id])
+
+      expect { run_job_for(report) }.not_to raise_error
+      expect(report.state).to eq('Failed')
+      expect(report.error_details).to match(/Interrupted by a worker restart/)
+    end
+
+    it 'leaves the report started for the requeued run when the generator can resume' do
+      allow(generator_class).to receive(:supports_idempotent_retry?).and_return(true)
+      report = create_and_queue_report([project.id])
+
+      expect { run_job_for(report) }.to raise_error(ApplicationJob::JobInterrupted)
+      expect(report.reload.state).to eq('Started')
+      expect(report.error_details).to be_nil
     end
   end
 end

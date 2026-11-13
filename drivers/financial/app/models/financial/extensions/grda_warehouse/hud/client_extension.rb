@@ -1,0 +1,19 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+# frozen_string_literal: true
+
+module Financial::GrdaWarehouse::Hud
+  module ClientExtension
+    extend ActiveSupport::Concern
+    include ArelHelper
+
+    included do
+      has_many :financial_clients, class_name: 'Financial::Client', inverse_of: :client
+      has_many :transactions, through: :financial_clients
+    end
+  end
+end

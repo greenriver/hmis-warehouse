@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -64,7 +64,8 @@ module ProjectPassFail
     end
 
     def run_and_save!
-      update(started_at: Time.current)
+      # A retry clears the failure left by the previous attempt
+      update(started_at: Time.current, failed_at: nil)
       store_thresholds
       populate_projects
       populate_clients
@@ -226,8 +227,6 @@ module ProjectPassFail
     end
 
     private def run_apr(pf_project)
-      return unless RailsDrivers.loaded.include?(:hud_apr)
-
       # We need to pass the correct CoC code to the APR, if we've chosen to run for a CoC, just use that always, otherwise, pull the CoC Codes from the project
       coc_codes = filter[:coc_codes].presence || pf_project.project&.project_cocs&.map(&:effective_coc_code)
       apr_filter = ::Filters::HudFilterBase.new(

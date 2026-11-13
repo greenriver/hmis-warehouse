@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -8,6 +8,8 @@
 
 class Hmis::ProjectConfig < Hmis::HmisBase
   self.table_name = 'hmis_project_configs'
+
+  acts_as_paranoid
 
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
   belongs_to :project, optional: true, class_name: 'Hmis::Hud::Project'
@@ -37,6 +39,7 @@ class Hmis::ProjectConfig < Hmis::HmisBase
 
   validates :type, inclusion: { in: CONFIG_TYPE_FACTORIES.values }
 
+  validate :validate_config_type_stable_once_set
   validate :validate_config_options_json
   validate :validate_consistent_data_source
 
@@ -88,10 +91,6 @@ class Hmis::ProjectConfig < Hmis::HmisBase
     )
   end
 
-  scope :active, -> do
-    where(enabled: true)
-  end
-
   # Filter by GraphQL config type (eg 'AUTO_ENTER', 'AUTO_EXIT', etc.)
   scope :with_config_type, ->(config_type) do
     types = Array.wrap(config_type).map do |type|
@@ -109,7 +108,7 @@ class Hmis::ProjectConfig < Hmis::HmisBase
   end
 
   def self.detect_best_config_for_project(project)
-    configs = for_project(project).active
+    configs = for_project(project)
     return unless configs.exists?
 
     # Selects the most specific rule that applies. The specificity order is Project > Org > ProjectType, so rules that
@@ -126,6 +125,14 @@ class Hmis::ProjectConfig < Hmis::HmisBase
 
   private
 
+  def validate_config_type_stable_once_set
+    # GraphQL update ignores changes to config_type, so this is just an extra guard against other callers.
+    return unless will_save_change_to_type?
+    return if type_was.nil?
+
+    errors.add(:config_type, 'cannot be changed once set')
+  end
+
   def validate_consistent_data_source
     errors.add(:base, 'Data source must be the same as project') if project.present? && data_source != project.data_source
     errors.add(:base, 'Data source must be the same as organization') if organization.present? && data_source != organization.data_source
@@ -135,5 +142,14 @@ class Hmis::ProjectConfig < Hmis::HmisBase
     new_options = { key => value }.stringify_keys
     merged_options = options ? options.merge(new_options) : new_options
     self.config_options = merged_options.to_json
+  end
+
+  # Remove an option entirely rather than storing null for it. An absent key and a null one are
+  # equivalent to every reader, but the admin config table renders a row per key present, so a
+  # null would show up as a labeled blank.
+  def unset_config_option(key)
+    return unless options&.key?(key.to_s)
+
+    self.config_options = options.except(key.to_s).to_json
   end
 end

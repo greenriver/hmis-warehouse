@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -28,8 +28,18 @@ module HudChronicDefinition
     # Must be homeless 12 of the last 36 with 4 episodes
     def hud_chronic?(on_date: Date.current, scope: nil)
       @hud_chronic_data = {}
+      return unless disabled?(on_date: on_date, scope: scope)
 
-      return unless disabled?(on_date: on_date, client_id: id, scope: scope)
+      meets_hud_chronic_duration?(on_date: on_date, scope: scope)
+    end
+
+    # The time-homeless half of #hud_chronic? only (12 continuous months, or 4+ episodes totaling 12+ months).
+    # It does NOT check disability, so true here does not mean the client meets HUD's chronic homelessness definition.
+    # For callers that check disability for many clients at once (Reporting::RunHudChronicJob).
+    # Everyone else should call #hud_chronic?.
+    # Sets hud_chronic_data[:trigger] when true.
+    def meets_hud_chronic_duration?(on_date:, scope: nil)
+      @hud_chronic_data = {}
 
       if months_12_homeless?(on_date: on_date, scope: scope)
         @hud_chronic_data[:trigger] = 'All 12 of the last 12 months homeless'
@@ -133,18 +143,27 @@ module HudChronicDefinition
 
     # Scope must be a set of source enrollments.  If provided it is used to limit the source of the disability response
     # NOTE: providing a scope will cause an extra SQL query
-    # client_id is always expected to be a destination client ID
-    def disabled?(on_date:, client_id: id, scope: nil)
-      @disabled_clients ||= Rails.cache.fetch('chronically_disabled_clients', expires_in: 8.hours) do
-        GrdaWarehouse::Hud::Client.destination.chronically_disabled(on_date).pluck(:id).to_set
-      end
-      disabled = @disabled_clients.include?(client_id)
-      return false unless disabled
+    # Expects to be called on a destination client
+    def disabled?(on_date:, scope: nil)
+      return false unless destination_client_chronically_disabled?(on_date: on_date)
       return true if scope.nil?
 
       # at this point, the destination client is considered to have a disabling condition,
       # but we were given a scope, and need to confirm the source of the condition is within the scope
       scope.where(id: GrdaWarehouse::Hud::Client.destination.chronically_disabled(on_date).select(e_t[:id])).exists?
+    end
+
+    # Memoized per date so the chronic calculator page can ask about several dates
+    private def destination_client_chronically_disabled?(on_date:)
+      @chronically_disabled_by_date ||= {}
+      memo_key = on_date.to_date
+      return @chronically_disabled_by_date[memo_key] if @chronically_disabled_by_date.key?(memo_key)
+
+      @chronically_disabled_by_date[memo_key] = GrdaWarehouse::Hud::Client.
+        destination.
+        where(id: id).
+        chronically_disabled(on_date).
+        exists?
     end
   end
 end

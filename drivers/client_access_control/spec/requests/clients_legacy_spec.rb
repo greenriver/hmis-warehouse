@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -18,63 +18,69 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
 
   describe 'logged out' do
     it 'doesn\'t allow index' do
-      get clients_path
-      expect(response).to redirect_to(regex_for_warehouse_sign_in)
+      expect_unauthenticated_warehouse_request do
+        get clients_path
+      end
     end
 
     it 'doesn\'t allow show' do
-      get client_path(destination)
-      expect(response).to redirect_to(regex_for_warehouse_sign_in)
+      expect_unauthenticated_warehouse_request do
+        get client_path(destination)
+      end
     end
 
     it 'doesn\'t allow new' do
-      get new_client_path
-      expect(response).to redirect_to(regex_for_warehouse_sign_in)
+      expect_unauthenticated_warehouse_request do
+        get new_client_path
+      end
     end
 
     it 'doesn\'t allow create' do
-      post clients_path
-      expect(response).to redirect_to(regex_for_warehouse_sign_in)
+      expect_unauthenticated_warehouse_request do
+        post clients_path
+      end
     end
 
     it 'doesn\'t allow edit' do
-      get edit_client_path(destination)
-      expect(response).to redirect_to(regex_for_warehouse_sign_in)
+      expect_unauthenticated_warehouse_request do
+        get edit_client_path(destination)
+      end
     end
 
     it 'doesn\'t allow service_range' do
-      get service_range_client_path(destination)
-      expect(response).to redirect_to(regex_for_warehouse_sign_in)
+      expect_unauthenticated_warehouse_request do
+        get service_range_client_path(destination)
+      end
     end
 
     it 'doesn\'t allow rollup' do
-      get rollup_client_path(destination, partial: :residential_enrollments)
-      expect(response).to redirect_to(regex_for_warehouse_sign_in)
+      expect_unauthenticated_warehouse_request do
+        get rollup_client_path(destination, partial: :residential_enrollments)
+      end
     end
 
     it 'doesn\'t allow assessment' do
-      get assessment_client_path(destination)
-      expect(response).to redirect_to(regex_for_warehouse_sign_in)
+      expect_unauthenticated_warehouse_request do
+        get assessment_client_path(destination)
+      end
     end
 
     it 'doesn\'t allow image' do
-      get image_client_path(destination)
-      expect(response).to redirect_to(regex_for_warehouse_sign_in)
-    end
-
-    it 'doesn\'t allow chronic_days' do
-      get chronic_days_client_path(destination)
-      expect(response).to redirect_to(regex_for_warehouse_sign_in)
+      expect_unauthenticated_warehouse_request do
+        get image_client_path(destination)
+      end
     end
 
     it 'doesn\'t allow merge' do
-      patch merge_client_path(destination)
-      expect(response).to redirect_to(regex_for_warehouse_sign_in)
+      expect_unauthenticated_warehouse_request do
+        patch merge_client_path(destination)
+      end
     end
 
     it 'doesn\'t allow unmerge' do
-      patch unmerge_client_path(destination)
-      expect(response).to redirect_to(regex_for_warehouse_sign_in)
+      expect_unauthenticated_warehouse_request do
+        patch unmerge_client_path(destination)
+      end
     end
   end
 
@@ -134,12 +140,6 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
     it 'doesn\'t allow image' do
       sign_in user
       get image_client_path(destination)
-      expect(response).to redirect_to(user.my_root_path)
-    end
-
-    it 'doesn\'t allow chronic_days' do
-      sign_in user
-      get chronic_days_client_path(destination, format: :json)
       expect(response).to redirect_to(user.my_root_path)
     end
 
@@ -217,13 +217,6 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
       sign_in user
       get image_client_path(destination)
       expect(response).to redirect_to(user.my_root_path)
-    end
-
-    it 'doesn\'t allow chronic_days' do
-      sign_in user
-      get chronic_days_client_path(destination, format: :json)
-      follow_redirect!
-      expect(response.body).to include('Sorry you are not authorized to do that.')
     end
 
     it 'doesn\'t allow merge' do
@@ -307,12 +300,6 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
       expect(response).to have_http_status(403)
     end
 
-    it 'allows chronic_days' do
-      sign_in user
-      get chronic_days_client_path(destination, format: :json)
-      expect(response).to have_http_status(200)
-    end
-
     it 'doesn\'t allow merge' do
       sign_in user
       patch merge_client_path(destination)
@@ -394,12 +381,6 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
       expect(response).to have_http_status(403)
     end
 
-    it 'allows chronic_days' do
-      sign_in user
-      get chronic_days_client_path(destination, format: :json)
-      expect(response).to have_http_status(200)
-    end
-
     it 'allow merge' do
       sign_in user
       patch merge_client_path(destination, grda_warehouse_hud_client: { merge: [''] })
@@ -474,13 +455,6 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
       sign_in user
       get image_client_path(destination)
       expect(response).to redirect_to(user.my_root_path)
-    end
-
-    it 'doesn\'t allow chronic_days' do
-      sign_in user
-      get chronic_days_client_path(destination, format: :json)
-      follow_redirect!
-      expect(response.body).to include('Sorry you are not authorized to do that.')
     end
 
     it 'doesn\'t allow merge' do

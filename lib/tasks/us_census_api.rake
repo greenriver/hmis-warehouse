@@ -1,3 +1,9 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 namespace :us_census_api do
   desc 'Uses the census API to pull down all the variables we need into a usable form and then do some post-processing if needed'
   # NOTE: you can check the status of the data in the database with

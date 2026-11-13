@@ -1,0 +1,27 @@
+.card
+  %table.table.table-striped
+    %thead
+      %tr
+        %th File name
+        - unless @active_tab == :sent
+          %th Uploaded By
+        - unless @active_tab == :received
+          %th Destined For
+        %th Uploaded On
+        %th Removal Date
+        %th Remove
+    %tbody
+      - list.each do |file|
+        %tr
+          %td
+            = link_to secure_file_path(file) do
+              = file.name
+          - unless @active_tab == :sent
+            %td= file.sender&.name
+          - unless @active_tab == :received
+            %td= file.recipient&.name
+          %td= l(file.created_at.to_date)
+          %td= l(file.expires_at.to_date)
+          %td
+            = link_to secure_file_path(file), method: :delete, class: 'btn btn-sm btn-icon-only btn-danger', data: { confirm: "Removing this file will also prevent the recipient from downloading it, are you sure you want to remove the file: \"#{file.name}\"?" } do
+              %i.icon-cross

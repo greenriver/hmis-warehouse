@@ -1,0 +1,363 @@
+{
+  "name": "Demo CoC (Youth-Focused)",
+  "data_source_id": 0,
+  "seed": 20251015,
+  "coc_codes": {
+    "primary": "XX-503"
+  },
+
+  "organizations": [
+    {
+      "name": "Youth Outreach Coalition_",
+      "projects": [
+        {
+          "name": "Youth Street Outreach_",
+          "project_type": 4
+        },
+        {
+          "name": "Youth Drop-in Center_",
+          "project_type": 11
+        }
+      ]
+    },
+    {
+      "name": "Youth Crisis Services_",
+      "projects": [
+        {
+          "name": "Crisis Youth Shelter_",
+          "project_type": 0,
+          "capacity": 40,
+          "funders": [{ "funder": 2, "grant_id": "FAKE-ESG-003_" }]
+        }
+      ]
+    },
+    {
+      "name": "Emerging Adults Housing_",
+      "projects": [
+        {
+          "name": "Transitional Living Program_",
+          "project_type": 2,
+          "capacity": 24,
+          "funders": [{ "funder": 3, "grant_id": "FAKE-CoC-TLP-001_" }]
+        },
+        {
+          "name": "Youth Rapid Rehousing_",
+          "project_type": 13,
+          "capacity": 20
+        }
+      ]
+    },
+    {
+      "name": "Youth Systems Navigation_",
+      "projects": [
+        {
+          "name": "Youth CE Hub_",
+          "project_type": 14,
+          "ce_participation": {
+            "access_point": 1,
+            "prevention_assessment": 0,
+            "crisis_assessment": 1,
+            "housing_assessment": 1,
+            "direct_services": 1,
+            "receives_referrals": 1
+          }
+        },
+        {
+          "name": "Youth Case Management_",
+          "project_type": 6
+        }
+      ]
+    }
+  ],
+
+  "data_quality": {
+    "missing_dob_rate": 0.03,
+    "missing_ssn_rate": 0.09,
+    "missing_name_rate": 0.02,
+    "approximate_dob_rate": 0.05,
+    "record_miss_rate": 0.004
+  },
+
+  "tracks": [
+    {
+      "name": "youth_general",
+      "type": "primary",
+      "new_clients_per_month": {
+        "distribution": "poisson",
+        "lambda": 10
+      },
+      "household_cohesion_probability": 0.80,
+
+      "household_templates": {
+        "unaccompanied_youth": {
+          "hoh": {
+            "age": { "distribution": "normal", "mean": 20, "stddev": 2.5, "min": 16, "max": 24 },
+            "gender": {
+              "woman": 0.40, "man": 0.38, "non_binary": 0.10,
+              "transgender": 0.07, "culturally_specific": 0.03, "questioning": 0.02
+            },
+            "veteran_probability": 0.0,
+            "race": {
+              "white": 0.28, "black_af_american": 0.42,
+              "hispanic_latinaeo": 0.18, "am_ind_ak_native": 0.06, "other": 0.06
+            }
+          }
+        },
+        "parenting_youth": {
+          "hoh": {
+            "age": { "distribution": "normal", "mean": 21, "stddev": 2, "min": 18, "max": 26 },
+            "gender": { "woman": 0.72, "man": 0.20, "non_binary": 0.05, "transgender": 0.03 },
+            "veteran_probability": 0.0,
+            "race": {
+              "white": 0.25, "black_af_american": 0.48,
+              "hispanic_latinaeo": 0.18, "am_ind_ak_native": 0.05, "other": 0.04
+            }
+          },
+          "members": [
+            {
+              "role": "child",
+              "count": { "distribution": "poisson", "lambda": 1, "min": 1, "max": 3 },
+              "age": { "distribution": "uniform", "min": 0, "max": 8 },
+              "relationship": 2
+            }
+          ]
+        },
+        "sibling_group": {
+          "hoh": {
+            "age": { "distribution": "normal", "mean": 20, "stddev": 2, "min": 18, "max": 24 },
+            "gender": { "woman": 0.45, "man": 0.40, "non_binary": 0.08, "transgender": 0.05, "questioning": 0.02 },
+            "veteran_probability": 0.0,
+            "race": {
+              "white": 0.30, "black_af_american": 0.40,
+              "hispanic_latinaeo": 0.18, "am_ind_ak_native": 0.06, "other": 0.06
+            }
+          },
+          "members": [
+            {
+              "role": "sibling",
+              "count": { "distribution": "poisson", "lambda": 1, "min": 1, "max": 3 },
+              "age": { "distribution": "uniform", "min": 10, "max": 17 },
+              "relationship": 4
+            }
+          ]
+        }
+      },
+
+      "populations": [
+        {
+          "name": "street_youth",
+          "label": "Unsheltered Youth",
+          "project_ref": "Youth Street Outreach_",
+          "household_templates": {
+            "unaccompanied_youth": 0.75,
+            "parenting_youth": 0.15,
+            "sibling_group": 0.10
+          },
+          "entry_point": 5,
+          "exit_point": 0.06,
+          "prior_living_situation": {
+            "distribution": "weighted",
+            "weights": {
+              "116": 20, "215": 20, "327": 25, "329": 20, "314": 8, "99": 7
+            }
+          }
+        },
+        {
+          "name": "youth_es",
+          "label": "Youth Emergency Shelter",
+          "project_ref": "Crisis Youth Shelter_",
+          "household_templates": {
+            "unaccompanied_youth": 0.60,
+            "parenting_youth": 0.30,
+            "sibling_group": 0.10
+          },
+          "entry_point": 6,
+          "exit_point": 0.10,
+          "prior_living_situation": {
+            "distribution": "weighted",
+            "weights": {
+              "116": 25, "215": 15, "327": 25, "329": 20, "101": 10, "99": 5
+            }
+          }
+        },
+        {
+          "name": "youth_tlp",
+          "label": "Transitional Living Program",
+          "project_ref": "Transitional Living Program_",
+          "household_templates": {
+            "unaccompanied_youth": 0.55,
+            "parenting_youth": 0.35,
+            "sibling_group": 0.10
+          },
+          "entry_point": 0,
+          "exit_point": 0.25,
+          "prior_living_situation": {
+            "distribution": "weighted",
+            "weights": {
+              "101": 50, "116": 15, "327": 15, "302": 10, "99": 10
+            }
+          }
+        },
+        {
+          "name": "youth_rrh",
+          "label": "Youth Rapid Rehousing",
+          "project_ref": "Youth Rapid Rehousing_",
+          "household_templates": {
+            "unaccompanied_youth": 0.45,
+            "parenting_youth": 0.45,
+            "sibling_group": 0.10
+          },
+          "entry_point": 0,
+          "exit_point": 0.72,
+          "prior_living_situation": {
+            "distribution": "weighted",
+            "weights": {
+              "101": 45, "302": 30, "116": 15, "99": 10
+            }
+          }
+        }
+      ],
+
+      "transitions": [
+        {
+          "from": "street_youth", "to": "youth_es",
+          "weight": 8,
+          "timing": { "distribution": "uniform", "min": 1, "max": 14 },
+          "gap_before_entry": { "distribution": "uniform", "min": 0, "max": 3 },
+          "exit_destinations": { "101": 5, "116": 3, "17": 2 }
+        },
+        {
+          "from": "street_youth", "to": "youth_tlp",
+          "weight": 1,
+          "timing": { "distribution": "uniform", "min": 7, "max": 21 },
+          "gap_before_entry": { "distribution": "uniform", "min": 1, "max": 7 },
+          "exit_destinations": { "2": 1 }
+        },
+        {
+          "from": "youth_es", "to": "street_youth",
+          "weight": 2,
+          "timing": { "distribution": "normal", "mean": 14, "stddev": 10, "min": 3, "max": 60 },
+          "gap_before_entry": { "distribution": "uniform", "min": 0, "max": 5 },
+          "exit_destinations": { "116": 6, "101": 3, "17": 1 }
+        },
+        {
+          "from": "youth_es", "to": "youth_tlp",
+          "weight": 6,
+          "timing": { "distribution": "normal", "mean": 28, "stddev": 14, "min": 7, "max": 90 },
+          "gap_before_entry": { "distribution": "uniform", "min": 1, "max": 14 },
+          "exit_destinations": { "2": 1 }
+        },
+        {
+          "from": "youth_es", "to": "youth_rrh",
+          "weight": 2,
+          "timing": { "distribution": "normal", "mean": 45, "stddev": 21, "min": 14 },
+          "gap_before_entry": { "distribution": "uniform", "min": 1, "max": 14 },
+          "exit_destinations": { "435": 1 }
+        },
+        {
+          "from": "youth_tlp", "to": "youth_rrh",
+          "weight": 6,
+          "timing": { "distribution": "normal", "mean": 270, "stddev": 90, "min": 90, "max": 730 },
+          "gap_before_entry": { "distribution": "uniform", "min": 1, "max": 21 },
+          "exit_destinations": { "435": 1 }
+        },
+        {
+          "from": "youth_tlp", "to": "street_youth",
+          "weight": 1,
+          "timing": { "distribution": "normal", "mean": 120, "stddev": 60, "min": 30 },
+          "gap_before_entry": { "distribution": "uniform", "min": 0, "max": 7 },
+          "exit_destinations": { "116": 4, "327": 3, "329": 2, "101": 1 }
+        },
+        {
+          "from": "youth_rrh", "to": "street_youth",
+          "weight": 1,
+          "timing": { "distribution": "normal", "mean": 365, "stddev": 120, "min": 90 },
+          "gap_before_entry": { "distribution": "uniform", "min": 0, "max": 14 },
+          "exit_destinations": { "335": 5, "422": 3, "116": 2 }
+        }
+      ],
+
+      "enrollment_config": {
+        "disabilities": {
+          "disabling_condition_probability": 0.55,
+          "types": {
+            "mental_health": 0.62,
+            "substance_use": 0.42,
+            "chronic_health": 0.18,
+            "physical": 0.14,
+            "developmental": 0.14,
+            "hiv_aids": 0.04
+          }
+        },
+        "income_at_entry": {
+          "no_income_probability": 0.52,
+          "sources": { "earned": 0.25, "ga": 0.18, "ssi": 0.10, "ssdi": 0.05 }
+        },
+        "health_and_dv": {
+          "dv_survivor_probability": 0.30,
+          "currently_fleeing_probability": 0.55,
+          "general_health": { "poor": 0.15, "fair": 0.38, "good": 0.38, "excellent": 0.09 }
+        },
+        "annual_collection": {
+          "miss_rate": 0.008,
+          "timing_jitter": {
+            "distribution": "normal", "mean": 0, "stddev": 35, "min": -90, "max": 90
+          }
+        },
+        "ph_move_in": {
+          "probability": 0.70,
+          "delay_days": { "distribution": "normal", "mean": 30, "stddev": 15, "min": 1, "max": 120 }
+        }
+      }
+    },
+
+    {
+      "name": "drop_in_services",
+      "type": "concurrent",
+      "applies_to_tracks": [],
+      "projects": ["Youth Drop-in Center_"],
+      "count_distribution": { "0": 40, "1": 40, "2": 18, "3": 2 },
+      "data_error_rate": 0.008,
+      "duration": { "distribution": "uniform", "min": 30, "max": 365 },
+      "reentry": {
+        "gap": { "distribution": "uniform", "min": 0, "max": 14 },
+        "probability": 0.85
+      }
+    },
+
+    {
+      "name": "youth_case_management",
+      "type": "concurrent",
+      "applies_to_tracks": [],
+      "projects": ["Youth Case Management_"],
+      "count_distribution": { "0": 35, "1": 45, "2": 20 },
+      "data_error_rate": 0.005,
+      "duration": { "distribution": "normal", "mean": 180, "stddev": 60, "min": 30 },
+      "reentry": {
+        "gap": { "distribution": "uniform", "min": 7, "max": 30 },
+        "probability": 0.65
+      }
+    },
+
+    {
+      "name": "coordinated_entry",
+      "type": "lifecycle",
+      "applies_to_tracks": [],
+      "project_ref": "Youth CE Hub_",
+      "trigger_populations": ["street_youth", "youth_es"],
+      "trigger_probability": 0.55,
+      "days_before_trigger": { "distribution": "uniform", "min": 0, "max": 7 },
+      "close_conditions": {
+        "housing_move_in": 0.60,
+        "disengagement": {
+          "probability": 0.25,
+          "after_days": { "distribution": "normal", "mean": 270, "stddev": 90, "min": 60 }
+        },
+        "pre_entry_exit": {
+          "probability": 0.15,
+          "after_days": { "distribution": "uniform", "min": 7, "max": 45 }
+        }
+      }
+    }
+  ]
+}

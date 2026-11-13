@@ -1,17 +1,21 @@
-# frozen_string_literal: true
-
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 module GrdaWarehouse::Hud
   class CurrentLivingSituation < Base
     include HudSharedScopes
     include ::HmisStructure::CurrentLivingSituation
     include ::HmisStructure::Shared
-    include RailsDrivers::Extensions
+    # Extensions from drivers — see ADR 0007
+    include HmisCsvImporter::GrdaWarehouse::Hud::CurrentLivingSituationExtension
+    include HmisCsvTwentyTwenty::GrdaWarehouse::Hud::CurrentLivingSituationExtension
+    include HmisCsvTwentyTwentyFour::GrdaWarehouse::Hud::CurrentLivingSituationExtension
+    include HmisCsvTwentyTwentySix::GrdaWarehouse::Hud::CurrentLivingSituationExtension
 
     attr_accessor :source_id
 

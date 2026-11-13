@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -14,7 +14,7 @@ module Hmis::Hud::Concerns::Shared
 
   included do
     # Filter down scope to only HMIS records. Helpful for finding records in the
-    # rails console for single-HMIS installatinos, but should not be used otherwise
+    # rails console for single-HMIS installations, but should not be used otherwise
     # (because it does not take _which_ HMIS into account).
     scope :hmis, -> do
       joins(:data_source).merge(GrdaWarehouse::DataSource.hmis)

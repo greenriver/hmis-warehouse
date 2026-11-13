@@ -1,10 +1,10 @@
-# frozen_string_literal: true
-
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 #
 # ActiveClientReport
@@ -58,36 +58,33 @@ class ActiveClientReport
 
   def enrollment_scope
     base_enrollment_scope.
-      distinct.
       order(first_date_in_program: :asc, last_date_in_program: :asc)
   end
 
   # Base scope used by both listing and counting, without DISTINCT/ORDER
   def base_enrollment_scope
     residential_service_history_source.
+      entry.
       joins(:client, :enrollment, :project).
       with_service_between(start_date: @filter.start, end_date: @filter.end).
       open_between(start_date: @filter.start, end_date: @filter.end)
   end
 
-  # Efficient total enrollment count: COUNT(DISTINCT id) without ORDER BY
-  def enrollment_count
-    she_t = GrdaWarehouse::ServiceHistoryEnrollment.arel_table
-    base_enrollment_scope.
-      reselect(she_t[:id]).
-      distinct.
-      reorder(nil).
-      count
+  def counts
+    @counts ||= begin
+      enrollments, clients = base_enrollment_scope.
+        reorder(nil).
+        pick(she_t[:id].count(true), she_t[:client_id].count(true))
+      { enrollments: enrollments, clients: clients }
+    end
   end
 
-  # Efficient unique client count over the same filters
+  def enrollment_count
+    counts[:enrollments]
+  end
+
   def unique_client_count
-    she_t = GrdaWarehouse::ServiceHistoryEnrollment.arel_table
-    base_enrollment_scope.
-      reselect(she_t[:client_id]).
-      distinct.
-      reorder(nil).
-      count
+    counts[:clients]
   end
 
   def residential_service_history_source

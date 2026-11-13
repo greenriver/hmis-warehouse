@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -22,6 +22,7 @@ class HmisCsvImporter::Utility
       HmisCsvImporter::Aggregated::Exit,
       HmisCsvImporter::Loader::LoaderLog,
       HmisCsvImporter::Loader::LoadError,
+      HmisCsvImporter::Loader::RowProcessingNote,
       HmisCsvImporter::Importer::ImporterLog,
       HmisCsvImporter::Importer::ImportError,
       HmisCsvImporter::HmisCsvValidation::Base,

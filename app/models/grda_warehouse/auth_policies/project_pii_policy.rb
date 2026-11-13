@@ -1,10 +1,10 @@
-# frozen_string_literal: true
-
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 # Often reports display client PII from the destination client (sometimes the source client for DQ). Using this project
 # PII policy grants access to PII based only on the client/project which may be more restrictive than permissions
@@ -21,6 +21,12 @@ class GrdaWarehouse::AuthPolicies::ProjectPiiPolicy < GrdaWarehouse::AuthPolicie
     define_method(method_name) do
       resource_permissions.include?(permission)
     end
+  end
+
+  # Hand-written, not added to the permission-mapping array above: there is no
+  # can_view_partial_ssn role permission to map from.
+  def can_view_partial_ssn?
+    true
   end
 
   def initialize(context:, resource:)

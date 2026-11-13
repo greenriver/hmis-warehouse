@@ -1,16 +1,10 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # frozen_string_literal: true
-
-###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
-#
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
-###
-
-####
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
-#
-# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
-##
 
 # Factory to resolve the user access loader for a given entity. It also resolves
 # the entity that should be passed to the loader. A resolver block is used to
@@ -43,7 +37,7 @@ class Hmis::EntityAccessLoaderFactory
   # @yieldreturn [#resolved, nil] the association (record.association)
   # @return [Array<Hmis::BaseLoader, #entity>]
   def perform(entity, &block)
-    raise "Cannot resolve assocation for unpersisted record of type #{entity.class.name}" unless entity.persisted?
+    raise "Cannot resolve association for unpersisted record of type #{entity.class.name}" unless entity.persisted?
 
     resolve_entity(entity, safety: 0, &block)
   end
@@ -89,7 +83,7 @@ class Hmis::EntityAccessLoaderFactory
 
     return nil unless resolved
 
-    raise "Cannot resolve assocation for unpersisted record of type #{resolved.class.name}" unless resolved.persisted?
+    raise "Cannot resolve association for unpersisted record of type #{resolved.class.name}" unless resolved.persisted?
 
     resolve_entity(resolved, safety: safety + 1, &block)
   end

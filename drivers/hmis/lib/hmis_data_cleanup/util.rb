@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -76,22 +76,6 @@ module HmisDataCleanup
       end
     end
 
-    # Find any single-member households that do not have a HoH, and make that person the HoH
-    def self.make_sole_member_hoh!
-      single_member_households = Hmis::Hud::Enrollment.hmis.where.not(household_id: nil).
-        group(:household_id).
-        having(nf('COUNT', [:HouseholdID]).eq(1)).
-        select(:household_id)
-
-      without_papertrail_or_timestamps do
-        rows_affected = Hmis::Hud::Enrollment.hmis.where(household_id: single_member_households).
-          where.not(relationship_to_hoh: 1).
-          update_all(relationship_to_hoh: 1) # skips callbacks
-
-        Rails.logger.info "Set HoH in #{rows_affected} single-member households"
-      end
-    end
-
     # Change any RelationshipToHoH values that are 99 (Data not collected) to 5 (Unrelated household member)
     # 99 is not a valid option for RelationshipToHoH, and causes flags in the LSA. Reference issue #7127.
     def self.fix_relationship_to_hoh_99s!
@@ -140,13 +124,19 @@ module HmisDataCleanup
         map { |field| clients.where(field => 99) }.
         reduce { |memo, scope| memo.or(scope) }
 
-      # Construct SQL to update fields: set to 0 if it's 99, otherwise leave it unchanged
-      update_sql = fields.map do |field|
-        quoted_field = "\"#{field}\""
-        "#{quoted_field} = CASE WHEN #{quoted_field} = 99 THEN 0 ELSE #{quoted_field} END"
-      end.join(', ')
+      # Count the distinct affected clients before updating, for logging.
+      rows_affected = clients_with_bad_99s.count
 
-      rows_affected = clients_with_bad_99s.update_all(update_sql)
+      # Set each field to 0 wherever it currently holds 99. We update per-field
+      # with the Hash form so ActiveRecord qualifies the column names. A raw SQL
+      # string would break here: `clients` is a joined scope (`.hmis`), and under
+      # Rails 8.1 a joined update_all aliases the target table, making bare column
+      # references in a raw string ambiguous (PG::AmbiguousColumn).
+      # See docs/active-record-arel-and-queries.md.
+      fields.each do |field|
+        clients.where(field => 99).update_all(field => 0)
+      end
+
       Rails.logger.info "Set #{category} fields 99=>0 on #{rows_affected} Clients"
 
       # Build a scope that matches clients where ALL of the <Race|Gender> fields are 0
@@ -156,86 +146,6 @@ module HmisDataCleanup
       clients_with_bad_nonefield = clients_with_all_fields_empty.where(none_field => nil)
       rows_affected = clients_with_bad_nonefield.update_all(none_field => 99)
       Rails.logger.info "Set #{none_field} fields nil=>99 on #{rows_affected} Clients"
-    end
-
-    # Fix any instances of enrollment-related records where the PersonalID does not match the Enrollment's PersonalIDs
-    # @param classes [Array<Class>, nil] Optional array of classes to process. If nil, processes all enrollment-related classes.
-    # @param enrollment_scope [ActiveRecord::Relation, nil] Optional scope of enrollments to limit the fix to.
-    #   When provided, only records associated with enrollments in this scope will be fixed.
-    # @param dry_run [Boolean] If true, only reports what would be fixed without making changes.
-    def self.fix_incorrect_personal_id_references!(classes: nil, enrollment_scope: nil, dry_run: false)
-      classes&.each do |klass|
-        raise "Invalid class: #{klass.name}" unless Hmis::Hud::Enrollment.hmis_enrollment_related_classes.include?(klass)
-      end
-
-      classes ||= Hmis::Hud::Enrollment.hmis_enrollment_related_classes
-      data_source_id = GrdaWarehouse::DataSource.hmis.first.id
-
-      # Extract EnrollmentIDs from the scope if provided, otherwise use all enrollments
-      enrollment_ids = enrollment_scope.pluck(:EnrollmentID) if enrollment_scope
-
-      # Base scope for looking up enrollments (always use GrdaWarehouse for consistency)
-      enrollment_lookup_scope = GrdaWarehouse::Hud::Enrollment.where(data_source_id: data_source_id)
-      enrollment_lookup_scope = enrollment_lookup_scope.where(EnrollmentID: enrollment_ids) if enrollment_ids
-
-      Hmis::Hud::Base.transaction do
-        classes.each do |klass|
-          # Build the base scope for records
-          base_scope = klass.where(data_source_id: data_source_id)
-          base_scope = base_scope.where(EnrollmentID: enrollment_ids) if enrollment_ids
-
-          # Outer join to enrollment and select records where the enrollment is null,
-          # indicating the record's PersonalID may be incorrect (the EnrollmentID and
-          # PersonalID columns don't point to the same enrollment).
-          records_needing_update = base_scope.
-            left_outer_joins(:enrollment).
-            where(GrdaWarehouse::Hud::Enrollment.arel_table[:id].eq(nil))
-
-          ids = records_needing_update.limit(15).pluck(:id)
-          num_records = records_needing_update.count
-          Rails.logger.info "[#{klass.name}] Found #{num_records} records with potentially bad PersonalID: #{ids.inspect}#{'...' if num_records > 15}"
-
-          next if dry_run
-
-          records_needing_update.find_in_batches do |batch|
-            Rails.logger.info "[#{klass.name}] Processing batch"
-
-            # map {EnrollmentID=>PersonalID} for each enrollment referenced by this batch of records
-            eid_to_pid = enrollment_lookup_scope.where(EnrollmentID: batch.map(&:EnrollmentID)).
-              pluck(:EnrollmentID, :PersonalID).to_h
-
-            values = []
-            batch.each do |record|
-              real_personal_id = eid_to_pid[record.EnrollmentID]
-              next unless real_personal_id # enrollment not found, so we cant update the PersonalID
-              next if record.PersonalID == real_personal_id # this shouldn't be true, but check anyway
-
-              record.PersonalID = real_personal_id
-              values << record
-            end
-
-            if values.any?
-              Rails.logger.info "[#{klass.name}] change batch: #{values.map { |r| [r.id, r.PersonalID_was, r.PersonalID] }.inspect}"
-              result = klass.import(
-                values,
-                validate: false,
-                timestamps: false,
-                on_duplicate_key_update: { conflict_target: [:id], columns: [:PersonalID] },
-              )
-
-              raise "Failed: #{result.failed_instances}" if result.failed_instances.present?
-
-              Rails.logger.info "[#{klass.name}] updated #{result.ids.count} records"
-            end
-          end
-        end
-      end
-
-      if dry_run
-        Rails.logger.info 'Dry run complete'
-      else
-        Rails.logger.info 'Finished fixing incorrect PersonalID references'
-      end
     end
 
     def self.delete_duplicate_bed_nights!
@@ -513,75 +423,6 @@ module HmisDataCleanup
       end
     end
 
-    # Sum MonthlyTotalIncome where it is null but there are Income values
-    def self.fix_missing_monthly_total_income!
-      scope = Hmis::Hud::IncomeBenefit.hmis.where(IncomeFromAnySource: 1, TotalMonthlyIncome: nil)
-      count = scope.count
-      Rails.logger.info "#{count} income records to clean"
-
-      scope.in_batches do |batch|
-        Rails.logger.info('Processing batch...')
-        values = []
-        batch.each do |record|
-          Hmis::Hud::DataIntegrity::TotalIncomeReconciler.call(record)
-
-          # Only add to import if the total_monthly_income was updated
-          next unless record.total_monthly_income_changed?
-
-          values << [record.id, record.total_monthly_income]
-        end
-        next if values.empty?
-
-        without_papertrail_or_timestamps do
-          cols = [:id, :TotalMonthlyIncome]
-          result = Hmis::Hud::IncomeBenefit.import(cols, values, validate: false, on_duplicate_key_update: { conflict_target: [:id], columns: [:TotalMonthlyIncome] })
-          raise "error: #{result.failed_instances.inspect}" if result.failed_instances.any?
-        end
-      end
-      Rails.logger.info 'Done'
-    end
-
-    # Similar to fix_missing_monthly_total_income! but with logging and transactional safety.
-    # Added for one-time use, can be removed once the corresponding"TaskQueue" is completed
-    def self.correct_total_income_records!
-      return unless HmisEnforcement.hmis_enabled?
-
-      data_sources = GrdaWarehouse::DataSource.hmis
-      return if data_sources.empty?
-
-      scope = Hmis::Form::FormProcessor.
-        joins(income_benefit: :data_source).
-        merge(data_sources).
-        preload(:income_benefit)
-
-      system_hud_users = data_sources.map do |ds|
-        Hmis::Hud::User.system_user(data_source_id: ds.id)
-      end.index_by(&:data_source_id)
-
-      messages = []
-      Hmis::Hud::IncomeBenefit.transaction do
-        scope.find_each do |fp|
-          record = fp.income_benefit
-          raise unless record
-
-          # skip records that were likely created by migrations
-          next if fp.values.nil?
-          next if record.user_id.nil?
-          next if record.user_id == system_hud_users.fetch(record.data_source_id)&.user_id
-
-          messages += Hmis::Hud::DataIntegrity::TotalIncomeReconciler.call(record)
-          record.save! if record.changed?
-        end
-      end
-      messages.each do |message|
-        if Rails.env.development?
-          puts message
-        else
-          Sentry.capture_message(message)
-        end
-      end
-    end
-
     # Cleanup function to run if/when we add a new Custom record type and forget to add it to the Hmis::MergeClientsJob.
     # WARNING: this cleanup task is not the most efficient. If there are a lot of record to clean up, may need further optimization.
     def self.cleanup_dangling_records_from_merge!(klass: Hmis::Hud::CustomCaseNote)
@@ -734,7 +575,7 @@ module HmisDataCleanup
       # You probably want to run some cleanup:
       #
       # HmisDataCleanup::Util.assign_missing_household_ids!
-      # HmisDataCleanup::Util.make_sole_member_hoh!
+      # Hmis::Hud::DataIntegrity::SoleMemberHohFixer.for_data_source!(data_source_id: ...)
 
       # Remember to generate HUD Assessments by running the MigrateAssessmentsJob:
       #

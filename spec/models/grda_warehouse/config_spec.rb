@@ -1,0 +1,122 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+# frozen_string_literal: true
+
+require 'rails_helper'
+
+RSpec.describe GrdaWarehouse::Config, type: :model do
+  describe 'timestamps' do
+    it 'sets created_at and updated_at on creation' do
+      config = create(:config)
+      expect(config.created_at).to be_present
+      expect(config.updated_at).to be_present
+    end
+
+    it 'bumps updated_at on save' do
+      config = create(:config)
+      original_updated_at = config.updated_at
+      travel_to(original_updated_at + 1.day) do
+        config.update!(family_calculation_method: 'multiple_people')
+      end
+      expect(config.updated_at).to be > original_updated_at
+    end
+  end
+
+  describe 'dob_selection_method' do
+    it 'is a known config so it can be set from the admin form' do
+      expect(described_class.known_configs).to include(:dob_selection_method)
+    end
+
+    it 'defaults to legacy, preserving the previous DOB selection' do
+      config = create(:config)
+      expect(config.dob_selection_method).to eq('legacy')
+    end
+
+    it 'offers a legacy option plus one per sort direction' do
+      expect(described_class.available_dob_selection_methods.values).
+        to contain_exactly(:legacy, :oldest, :newest)
+    end
+  end
+
+  describe 'client_retention_years' do
+    it 'is a known config so it can be set from the admin form' do
+      expect(described_class.known_configs).to include(:client_retention_years)
+    end
+
+    it 'accepts nil (retention off) and any whole number of years, including console-set windows under seven' do
+      [nil, 3, 7, 20, 25].each do |years|
+        expect(build(:config, client_retention_years: years)).to be_valid
+      end
+    end
+
+    it 'rejects zero, negative and fractional windows' do
+      [0, -1, 7.5].each do |years|
+        config = build(:config, client_retention_years: years)
+        expect(config).not_to be_valid
+        expect(config.errors[:client_retention_years]).to be_present
+      end
+    end
+
+    it 'offers Disabled plus each year from 7 to 20' do
+      options = described_class.available_client_retention_years
+      expect(options['Disabled']).to be_nil
+      expect(options.values.compact).to eq((7..20).to_a)
+    end
+
+    it 'lists a console-set window outside 7..20 first, labelled as current, so the form can keep it' do
+      expect(described_class.available_client_retention_years(current: 3).to_a.second).to eq(['3 years (current)', 3])
+      expect(described_class.available_client_retention_years(current: 25).to_a.second).to eq(['25 years (current)', 25])
+      expect(described_class.available_client_retention_years(current: 10).values.compact).to eq((7..20).to_a)
+    end
+  end
+
+  describe 'PaperTrail' do
+    it 'creates a version on update' do
+      PaperTrailHelper.with_paper_trail do
+        config = create(:config)
+        expect do
+          config.update!(family_calculation_method: 'multiple_people')
+        end.to change(config.versions, :count).by(1)
+        expect(config.versions.last.changeset.keys).to include('family_calculation_method')
+      end
+    end
+  end
+
+  describe 'relevant_state_codes' do
+    it 'stores codes upcased and without spaces' do
+      config = create(:config)
+      config.update!(relevant_state_codes: 'ma, nh ,vt')
+
+      expect(config.reload.relevant_state_codes).to eq('MA,NH,VT')
+    end
+
+    it 'rejects values that are not comma-separated two-letter codes' do
+      ['MA;NH', 'MA NH', 'MAS', 'MA,NHX', ''].each do |value|
+        config = build(:config, relevant_state_codes: value)
+
+        expect(config).not_to be_valid, value
+        expect(config.errors[:relevant_state_codes]).not_to be_empty, value
+      end
+    end
+
+    it 'reads a stored value with spaces and lowercase as clean codes' do
+      config = create(:config)
+      config.update_column(:relevant_state_codes, 'ma, nh')
+      GrdaWarehouse::Config.invalidate_cache
+
+      expect(GrdaWarehouse::Config.relevant_state_codes).to eq(['MA', 'NH'])
+    end
+
+    it 'reads a stored blank value as no states' do
+      config = create(:config)
+      config.update_column(:relevant_state_codes, '')
+      GrdaWarehouse::Config.invalidate_cache
+
+      expect(GrdaWarehouse::Config.relevant_state_codes).to eq([])
+    end
+  end
+end

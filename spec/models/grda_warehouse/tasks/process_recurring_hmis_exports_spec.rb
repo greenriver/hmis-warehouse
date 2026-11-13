@@ -1,3 +1,9 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # frozen_string_literal: true
 
 require 'rails_helper'
@@ -60,6 +66,7 @@ RSpec.describe GrdaWarehouse::Tasks::ProcessRecurringHmisExports, type: :model d
       allow(Filters::HmisExport).to receive(:new).and_wrap_original do |method, *args|
         filter = method.call(*args)
         allow(filter).to receive(:effective_project_ids).and_return([1, 2, 3])
+        allow(filter).to receive(:project_selection_hidden?).and_return(false)
         filter
       end
 

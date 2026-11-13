@@ -39,7 +39,8 @@
         = render 'report_results/ahar/support', category: category, label: label, support: @result.support[category][label]
 
 = content_for :page_js do
-  :javascript
-    (function($) {
-      $('.launch-modal').on('click', function(e){ e.preventDefault();});
-    })(jQuery);
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      (function($) {
+        $('.launch-modal').on('click', function(e){ e.preventDefault();});
+      })(jQuery);

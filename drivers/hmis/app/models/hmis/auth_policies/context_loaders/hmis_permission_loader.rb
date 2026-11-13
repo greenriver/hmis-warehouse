@@ -1,8 +1,9 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
 # frozen_string_literal: true
 
 require 'memery'
@@ -17,9 +18,17 @@ module Hmis::AuthPolicies::ContextLoaders
       @user = user
     end
 
-    memoize def for_access_group_ids(access_group_ids)
+    # Callers pass access group ids in whatever order their query produced. Sort them before memoizing to
+    # keep one cache entry per set rather than one per ordering.
+    def for_access_group_ids(access_group_ids)
       return EMPTY_SET if access_group_ids.blank?
 
+      for_sorted_access_group_ids(access_group_ids.to_a.sort)
+    end
+
+    protected
+
+    memoize def for_sorted_access_group_ids(access_group_ids)
       raw_permissions = Hmis::Role.joins(:access_controls).
         merge(@user.access_controls.where(access_group_id: access_group_ids)).
         flat_map(&:granted_permissions).to_set
@@ -27,38 +36,13 @@ module Hmis::AuthPolicies::ContextLoaders
       apply_permission_requirements(raw_permissions).freeze
     end
 
-    protected
-
+    # Drops permissions whose requirements aren't also granted. Requirements are transitive:
+    # required_permissions_for returns the full chain, so can_edit_enrollments needs
+    # can_view_enrollment_details plus everything that permission requires.
     def apply_permission_requirements(permissions)
-      # support cycle detection for requirement chains
-      visited = Set.new
-
       permissions.delete_if do |permission|
-        !requirements_met?(permission, permissions, visited)
+        !Hmis::Role.required_permissions_for(permission).all? { |required| permissions.include?(required) }
       end
-    end
-
-    # Recursively checks that a permission and all its transitive requirements are satisfied
-    def requirements_met?(permission, permissions, visited)
-      raise 'cycle detected' if visited.include?(permission) # This shouldn't occur
-
-      required = role_config[permission][:requirements]
-
-      return true if required.blank? # No requirements, keep it
-
-      # check that all requirements are satisfied
-      visited.add(permission)
-      result = required.all? do |req|
-        permissions.include?(req) && requirements_met?(req, permissions, visited)
-      end
-      visited.delete(permission)
-
-      result
-    end
-
-    # note, the config is not memoized on Role (as of this time) so memoize here
-    memoize def role_config
-      Hmis::Role.permissions_with_descriptions.freeze
     end
   end
 end

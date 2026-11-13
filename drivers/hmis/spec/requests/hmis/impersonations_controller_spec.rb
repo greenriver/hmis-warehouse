@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -43,6 +43,17 @@ RSpec.describe Hmis::ImpersonationsController, type: :request do
         parsed = JSON.parse response.body
         expect(parsed['id']).to eq(target_user.id.to_s)
         expect(controller.current_hmis_user).to eq(target_user)
+      end
+    end
+
+    context 'when trying to impersonate yourself' do
+      before do
+        hmis_login admin_user
+      end
+
+      it 'returns a bad request' do
+        post hmis_impersonations_path, params: { user_id: admin_user.id }, headers: headers
+        expect(response).to have_http_status(:bad_request)
       end
     end
 

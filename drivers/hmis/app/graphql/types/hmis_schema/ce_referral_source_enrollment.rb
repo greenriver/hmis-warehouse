@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -60,8 +60,8 @@ module Types
       # For now, we only resolve the name if the client is in the user's current data source. (Restricted by the permission check.)
       # In the future, we plan to add more nuanced permission checking against different data sources.
       client = load_ar_client_association(object.enrollment)
-      can_view_name = current_permission?(permission: :can_view_clients, entity: client) && current_permission?(permission: :can_view_client_name, entity: client)
-      can_view_name ? client.brief_name : client.masked_name
+      policy = policy_for(client, policy_type: :hmis_client)
+      policy.can_view_name? ? client.brief_name : client.masked_name
     end
 
     def data_source
@@ -71,7 +71,7 @@ module Types
     def project_name
       project = load_ar_association(object.enrollment, :project)
 
-      return Hmis::Hud::Project::CONFIDENTIAL_PROJECT_NAME if project.confidential && !current_permission?(permission: :can_view_enrollment_details, entity: object.enrollment)
+      return Hmis::Hud::Project::CONFIDENTIAL_PROJECT_NAME if project.confidential && !can_view_enrollment_details
 
       project.project_name
     end
@@ -138,7 +138,7 @@ module Types
     private
 
     def can_view_enrollment_details
-      current_permission?(permission: :can_view_enrollment_details, entity: object.enrollment)
+      policy_for(object.enrollment, policy_type: :hmis_enrollment).can_view_details?
     end
   end
 end

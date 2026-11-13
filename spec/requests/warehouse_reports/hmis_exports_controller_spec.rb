@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -145,6 +145,69 @@ RSpec.describe WarehouseReports::HmisExportsController, type: :request do
       end
     end
 
+    context 'with a recurring export' do
+      let(:recurrence_params) do
+        {
+          every_n_days: 7,
+          reporting_range: 'fixed',
+          encryption_type: 'zip',
+          zip_password: 'a-good-password',
+        }
+      end
+
+      it 'stores the recurrence and schedules the export' do
+        post warehouse_reports_hmis_exports_path, params: base_params.deep_merge(filter: recurrence_params)
+
+        expect(response).to redirect_to(warehouse_reports_hmis_exports_path)
+        expect(GrdaWarehouse::RecurringHmisExport.last.zip_password).to eq('a-good-password')
+      end
+
+      it 'reports the error and saves nothing when the zip password is too long' do
+        params = base_params.deep_merge(
+          filter: recurrence_params.merge(zip_password: 'p' * (ZipCloak::MAX_PASSWORD_LENGTH + 1)),
+        )
+
+        post warehouse_reports_hmis_exports_path, params: params
+
+        expect(response).to have_http_status(:success)
+        expect(response).to render_template(:index)
+        expect(flash[:error]).to include('Zip password')
+        expect(GrdaWarehouse::RecurringHmisExport.count).to eq(0)
+      end
+
+      # The password fields are hidden at a cadence of 0, so a leftover value there is
+      # not something the user is still asking for. Queue the export and drop it.
+      it 'ignores a password given without a cadence' do
+        params = base_params.deep_merge(filter: recurrence_params.merge(every_n_days: 0))
+        scheduled_filter = nil
+        allow_any_instance_of(Filters::HmisExport).to receive(:schedule_job) { |filter, *_| scheduled_filter = filter }
+
+        post warehouse_reports_hmis_exports_path, params: params
+
+        expect(response).to redirect_to(warehouse_reports_hmis_exports_path)
+        expect(flash[:error]).to be_nil
+        # Nowhere to keep the password: no recurrence is stored, and the one-off export
+        # that is queued carries neither the password nor the encryption type.
+        expect(GrdaWarehouse::RecurringHmisExport.count).to eq(0)
+        expect(scheduled_filter.zip_password).to be_blank
+        expect(scheduled_filter.encryption_type).to be_blank
+      end
+
+      it 'allows a longer password for the 7z encryption type' do
+        params = base_params.deep_merge(
+          filter: recurrence_params.merge(
+            encryption_type: '7z',
+            zip_password: 'p' * (ZipCloak::MAX_PASSWORD_LENGTH + 1),
+          ),
+        )
+
+        post warehouse_reports_hmis_exports_path, params: params
+
+        expect(response).to redirect_to(warehouse_reports_hmis_exports_path)
+        expect(GrdaWarehouse::RecurringHmisExport.count).to eq(1)
+      end
+    end
+
     context 'job scheduling with custom files' do
       let(:mock_filter) { instance_double(Filters::HmisExport) }
 
@@ -193,7 +256,7 @@ RSpec.describe WarehouseReports::HmisExportsController, type: :request do
         },
       )
     end
-    let!(:hmis_export) { create(:grda_warehouse_hmis_export) }
+    let!(:hmis_export) { create(:grda_warehouse_hmis_export, user_id: user.id) }
     let!(:export_link) { create(:recurring_hmis_export_link, recurring_hmis_export: recurring_export, hmis_export: hmis_export) }
 
     it 'loads the edit form with filter options' do
@@ -218,7 +281,7 @@ RSpec.describe WarehouseReports::HmisExportsController, type: :request do
 
   describe 'PATCH #update' do
     let!(:recurring_export) { create(:recurring_hmis_export, user: user) }
-    let!(:hmis_export) { create(:grda_warehouse_hmis_export) }
+    let!(:hmis_export) { create(:grda_warehouse_hmis_export, user_id: user.id) }
     let!(:export_link) { create(:recurring_hmis_export_link, recurring_hmis_export: recurring_export, hmis_export: hmis_export) }
 
     context 'with valid parameters' do
@@ -319,6 +382,65 @@ RSpec.describe WarehouseReports::HmisExportsController, type: :request do
         expect(assigns(:recurrence)).to eq(recurring_export)
         expect(assigns(:filter)).to be_a(Filters::HmisExport)
       end
+    end
+  end
+
+  describe 'GET #index' do
+    # The test environment's default ActiveJob adapter is :test (config/environments/test.rb),
+    # which never touches the delayed_jobs table. Switch to the real :delayed_job adapter for
+    # this block only, matching the existing pattern in spec/jobs/application_job_spec.rb, so
+    # `schedule_job` produces a real Delayed::Job row with a real YAML `handler`.
+    around do |example|
+      previous_adapter = ActiveJob::Base.queue_adapter
+      ActiveJob::Base.queue_adapter = :delayed_job
+      example.run
+    ensure
+      ActiveJob::Base.queue_adapter = previous_adapter
+    end
+
+    # The outer `before` block in this file stubs `schedule_job` to a no-op; these examples
+    # need the real behavior to produce a real delayed_job handler.
+    before do
+      allow_any_instance_of(Filters::HmisExport).to receive(:schedule_job).and_call_original
+    end
+
+    it 'lists a real queued export job parsed from its delayed_job handler' do
+      filter = Filters::HmisExport.new(
+        user_id: user.id,
+        start_date: 30.days.ago.to_date,
+        end_date: Date.current,
+      )
+      filter.schedule_job(report_url: 'https://example.test/report')
+
+      get warehouse_reports_hmis_exports_path
+
+      expect(response).to have_http_status(:success)
+      job_reports = assigns(:job_reports)
+      expect(job_reports.size).to eq(1)
+      _run_at, report = job_reports.first
+      expect(report.start_date).to eq(30.days.ago.to_date)
+      expect(report.end_date).to eq(Date.current)
+    end
+
+    it 'skips a job whose handler contains a disallowed class instead of raising for every admin' do
+      filter = Filters::HmisExport.new(user_id: user.id, start_date: 30.days.ago.to_date, end_date: Date.current)
+      filter.schedule_job(report_url: 'https://example.test/report')
+
+      good_job = Delayed::Job.last
+      # The `note:` line keeps this within Delayed::Job.jobs_for_class's `handler LIKE
+      # "%HmisCsvTwentyTwentyFour::ExportJob%"` scope (see config/initializers/delayed_job.rb),
+      # same as a real HmisExport job's handler would be, while the top-level `!ruby/object:`
+      # tag is a class YAML.safe_load must reject.
+      malicious_yaml = "--- !ruby/object:Gem::Requirement\nrequirements: []\nnote: HmisCsvTwentyTwentyFour::ExportJob\n"
+      poisoned_job = Delayed::Job.create!(handler: malicious_yaml, run_at: Time.current)
+
+      get warehouse_reports_hmis_exports_path
+
+      expect(response).to have_http_status(:success)
+      job_reports = assigns(:job_reports)
+      expect(job_reports.size).to eq(1)
+      expect(Delayed::Job.exists?(poisoned_job.id)).to be true
+      expect(Delayed::Job.exists?(good_job.id)).to be true
     end
   end
 end

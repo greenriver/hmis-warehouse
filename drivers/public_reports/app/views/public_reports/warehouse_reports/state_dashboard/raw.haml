@@ -1,0 +1,11 @@
+- if @report.renderable?
+  - data = @report.parsed_pre_calculated_data
+  = render 'public_reports/state_dashboard/summary_section', data: data
+  = render 'public_reports/state_dashboard/trends_section', data: data
+  = render 'public_reports/state_dashboard/need_section', data: data
+  = render 'public_reports/state_dashboard/population_section', who: data['who'], include_breakdown: true
+  = render 'public_reports/state_dashboard/glossary'
+  - if @report.completed_at
+    %p.data-note= "Date published: #{@report.completed_at.to_date}"
+- else
+  = render 'public_reports/state_dashboard/stale'

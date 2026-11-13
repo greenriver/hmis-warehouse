@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -7,6 +7,21 @@
 # frozen_string_literal: true
 
 class PdfGenerator
+  LETTER_WIDTH_IN = 8.5
+  LETTER_HEIGHT_IN = 11
+  MARGIN_IN = { top: 0.5, bottom: 0.5, left: 0.4, right: 0.4 }.freeze
+  CSS_PX_PER_IN = 96
+
+  # The printable content width, in CSS pixels, for the page format/margins above.
+  PRINTABLE_WIDTH_PX = ((LETTER_WIDTH_IN - MARGIN_IN[:left] - MARGIN_IN[:right]) * CSS_PX_PER_IN).floor
+  # The printable content height, approximately one page's height in pixels.
+  PRINTABLE_HEIGHT_PX = (LETTER_HEIGHT_IN * CSS_PX_PER_IN).floor
+
+  # Viewport for HTML whose own JavaScript measures its content against what will be
+  # printed — set this as the Puppeteer viewport so in-page measurements match what
+  # Chromium actually uses when it lays out the page for print.
+  MEASUREMENT_VIEWPORT = { width: PRINTABLE_WIDTH_PX, height: PRINTABLE_HEIGHT_PX }.freeze
+
   def perform(html:, file_name: 'output', options: {}, pdf_data: nil)
     pdf_data ||= render_pdf(html, options: options)
     Dir.mktmpdir do |dir|
@@ -33,10 +48,10 @@ class PdfGenerator
       format: 'Letter',
       emulate_media: 'print',
       margin: {
-        top: '.5in',
-        bottom: '.5in',
-        left: '.4in',
-        right: '.4in',
+        top: "#{MARGIN_IN[:top]}in",
+        bottom: "#{MARGIN_IN[:bottom]}in",
+        left: "#{MARGIN_IN[:left]}in",
+        right: "#{MARGIN_IN[:right]}in",
       },
       debug: {
         # headless: false,
@@ -51,17 +66,8 @@ class PdfGenerator
     Rails.application.routes.url_helpers.root_url(host: ENV['FQDN'])
   end
 
-  def self.warden_proxy(user)
-    Warden::Proxy.new({}, Warden::Manager.new({})).tap do |i|
-      i.set_user(user, scope: :user, store: false, run_callbacks: false)
-    end
-  end
-
   def self.html(controller:, user:, template: nil, layout: false, assigns:, partial: nil)
-    ActionController::Renderer::RACK_KEY_TRANSLATION['warden'] ||= 'warden'
-    renderer = controller.renderer.new(
-      'warden' => warden_proxy(user),
-    )
+    renderer = controller.renderer.new(WardenProxyFactory.renderer_env(user))
     if partial.present?
       renderer.render(
         partial: partial,

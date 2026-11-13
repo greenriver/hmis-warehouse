@@ -1,10 +1,10 @@
-# frozen_string_literal: true
-
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 # = GrdaWarehouse::ServiceHistoryService
 #
@@ -12,7 +12,7 @@
 # automatically. ServiceHistoryService records records are a superset of HUD Services, they include "synthetic" services
 # that are implied but not recorded, such as bed-nights at EE projects.
 #
-# @see docs/features/service_history.md
+# @see docs/features/warehouse/service-history.md
 class GrdaWarehouse::ServiceHistoryService < GrdaWarehouseBase
   include ArelHelper
   include ServiceHistoryServiceConcern

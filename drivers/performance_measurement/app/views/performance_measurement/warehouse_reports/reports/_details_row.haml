@@ -68,102 +68,103 @@
           = denominator_label
 
 = content_for :page_js do
-  :javascript
-    $(document).ready(function() {
-      const data = $('.#{class_name}').data('chart');
-      const max = Math.max(...data.columns[1].slice(1));
-      const includePercent = #{result.percentage?};
-      const max_100 = #{result.max_100?};
-      const goal = #{@report.detail_goal_for_reference_line(key).to_json};
-      let axisMax = max < goal && goal !== null ? goal : undefined;
-      if(max_100) {
-        axisMax = 100;
-      }
-      const tooltipTitles = #{result.titles_for_system_level_bar_tooltip.to_json.html_safe}
-      data.labels.format = function (v, id, i, texts) {
-        if (v < (axisMax || max) * 0.15) {
-          return '';
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      $(document).ready(function() {
+        const data = $('.#{class_name}').data('chart');
+        const max = Math.max(...data.columns[1].slice(1));
+        const includePercent = #{result.percentage?};
+        const max_100 = #{result.max_100?};
+        const goal = #{@report.detail_goal_for_reference_line(key).to_json};
+        let axisMax = max < goal && goal !== null ? goal : undefined;
+        if(max_100) {
+          axisMax = 100;
         }
-        if (includePercent) {
-          return d3.format(",.0%")(v / 100);
-        } else {
-          return d3.format(",d")(v);
+        const tooltipTitles = #{result.titles_for_system_level_bar_tooltip.to_json.html_safe}
+        data.labels.format = function (v, id, i, texts) {
+          if (v < (axisMax || max) * 0.15) {
+            return '';
+          }
+          if (includePercent) {
+            return d3.format(",.0%")(v / 100);
+          } else {
+            return d3.format(",d")(v);
+          }
         }
-      }
-      options = {
-        data: data,
-        axis: {
-          rotated: includePercent,
-          x: { type: 'category' },
-          y: {
-            tick: {
-              stepSize: 1,
-              count: 3,
-              format: function(x) { return `${d3.format(',d')(x)}${includePercent ? '%' : ''}`}
+        options = {
+          data: data,
+          axis: {
+            rotated: includePercent,
+            x: { type: 'category' },
+            y: {
+              tick: {
+                stepSize: 1,
+                count: 3,
+                format: function(x) { return `${d3.format(',d')(x)}${includePercent ? '%' : ''}`}
+              },
+              ...(axisMax && { max: axisMax }),
             },
-            ...(axisMax && { max: axisMax }),
           },
-        },
-        size: { height: 150 },
-        padding: {
-          top: 1,
-        },
-        legend: { show: data.columns.length > 2 },
-        tooltip: {
-          contents: (d, defaultTitleFormat, defaultValueFormat, color) => {
-            const data = d[0];
-            // Build ratio description
-            let description = '';
-            const denominatorLabel = "#{@report.detail_denominator_label_for(key)}";
-            const numeratorLabel = "#{@report.detail_numerator_label_for(key)}";
-            let numer, denom;
-            if (denominatorLabel) {
-              if (includePercent) {
-                numer = data.index === 0 ? "#{result.comparison_numerator}" : "#{result.reporting_numerator}";
-                denom = data.index === 0 ? "#{result.comparison_denominator}" : "#{result.reporting_denominator}";
-              } else {
-                numer = data.index === 0 ? "#{result.reporting_numerator}" : "#{result.comparison_numerator}";
-                denom = data.index === 0 ? "#{result.reporting_denominator}" : "#{result.comparison_denominator}";
+          size: { height: 150 },
+          padding: {
+            top: 1,
+          },
+          legend: { show: data.columns.length > 2 },
+          tooltip: {
+            contents: (d, defaultTitleFormat, defaultValueFormat, color) => {
+              const data = d[0];
+              // Build ratio description
+              let description = '';
+              const denominatorLabel = "#{@report.detail_denominator_label_for(key)}";
+              const numeratorLabel = "#{@report.detail_numerator_label_for(key)}";
+              let numer, denom;
+              if (denominatorLabel) {
+                if (includePercent) {
+                  numer = data.index === 0 ? "#{result.comparison_numerator}" : "#{result.reporting_numerator}";
+                  denom = data.index === 0 ? "#{result.comparison_denominator}" : "#{result.reporting_denominator}";
+                } else {
+                  numer = data.index === 0 ? "#{result.reporting_numerator}" : "#{result.comparison_numerator}";
+                  denom = data.index === 0 ? "#{result.reporting_denominator}" : "#{result.comparison_denominator}";
+                }
+                description = ` (${numer} ${numeratorLabel} of ${denom} ${denominatorLabel})`;
               }
-              description = ` (${numer} ${numeratorLabel} of ${denom} ${denominatorLabel})`;
-            }
 
-            let html = "<table class='bb-tooltip' style='opacity: 1;'>";
-            html += "<thead>";
-            html += `<tr><th colspan="3">${tooltipTitles[data.index]}</th></tr>`
-            if (goal) html += `<tr><th></th><th>Value</th><th>Goal</th></tr>`;
-            html += "</thead>";
-            html += "<tbody>";
+              let html = "<table class='bb-tooltip' style='opacity: 1;'>";
+              html += "<thead>";
+              html += `<tr><th colspan="3">${tooltipTitles[data.index]}</th></tr>`
+              if (goal) html += `<tr><th></th><th>Value</th><th>Goal</th></tr>`;
+              html += "</thead>";
+              html += "<tbody>";
 
-            d.forEach((row, index, arr) => {
-              html += "<tr>";
-              let bg_color = color(d[index].id);
-              let box = `<td style='white-space: nowrap;'><svg><rect style='fill:${bg_color}' width='10' height='10'></rect></svg>${d[index].name}</td>`;
-              let value = `<td style='white-space: nowrap;'>${defaultValueFormat(d[index].value)}${description}</td>`;
-              html += box;
-              html += value;
-              if (goal)
-                html += `<td style='white-space: nowrap;'>${defaultValueFormat(goal)}</td>`;
-            });
+              d.forEach((row, index, arr) => {
+                html += "<tr>";
+                let bg_color = color(d[index].id);
+                let box = `<td style='white-space: nowrap;'><svg><rect style='fill:${bg_color}' width='10' height='10'></rect></svg>${d[index].name}</td>`;
+                let value = `<td style='white-space: nowrap;'>${defaultValueFormat(d[index].value)}${description}</td>`;
+                html += box;
+                html += value;
+                if (goal)
+                  html += `<td style='white-space: nowrap;'>${defaultValueFormat(goal)}</td>`;
+              });
 
 
-            html += "</tr>";
-            html += "</tbody>";
-            html += '</table>';
-            return html;
+              html += "</tr>";
+              html += "</tbody>";
+              html += '</table>';
+              return html;
+            },
           },
-        },
-        ...(goal !== null && {
-          grid: {
-            lines: { front: false },
-            y: { lines: [{ value: goal }] } }
-        }),
-        bindto: '.#{class_name}'
-      };
-      if(max_100) {
-        options.axis.y.padding = { top: 0, bottom: 0}
-      }
-      const chart = bb.generate(options);
-      d3.select('.#{class_name} .bb-ygrid-line line').style('stroke-width', 2)
-      d3.select('.#{class_name} .bb-ygrid-line line').style('stroke-dasharray', 2)
-    });
+          ...(goal !== null && {
+            grid: {
+              lines: { front: false },
+              y: { lines: [{ value: goal }] } }
+          }),
+          bindto: '.#{class_name}'
+        };
+        if(max_100) {
+          options.axis.y.padding = { top: 0, bottom: 0}
+        }
+        const chart = bb.generate(options);
+        d3.select('.#{class_name} .bb-ygrid-line line').style('stroke-width', 2)
+        d3.select('.#{class_name} .bb-ygrid-line line').style('stroke-dasharray', 2)
+      });

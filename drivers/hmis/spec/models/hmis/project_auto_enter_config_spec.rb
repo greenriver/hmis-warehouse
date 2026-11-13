@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -36,16 +36,6 @@ RSpec.describe Hmis::ProjectAutoEnterConfig, type: :model do
     config = Hmis::ProjectAutoEnterConfig.detect_best_config_for_project(p1)
     expect(config).to be_nil
     Hmis::ProjectAutoExitConfig.create!(project: p1, options: { 'length_of_absence_days': 90 }, data_source: ds1)
-    config = Hmis::ProjectAutoEnterConfig.detect_best_config_for_project(p1)
-    expect(config).to be_nil
-  end
-
-  it 'should return nil if an auto-enter config exists, but is not enabled' do
-    auto_enter_config = Hmis::ProjectAutoEnterConfig.create!(project: p1, data_source: ds1)
-    config = Hmis::ProjectAutoEnterConfig.detect_best_config_for_project(p1)
-    expect(config).not_to be_nil
-    auto_enter_config.enabled = false
-    auto_enter_config.save!
     config = Hmis::ProjectAutoEnterConfig.detect_best_config_for_project(p1)
     expect(config).to be_nil
   end

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -33,6 +33,17 @@ class AwsS3
     AVAILABLE_S3_REGIONS
   end
 
+  def self.local_endpoint?
+    ENV['USE_LOCAL_S3_ENDPOINT'] == 'true' && ENV['LOCAL_S3_ENDPOINT'].present?
+  end
+
+  # The AWS SDK's lookup order, ending at us-east-1 instead of raising MissingRegionError.
+  def self.default_region
+    ENV.values_at('AWS_REGION', 'AMAZON_REGION', 'AWS_DEFAULT_REGION').find(&:present?) ||
+      Aws.shared_config.region(profile: ENV['AWS_PROFILE'].presence || 'default') ||
+      'us-east-1'
+  end
+
   def initialize(
     region: nil,
     bucket_name:,
@@ -43,20 +54,20 @@ class AwsS3
   )
     @bucket_name = bucket_name
 
-    region ||= ENV.fetch('AWS_REGION', 'us-east-1')
+    region ||= self.class.default_region
 
     client_options = {
       region: region,
     }
 
     # In development setup local access
-    if ENV['USE_MINIO_ENDPOINT'] == 'true' && ENV['MINIO_ENDPOINT'].present?
+    if self.class.local_endpoint?
       access_key_id = ENV['AWS_ACCESS_KEY_ID'] unless access_key_id.present?
       secret_access_key = ENV['AWS_SECRET_ACCESS_KEY'] unless secret_access_key.present?
 
       client_options = {
         force_path_style: true, # don't force dns hoop jumping
-        endpoint: ENV.fetch('MINIO_ENDPOINT'),
+        endpoint: ENV.fetch('LOCAL_S3_ENDPOINT'),
         region: region,
         credentials: Aws::Credentials.new(access_key_id, secret_access_key),
       }
@@ -179,7 +190,7 @@ class AwsS3
     obj = @bucket.object(name)
     args = { body: content }
     args.merge!(content_type: content_type) if content_type
-    # we're skipping server side encryption for test and development because it hard to support in minio
+    # we're skipping server side encryption for test and development because it is hard to support in the local S3 (SeaweedFS)
     args.merge!(server_side_encryption: 'AES256') unless Rails.env.development? || Rails.env.test?
     obj.put(**args)
   end

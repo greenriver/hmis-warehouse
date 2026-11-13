@@ -1,3 +1,9 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # frozen_string_literal: true
 
 require 'rails_helper'
@@ -110,6 +116,19 @@ RSpec.describe Hmis::UnitGroup, type: :model do
     it 'calls CandidatePoolBuilder after creation with its own id' do
       new_unit_group = create(:hmis_unit_group, project: project)
       expect(Hmis::Ce::Match::CandidatePoolBuilder).to have_received(:call).with(unit_group_ids: [new_unit_group.id])
+    end
+
+    it 'calls CandidatePoolBuilder after workflow template assignment with its own id' do
+      workflow_template = create(:hmis_workflow_definition_template, :with_basic_tasks, data_source: project.data_source)
+      unit_group.update!(workflow_template: workflow_template)
+
+      expect(Hmis::Ce::Match::CandidatePoolBuilder).to have_received(:call).with(unit_group_ids: [unit_group.id])
+    end
+
+    it 'does not call CandidatePoolBuilder after update when workflow template has not changed' do
+      unit_group.update!(name: 'Updated Unit Group')
+
+      expect(Hmis::Ce::Match::CandidatePoolBuilder).not_to have_received(:call)
     end
   end
 

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -50,13 +50,13 @@ module CohortColumns
       open_enrollments = value(cohort_client)
       return unless open_enrollments
 
-      open_enrollments.map do |project_type, text|
+      safe_join(open_enrollments.map do |project_type, text|
         content_tag(:div, class: "enrollment__project_type client__service_type_#{project_type}") do
           content_tag(:em, class: 'service-type__program-type') do
             text
           end
         end
-      end.join(' ').html_safe
+      end, ' ')
     end
 
     def analytics_value

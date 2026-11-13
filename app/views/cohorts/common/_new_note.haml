@@ -1,4 +1,4 @@
-- title = "Add a note for #{@note.client.name}"
+- title = "Add a note for #{@note.client.pii_provider(user: current_user).full_name}"
 - content_for :modal_title, title
 
 = simple_form_for @note, url: url, method: :post, remote: true do |f|
@@ -10,17 +10,18 @@
   = f.submit value: 'Add Note', class: 'btn btn-primary'
 
 = content_for :page_js do
-  :javascript
-    $(document).ready(function() {
-      $('.jNotifications').on('change', function(e) {
-        if($(this).is(':checked')){
-          $('.jRecipients').show();
-          $('.select2-select-all').remove();
-        } else {
-          $('.jRecipients option:selected').prop('selected', false);
-          $('.jRecipients').hide();
-          $('.jRecipients select').trigger('change');
-        }
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      $(document).ready(function() {
+        $('.jNotifications').on('change', function(e) {
+          if($(this).is(':checked')){
+            $('.jRecipients').show();
+            $('.select2-select-all').remove();
+          } else {
+            $('.jRecipients option:selected').prop('selected', false);
+            $('.jRecipients').hide();
+            $('.jRecipients select').trigger('change');
+          }
+        });
+        $('.jNotifications').trigger('change');
       });
-      $('.jNotifications').trigger('change');
-    });

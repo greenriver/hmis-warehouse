@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -56,7 +56,7 @@ module PublicReports
     end
 
     def filter_object
-      @filter_object ||= ::Filters::OutflowReport.new(user_id: user.id).set_from_params(filter['filters'].merge(enforce_one_year_range: false, sub_population: :clients).with_indifferent_access)
+      @filter_object ||= ::Filters::OutflowReport.new(user: owner).set_from_params(filter['filters'].merge(enforce_one_year_range: false, sub_population: :clients).with_indifferent_access)
     end
   end
 end

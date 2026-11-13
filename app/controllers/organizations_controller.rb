@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -16,7 +16,7 @@ class OrganizationsController < ApplicationController
     name = @organization.OrganizationName
     DeleteItemJob.perform_later(item_id: @organization.id, item_class: @organization.class.name)
     flash[:notice] = "Organization: #{name} was successfully queued for removal.  Please check back in a few minutes."
-    respond_with @organization, location: data_source_path(@organization.data_source)
+    respond_with @organization, location: data_source_path(@organization.data_source, coc_code: params[:coc_code])
   end
 
   def edit
@@ -26,7 +26,7 @@ class OrganizationsController < ApplicationController
 
   def update
     @organization.update(organization_params)
-    respond_with @organization, location: data_source_path(@organization.data_source)
+    respond_with @organization, location: data_source_path(@organization.data_source, coc_code: params[:coc_code])
   end
 
   private def organization_params

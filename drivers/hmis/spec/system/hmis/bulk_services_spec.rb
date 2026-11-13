@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -45,7 +45,7 @@ RSpec.feature 'Bulk Services behavior', type: :system do
 
     find('[name="search client"]').fill_in(with: 'Jos')
     find_button('Search').trigger(:click)
-    expect(all('tbody tr').count).to eq(3) # all 3 clients returned because their names match the pattern
+    expect(page).to have_css('tbody tr', count: 3) # all 3 clients returned because their names match the pattern
   end
 
   describe 'bed nights' do

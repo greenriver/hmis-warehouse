@@ -24,7 +24,7 @@
 // NOTE: as this file is now type scss, we cannot use require, or require_tree, we need to use @import
 @import 'select2/dist/css/select2.min';
 @import 'select2-bootstrap';
-@import 'billboard.js/dist/billboard.min.css';
+@import 'billboard.js/dist/billboard.min';
 @import 'jquery-ui/sortable';
 @import 'jquery-ui/slider';
 @import 'jquery-ui/autocomplete';
@@ -32,7 +32,7 @@
 @import 'leaflet.markercluster/dist/MarkerCluster';
 @import 'leaflet.markercluster/dist/MarkerCluster.Default';
 @import 'beautifymarker/leaflet-beautify-marker-icon';
-@import 'ag-grid-community/styles/ag-theme-balham.min.css';
+@import 'ag-grid-community/styles/ag-theme-balham.min';
 @import 'jquery.minicolors';
 
 // require datatables.net-bs5/css/dataTables.bootstrap5

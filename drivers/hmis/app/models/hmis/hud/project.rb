@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -85,7 +85,7 @@ class Hmis::Hud::Project < Hmis::Hud::Base
 
   # hide previous declaration of :viewable_by, we'll use this one
   # Includes any HMIS projects where the user has the can_view_projects permission.
-  # Restricts to current data source (user.hmis_data_source_id), @see docs/architecture/multi-hmis-support.md
+  # Restricts to current data source (user.hmis_data_source_id), @see docs/features/hmis/multi-hmis-support.md
   replace_scope :viewable_by, ->(user) do
     ids = user.viewable_projects.pluck(:id)
     ids += user.viewable_organizations.joins(:projects).pluck(p_t[:id])
@@ -98,18 +98,23 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   # Includes any HMIS projects where the user has the specified permission(s)
   # NOTE: Pass kwarg "mode: :all" if all permissions must be present. Default is 'any'.
   #
+  # Permissions are evaluated the same way the policies evaluate them: unioned across the user's roles
+  # at each project, with permission requirements applied. Name only the permissions you need — the
+  # requirements behind them are resolved for you.
+  #
   # WARNING! This will include projects that the user does not have access to view (e.g. they lack can_view_projects)
-  scope :with_access, ->(user, *permissions, **kwargs) do
-    ids = user.entities_with_permissions(Hmis::Hud::Project, *permissions, **kwargs).pluck(:id)
-    ids += user.entities_with_permissions(Hmis::Hud::Organization, *permissions, **kwargs).joins(:projects).pluck(p_t[:id])
-    ids += user.entities_with_permissions(Hmis::ProjectGroup, *permissions, **kwargs).joins(:projects).pluck(p_t[:id])
-    ids += user.entities_with_permissions(GrdaWarehouse::DataSource, *permissions, **kwargs).joins(:projects).pluck(p_t[:id])
-
+  scope :with_access, ->(user, *permissions, mode: :any) do
+    ids = user.policy_context.project_ids_with_permissions(*permissions, mode: mode)
     where(id: ids, data_source_id: user.hmis_data_source_id)
   end
 
   scope :with_organization_ids, ->(organization_ids) do
     joins(:organization).where(o_t[:id].in(Array.wrap(organization_ids)))
+  end
+
+  scope :in_project_group, ->(project_group_id) do
+    project_ids = Hmis::ProjectGroup.project_ids_for(project_group_id)
+    project_ids.any? ? where(id: project_ids) : none
   end
 
   # Always use ProjectType, we shouldn't need overrides since we can change the source data
@@ -182,12 +187,22 @@ class Hmis::Hud::Project < Hmis::Hud::Base
 
   # Projects that are open and have CE waitlist referrals enabled
   scope :with_ce_waitlists_enabled, -> do
-    open_on_date.with_configs(Hmis::ProjectCeConfig.active.filter(&:supports_waitlist_referrals?))
+    open_on_date.with_configs(Hmis::ProjectCeConfig.all.filter(&:supports_waitlist_referrals?))
   end
 
   # Projects that are open and have CE enabled
   scope :with_ce_enabled, -> do
-    open_on_date.with_configs(Hmis::ProjectCeConfig.active)
+    open_on_date.with_configs(Hmis::ProjectCeConfig.all)
+  end
+
+  # Projects that are configured to originate direct CE referrals.
+  # Takes a data source because `with_configs` matches on `project_type`, which is a HUD enum
+  # value that is not unique across data sources. Scoping only the project side would still let a
+  # project-type-scoped config in another data source decide who counts as a sender here.
+  scope :sending_direct_ce_referrals, ->(data_source_id) do
+    configs = Hmis::ProjectSendsDirectCeReferralsConfig.where(data_source_id: data_source_id).to_a
+
+    where(data_source_id: data_source_id).with_configs(configs)
   end
 
   SORT_OPTIONS = [:organization_and_name, :name].freeze
@@ -249,6 +264,8 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   def allows_same_day_exit?
     if services_only_rrh?
       true # RRH-Services-Only projects allow same-day exit
+    elsif HudHelper.util.project_type_number_from_code(:so).include?(project_type)
+      true # Street Outreach can exit on the same day, even though it belongs to 'residential_project_type_ids'
     elsif HudHelper.util.residential_project_type_ids.include?(project_type)
       false # Residential projects do not allow same-day exit
     else
@@ -420,5 +437,6 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     ce_referrals.each(&:destroy!)
   end
 
-  include RailsDrivers::Extensions
+  # Extensions from drivers — see ADR 0007
+  include HmisExternalApis::Hmis::Hud::ProjectExtension
 end

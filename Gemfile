@@ -1,8 +1,7 @@
 source 'https://rubygems.org'
 
-gem 'rails', '7.2.3.1'
-gem 'rails_drivers', github: 'greenriver/rails_drivers', branch: 'rails-7'
-gem 'rack', '< 3.2' # pinning to the same max version as is required by rails 7.2
+gem 'rails', '~> 8.1.3'
+gem 'rack', '< 3.2' # kept on the rack 3.1.x line; rails 8.x resolves fine under this cap
 
 gem 'openssl', '>=3.3.1' # override the default ruby version of openssl https://github.com/ruby/openssl/issues/949#issuecomment-3370358680
 
@@ -29,13 +28,12 @@ gem 'nokogiri'
 gem 'loofah'
 gem 'rubyzip'
 gem 'rails-html-sanitizer'
-gem 'sshkit'
+gem 'sanitize' # used to sanitize user-entered theme CSS
 gem 'paranoia'
 gem 'pg'
-gem 'activerecord-sqlserver-adapter', '~> 7.2.0' # tied to the rails version
+gem 'activerecord-sqlserver-adapter', '~> 8.1.0' # tied to the rails version
 gem 'activerecord-import'
 gem 'order_as_specified'
-gem 'pghero'
 
 gem 'activerecord', '>= 6.1.7.3' # for CVE-2023-22796
 gem 'active_record_extended'
@@ -51,14 +49,14 @@ gem 'premailer'
 gem 'census_api', github: 'greenriver/census_api'
 
 # spatial manipulations
-gem 'activerecord-postgis-adapter', '~> 10.0'
+gem 'activerecord-postgis-adapter', '~> 11.1' # tied to the rails version (11.1.x -> AR 8.1)
 gem 'ffi'
 gem 'ffi-geos'
 gem 'rgeo'
 gem 'rgeo-geojson'
 gem 'rgeo-proj4'
 
-gem 'active_record_distinct_on'
+gem 'active_record_distinct_on' # No significant changes in 1.10.0 https://github.com/alecdotninja/active_record_distinct_on/tags
 gem 'charlock_holmes', require: false
 gem 'bootsnap'
 gem 'bcrypt'
@@ -77,45 +75,45 @@ gem 'rserve-simpler', require: false
 gem 'encryptor'
 
 # File processing
-gem 'carrierwave', '~> 1'
-gem 'carrierwave-i18n'
+gem 'image_processing', '~> 1.14.0'
 
-# version 1.5 has the fix we need when we ever go to 1.5
-# gem 'carrierwave-aws', '~> 1.4'
-gem 'carrierwave-aws', git: 'https://github.com/greenriver/carrierwave-aws.git', branch: 'gr-1.4.0-without-deprecations'
-gem 'image_processing', '~> 1.13.0' # higher requires mini_magick 5, which appears to be incompatible with carrierwave 1.4
-
-gem 'mini_magick'
+gem 'mini_magick', '~> 5.1'
 gem 'mimemagic'
 gem 'marcel'
 # there are no obvious breaking changes but
 # since there are no tests for this
 # it should be tested manually
-gem 'acts-as-taggable-on', '~>12.0'
+gem 'acts-as-taggable-on', '~> 13.0' # major bump for rails 8.1 (AR < 8.2); tagging behavior to verify manually (Release notes: https://github.com/mbleigh/acts-as-taggable-on/blob/master/CHANGELOG.md indicate no breaking changes)
 # gem 'seven_zip_ruby' unless ENV['NO_7ZIP'] == '1'
 
-gem 'devise', '~> 4.9'
-gem 'devise_invitable', '~> 2.0.9'
-gem 'devise-pwned_password'
-gem 'devise-security'
-gem 'devise-two-factor', '~> 4.1.1'
+# Bundler.require in config/application.rb takes this group only on the Devise arm, so a JWT-arm
+# reference to Devise or Warden raises at boot instead of resolving against a gem that loaded
+# anyway. A Devise-dependent gem added outside this group silences that signal.
+group :devise do
+  gem 'devise', '~> 5.0'
+  gem 'devise_invitable', '~> 2.0.9'
+  gem 'devise-pwned_password'
+  gem 'devise-security'
+  gem 'devise-two-factor', '~> 6.4' # 6.x is rails-8-compatible; legacy otp secrets read via User#legacy_otp_secret
+  gem 'doorkeeper'
+  gem 'omniauth', '~> 2.1'
+  gem 'omniauth-oauth2', '~> 1.7.3'
+  gem 'omniauth-rails_csrf_protection', '~> 2.0' # 2.x drops ActiveSupport::Configurable (deprecated in rails 8.1, removed 8.2)
+  gem 'pretender'
+  gem 'rqrcode'
+  gem 'authtrail' # for logging login attempts
+end
+
 gem 'rack-cors'
-gem 'doorkeeper'
 
-gem 'omniauth', '~> 2.1'
-gem 'omniauth-oauth2', '~> 1.7.3'
-gem 'omniauth-rails_csrf_protection', '~> 1.0.1'
+gem 'jwt', '~> 3.1' # Validates IdP-issued JWT access tokens
 gem 'faraday', '~> 2.2'
-gem 'oauth2'
+gem 'oauth2', '>= 2.0.22'
 
-gem 'pretender'
-gem 'rqrcode'
-
-gem 'authtrail' # for logging login attempts
 gem 'maxminddb' # for local geocoding of login attempts
 gem 'geocoder'
 
-gem 'paper_trail', '~> 15' # 16 breaks models with inherited has_paper_trail, need to update significant code
+gem 'paper_trail', '~> 17'
 gem 'validate_url'
 gem 'validates_email_format_of'
 gem 'ruby-mailchecker'
@@ -127,6 +125,7 @@ gem 'logstop'
 
 # Metrics
 gem 'prometheus-client'
+gem 'yabeda-activejob'
 gem 'yabeda-rails'
 gem 'yabeda-prometheus'
 gem 'yabeda-puma-plugin'
@@ -160,11 +159,11 @@ gem 'htmlentities'
 # ETO API related
 gem 'rest-client', '~> 2.0'
 gem 'curb', '~> 1.0.9', require: false # pinning to 1.0.9 to keep webmock happy
-gem 'gmail', require: false
+# gem 'gmail', require: false
 # gem 'savon'
 # gem 'qaaws', require: false, git: 'https://github.com/greenriver/eis-ruby-qaaws.git', branch: 'master'
 
-gem 'stupidedi', git: 'https://github.com/greenriver/stupidedi.git', branch: 'master'
+gem 'stupidedi', '~> 1.5'
 gem 'rexml', '>= 3.4.2', require: false # For ETO API and MassHealth SOAP processing; pinned for CVE-2025-58767
 
 gem 'redcarpet'
@@ -174,7 +173,7 @@ gem 'kiba-common'
 
 # For exporting
 gem 'caxlsx'
-gem 'caxlsx_rails'
+gem 'caxlsx_rails', '>= 0.7.1' # 0.6.x breaks `render xlsx:` template resolution on rails 8
 gem 'roo', require: false
 gem 'roo-xls', require: false
 gem 'rubyXL', require: false
@@ -189,7 +188,7 @@ gem 'progress_bar', require: false
 
 gem 'slack-notifier'
 
-gem 'puma', '~> 6'
+gem 'puma', '~> 7'
 
 gem 'dotenv-rails'
 
@@ -202,17 +201,19 @@ gem 'multipart-post'
 gem 'addressable' # normalize uris
 gem 'redis-actionpack'
 
+gem 'resolv', '>= 0.7.2' # CVE-2026-80212 and CVE-2026-80213
+
 gem 'ed25519'
 gem 'bcrypt_pbkdf'
 gem 'gpgme'
 
 # AWS SDK is needed for deployment and within the application
-gem 'aws-sdk-rails', '~> 3'
+gem 'aws-sdk-rails', '~> 5'
+gem 'aws-actionmailer-ses', '~> 1' # ActionMailer SES delivery, split out of aws-sdk-rails in v4
 gem 'aws-sdk-autoscaling', '~> 1'
 gem 'aws-sdk-cloudwatchevents', '~> 1'
 gem 'aws-sdk-cloudwatchlogs', '~> 1'
 gem 'aws-sdk-cloudwatch', '~> 1'
-gem 'aws-sdk-ecs', '~> 1'
 gem 'aws-sdk-ec2', '~> 1'
 gem 'aws-sdk-ecr', '~> 1'
 gem 'aws-sdk-elasticloadbalancingv2', '~> 1'
@@ -245,10 +246,10 @@ gem 'todo_or_die'
 gem 'dentaku', require: false
 gem 'business_time'
 gem 'cable_ready', '>= 5.0.0.rc2'
-gem 'graphql', '~> 2.5.4'
-gem 'sentry-rails', '~> 5.5'
-gem 'sentry-ruby'
-gem 'sentry-delayed_job'
+gem 'graphql', '~> 2.5'
+gem 'sentry-rails', '~> 6.6'
+gem 'sentry-ruby', '~> 6.6'
+gem 'sentry-delayed_job', '~> 6.6'
 gem 'warning'
 gem 'hashdiff'
 # Once 0.17 is released we should be able to unpin this
@@ -276,10 +277,6 @@ end
 
 group :development do
   gem 'html2haml', require: false
-  gem 'capistrano-bundler', require: false
-  gem 'capistrano-rvm', require: false
-  gem 'capistrano-passenger', require: false
-  gem 'capistrano-rails', require: false
   gem 'rails-erd', require: false
   gem 'web-console'
   gem 'aws-sdk-dynamodb', require: false

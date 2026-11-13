@@ -4,10 +4,12 @@
 %h1= content_for :title
 
 %p After 1 month files will be permanently deleted and can not be retrieved
-.row
+
+= render 'tabs', active_tab: @active_tab
+
+.row.mt-4
   .col-sm-6
-    = render 'received'
-    .mt-4= render 'sent'
+    = render_paginated_list(scope: @secure_files, item_name: 'file', list_partial: 'list', empty_message: secure_files_empty_message)
   .col-sm-6
     .well
       = render 'form'

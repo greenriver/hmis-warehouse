@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -57,7 +57,7 @@ module Importers::HmisAutoMigrate
       # rezip files
       zip_file_path = File.join(@file_path, "#{@data_source_id}_#{Time.current.to_fs(:db)}.zip")
       files = Dir.glob(File.join(@file_path, '*')).map { |f| File.basename(f) }
-      Zip::File.open(zip_file_path, Zip::File::CREATE) do |zipfile|
+      Zip::File.open(zip_file_path, create: true) do |zipfile|
         files.each do |filename|
           zipfile.add(
             filename,

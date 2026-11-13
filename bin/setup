@@ -36,14 +36,16 @@ FileUtils.chdir APP_ROOT do
   system! 'bundle exec ./bin/generate_pgpass.rb > .pgpass'
   system! 'chmod 600 .pgpass'
 
+  # copy in things that are always relevant in all environments (test/dev)
   unless File.exist?('.env.local')
     puts "\n== Creating .env.local"
-    FileUtils.cp 'sample.env', '.env.local'
+    FileUtils.cp 'sample.env.local', '.env.local'
   end
 
+  # copy in things that are only relevant in the development environment
   unless File.exist?('.env.development.local')
     puts "\n== Creating .env.development.local"
-    FileUtils.touch '.env.development.local'
+    FileUtils.cp 'sample.env.development.local', '.env.development.local'
   end
 
   puts "\n== Preparing database =="
@@ -54,12 +56,6 @@ FileUtils.chdir APP_ROOT do
 
   puts "\n== Removing old logs and tempfiles =="
   system! 'bin/rails log:clear tmp:clear'
-
-  puts "\n== Creating styles/_variables.scss =="
-  styles = File.join ['app', 'assets', 'stylesheets', 'theme', 'styles']
-  FileUtils.mkdir(styles) unless File.directory?(styles)
-  variables = File.join styles, '_variables.scss'
-  FileUtils.touch variables unless File.exist?(variables)
 
   puts "\n== Creating System User =="
   system! "bundle exec rails runner 'User.setup_system_user'"

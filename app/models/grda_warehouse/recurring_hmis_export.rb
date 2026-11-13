@@ -1,15 +1,12 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 # frozen_string_literal: true
 
-require 'pty'
-require 'expect'
-
-# See docs/features/recurring_hmis_exports.md for feature overview and operational notes.
+# See docs/features/warehouse/recurring-hmis-exports.md for feature overview and operational notes.
 module GrdaWarehouse
   class RecurringHmisExport < GrdaWarehouseBase
     attr_accessor :version
@@ -19,6 +16,24 @@ module GrdaWarehouse
     attr_encrypted :zip_password, key: ENV['ENCRYPTION_KEY'][0..31]
 
     acts_as_paranoid
+
+    # Both limits belong to the pty zipcloak reads its password through; see ZipCloak.
+    validates :zip_password,
+              length: { maximum: ZipCloak::MAX_PASSWORD_LENGTH },
+              format: {
+                without: ZipCloak::CONTROL_CHARACTERS,
+                message: 'cannot contain control characters, including a line break',
+              },
+              if: -> { encryption_type == 'zip' }
+
+    # Require both or neither
+    validates :encryption_type,
+              presence: { message: 'must be chosen when a zip password is provided' },
+              if: -> { zip_password.present? }
+
+    validates :zip_password,
+              presence: { message: 'is required when an encryption type is chosen' },
+              if: -> { encryption_type.present? }
 
     belongs_to :user, optional: true
     has_many :recurring_hmis_export_links
@@ -35,6 +50,16 @@ module GrdaWarehouse
 
     def run
       filter = ::Filters::HmisExport.new(filter_hash)
+      # Skip rather than deliver an empty export. No link is recorded, so the run is
+      # retried each day and resumes once the selection resolves to a visible project
+      if filter.project_selection_hidden?
+        Sentry.capture_message(
+          "RecurringHmisExport #{id}: none of the selected projects resolve to a project user #{user_id} can see; skipping run",
+          level: :warning,
+        )
+        return
+      end
+
       filter.adjust_reporting_period
       filter.schedule_job(report_url: nil)
     end
@@ -55,13 +80,18 @@ module GrdaWarehouse
     # Temporarily replace the content of the report with a password protected zip
     # which can be sent to S3
     private def encrypt_zip(content)
-      return content unless zip_password.present?
+      return content if zip_password.blank? && encryption_type.blank?
+
+      # Rows predating the validations above can hold one without the other; do not proceed
+      raise "RecurringHmisExport #{id} needs both a zip password and an encryption type" if zip_password.blank? || encryption_type.blank?
 
       case encryption_type
       when 'zip'
         encrypt_zipcloak(content)
       when '7z'
         encrypt_seven_zip(content)
+      else
+        raise "RecurringHmisExport #{id} has an unknown encryption type #{encryption_type.inspect}"
       end
     end
 
@@ -73,43 +103,14 @@ module GrdaWarehouse
       tmp.write(content)
       tmp.close
 
-      Tempfile.create('expect', export_dir.to_s) do |expect_script|
-        expect_content = <<~EXPECT
-          #!/usr/bin/expect -f
-
-          set force_conservative 0  ;# set to 1 to force conservative mode even if
-                                    ;# script wasn't run conservatively originally
-          if {$force_conservative} {
-            set send_slow {1 .1}
-            proc send {ignore arg} {
-              sleep .1
-              exp_send -s -- $arg
-            }
-          }
-
-          set timeout -1
-          spawn zipcloak --output-file #{destination_path} #{source_path}
-          match_max 100000
-          expect -exact "Enter password: "
-          send -- "#{zip_password}\r"
-          expect -exact "\r
-          Verify password: "
-          send -- "#{zip_password}\r"
-          expect eof
-
-          send_user "\n $expect_out(buffer) \n"
-        EXPECT
-        expect_script.write(expect_content)
-        expect_script.close
-        FileUtils.chmod(0o770, expect_script.path)
-        system(expect_script.path)
-      end
+      ZipCloak.encrypt(source: source_path, destination: destination_path, password: zip_password)
 
       # return the encrypted content
-      encrypted_content = ::File.open(destination_path, binmode: true).read
-      FileUtils.rm(destination_path)
-      tmp.unlink
-      encrypted_content
+      ::File.binread(destination_path)
+    ensure
+      # tmp holds the export unencrypted, so no failure above may leave it on disk
+      FileUtils.rm_f(destination_path) if destination_path
+      tmp&.unlink
     end
 
     # Write out the zip file
@@ -128,12 +129,19 @@ module GrdaWarehouse
       FileUtils.mkdir(destination_path) unless ::File.exist?(destination_path)
       Zip::File.open(source_path) do |zipped_file|
         zipped_file.each do |entry|
-          entry.extract(::File.join(destination_path, ::File.basename(entry.name)))
+          entry.extract(::File.basename(entry.name), destination_directory: destination_path)
         end
       end
 
-      cmd = "7z a -mx9 -p#{zip_password} #{destination_file} #{destination_path}/*.csv"
-      system(cmd)
+      # SevenZip returns false rather than raising, and a failed run leaves no
+      # destination file for the read below, so check it here where the reason is known.
+      raise "RecurringHmisExport #{id} could not 7z the export" unless
+        SevenZip.create(
+          destination: destination_file,
+          sources: Dir.glob("#{destination_path}/*.csv"),
+          password: zip_password,
+          level: 9,
+        )
 
       # ::File.open(destination_file, 'wb') do |file|
       #   SevenZipRuby::SevenZipWriter.open(file, password: zip_password) do |szw|
@@ -148,14 +156,14 @@ module GrdaWarehouse
       #     end
       #   end
       # end
-      # for some reason we need a bit of sand after talking to zipcloak
-      sleep(5) unless ::File.exist?(destination_file)
       # return the encrypted content
-      encrypted_content = ::File.open(destination_file, binmode: true).read
-      FileUtils.rm_rf(destination_path)
-      FileUtils.rm(destination_file)
-      tmp.unlink
-      encrypted_content
+      ::File.binread(destination_file)
+    ensure
+      # destination_path holds the export's CSVs unencrypted and tmp the whole
+      # export, so no failure above may leave either on disk
+      FileUtils.rm_rf(destination_path) if destination_path
+      FileUtils.rm_f(destination_file) if destination_file
+      tmp&.unlink
     end
 
     def object_name(report)
@@ -184,6 +192,8 @@ module GrdaWarehouse
     end
 
     validates :reporting_range, inclusion: { in: available_reporting_ranges.values }
+    # Keeps a type #encrypt_zip cannot apply from reaching delivery, where it raises.
+    validates :encryption_type, inclusion: { in: available_encryption_types.values }, allow_blank: true
 
     def aws_s3
       return nil unless s3_present?

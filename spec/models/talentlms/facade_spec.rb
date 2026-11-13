@@ -1,3 +1,9 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # frozen_string_literal: true
 
 require 'rails_helper'
@@ -498,5 +504,11 @@ RSpec.describe Talentlms::Facade, type: :model do
         'completed_on' => date.strftime('%Y/%m/%d, %T').freeze,
       },
     )
+  end
+
+  describe 'random_password' do
+    it 'raises an ArgumentError for a length under 8' do
+      expect { lms.random_password(7) }.to raise_error(ArgumentError, 'Length must be at least 8')
+    end
   end
 end

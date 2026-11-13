@@ -51,81 +51,82 @@
 
 - content_for :page_js do
   = javascript_include_tag 'https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js'
-  :javascript
-    $(document).ready(function() {
-      console.debug('Housing Placement -----------------')
-      var totalData = #{total_data.to_json.html_safe}
-      var donutData = #{donut_data.to_json.html_safe}
-      var donutIds = #{donut_ids.to_json.html_safe}
-      var donutFilterLabelIds = #{donut_filter_label_ids.to_json.html_safe}
-      var stackedData = #{stacked_data.to_json.html_safe}
-      var stackedId = '##{chart_id(tab[:id], "stacked_#{stacked_data[:id]}")}'
-      var charts = [
-        {
-          chart: AllNeighborsSystemDashboardLine,
-          data: totalData,
-          selector: '##{chart_id(tab[:id], 'total_placements')}',
-          options: {
-            legend: {selector: '##{chart_id(tab[:id], 'total_placements')}_legend'}
-          }
-        },
-        {
-          chart: AllNeighborsSystemDashboardStack,
-          data: stackedData,
-          selector: stackedId,
-          options: {
-            legend: {selector: stackedId+'_legend'},
-          }
-        }
-      ].concat(donutData.map(function(d, i) {
-        return {
-          chart: AllNeighborsSystemDashboardDonut,
-          data: d,
-          selector: '#'+donutIds[i],
-          options: {
-            countLevelLabelSelector: '#'+donutFilterLabelIds[i],
-            legend: {
-              selector: '#'+donutIds[i]+'_legend'
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      $(document).ready(function() {
+        console.debug('Housing Placement -----------------')
+        var totalData = #{total_data.to_json.html_safe}
+        var donutData = #{donut_data.to_json.html_safe}
+        var donutIds = #{donut_ids.to_json.html_safe}
+        var donutFilterLabelIds = #{donut_filter_label_ids.to_json.html_safe}
+        var stackedData = #{stacked_data.to_json.html_safe}
+        var stackedId = '##{chart_id(tab[:id], "stacked_#{stacked_data[:id]}")}'
+        var charts = [
+          {
+            chart: AllNeighborsSystemDashboardLine,
+            data: totalData,
+            selector: '##{chart_id(tab[:id], 'total_placements')}',
+            options: {
+              legend: {selector: '##{chart_id(tab[:id], 'total_placements')}_legend'}
+            }
+          },
+          {
+            chart: AllNeighborsSystemDashboardStack,
+            data: stackedData,
+            selector: stackedId,
+            options: {
+              legend: {selector: stackedId+'_legend'},
             }
           }
-        }
-      }))
+        ].concat(donutData.map(function(d, i) {
+          return {
+            chart: AllNeighborsSystemDashboardDonut,
+            data: d,
+            selector: '#'+donutIds[i],
+            options: {
+              countLevelLabelSelector: '#'+donutFilterLabelIds[i],
+              legend: {
+                selector: '#'+donutIds[i]+'_legend'
+              }
+            }
+          }
+        }))
 
-      var filterConfig = [
-        {
-          name: 'projectType',
-          type: 'select',
-          selector: '##{filter_id(tab[:id], 'project_type')}'
-        },
-        {
-          name: 'countLevel',
-          type: 'select',
-          selector: '##{filter_id(tab[:id], 'count_level')}'
-        },
-        {
-          name: 'dateRange',
-          type: 'dateRange',
-          selector: '##{filter_id(tab[:id], 'date_range')} input'
-        }
-      ]
+        var filterConfig = [
+          {
+            name: 'projectType',
+            type: 'select',
+            selector: '##{filter_id(tab[:id], 'project_type')}'
+          },
+          {
+            name: 'countLevel',
+            type: 'select',
+            selector: '##{filter_id(tab[:id], 'count_level')}'
+          },
+          {
+            name: 'dateRange',
+            type: 'dateRange',
+            selector: '##{filter_id(tab[:id], 'date_range')} input'
+          }
+        ]
 
-      var labelConfig = [
-        {
-          name: 'projectType',
-          selector: '.#{filter_label_id(tab[:id], 'project_type')}'
-        },
-        {
-          name: 'countLevel',
-          selector: '.#{filter_label_id(tab[:id], 'count_level')}'
-        },
-        {
-          name: 'dateRange',
-          selector: '.#{filter_label_id(tab[:id], 'date_range')}'
-        },
-      ]
+        var labelConfig = [
+          {
+            name: 'projectType',
+            selector: '.#{filter_label_id(tab[:id], 'project_type')}'
+          },
+          {
+            name: 'countLevel',
+            selector: '.#{filter_label_id(tab[:id], 'count_level')}'
+          },
+          {
+            name: 'dateRange',
+            selector: '.#{filter_label_id(tab[:id], 'date_range')}'
+          },
+        ]
 
-      var filters = new AllNeighborsSystemDashboardFilters(filterConfig, charts, labelConfig)
-      filters.test()
+        var filters = new AllNeighborsSystemDashboardFilters(filterConfig, charts, labelConfig)
+        filters.test()
 
 
-    })
+      })

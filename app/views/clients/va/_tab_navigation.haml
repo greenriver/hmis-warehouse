@@ -23,7 +23,7 @@
       },
       client_history_path(@client) => {
         title: 'History',
-        permission: show_demographic || show_expanded_dashboard
+        permission: (show_demographic || show_expanded_dashboard) && current_user.policy_for(@client).can_view_history_calendar?,
       },
       client_releases_path(client_id: @client) => {
         title: Translation.translate('Releases of Information'),
@@ -36,7 +36,6 @@
     }
 
     hmis = {}
-    health = {}
 
   = render 'clients/pre_navigation_bar'
-  = render 'menus/client_tab_navigation', current: current, always_visible: always_visible, hmis: hmis, health: health
+  = render 'menus/client_tab_navigation', current: current, always_visible: always_visible, hmis: hmis

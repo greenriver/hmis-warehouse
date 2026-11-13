@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -315,7 +315,7 @@ module ReportGenerators::DataQuality::Fy2017
       @households ||= begin
         hh = {}
 
-        # Individuals (no household id avaialble)
+        # Individuals (no household id available)
         client_batch_scope.
           where(household_id: [nil, '']).
           order(first_date_in_program: :asc).

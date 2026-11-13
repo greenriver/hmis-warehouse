@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -67,8 +67,6 @@ module HmisExternalApis::AcHmis
     end
 
     def conn
-      raise 'HmisExternalApis driver is not loaded' unless RailsDrivers.loaded.include?(:hmis_external_apis)
-
       @conn ||= HmisExternalApis::OauthClientConnection.new(creds, connection_timeout: CONNECTION_TIMEOUT_SECONDS)
     end
   end

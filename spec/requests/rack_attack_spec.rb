@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -87,17 +87,6 @@ RSpec.describe Rack::Attack, type: :request do
       end
     end
 
-    describe 'when hitting the history pdf' do
-      let(:client) { create(:grda_warehouse_hud_client) }
-      let(:path) { pdf_client_history_path(client) }
-
-      it 'throttle burst requests' do
-        throttled_at = 25
-        requests_sent = till_throttled(requests_to_send: throttled_at) { get(path) }
-        expect(requests_sent).to eq(throttled_at)
-      end
-    end
-
     describe 'and posting to the sign-in page' do
       let(:path) { user_session_path }
       it 'throttles brute-force requests' do
@@ -109,7 +98,10 @@ RSpec.describe Rack::Attack, type: :request do
       end
     end
 
-    describe 'HMIS sign-in end point' do
+    # Devise-only: hmis_user_session_path comes from `devise_for :users, class_name: 'Hmis::User'`,
+    # mounted only under AuthMethod.devise? (drivers/hmis/config/routes.rb). The jwt arm has no HMIS
+    # Devise login route — oauth2-proxy owns sign-in.
+    describe 'HMIS sign-in end point', :devise_only do
       let(:path) { hmis_user_session_path }
       it 'throttles brute-force requests' do
         throttled_at = 20
@@ -120,7 +112,9 @@ RSpec.describe Rack::Attack, type: :request do
       end
     end
 
-    describe 'Password Reset Throttling' do
+    # Devise-only: edit_user_password_path is a Devise :recoverable route, mounted only under
+    # AuthMethod.devise? (config/routes.rb). The jwt arm delegates password reset to the IdP.
+    describe 'Password Reset Throttling', :devise_only do
       let(:path) { edit_user_password_path }
       it 'throttles brute-force password reset requests' do
         throttled_at = 20
@@ -139,7 +133,9 @@ RSpec.describe Rack::Attack, type: :request do
 
     include_examples 'blocks active storage routes'
 
-    describe 'status endpoints' do
+    # Devise-only: asserts Devise :timeoutable expiry via Devise.timeout_in. JWT sessions are not
+    # timed out this way, so the final request stays authenticated (200) rather than 401.
+    describe 'status endpoints', :devise_only do
       let(:excluded_paths) { ['/messages/poll'] }
       let(:session_timeout) { Devise.timeout_in }
 

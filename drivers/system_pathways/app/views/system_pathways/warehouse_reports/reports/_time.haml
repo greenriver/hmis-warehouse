@@ -23,47 +23,48 @@
     #time-table{ data: { 'chart-loader-target' => 'table' }}
   -# rollup-container.c-card.c-card--flush.c-card--block
   = content_for :page_js do
-    :javascript
-      document.time = bb.generate({
-        data: {
-          columns: [],
-          type: 'bar',
-          x: 'x',
-          labels: {
-            format: function(v, id, i, j) {
-              if (v == 0) return '';
-              if (! id) return v;
-              if (v < 5) return '';
-              return d3.format(",")(v);
-            },
-            centered: true,
-          }
-        },
-        legend: {
-          position: "right"
-        },
-        tooltip: {
-          order: '', // Enforce group order
-          format: {
-            value: (value, ratio, id, index) => d3.format(",")(value),
+    %script{ nonce: content_security_policy_nonce }
+      :plain
+        document.time = bb.generate({
+          data: {
+            columns: [],
+            type: 'bar',
+            x: 'x',
+            labels: {
+              format: function(v, id, i, j) {
+                if (v == 0) return '';
+                if (! id) return v;
+                if (v < 5) return '';
+                return d3.format(",")(v);
+              },
+              centered: true,
+            }
           },
-        },
-        bindto: '#time-chart',
-        size: {
-          height: 100,
-        },
-        bar: {
-          padding: 1,
-        },
-        axis: {
-          rotated: true,
-          x: {
-            type: 'category'
+          legend: {
+            position: "right"
+          },
+          tooltip: {
+            order: '', // Enforce group order
+            format: {
+              value: (value, ratio, id, index) => d3.format(",")(value),
+            },
+          },
+          bindto: '#time-chart',
+          size: {
+            height: 100,
+          },
+          bar: {
+            padding: 1,
+          },
+          axis: {
+            rotated: true,
+            x: {
+              type: 'category'
+            }
+          },
+          grid: {
+            x: {
+              show: true
+            }
           }
-        },
-        grid: {
-          x: {
-            show: true
-          }
-        }
-      });
+        });

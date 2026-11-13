@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -7,8 +7,15 @@
 # frozen_string_literal: true
 
 class ReportResultsSummaryController < ApplicationController
-  before_action :require_can_view_hud_reports!
+  include WarehouseReportAuthorization
   before_action :set_report_results_summary, :set_report_results, only: [:show]
+
+  # Only the STI type is needed to find the governing definition; the summary itself
+  # is loaded (narrowed to visible runs) by set_report_results_summary.
+  def related_report
+    type = ReportResultsSummary.where(id: params[:id].to_i).pick(:type)
+    GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: Report.hud_definition_url_for(type))
+  end
 
   def show
     @all_results = @results.map(&:results).reduce({}, :merge).deep_symbolize_keys!
@@ -33,14 +40,22 @@ class ReportResultsSummaryController < ApplicationController
 
   # Use callbacks to share common setup or constraints between actions.
   def set_report_results
-    most_recent_results = @report_results_summary.report_results.viewable_by(current_user).most_recent
-    @results = most_recent_results.map { |t, d| ReportResult.where(report_id: Report.where(type: t).first, updated_at: d).first }
-    @options = @report_results_summary.report_results.viewable_by(current_user).first&.options
+    most_recent_results = visible_report_results.most_recent
+    @results = most_recent_results.map { |t, d| ReportResult.where(report_id: Report.active.where(type: t).first, updated_at: d).first }
+    @options = visible_report_results.first&.options
+  end
+
+  # Disabled reports are retired, matching ReportResultsController
+  def visible_report_results
+    @report_results_summary.report_results.
+      merge(Report.active).
+      runs_visible_to(current_user)
   end
 
   def set_report_results_summary
     @report_results_summary = report_results_summary_source.
-      viewable_by(current_user).
+      where(id: Report.active.select(:report_results_summary_id)).
+      runs_visible_to(current_user).
       find(params[:id].to_i)
   end
 end

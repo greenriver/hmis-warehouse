@@ -37,6 +37,7 @@
             %th Name
             %th Project Count
             %th Universe
+            %th Notes
         %tbody
           - @project_groups.each do |group|
             %tr
@@ -49,6 +50,7 @@
               %th= group.projects.count
               %td.reports.report-parameters-all
                 = group.describe_filter_as_html
+              %td= group.markdown_notes
     .form-actions
       = f.button :submit, "Delete Selected Groups", id: :deleteMultipleButton, data: {confirm: "Are you sure you want to delete the selected project groups?"}
 
@@ -57,12 +59,13 @@
   .none-found There are no project groups.
 
 = content_for :page_js do
-  :javascript
-    $('.jSelect, .jCheckAll').on('change', function(e) {
-      anyChecked = $('input[name="selections[group][]"]').toArray().some((e) => e.checked)
-      $('#deleteMultipleButton').prop('disabled', !anyChecked)
-    });
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      $('.jSelect, .jCheckAll').on('change', function(e) {
+        anyChecked = $('input[name="selections[group][]"]').toArray().some((e) => e.checked)
+        $('#deleteMultipleButton').prop('disabled', !anyChecked)
+      });
 
-    $(document).ready(function() {
-      $('#deleteMultipleButton').prop('disabled', true)
-    });
+      $(document).ready(function() {
+        $('#deleteMultipleButton').prop('disabled', true)
+      });

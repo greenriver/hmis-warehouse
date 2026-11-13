@@ -1,12 +1,12 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 # frozen_string_literal: true
 
-# @see docs/features/warehouse-auth-policies.md
+# @see docs/features/warehouse/warehouse-auth-policies.md
 
 # cross-policy memoized utils for ACL permissions
 class GrdaWarehouse::AuthPolicies::UserAclContext < GrdaWarehouse::AuthPolicies::UserBaseContext
@@ -16,6 +16,8 @@ class GrdaWarehouse::AuthPolicies::UserAclContext < GrdaWarehouse::AuthPolicies:
 
     @coc_codes_by_project = {}
     @collection_ids_by_project = {}
+    @collection_ids_by_client = {}
+    @enrolled_project_ids_by_client = {}
   end
 
   memoize def project_role_permissions(project_id)
@@ -28,9 +30,25 @@ class GrdaWarehouse::AuthPolicies::UserAclContext < GrdaWarehouse::AuthPolicies:
     permissions_for_collection_ids(collection_ids)
   end
 
+  memoize def organization_role_permissions(organization_id, data_source_id)
+    collection_ids = organization_collection_ids(organization_id, data_source_id)
+    permissions_for_collection_ids(collection_ids)
+  end
+
   memoize def direct_client_role_permissions(client_id)
     collection_ids = direct_client_collection_ids(client_id)
     permissions_for_collection_ids(collection_ids)
+  end
+
+  # Returns the project ids this client is enrolled in. Called by
+  # SourceClientPolicy#add_project_based_permissions (public, since it's used across
+  # policy classes, same as #project_role_permissions/#direct_client_role_permissions).
+  def enrolled_project_ids_for_client(client_id)
+    unless @enrolled_project_ids_by_client.key?(client_id)
+      preload_miss_tracker.call(:enrolled_projects, client_id)
+      preload_enrolled_project_ids_by_client([client_id])
+    end
+    @enrolled_project_ids_by_client[client_id] ||= []
   end
 
   def preload_project_dependencies(project_ids)
@@ -45,6 +63,15 @@ class GrdaWarehouse::AuthPolicies::UserAclContext < GrdaWarehouse::AuthPolicies:
 
   protected
 
+  # Direct-client collections and enrolled projects, plus the project caches for those projects.
+  # Called by UserBaseContext#preload_client_dependencies.
+  def preload_client_grants(client_ids)
+    preload_collection_ids_by_client(client_ids)
+    preload_enrolled_project_ids_by_client(client_ids)
+    project_ids = client_ids.flat_map { |id| @enrolled_project_ids_by_client[id] || [] }.uniq
+    preload_project_dependencies(project_ids) if project_ids.any?
+  end
+
   def preload_coc_codes_by_project(project_ids)
     p_t = GrdaWarehouse::Hud::Project.arel_table
     results = GrdaWarehouse::Hud::ProjectCoc.
@@ -53,7 +80,7 @@ class GrdaWarehouse::AuthPolicies::UserAclContext < GrdaWarehouse::AuthPolicies:
       pluck(p_t[:id], :coc_code).
       group_by(&:shift).
       transform_values { |v| v.flatten.compact_blank }
-    @coc_codes_by_project.merge!(results)
+    @coc_codes_by_project.merge!(project_ids.index_with { [] }.merge(results))
   end
 
   def coc_codes_for_project(project_id)
@@ -72,7 +99,7 @@ class GrdaWarehouse::AuthPolicies::UserAclContext < GrdaWarehouse::AuthPolicies:
         (active_collection_ids & clean_values).to_a
       end
 
-    @collection_ids_by_project.merge!(results)
+    @collection_ids_by_project.merge!(project_ids.index_with { [] }.merge(results))
   end
 
   def collection_ids_for_project(project_id)
@@ -93,13 +120,25 @@ class GrdaWarehouse::AuthPolicies::UserAclContext < GrdaWarehouse::AuthPolicies:
       flat_map(&:granted_permissions).to_set.freeze
   end
 
-  def data_source_collection_ids(data_source_id)
+  memoize def data_source_collection_ids(data_source_id)
     ids = GrdaWarehouse::GroupViewableEntity.
       where(entity_type: GrdaWarehouse::DataSource.sti_name).
       where(entity_id: data_source_id).
-      where.not(collection_id: nil).
+      using_acls.
       pluck(:collection_id)
     (active_collection_ids & ids).to_a.sort
+  end
+
+  # Returns the collection ids that include this organization or its data source
+  def organization_collection_ids(organization_id, data_source_id)
+    return [] if data_source_id.blank?
+
+    ids = GrdaWarehouse::GroupViewableEntity.
+      where(entity_type: GrdaWarehouse::Hud::Organization.sti_name).
+      where(entity_id: organization_id).
+      using_acls.
+      pluck(:collection_id)
+    ((active_collection_ids & ids).to_a + data_source_collection_ids(data_source_id)).uniq.sort
   end
 
   # Returns the collection ids that include this project id
@@ -119,15 +158,45 @@ class GrdaWarehouse::AuthPolicies::UserAclContext < GrdaWarehouse::AuthPolicies:
 
   # These are source clients, mostly for health-care and youth. See DataSource.authoritative_types.
   # It's an affordance for direct data entry into the warehouse before we had an HMIS, or non HMIS data.
-  def direct_client_collection_ids(client_id)
+  def preload_collection_ids_by_client(client_ids)
     c_t = GrdaWarehouse::Hud::Client.arel_table
     gve_t = GrdaWarehouse::GroupViewableEntity.arel_table
-    ids = GrdaWarehouse::DataSource.authoritative.not_hmis.
+    results = GrdaWarehouse::DataSource.authoritative.not_hmis.
       joins(:group_viewable_entities, :clients).
-      where(gve_t[:collection_id].not_eq(nil)).
-      where(c_t[:id].eq(client_id)).
-      pluck(gve_t[:collection_id])
-    (active_collection_ids & ids).to_a.sort
+      merge(GrdaWarehouse::GroupViewableEntity.using_acls).
+      where(c_t[:id].in(client_ids)).
+      pluck(c_t[:id], gve_t[:collection_id]).
+      group_by(&:shift).
+      transform_values { |v| (active_collection_ids & v.flatten.compact_blank).to_a.sort }
+    # Clients with no matching row get no key from the pluck/group_by above. Without
+    # backfilling an empty array here, #direct_client_collection_ids's `.key?` check
+    # below would treat them as never-preloaded and re-query per client.
+    @collection_ids_by_client.merge!(client_ids.index_with { [] }.merge(results))
+  end
+
+  def direct_client_collection_ids(client_id)
+    unless @collection_ids_by_client.key?(client_id)
+      preload_miss_tracker.call(:direct_client_grants, client_id)
+      preload_collection_ids_by_client([client_id])
+    end
+    @collection_ids_by_client[client_id] ||= []
+  end
+
+  # Backing query for #enrolled_project_ids_for_client,
+  # used to preload a batch of clients via #preload_client_dependencies.
+  def preload_enrolled_project_ids_by_client(client_ids)
+    p_t = GrdaWarehouse::Hud::Project.arel_table
+    c_t = GrdaWarehouse::Hud::Client.arel_table
+    results = GrdaWarehouse::Hud::Project.joins(:clients).
+      where(c_t[:id].in(client_ids)).
+      distinct.
+      pluck(c_t[:id], p_t[:id]).
+      group_by(&:shift).
+      transform_values(&:flatten)
+    # Clients with no enrollments get no key from the pluck/group_by above. Without
+    # backfilling an empty array here, #enrolled_project_ids_for_client's `.key?` check
+    # would treat them as never-preloaded and re-query per client.
+    @enrolled_project_ids_by_client.merge!(client_ids.index_with { [] }.merge(results))
   end
 
   memoize def active_collection_ids

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -42,6 +42,7 @@ module Types
     description 'HUD Client'
     field :id, ID, null: false
     field :lock_version, Integer, null: false
+    field :restricted, Boolean, null: false
     field :external_ids, [Types::HmisSchema::ExternalIdentifier], null: false
     hud_field :personal_id
     hud_field :first_name
@@ -88,7 +89,7 @@ module Types
     )
     ce_referrals_field(
       :ce_referrals,
-      filter_args: { omit: [:workflow_template, :on_current_task_since, :search_term], type_name: 'ClientCeReferral' },
+      filter_args: { omit: [:workflow_template, :on_current_task_since, :search_term, :assigned_to_you, :assigned_to_user], type_name: 'ClientCeReferral' },
     )
 
     field :active_enrollment, Types::HmisSchema::Enrollment, null: true do
@@ -148,7 +149,6 @@ module Types
     field :image, HmisSchema::ClientImage, null: true
     field :enabled_features, [Types::Forms::Enums::ClientDashboardFeature], null: false
 
-    # TODO(#9004) Migrating the access field to use policies is in-progress, see ADR 0006.
     access_field do
       define_method(:policy) { @policy ||= policy_for(object, policy_type: :hmis_client) }
       define_method(:global_policy) { @global_policy ||= policy_for(object.class, policy_type: :hmis_client) }
@@ -156,31 +156,29 @@ module Types
 
       # Instance policy; resource is the loaded record
       bool_field(:can_view_client_name) { policy.can_view_name? }
+      bool_field(:can_view_dob) { policy.can_view_dob? }
+      bool_field(:can_view_full_ssn) { policy.can_view_full_ssn? }
+      bool_field(:can_view_partial_ssn) { policy.can_view_partial_ssn? }
+      bool_field(:can_view_enrollment_details) { policy.can_view_some_enrollment_details? }
+      bool_field(:can_view_client_photo) { policy.can_view_photo? }
+      bool_field(:can_view_client_alerts) { policy.can_view_alerts? }
+      bool_field(:can_delete_client) { policy.can_delete? }
+      bool_field(:can_edit_client) { policy.can_edit? }
+      bool_field(:can_index_files) { policy.can_index_files? }
+      bool_field(:can_upload_client_files) { policy.can_create_file? }
+      bool_field(:can_audit_clients) { policy.can_audit? }
+      bool_field(:can_manage_scan_cards) { policy.can_manage_scan_cards? }
+      bool_field(:can_manage_client_alerts) { policy.can_manage_alerts? }
+      bool_field(:can_print_client_case_notes) { policy.can_print_case_notes? }
+      bool_field(:can_mark_restricted) { policy.can_mark_restricted? }
 
       # Global policy; resource is the class
       bool_field(:can_merge_clients) { global_policy.can_merge_clients? }
+      bool_field(:can_view_client_eligible_opportunities) { global_policy.can_view_eligible_opportunities_lists? }
 
       # Different policy type; these permissions defer to the global CeReferralPolicy
       bool_field(:can_view_referrals)     { ce_referral_policy.can_view_referrals? }
       bool_field(:can_view_own_referrals) { ce_referral_policy.can_view_own_referrals? }
-
-      can :view_partial_ssn
-      can :view_full_ssn
-      can :view_client_photo
-      can :view_dob
-      can :view_enrollment_details
-      can :delete_clients, field_name: :can_delete_client
-      can :edit_clients, field_name: :can_edit_client
-      can :manage_any_client_files
-      can :manage_own_client_files
-      composite_perm :can_upload_client_files, permissions: [:manage_any_client_files, :manage_own_client_files], mode: :any
-      composite_perm :can_view_any_files, permissions: [:manage_own_client_files, :view_any_nonconfidential_client_files, :view_any_confidential_client_files], mode: :any
-      can :audit_clients
-      can :manage_scan_cards
-      can :view_client_alerts
-      can :manage_client_alerts
-      root_can :can_view_client_eligible_opportunities
-      can :print_client_case_notes
     end
 
     def external_ids
@@ -200,7 +198,7 @@ module Types
       # "limited access" enrollments (if permitted). The purpose is to show additional enrollment history
       # for "my" clients, but not for other clients in the system that I can see.
       # This would need to change if we wanted to support the ability to see limited enrollment details for all clients.
-      has_some_detailed_access = current_permission?(permission: :can_view_enrollment_details, entity: object)
+      has_some_detailed_access = policy_for(object, policy_type: :hmis_client).can_view_some_enrollment_details?
       scope = object.enrollments.viewable_by(current_user, include_limited_access_enrollments: has_some_detailed_access)
       resolve_enrollments(scope, **args, dangerous_skip_permission_check: true)
     end
@@ -241,7 +239,7 @@ module Types
     end
 
     def image # Don't resolve in batch
-      return unless current_permission?(permission: :can_view_client_photo, entity: object)
+      return unless policy.can_view_photo?
 
       file = object.client_files.client_photos.newest_first.first&.client_file
       file&.download ? file : nil
@@ -259,38 +257,38 @@ module Types
     end
 
     def ssn
-      if current_permission?(permission: :can_view_full_ssn, entity: object)
+      if policy.can_view_full_ssn?
         object.ssn
-      elsif current_permission?(permission: :can_view_partial_ssn, entity: object)
+      elsif policy.can_view_partial_ssn?
         object&.ssn&.sub(/^.*?(\d{4})$/, 'XXXXX\1')
       end
     end
 
     def dob
-      object.dob if current_permission?(permission: :can_view_dob, entity: object)
+      object.dob if policy.can_view_dob?
     end
 
     def first_name
-      return object.masked_name unless can_view_name
+      return object.masked_name unless policy.can_view_name?
 
       object.first_name
     end
 
     def middle_name
-      object.middle_name if can_view_name
+      object.middle_name if policy.can_view_name?
     end
 
     def last_name
-      object.last_name if can_view_name
+      object.last_name if policy.can_view_name?
     end
 
     def name_suffix
-      object.name_suffix if can_view_name
+      object.name_suffix if policy.can_view_name?
     end
 
     def names
       # initialize a dummy CustomClientName with masked name
-      return [object.names.new(first: object.masked_name)] unless can_view_name
+      return [object.names.new(first: object.masked_name)] unless policy.can_view_name?
 
       names = load_ar_association(object, :names)
       return names unless names.empty?
@@ -299,43 +297,39 @@ module Types
       [object.build_primary_custom_client_name]
     end
 
-    private def can_view_name
-      current_permission?(permission: :can_view_client_name, entity: object)
-    end
-
     def contact_points
-      return [] unless current_permission?(permission: :can_view_client_contact_info, entity: object)
+      return [] unless policy.can_view_contact_info?
 
       load_ar_association(object, :contact_points)
     end
 
     def phone_numbers
-      return [] unless current_permission?(permission: :can_view_client_contact_info, entity: object)
+      return [] unless policy.can_view_contact_info?
 
       load_ar_association(object, :contact_points).filter { |r| r.system == 'phone' }
     end
 
     def email_addresses
-      return [] unless current_permission?(permission: :can_view_client_contact_info, entity: object)
+      return [] unless policy.can_view_contact_info?
 
       load_ar_association(object, :contact_points).filter { |r| r.system == 'email' }
     end
 
     def addresses
-      return [] unless current_permission?(permission: :can_view_client_contact_info, entity: object)
+      return [] unless policy.can_view_contact_info?
 
       load_ar_association(object, :addresses)
     end
 
     def alerts
-      return [] unless current_permission?(permission: :can_view_client_alerts, entity: object)
+      return [] unless policy.can_view_alerts?
 
       load_ar_association(object, :active_alerts).sort_by(&:created_at).reverse
     end
 
     # not optimized for batch queries, causes n+1 queries
     def hud_chronic
-      return unless current_permission?(permission: :can_view_hud_chronic_status, entity: object)
+      return unless policy.can_view_hud_chronic_status?
 
       # We are intentionally not checking enrollment visibility. The can_view_hud_chronic_status
       # permission grants visibility into HUD Chronic status across all the client's enrollments
@@ -355,12 +349,15 @@ module Types
     end
 
     def audit_history(filters: nil)
+      access_denied! unless policy.can_audit?
+
       audited_record_types = [
         Hmis::Hud::Client.sti_name,
         Hmis::Hud::CustomClientName.sti_name,
         Hmis::Hud::CustomClientAddress.sti_name,
         Hmis::Hud::CustomClientContactPoint.sti_name,
         Hmis::ClientAlert.sti_name,
+        Hmis::RestrictedRecord.sti_name,
       ]
 
       # Also include CustomDataElements that are linked to clients.
@@ -391,7 +388,7 @@ module Types
     #
     # This first version is global. In other words it resolves the same thing for every client.
     # In the future this will probably be client-specific, either based on some configuration, or based on the projects that the client is enrolled at.
-    # Specifically for indicating whether certain "Enrollment-optional records" (File, Case Note) should be collectable on the Client Dashbord vs on the Enrollment Dashboard (in the future).
+    # Specifically for indicating whether certain "Enrollment-optional records" (File, Case Note) should be collectable on the Client Dashboard vs on the Enrollment Dashboard (in the future).
     def enabled_features
       client_dashboard_feature_roles = Types::Forms::Enums::ClientDashboardFeature.values.keys
 
@@ -406,7 +403,7 @@ module Types
 
     def eligible_ce_opportunities(**args) # Don't resolve in batch
       # Check if the user has the _global_ (not project-specific) permission to view all CE opportunities a client is eligible for.
-      access_denied! unless current_user.can_view_client_eligible_opportunities?
+      access_denied! unless policy_for(Hmis::Hud::Client, policy_type: :hmis_client).can_view_eligible_opportunities_lists?
 
       # If so, we can skip the permission check inside resolve_ce_opportunities.
       # The global permission gives the user permission to view all opportunities the client is eligible for, regardless of project-level access.
@@ -415,6 +412,14 @@ module Types
 
     def ce_referrals(**args)
       resolve_ce_referrals(object.ce_referrals, **args)
+    end
+
+    def restricted
+      load_ar_association(object, :restricted_record).present?
+    end
+
+    private def policy
+      @policy ||= policy_for(object, policy_type: :hmis_client)
     end
   end
 end

@@ -4,6 +4,7 @@
 ## Dependencies just needed during build ##
 ###########################################
 ARG BUILD_TAG
+ARG PG_MAJOR=17
 FROM ruby:${BUILD_TAG} AS cert
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
@@ -33,10 +34,10 @@ ARG USER_ID=10000
 ARG GROUP_ID=10000
 
 ARG BUNDLER_VERSION=2.7.2
-ARG PG_MAJOR=17
+ARG PG_MAJOR
 
 LABEL "app"=open-path-warehouse
-LABEL "ruby-version"=3.4.9
+LABEL "ruby-version"=3.4.12
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV LANG=C.UTF-8
@@ -81,11 +82,12 @@ RUN apt-get update \
   && apt-get remove -y nodejs \
   && rm -rf /var/lib/apt/lists/*
 
+# Runtime packages only; compilers and headers live in build-deps.
+# The lib* runtime packages are what the native gems link or FFI-load.
 RUN apt-get update && apt-get upgrade -y \
   && apt-get install -y --no-install-recommends \
   awscli \
   bash \
-  build-essential \
   chromium \
   chromium-common \
   dbus \
@@ -96,54 +98,43 @@ RUN apt-get update && apt-get upgrade -y \
   fonts-droid-fallback \
   fonts-freefont-ttf \
   fonts-liberation \
-  freetds-dev \
   git \
   gnupg-agent \
   gpg \
   imagemagick \
   less \
-  libcurl4 \
-  libcurl4-openssl-dev \
-  libffi-dev \
-  libfreetype-dev \
+  lftp \
+  libcurl4t64 \
+  libffi8 \
   libfreetype6 \
-  libgeos-dev \
-  libglib2.0-0 \
-  libharfbuzz-dev \
+  libgeos-c1t64 \
+  libglib2.0-0t64 \
   libheif1 \
-  libicu-dev \
-  libmagic-dev \
-  libmagic1 \
-  libpq-dev \
+  libicu76 \
+  liblz4-1 \
+  libmagic1t64 \
+  libproj25 \
   libsodium23 \
-  libsodium-dev \
-  libreadline-dev \
+  libsybdb5 \
   libx11-6 \
   libxext6 \
-  libxml2-dev \
   libxrender1 \
-  libxslt1-dev \
-  libyaml-dev \
-  libproj-dev \
+  libyaml-0-2 \
+  libzstd1 \
   openssh-client \
   sshpass \
   proj-bin \
-  libzstd-dev \
-  liblz4-dev \
   locales-all \
   nodejs \
   p7zip-full \
-  packagekit \
-  packagekit-tools \
-  policykit-1 \
   poppler-utils \
+  postgis \
   postgresql-client \
-  postgresql-server-dev-all \
+  postgresql-client-${PG_MAJOR} \
   ripgrep \
   pinentry-tty \
   shared-mime-info \
   ssh \
-  software-properties-common \
   tar \
   tini \
   tmux \
@@ -152,19 +143,7 @@ RUN apt-get update && apt-get upgrade -y \
   vim \
   zip \
   && rm -rf /var/lib/apt/lists/* \
-  && if [ "$(uname -m)" = "aarch64" ]; then \
-       ln -s /usr/lib/aarch64-linux-gnu/libproj.so /usr/lib/libproj.so.20; \
-     else \
-       ln -s /usr/lib/x86_64-linux-gnu/libproj.so /usr/lib/libproj.so.20; \
-     fi \
   && npm install -g yarn@1.22.22
-
-# Install custom pg_repack versions
-COPY docker/app/install_pg_repack.sh /usr/local/bin/install_pg_repack.sh
-RUN chmod +x /usr/local/bin/install_pg_repack.sh \
-  && /usr/local/bin/install_pg_repack.sh \
-  && PG_BIN_DIR=$(pg_config --bindir) \
-  && echo "export PATH=$PG_BIN_DIR:\$PATH" >> /etc/bash.bashrc
 
 WORKDIR /app
 
@@ -174,10 +153,13 @@ ENV RUBYOPT="-r/usr/local/lib/ruby/has_rdoc_patch.rb ${RUBYOPT}"
 
 # rexml: CVE-2025-58767, rack: CVE in system gem shipped with base image — both must be explicitly updated since they're bundled with ruby
 # gem cleanup removes old gemspecs that vulnerability scanners (e.g. Trivy) would otherwise flag
+# net-imap is a bundled gem baked into the Ruby install; the app loads the Gemfile.lock version
+# instead, so the bundled copy (whatever version this Ruby ships) is removed to keep Trivy from
+# flagging it.
 RUN gem update --system \
-  && gem update rexml rack erb \
-  && gem cleanup rexml rack erb \
-  && gem uninstall -i /usr/local/lib/ruby/gems/3.4.0 net-imap -v 0.5.8 \
+  && gem update rexml rack \
+  && gem cleanup rexml rack \
+  && gem uninstall -i /usr/local/lib/ruby/gems/3.4.0 net-imap --all --executables \
   && gem install bundler --version=${BUNDLER_VERSION} \
   && bundle config set --local path /bundle \
   && chown -R app-user:app-user /bundle \
@@ -188,11 +170,51 @@ USER ${USER_ID}
 
 CMD ["bundle", "exec", "puma", "-C", "config/puma.rb"]
 
+###################################################
+## Compilers and headers for gems and pg_repack ##
+###################################################
+
+FROM base AS build-deps
+
+USER root
+
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends \
+  build-essential \
+  freetds-dev \
+  libcurl4-openssl-dev \
+  libffi-dev \
+  libfreetype-dev \
+  libgeos-dev \
+  libharfbuzz-dev \
+  libicu-dev \
+  libmagic-dev \
+  libpq-dev \
+  libproj-dev \
+  libreadline-dev \
+  libsodium-dev \
+  libxml2-dev \
+  libxslt1-dev \
+  libyaml-dev \
+  libzstd-dev \
+  liblz4-dev \
+  postgresql-server-dev-all \
+  && rm -rf /var/lib/apt/lists/*
+
+# Install custom pg_repack versions
+COPY docker/app/install_pg_repack.sh /usr/local/bin/install_pg_repack.sh
+RUN chmod +x /usr/local/bin/install_pg_repack.sh \
+  && /usr/local/bin/install_pg_repack.sh \
+  && PG_BIN_DIR=$(pg_config --bindir) \
+  && echo "export PATH=$PG_BIN_DIR:\$PATH" >> /etc/bash.bashrc
+
+USER ${USER_ID}
+
 #########################################
 ## Stage/target for use in development ##
 #########################################
 
-FROM base AS dev-build
+FROM build-deps AS dev-build
 
 USER root
 
@@ -215,19 +237,17 @@ RUN git config --global --add safe.directory /app \
   less \
   python3 \
   zsh \
+  jq yq \
   openssh-client \
   && rm -rf /var/lib/apt/lists/*
 
 USER ${USER_ID}
 
-########################################
-## Stage/target for use in production ##
-########################################
+#########################################
+## Gems and assets, built for prod-build ##
+#########################################
 
-FROM base AS prod-build
-
-COPY docker/app/entrypoint.sh /usr/bin/
-ENTRYPOINT ["tini", "--", "/usr/bin/entrypoint.sh"]
+FROM build-deps AS builder
 
 COPY --chown=app-user:app-user --from=cert /key.pem /cert.pem /app/config/
 COPY --chown=app-user:app-user Gemfile Gemfile.lock ./
@@ -246,12 +266,27 @@ COPY --chown=app-user:app-user docker/app/database.open-path-warehouse.yml ./con
 
 # NOTE: The following ENV are required for assets compilation to run, but not actually used
 # to change the assets in any way
-RUN mkdir -p app/assets/stylesheets/theme/styles \
-  && touch app/assets/stylesheets/theme/styles/_variables.scss \
-  && SECRET_KEY_BASE=dummysecretdummysecretdummysecretdummysecretdummysecret RAILS_ENV=production CLIENT=warehouse DATABASE_ADAPTER=postgresql DATABASE_HOST=postgres DATABASE_PASS=postgres DATABASE_USER=postgres DEFAULT_FROM=greenriver.testing@mailinator.com ENCRYPTION_KEY=strongEncryptionstrongEncryptionstrongEncryption HEALTH_DATABASE_ADAPTER=postgresql HEALTH_DATABASE_HOST=postgres HEALTH_DATABASE_PASS=postgres HEALTH_DATABASE_USER=postgres REPORTING_DATABASE_ADAPTER=postgresql REPORTING_DATABASE_HOST=postgres REPORTING_DATABASE_PASS=postgres REPORTING_DATABASE_USER=postgres WAREHOUSE_DATABASE_ADAPTER=postgis WAREHOUSE_DATABASE_HOST=postgres WAREHOUSE_DATABASE_PASS=postgres WAREHOUSE_DATABASE_USER=postgres WAREHOUSE_DATABASE_DB=warehouse_db HEALTH_DATABASE_DB=health_db REPORTING_DATABASE_DB=reporting_db DISABLE_SPRING=1 bundle exec rails assets:precompile
+RUN SECRET_KEY_BASE=dummysecretdummysecretdummysecretdummysecretdummysecret RAILS_ENV=production CLIENT=warehouse DATABASE_ADAPTER=postgresql DATABASE_HOST=postgres DATABASE_PASS=postgres DATABASE_USER=postgres DEFAULT_FROM=greenriver.testing@mailinator.com ENCRYPTION_KEY=strongEncryptionstrongEncryptionstrongEncryption HEALTH_DATABASE_ADAPTER=postgresql HEALTH_DATABASE_HOST=postgres HEALTH_DATABASE_PASS=postgres HEALTH_DATABASE_USER=postgres REPORTING_DATABASE_ADAPTER=postgresql REPORTING_DATABASE_HOST=postgres REPORTING_DATABASE_PASS=postgres REPORTING_DATABASE_USER=postgres WAREHOUSE_DATABASE_ADAPTER=postgis WAREHOUSE_DATABASE_HOST=postgres WAREHOUSE_DATABASE_PASS=postgres WAREHOUSE_DATABASE_USER=postgres WAREHOUSE_DATABASE_DB=warehouse_db HEALTH_DATABASE_DB=health_db REPORTING_DATABASE_DB=reporting_db DISABLE_SPRING=1 bundle exec rails assets:precompile
 
 RUN rm -rf tmp/* \
   && mkdir -p tmp/pids
+
+########################################
+## Stage/target for use in production ##
+########################################
+
+FROM base AS prod-build
+
+COPY docker/app/entrypoint.sh /usr/bin/
+ENTRYPOINT ["tini", "--", "/usr/bin/entrypoint.sh"]
+
+# Only build outputs come across; compilers and the yarn cache stay in builder.
+COPY --from=builder /usr/lib/postgresql/${PG_MAJOR}/bin/pg_repack* /usr/lib/postgresql/${PG_MAJOR}/bin/
+COPY --chown=app-user:app-user --from=builder /bundle /bundle
+COPY --chown=app-user:app-user --from=builder /app /app
+
+# Bake bootsnap's cache (tmp/cache) into the image so pods don't boot cold
+RUN bundle exec bootsnap precompile --gemfile app/ lib/ config/ drivers/
 
 # Remove npm and yarn — they're only needed during asset compilation.
 # Node itself is kept for puppeteer (PDF generation via grover).

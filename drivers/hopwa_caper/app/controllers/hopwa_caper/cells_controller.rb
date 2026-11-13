@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -23,6 +23,9 @@ module HopwaCaper
         joins(hud_reports_universe_members: { report_cell: :report_instance }).
         merge(::HudReports::ReportCell.for_table(@table).for_cell(@cell))
       @name = "#{generator.file_prefix} #{@question} #{@cell}"
+      current_user.policy_context.preload_client_dependencies(
+        @enrollments.map(&:destination_client_id_for_pii) + @services.map(&:destination_client_id_for_pii),
+      )
       respond_to do |format|
         format.html {}
         format.xlsx do

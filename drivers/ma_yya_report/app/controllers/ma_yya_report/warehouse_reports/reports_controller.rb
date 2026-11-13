@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -64,6 +64,7 @@ module MaYyaReport::WarehouseReports
 
       @members = @report.cell(params[:cell]).members.preload(universe_membership: { service_history_enrollment: [:project] })
       @detail_columns = @report.detail_columns_for(cell)
+      current_user.policy_context.preload_client_dependencies(@members.map { |member| member.universe_membership&.client_id })
 
       respond_to do |format|
         format.html {}

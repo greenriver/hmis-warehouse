@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -18,6 +18,7 @@ class HmisCsvImporter::ImporterExtensionsController < ApplicationController
     config = {
       import_aggregators: {},
       import_cleanups: {},
+      pre_process_hooks: {},
     }
     allowed_extensions.each do |extension|
       next unless params[:extensions][extension.to_s] == '1'
@@ -46,6 +47,12 @@ class HmisCsvImporter::ImporterExtensionsController < ApplicationController
       HmisCsvImporter::HmisCsvCleanup::EnforceRelationshipToHoh,
       HmisCsvImporter::HmisCsvCleanup::ForcePrioritizedPlacementStatus,
       HmisCsvImporter::HmisCsvCleanup::FixBlankHouseholdIds,
+      HmisCsvImporter::HmisCsvCleanup::FixMissingTotalMonthlyIncome,
+      HmisCsvImporter::HmisCsvCleanup::MakeSoleMemberHoh,
+      HmisCsvImporter::PostIngestCleanup::FixIncorrectPersonalIdReferences,
+      HmisCsvImporter::Loader::HudKeyRemapper,
+      HmisCsvImporter::Loader::UnlinkedRecordFilter,
+      HmisCsvImporter::Loader::CurrentLivingSitIdRegenerator,
     ].sort_by(&:associated_model).
       freeze
   end

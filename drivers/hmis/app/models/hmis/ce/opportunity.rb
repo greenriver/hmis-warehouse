@@ -1,8 +1,14 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # frozen_string_literal: true
 
 # An opportunity is the availability of a unit (housing or other services)
 #
-# @see docs/features/hmis_units.md For detailed documentation on CE opportunities and the unit occupancy workflow
+# @see docs/features/hmis/hmis-units.md For detailed documentation on CE opportunities and the unit occupancy workflow
 
 module Hmis::Ce
   class Opportunity < GrdaWarehouseBase

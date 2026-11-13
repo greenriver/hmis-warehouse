@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -14,6 +14,12 @@ module Types
     field :relationship_to_ho_h, Types::HmisSchema::Enums::Hud::RelationshipToHoH, null: false, method: :relationship_to_hoh_before_type_cast
     field :client, HmisSchema::Client, null: false
     field :open_enrollment_summary, [HmisSchema::EnrollmentSummary], null: false
+
+    # object is a HmisExternalApis::AcHmis::ReferralHouseholdMember
+
+    def client
+      load_ar_client_association(object)
+    end
 
     def open_enrollment_summary
       client = load_ar_client_association(object)

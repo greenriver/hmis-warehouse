@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -8,7 +8,7 @@
 
 module Admin
   class LinksController < ApplicationController
-    before_action :require_can_edit_users!
+    before_action :require_can_manage_config!
     before_action :set_link, only: [:edit, :update, :destroy]
 
     def index

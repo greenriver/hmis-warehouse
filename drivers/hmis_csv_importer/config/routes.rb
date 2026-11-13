@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -9,6 +9,7 @@
 OpenPath::Application.routes.draw do
   namespace :hmis_csv_importer do
     resources :loader_errors, only: [:show]
+    resources :row_processing_notes, only: [:show]
     get 'importer_validations/:id/:file', to: 'importer_validations#show', as: :importer_validation
     get 'importer_validation_errors/:id/:file', to: 'importer_validation_errors#show', as: :importer_validation_error
     # NOTE: importer_errors/:id/download must come before importer_errors/:id/:file
@@ -20,7 +21,7 @@ OpenPath::Application.routes.draw do
     resources :imported, only: [:show]
     resources :importer_restarts, only: [:update]
     resources :data_sources do
-      resources :import_overrides, only: [:index, :new, :create, :destroy, :apply] do
+      resources :import_overrides, only: [:index, :new, :create, :destroy] do
         member do
           patch :apply
         end

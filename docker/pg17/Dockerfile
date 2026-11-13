@@ -14,12 +14,12 @@ RUN apt-get update -qq \
   libreadline-dev \
   && rm -rf /var/lib/apt/lists/*
 
-# Build pg_repack 1.5.2 from source
+# Build pg_repack 1.5.3 from source
 RUN set -e; \
   mkdir -p /tmp/pg_repack_build && cd /tmp/pg_repack_build; \
-  curl -L -o "pg_repack-1.5.2.zip" "https://api.pgxn.org/dist/pg_repack/1.5.2/pg_repack-1.5.2.zip"; \
-  unzip -q "pg_repack-1.5.2.zip"; \
-  cd "pg_repack-1.5.2"; \
+  curl -L -o "pg_repack-1.5.3.zip" "https://api.pgxn.org/dist/pg_repack/1.5.3/pg_repack-1.5.3.zip"; \
+  unzip -q "pg_repack-1.5.3.zip"; \
+  cd "pg_repack-1.5.3"; \
   make PG_CONFIG=/usr/lib/postgresql/17/bin/pg_config; \
   make install PG_CONFIG=/usr/lib/postgresql/17/bin/pg_config; \
   cd / && rm -rf /tmp/pg_repack_build

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -8,7 +8,11 @@
 
 module HudDataQualityReport
   class LegacyDqsController < ApplicationController
-    before_action :require_can_view_hud_reports!
+    include WarehouseReportAuthorization
+
+    def related_report
+      GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: GrdaWarehouse::WarehouseReports::ReportDefinition.hud_url(:dqs))
+    end
 
     LEGACY_DQ_TYPES = (1..7).map { |n| "Reports::DataQuality::Fy2017::Q#{n}" }.freeze
 
@@ -32,7 +36,7 @@ module HudDataQualityReport
     end
 
     private def report_results(report_id)
-      report_result_source.viewable_by(current_user).
+      report_result_source.runs_visible_to(current_user).
         joins(:user).
         where(report_id: report_id)
     end

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -13,6 +13,8 @@ class ClientAccessControl::ClientsController < ApplicationController
   include ClientShowPages
   include ArelHelper
   include ClientPathGenerator
+
+  skip_before_action :set_anti_caching_headers, only: [:image]
 
   helper ClientHelper
 
@@ -83,7 +85,7 @@ class ClientAccessControl::ClientsController < ApplicationController
     @query = search_params['q'].presence # populates form input
     if @query
       @search_performed = true
-      @clients = client_source.text_search(@query, client_scope: client_search_scope, sorted: sorted)
+      @clients = client_source.text_search(@query, user: current_user, sorted: sorted)
     else
       @clients = client_source.none
     end
@@ -124,17 +126,12 @@ class ClientAccessControl::ClientsController < ApplicationController
         :health_emergency_quarantines,
       ]
     end
-    if healthcare_available?
-      preloads += [
-        :patient,
-      ]
-    end
-
     @clients = @clients.
       destination.
       preload(preloads)
 
     @pagy, @clients = pagy(@clients)
+    current_user.policy_context.preload_client_dependencies(@clients.map(&:id))
   end
 
   def show
@@ -156,13 +153,13 @@ class ClientAccessControl::ClientsController < ApplicationController
   # It can be expensive to calculate the appropriate link to show a user for a batch of clients
   # instead, just provide one where we can make that determination on a per-client basis
   def appropriate
-    redirect_to @client.appropriate_path_for?(current_user)
+    redirect_to(@client.appropriate_path_for?(current_user) || not_authorized!)
   end
 
   def from_source
     source_client = GrdaWarehouse::Hud::Client.source_visible_to(current_user).find(params[:id])
     @client = source_client.destination_client
-    redirect_to @client.appropriate_path_for?(current_user)
+    redirect_to(@client.appropriate_path_for?(current_user) || not_authorized!)
   end
 
   def image
@@ -219,8 +216,6 @@ class ClientAccessControl::ClientsController < ApplicationController
   private def client_params
     params.require(:grda_warehouse_hud_client).
       permit(
-        :hmis_receiver,
-        :health_receiver,
         merge: [],
         unmerge: [],
       )
@@ -232,10 +227,6 @@ class ClientAccessControl::ClientsController < ApplicationController
     else
       GrdaWarehouse::HmisForm.window_with_details
     end
-  end
-
-  private def health_assessment_scope
-    GrdaWarehouse::HmisForm.health
   end
 
   private def log_client

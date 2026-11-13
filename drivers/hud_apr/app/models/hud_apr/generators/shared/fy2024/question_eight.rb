@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -202,14 +202,14 @@ module HudApr::Generators::Shared::Fy2024
 
       pit_date = pit_date(month: month, before: @report.end_date)
 
-      # Logic for step 4 is enforced when addding PIT dates to the client record
+      # Logic for step 4 is enforced when adding PIT dates to the client record
       # If a client doesn't have any overlapping enrollments that qualify, they won't
       # have a record for the PIT date
       # The client we return may not be an HoH in relation to the rest of the APR, but they
       # must be an HoH for the enrollment that was open on the PIT date
       query = <<~SQL
-        pit_enrollments ? '#{pit_date}'
-        AND pit_enrollments -> '#{pit_date}' @> '[{"relationship_to_hoh": 1}]'
+        pit_enrollments ? '#{pit_date.iso8601}'
+        AND pit_enrollments -> '#{pit_date.iso8601}' @> '[{"relationship_to_hoh": 1}]'
       SQL
       universe.members.where(query)
     end

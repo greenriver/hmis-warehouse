@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -90,22 +90,21 @@ module Api
     end
 
     private def project_types
-      return HudHelper.util.project_types.keys unless project_params[:project_types].present? || project_params[:project_type_ids].present?
+      # Strip blanks before the presence check: a serialized empty array
+      # (`project_types[]=`) arrives as [""], which must mean "no type
+      # restriction" rather than "no types match".
+      requested_types = project_params[:project_types]&.select(&:present?)
+      requested_type_ids = project_params[:project_type_ids]&.select(&:present?)
+      return HudHelper.util.project_types.keys unless requested_types.present? || requested_type_ids.present?
 
       @project_types ||= begin
         types = []
 
         project_type_to_id = HudHelper.util.performance_reporting.merge(HudHelper.util.residential_project_type_numbers_by_code)
-        if project_params[:project_types].present?
-          project_params[:project_types]&.select(&:present?)&.map(&:to_sym)&.each do |type|
-            types += project_type_to_id[type]
-          end
+        requested_types&.map(&:to_sym)&.each do |type|
+          types += project_type_to_id[type]
         end
-        if project_params[:project_type_ids].present?
-          types += project_params[:project_type_ids]&.
-            select(&:present?)&.
-            map(&:to_i)
-        end
+        types += requested_type_ids.map(&:to_i) if requested_type_ids.present?
         types
       end
     end
@@ -113,6 +112,7 @@ module Api
     def project_params
       params.permit(
         :limited,
+        :permission,
         data_source_ids: [],
         organization_ids: [],
         project_types: [],
@@ -122,11 +122,25 @@ module Api
       )
     end
 
+    # Callers (e.g. report filter forms that further restrict the query by a
+    # specific permission) can request the picker be scoped to that same
+    # permission by passing `permission`. Otherwise, `viewable_by` uses its
+    # own default. Allowlisted against Role.permissions since this is
+    # user-controlled input and feeds a `send` inside `viewable_by`.
+    private def permission
+      requested = project_params[:permission]&.to_sym
+      requested if requested.in?(Role.permissions)
+    end
+
     private def project_scope
       return project_source.none unless current_user.present?
 
       @project_scope ||= begin
-        scope = project_source.viewable_by(current_user)
+        scope = if permission.present?
+          project_source.viewable_by(current_user, permission: permission)
+        else
+          project_source.viewable_by(current_user)
+        end
         scope = scope.merge(project_source.non_confidential) unless current_user.can_view_confidential_project_names?
 
         scope = scope.joins(:data_source, :organization).with_project_type(project_types)

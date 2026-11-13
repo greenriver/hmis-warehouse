@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -124,7 +124,7 @@ module Reports
             content_type: 'text/csv',
           )
 
-          # Ignore validation here. We are only persisting the csv attachements for existing reports, and
+          # Ignore validation here. We are only persisting the csv attachments for existing reports, and
           # some older reports may be in invalid states. We still want to archive their data.
           report.save(validate: false)
         ensure

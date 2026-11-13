@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -10,10 +10,11 @@ module HudReports::HudPdfExportConcern
   extend ActiveSupport::Concern
 
   included do
+    # report_scope already limits users without can_view_all_hud_reports to their own runs.
     def authorized?
-      return true if user.can_view_all_hud_reports?
+      return false if report.blank?
 
-      user.can_view_hud_reports? && report.present?
+      GrdaWarehouse::WarehouseReports::ReportDefinition.url_viewable_by?(possible_generator_classes.first.report_definition_url, user)
     end
 
     private def report_scope
@@ -56,13 +57,15 @@ module HudReports::HudPdfExportConcern
 
     def perform
       with_status_progression do
+        if report.blank?
+          Rails.logger.warn("[#{self.class.name}] report #{params['id']} not found for export id #{id}, skipping")
+          next false
+        end
+
         template_file = 'hud_reports/download'
         layout = 'layouts/hud_report_export'
 
-        ActionController::Renderer::RACK_KEY_TRANSLATION['warden'] ||= 'warden'
-        renderer = controller_class.renderer.new(
-          'warden' => PdfGenerator.warden_proxy(user),
-        )
+        renderer = controller_class.renderer.new(WardenProxyFactory.renderer_env(user))
         html = renderer.render(
           template_file,
           layout: layout,
@@ -73,6 +76,7 @@ module HudReports::HudPdfExportConcern
         PdfGenerator.new.perform(
           html: html,
           file_name: "#{report_generator_class.file_prefix}-#{DateTime.current.to_fs(:db)}",
+          options: { viewport: PdfGenerator::MEASUREMENT_VIEWPORT },
         ) do |io|
           self.pdf_file = io
         end

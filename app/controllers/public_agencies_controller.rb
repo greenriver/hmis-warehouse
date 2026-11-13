@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -9,7 +9,7 @@
 class PublicAgenciesController < ApplicationController
   skip_before_action :authenticate_user!
   def index
-    @coc_map = GrdaWarehouse::PublicFile.find_by(name: 'client/releases/coc_map')&.content
+    @coc_map = GrdaWarehouse::PublicFile.find_by(name: 'client/releases/coc_map')&.file_data
     @agencies = Agency.publically_available.preload(:consent_limits)
   end
 end

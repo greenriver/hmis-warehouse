@@ -3,18 +3,15 @@
 %tr{'data-test-client-id' => client.id}
   %td
     .ds{class: "ds-color-#{client.data_source_id}"}= ds_short_name_for(client.id)
-  %td.client-name
-    = pii.brief_name
-    - if pii.image?
-      - image = image_tag(polymorphic_path([:image, :source_client], id: client.id), width: '250').html_safe
-      =# image_tag(polymorphic_path([:image, :source_client], id: client.id), style: 'opacity: 1; width: 250px', data: { 'bs-toggle' => :tooltip, 'bs-html' => :true, 'bs-placement' => :right, 'bs-title' => image}}
-      = image_tag(polymorphic_path([:image, :source_client], id: client.id), style: 'width: 50px', data: { 'bs-toggle' => :tooltip, 'bs-html' => :true, 'bs-placement' => :right, 'bs-title' => image})
-
-  %td= pii.ssn
-  %td= pii.dob_and_age
-  %td= client.gender
-  %td= client.race_description(include_missing_reason: true)
-  %td= HudHelper.util.no_yes_reasons_for_missing_data client.VeteranStatus
+  - demographic_columns.each do |column|
+    - if column[:key] == 'name'
+      %td.client-name
+        = pii.brief_name
+        - if pii.image?
+          - image = image_tag(polymorphic_path([:image, :source_client], id: client.id), width: '250').html_safe
+          = image_tag(polymorphic_path([:image, :source_client], id: client.id), style: 'width: 50px', data: { 'bs-toggle' => :tooltip, 'bs-html' => :true, 'bs-placement' => :right, 'bs-title' => image})
+    - else
+      %td= GrdaWarehouse::ClientDemographicColumns.value_for(column[:key], client: client, pii: pii)
   %td
     - if authoritative_data_source_ids.include?(client.data_source_id) && !client.data_source.hmis? && can_create_clients?
       = link_to 'Edit', polymorphic_path([:edit, :source_client], id: client.id), class: 'btn btn-sm btn-secondary', data: {loads_in_pjax_modal: true}

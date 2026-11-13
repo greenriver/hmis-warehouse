@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -20,6 +20,16 @@ module CasAccess
 
     scope :in_directory, -> do
       current_scope
+    end
+
+    # Class methods rather than scopes so they are also defined when the CAS database is absent
+    # and CasBase is the non-ActiveRecord stub.
+    def self.created_in_range(range:)
+      where(created_at: range.begin.beginning_of_day..range.end.end_of_day)
+    end
+
+    def self.name_with_email_by_id(ids)
+      where(id: ids).to_h { |user| [user.id, user.name_with_email] }
     end
 
     def match_admin?

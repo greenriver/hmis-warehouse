@@ -1,10 +1,10 @@
-# frozen_string_literal: true
-
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 module GrdaWarehouse::Hud
   class Enrollment < Base
@@ -178,7 +178,8 @@ module GrdaWarehouse::Hud
     end
 
     scope :housed, ->(range) do
-      residential_non_homeless.where(MoveInDate: range)
+      with_project_type(HudHelper.util.residential_project_type_numbers_by_code.values_at(:ph, :th).flatten).
+        where(MoveInDate: range)
     end
 
     scope :heads_of_households, -> do
@@ -209,6 +210,10 @@ module GrdaWarehouse::Hud
 
     scope :processed, -> do
       where.not(processed_as: nil)
+    end
+
+    scope :unprocessed_with_resolvable_project_and_client, -> do
+      unprocessed.joins(:project, :destination_client)
     end
 
     scope :unassigned, -> do
@@ -356,48 +361,16 @@ module GrdaWarehouse::Hud
         merge(GrdaWarehouse::Hud::Enrollment.where(data_source_id: data_source_id, household_id: household_id))
     end
 
-    # If we haven't been in a literally homeless project type (ES, SH, SO) in the last 30 days, this is a new episode
-    # You aren't currently housed in PH, and you've had at least a week of being housed in the last 90 days
+    # Requires a built service history; an enrollment with no entry record reads as
+    # continuing an episode.
     def new_episode?
-      return false unless HudHelper.util.chronic_project_types.include?(project.ProjectType)
+      entry = service_history_enrollment
+      return false if entry.nil?
 
-      thirty_days_ago = self.EntryDate - 30.days
-      ninety_days_ago = self.EntryDate - 90.days
-
-      non_homeless_residential = HudHelper.util.residential_project_type_ids - HudHelper.util.chronic_project_types
-      currently_housed = client.destination_client.service_history_enrollments.
-        joins(:service_history_services).
-        merge(
-          GrdaWarehouse::ServiceHistoryService.where(
-            record_type: 'service', date: self.EntryDate,
-          ),
-        ).
-        where(project_type: non_homeless_residential).exists?
-
-      housed_for_week_in_past_90_days = client.destination_client.service_history_enrollments.
-        joins(:service_history_services).
-        merge(
-          GrdaWarehouse::ServiceHistoryService.where(
-            record_type: 'service', date: (ninety_days_ago...self.EntryDate),
-          ),
-        ).
-        where(project_type: non_homeless_residential).
-        count >= 7
-
-      other_homeless = client.destination_client.service_history_enrollments.
-        joins(:service_history_services).
-        merge(
-          GrdaWarehouse::ServiceHistoryService.where(
-            record_type: 'service',
-            date: thirty_days_ago...self.EntryDate,
-          ),
-        ).
-        where(project_type: HudHelper.util.chronic_project_types).
-        where.not(enrollment_group_id: self.EnrollmentID).
-        exists?
-      return true if ! currently_housed && housed_for_week_in_past_90_days && ! other_homeless
-
-      return ! other_homeless
+      destination = client.destination_client
+      residential_enrollments = destination.service_history_enrollments.residential.entry.includes(:enrollment).to_a
+      ClientHistory::Calculator.new(client: destination, enrollments: residential_enrollments).
+        new_episode?(enrollment: entry)
     end
 
     # Accept an optional date which will be used for extending the homeless
@@ -426,6 +399,23 @@ module GrdaWarehouse::Hud
     end
 
     # NOTE: this must be included at the end of the class so that scopes can override correctly
-    include RailsDrivers::Extensions
+    # Extensions from drivers — see ADR 0007
+    include AdultOnlyHouseholdsSubPop::GrdaWarehouse::Hud::EnrollmentExtension
+    include AdultsWithChildrenSubPop::GrdaWarehouse::Hud::EnrollmentExtension
+    include AdultsWithChildrenTwentyfivePlusHohSubPop::GrdaWarehouse::Hud::EnrollmentExtension
+    include AdultsWithChildrenYouthHohSubPop::GrdaWarehouse::Hud::EnrollmentExtension
+    include ChildOnlyHouseholdsSubPop::GrdaWarehouse::Hud::EnrollmentExtension
+    include ClientAccessControl::GrdaWarehouse::Hud::EnrollmentExtension
+    include ClientLocationHistory::GrdaWarehouse::Hud::EnrollmentExtension
+    include ClientsSubPop::GrdaWarehouse::Hud::EnrollmentExtension
+    include CustomImportsBostonCommunityOfOrigin::GrdaWarehouse::Hud::EnrollmentExtension
+    include Hmis::GrdaWarehouse::Hud::EnrollmentExtension
+    include HmisCsvImporter::GrdaWarehouse::Hud::EnrollmentExtension
+    include HmisCsvTwentyTwenty::GrdaWarehouse::Hud::EnrollmentExtension
+    include HmisCsvTwentyTwentyFour::GrdaWarehouse::Hud::EnrollmentExtension
+    include HmisCsvTwentyTwentySix::GrdaWarehouse::Hud::EnrollmentExtension
+    include NonVeteransSubPop::GrdaWarehouse::Hud::EnrollmentExtension
+    include SupplementalEnrollmentData::GrdaWarehouse::Hud::EnrollmentExtension
+    include VeteransSubPop::GrdaWarehouse::Hud::EnrollmentExtension
   end # End Enrollment
 end

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -29,6 +29,7 @@ module WarehouseReports
         end
         format.html do
           @enrollments = @report.enrollments_for(@key)
+          current_user.policy_context.preload_client_dependencies(@enrollments.keys)
         end
       end
     end

@@ -1,3 +1,9 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 namespace :eto do
 
   namespace :import do
@@ -36,7 +42,7 @@ namespace :eto do
         )
       end
       # Eccovia too!
-      EccoviaData::Fetch.all.each(&:fetch_updated) if RailsDrivers.loaded.include?(:eccovia_data)
+      EccoviaData::Fetch.all.each(&:fetch_updated)
     end
   end
 end

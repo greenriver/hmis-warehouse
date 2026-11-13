@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -70,6 +70,25 @@ RSpec.describe Hmis::Hud::Project, type: :model do
       end
       # special case for opportunity, it is closed rather than deleted due to the before_destroy callback on the unit
       expect(opportunity.reload.status).to eq('closed')
+    end
+  end
+
+  describe '#allows_same_day_exit?' do
+    [
+      [0, nil, false, 'ES Entry/Exit'],
+      [1, nil, false, 'ES NbN'],
+      [2, nil, false, 'TH'],
+      [3, nil, false, 'PSH'],
+      [4, nil, true, 'Street Outreach'],
+      [6, nil, true, 'Services Only'],
+      [8, nil, false, 'Safe Haven'],
+      [13, 1, true, 'RRH Services Only'],
+      [13, 2, false, 'RRH Housing with or without services'],
+    ].each do |project_type, rrh_sub_type, expected, label|
+      it "is #{expected} for #{label}" do
+        project = build(:hmis_hud_project, data_source: data_source, project_type: project_type, rrh_sub_type: rrh_sub_type)
+        expect(project.allows_same_day_exit?).to eq(expected)
+      end
     end
   end
 
@@ -305,10 +324,10 @@ RSpec.describe Hmis::Hud::Project, type: :model do
       end
     end
 
-    context 'with disabled config' do
-      let!(:config) { create(:hmis_project_ce_config, project: project, enabled: false) }
+    context 'with soft-deleted config' do
+      let!(:config) { create(:hmis_project_ce_config, project: project, deleted_at: 1.day.ago) }
 
-      it 'does not return projects with disabled config' do
+      it 'does not return projects with a soft-deleted config' do
         expect(Hmis::Hud::Project.with_ce_enabled).to be_empty
       end
     end

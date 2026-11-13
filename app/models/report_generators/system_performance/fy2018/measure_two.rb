@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -590,7 +590,7 @@ module ReportGenerators::SystemPerformance::Fy2018
         },
         two_a7: {
           title: nil,
-          value: 'Total retuns to homelessness',
+          value: 'Total returns to homelessness',
         },
         two_b1: {
           title: nil,
@@ -617,35 +617,35 @@ module ReportGenerators::SystemPerformance::Fy2018
           value: 0,
         },
         two_b7: {
-          title: 'Total number of persons who exited to a permanent housing destination; Total retuns to homelessness (2 years prior)',
+          title: 'Total number of persons who exited to a permanent housing destination; Total returns to homelessness (2 years prior)',
           value: 0,
         },
         two_c1: {
           title: nil,
-          value: 'Number returing to homelessness in less than 6 months (0-180 days)',
+          value: 'Number returning to homelessness in less than 6 months (0-180 days)',
         },
         two_c2: {
-          title: 'Number returing to homelessness in less than 6 months; exit was from SO (0-180 days) ',
+          title: 'Number returning to homelessness in less than 6 months; exit was from SO (0-180 days) ',
           value: 0,
         },
         two_c3: {
-          title: 'Number returing to homelessness in less than 6 months; exit was from ES (0-180 days) ',
+          title: 'Number returning to homelessness in less than 6 months; exit was from ES (0-180 days) ',
           value: 0,
         },
         two_c4: {
-          title: 'Number returing to homelessness in less than 6 months; exit was from TH (0-180 days) ',
+          title: 'Number returning to homelessness in less than 6 months; exit was from TH (0-180 days) ',
           value: 0,
         },
         two_c5: {
-          title: 'Number returing to homelessness in less than 6 months; exit was from SH (0-180 days) ',
+          title: 'Number returning to homelessness in less than 6 months; exit was from SH (0-180 days) ',
           value: 0,
         },
         two_c6: {
-          title: 'Number returing to homelessness in less than 6 months; exit was from PH (0-180 days) ',
+          title: 'Number returning to homelessness in less than 6 months; exit was from PH (0-180 days) ',
           value: 0,
         },
         two_c7: {
-          title: 'Number returing to homelessness in less than 6 months; Total retuns to homelessness (0-180 days) ',
+          title: 'Number returning to homelessness in less than 6 months; Total returns to homelessness (0-180 days) ',
           value: 0,
         },
         two_d1: {
@@ -673,7 +673,7 @@ module ReportGenerators::SystemPerformance::Fy2018
           value: 0,
         },
         two_d7: {
-          title: 'Percentage of returns in less than 6 months; Total retuns to homelessness (0-180 days)',
+          title: 'Percentage of returns in less than 6 months; Total returns to homelessness (0-180 days)',
           value: 0,
         },
         two_e1: {
@@ -701,7 +701,7 @@ module ReportGenerators::SystemPerformance::Fy2018
           value: 0,
         },
         two_e7: {
-          title: 'Number returning to homelessness from 6 to 12 months; Total retuns to homelessness (181-365 days)',
+          title: 'Number returning to homelessness from 6 to 12 months; Total returns to homelessness (181-365 days)',
           value: 0,
         },
         two_f1: {
@@ -729,7 +729,7 @@ module ReportGenerators::SystemPerformance::Fy2018
           value: 0,
         },
         two_f7: {
-          title: 'Percentage of returns from 6 to 12 months; Total retuns to homelessness (181-365 days)',
+          title: 'Percentage of returns from 6 to 12 months; Total returns to homelessness (181-365 days)',
           value: 0,
         },
         two_g1: {
@@ -757,7 +757,7 @@ module ReportGenerators::SystemPerformance::Fy2018
           value: 0,
         },
         two_g7: {
-          title: 'Number returning to homelessness from 13 to 24 months; Total retuns to homelessness (366-730 days)',
+          title: 'Number returning to homelessness from 13 to 24 months; Total returns to homelessness (366-730 days)',
           value: 0,
         },
         two_h1: {
@@ -785,7 +785,7 @@ module ReportGenerators::SystemPerformance::Fy2018
           value: 0,
         },
         two_h7: {
-          title: 'Percentage of returns from 13 to 24 months; Total retuns to homelessness (366-730 days)',
+          title: 'Percentage of returns from 13 to 24 months; Total returns to homelessness (366-730 days)',
           value: 0,
         },
         two_i1: {
@@ -813,7 +813,7 @@ module ReportGenerators::SystemPerformance::Fy2018
           value: 0,
         },
         two_i7: {
-          title: 'Number of returns in 2 years; Total retuns to homelessness',
+          title: 'Number of returns in 2 years; Total returns to homelessness',
           value: 0,
         },
         two_j1: {
@@ -841,7 +841,7 @@ module ReportGenerators::SystemPerformance::Fy2018
           value: 0,
         },
         two_j7: {
-          title: 'Percentage of returns in 2 years; Total retuns to homelessness',
+          title: 'Percentage of returns in 2 years; Total returns to homelessness',
           value: 0,
         },
       }

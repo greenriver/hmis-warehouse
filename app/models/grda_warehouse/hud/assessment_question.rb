@@ -1,17 +1,21 @@
-# frozen_string_literal: true
-
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 module GrdaWarehouse::Hud
   class AssessmentQuestion < Base
     include HudSharedScopes
     include ::HmisStructure::AssessmentQuestion
     include ::HmisStructure::Shared
-    include RailsDrivers::Extensions
+    # Extensions from drivers — see ADR 0007
+    include HmisCsvImporter::GrdaWarehouse::Hud::AssessmentQuestionExtension
+    include HmisCsvTwentyTwenty::GrdaWarehouse::Hud::AssessmentQuestionExtension
+    include HmisCsvTwentyTwentyFour::GrdaWarehouse::Hud::AssessmentQuestionExtension
+    include HmisCsvTwentyTwentySix::GrdaWarehouse::Hud::AssessmentQuestionExtension
 
     attr_accessor :source_id
 
@@ -77,6 +81,10 @@ module GrdaWarehouse::Hud
 
     def pathways?
       self.AssessmentQuestion.to_s == 'c_housing_assessment_name' && human_readable.in?(self.class.pathways_titles)
+    end
+
+    def transfer?
+      self.AssessmentQuestion.to_s == 'c_housing_assessment_name' && human_readable.in?(self.class.transfer_titles)
     end
 
     def self.pathways_titles

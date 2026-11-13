@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -48,12 +48,9 @@ module Admin::EtoApi
           :active,
           :confidential,
           :exclude_from_window,
-          :health,
           :vispdat,
           :pathways,
           :ssm,
-          :health_case_note,
-          :health_has_qualifying_activities,
           :hud_assessment,
           :triage_assessment,
           :rrh_assessment,

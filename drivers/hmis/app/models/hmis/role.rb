@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -7,12 +7,13 @@
 # frozen_string_literal: true
 
 # HMIS uses similar but separate permissions system from the warehouse
-# See drivers/hmis/doc/PERMISSIONS.md
+# @see docs/features/hmis/hmis-permissions.md
 
 class Hmis::Role < ::ApplicationRecord
   self.table_name = :hmis_roles
   acts_as_paranoid
   has_paper_trail
+  include HistoryDescriptions
 
   has_many :access_controls, class_name: '::Hmis::AccessControl', inverse_of: :role
   has_many :users, through: :access_controls
@@ -130,8 +131,20 @@ class Hmis::Role < ::ApplicationRecord
     @fg_color ||= GrdaWarehouse::SystemColor.new.calculated_foreground_color(bg_color)
   end
 
+  # Returns a list of permissions that are required for a given permission (including the permission itself).
+  # For example, can_edit_enrollments requires can_view_enrollment_details, which in turn requires
+  # can_view_project and can_view_clients.
+  def self.required_permissions_for(permission, path = [])
+    raise "cycle detected: #{permission} requires #{path.join(', ')}" if path.include?(permission)
+
+    config = permissions_with_descriptions.fetch(permission) { raise "unknown permission #{permission.inspect}" }
+    required = (config[:requirements] || []).flat_map { |perm| required_permissions_for(perm, path + [permission]) }
+    ([permission] + required).uniq
+  end
+
+  # Memoized because permission resolution reads this heavily and it would otherwise be rebuilt on every call.
   def self.permissions_with_descriptions
-    {
+    @permissions_with_descriptions ||= {
       can_administer_hmis: {
         description: 'Ability to manage permissions and data access for the HMIS. Grants access to HMIS Admin section of the Warehouse.',
         administrative: true,
@@ -314,9 +327,25 @@ class Hmis::Role < ::ApplicationRecord
         sub_category: 'Organizations',
       },
       can_view_clients: {
-        description: 'Access to view clients at assigned projects',
+        description: 'Access to view client profiles. When assigned at a project, this includes all clients who are or have been enrolled at that project. Additional permissions may be needed for viewing sensitive data such as client name, DOB, and SSN. Additional permission \'can view restricted clients\' is needed for viewing restricted clients\' identifying information.',
         administrative: false,
         access: [:viewable],
+        category: 'Client Access',
+        sub_category: 'Access',
+      },
+      can_view_restricted_clients: {
+        description: 'Access to find restricted clients in search and view their identifying information. When assigned at a project, this applies to restricted clients who are or have been enrolled at that project. Without this permission, those clients can still be opened by direct link or from an enrollment, but they are omitted from search and their personally identifiable information is redacted.',
+        administrative: false,
+        access: [:viewable],
+        requirements: [:can_view_clients],
+        category: 'Client Access',
+        sub_category: 'Access',
+      },
+      can_mark_clients_as_restricted: {
+        description: 'Ability to mark and unmark clients as restricted, at assigned projects where the client is or was enrolled.',
+        administrative: false,
+        access: [:editable],
+        requirements: [:can_view_restricted_clients],
         category: 'Client Access',
         sub_category: 'Access',
       },
@@ -338,6 +367,7 @@ class Hmis::Role < ::ApplicationRecord
       can_view_client_name: {
         description: 'Access to view client names',
         administrative: false,
+        requirements: [:can_view_clients],
         access: [:viewable],
         category: 'Client Access',
         sub_category: 'Sensitive Client Data',
@@ -345,6 +375,7 @@ class Hmis::Role < ::ApplicationRecord
       can_view_client_contact_info: {
         description: 'Access to view client contact info: addresses, phone numbers, emails.',
         administrative: false,
+        requirements: [:can_view_clients],
         access: [:viewable],
         category: 'Client Access',
         sub_category: 'Sensitive Client Data',
@@ -352,12 +383,14 @@ class Hmis::Role < ::ApplicationRecord
       can_view_client_photo: {
         description: 'Access to view client photo.',
         administrative: false,
+        requirements: [:can_view_clients],
         access: [:viewable],
         category: 'Client Access',
         sub_category: 'Sensitive Client Data',
       },
       can_view_full_ssn: {
         administrative: false,
+        requirements: [:can_view_clients],
         access: [:viewable],
         category: 'Client Access',
         sub_category: 'Sensitive Client Data',
@@ -365,6 +398,7 @@ class Hmis::Role < ::ApplicationRecord
       can_view_partial_ssn: {
         description: 'Access to view last 4 digits of SSN',
         administrative: false,
+        requirements: [:can_view_clients],
         access: [:viewable],
         category: 'Client Access',
         sub_category: 'Sensitive Client Data',
@@ -372,6 +406,7 @@ class Hmis::Role < ::ApplicationRecord
       can_view_dob: {
         description: 'Access to view Date of Birth. (Note: client\'s age is always visible, even if this permission is not checked).',
         administrative: false,
+        requirements: [:can_view_clients],
         access: [:viewable],
         category: 'Client Access',
         sub_category: 'Sensitive Client Data',
@@ -379,21 +414,23 @@ class Hmis::Role < ::ApplicationRecord
       can_view_hud_chronic_status: {
         description: "Access to view 'Chronic at PIT' status on the Client Dashboard. This field gives you an idea of someones previous enrollments, even ones you can't otherwise see.",
         administrative: false,
+        requirements: [:can_view_clients],
         access: [:viewable],
         category: 'Client Access',
         sub_category: 'Expanded Access',
       },
       can_view_enrollment_details: {
-        description: 'When granted in conjunction with "Can View Project," grants access to view the full Enrollment Dashboard. Includes all related records such as Assessments, Services, Current Living Situations, and more.',
+        description: 'When granted in conjunction with "Can View Project" and "Can View Clients," grants access to view the full Enrollment Dashboard. Includes all related records such as Assessments, Services, Current Living Situations, and more.',
         administrative: false,
-        requirements: [:can_view_project],
+        requirements: [:can_view_project, :can_view_clients],
         access: [:viewable],
         category: 'Enrollment Access',
         sub_category: 'Access',
       },
       can_view_limited_enrollment_details: {
-        description: 'Access to view limited information about an enrollment, including: entry date, exit date, project name, project type, move-in date, and last bed night date.',
+        description: 'When granted in conjunction with "Can View Clients," grants access to view limited information about an enrollment, including: entry date, exit date, project name, project type, move-in date, and last bed night date.',
         administrative: false,
+        requirements: [:can_view_clients],
         access: [:viewable],
         category: 'Enrollment Access',
         sub_category: 'Access',
@@ -407,7 +444,7 @@ class Hmis::Role < ::ApplicationRecord
       },
       can_edit_enrollments: {
         description: 'Ability to edit enrollment details. This includes the ability to create/edit assessments, services, living situations, and other Enrollment-related records.',
-        requirements: [:can_view_enrollment_details, :can_view_project],
+        requirements: [:can_view_enrollment_details],
         administrative: false,
         access: [:editable],
         category: 'Enrollment Access',
@@ -415,7 +452,7 @@ class Hmis::Role < ::ApplicationRecord
       },
       can_enroll_clients: {
         description: 'Ability to enroll new or existing clients into the project. (Note: \'Can edit clients\' is required for creating new client records.)',
-        requirements: [:can_edit_enrollments, :can_view_enrollment_details, :can_view_project],
+        requirements: [:can_edit_enrollments],
         administrative: false,
         access: [:editable],
         category: 'Project Access',
@@ -423,7 +460,7 @@ class Hmis::Role < ::ApplicationRecord
       },
       can_delete_enrollments: {
         description: 'Ability to delete enrollments. (Note: users with Edit-access can delete "incomplete" enrollments even if this box is not checked).',
-        requirements: [:can_edit_enrollments, :can_view_enrollment_details, :can_view_project],
+        requirements: [:can_edit_enrollments],
         administrative: true,
         access: [:editable],
         category: 'Enrollment Access',
@@ -431,7 +468,7 @@ class Hmis::Role < ::ApplicationRecord
       },
       can_audit_enrollments: {
         description: 'View audit history for the Enrollment, and associated records, on the Enrollment Dashboard',
-        requirements: [:can_view_enrollment_details, :can_view_project],
+        requirements: [:can_view_enrollment_details],
         administrative: true,
         access: [:viewable],
         category: 'Enrollment Access',
@@ -439,7 +476,7 @@ class Hmis::Role < ::ApplicationRecord
       },
       can_delete_assessments: {
         description: 'Ability to delete assessments that have been submitted. (Note: users with Edit-access can delete "in-progress" assessments even if this box is not checked).',
-        requirements: [:can_view_enrollment_details, :can_view_project],
+        requirements: [:can_view_enrollment_details],
         administrative: true,
         access: [:editable],
         category: 'Enrollment Access',
@@ -477,6 +514,7 @@ class Hmis::Role < ::ApplicationRecord
       },
       can_audit_clients: {
         description: 'View audit history for client on the Client Dashboard.  This permission allows the user to view changes to any client details, including DOB, SSN, and name, even if they don\'t have the specific permissions to view those fields on the Client.',
+        requirements: [:can_view_clients],
         administrative: true,
         access: [:viewable],
         category: 'Client Access',
@@ -503,6 +541,7 @@ class Hmis::Role < ::ApplicationRecord
         access: [:editable],
         category: 'Administration',
         sub_category: 'Enrollment Management',
+        proc: -> { false }, # Hidden until feature is implemented (#5767)
       },
       can_manage_forms: {
         description: 'Ability to edit forms',
@@ -510,6 +549,8 @@ class Hmis::Role < ::ApplicationRecord
         access: [:editable],
         category: 'Administration',
         sub_category: 'Admin Tools',
+        # Requires can_configure_data_collection permission, which governs viewability of forms
+        requirements: [:can_configure_data_collection],
       },
       can_configure_data_collection: {
         description: 'Ability to configure data collection rules for assessments, services, auto-exit, and more.',
@@ -524,6 +565,7 @@ class Hmis::Role < ::ApplicationRecord
         access: [:editable],
         category: 'Administration',
         sub_category: 'Admin Tools',
+        requirements: [:can_manage_forms],
       },
       can_manage_scan_cards: {
         description: 'Ability to create and deactivate Scan Cards',
@@ -535,6 +577,7 @@ class Hmis::Role < ::ApplicationRecord
       },
       can_view_client_alerts: {
         description: 'Access to view Client Alerts',
+        requirements: [:can_view_clients],
         administrative: false,
         access: [:viewable],
         category: 'Client Access',
@@ -557,7 +600,7 @@ class Hmis::Role < ::ApplicationRecord
       },
       can_view_enrollment_location_map: {
         description: 'Access to view a Location Map, which shows the locations where the client was contacted during the Enrollment.',
-        requirements: [:can_view_enrollment_details, :can_view_project],
+        requirements: [:can_view_enrollment_details],
         administrative: false,
         access: [:viewable],
         category: 'Enrollment Access',
@@ -566,10 +609,11 @@ class Hmis::Role < ::ApplicationRecord
       can_print_client_case_notes: {
         description: 'Ability to print case notes from the client profile.',
         administrative: false,
+        requirements: [:can_view_clients],
         access: [:viewable],
         category: 'Client Access',
         sub_category: 'Access',
       },
-    }
+    }.freeze
   end
 end

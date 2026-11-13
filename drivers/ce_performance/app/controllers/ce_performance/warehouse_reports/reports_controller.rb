@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -90,6 +90,7 @@ module CePerformance::WarehouseReports
       @event_type = @result.class.available_event_ids.detect { |m| m == params[:event_type]&.to_i }
       @exit_type = @result.class.available_exit_destination_ids.detect { |m| m == params[:exit_type]&.to_i }
       @clients = @result.clients_for(report: @report, period: @period, sub_population: @sub_population, vispdat_range: @vispdat_range, event_type: @event_type, vispdat_type: @vispdat_type, exit_type: @exit_type)
+      current_user.policy_context.preload_client_dependencies(@clients.map(&:destination_client_id))
       respond_to do |format|
         format.html {}
         format.xlsx do
@@ -105,7 +106,7 @@ module CePerformance::WarehouseReports
     helper_method :details_params
 
     private def set_report
-      @report = report_class.find(params[:id].to_i)
+      @report = report_scope.find(params[:id].to_i)
     end
 
     private def report_scope

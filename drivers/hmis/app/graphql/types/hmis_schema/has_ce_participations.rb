@@ -1,13 +1,7 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
-###
-
-###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
-#
-# License detail: https://github.com/greenriver/ce-warehouse/blob/production/LICENSE.md
 ###
 
 # frozen_string_literal: true
@@ -32,7 +26,7 @@ module Types
           define_method(:resolve_ce_participations) do |record|
             record.ce_participations.
               viewable_by(current_user).
-              order(ce_participation_status_start_date: :desc)
+              order(ce_participation_status_start_date: :desc, id: :desc)
           end
         end
       end

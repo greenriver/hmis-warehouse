@@ -1,10 +1,10 @@
-# frozen_string_literal: true
-
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 # Manual testing routine
 # reload!; include NotifierConfig; setup_notifier('test_user')
@@ -27,12 +27,6 @@ require 'singleton'
 # them as needed and if a service to do so is available. Logs
 # any network/services errors and recovers as well as it can.
 class ApplicationNotifier < Slack::Notifier
-  attr_writer :insert_log_url
-
-  def insert_log_url
-    !!@insert_log_url # coerce bool
-  end
-
   class NullRedis
     include Singleton
     def with(*) = nil
@@ -126,19 +120,6 @@ class ApplicationNotifier < Slack::Notifier
     Rails.logger.error('ApplicationNotifier#ping: ' + e.message)
   end
 
-  def post(payload = {})
-    if insert_log_url
-      log_stream_url = ENV.fetch('LOG_STREAM_URL', nil)
-      if payload.key?(:text) && log_stream_url.present?
-        payload[:text] += "\n```log_url: #{log_stream_url}```"
-      else
-        Rails.logger.warn 'ApplicationNotifier#post tried to insert_log_url but there was no :text in payload'
-      end
-    end
-
-    super
-  end
-
   # Send any rate_limit'd messages.
   # Will break the resulting mega-message into 4K char and burst out
   # a sequence of posts. If this the queue is too big, say bigger than
@@ -199,7 +180,7 @@ class ApplicationNotifier < Slack::Notifier
   end
 
   def self.encode_key(url, channel, username)
-    # url and username can contain slaskes so we need to encode them
+    # url and username can contain slashes so we need to encode them
     [namespace_prefix, Base64.urlsafe_encode64(url.to_s), channel, Base64.urlsafe_encode64(username.to_s)].join('/')
   end
 

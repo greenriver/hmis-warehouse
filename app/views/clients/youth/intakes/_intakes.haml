@@ -24,14 +24,15 @@
       = render 'follow_up_list'
 
 = content_for :page_js do
-  :javascript
-    $(document).ready(function(){
-      $('.jOtherTrigger').on('change', function(e){
-        if($(this).val() == 'Other') {
-          $(this).closest('.form-group').next().removeClass('hidden');
-        }
-        else {
-          $(this).closest('.form-group').next().addClass('hidden');
-        }
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      $(document).ready(function(){
+        $('.jOtherTrigger').on('change', function(e){
+          if($(this).val() == 'Other') {
+            $(this).closest('.form-group').next().removeClass('hidden');
+          }
+          else {
+            $(this).closest('.form-group').next().addClass('hidden');
+          }
+        });
       });
-    });

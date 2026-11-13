@@ -25,11 +25,12 @@
 
 = render 'common/bootstrap_tab_memory'
 = content_for :page_js do
-  :javascript
-    $('.datatable').DataTable({
-      searching: true,
-      ordering: true,
-      pageLength: 15,
-      lengthChange: false,
-      pagingType: 'simple'
-    });
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      $('.datatable').DataTable({
+        searching: true,
+        ordering: true,
+        pageLength: 15,
+        lengthChange: false,
+        pagingType: 'simple'
+      });

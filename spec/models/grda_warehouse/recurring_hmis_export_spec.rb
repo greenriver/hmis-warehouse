@@ -1,9 +1,20 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # frozen_string_literal: true
 
 require 'rails_helper'
 
 RSpec.describe GrdaWarehouse::RecurringHmisExport, type: :model do
   let(:user) { create(:user) }
+
+  # Both encrypt paths stage the export, unencrypted, under Rails.root/tmp.
+  def tmp_export_files
+    Dir.glob(Rails.root.join('tmp', 'hmis_export*').to_s)
+  end
 
   describe '#should_run?' do
     context 'when export has never run' do
@@ -30,6 +41,78 @@ RSpec.describe GrdaWarehouse::RecurringHmisExport, type: :model do
 
         expect(export.should_run?).to be false
       end
+    end
+  end
+
+  describe 'zip password length' do
+    it 'accepts a password zipcloak will take' do
+      export = build(:recurring_hmis_export, user: user, encryption_type: 'zip', zip_password: 'p' * ZipCloak::MAX_PASSWORD_LENGTH)
+      expect(export).to be_valid
+    end
+
+    it 'rejects a password longer than zipcloak accepts' do
+      export = build(:recurring_hmis_export, user: user, encryption_type: 'zip', zip_password: 'p' * (ZipCloak::MAX_PASSWORD_LENGTH + 1))
+
+      expect(export).not_to be_valid
+      expect(export.errors[:zip_password]).to be_present
+    end
+
+    # The limit is zipcloak's; the 7z path takes a longer password.
+    it 'leaves the 7z encryption type alone' do
+      export = build(:recurring_hmis_export, user: user, encryption_type: '7z', zip_password: 'p' * (ZipCloak::MAX_PASSWORD_LENGTH + 1))
+      expect(export).to be_valid
+    end
+
+    # zipcloak's pty would rewrite the line rather than reject it, encrypting the
+    # export under a password the operator never chose; see ZipCloak.
+    it 'rejects a password holding a control character' do
+      export = build(:recurring_hmis_export, user: user, encryption_type: 'zip', zip_password: "secret\u0015123")
+
+      expect(export).not_to be_valid
+      expect(export.errors[:zip_password]).to be_present
+    end
+
+    it 'allows no password at all when no encryption type is chosen' do
+      export = build(:recurring_hmis_export, user: user, encryption_type: nil, zip_password: nil)
+      expect(export).to be_valid
+    end
+  end
+
+  describe 'encryption type' do
+    # The encryption type select posts '' for its unencrypted option, not nil.
+    it 'rejects a password with no encryption type chosen' do
+      export = build(:recurring_hmis_export, user: user, encryption_type: '', zip_password: 'secret123')
+
+      expect(export).not_to be_valid
+      expect(export.errors[:encryption_type]).to be_present
+    end
+
+    it 'rejects an encryption type with no password' do
+      export = build(:recurring_hmis_export, user: user, encryption_type: 'zip', zip_password: nil)
+
+      expect(export).not_to be_valid
+      expect(export.errors[:zip_password]).to be_present
+    end
+
+    it 'rejects an encryption type #encrypt_zip cannot apply' do
+      export = build(:recurring_hmis_export, user: user, encryption_type: 'gzip', zip_password: 'secret123')
+
+      expect(export).not_to be_valid
+      expect(export.errors[:encryption_type]).to be_present
+    end
+
+    it 'raises rather than storing an empty object when a stored record has an unknown encryption type' do
+      export = build(:recurring_hmis_export, user: user, encryption_type: 'gzip', zip_password: 'secret123')
+      export.save(validate: false)
+
+      expect { export.reload.send(:encrypt_zip, 'ZIPBYTES') }.to raise_error(/unknown encryption type/)
+    end
+
+    it 'raises rather than delivering in the clear when a stored record has a password but no encryption type' do
+      export = build(:recurring_hmis_export, user: user, encryption_type: '', zip_password: 'secret123')
+      export.save(validate: false)
+
+      expect { export.reload.send(:encrypt_zip, 'ZIPBYTES') }.to raise_error(/encryption type/)
     end
   end
 
@@ -91,6 +174,40 @@ RSpec.describe GrdaWarehouse::RecurringHmisExport, type: :model do
 
       export.run
     end
+
+    context 'when no selected project resolves to one the user can see' do
+      let!(:acl_user) { create :acl_user }
+      let!(:can_view_projects_role) { create :role, can_view_projects: true }
+      let!(:collection) { create :collection }
+      let!(:data_source) { create :source_data_source }
+      # viewable_project_scope applies non_confidential, which inner-joins the organization
+      let!(:organization) { create :hud_organization, data_source_id: data_source.id }
+      let!(:visible_project) { create :hud_project, data_source_id: data_source.id, OrganizationID: organization.OrganizationID }
+      let!(:invisible_project) { create :hud_project, data_source_id: data_source.id, OrganizationID: organization.OrganizationID }
+
+      before do
+        collection.set_viewables({ projects: [visible_project.id] })
+        setup_access_control(acl_user, can_view_projects_role, collection)
+      end
+
+      it 'skips the run and reports to Sentry' do
+        export = create(
+          :recurring_hmis_export,
+          user: acl_user,
+          options: {
+            start_date: 2.weeks.ago.to_date,
+            end_date: 1.week.ago.to_date,
+            project_ids: [invisible_project.id],
+          },
+        )
+
+        expect_any_instance_of(Filters::HmisExport).not_to receive(:schedule_job)
+        expect(Sentry).to receive(:capture_message).with(/RecurringHmisExport #{export.id}/, level: :warning)
+
+        # Reload so options round-trip through the database as a scheduled run reads them
+        export.reload.run
+      end
+    end
   end
 
   describe '#s3_valid?' do
@@ -116,6 +233,73 @@ RSpec.describe GrdaWarehouse::RecurringHmisExport, type: :model do
       report = double(export_id: 999, hmis_zip: double(download: 'zip data'))
 
       expect(export.object_name(report)).to match(/nightly-.*-999\.zip/)
+    end
+  end
+
+  # encrypt_seven_zip unzips the export to a scratch directory and re-archives
+  # "#{destination_path}/*.csv" with the 7z binary. Without
+  # destination_directory: the CSVs land in Dir.pwd and the glob matches
+  # nothing.
+  describe '#encrypt_seven_zip' do
+    include_context 'a zip file to extract'
+
+    let(:export) { create(:recurring_hmis_export, :with_zip_encryption, user: user, encryption_type: '7z') }
+
+    it 'returns 7z content holding every CSV from the source zip' do
+      encrypted_path = File.join(scratch_dir, 'encrypted.7z')
+      File.binwrite(encrypted_path, export.send(:encrypt_seven_zip, File.binread(zip_source)))
+
+      listing = `7z l -p#{export.zip_password} #{encrypted_path}`
+      extracted_names.each { |name| expect(listing).to include(name) }
+      expect_no_leaked_files(extracted_names)
+      expect(tmp_export_files).to be_empty
+    end
+
+    # The scratch directory holds the export's CSVs in the clear, so a failed run
+    # must not leave them sitting in tmp.
+    it 'raises and removes the unencrypted CSVs when the 7z run fails' do
+      staged = tmp_export_files
+      allow(SevenZip).to receive(:create).and_return(false)
+
+      expect { export.send(:encrypt_seven_zip, File.binread(zip_source)) }.to raise_error(/could not 7z/)
+      expect(tmp_export_files).to match_array(staged)
+    end
+  end
+
+  describe '#encrypt_zipcloak' do
+    include_context 'a zip file to extract'
+
+    let(:export) { create(:recurring_hmis_export, :with_zip_encryption, user: user) }
+
+    it 'returns a password protected copy of the export' do
+      encrypted_path = File.join(scratch_dir, 'encrypted.zip')
+      File.binwrite(encrypted_path, export.send(:encrypt_zipcloak, File.binread(zip_source)))
+
+      expect(Zip::File.open(encrypted_path) { |zip| zip.map(&:encrypted?) }).to all(be true)
+    end
+
+    # The password used to be interpolated into a generated expect script, so a
+    # Tcl metacharacter in it escaped the string and ran as script. The canary
+    # is relative to keep the password under zipcloak's length limit.
+    it 'does not run a password holding Tcl metacharacters' do
+      export.update(zip_password: %(p"; exec sh -c {touch canary}; #))
+
+      encrypted_path = File.join(scratch_dir, 'encrypted.zip')
+      content = Dir.chdir(scratch_dir) { export.send(:encrypt_zipcloak, File.binread(zip_source)) }
+      File.binwrite(encrypted_path, content)
+
+      expect(File.exist?(File.join(scratch_dir, 'canary'))).to be false
+      expect(Zip::File.open(encrypted_path) { |zip| zip.map(&:encrypted?) }).to all(be true)
+    end
+
+    # The staged copy is the export in the clear, so a failed run must not leave
+    # it sitting in tmp.
+    it 'raises and removes the unencrypted copy when zipcloak fails' do
+      staged = tmp_export_files
+      allow(ZipCloak).to receive(:encrypt).and_raise(ZipCloak::Error, 'zipcloak exited 1')
+
+      expect { export.send(:encrypt_zipcloak, File.binread(zip_source)) }.to raise_error(ZipCloak::Error)
+      expect(tmp_export_files).to match_array(staged)
     end
   end
 end

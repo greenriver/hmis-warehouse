@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -246,10 +246,10 @@ module Reporting::MonthlyReports
     end
 
     def organization_id organization_id, data_source_id
-      @organziations ||= GrdaWarehouse::Hud::Organization.pluck(:id, :OrganizationID, :data_source_id).map do |id, org_id, ds_id|
+      @organizations ||= GrdaWarehouse::Hud::Organization.pluck(:id, :OrganizationID, :data_source_id).map do |id, org_id, ds_id|
         [[ds_id, org_id], id]
       end.to_h
-      @organziations[[data_source_id, organization_id]]
+      @organizations[[data_source_id, organization_id]]
     end
 
     def project_id project_id, data_source_id
@@ -422,7 +422,7 @@ module Reporting::MonthlyReports
       connection.add_index table_name, [:mid_month, :project_type, :head_of_household], name: "index_month_#{name}_p_type_hoh"
     end
 
-    # schema.rb doesn't include tiggers or functions
+    # schema.rb doesn't include triggers or functions
     # these need to be active for SHS to work correctly
     def self.ensure_triggers
       return if trigger_exists?

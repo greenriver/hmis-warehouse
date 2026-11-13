@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -11,7 +11,11 @@ module GrdaWarehouse::Hud
     include HudSharedScopes
     include ::HmisStructure::User
     include ::HmisStructure::Shared
-    include RailsDrivers::Extensions
+    # Extensions from drivers — see ADR 0007
+    include HmisCsvImporter::GrdaWarehouse::Hud::UserExtension
+    include HmisCsvTwentyTwenty::GrdaWarehouse::Hud::UserExtension
+    include HmisCsvTwentyTwentyFour::GrdaWarehouse::Hud::UserExtension
+    include HmisCsvTwentyTwentySix::GrdaWarehouse::Hud::UserExtension
 
     attr_accessor :source_id
 

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -97,7 +97,6 @@ module Clients
       @file = GrdaWarehouse::ClientFile.new
       @file.assign_attributes(
         file_params.merge(
-          file: 'See S3', # Temporary until we remove the column
           client_id: @client.id,
           user_id: current_user.id,
           visible_in_window: true,
@@ -118,7 +117,7 @@ module Clients
     def destroy_file
       set_vispdat
       @file = @vispdat.files.find params[:file_id]
-      @file.destroy
+      @file.soft_delete!
       respond_with @vispdat
     end
 

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -37,7 +37,7 @@ module
             next if race.in?(unknown_race_buckets.keys) && ethnicity.in?([:hispanic_latinaeo, :non_hispanic_latinaeo])
             next if ! race.in?(unknown_race_buckets.keys) && ethnicity == :unknown
 
-            # We already have a version of uknown from the race, no need to repeat it
+            # We already have a version of unknown from the race, no need to repeat it
             ethnicity_title = nil if ethnicity == :unknown
             r[[race, ethnicity]] = [race_title, ethnicity_title]
           end

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -8,7 +8,7 @@
 
 # Daily (most-recent import) delta for a given CSV file in an import.
 # Compares net change (pre_processed diff) to count_increase/count_decrease thresholds.
-# @see docs/features/import-csv-monitoring.md
+# @see docs/features/warehouse/import-csv-monitoring.md
 module GrdaWarehouse::Monitoring::MetricCalculators
   class ImportFileDeltaCalculator
     # @param monitor [GrdaWarehouse::ImportCsvMonitor]

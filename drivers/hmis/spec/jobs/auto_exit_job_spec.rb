@@ -1,10 +1,10 @@
-# frozen_string_literal: true
-
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 require 'rails_helper'
 
@@ -189,6 +189,34 @@ RSpec.describe Hmis::AutoExitJob, type: :model do
       expect(Hmis::Hud::Enrollment.exited).to include(e1)
       expect(e1.exit).to have_attributes(auto_exited: be_present, exit_date: ca1.assessment_date, destination: 30)
       expect(e1.custom_assessments).to contain_exactly(ca1, have_attributes(assessment_date: ca1.assessment_date, data_collection_stage: 3))
+    end
+
+    it 'should exit correctly for a case note' do
+      e1 = create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1, entry_date: Date.current - 2.months
+      cn1 = create :hmis_hud_custom_case_note, data_source: ds1, client: c1, enrollment: e1, user: u1, information_date: Date.current - 31.days
+
+      Hmis::AutoExitJob.perform_now
+
+      expect(Hmis::Hud::Enrollment.exited).to include(e1)
+      expect(e1.exit).to have_attributes(auto_exited: be_present, exit_date: cn1.information_date, destination: 30)
+      expect(e1.custom_assessments).to contain_exactly(have_attributes(assessment_date: cn1.information_date, data_collection_stage: 3))
+    end
+
+    it 'should not exit if client has a recent case note' do
+      e1 = create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1, entry_date: Date.current - 2.months
+      create :hmis_hud_custom_case_note, data_source: ds1, client: c1, enrollment: e1, user: u1, information_date: Date.current - 10.days
+
+      Hmis::AutoExitJob.perform_now
+
+      expect(Hmis::Hud::Enrollment.exited).not_to include(e1)
+    end
+
+    it 'should ignore Case Note that is missing InformationDate' do
+      e1 = create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1, entry_date: Date.current - 2.months
+      create :hmis_hud_custom_case_note, data_source: ds1, client: c1, enrollment: e1, user: u1, information_date: nil
+
+      Hmis::AutoExitJob.perform_now
+      expect(e1.exit).to have_attributes(auto_exited: be_present, exit_date: e1.entry_date, destination: 30)
     end
 
     it 'should pick the latest exit date for all entities considered as contacts' do

@@ -1,3 +1,9 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 namespace :dashboard do
   desc 'Ingest code for additional non-HMIS Export; params: data_source_id, file=var/import/non_hmis.xls'
   # Example: bin/rake dashboard:import_enrollment_extras data_source_id=1

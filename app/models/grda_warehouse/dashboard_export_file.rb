@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -8,7 +8,13 @@
 
 module GrdaWarehouse
   class DashboardExportFile < GrdaWarehouse::File
-    mount_uploader :file, FileUploader # Tells rails to use this uploader for this model.
+    has_one_attached :dashboard_export_file, dependent: false
+
+    def file_data
+      return dashboard_export_file.download if dashboard_export_file.attached?
+
+      content
+    end
 
   end
 end

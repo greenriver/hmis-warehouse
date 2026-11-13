@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -161,16 +161,16 @@ module BostonReports
       {
         'First Name' => ->(cc, download: false) {
           if download
-            CohortColumns::FirstName.new(cohort_client: cc).value(cc)
+            CohortColumns::FirstName.new(cohort_client: cc, current_user: filter.user).value(cc)
           else
-            CohortColumns::FirstName.new(cohort_client: cc).display_read_only(filter.user)
+            CohortColumns::FirstName.new(cohort_client: cc, current_user: filter.user).display_read_only(filter.user)
           end
         },
         'Last Name' => ->(cc, download: false) {
           if download
-            CohortColumns::LastName.new(cohort_client: cc).value(cc)
+            CohortColumns::LastName.new(cohort_client: cc, current_user: filter.user).value(cc)
           else
-            CohortColumns::LastName.new(cohort_client: cc).display_read_only(filter.user)
+            CohortColumns::LastName.new(cohort_client: cc, current_user: filter.user).display_read_only(filter.user)
           end
         },
         'Race' => ->(cc, download: false) { # rubocop:disable Lint/UnusedBlockArgument

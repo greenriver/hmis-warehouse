@@ -11,5 +11,6 @@
 
 
 - content_for :page_js do
-  :javascript
-    window.ajaxModalInstance = new AjaxModal()
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      window.ajaxModalInstance = new AjaxModal()

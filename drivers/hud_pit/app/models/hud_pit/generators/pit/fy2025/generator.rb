@@ -1,12 +1,12 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 # frozen_string_literal: true
 
-# @see docs/features/hud-pit-report.md
+# @see docs/features/warehouse/hud-pit-report.md
 module  HudPit::Generators::Pit::Fy2025
   class Generator < ::HudReports::GeneratorBase
     cattr_accessor :write_detail_path

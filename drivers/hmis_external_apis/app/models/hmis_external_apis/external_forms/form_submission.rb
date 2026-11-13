@@ -1,11 +1,14 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 # frozen_string_literal: true
 
+# A public submission of an external form, consumed from S3 by ConsumeExternalFormSubmissionsJob.
+# Marking it reviewed runs the form processor, which may create a Client and Enrollment.
+# See docs/features/hmis/hmis-external-forms.md for more details.
 module HmisExternalApis::ExternalForms
   class FormSubmission < ::HmisExternalApis::HmisExternalApisBase
     include ::Hmis::Hud::Concerns::FormSubmittable
@@ -120,7 +123,7 @@ module HmisExternalApis::ExternalForms
         # set default relationship_to_hoh (1 for new household, 99 for existing household)
         relationship_to_hoh ||= project.enrollments.where(household_id: household_id).exists? ? 99 : 1
 
-        # No need to processs thes fields further, so remove them
+        # No need to process these fields further, so remove them
         values_to_process.delete('Enrollment.householdId')
         values_to_process.delete('Enrollment.relationshipToHoH')
 

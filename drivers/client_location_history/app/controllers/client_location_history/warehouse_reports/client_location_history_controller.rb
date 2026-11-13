@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -23,6 +23,7 @@ module ClientLocationHistory::WarehouseReports
         order(:client_id, located_on: :desc).
         distinct_on(:client_id).pluck(:id)
       @contacts = ClientLocationHistory::Location.where(id: ids).preload(:client)
+      current_user.policy_context.preload_client_dependencies(@contacts.map(&:client_id))
       @markers = @contacts.map { |c| c.as_marker(current_user, [:name, :seen_on, :collected_by]) }
       @bounds = ClientLocationHistory::Location.bounds(@contacts)
       @markers = ClientLocationHistory::Location.highlight(@markers)

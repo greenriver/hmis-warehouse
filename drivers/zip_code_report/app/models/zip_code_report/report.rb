@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -47,7 +47,7 @@ module ZipCodeReport
 
     def zip_codes
       @zip_codes ||= enrollments.distinct.
-        joins(project: :project_cocs).
+        joins_project_cocs(coc_codes: filter.coc_codes).
         select(pc_t[:Zip])
     end
 
@@ -58,7 +58,7 @@ module ZipCodeReport
     def zip_code_data
       @zip_code_data ||= {}.tap do |data|
         enrollments.distinct.
-          joins(project: :project_cocs).
+          joins_project_cocs(coc_codes: filter.coc_codes).
           pluck(:client_id, :head_of_household, pc_t[:Zip]).
           each do |client_id, head_of_household, zip|
             data[zip] ||= {}

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -12,8 +12,6 @@ class AccountDownloadsController < ApplicationController
   def index
     limit = 50
     @items = @user.document_exports.diet_select.
-      completed.limit(limit).order(created_at: :desc).to_a
-    @items += @user.health_document_exports.diet_select.
       completed.limit(limit).order(created_at: :desc).to_a
     @items = @items.sort_by { |e| e.created_at.to_i * -1 }
   end

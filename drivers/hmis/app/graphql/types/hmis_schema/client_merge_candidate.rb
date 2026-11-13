@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -15,7 +15,7 @@ module Types
     # object is a Hmis::Hud::Client that is a "destination client"
 
     def clients
-      load_ar_association(object, :source_clients).select do |client|
+      load_ar_client_association(object, association_name: :source_clients).select do |client|
         client.data_source_id == current_user.hmis_data_source_id
       end
     end

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -8,12 +8,14 @@
 
 module WarehouseReports
   class InactiveYouthIntakesController < ApplicationController
+    include WarehouseReportAuthorization
     include AjaxModalRails::Controller
 
     before_action :set_filter
     before_action :set_report
 
     def index
+      current_user.policy_context.preload_client_dependencies(@report.clients.map { |client| client.client.id }) if request.format.html?
     end
 
     private def set_filter

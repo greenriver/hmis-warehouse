@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -53,12 +53,14 @@ module WarehouseReports
         format.html do
           @pagy, @clients = pagy(@clients)
           client_ids = @clients.map(&:id)
+          current_user.policy_context.preload_client_dependencies(client_ids)
           enrollment_ids = @homeless_clients.values_at(*client_ids).flatten.map { |m| m[:id] }
           @homeless_service = service_materialized_source.where(service_history_enrollment_id: enrollment_ids).group(:service_history_enrollment_id).count
           @homeless_service_dates = service_materialized_source.where(service_history_enrollment_id: enrollment_ids).group(:service_history_enrollment_id).maximum(:date)
         end
         format.xlsx do
           client_ids = @clients.map(&:id)
+          current_user.policy_context.preload_client_dependencies(client_ids)
           enrollment_ids = @homeless_clients.values_at(*client_ids).flatten.map { |m| m[:id] }
           @homeless_service = service_materialized_source.where(service_history_enrollment_id: enrollment_ids).group(:service_history_enrollment_id).count
           @homeless_service_dates = service_materialized_source.where(service_history_enrollment_id: enrollment_ids).group(:service_history_enrollment_id).maximum(:date)
@@ -91,10 +93,11 @@ module WarehouseReports
     private def rows_for_export
       rows = []
       @clients.each do |client|
+        pii = GrdaWarehouse::PiiProvider.new(client, policy: current_user.reporting_policy_for_client(client: client, mode: :download))
         @ph_clients[client.id].each do |ph_enrollment|
           @homeless_clients[client.id].each do |enrollment|
             row = [client.id]
-            row += [client.FirstName, client.LastName] if ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
+            row += [pii.first_name, pii.last_name] if ::GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
             row += [
               ph_enrollment[:project_name],
               ph_enrollment[:first_date_in_program],

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -118,8 +118,12 @@ module Mutations
 
     # Find 'owner' record being edited with this form submission.
     def find_record(owner_class:, record_id:, record_lock_version: nil)
-      record = owner_class.viewable_by(current_user).find_by(id: record_id)
-      record = record.owner if record.is_a?(Hmis::Hud::HmisService)
+      scope = owner_class.viewable_by(current_user)
+      record = if owner_class == Hmis::Hud::HmisService
+        scope.find_owner_by_service_id(record_id)
+      else
+        scope.find_by(id: record_id)
+      end
       record.lock_version = record_lock_version if record_lock_version
       raise "User not authorized to view #{owner_class.name}##{record_id} (record not found)" unless record
 

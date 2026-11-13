@@ -1,3 +1,9 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # frozen_string_literal: true
 
 require 'rails_helper'
@@ -8,6 +14,16 @@ RSpec.describe Hmis::Ce::Match::Rule, type: :model do
   let!(:rule) { create(:hmis_ce_eligibility_requirement, owner: project) }
 
   describe 'validations' do
+    it 'rejects expressions longer than EXPRESSION_MAX_LENGTH' do
+      long = build(
+        :hmis_ce_eligibility_requirement,
+        owner: project,
+        expression: 'a' * (described_class::EXPRESSION_MAX_LENGTH + 1),
+      )
+      expect(long).not_to be_valid
+      expect(long.errors.of_kind?(:expression, :too_long)).to be(true)
+    end
+
     it 'prevents the owner from being changed' do
       new_owner = create(:hmis_hud_project)
       rule.owner = new_owner

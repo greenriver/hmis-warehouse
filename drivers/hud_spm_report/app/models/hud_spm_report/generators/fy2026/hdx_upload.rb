@@ -1,10 +1,10 @@
-# frozen_string_literal: true
-
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 module HudSpmReport::Generators::Fy2026
   # HdxUpload - Generates CSV data for HUD's HDX 2.0 upload format
@@ -299,8 +299,6 @@ module HudSpmReport::Generators::Fy2026
     end
 
     def dq(section, table_name, cell_name)
-      return unless RailsDrivers.loaded.include?(:hud_apr)
-
       @attempted ||= Set.new
       @reports ||= {}
 

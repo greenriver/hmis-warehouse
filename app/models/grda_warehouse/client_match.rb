@@ -1,10 +1,10 @@
-# frozen_string_literal: true
-
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 # frozen_string_literal: true
 
@@ -54,7 +54,7 @@ module GrdaWarehouse
       candidate.where(score: [-threshold..0])
     end
 
-    # Occassionally client data changes that updates clients in such
+    # occasionally client data changes that updates clients in such
     # a way that they should be caught by identify duplicates
     # Client.merge_from should cleanup the matches, but sometimes
     # doesn't.  This method loops over the existing un-processed matches

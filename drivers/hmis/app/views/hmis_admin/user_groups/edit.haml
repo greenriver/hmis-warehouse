@@ -6,8 +6,13 @@
     &laquo; Manage User Groups
 
 .o-page
-  .o-page__title
+  .o-page__title.d-flex
     %h1= content_for :title
+    .ml-auto
+      = link_to hmis_admin_user_group_audit_path(@user_group), class: 'btn btn-info mb-3' do
+        %i.fa.fa-history
+        %span.icon-eye
+        History
 = render 'admin/user_groups/description', entity_type: 'HMIS'
 .row
   .col-sm-6

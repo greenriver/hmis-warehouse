@@ -1,8 +1,6 @@
-%h3 Potential Matches
-%p
-  This section allows you to merge a client into
-  = "#{@client.pii_provider(user: current_user).full_name}."
-  If a potential client is the combination of merged clients, you can choose to merge with the client set, or with an individual client.
+%h3 Suggested Matches
+%p.text-muted
+  Clients with similar names, detected automatically. If a suggestion is itself a merged set, you can merge with the whole set or an individual client within it.
 - if @potential_matches.any?
   .row
   .col-sm-12

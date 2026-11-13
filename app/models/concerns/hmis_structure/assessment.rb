@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -18,7 +18,7 @@ module HmisStructure::Assessment
   module ClassMethods
     def hmis_configuration(version: nil)
       case version
-      when '2020', '2022', '2024', '2026'
+      when '2020', '2022', '2024'
         {
           AssessmentID: {
             type: :string,
@@ -55,6 +55,62 @@ module HmisStructure::Assessment
           PrioritizationStatus: {
             type: :integer,
             null: false,
+          },
+          DateCreated: {
+            type: :datetime,
+            null: false,
+          },
+          DateUpdated: {
+            type: :datetime,
+            null: false,
+          },
+          UserID: {
+            type: :string,
+            limit: 32,
+            null: false,
+          },
+          DateDeleted: {
+            type: :datetime,
+          },
+          ExportID: {
+            type: :string,
+            limit: 32,
+            null: false,
+          },
+        }
+      when '2026'
+        {
+          AssessmentID: {
+            type: :string,
+            limit: 32,
+            null: false,
+          },
+          EnrollmentID: {
+            type: :string,
+            limit: 32,
+            null: false,
+          },
+          PersonalID: {
+            type: :string,
+            limit: 32,
+            null: false,
+          },
+          AssessmentDate: {
+            type: :date,
+            null: false,
+          },
+          AssessmentLocation: {
+            type: :string,
+            limit: 250,
+          },
+          AssessmentType: {
+            type: :integer,
+          },
+          AssessmentLevel: {
+            type: :integer,
+          },
+          PrioritizationStatus: {
+            type: :integer,
           },
           DateCreated: {
             type: :datetime,

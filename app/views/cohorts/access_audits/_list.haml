@@ -1,0 +1,17 @@
+.table-responsive
+  %table.table.table-striped
+    %thead
+      %tr
+        %th Date
+        %th Editor
+        %th Path
+        %th Affected User
+        %th Event
+        %th Effect
+        %th Changes
+    %tbody
+      - if list.blank?
+        %tr
+          %td.light{colspan: 7} No access changes recorded.
+      - list.each do |event|
+        = render 'cohorts/access_audits/event_row', event: event

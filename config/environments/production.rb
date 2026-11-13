@@ -1,3 +1,9 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # frozen_string_literal: true
 
 require 'active_support/core_ext/integer/time'
@@ -58,7 +64,8 @@ Rails.application.configure do
   # Skip http-to-https redirect for the default health check endpoint.
   # config.ssl_options = { redirect: { exclude: ->(request) { request.path == "/up" } } }
 
-  # Log to STDOUT by default
+  # Log to STDOUT by default; unbuffered so log lines stay ordered with stderr (e.g. exceptions) in pods
+  $stdout.sync = true
   config.logger = ActiveSupport::Logger.new($stdout).
     tap  { |logger| logger.formatter = ::Logger::Formatter.new }.
     then { |logger| ActiveSupport::TaggedLogging.new(logger) }
@@ -95,7 +102,8 @@ Rails.application.configure do
   config.sandbox_email_mode = false
   config.action_mailer.delivery_method = deliver_method
   config.action_mailer.default_url_options = { host: ENV['FQDN'], protocol: 'https' }
-  if deliver_method == :smtp
+  case deliver_method
+  when :smtp
     config.action_mailer.smtp_settings = {
       address: ENV['SMTP_SERVER'],
       port: 587,
@@ -104,6 +112,10 @@ Rails.application.configure do
       authentication: :login,
       enable_starttls_auto: true,
     }
+  when :ses
+    config.action_mailer.ses_settings = { region: ENV.fetch('AWS_REGION', 'us-east-1') }
+  else
+    raise "Unknown deliver_method: #{deliver_method}"
   end
 
   cache_ssl = ENV.fetch('CACHE_SSL') { 'false' } == 'true'

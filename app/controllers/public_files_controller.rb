@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -10,8 +10,12 @@ class PublicFilesController < ApplicationController
   before_action :load_file
 
   def show
-    filename = @file.file&.file&.filename&.to_s || 'file'
-    send_data(@file.content, type: @file.content_type, filename: filename)
+    filename = if @file.public_file.attached?
+      @file.public_file.filename.to_s
+    else
+      @file.file.presence || 'file'
+    end
+    send_data(@file.file_data, type: @file.content_type, filename: filename)
   end
 
   def load_file

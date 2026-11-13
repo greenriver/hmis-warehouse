@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -21,13 +21,8 @@ module Hmis
     protected
 
     def redacted?(file)
-      # This file is not confidential, therefore not redacted
-      return false unless file.confidential
-      # This user uploaded this file and the user still has access to files they control, therefore not redacted
-      return false if file.user_id == current_hmis_user.id && current_hmis_user.can_manage_own_client_files_for?(file)
-
-      # Can user can see any confidential files in this data source? Redact if not
-      !current_hmis_user.can_view_any_confidential_client_files_for?(file)
+      # HmisFilePolicy checks for confidentiality and ownership
+      !current_hmis_user.policy_for(file, policy_type: :hmis_file).can_view_unredacted?
     end
 
     # returns the direct url to the active storage file with a short expiration

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -13,6 +13,7 @@ require_relative '../../support/hmis_base_setup'
 RSpec.describe Hmis::GraphqlController, type: :request do
   include_context 'hmis base setup'
 
+  let!(:access_control) { create_access_control(hmis_user, ds1, with_permission: [:can_view_clients, :can_edit_clients]) }
   let(:stub_mci) { double }
 
   before(:each) do
@@ -156,6 +157,37 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   it 'should catch and resolve errors' do
     allow(stub_mci).to receive(:clearance).and_raise(StandardError, 'Test error')
     expect_gql_error(post_graphql(input: { input: input }) { mutation })
+  end
+
+  context 'when MCI is not configured' do
+    before do
+      GrdaWarehouse::RemoteCredentials::Oauth.where(slug: HmisExternalApis::AcHmis::Mci::SYSTEM_ID).destroy_all
+    end
+
+    it 'returns a server error and does not call MCI' do
+      expect(HmisExternalApis::AcHmis::Mci).not_to receive(:new)
+
+      mutate(input: { input: input }) do |matches, errors|
+        expect(matches).to be_nil
+        expect(errors).to contain_exactly(
+          include(
+            'type' => 'server_error',
+            'fullMessage' => 'MCI connection is not configured',
+          ),
+        )
+      end
+    end
+  end
+
+  describe 'authorization' do
+    context 'when user cannot create clients' do
+      let!(:access_control) { create_access_control(hmis_user, ds1, with_permission: [:can_view_clients]) }
+
+      it 'returns access denied and does not call MCI' do
+        expect(stub_mci).not_to receive(:clearance)
+        expect_access_denied(post_graphql(input: { input: input }) { mutation })
+      end
+    end
   end
 end
 

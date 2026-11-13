@@ -1,0 +1,4 @@
+- content_for :title, "Unprocessed Enrollments: #{@data_source.name}"
+= link_to "« #{@data_source.name}", data_source_path(@data_source)
+%h1= content_for :title
+= render_paginated_list(scope: @enrollments, item_name: 'enrollment', list_partial: 'list')

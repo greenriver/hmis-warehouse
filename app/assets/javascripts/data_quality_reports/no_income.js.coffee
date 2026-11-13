@@ -57,6 +57,7 @@ class App.DataQualityReports.NoIncome extends App.DataQualityReports.Base
     html
 
   _follow_link: (d, element) =>
+    return unless @support_url
     key = this.chart.categories()[d.index]
     if @support_url.includes('individual') # VersionFour support links are different
       url = @support_url + "&metric=#{key.toLowerCase().replace(/ /g,"_").replace(/-/g, '_')}"

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -7,7 +7,7 @@
 # frozen_string_literal: true
 
 class ReportResultsController < ApplicationController
-  before_action :require_can_view_hud_reports!
+  include WarehouseReportAuthorization
   before_action :set_report
   before_action :set_report_result, only: [:show, :edit, :update, :destroy, :download_support]
   helper_method :sort_column, :sort_direction
@@ -58,7 +58,7 @@ class ReportResultsController < ApplicationController
         end
         file = @result.file.first
         filename = @report.try(:file_name, @result.options) || @report.name
-        send_data file.content, filename: "#{filename}-#{@result.created_at.to_fs(:db)}.zip", type: file.content_type, disposition: 'attachment'
+        send_data file.file_data, filename: "#{filename}-#{@result.created_at.to_fs(:db)}.zip", type: file.content_type, disposition: 'attachment'
       end
     end
   end
@@ -72,7 +72,7 @@ class ReportResultsController < ApplicationController
         end
         file = @result.support_file
         filename = @report.try(:file_name, @result.options) || @report.name
-        send_data file.content, filename: "Support for #{filename}-#{@result.created_at.to_fs(:db)}.zip", type: file.content_type, disposition: 'attachment'
+        send_data file.file_data, filename: "Support for #{filename}-#{@result.created_at.to_fs(:db)}.zip", type: file.content_type, disposition: 'attachment'
       end
     end
   end
@@ -152,7 +152,7 @@ class ReportResultsController < ApplicationController
   end
 
   private def report_result_scope
-    report_result_source.viewable_by(current_user).
+    report_result_source.runs_visible_to(current_user).
       joins(:user).
       where(report_id: params[:report_id].to_i)
   end
@@ -170,8 +170,16 @@ class ReportResultsController < ApplicationController
     ReportResult
   end
 
+  private def report
+    @report ||= Report.active.find(params[:report_id].to_i)
+  end
+
   private def set_report
-    @report = Report.find(params[:report_id].to_i)
+    report
+  end
+
+  def related_report
+    GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: report.report_definition_url)
   end
 
   # Only allow a trusted parameter "white list" through.

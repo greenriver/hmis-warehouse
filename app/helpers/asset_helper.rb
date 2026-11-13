@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -119,7 +119,7 @@ module AssetHelper
   end
 
   # will prepend a http or default_protocol to a protocol relative URL
-  # or when no protcol is set.
+  # or when no protocol is set.
   def self.prepend_protocol(source)
     protocol = 'https'
     if source[0, 2] == '//'

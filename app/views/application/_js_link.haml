@@ -1,13 +1,14 @@
 = content_for :page_js do
-  :javascript
-    $('.js-client').on('click', function(event){
-      if (event.target.nodeName !== 'A' && event.target.nodeName !== 'BUTTON') {
-        var href = $(event.target).closest('.js-client').data('href');
-        if(event.metaKey) {
-          open(href, '_blank');
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      $('.js-client').on('click', function(event){
+        if (event.target.nodeName !== 'A' && event.target.nodeName !== 'BUTTON') {
+          var href = $(event.target).closest('.js-client').data('href');
+          if(event.metaKey) {
+            open(href, '_blank');
+          }
+          else{
+            window.location = href;
+          }
         }
-        else{
-          window.location = href;
-        }
-      }
-    })
+      })

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -54,7 +54,6 @@ module Clients
 
         @file.assign_attributes(
           allowed_params.merge(
-            file: 'See S3', # Temporary until we remove the column
             client_id: @client.id,
             user_id: current_user.id,
             visible_in_window: window_visible?(allowed_params[:visible_in_window]),
@@ -91,23 +90,26 @@ module Clients
 
     def update
       attrs = if can_confirm_housing_release?
-        file_params
+        update_params
       elsif can_manage_client_files? || can_use_separated_consent?
-        file_params.except(:consent_form_confirmed)
+        update_params.except(:consent_form_confirmed)
       else
         not_authorized!
       end
-      @client.invalidate_consent! if attrs[:consent_revoked_at].present? && @client.consent_form_id == @file.id
-      # Remove any view caches for this client since permissions may have changed
-      @client.clear_view_cache
+      # The client revocation rolls back with the file, so a file that fails validation leaves consent unchanged
+      GrdaWarehouseBase.transaction do
+        @client.invalidate_consent!(hr_status: GrdaWarehouse::Config.active_consent_class.revoked_consent_string) if attrs[:consent_revoked_at].present? && @client.consent_form_id == @file.id
+        # Remove any view caches for this client since permissions may have changed
+        @client.clear_view_cache
 
-      if attrs.key?(:consent_form_signed_on)
-        attrs[:effective_date] = attrs[:consent_form_signed_on]
-        attrs[:consent_form_confirmed] = true if GrdaWarehouse::Config.get(:auto_confirm_consent)
+        if attrs.key?(:consent_form_signed_on)
+          attrs[:effective_date] = attrs[:consent_form_signed_on]
+          attrs[:consent_form_confirmed] = true if GrdaWarehouse::Config.get(:auto_confirm_consent)
+        end
+        @file.assign_attributes(attrs)
+        @file.sync_revokation_info(current_user)
+        raise ActiveRecord::Rollback unless @file.save
       end
-      @file.assign_attributes(attrs)
-      @file.sync_revokation_info(current_user)
-      @file.save
     end
 
     def file_params
@@ -128,7 +130,7 @@ module Clients
     end
 
     def pre_populated
-      @coc_map = GrdaWarehouse::PublicFile.find_by(name: 'client/releases/coc_map')&.content
+      @coc_map = GrdaWarehouse::PublicFile.find_by(name: 'client/releases/coc_map')&.file_data
       respond_to do |format|
         format.html do
           render layout: false
@@ -189,14 +191,14 @@ module Clients
     end
 
     def all_file_scope
-      scope = file_source.visible_by?(current_user).
+      scope = file_source.visible_by?(current_user, client: @client).
         where(client_id: @client.id)
       scope = scope.window unless can_manage_client_files?
       scope
     end
 
     def file_scope
-      scope = file_source.visible_by?(current_user).
+      scope = file_source.visible_by?(current_user, client: @client).
         non_consent.
         where(client_id: @client.id)
       scope = scope.window unless can_manage_client_files?
@@ -204,7 +206,7 @@ module Clients
     end
 
     def consent_scope
-      scope = file_source.visible_by?(current_user).
+      scope = file_source.visible_by?(current_user, client: @client).
         consent_forms.
         where(client_id: @client.id).
         order(

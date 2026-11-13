@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -11,6 +11,7 @@ module WarehouseReports
     include ArelHelper
     include HudChronic
     include WarehouseReportAuthorization
+    include WarehouseReports::QueuedReportJobs
 
     before_action :load_filter
     before_action :set_sort, except: [:index, :show, :running]
@@ -21,8 +22,8 @@ module WarehouseReports
         # Comment to prevent rubocop trailing if
         WarehouseReports::RunHudChronicJob.perform_later(filter_params.merge(current_user_id: current_user.id))
       end
-      @jobs = Delayed::Job.jobs_for_class('RunHudChronicJob').order(run_at: :desc)
-      @reports = report_source.ordered.limit(50)
+      @job_reports = queued_reports('RunHudChronicJob')
+      @reports = report_scope.ordered.limit(50)
 
       # Set default filter to prior run
       previous_report = @reports.last
@@ -37,6 +38,7 @@ module WarehouseReports
       @sort_options = sort_options
 
       sort_clients if @clients&.any?
+      current_user.policy_context.preload_client_dependencies(Array(@clients).map { |client| client['id'] })
 
       respond_to do |format|
         format.html
@@ -54,8 +56,8 @@ module WarehouseReports
     end
 
     def running
-      @jobs = Delayed::Job.jobs_for_class('RunHudChronicJob').order(run_at: :desc)
-      @reports = report_source.ordered.limit(50)
+      @job_reports = queued_reports('RunHudChronicJob')
+      @reports = report_scope.ordered.limit(50)
     end
 
     # Present a chart of the counts from the previous three years
@@ -69,7 +71,9 @@ module WarehouseReports
       @counts = @counts.group(:date).
         order(date: :asc).
         count
-      render json: @counts
+      # Explicit ISO keys: the JSON encoder would otherwise use Date#to_s ("Jan 29, 2025"),
+      # which the chart's %Y-%m-%d x-axis format doesn't match
+      render json: @counts.transform_keys(&:iso8601)
     end
 
     def report_source
@@ -82,8 +86,12 @@ module WarehouseReports
 
     private
 
+    def report_scope
+      report_source.visible_to(current_user)
+    end
+
     def set_report
-      @report = report_source.find params[:id].to_i
+      @report = report_scope.find params[:id].to_i
     end
 
     def sort_clients

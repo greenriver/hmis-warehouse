@@ -102,10 +102,12 @@
     #d3-tooltip
     = render 'layouts/ajax_modal_frame'
     = render 'document_exports/modal'
+    %script{ nonce: content_security_policy_nonce }
+      :plain
+        window.CSP_NONCE = #{content_security_policy_nonce.to_json};
     = javascript_include_tag "cable_ready.umd.js", "data-turbo-track": "reload"
     = javascript_include_tag 'application'
     = javascript_include_tag 'application_esbuild'
-    = javascript_include_tag('https://cdnjs.cloudflare.com/ajax/libs/chance/1.0.4/chance.min.js') if Rails.env.development?
     - if @per_page_js.present?
       - @per_page_js.each do |js_file|
         = javascript_include_tag js_file
@@ -114,5 +116,6 @@
     = render "inactive_session_modal"
     = svg 'symbol-defs'
 
-    :javascript
-      window.sentryConfig = #{sentry_frontend_config.to_json};
+    %script{ nonce: content_security_policy_nonce }
+      :plain
+        window.sentryConfig = #{sentry_frontend_config.to_json};

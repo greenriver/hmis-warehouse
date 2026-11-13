@@ -21,19 +21,20 @@
     = render 'report_downloads/report_download', export: @pdf_export, excel_download_path: download_performance_dashboards_overview_index_path(filter_params)
 
 - content_for :page_js do
-  :javascript
-    'use strict';
-    $(function() {
-      var $select = $('#j-disaggregation');
-      $select.change(function() {
-        var breakdown = $select.val();
-        if (breakdown) {
-          $select.prop('disabled', true)
-          $('#j-disaggregation-spinner').removeClass('d-none').addClass('d-flex');
-          var url = new URL(window.location.href);
-          url.searchParams.set("breakdown", breakdown);
-          window.location = url.href;
-          history.pushState({}, breakdown, url.href);
-        }
-      });
-    })
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      'use strict';
+      $(function() {
+        var $select = $('#j-disaggregation');
+        $select.change(function() {
+          var breakdown = $select.val();
+          if (breakdown) {
+            $select.prop('disabled', true)
+            $('#j-disaggregation-spinner').removeClass('d-none').addClass('d-flex');
+            var url = new URL(window.location.href);
+            url.searchParams.set("breakdown", breakdown);
+            window.location = url.href;
+            history.pushState({}, breakdown, url.href);
+          }
+        });
+      })

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -171,7 +171,7 @@ module
 
                 enrollments = rows.group_by { |e| [e.shift, e.shift, e.shift] }
                 enrollments.each do |(enrollment_id, times_homeless, disabling_condition), disabilities|
-                  # Exclude 8, 9, & 99 responses. Assume this enrollment consitutes 1 episode
+                  # Exclude 8, 9, & 99 responses. Assume this enrollment constitutes 1 episode
                   next if times_homeless.nil? || times_homeless > 4
 
                   counted_disabilities = Set.new

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -91,9 +91,10 @@ module HmisCsvTwentyTwentyTwo::Exporter
           },
         )
         GrdaWarehouse::Hud::Export.transaction(isolation: :repeatable_read) do
+          options[:export] = @export
+          options[:client_scope] = client_scope
           exportable_files.each do |destination_class, opts|
             opts[:export] = @export
-            options[:export] = @export
             tmp_table_prefix = opts[:hmis_class].table_name.downcase
             dest_config = {
               hmis_class: opts[:hmis_class],

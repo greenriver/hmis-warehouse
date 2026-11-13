@@ -1,3 +1,9 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # frozen_string_literal: true
 
 require 'rails_helper'
@@ -234,6 +240,35 @@ RSpec.describe GrdaWarehouse::Cohort, type: :model do
         )
       end
 
+      it 'adds clients from a confidential project in the group' do
+        project.update!(confidential: true)
+        system_user = User.setup_system_user
+        expect(system_user.can_report_on_confidential_projects?).to be false
+
+        cohort.maintain
+
+        expect(cohort.clients.pluck(:id)).to contain_exactly(
+          @client.destination_client.id,
+          @client_hoh.destination_client.id,
+          @client_veteran.destination_client.id,
+        )
+      end
+
+      it 'adds clients when the system user has no project access yet' do
+        # e.g. a new data source before the delayed system group maintenance has run
+        GrdaWarehouse::GroupViewableEntity.delete_all
+        system_user = User.setup_system_user
+        expect(GrdaWarehouse::Hud::Project.viewable_by(system_user, permission: :can_view_assigned_reports)).to be_empty
+
+        cohort.maintain
+
+        expect(cohort.clients.pluck(:id)).to contain_exactly(
+          @client.destination_client.id,
+          @client_hoh.destination_client.id,
+          @client_veteran.destination_client.id,
+        )
+      end
+
       it 'filters by sub-population' do
         expect do
           cohort.update!(automation_sub_population: 'veterans')
@@ -241,6 +276,13 @@ RSpec.describe GrdaWarehouse::Cohort, type: :model do
         end.to change { cohort.reload.automation_sub_population }.from(nil).to('veterans')
 
         expect(cohort.clients.pluck(:id)).to contain_exactly(@client_veteran.destination_client.id)
+      end
+
+      it 'raises and adds no clients when the stored sub-population is not registered' do
+        cohort.update_column(:automation_sub_population, 'children')
+
+        expect { cohort.maintain }.to raise_error(AvailableSubPopulations::UnknownSubPopulation)
+        expect(cohort.clients.pluck(:id)).to be_empty
       end
 
       it 'filters by hoh_only' do
@@ -304,6 +346,30 @@ RSpec.describe GrdaWarehouse::Cohort, type: :model do
         expect do
           cohort.maintain
         end.to change { cohort.reload.automation_updated_at }.from(nil)
+      end
+    end
+
+    describe '.maintain_auto_maintained!' do
+      let!(:stale_cohort) do
+        create(:cohort, project_group: project_group).tap do |c|
+          c.update_column(:automation_sub_population, 'children')
+        end
+      end
+      let!(:valid_cohort) { create(:cohort, project_group: project_group) }
+
+      it 'maintains the remaining cohorts after one with an unregistered sub-population' do
+        allow(Sentry).to receive(:capture_exception_with_info)
+
+        described_class.maintain_auto_maintained!
+
+        expect(valid_cohort.clients.pluck(:id)).to contain_exactly(
+          @client.destination_client.id,
+          @client_hoh.destination_client.id,
+          @client_veteran.destination_client.id,
+        )
+        expect(stale_cohort.clients.pluck(:id)).to be_empty
+        expect(Sentry).to have_received(:capture_exception_with_info).
+          with(instance_of(AvailableSubPopulations::UnknownSubPopulation), anything, { cohort_id: stale_cohort.id })
       end
     end
 

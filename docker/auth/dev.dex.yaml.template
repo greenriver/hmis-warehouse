@@ -1,0 +1,113 @@
+# https://github.com/oauth2-proxy/oauth2-proxy/blob/master/contrib/local-environment/dex.yaml
+# This configuration is intended to be used with the docker compose testing
+# environment.
+# This should configure Dex to run on port 4443 and provides a static login
+issuer: https://dex.dev.test/dex
+storage:
+  type: postgres
+  config:
+    host: db
+    port: 5432
+    database: dex
+    user: postgres
+    password: postgres
+    ssl:
+      mode: disable
+web:
+  http: 0.0.0.0:4443
+  headers:
+    X-Frame-Options: DENY
+    X-Content-Type-Options: nosniff
+    X-XSS-Protection: 1; mode=block
+    Content-Security-Policy: default-src 'self'
+    Strict-Transport-Security: max-age=31536000; includeSubDomains
+oauth2:
+  grantTypes:
+    - "authorization_code"
+    - "refresh_token"
+  responseTypes: ["code"]
+  skipApprovalScreen: true
+  alwaysShowLoginScreen: false
+# Mirrors the openpath staging dex expiry. oauth2-proxy keeps its session after a failed
+# refresh until the ID token expires, so idTokens must not exceed the realm's
+# ssoSessionIdleTimeout (30m) and must exceed oauth2-proxy's cookie_refresh (5m).
+expiry:
+  deviceRequests: "5m"
+  signingKeys: "4h"
+  # User needs to finish logging in within this length of time
+  authRequests: "2h"
+  idTokens: "30m"
+  refreshTokens:
+    # Grace period for double use during refreshing
+    reuseInterval: "30s"
+    # How long a session can be idle before it expires (90 days)
+    validIfNotUsedFor: "2160h"
+    # 165 days; must exceed oauth2-proxy's cookie_expire
+    absoluteLifetime: "3960h"
+connectors:
+  - type: oidc
+    id: keycloak
+    name: Open Path Account
+    config:
+      # Reach Keycloak through Traefik (https, port 443) — NOT the internal :8080.
+      # Dex requires its configured issuer to match what Keycloak advertises and
+      # reuses these absolute discovery URLs for the browser redirect, so this must
+      # be the same externally reachable URL the browser uses. The dex service routes
+      # op-keycloak.dev.test to Traefik via extra_hosts:host-gateway.
+      # (Requires the shared Traefik dev proxy to be running — see keycloak-idp.md.)
+      issuer: https://op-keycloak.dev.test/realms/openpath
+      clientID: ${KEYCLOAK_IDP_CLIENT_ID}
+      clientSecret: ${KEYCLOAK_IDP_CLIENT_SECRET}
+      redirectURI: https://dex.dev.test/dex/callback
+      scopes:
+        - openid
+        - email
+        - profile
+      getUserInfo: true
+      insecureSkipEmailVerified: true
+      # Traefik serves a self-signed dev cert
+      insecureSkipVerify: true
+staticClients:
+  - id: hmis-warehouse
+    name: "HMIS Warehouse"
+    redirectURIs:
+      - "https://hmis-warehouse.dev.test/oauth2/callback"
+    secret: "dev-hmis-warehouse-secret"
+    trustedPeers:
+      - hmis-frontend
+    public: true
+  - id: hmis-frontend
+    name: "HMIS Frontend"
+    redirectURIs:
+      - "https://hmis.dev.test/oauth2/callback"
+      - "https://hmis-backend.dev.test/oauth2/callback"
+    secret: "dev-hmis-frontend-secret"
+    trustedPeers:
+      - hmis-warehouse
+    public: true
+  - id: superset
+    name: "Superset Analytics"
+    redirectURIs:
+      - "https://superset.dev.test/oauth2/callback"
+    secret: "dev-superset-secret"
+    trustedPeers: []
+    public: true
+enablePasswordDB: true
+staticPasswords:
+  - email: "admin@example.com"
+    # bcrypt hash of the string "password"
+    hash: "$2a$10$2b2cU8CPhOTaGrs1HRQuAueS7JTT5ZHsHSzYiFPm1leZck7Mc8T4W"
+    username: "admin example"
+    userID: "08a8684b-db88-4b73-90a9-3cd1661f5465"
+    claims:
+      given_name: "Sample"
+      family_name: "Admin"
+  - email: "user@example.com"
+    # bcrypt hash of the string "password"
+    # bash $(echo password | htpasswd -BinC 10 admin | cut -d: -f2)
+    hash: "$2a$10$2b2cU8CPhOTaGrs1HRQuAueS7JTT5ZHsHSzYiFPm1leZck7Mc8T4W"
+    username: "user example"
+    userID: "08a8684b-db88-4b73-90a9-3cd1661f5466"
+    claims:
+      given_name: "User"
+      family_name: "Example"

@@ -1,8 +1,9 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
 #
 # frozen_string_literal: true
 
@@ -38,11 +39,6 @@ module RackAttackRequestHelpers
     path.include?('rollup') || path.include?('cohort') || path.include?('core_demographics')
   end
 
-  # Seems to be client history path `pdf_client_history`. Unsure if this needs to be a relative path
-  def history_pdf_path?
-    path.include?('history/pdf')
-  end
-
   # returns the x-forward-for ip if we think the sending ip is trusted. Depends the RemoteIp rails middleware installed higher in the stack
   memoize def request_ip
     result = env['action_dispatch.remote_ip']&.to_s
@@ -58,6 +54,12 @@ module RackAttackRequestHelpers
   def authenticated?
     # If we explicitly added a parameter to avoid updating last_request_at, honor it
     return false if env['QUERY_STRING'].include?('skip_trackable=true')
+
+    # Under JWT auth, validate the forwarded access token directly (no Warden session).
+    if AuthMethod.jwt?
+      token = env['HTTP_X_FORWARDED_ACCESS_TOKEN']
+      return Idp::JwtHelper.authenticated?(token)
+    end
 
     rack_session = env['rack.session']
     return false unless rack_session
@@ -122,27 +124,13 @@ Rack::Attack.tap do |config|
     end
   end
 
-  # Goal: Prevent excessive requests to generate PDFs since that endpoint does not require authentication.
-  config.throttle(
-    'per-ip limit on unauthenticated requests for history pdf',
-    limit: 25,
-    period: 10.seconds,
-  ) do |request|
-    if request.tracking_enabled? && request.anonymous? && request.history_pdf_path?
-      request.request_ip
-    end
-  end
-
   # Goal: limit burst requests from unauthenticated clients, such as spiders
   config.throttle(
     'General per-ip limit on unauthenticated requests',
     limit: 10,
     period: 1.second,
   ) do |request|
-    if request.tracking_enabled? && request.anonymous?
-      # there's a more restrictive throttle on the pdf
-      request.request_ip unless request.history_pdf_path?
-    end
+    request.request_ip if request.tracking_enabled? && request.anonymous?
   end
 
   # Goal: prevent scripts run through authenticated user accounts from harvesting data or excessive use of the site, with an allowance for known poor behavior for cohorts, roll-ups, and other pages that load more than one request per page.
@@ -231,6 +219,12 @@ ActiveSupport::Notifications.subscribe(/rack_attack/) do |_name, start, _finish,
   }
   # ... the attach match
   data.merge! request.env.slice('rack.attack.match_type', 'rack.attack.matched', 'rack.attack.match_discriminator', 'rack.attack.match_data')
+  # ... the user
+  data[:user_id] = if AuthMethod.jwt?
+    Idp::JwtHelper.user_id_from_token(request.env['HTTP_X_FORWARDED_ACCESS_TOKEN'])
+  else
+    request.env['warden'].user&.id
+  end
   # ... the request
   data.merge!(
     server_protocol: request.env['SERVER_PROTOCOL'],
@@ -240,7 +234,6 @@ ActiveSupport::Notifications.subscribe(/rack_attack/) do |_name, start, _finish,
     amzn_trace_id: request.env['HTTP_X_AMZN_TRACE_ID'],
     request_start: request.env['HTTP_X_REQUEST_START'].try(:gsub, /\At=/, '').presence || start,
     remote_ip: request.env['action_dispatch.remote_ip']&.to_s,
-    user_id: request.env['warden'].user&.id,
     session_id: request.env['rack.session'].id,
     user_agent: request.env['HTTP_USER_AGENT'],
     accept: request.env['HTTP_ACCEPT'],

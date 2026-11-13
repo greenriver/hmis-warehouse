@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -15,6 +15,7 @@ module WarehouseReports
       @new = anomaly_scope.newly_minted.order(created_at: :asc).preload(:client, :user)
       @unresolved = anomaly_scope.unresolved.order(created_at: :asc).preload(:client, :user)
       @resolved = anomaly_scope.resolved.order(created_at: :asc).preload(:client, :user)
+      current_user.policy_context.preload_client_dependencies((@new + @unresolved + @resolved).map(&:client_id))
     end
 
     def anomaly_source

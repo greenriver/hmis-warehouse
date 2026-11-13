@@ -24,9 +24,7 @@
         %p
           %span Number of reports found:
           %span.count
-        %p.hide{data: {"#{stimulus_controller}-target" => "searchAll"}}
-          %a{href: '#', data: {action: "click->#{stimulus_controller}#changeCategory", category: 'all'}} Search all reports
-      %input.form-control{placeholder: 'Filter visible reports', data: {action: "input->#{stimulus_controller}#search"}}
+      %input.form-control{placeholder: 'Search all reports', data: {action: "input->#{stimulus_controller}#search", "#{stimulus_controller}-target" => "input"}}
 
   .c-list-search__container
     %nav.c-list-search__filtration-nav
@@ -43,7 +41,7 @@
     .mb-4.c-list-search__list#list-search__list{data: {"#{stimulus_controller}-target" => "results"}}
       - definitions_with_recents.each_with_index do |(group_name, reports), index|
         - dashed_group_name = group_name.parameterize.dasherize
-        .c-list-search__list-group{class: ["c-list-search__list-group--#{group_name.parameterize}"], data: {category: group_name, "#{stimulus_controller}-target" => "categoryContent"}}
+        .c-list-search__list-group{class: ["c-list-search__list-group--#{group_name.parameterize}"], data: {category: group_name, search_excluded: [recents_name, favorites_name].include?(group_name), "#{stimulus_controller}-target" => "categoryContent"}}
           .c-list-search__list-group-header
             %h3.c-list-search__group-title #{group_name}
             - if reports.any?{ |r| !r.limitable?}

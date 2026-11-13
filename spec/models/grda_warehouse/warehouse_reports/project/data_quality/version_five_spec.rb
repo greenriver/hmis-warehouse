@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -319,6 +319,84 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionFiv
           expect(source_with_service_count).to eq 25
           expect(with_service_count).to eq 25
           expect(source_with_service_count).to eq with_service_count
+        end
+      end
+    end
+
+    # The census is stored in jsonb keyed by date. These guard the key format between the writer
+    # (Reporting::DataQualityReports::Project) and the chart reader (VersionFive::Display).
+    describe 'nightly census' do
+      let(:census_client) { clients_sex_female.first }
+      let(:service_dates) { [Date.new(2016, 3, 1), Date.new(2016, 3, 2)] }
+      let!(:census_service_history) do
+        service_history_enrollment = create(
+          :she_entry,
+          client: census_client,
+          project: project,
+          project_type: 1,
+          first_date_in_program: range.start,
+          last_date_in_program: nil,
+        )
+        service_dates.each do |date|
+          create(
+            :service_history_service,
+            service_history_enrollment: service_history_enrollment,
+            client: census_client,
+            date: date,
+            record_type: 'service',
+          )
+        end
+      end
+      let!(:report) do
+        create(
+          :data_quality_report_version_five,
+          project: project,
+          start: range.start,
+          end: range.end,
+        ).tap(&:run!)
+      end
+      # Reload so the census round-trips through the jsonb column
+      let(:reloaded_report) { described_class.find(report.id) }
+      let(:report_project) { reloaded_report.report_projects.first }
+
+      def bed_census_by_date(report)
+        census_data = report.bed_census_data
+        counts = census_data[:data][project.ProjectName]
+        census_data[:labels].zip(counts).to_h
+      end
+
+      it 'stores ISO date keys' do
+        stored_keys = report_project.nightly_client_census.keys
+
+        aggregate_failures 'checking keys' do
+          expect(stored_keys.count).to eq range.range.count
+          expect(stored_keys).to all(match(/\A\d{4}-\d{2}-\d{2}\z/))
+        end
+      end
+
+      it 'charts the stored counts by date' do
+        counts_by_date = bed_census_by_date(reloaded_report)
+
+        aggregate_failures 'checking counts' do
+          expect(counts_by_date[Date.new(2016, 3, 1)]).to eq 1
+          expect(counts_by_date[Date.new(2016, 3, 2)]).to eq 1
+          expect(counts_by_date[Date.new(2016, 3, 3)]).to eq 0
+          expect(counts_by_date.values.sum).to eq 2
+        end
+      end
+
+      it 'charts reports stored with legacy Date#to_s keys' do
+        legacy_census = report_project.nightly_client_census.transform_keys do |key|
+          Date.iso8601(key).to_s
+        end
+        report_project.update_column(:nightly_client_census, legacy_census)
+
+        counts_by_date = bed_census_by_date(described_class.find(report.id))
+
+        aggregate_failures 'checking counts' do
+          expect(legacy_census.keys).to include('Mar  1, 2016')
+          expect(counts_by_date[Date.new(2016, 3, 1)]).to eq 1
+          expect(counts_by_date.values.sum).to eq 2
         end
       end
     end

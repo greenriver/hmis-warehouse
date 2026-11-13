@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -17,4 +17,6 @@ class Hmis::Hud::HmisParticipation < Hmis::Hud::Base
   belongs_to :project, **hmis_relation(:ProjectID, 'Project')
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
   belongs_to :user, **hmis_relation(:UserID, 'User'), optional: true, inverse_of: :projects
+
+  validates_with Hmis::Hud::Validators::HmisParticipationValidator
 end

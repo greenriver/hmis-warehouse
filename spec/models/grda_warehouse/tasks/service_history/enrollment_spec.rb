@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -210,6 +210,27 @@ RSpec.describe GrdaWarehouse::Tasks::ServiceHistory::Enrollment, type: :model do
       end
     end
 
+    describe '#structural_issue?' do
+      it 'returns false when destination_client, project, and data_source are all present' do
+        expect(enrollment.structural_issue?).to be false
+      end
+
+      it 'returns true when destination_client is missing' do
+        allow(enrollment).to receive(:destination_client).and_return(nil)
+        expect(enrollment.structural_issue?).to be true
+      end
+
+      it 'returns true when project is missing' do
+        allow(enrollment).to receive(:project).and_return(nil)
+        expect(enrollment.structural_issue?).to be true
+      end
+
+      it 'returns true when data_source is missing' do
+        allow(enrollment).to receive(:data_source).and_return(nil)
+        expect(enrollment.structural_issue?).to be true
+      end
+    end
+
     context 'when enrollment needs full rebuild' do
       let!(:exit) { create :hud_exit, data_source_id: data_source.id, EnrollmentID: enrollment.EnrollmentID, PersonalID: client.PersonalID, ExitDate: '2023-01-03' }
 
@@ -279,6 +300,29 @@ RSpec.describe GrdaWarehouse::Tasks::ServiceHistory::Enrollment, type: :model do
 
         expect(service_dates.first).to eq('2023-01-01'.to_date)
         expect(service_dates.last).to eq Date.current
+      end
+    end
+
+    context 'with a PH enrollment and a move-in date' do
+      let(:project) { create :grda_warehouse_hud_project, data_source: data_source, organization: organization, project_type: 3 } # PSH
+      let!(:exit) { create :hud_exit, data_source_id: data_source.id, EnrollmentID: enrollment.EnrollmentID, PersonalID: client.PersonalID, ExitDate: '2023-01-04' }
+
+      before { enrollment.update_column(:MoveInDate, '2023-01-02') }
+
+      it 'marks the move-in date and later days not homeless' do
+        enrollment.rebuild_service_history!
+
+        days = GrdaWarehouse::ServiceHistoryService.joins(:service_history_enrollment).where(
+          service_history_enrollments: { enrollment_group_id: enrollment.EnrollmentID },
+        ).order(:date).pluck(:date, :homeless, :literally_homeless)
+
+        expect(days).to eq(
+          [
+            ['2023-01-01'.to_date, nil, nil],
+            ['2023-01-02'.to_date, false, false],
+            ['2023-01-03'.to_date, false, false],
+          ],
+        )
       end
     end
   end

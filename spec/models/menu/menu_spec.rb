@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -14,7 +14,6 @@ RSpec.describe Menu::Menu, type: :model do
   let(:menu) { described_class.new(user: user, context: context) }
 
   before do
-    allow(RailsDrivers).to receive(:loaded).and_return([:superset])
     allow(Superset).to receive(:available?).and_return(true)
   end
 
@@ -133,6 +132,109 @@ RSpec.describe Menu::Menu, type: :model do
             expect(visibility_check.call(user)).to be_truthy
           end
         end
+      end
+    end
+  end
+
+  describe '#hmis_menu' do
+    let(:user) { create(:acl_user) }
+    let!(:hmis_ds) { create(:source_data_source, hmis: 'hmis.example.test', authoritative: true) }
+
+    it 'points at the HMIS host', :devise_only do
+      expect(menu.hmis_menu.first.path).to eq('https://hmis.example.test/')
+    end
+
+    it "routes through HMIS's own oauth2-proxy sign-in endpoint with the user's connector_id, so Dex skips its connector picker", :jwt_only do
+      user.update_column(:last_connector_id, 'keycloak')
+
+      expect(menu.hmis_menu.first.path).to eq('https://hmis.example.test/oauth2/sign_in?connector_id=keycloak&rd=%2F')
+    end
+  end
+
+  describe '#warehouse_configuration_menu' do
+    let(:user) { create(:user) }
+    let(:titles) { Array(menu.warehouse_configuration_menu.children).map(&:title) }
+
+    before { user.legacy_roles << role }
+
+    context 'with only can_edit_translations' do
+      let(:role) { create(:role, can_edit_translations: true) }
+
+      it 'shows Translations' do
+        expect(titles).to include('Translations')
+      end
+    end
+
+    context 'with only can_manage_config' do
+      let(:role) { create(:role, can_manage_config: true) }
+
+      it 'shows Site Config but not Translations' do
+        expect(titles).to include('Site Config')
+        expect(titles).not_to include('Translations')
+      end
+    end
+  end
+
+  describe '#site_menu' do
+    let(:user) { create(:acl_user) }
+    let(:context) do
+      double(
+        'context',
+        access_captured_for_setup?: false,
+        hmis_admin_visible?: false,
+        help_for_path: nil,
+        controller_path: 'clients',
+        action_name: 'index',
+      )
+    end
+
+    # Building the tree alone already invokes `visible` for every child item
+    # (Item#add_child checks Item#show?, which calls visible.call(user) before
+    # adding), but a root-level item pushed straight into the array returned by
+    # site_menu -- rather than passed through add_child -- never has its own
+    # `visible` invoked just by building the tree. That gap is exactly what let
+    # a broken lazy `visible` proc referencing removed health methods slip
+    # through, so recurse and call every item's `visible` explicitly.
+    def call_every_visible(items, user)
+      items.each do |item|
+        item.visible&.call(user)
+        call_every_visible(item.children.to_a, user) if item.children?
+      end
+    end
+
+    def collect_titles(items)
+      items.flat_map { |item| [item.title] + collect_titles(item.children.to_a) }
+    end
+
+    it 'builds the menu tree for a normal ACL user and invokes every visible lambda without raising' do
+      tree = menu.site_menu
+
+      expect { call_every_visible(tree, user) }.not_to raise_error
+    end
+
+    it 'does not include a Care Hub menu item anywhere in the tree' do
+      tree = menu.site_menu
+
+      expect(collect_titles(tree)).not_to include('Care Hub')
+    end
+
+    describe 'HUD Reports item' do
+      let(:hud_item) { menu.reports_menu.children.to_a.find { |item| item.id == 'hud-reports' } }
+
+      it 'points at the HUD Reports section of the warehouse reports page for a user granted a HUD report' do
+        grant_hud_report(user, 'hud_reports/aprs')
+
+        expect(hud_item.path).to eq('/warehouse_reports#hud-reports')
+        expect(collect_titles([menu.reports_menu])).to include('HUD Reports', 'Warehouse Reports')
+      end
+
+      it 'is absent for a user whose reports include no HUD report' do
+        collection = create(:collection, collection_type: 'Reports')
+        collection.set_viewables(reports: [analytics_report.id])
+        setup_access_control(user, create(:role, can_view_assigned_reports: true), collection)
+
+        expect(hud_item).to be_nil
+        expect(collect_titles([menu.reports_menu])).to include('Warehouse Reports')
       end
     end
   end

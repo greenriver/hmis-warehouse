@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -141,7 +141,7 @@ module Hmis
       log('Generating Intake/Exit Assessments...')
       Hmis::MigrateAssessmentsJob.perform_now(
         data_source_id: @data_source.id,
-        enrollments: enrollments,
+        enrollment_ids: enrollments.pluck(:id),
         generate_empty_intakes: true,
       )
 

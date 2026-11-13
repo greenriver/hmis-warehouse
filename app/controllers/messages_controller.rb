@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -36,8 +36,7 @@ class MessagesController < ApplicationController
   end
 
   def poll
-    ids = params[:ids] || []
-    query = messages.unseen.where.not(id: ids)
+    query = messages.unseen
     @unseen_count = query.count
     @messages = query.limit(10)
     paths_and_subjects = @messages.pluck(:id, :subject).reverse.map do |id, subj|

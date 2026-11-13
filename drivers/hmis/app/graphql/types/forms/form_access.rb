@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -13,21 +13,11 @@ module Types
 
       included do
         access_field do
-          field :can_manage_form, GraphQL::Types::Boolean, null: false
-          field :can_duplicate_form, GraphQL::Types::Boolean, null: false
-          field :can_publish_form, GraphQL::Types::Boolean, null: false
+          define_method(:policy) { @policy ||= policy_for(object, policy_type: :form_definition) }
 
-          define_method(:can_manage_form) do
-            policy_for(object, policy_type: :form_definition).can_manage_form?
-          end
-
-          define_method(:can_duplicate_form) do
-            policy_for(object, policy_type: :form_definition).can_duplicate?
-          end
-
-          define_method(:can_publish_form) do
-            policy_for(object, policy_type: :form_definition).can_publish?
-          end
+          bool_field(:can_manage_form) { policy.can_manage_form? }
+          bool_field(:can_duplicate_form) { policy.can_duplicate? }
+          bool_field(:can_publish_form) { policy.can_publish? }
         end
       end
     end

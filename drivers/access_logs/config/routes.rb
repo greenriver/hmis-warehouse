@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -13,7 +13,14 @@ OpenPath::Application.routes.draw do
   end
   namespace :access_logs do
     namespace :warehouse_reports do
-      resources :reports, only: [:index, :create]
+      resources :reports, only: [:index, :create] do
+        collection do
+          get :report_usage
+          post :render_report_usage
+          get :user_summary
+          post :render_user_summary
+        end
+      end
     end
   end
 end

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -27,6 +27,7 @@ module WarehouseReports
         end
         cohorts
       end
+      current_user.policy_context.preload_client_dependencies(@unconfirmed.pluck(:id))
       @unconfirmed = @unconfirmed.order(LastName: :asc, FirstName: :asc)
     end
 

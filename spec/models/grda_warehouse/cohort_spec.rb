@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -35,6 +35,22 @@ RSpec.describe GrdaWarehouse::Cohort, type: :model do
     setup_access_control(user, no_permission_role, cohort_collection)
     setup_access_control(admin, cohort_manager, cohort_collection)
     setup_access_control(admin, cohort_editor, cohort_collection)
+  end
+
+  describe 'viewable_by followed by a merge on cohort id' do
+    before do
+      setup_access_control(viewer, cohort_viewer, cohort_collection)
+    end
+
+    it 'does not widen to an invisible cohort' do
+      scope = described_class.viewable_by(viewer).merge(described_class.where(id: cohort_2.id))
+      expect(scope.pluck(:id)).to be_empty
+    end
+
+    it 'intersects with the merged ids' do
+      scope = described_class.viewable_by(viewer).merge(described_class.where(id: [cohort.id, cohort_2.id]))
+      expect(scope.pluck(:id)).to eq [cohort.id]
+    end
   end
 
   describe 'when a user with no roles accesses a cohort column' do
@@ -144,6 +160,143 @@ RSpec.describe GrdaWarehouse::Cohort, type: :model do
     end
   end
 
+  describe '.viewable_by with permission:' do
+    let!(:acl_user) { create :acl_user }
+    let!(:target_cohort) { create :cohort }
+    let!(:name_role) { create(:cohort_client_viewer, can_view_client_name: true) }
+    let!(:no_name_role) { create(:cohort_client_viewer) }
+    let!(:name_collection) { create :collection, collection_type: 'Cohorts' }
+    let!(:no_name_collection) { create :collection, collection_type: 'Cohorts' }
+
+    context "when the granting collection's role has can_view_client_name" do
+      before do
+        name_collection.set_viewables({ cohorts: [target_cohort.id] })
+        setup_access_control(acl_user, name_role, name_collection)
+      end
+
+      it 'includes the cohort' do
+        expect(GrdaWarehouse::Cohort.viewable_by(acl_user, permission: :can_view_client_name).pluck(:id)).to contain_exactly(target_cohort.id)
+      end
+    end
+
+    context "when the granting collection's role lacks can_view_client_name" do
+      before do
+        no_name_collection.set_viewables({ cohorts: [target_cohort.id] })
+        setup_access_control(acl_user, no_name_role, no_name_collection)
+      end
+
+      it 'excludes the cohort even though the user can view_cohorts' do
+        expect(GrdaWarehouse::Cohort.viewable_by(acl_user).pluck(:id)).to contain_exactly(target_cohort.id)
+        expect(GrdaWarehouse::Cohort.viewable_by(acl_user, permission: :can_view_client_name).pluck(:id)).to be_empty
+      end
+    end
+
+    context 'when the user reaches the same cohort via two collections, only one granting can_view_client_name' do
+      before do
+        no_name_collection.set_viewables({ cohorts: [target_cohort.id] })
+        setup_access_control(acl_user, no_name_role, no_name_collection)
+        name_collection.set_viewables({ cohorts: [target_cohort.id] })
+        setup_access_control(acl_user, name_role, name_collection)
+      end
+
+      it 'includes the cohort because at least one path grants it' do
+        expect(GrdaWarehouse::Cohort.viewable_by(acl_user, permission: :can_view_client_name).pluck(:id)).to contain_exactly(target_cohort.id)
+      end
+    end
+
+    context 'when passed an array of permissions' do
+      let!(:other_permission_role) { create(:cohort_client_viewer, can_view_cohorts: false, can_manage_cohort_data: true) }
+      let!(:other_permission_collection) { create :collection, collection_type: 'Cohorts' }
+
+      before do
+        other_permission_collection.set_viewables({ cohorts: [target_cohort.id] })
+        setup_access_control(acl_user, other_permission_role, other_permission_collection)
+      end
+
+      it 'includes the cohort when the granting role matches any permission in the array' do
+        expect(GrdaWarehouse::Cohort.viewable_by(acl_user, permission: [:can_view_cohorts, :can_manage_cohort_data]).pluck(:id)).to contain_exactly(target_cohort.id)
+      end
+
+      it 'excludes the cohort when checking only a permission the granting role lacks' do
+        expect(GrdaWarehouse::Cohort.viewable_by(acl_user, permission: :can_view_cohorts).pluck(:id)).to be_empty
+      end
+
+      it 'includes the cohort by default because an edit permission alone grants visibility' do
+        expect(GrdaWarehouse::Cohort.viewable_by(acl_user).pluck(:id)).to contain_exactly(target_cohort.id)
+      end
+    end
+  end
+
+  describe '#user_can_edit_cohort_clients for an ACL user' do
+    let!(:acl_user) { create :acl_user }
+    let!(:view_only_cohort) { create :cohort }
+    let!(:editable_cohort) { create :cohort }
+    let!(:view_collection) { create :collection, collection_type: 'Cohorts' }
+    let!(:edit_collection) { create :collection, collection_type: 'Cohorts' }
+
+    before do
+      view_collection.set_viewables({ cohorts: [view_only_cohort.id] })
+      setup_access_control(acl_user, create(:cohort_client_viewer), view_collection)
+      edit_collection.set_viewables({ cohorts: [editable_cohort.id] })
+      setup_access_control(acl_user, create(:cohort_client_editor), edit_collection)
+    end
+
+    it 'allows editing the cohort reached through the editing collection' do
+      expect(editable_cohort.user_can_edit_cohort_clients(acl_user)).to be true
+    end
+
+    it 'denies editing the cohort reached only through the viewing collection' do
+      expect(view_only_cohort.user_can_edit_cohort_clients(acl_user)).to be false
+    end
+
+    it 'denies editing when the granting role has only a feature permission such as can_add_cohort_clients' do
+      feature_only_cohort = create :cohort
+      feature_collection = create :collection, collection_type: 'Cohorts'
+      feature_collection.set_viewables({ cohorts: [feature_only_cohort.id] })
+      setup_access_control(acl_user, create(:cohort_client_viewer, can_add_cohort_clients: true), feature_collection)
+
+      expect(feature_only_cohort.user_can_edit_cohort_clients(acl_user)).to be false
+    end
+  end
+
+  describe '.editable_by for an ACL user' do
+    let!(:acl_user) { create :acl_user }
+    let!(:target_cohort) { create :cohort }
+    let!(:collection) { create :collection, collection_type: 'Cohorts' }
+
+    before { collection.set_viewables({ cohorts: [target_cohort.id] }) }
+
+    it 'includes a cohort granted through a collection whose role can edit' do
+      setup_access_control(acl_user, create(:cohort_client_editor), collection)
+
+      expect(GrdaWarehouse::Cohort.editable_by(acl_user).pluck(:id)).to contain_exactly(target_cohort.id)
+    end
+
+    it 'includes a cohort granted through a role that can manage cohort data but cannot view cohorts' do
+      setup_access_control(acl_user, create(:cohort_client_viewer, can_view_cohorts: false, can_manage_cohort_data: true), collection)
+
+      expect(GrdaWarehouse::Cohort.editable_by(acl_user).pluck(:id)).to contain_exactly(target_cohort.id)
+    end
+
+    it 'excludes a cohort whose granting role can only view' do
+      setup_access_control(acl_user, create(:cohort_client_viewer), collection)
+
+      expect(GrdaWarehouse::Cohort.editable_by(acl_user).pluck(:id)).to be_empty
+    end
+
+    it 'excludes a cohort whose granting role has only feature permissions and no edit permission' do
+      role = create(
+        :cohort_client_viewer,
+        can_configure_cohorts: true,
+        can_add_cohort_clients: true,
+        can_manage_inactive_cohort_clients: true,
+      )
+      setup_access_control(acl_user, role, collection)
+
+      expect(GrdaWarehouse::Cohort.editable_by(acl_user).pluck(:id)).to be_empty
+    end
+  end
+
   describe '#owner_name' do
     context 'when no owner is assigned' do
       it 'returns Unassigned by default' do
@@ -213,7 +366,14 @@ RSpec.describe GrdaWarehouse::Cohort, type: :model do
     before do
       # Add test column to cohort's column_state
       @all_columns = GrdaWarehouse::Cohort.available_columns
-      @all_columns.each { |c| c.cohort_column.activate }
+      # Activate via a separate lookup rather than calling `.cohort_column.activate` on the same
+      # instances assigned to column_state below: CohortColumns::Base#cohort_column memoizes a
+      # live GrdaWarehouse::Cohorts::CohortColumn (an ActiveRecord instance) onto `@cohort_column`,
+      # which would then get embedded in this column's serialized YAML — real production writes
+      # (Cohorts::ColumnsController#update) never do this; they only ever set `visible`/`editable`
+      # directly on fresh instances, so this is a test-only artifact worth avoiding rather than a
+      # real serialization need.
+      GrdaWarehouse::Cohorts::CohortColumn.where(class_name: @all_columns.map(&:class_name)).find_each(&:activate)
       cohort.update(column_state: @all_columns)
     end
 
@@ -235,6 +395,23 @@ RSpec.describe GrdaWarehouse::Cohort, type: :model do
 
       expect(cohort.column_state.map(&:class_name)).to match_array(@all_columns.map(&:class_name))
       expect(cohort.reload.column_state.map(&:class_name)).to include('CohortColumns::UserString1')
+    end
+  end
+
+  describe 'column_state permitted-classes allow-list' do
+    it 'round-trips a real CohortColumns instance from the known registry' do
+      cohort.update!(column_state: [CohortColumns::LastName.new])
+
+      expect(cohort.reload.column_state.map(&:class)).to eq([CohortColumns::LastName])
+    end
+
+    it 'rejects a class outside the known cohort columns allow-list' do
+      malicious_yaml = "--- !ruby/object:Gem::Requirement\nrequirements: []\n"
+      cohort.class.connection.execute(
+        "UPDATE cohorts SET column_state = #{cohort.class.connection.quote(malicious_yaml)} WHERE id = #{cohort.id}",
+      )
+
+      expect { cohort.reload.column_state }.to raise_error(Psych::DisallowedClass)
     end
   end
 end

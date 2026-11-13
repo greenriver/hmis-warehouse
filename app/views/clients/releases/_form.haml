@@ -116,17 +116,18 @@
       Upload File
 
 = content_for :page_js do
-  :javascript
-    $('.jPrePopulated').on('click', function(e) {
-      // Grab the values we need
-      var params = {
-        coc_codes: $('.jConsentFormCoC select').val(),
-        expiration_date: $('.jExpirationDate input').val(),
-        effective_date: $('.jEffectiveDate input').val()
-      }
-      if($(this).data('refused') !== undefined) {
-        params.refused = 'true';
-      }
-      var url = $(this).data('href');
-      $(this).attr('href', url + '.pdf?' + $.param(params));
-    });
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      $('.jPrePopulated').on('click', function(e) {
+        // Grab the values we need
+        var params = {
+          coc_codes: $('.jConsentFormCoC select').val(),
+          expiration_date: $('.jExpirationDate input').val(),
+          effective_date: $('.jEffectiveDate input').val()
+        }
+        if($(this).data('refused') !== undefined) {
+          params.refused = 'true';
+        }
+        var url = $(this).data('href');
+        $(this).attr('href', url + '.pdf?' + $.param(params));
+      });

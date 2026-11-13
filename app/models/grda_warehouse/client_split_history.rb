@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -20,8 +20,6 @@ module GrdaWarehouse
   #   GrdaWarehouse::ClientSplitHistory.create(
   #     split_from: original_client.id, # The id of the current destination client for the source being moved
   #     split_into: new_client.id, # The new destination client
-  #     receive_hmis: true,
-  #     receive_health: true
   #   )
   #
   # @see GrdaWarehouse::Hud::Client#split

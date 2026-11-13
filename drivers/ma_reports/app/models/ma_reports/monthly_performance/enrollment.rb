@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -94,6 +94,21 @@ module MaReports::MonthlyPerformance
 
     def self.headers
       headers_for_report(nil)
+    end
+
+    PII_KEYS = [:first_name, :last_name].freeze
+
+    def detail_value(key, user:)
+      return public_send(key) unless key.in?(PII_KEYS)
+
+      pii_provider(user: user).public_send(key)
+    end
+
+    private def pii_provider(user:)
+      @pii_provider ||= begin
+        policy = user.reporting_policy_for_project(project_id: nil, client_id: client_id)
+        GrdaWarehouse::PiiProvider.from_attributes(policy: policy, first_name: first_name, last_name: last_name)
+      end
     end
   end
 end

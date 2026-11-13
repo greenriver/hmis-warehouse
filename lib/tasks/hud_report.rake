@@ -1,3 +1,9 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 namespace :hud_report do
   # desc "Cleanup Bad Head of Households"
   # task :cleanup_bad_head_of_households => [:environment, "log:info_to_stdout"] do

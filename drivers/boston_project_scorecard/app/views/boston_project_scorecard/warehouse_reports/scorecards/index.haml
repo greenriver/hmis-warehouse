@@ -37,7 +37,8 @@
     = render 'actions', f: f
 
 = content_for :page_js do
-  :javascript
-    new App.SelectableList({
-      title: 'Organizations & Projects'
-    })
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      new App.SelectableList({
+        title: 'Organizations & Projects'
+      })

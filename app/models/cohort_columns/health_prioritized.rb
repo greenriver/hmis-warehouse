@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -27,11 +27,15 @@ module CohortColumns
     end
 
     def value(cohort_client) # OK
-      text_value(cohort_client)
+      content_tag(:span, text_value(cohort_client))
     end
 
     def text_value(cohort_client)
       cohort_client.client.health_prioritized
+    end
+
+    def analytics_value
+      text_value(cohort_client)
     end
   end
 end

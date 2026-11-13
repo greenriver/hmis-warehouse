@@ -1,3 +1,9 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # frozen_string_literal: true
 
 require 'rails_helper'
@@ -6,14 +12,7 @@ RSpec.describe GrdaWarehouse::Tasks::ScrubPii::ScrubClientPiiTask do
   let(:data_source) { create(:grda_warehouse_data_source) }
   let(:project) { create :grda_warehouse_hud_project, data_source: data_source, project_type: 0 }
 
-  around(:example) do |ex|
-    PaperTrailHelper.with_paper_trail do
-      PaperTrail.request.enabled = true
-      ex.run
-    ensure
-      PaperTrail.request.enabled = false
-    end
-  end
+  around(:example) { |ex| PaperTrailHelper.with_paper_trail { ex.run } }
 
   # Create test clients with PII
   let!(:client1) do

@@ -1,4 +1,5 @@
 - clients = @report.support_for(params)
+- current_user.policy_context.preload_client_dependencies(clients.map(&:id))
 %h1.mb-6= @report.support_title(params)
 .d-flex.mb-4
   %p Showing #{pluralize(clients.count, 'clients')}
@@ -20,11 +21,12 @@
         %th Race
     %tbody
       - clients.each do |client|
+        - pii = client.pii_provider(user: current_user)
         %tr
           %td= link_to client.id, appropriate_client_path(client)
-          %td= client.FirstName
-          %td= client.LastName
-          %td= client.DOB
+          %td= pii.first_name
+          %td= pii.last_name
+          %td= GrdaWarehouse::PiiProvider.viewable_dob(client.DOB, policy: pii.policy)
           %td= client.gender
           %td= HudHelper.util.sex(client.Sex)
           %td= HudHelper.util.no_yes_missing(client.VeteranStatus)

@@ -1,32 +1,33 @@
 - if @cohort_clients.any?
   = content_for :page_js do
-    :javascript
-      (function($) {
-        var cohort_options = {
-          wrapper_selector: '.cohorts',
-          table_selector: '.datatable',
-          batch_size: 100,
-          // static_column_count: #{@cohort.static_column_count + 1},
-          client_count: #{@cohort.client_search_scope.count},
-          sort_direction: '#{@cohort.default_sort_direction}',
-          column_order: #{(@visible_columns.map(&:column)).to_json.html_safe},
-          column_headers: #{@column_headers.to_json.html_safe},
-          column_options: #{@column_options.to_json.html_safe},
-          size_toggle_class: '.jToggleFontSize',
-          include_inactive: #{params[:inactive].present?},
-          client_path: "#{cohort_cohort_clients_path(@cohort)}",
-          client_row_class: '.jCohortClient',
-          loading_selector: '.jLoading',
-          cohort_client_form_selector: '.edit_cohort_client',
-          cohort_value_hidden_selector: '.jCohortColumnValue',
-          check_url: '#{cohort_cohort_clients_path(@cohort, skip_trackable: true)}',
-          input_selector: '.jCohortClientInput',
-          updated_ats: #{@cohort_client_updates.to_json.html_safe},
-          search_selector: '#cohort-search',
-          search_actions_selector: '.jSearchActions',
-          population: "#{@population}",
-          thresholds: #{@thresholds.to_json.html_safe}
-        }
-        $('body').data('cohort', new App.Cohorts.Cohort(cohort_options));
+    %script{ nonce: content_security_policy_nonce }
+      :plain
+        (function($) {
+          var cohort_options = {
+            wrapper_selector: '.cohorts',
+            table_selector: '.datatable',
+            batch_size: 100,
+            // static_column_count: #{@cohort.static_column_count + 1},
+            client_count: #{@cohort.client_search_scope.count},
+            sort_direction: '#{@cohort.default_sort_direction}',
+            column_order: #{(@visible_columns.map(&:column)).to_json.html_safe},
+            column_headers: #{@column_headers.to_json.html_safe},
+            column_options: #{@column_options.to_json.html_safe},
+            size_toggle_class: '.jToggleFontSize',
+            include_inactive: #{params[:inactive].present?},
+            client_path: "#{cohort_cohort_clients_path(@cohort)}",
+            client_row_class: '.jCohortClient',
+            loading_selector: '.jLoading',
+            cohort_client_form_selector: '.edit_cohort_client',
+            cohort_value_hidden_selector: '.jCohortColumnValue',
+            check_url: '#{cohort_cohort_clients_path(@cohort, skip_trackable: true)}',
+            input_selector: '.jCohortClientInput',
+            updated_ats: #{@cohort_client_updates.to_json.html_safe},
+            search_selector: '#cohort-search',
+            search_actions_selector: '.jSearchActions',
+            population: "#{@population}",
+            thresholds: #{@thresholds.to_json.html_safe}
+          }
+          $('body').data('cohort', new App.Cohorts.Cohort(cohort_options));
 
-      })(jQuery);
+        })(jQuery);

@@ -1,0 +1,13 @@
+.consent-status-badges.mb-2
+  - if file.active_consent_form? && !file.revoked?
+    %span.badge.text-bg-success Active
+  - exp = file.calculated_expiration_date
+  - if exp
+    - if exp.past?
+      %span.badge.text-bg-danger Expired #{exp.to_date}
+    - else
+      %span.badge.text-bg-success Expires #{exp.to_date}
+  - else
+    %span.badge.text-bg-secondary No Expiration
+  - if file.revoked?
+    %span.badge.text-bg-warning Revoked #{file.consent_revoked_at.to_date}

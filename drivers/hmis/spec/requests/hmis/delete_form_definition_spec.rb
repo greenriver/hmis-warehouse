@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -26,15 +26,15 @@ RSpec.describe 'DeleteFormDefinition mutation', type: :request do
     GRAPHQL
   end
 
-  let!(:access_control) { create_access_control(hmis_user, ds1, with_permission: [:can_manage_forms]) }
+  let!(:access_control) { create_access_control(hmis_user, ds1, with_permission: [:can_manage_forms, :can_configure_data_collection]) }
 
   before(:each) do
     hmis_login(user)
   end
 
   it 'deletes draft that has no other versions (deletes form rules)' do
-    draft_fd = create(:hmis_form_definition, role: :CUSTOM_ASSESSMENT, status: :draft)
-    instance = create(:hmis_form_instance, definition: draft_fd, entity: nil)
+    draft_fd = create(:hmis_form_definition, role: :CUSTOM_ASSESSMENT, status: :draft, data_source: ds1)
+    instance = create(:hmis_form_instance, definition: draft_fd, entity: nil, data_source: ds1)
 
     response, result = post_graphql(id: draft_fd.id) { mutation }
     expect(response.status).to eq(200), result.inspect
@@ -45,12 +45,12 @@ RSpec.describe 'DeleteFormDefinition mutation', type: :request do
   end
 
   it 'deletes draft that has other versions (retains form rules and CDEDs)' do
-    draft_fd = create(:hmis_form_definition, role: :CUSTOM_ASSESSMENT, status: :draft, version: 2)
-    published_fd = create(:hmis_form_definition, role: :CUSTOM_ASSESSMENT, status: :published, identifier: draft_fd.identifier, version: 1)
-    cded = create(:hmis_custom_data_element_definition, form_definition_identifier: published_fd.identifier)
-    instance = create(:hmis_form_instance, definition: published_fd, entity: nil)
+    draft_fd = create(:hmis_form_definition, role: :CUSTOM_ASSESSMENT, status: :draft, version: 2, data_source: ds1)
+    published_fd = create(:hmis_form_definition, role: :CUSTOM_ASSESSMENT, status: :published, identifier: draft_fd.identifier, version: 1, data_source: ds1)
+    cded = create(:hmis_custom_data_element_definition, form_definition_identifier: published_fd.identifier, data_source: ds1)
+    instance = create(:hmis_form_instance, definition: published_fd, entity: nil, data_source: ds1)
     # an assessment that has been submitted using the published version
-    custom_assessment = create(:hmis_custom_assessment, definition: published_fd)
+    custom_assessment = create(:hmis_custom_assessment, definition: published_fd, data_source: ds1)
 
     response, result = post_graphql(id: draft_fd.id) { mutation }
     expect(response.status).to eq(200), result.inspect
@@ -67,22 +67,22 @@ RSpec.describe 'DeleteFormDefinition mutation', type: :request do
   end
 
   it 'errors if form is published' do
-    published_fd = create(:hmis_form_definition, role: :CUSTOM_ASSESSMENT, status: :published)
+    published_fd = create(:hmis_form_definition, role: :CUSTOM_ASSESSMENT, status: :published, data_source: ds1)
 
     expect_gql_error post_graphql(id: published_fd.id) { mutation }, message: /can only delete draft forms/
   end
   it 'errors if form is retired' do
-    published_fd = create(:hmis_form_definition, role: :CUSTOM_ASSESSMENT, status: :retired)
+    published_fd = create(:hmis_form_definition, role: :CUSTOM_ASSESSMENT, status: :retired, data_source: ds1)
 
     expect_gql_error post_graphql(id: published_fd.id) { mutation }, message: /can only delete draft forms/
   end
   it 'errors if user lacks permission' do
-    fd = create(:hmis_form_definition, role: :CUSTOM_ASSESSMENT, status: :draft)
+    fd = create(:hmis_form_definition, role: :CUSTOM_ASSESSMENT, status: :draft, data_source: ds1)
     remove_permissions(access_control, :can_manage_forms)
     expect_access_denied post_graphql(id: fd.id) { mutation }
   end
   it 'errors if user lacks admin permission for disallowed form role' do
-    fd = create(:hmis_form_definition, role: :CLIENT, status: :draft)
+    fd = create(:hmis_form_definition, role: :CLIENT, status: :draft, data_source: ds1)
     remove_permissions(access_control, :can_administrate_config)
     expect_access_denied post_graphql(id: fd.id) { mutation }
   end

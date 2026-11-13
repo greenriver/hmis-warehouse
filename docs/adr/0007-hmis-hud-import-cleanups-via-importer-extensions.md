@@ -91,7 +91,7 @@ More discussion needed; calling this out-of-scope for this ADR. We may want to e
 ## Related Documents
 
 - [`HmisCsvImporter::HmisCsvCleanup::Base`](../../drivers/hmis_csv_importer/app/models/hmis_csv_importer/hmis_csv_cleanup/base.rb) — `cleanup!`, `self.enable`, `self.description`, `self.associated_model`
-- [`docs/features/hmis-csv-importer.md`](../features/hmis-csv-importer.md) — import lifecycle and log models
+- [`docs/features/warehouse/hmis-csv-importer.md`](../features/warehouse/hmis-csv-importer.md) — import lifecycle and log models
 
 ### APPENDIX A: Proposed Importer Extensions to Add
 
@@ -110,9 +110,9 @@ This is not a finalized/comprehensive list, but an illustration of the types of 
 - `Exit`: Deduplicate exit records per enrollment
   - When more than one non-deleted exit exists for the same `EnrollmentID`, soft-delete extras (typically keep oldest by id), matching one-off migration practice.
 - `IncomeBenefit`: Fill missing total monthly income
-  - Where `IncomeFromAnySource` indicates income but `TotalMonthlyIncome` is null, recompute total from detailed income columns (same reconciler idea as `fix_missing_monthly_total_income!`).
+  - Where `IncomeFromAnySource` indicates income but `TotalMonthlyIncome` is null, recompute total from detailed income columns (same reconciler idea as `TotalIncomeReconciler`).
 - `IncomeBenefits`: Reconcile total income from income amount fields
-  - Recompute `TotalMonthlyIncome` from detailed income columns (same reconciler idea as `fix_missing_monthly_total_income!`)
+  - Recompute `TotalMonthlyIncome` from detailed income columns (same reconciler idea as `TotalIncomeReconciler`)
 - *Optional* `Enrollment`: Normalize invalid "Data not collected" relationship to HoH
   - Replace `RelationshipToHoH` value 99 with 5 (unrelated household member) where 99 is invalid for the field.
   - This cleanup has been done for HMIS customers because of data quality flags. HMIS application accommodates 99 value.

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -11,12 +11,30 @@ module ClientFileBase
   include ArelHelper
   include HasPiiAttributes
 
+  # Matches the 12 MB limit in GrdaWarehouse::ClientFile#file_exists_and_not_too_large.
+  # Also enforced by the HMIS CreateDirectUpload mutation, and client-side by the hmis-frontend
+  # Uploader (DEFAULT_MAX_BYTES in Uploader.tsx), which must be kept in sync by hand.
+  MAX_FILE_SIZE = 12.megabytes
+
   included do
     pii_attr :note, as: :free_text
     pii_attr :name, as: :full_name
     pii_attr :client_file, as: :attached_file
 
-    has_one_attached :client_file
+    # dependent: false prevents soft-deletes (via acts_as_paranoid) from enqueuing
+    # ActiveStorage::PurgeJob, which would delete the S3 blob while the DB record
+    # is still restorable and may have pending AnalyzeJobs.
+    # S3 blobs are cleaned up later by PurgeSoftDeletedClientFilesJob.
+    # Use soft_delete/soft_delete! instead of .destroy (see below).
+    has_one_attached :client_file, dependent: false
+
+    # Use instead of .destroy to soft-delete without side effects.
+    # acts_as_paranoid's .destroy runs :destroy callbacks, which triggers
+    # acts_as_taggable's `dependent: :destroy` on the taggings association,
+    # hard-deleting the join rows. That makes tag-based restore impossible.
+    # S3 blobs are cleaned up later by PurgeSoftDeletedClientFilesJob.
+    def soft_delete = update(deleted_at: Time.current)
+    def soft_delete! = update!(deleted_at: Time.current)
 
     # The file_exists_and_not_too_large validation checks that the client_file exists, so we can rely on that and only validate presence of name if the file has a client_file attachment.
     # This avoids an awkward double-error "Name can't be blank" if the file is not uploaded or has expired.
@@ -33,8 +51,8 @@ module ClientFileBase
     end
 
     scope :client_photos, -> do
-      # NOTE: tagged_with does not work correctly in testing
-      # tagged_with('Client Headshot')
+      # Query the taggings directly rather than via `tagged_with` so this matches the
+      # headshot tag across File STI subclasses regardless of taggable_type.
       tag_id = ActsAsTaggableOn::Tag.where(
         name: headshot_tag_name,
       ).pluck(:id)
@@ -54,7 +72,7 @@ module ClientFileBase
 
     def file_exists_and_not_too_large
       errors.add :client_file, full_message: 'No uploaded file found.' if (client_file.byte_size || 0) < 100
-      errors.add :client_file, full_message: 'File size should be less than 4 MB' if (client_file.byte_size || 0) > 4.megabytes
+      errors.add :client_file, full_message: 'File size should be less than 12 MB' if (client_file.byte_size || 0) > ClientFileBase::MAX_FILE_SIZE
     end
 
     def note_if_other

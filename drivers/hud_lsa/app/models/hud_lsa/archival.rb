@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -11,10 +11,6 @@ module HudLsa
     extend ActiveSupport::Concern
 
     included do
-      ::HudReports::ReportInstance.class_eval do
-        has_one_attached :lsa_summary_results_csv
-      end
-
       ::HudReportArchival.register_archival_generator(title, self)
     end
   end

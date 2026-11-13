@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -37,7 +37,7 @@ class ProjectGroupsController < ApplicationController
     begin
       @project_group = project_group_source.new
       project_group_source.transaction do
-        @project_group.assign_attributes(name: group_params[:name])
+        @project_group.assign_attributes(name: group_params[:name], notes: group_params[:notes])
         filter = ::Filters::HudFilterBase.new(user_id: current_user.id, project_type_numbers: []).update(filter_params.merge(coc_codes: []))
         filter.coc_codes = []
         @project_group.options = filter.to_h
@@ -75,7 +75,7 @@ class ProjectGroupsController < ApplicationController
   def update
     begin
       project_group_source.transaction do
-        @project_group.assign_attributes(name: group_params[:name])
+        @project_group.assign_attributes(name: group_params[:name], notes: group_params[:notes])
         filter = ::Filters::HudFilterBase.new(user_id: current_user.id, project_type_numbers: []).update(filter_params)
         filter.coc_codes = []
         @project_group.options = filter.to_h
@@ -99,10 +99,15 @@ class ProjectGroupsController < ApplicationController
   end
 
   def destroy
+    destroyed = nil
     project_group_source.transaction do
       @project_group.remove_from_group_viewable_entities!
-      @project_group.destroy
+      destroyed = @project_group.destroy
     end
+    # Collection/AccessControl/UserGroup live in the primary database, so this
+    # teardown is NOT covered by the warehouse transaction above — run it only
+    # after the warehouse delete has committed.
+    @project_group.remove_system_collections! if destroyed
     AccessGroup.maintain_system_groups
     respond_with(@project_group, location: project_groups_path)
   end
@@ -111,13 +116,17 @@ class ProjectGroupsController < ApplicationController
     group_ids = params[:selections]&.try(:[], :group)&.reject(&:empty?)&.map(&:to_i)
     redirect_to project_groups_path and return unless group_ids
 
+    destroyed_groups = []
     project_group_source.transaction do
       group_ids.each do |group|
         project_group = project_group_scope.find(group)
         project_group.remove_from_group_viewable_entities!
-        project_group.destroy
+        destroyed = project_group.destroy
+        destroyed_groups << project_group if destroyed
       end
     end
+    # primary-database teardown, outside the warehouse transaction
+    destroyed_groups.each(&:remove_system_collections!)
     AccessGroup.maintain_system_groups
     redirect_to project_groups_path
   end
@@ -156,6 +165,7 @@ class ProjectGroupsController < ApplicationController
     params.require(:filters).
       permit(
         :name,
+        :notes,
       )
   end
 

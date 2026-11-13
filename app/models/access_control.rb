@@ -1,12 +1,12 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 # frozen_string_literal: true
 
-# @see docs/features/warehouse-permissions.md
+# @see docs/features/warehouse/warehouse-permissions.md
 #
 # AccessControl is part of the "new" permissions system
 #
@@ -20,6 +20,7 @@ class AccessControl < ApplicationRecord
   include UserPermissionCache
   include ArelHelper
   include HistoryDescriptions
+  include AccessControlFiltering
 
   acts_as_paranoid
   has_paper_trail
@@ -31,7 +32,6 @@ class AccessControl < ApplicationRecord
   belongs_to :user_group, inverse_of: :access_controls
   has_many :users, through: :user_group
 
-  delegate :health?, to: :role
   validates_presence_of :collection_id, :role_id, :user_group_id
 
   # These should not show up anywhere, (there should only be one)
@@ -62,16 +62,8 @@ class AccessControl < ApplicationRecord
     not_system
   end
 
-  scope :health, -> do
-    joins(:role).merge(Role.health)
-  end
-
   scope :homeless, -> do
     joins(:role).merge(Role.editable)
-  end
-
-  scope :nurse_care_manager, -> do
-    joins(:role).merge(Role.nurse_care_manager)
   end
 
   scope :ordered, -> do
@@ -79,33 +71,14 @@ class AccessControl < ApplicationRecord
       order(UserGroup.arel_table[:name].asc, Role.arel_table[:name].asc, Collection.arel_table[:name].asc)
   end
 
-  # filter for access controls that somehow interact with the following
-  # User, UserGroup, Role, EntityGroup
-  scope :filtered, ->(filter_params) do
-    return current_scope unless filter_params
-    return current_scope if filter_params[:user_id].blank? && filter_params[:user_group_id].blank? && filter_params[:role_id].blank? && filter_params[:collection_id].blank?
-
-    ids = []
-    if filter_params[:user_id].present?
-      user_scope = UserGroup.with_user_id(filter_params[:user_id].to_i)
-      ids += joins(:user_group).
-        merge(user_scope).pluck(:id)
-    end
-    if filter_params[:user_group_id].present?
-      user_group_scope = where(user_group_id: filter_params[:user_group_id].to_i)
-      ids += user_group_scope.pluck(:id)
-    end
-    if filter_params[:role_id].present?
-      role_scope = where(role_id: filter_params[:role_id].to_i)
-      ids += role_scope.pluck(:id)
-    end
-    if filter_params[:collection_id].present?
-      entity_group_scope = where(collection_id: filter_params[:collection_id].to_i)
-      ids += entity_group_scope.pluck(:id)
-    end
-
-    where(id: ids)
-  end
+  filterable_by(
+    collection_association: :collection,
+    entity_class_names: {
+      data_source_id: 'GrdaWarehouse::DataSource',
+      organization_id: 'GrdaWarehouse::Hud::Organization',
+      project_id: 'GrdaWarehouse::Hud::Project',
+    },
+  )
 
   scope :visible_to, ->(_user) do
     all
@@ -132,24 +105,5 @@ class AccessControl < ApplicationRecord
       name_parts.join(' ').html_safe,
       class: 'font-size-md',
     ).html_safe
-  end
-
-  def self.options_for_select(include_health: true, include_homeless: true)
-    {}.tap do |options|
-      scope = if include_health && include_homeless
-        all
-      elsif include_health
-        health
-      elsif include_homeless
-        homeless
-      else
-        none
-      end
-
-      scope.ordered.each do |control|
-        options[control.role&.name] ||= []
-        options[control.role&.name] << [control.name, control.id]
-      end
-    end
   end
 end

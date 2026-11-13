@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -49,7 +49,7 @@ module HudReports
 
     def create_zip_file
       files = Dir.glob(File.join(@file_path, '*')).map { |path| File.basename(path) }
-      Zip::File.open(zip_path, Zip::File::CREATE) do |zip_file|
+      Zip::File.open(zip_path, create: true) do |zip_file|
         files.each do |file_name|
           zip_file.add(
             file_name,

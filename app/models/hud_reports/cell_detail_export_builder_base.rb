@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -11,7 +11,8 @@ module HudReports
   # Base class for building Excel exports of HUD report cell details.
   #
   # Subclasses must implement:
-  # - generator_for_report: returns a generator class (not an instance)
+  # - generator_for_report: returns a generator class (not an instance), raising
+  #   UnsupportedReportError when the report type or version has no generator
   #
   # Subclasses can optionally override:
   # - scoped_clients: returns an ActiveRecord relation of clients for the cell
@@ -24,6 +25,7 @@ module HudReports
   # - pii_columns (optional, for filtering PII)
   class CellDetailExportBuilderBase
     Result = Struct.new(:name, :filename, :data, keyword_init: true)
+    UnsupportedReportError = Class.new(ArgumentError)
 
     def initialize(user:, report: nil, measure_id: nil, cell_id: nil, table: nil, drilldown: nil, report_type: nil, **_kwargs)
       @user = user
@@ -79,6 +81,7 @@ module HudReports
               pii_policy = user.reporting_policy_for_project(
                 project_id: client.project_id,
                 mode: :download,
+                client_id: client.destination_client_id_for_pii,
               )
 
               row = headers.keys.map do |key|
@@ -98,6 +101,7 @@ module HudReports
     def preload_batch_policies(batch)
       project_ids = batch.map(&:project_id).compact.uniq
       user.policy_context.preload_project_dependencies(project_ids) if project_ids.any?
+      user.policy_context.preload_client_dependencies(batch.map(&:destination_client_id_for_pii))
     end
   end
 end

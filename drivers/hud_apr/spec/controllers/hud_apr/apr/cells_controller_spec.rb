@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -13,7 +13,7 @@ RSpec.describe HudApr::Apr::CellsController, type: :request do
   let(:report) { create(:hud_reports_report_instance, user: user, options: { 'report_version' => 'fy2026' }, report_name: 'Annual Performance Report - FY 2026') }
 
   before do
-    user.legacy_roles << create(:role, can_view_own_hud_reports: true)
+    grant_hud_report(user, 'hud_reports/aprs')
     sign_in(user)
   end
 
@@ -29,18 +29,42 @@ RSpec.describe HudApr::Apr::CellsController, type: :request do
     context 'with unauthorized user' do
       let(:other_user) { create(:user) }
 
-      it 'denies access to another user\'s report' do
+      it 'denies a user who has not been granted the APR definition' do
         sign_in(other_user)
         get hud_reports_apr_question_cell_path(apr_id: report.id, question_id: 'Question 5', id: 'B2', table: '5a')
         expect(response).to redirect_to(root_url)
       end
 
+      # Reaching the page and reaching another user's run are separate gates; the
+      # definition grant only satisfies the first.
+      it 'denies a user granted the APR definition without can_view_all_hud_reports' do
+        grant_hud_report(other_user, 'hud_reports/aprs')
+        sign_in(other_user)
+        get hud_reports_apr_question_cell_path(apr_id: report.id, question_id: 'Question 5', id: 'B2', table: '5a')
+        expect(response).to have_http_status(:not_found)
+      end
+
       it 'allows access if user has can_view_all_hud_reports permission' do
-        other_user.legacy_roles << create(:role, can_view_all_hud_reports: true)
+        grant_hud_report(other_user, 'hud_reports/aprs', role: create(:role, can_view_assigned_reports: true, can_view_all_hud_reports: true))
         sign_in(other_user)
         get hud_reports_apr_question_cell_path(apr_id: report.id, question_id: 'Question 5', id: 'B2', table: '5a')
         expect(response).to be_successful
       end
+    end
+
+    it 'lists every client in the cell when more clients than the preload miss threshold are in it' do
+      cell = report.report_cells.create!(question: '5a', cell_name: 'B2')
+      extra = Array.new(preload_miss_client_count) do |i|
+        destination = create(:grda_warehouse_hud_client, FirstName: "Preload#{i}", LastName: 'Coverage')
+        apr_client = create(:hud_report_apr_client, report_instance: report, client_id: destination.id, destination_client_id: destination.id, first_name: destination.FirstName, last_name: destination.LastName)
+        HudReports::UniverseMember.create!(report_cell: cell, universe_membership: apr_client, client_id: destination.id)
+        destination
+      end
+
+      get hud_reports_apr_question_cell_path(apr_id: report.id, question_id: 'Question 5', id: 'B2', table: '5a')
+
+      expect(response).to have_http_status(:ok)
+      extra.each { |client| expect(response.body).to include(client.FirstName) }
     end
   end
 

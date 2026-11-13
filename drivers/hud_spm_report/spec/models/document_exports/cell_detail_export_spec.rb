@@ -1,10 +1,16 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # frozen_string_literal: true
 
 require 'rails_helper'
 
 RSpec.describe HudSpmReport::DocumentExports::CellDetailExport, type: :model do
   let(:user) { create(:user) }
-  let(:report) { create(:hud_reports_report_instance, user: user, options: { 'report_version' => 'fy2026' }, report_name: 'SPM - FY 2026') }
+  let(:report) { create(:hud_reports_report_instance, user: user, options: { 'report_version' => 'fy2026' }, report_name: HudSpmReport::Generators::Fy2026::Generator.title) }
   let(:export) do
     described_class.new(
       user: user,
@@ -16,6 +22,8 @@ RSpec.describe HudSpmReport::DocumentExports::CellDetailExport, type: :model do
       }.to_query,
     )
   end
+
+  let(:definition_url) { 'hud_reports/spms' }
 
   it_behaves_like 'a hud cell detail export'
 

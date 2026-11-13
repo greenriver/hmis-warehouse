@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -29,7 +29,7 @@ module GrdaWarehouse
         this_year = Date.today.year
         if year > max_year && (this_year - year < 5)
           Rails.logger.debug { "Using #{max_year} instead of #{year} for census values" }
-          year = max_year
+          self.year = max_year
         end
 
         raise "You must specify a valid year for #{geometry.name}: #{year}" if Array.wrap(year).any? { |y| y.to_i < 2009 || y.to_i > max_year }
@@ -39,7 +39,7 @@ module GrdaWarehouse
       def best_value
         return Results.new(0, [], 'success', false, year, nil) if internal_names.empty?
 
-        # sort by distance from requested year then prefer dicennial census.
+        # sort by distance from requested year then prefer decennial census.
         # cache result based on geometry, internal_names, and year for 24 hours
         Rails.cache.fetch("census-#{geometry.full_geoid}-#{internal_names}-#{year}", expires_in: 1.day) do
           results = internal_names.map do |internal_name|

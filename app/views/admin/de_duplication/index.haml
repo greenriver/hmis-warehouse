@@ -1,6 +1,5 @@
 - content_for(:title, 'Automatic Client De-Duplication')
 %h1= content_for(:title)
-= render partial: 'menus/admin_tabs'
 
 %p
   HMIS Client records are de-duplicated when imported to the warehouse.  The warehouse uses two approaches to de-duplication.  The initial deterministic algorithm compares client
@@ -41,8 +40,9 @@
 - data = GrdaWarehouse::ClientMatch.score_distribution
 
 = content_for :page_js do
-  :javascript
-    new App.Admin.ClientMatches.MixedChart('.jAll');
-    new App.Admin.ClientMatches.MixedChart('.jUnprocessed');
-    new App.Admin.ClientMatches.MixedChart('.jAccepted');
-    new App.Admin.ClientMatches.MixedChart('.jRejected');
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      new App.Admin.ClientMatches.MixedChart('.jAll');
+      new App.Admin.ClientMatches.MixedChart('.jUnprocessed');
+      new App.Admin.ClientMatches.MixedChart('.jAccepted');
+      new App.Admin.ClientMatches.MixedChart('.jRejected');

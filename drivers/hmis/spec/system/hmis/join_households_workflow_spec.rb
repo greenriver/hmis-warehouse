@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -153,7 +153,7 @@ RSpec.feature 'Join Households', type: :system do
         expect(relationship_index).not_to be_nil
 
         # 2 rows in household table
-        expect(first('tbody').all('tr').count).to eq(2)
+        expect(first('tbody')).to have_css('tr', count: 2)
         # new client's relationship appears
         within('tr', text: c2.brief_name) do
           expect(page).to have_content 'Spouse or partner'

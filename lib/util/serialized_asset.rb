@@ -1,3 +1,9 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # frozen_string_literal: true
 
 # This is a way to have assets in the asset pipeline that are
@@ -7,7 +13,7 @@ class SerializedAsset
   # These are the possible serialized things.
   # e.g. If LOGO and LOGO_CONTENT are in the environment, then the logic of
   # this class will be triggered
-  IMAGES = ['LOGO', 'PRINT_LOGO', 'CAREPLAN_LOGO'].freeze
+  IMAGES = ['LOGO', 'PRINT_LOGO'].freeze
 
   # Change this to expire all images. If you update an image, it's fine to just
   # change this for all deployments.

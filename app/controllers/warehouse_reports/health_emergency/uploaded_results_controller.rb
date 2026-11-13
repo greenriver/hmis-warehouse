@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -25,11 +25,14 @@ module WarehouseReports::HealthEmergency
     def show
       @batch = upload_scope.find(params[:id].to_i)
       @results = @batch.uploaded_tests
+      current_user.policy_context.preload_client_dependencies(@results.pluck(:client_id))
     end
 
     def create
       file = upload_params[:file]
-      @upload = upload_source.create(upload_params.merge(user_id: current_user.id, content: file.read))
+      # NOTE: TestBatch can't persist (required belongs_to :client, no client_id
+      # column -- see HealthEmergency concern) so this create is inert.
+      @upload = upload_source.create(upload_params.except(:file).merge(user_id: current_user.id, name: file&.original_filename, content_type: file&.content_type, content: file&.read))
       Importing::TestBatchUploadJob.perform_later
       respond_with(@upload, location: warehouse_reports_health_emergency_uploaded_results_path)
     end

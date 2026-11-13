@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -27,7 +27,7 @@ class HmisCsvImporter::ImportOverridesController < ApplicationController
     @override = import_override_source.find(params[:id].to_i)
     @override.destroy
     # handle deletions from the Override Summary report
-    location = if params[:redirect_to_report].present? && RailsDrivers.loaded.include?(:override_summary)
+    location = if params[:redirect_to_report].present?
       "/#{OverrideSummary::Report.url}"
     else
       hmis_csv_importer_data_source_import_overrides_path(@data_source)

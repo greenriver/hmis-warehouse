@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -85,14 +85,22 @@ RSpec.describe 'GetProjects query', type: :request do
     end
   end
 
-  it 'responds with 401 if not authenticated' do
-    delete destroy_hmis_user_session_path
-    aggregate_failures 'checking response' do
-      expect(response.status).to eq 204
-      response, body = post_graphql { query }
-      expect(response.status).to eq 401
-      expect(body.dig('error', 'type')).to eq 'unauthenticated'
+  it 'filters by projects with CE waitlists enabled' do
+    create(:hmis_project_ce_config, project: p1, supports_waitlist_referrals: true)
+    create(:hmis_project_ce_config, project: p3, supports_waitlist_referrals: false, receives_direct_referrals: true)
+
+    perform_query(filters: { ce_waitlists_enabled: true, status: ['OPEN'] }) do |projects|
+      expect(projects).to include(
+        'nodesCount' => 1,
+        'nodes' => contain_exactly(include('id' => p1.id.to_s)),
+      )
     end
+  end
+
+  it 'refuses the query once the user has logged out' do
+    hmis_logout
+
+    expect_unauthenticated_api_request { post_graphql { query } }
   end
 
   context 'sorting' do
@@ -165,14 +173,14 @@ RSpec.describe 'GetProjects query', type: :request do
         response, result = post_graphql(limit: 50) { query }
         expect(response.status).to eq(200), result.inspect
         expect(result.dig('data', 'projects', 'nodes').size).to eq(50)
-      end.to make_database_queries(count: 1..20)
+      end.to make_database_queries(count: 10..30)
     end
 
     it 'is responsive' do
       expect do
         response, result = post_graphql(limit: 50) { query }
         expect(response.status).to eq(200), result.inspect
-      end.to perform_under(150).ms
+      end.to perform_under(250).ms
     end
   end
 

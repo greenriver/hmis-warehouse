@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -16,9 +16,30 @@ module GrdaWarehouse
 
     belongs_to :delayed_job, optional: true, class_name: '::Delayed::Job'
 
-    mount_uploader :file, ImportUploader
+    has_one_attached :upload_file, dependent: false
+
+    # Returns the file bytes from ActiveStorage when migrated, else the legacy DB column.
+    def file_data
+      return upload_file.download if upload_file.attached?
+
+      content
+    end
+
+    def filename
+      return upload_file.filename.to_s if upload_file.attached?
+
+      self[:file].to_s
+    end
+
+    # A client-supplied MIME type can be spoofed. ActiveStorage derives the blob's content type from the actual bytes.
+    def detected_content_type
+      return content_type unless upload_file.attached?
+
+      upload_file.blob&.content_type || content_type
+    end
+
     validates :data_source, presence: true
-    validates :file, presence: true, on: :create
+    validate :file_attached, on: :create
 
     def status
       if percent_complete&.zero?
@@ -47,6 +68,14 @@ module GrdaWarehouse
       else
         'incomplete'
       end
+    end
+
+    private
+
+    # New uploads store the file in ActiveStorage (`upload_file`); ensure the attachment
+    # is present before creating a new record.
+    def file_attached
+      errors.add(:file, :blank) unless upload_file.attached?
     end
   end
 end

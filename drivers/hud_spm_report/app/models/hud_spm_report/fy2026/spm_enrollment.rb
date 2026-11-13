@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -130,6 +130,10 @@ module HudSpmReport::Fy2026
       enrollment&.project&.id
     end
 
+    def projects_by_column
+      @projects_by_column ||= { 'enrollment.project.ProjectID' => [enrollment&.project].compact }
+    end
+
     # Unlike, most HUD reports, there is not a single enrollment per report client, so the enrollment set
     # is constructed outside of the question universe, and then to preserve the 1:1 relationship between clients
     # and question universe members, the question universes either refer directly to an enrollment in this set, or
@@ -178,7 +182,8 @@ module HudSpmReport::Fy2026
     def self.detail_headers
       client_columns = ['client_id', 'first_name', 'last_name', 'personal_id', 'data_source_id']
       hidden_columns = ['id', 'report_instance_id', 'previous_income_benefits_id', 'current_income_benefits_id', 'enrollment_id'] + client_columns
-      columns = client_columns + (column_names - hidden_columns)
+      project_columns = ['enrollment.project.ProjectID']
+      columns = client_columns + (column_names + project_columns - hidden_columns)
       columns.map do |col|
         [col, header_label(col)]
       end.to_h
@@ -197,6 +202,15 @@ module HudSpmReport::Fy2026
         table[:personal_id],
         Arel::Nodes::NamedFunction.new('CAST', [table[:client_id].as('TEXT')]),
       ]
+    end
+
+    def self.pii_search_columns
+      table = arel_table
+      [table[:first_name], table[:last_name]]
+    end
+
+    def self.restricted_client_id_columns
+      [arel_table[:client_id]]
     end
 
     private_class_method def self.current_income_benefits(enrollment, end_date)

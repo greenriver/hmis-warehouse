@@ -13,11 +13,6 @@ util.rangeToColor = ( point, low, high, bottom, top, saturation, lumosity ) ->
   fraction = ( point - low ) / ( high - low )
   util.fractionToColor fraction, bottom, top, saturation, lumosity
 
-# this produces a color dot you can place on the page
-util.colorDot = (obj) ->
-  obj.shape = 'circle'
-  util.colorShape obj
-
 util.colorSquare = (obj) ->
   obj.shape = 'square'
   util.colorShape obj

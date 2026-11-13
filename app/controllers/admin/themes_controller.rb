@@ -1,10 +1,10 @@
-# frozen_string_literal: true
-
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 module Admin
   class ThemesController < ApplicationController
@@ -21,7 +21,7 @@ module Admin
     def update
       @theme = GrdaWarehouse::Theme.where(client: ENV.fetch('CLIENT')).first
       theme_params = allowed_params
-      update_attributes = theme_params.to_h.except(:logo, :print_logo, :careplan_logo)
+      update_attributes = theme_params.to_h.except(:logo, :print_logo)
 
       @theme.update(update_attributes)
       @theme.logo.attach(theme_params[:logo]) if theme_params[:logo].present?
@@ -37,7 +37,6 @@ module Admin
         :hmis_value,
         :logo,
         :print_logo,
-        :careplan_logo,
         :hmis_logo,
       )
     end

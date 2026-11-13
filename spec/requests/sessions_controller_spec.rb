@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -11,7 +11,9 @@ require 'support/shared_contexts/post_login_hooks_context'
 require 'support/shared_contexts/login_activity_context'
 # require 'support/shared_contexts/timing_attack_mitigation_context'
 
-RSpec.describe Users::SessionsController, type: :request do
+# Devise-only: Users::SessionsController is reachable only via the `devise_for :users` routes,
+# which config/routes.rb mounts under AuthMethod.devise?.
+RSpec.describe 'Users::SessionsController', :devise_only, type: :request do
   let(:user) { create :user }
   let(:user_2fa) { create :user_2fa }
   let(:email) { ActionMailer::Base.deliveries.last }
@@ -51,7 +53,8 @@ RSpec.describe Users::SessionsController, type: :request do
     end
 
     it 'user sees an error' do
-      expect(response.body).to include 'Invalid Email or password'
+      # Devise 5.0.0.rc fixed the grammar of this message: "Invalid Email or password" -> "Invalid email or password."
+      expect(response.body).to include 'Invalid email or password.'
     end
 
     # FIXME: we need to double the number of attempts because of a bug in devise 2FA that
@@ -155,6 +158,52 @@ RSpec.describe Users::SessionsController, type: :request do
       expect(user_2fa.reload.failed_attempts).to eq 2 # double increment bug
     end
 
+    context 'with post-authentication hooks' do
+      def do_login
+        post user_session_path(user: { otp_attempt: user_2fa.current_otp })
+      end
+
+      def do_failed_login
+        post user_session_path(user: { otp_attempt: '-1' })
+      end
+
+      include_context 'with post-authentication hooks'
+
+      # Overrides the shared context's default (`let(:post_auth_user) { user }`); must come after
+      # include_context so this definition wins.
+      let(:post_auth_user) { user_2fa }
+    end
+
+    context 'with external reporting permissions population' do
+      it 'enqueues the job when 2fa is completed successfully' do
+        expect { post user_session_path(user: { otp_attempt: user_2fa.current_otp }) }.
+          to change(Delayed::Job, :count).by(1)
+
+        job = Delayed::Job.last
+        expect(job.payload_object.method_name).to eq(:populate_external_reporting_permissions!)
+        expect(job.payload_object.object).to eq(user_2fa)
+      end
+
+      it 'does not enqueue the job when 2fa fails' do
+        expect { post user_session_path(user: { otp_attempt: '-1' }) }.
+          to_not change(Delayed::Job, :count)
+      end
+    end
+
+    context 'with timing mitigation' do
+      it 'runs end_time_log for an incorrect 2fa attempt' do
+        expect_any_instance_of(Users::SessionsController).to receive(:end_time_log)
+
+        post user_session_path(user: { otp_attempt: '-1' })
+      end
+
+      it 'runs end_time_log for a correct 2fa attempt' do
+        expect_any_instance_of(Users::SessionsController).to receive(:end_time_log)
+
+        post user_session_path(user: { otp_attempt: user_2fa.current_otp })
+      end
+    end
+
     describe 'User does not remember 2FA device' do
       before(:each) do
         post user_session_path(user: { otp_attempt: user_2fa.current_otp, remember_device: nil })
@@ -217,6 +266,63 @@ RSpec.describe Users::SessionsController, type: :request do
           expect(response).to render_template('devise/sessions/two_factor')
         end
       end
+
+      it 'enqueues the external reporting permissions job on the bypass login' do
+        expect { post user_session_path(user: { email: user_2fa.email, password: user_2fa.password }) }.
+          to change(Delayed::Job, :count).by(1)
+      end
+    end
+  end
+
+  describe 'Login from a remembered 2FA device' do
+    # Builds the device row and encrypted cookie directly instead of running the remember flow.
+    before do
+      GrdaWarehouse::Config.first_or_create!.update!(bypass_2fa_duration: 30)
+      GrdaWarehouse::Config.invalidate_cache
+
+      device = user_2fa.two_factors_memorized_devices.create!(
+        uuid: SecureRandom.uuid,
+        name: 'Test',
+        session_id: 'x',
+        log_in_ip: '127.0.0.1',
+        expires_at: 30.days.from_now,
+      )
+      jar = ActionDispatch::Request.new(Rails.application.env_config.deep_dup).cookie_jar
+      jar.encrypted[:memorized_device] = device.uuid
+      cookies[:memorized_device] = jar[:memorized_device]
+    end
+
+    after do
+      GrdaWarehouse::Config.delete_all
+      GrdaWarehouse::Config.invalidate_cache
+    end
+
+    it 'rejects a wrong password and creates no session' do
+      post user_session_path(user: { email: user_2fa.email, password: 'incorrect' })
+
+      expect(response).to render_template('devise/sessions/new')
+      expect(response.body).to include 'Invalid email or password.'
+      # be_positive rather than an exact count; see the double increment bug noted above
+      expect(user_2fa.reload.failed_attempts).to be_positive
+
+      # keepalive and root_path both return 200 when signed out, so check the Warden session directly
+      expect(session['warden.user.user.key']).to be_nil
+    end
+
+    it 'signs in with the correct password without an OTP prompt' do
+      post user_session_path(user: { email: user_2fa.email, password: user_2fa.password })
+
+      expect(response).to_not render_template('devise/sessions/two_factor')
+      expect(response).to have_http_status(:redirect)
+      expect(session['warden.user.user.key']).to be_present
+    end
+  end
+
+  describe 'Login with 2FA enabled, prompting for a 2fa code' do
+    it 'runs end_time_log' do
+      expect_any_instance_of(Users::SessionsController).to receive(:end_time_log)
+
+      post user_session_path(user: { email: user_2fa.email, password: user_2fa.password })
     end
   end
 
@@ -253,8 +359,76 @@ RSpec.describe Users::SessionsController, type: :request do
         identity = create(:oauth_identity, user: user)
         post user_session_path(user: { email: user.email, password: user.password })
         expect(response).to have_http_status(:success)
-        expect(response.body).to include 'Invalid Email or password'
+        expect(response.body).to include 'Invalid email or password.'
         identity.destroy!
+      end
+    end
+  end
+
+  describe 'keepalive' do
+    # The inactivity modal posts the keepalive as an XHR
+    def keepalive
+      post session_keepalive_path, xhr: true
+    end
+
+    it 'rejects a request with no signed-in user' do
+      keepalive
+      expect(response).to have_http_status(:unauthorized)
+    end
+
+    context 'when signed in' do
+      # sign_in takes effect on the next request, which starts the inactivity clock
+      before do
+        sign_in user
+        get root_path
+      end
+
+      # root_path renders 200 for anonymous visitors too, so the keepalive itself is the signed-in check
+      it 'extends the session past the original timeout' do
+        travel(Devise.timeout_in - 5.minutes) { keepalive }
+        expect(response).to have_http_status(:ok)
+
+        travel(Devise.timeout_in + 5.minutes) do
+          keepalive
+          expect(response).to have_http_status(:ok)
+        end
+      end
+
+      it 'does not let other XHRs extend the session' do
+        travel(Devise.timeout_in - 5.minutes) { get root_path, xhr: true }
+        expect(response).to have_http_status(:ok)
+
+        travel(Devise.timeout_in + 5.minutes) do
+          keepalive
+          expect(response).to have_http_status(:unauthorized)
+        end
+      end
+
+      it 'does not revive a session that has already timed out' do
+        travel(Devise.timeout_in + 1.minute) do
+          keepalive
+          expect(response).to have_http_status(:unauthorized)
+
+          keepalive
+          expect(response).to have_http_status(:unauthorized)
+        end
+      end
+    end
+  end
+
+  describe 'session expiry display' do
+    before do
+      sign_in user
+      get root_path
+    end
+
+    # Every full page load bumps last_request_at to now, so this pins the Warden session key the
+    # helper reads; DeviseCurrentUser's spec covers the arithmetic against an older last_request_at.
+    it "renders the expiry from Devise's Warden-scoped last_request_at" do
+      freeze_time do
+        get root_path
+        expected = (Time.current + Devise.timeout_in).strftime('%l:%M:%S %P')
+        expect(response.body).to include(expected)
       end
     end
   end

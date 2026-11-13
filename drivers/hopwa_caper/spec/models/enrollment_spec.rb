@@ -1,10 +1,10 @@
-# frozen_string_literal: true
-
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 require 'rails_helper'
 require_relative 'generators/fy2026/hopwa_caper_shared_context'
@@ -18,6 +18,7 @@ RSpec.describe HopwaCaper::Enrollment, type: :model do
     create(:hud_enrollment, client: client, project: project, data_source: data_source, entry_date: report_start_date + 1.day)
   end
   let(:report) { create_report([project]) }
+  let(:cost_calculator) { ->(_project, _range) { 0 } }
 
   describe '.from_hud_record' do
     context 'with income_benefits records' do
@@ -67,6 +68,7 @@ RSpec.describe HopwaCaper::Enrollment, type: :model do
             enrollment: hud_enrollment,
             report: report,
             client: client,
+            cost_calculator: cost_calculator,
           )
 
           # Should use latest_income_benefit values only
@@ -110,6 +112,7 @@ RSpec.describe HopwaCaper::Enrollment, type: :model do
             enrollment: hud_enrollment,
             report: report,
             client: client,
+            cost_calculator: cost_calculator,
           )
 
           # Should only use within_range_benefit
@@ -138,6 +141,7 @@ RSpec.describe HopwaCaper::Enrollment, type: :model do
             enrollment: hud_enrollment,
             report: report,
             client: client,
+            cost_calculator: cost_calculator,
           )
 
           expect(enrollment.medical_insurance_types).to contain_exactly('NoInsuranceSource')
@@ -151,6 +155,7 @@ RSpec.describe HopwaCaper::Enrollment, type: :model do
             enrollment: hud_enrollment,
             report: report,
             client: client,
+            cost_calculator: cost_calculator,
           )
 
           expect(enrollment.medical_insurance_types).to be_empty
@@ -180,6 +185,7 @@ RSpec.describe HopwaCaper::Enrollment, type: :model do
             enrollment: hud_enrollment,
             report: report,
             client: client,
+            cost_calculator: cost_calculator,
           )
 
           expect(enrollment.hiv_positive).to be(true)
@@ -208,6 +214,7 @@ RSpec.describe HopwaCaper::Enrollment, type: :model do
             enrollment: hud_enrollment,
             report: report,
             client: client,
+            cost_calculator: cost_calculator,
           )
 
           expect(enrollment.hiv_positive).to be(false)
@@ -249,6 +256,7 @@ RSpec.describe HopwaCaper::Enrollment, type: :model do
             enrollment: hud_enrollment,
             report: report,
             client: client,
+            cost_calculator: cost_calculator,
           )
 
           expect(enrollment.hiv_positive).to be(true)
@@ -263,6 +271,7 @@ RSpec.describe HopwaCaper::Enrollment, type: :model do
             enrollment: hud_enrollment,
             report: report,
             client: client,
+            cost_calculator: cost_calculator,
           )
 
           expect(enrollment.hiv_positive).to be(false)

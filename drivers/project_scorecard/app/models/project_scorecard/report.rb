@@ -1,12 +1,12 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 # frozen_string_literal: true
 
-# @see docs/features/project-scorecard.md
+# @see docs/features/warehouse/project-scorecard.md
 module ProjectScorecard
   class Report < GrdaWarehouseBase
     include Rails.application.routes.url_helpers
@@ -33,8 +33,29 @@ module ProjectScorecard
     has_many :project_group_project_contacts, through: :project_group, source: :contacts
     has_many :project_group_organization_contacts, through: :project_group, source: :organization_contacts
 
+    scope :viewable_by, ->(user) do
+      return all if user.can_view_all_reports?
+      return none unless user.can_view_assigned_reports?
+
+      project_ids = contact_project_ids(user)
+      group_ids = GrdaWarehouse::ProjectGroup.joins(:projects).
+        where(GrdaWarehouse::Hud::Project.table_name => { id: project_ids }).
+        select(:id)
+      where(user_id: user.id).
+        or(where(project_id: project_ids)).
+        or(where(project_group_id: group_ids))
+    end
+
+    # Projects where the user is a project contact or a contact on the project's organization
+    def self.contact_project_ids(user)
+      projects = GrdaWarehouse::Hud::Project.left_outer_joins(:organization)
+      projects.where(id: GrdaWarehouse::Contact::Project.where(user_id: user.id).select(:entity_id)).
+        or(projects.where(GrdaWarehouse::Hud::Organization.table_name => { id: GrdaWarehouse::Contact::Organization.where(user_id: user.id).select(:entity_id) })).
+        select(:id)
+    end
+
     scope :started_between, ->(start_date:, end_date:) do
-      where(started_at: (start_date..end_date))
+      where(started_at: start_date.in_time_zone.beginning_of_day..end_date.in_time_zone.end_of_day)
     end
 
     def completed?
@@ -205,97 +226,95 @@ module ProjectScorecard
       # end
       assessment_answers = {}
 
-      if RailsDrivers.loaded.include?(:hud_apr)
-        # Generate APR
-        filter = ::Filters::HudFilterBase.new(user_id: user_id)
-        if project_id.present?
-          project_ids = [project_id]
-        else
-          project_ids = GrdaWarehouse::ProjectGroup.viewable_by(User.find(user_id)).find(project_group_id).projects.pluck(:id)
-        end
-        coc_codes = GrdaWarehouse::Hud::ProjectCoc.joins(:project).
-          merge(GrdaWarehouse::Hud::Project.where(id: project_ids)).
-          distinct.
-          pluck(GrdaWarehouse::Hud::ProjectCoc.coc_code_coalesce)
-        filter.set_from_params(
-          {
-            start: start_date,
-            end: end_date,
-            project_ids: project_ids,
-            coc_codes: coc_codes,
-          },
-        )
-        questions = [
-          'Question 5',
-          'Question 6',
-          'Question 8',
-          'Question 19',
-          'Question 22',
-          'Question 23',
-          'Question 26',
-        ]
-        generator = apr_generator
-        apr = HudReports::ReportInstance.from_filter(filter, generator.title, build_for_questions: questions)
-        generator.new(apr).run!(email: false, manual: false)
-
-        raise 'APR not completed' unless apr.reload.completed?
-
-        assessment_answers.merge!(
-          {
-            apr_id: apr.id,
-
-            utilization_jan: answer(apr, 'Q8b', 'B2'),
-            utilization_apr: answer(apr, 'Q8b', 'B3'),
-            utilization_jul: answer(apr, 'Q8b', 'B4'),
-            utilization_oct: answer(apr, 'Q8b', 'B5'),
-
-            chronic_households_served: answer(apr, 'Q26a', 'B2'),
-            total_households_served: answer(apr, 'Q26a', 'B6'),
-
-            total_persons_served: answer(apr, 'Q5a', 'B2'),
-            total_persons_with_positive_exit: answer(apr, 'Q23c', 'B41'),
-            total_persons_exited: answer(apr, 'Q23c', 'B40'),
-            excluded_exits: answer(apr, 'Q23c', 'B42'),
-
-            average_los_leavers: answer(apr, 'Q22b', 'B2'),
-
-            percent_pii_errors: answer(apr, 'Q6a', pii_error_cell).to_f * 100,
-
-            days_to_lease_up: answer(apr, 'Q22c', 'B12'),
-          },
-        )
-
-        # Percent increased income calculations
-
-        leavers_or_annual_expected_with_employment_income = answer(apr, 'Q19a1', 'H2') + answer(apr, 'Q19a2', 'H2')
-        increased_employment_income = answer(apr, 'Q19a1', 'I2') + answer(apr, 'Q19a2', 'I2')
-        percent_increased_employment_income_at_exit = percentage(increased_employment_income / leavers_or_annual_expected_with_employment_income.to_f)
-
-        leavers_or_annual_expected_with_other_income = answer(apr, 'Q19a1', 'H4') + answer(apr, 'Q19a2', 'H4')
-        increased_other_income = answer(apr, 'Q19a1', 'I4') + answer(apr, 'Q19a2', 'I4')
-        percent_increased_other_cash_income_at_exit = percentage(increased_other_income / leavers_or_annual_expected_with_other_income.to_f)
-
-        # Data quality calculations
-        total_clients_served = answer(apr, 'Q5a', 'B2')
-
-        # need unique count of client_ids not, sum of counts since someone might appear more than once
-        total_ude_errors = (2..6).map { |row| answer_client_ids(apr, 'Q6b', 'B' + row.to_s) }.flatten.uniq.count
-        percent_ude_errors = percentage(total_ude_errors / total_clients_served.to_f)
-
-        # Include adults, leavers, and all HoHs in denominators
-        denominator = [3, 6, 15, 17].map { |row| answer_client_ids(apr, 'Q5a', 'B' + row.to_s) }.flatten.uniq.count
-        total_income_and_housing_errors = (2..5).map { |row| answer_client_ids(apr, 'Q6c', 'B' + row.to_s) }.flatten.uniq.count
-        percent_income_and_housing_errors = percentage(total_income_and_housing_errors / denominator.to_f)
-
-        assessment_answers.merge!(
-          {
-            percent_increased_employment_income_at_exit: percent_increased_employment_income_at_exit,
-            percent_increased_other_cash_income_at_exit: percent_increased_other_cash_income_at_exit,
-            percent_ude_errors: percent_ude_errors,
-            percent_income_and_housing_errors: percent_income_and_housing_errors,
-          },
-        )
+      # Generate APR
+      filter = ::Filters::HudFilterBase.new(user_id: user_id)
+      if project_id.present?
+        project_ids = [project_id]
+      else
+        project_ids = GrdaWarehouse::ProjectGroup.viewable_by(User.find(user_id)).find(project_group_id).projects.pluck(:id)
       end
+      coc_codes = GrdaWarehouse::Hud::ProjectCoc.joins(:project).
+        merge(GrdaWarehouse::Hud::Project.where(id: project_ids)).
+        distinct.
+        pluck(GrdaWarehouse::Hud::ProjectCoc.coc_code_coalesce)
+      filter.set_from_params(
+        {
+          start: start_date,
+          end: end_date,
+          project_ids: project_ids,
+          coc_codes: coc_codes,
+        },
+      )
+      questions = [
+        'Question 5',
+        'Question 6',
+        'Question 8',
+        'Question 19',
+        'Question 22',
+        'Question 23',
+        'Question 26',
+      ]
+      generator = apr_generator
+      apr = HudReports::ReportInstance.from_filter(filter, generator.title, build_for_questions: questions)
+      generator.new(apr).run!(email: false, manual: false)
+
+      raise 'APR not completed' unless apr.reload.completed?
+
+      assessment_answers.merge!(
+        {
+          apr_id: apr.id,
+
+          utilization_jan: answer(apr, 'Q8b', 'B2'),
+          utilization_apr: answer(apr, 'Q8b', 'B3'),
+          utilization_jul: answer(apr, 'Q8b', 'B4'),
+          utilization_oct: answer(apr, 'Q8b', 'B5'),
+
+          chronic_households_served: answer(apr, 'Q26a', 'B2'),
+          total_households_served: answer(apr, 'Q26a', 'B6'),
+
+          total_persons_served: answer(apr, 'Q5a', 'B2'),
+          total_persons_with_positive_exit: answer(apr, 'Q23c', 'B41'),
+          total_persons_exited: answer(apr, 'Q23c', 'B40'),
+          excluded_exits: answer(apr, 'Q23c', 'B42'),
+
+          average_los_leavers: answer(apr, 'Q22b', 'B2'),
+
+          percent_pii_errors: answer(apr, 'Q6a', pii_error_cell).to_f * 100,
+
+          days_to_lease_up: answer(apr, 'Q22c', 'B12'),
+        },
+      )
+
+      # Percent increased income calculations
+
+      leavers_or_annual_expected_with_employment_income = answer(apr, 'Q19a1', 'H2') + answer(apr, 'Q19a2', 'H2')
+      increased_employment_income = answer(apr, 'Q19a1', 'I2') + answer(apr, 'Q19a2', 'I2')
+      percent_increased_employment_income_at_exit = percentage(increased_employment_income / leavers_or_annual_expected_with_employment_income.to_f)
+
+      leavers_or_annual_expected_with_other_income = answer(apr, 'Q19a1', 'H4') + answer(apr, 'Q19a2', 'H4')
+      increased_other_income = answer(apr, 'Q19a1', 'I4') + answer(apr, 'Q19a2', 'I4')
+      percent_increased_other_cash_income_at_exit = percentage(increased_other_income / leavers_or_annual_expected_with_other_income.to_f)
+
+      # Data quality calculations
+      total_clients_served = answer(apr, 'Q5a', 'B2')
+
+      # need unique count of client_ids not, sum of counts since someone might appear more than once
+      total_ude_errors = (2..6).map { |row| answer_client_ids(apr, 'Q6b', 'B' + row.to_s) }.flatten.uniq.count
+      percent_ude_errors = percentage(total_ude_errors / total_clients_served.to_f)
+
+      # Include adults, leavers, and all HoHs in denominators
+      denominator = [3, 6, 15, 17].map { |row| answer_client_ids(apr, 'Q5a', 'B' + row.to_s) }.flatten.uniq.count
+      total_income_and_housing_errors = (2..5).map { |row| answer_client_ids(apr, 'Q6c', 'B' + row.to_s) }.flatten.uniq.count
+      percent_income_and_housing_errors = percentage(total_income_and_housing_errors / denominator.to_f)
+
+      assessment_answers.merge!(
+        {
+          percent_increased_employment_income_at_exit: percent_increased_employment_income_at_exit,
+          percent_increased_other_cash_income_at_exit: percent_increased_other_cash_income_at_exit,
+          percent_ude_errors: percent_ude_errors,
+          percent_income_and_housing_errors: percent_income_and_housing_errors,
+        },
+      )
 
       assessment_answers.merge!(
         {
@@ -375,8 +394,6 @@ module ProjectScorecard
     end
 
     private def percent_returns_to_homelessness_from_spm(project_ids)
-      return unless RailsDrivers.loaded.include?(:hud_spm_report)
-
       project_row = if key_project.so?
         '2'
       elsif key_project.es?
@@ -391,8 +408,9 @@ module ProjectScorecard
         '7'
       end
 
-      number_of_exits = answer(spm_report(project_ids), '2', 'B' + project_row)
-      number_of_returns = answer(spm_report(project_ids), '2', 'I' + project_row)
+      spm_table = HudSpmReport::Generators::Fy2026::MeasureTwo::TABLE_NAME
+      number_of_exits = answer(spm_report(project_ids), spm_table, 'B' + project_row)
+      number_of_returns = answer(spm_report(project_ids), spm_table, 'I' + project_row)
 
       return nil if number_of_exits.blank? || number_of_exits.zero?
 

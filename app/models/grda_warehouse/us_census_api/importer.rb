@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -99,6 +99,11 @@ module GrdaWarehouse
         Rails.cache.clear
       end
 
+      # From the 2020 vintage on, the API returns zip code GEO_IDs as 860Z200US#####.
+      def self.normalized_geoid(geoid)
+        geoid.to_s.sub(/\A860Z200US/, "#{::GrdaWarehouse::Shape::ZipCode._full_geoid_prefix}US")
+      end
+
       private
 
       def _all_levels
@@ -147,7 +152,7 @@ module GrdaWarehouse
         values = []
 
         results.each do |result|
-          full_geoid   = result.delete('GEO_ID')
+          full_geoid   = self.class.normalized_geoid(result.delete('GEO_ID'))
           _geo_name    = result.delete('name')
           _state       = result.delete('state')
           _county      = result.delete('county')
@@ -169,7 +174,7 @@ module GrdaWarehouse
             binding.irb if value.is_a?(String) # rubocop:disable Lint/Debugger
 
             # We don't harvest any value that could be negative.
-            # -666666666 shows up as a sentinal sometimes
+            # -666666666 shows up as a sentinel sometimes
             if value.present? && value >= 0
               values << [full_geoid, current_census_level, value, current_vars[variable], now]
             else
@@ -227,7 +232,7 @@ module GrdaWarehouse
                   current_vars.keys.each_slice(slice_size) do |vars|
                     where_clause[:fields] = vars + ['GEO_ID']
 
-                    cache_key = Digest::MD5.hexdigest([where_clause, state_fips].inspect)
+                    cache_key = Digest::MD5.hexdigest([where_clause, state_fips, current_year, current_dataset].inspect)
 
                     # enables restarting where we left off
                     if Rails.cache.read(cache_key)
@@ -251,7 +256,7 @@ module GrdaWarehouse
                     # there was an error, so cut the number of variables in half
                     self.slice_size /= 2
 
-                    Rails.logger.info "Retrying with slices of size #{self.slice_size}"
+                    Rails.logger.info "Retrying with slices of size #{slice_size}"
                   end
                 end
               end

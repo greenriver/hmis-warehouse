@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -25,7 +25,7 @@ module HmisCsvTwentyTwentySix::Importer
     scope :open_during_range, ->(range) do
       e_t = arel_table
       ex_t = HmisCsvTwentyTwentySix::Importer::Exit.arel_table
-      # convert the range into a standard range for backwards compatability
+      # convert the range into a standard range for backwards compatibility
       range = (range.start..range.end) if range.is_a?(::Filters::DateRange)
       d_1_start = range.first
       d_1_end = range.last
@@ -60,6 +60,33 @@ module HmisCsvTwentyTwentySix::Importer
           class: HmisCsvImporter::HmisCsvValidation::UniqueHudKey,
         },
       ]
+    end
+
+    def self.after_ingest!(data_source:, project_ids:)
+      return unless data_source.hmis?
+
+      populate_project_pk!(data_source_id: data_source.id, project_ids: project_ids)
+    end
+
+    # Sets project_pk for all enrollments in the imported projects (from Project.csv),
+    # regardless of export date range. HMIS requires project_pk on every enrollment
+    # in those projects, including rows unchanged by the import.
+    def self.populate_project_pk!(data_source_id:, project_ids:)
+      return if project_ids.blank?
+
+      e_t = warehouse_class.arel_table
+      # Note: If performance becomes an issue, this could be changed to raw SQL to avoid batching by project (eg '"Enrollment".project_pk = "Project".id')
+      project_ids.each_slice(250) do |project_ids_slice|
+        GrdaWarehouse::Hud::Project.
+          where(data_source_id: data_source_id, ProjectID: project_ids_slice).
+          pluck(:ProjectID, :id).
+          each do |project_id, project_pk|
+            warehouse_class.
+              where(data_source_id: data_source_id, ProjectID: project_id).
+              where(e_t[:project_pk].eq(nil).or(e_t[:project_pk].not_eq(project_pk))).
+              update_all(project_pk: project_pk)
+          end
+      end
     end
 
     def self.hmis_validations

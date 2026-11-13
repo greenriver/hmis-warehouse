@@ -32,9 +32,10 @@
       %tbody
         - st = GrdaWarehouse::Hud::Enrollment.arel_table
         - @clients.each do |client|
+          - pii = GrdaWarehouse::PiiProvider.new(client, policy: current_user.reporting_policy_for_project(project_id: nil, mode: :browse, client_id: client.id))
           %tr
-            %td= link_to_if can_view_clients?, client.LastName.tr(' ', '⎵'), appropriate_client_path(client)
-            %td= link_to_if can_view_clients?, client.FirstName.tr(' ', '⎵'), appropriate_client_path(client)
+            %td= link_to_if can_view_clients?, pii.last_name.to_s.tr(' ', '⎵'), appropriate_client_path(client)
+            %td= link_to_if can_view_clients?, pii.first_name.to_s.tr(' ', '⎵'), appropriate_client_path(client)
             %td= client.source_enrollments.where( st[:EntryDate].lt @date ).map{|m| "#{m.EntryDate} at #{m.try(:project).try(:name)}"}.join(', ')
             %td= client.source_clients.map{|m| m.data_source&.short_name}.uniq.join(', ')
 

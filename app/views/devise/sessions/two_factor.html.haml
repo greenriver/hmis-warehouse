@@ -15,11 +15,12 @@
       = f.button :submit, "Verify code"
 
 = content_for :page_js do
-  :javascript
-    $(".jRememberDevice").click(function() {
-      if ($(this).is(':checked')) {
-        $(".jDeviceName").show()
-      } else {
-        $(".jDeviceName").hide()
-      }
-    })
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      $(".jRememberDevice").click(function() {
+        if ($(this).is(':checked')) {
+          $(".jDeviceName").show()
+        } else {
+          $(".jDeviceName").hide()
+        }
+      })

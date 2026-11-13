@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -20,7 +20,10 @@ module Filters
     end
 
     def all_project_scope
-      GrdaWarehouse::Hud::Project.where(id: ServiceScanning::Service.distinct.select(:project_id)).viewable_by(user)
+      scanned_project_ids = ServiceScanning::Service.distinct.select(:project_id)
+      GrdaWarehouse::Hud::Project.
+        where(id: scanned_project_ids).
+        viewable_by(user, permission: :can_view_assigned_reports)
     end
 
     def default_start
@@ -44,10 +47,5 @@ module Filters
     def service_type_class
       ServiceScanning::Service.type_from_key(service_type).name
     end
-  end
-end
-
-module ServiceScanning::Filters
-  class Scan < ::Filters::Scan
   end
 end

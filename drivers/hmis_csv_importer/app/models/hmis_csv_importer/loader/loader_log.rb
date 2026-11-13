@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -13,6 +13,7 @@ module HmisCsvImporter::Loader
 
     self.table_name = 'hmis_csv_loader_logs'
     has_many :load_errors
+    has_many :row_processing_notes
 
     def successfully_loaded?
       status.to_s == 'loaded'

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -16,7 +16,6 @@ module DisabilitySummary::WarehouseReports
 
     before_action :require_can_access_some_version_of_clients!, only: [:details]
     before_action :set_report
-    before_action :set_pdf_export
 
     background_render_action(:render_section, ::BackgroundRender::DisabilitySummaryJob) do
       {
@@ -83,14 +82,6 @@ module DisabilitySummary::WarehouseReports
 
     private def filter_class
       ::Filters::FilterBase
-    end
-
-    private def set_pdf_export
-      @pdf_export = pdf_export_source.new
-    end
-
-    private def pdf_export_source
-      DisabilitySummary::DocumentExports::DisabilitySummaryExport
     end
   end
 end

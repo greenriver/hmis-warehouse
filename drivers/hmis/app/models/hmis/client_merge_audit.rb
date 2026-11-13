@@ -1,12 +1,12 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 # frozen_string_literal: true
 
-# See docs/features/hmis_client_merges.md
+# See docs/features/hmis/hmis-client-merges.md
 
 class Hmis::ClientMergeAudit < Hmis::HmisBase
   belongs_to :actor, class_name: 'Hmis::User'
@@ -78,6 +78,8 @@ class Hmis::ClientMergeAudit < Hmis::HmisBase
     'contact_points' => 'PersonalID',
     'custom_data_elements' => 'owner_id',
     'files' => 'client_id',
+    'ce_referrals' => 'client_id',
+    'client_alerts' => 'client_id',
     'mci_ids' => 'source_id',
     'mci_unique_ids' => 'source_id',
     'scan_cards' => 'client_id',

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -13,7 +13,6 @@ module GrdaWarehouse::Monitoring
     EMAIL_TYPES = ['metric_threshold_crossed', 'import_processing'].freeze
     METRIC_THRESHOLD_SUBJECT = 'Metric Threshold Monitoring Alert'
     IMPORT_PROCESSING_SUBJECT = 'HMIS Import Status Update'
-    THRESHOLD_SUBJECTS = [METRIC_THRESHOLD_SUBJECT, IMPORT_PROCESSING_SUBJECT].freeze
 
     belongs_to :user, optional: true
     belongs_to :message, optional: true
@@ -24,30 +23,20 @@ module GrdaWarehouse::Monitoring
 
     scope :for_user, ->(user_id) { where(user_id: user_id) }
     scope :recent_first, -> { order(sent_at: :desc) }
+    scope :successfully_delivered, -> { where(delivery_failed: false) }
+    scope :metric_threshold, -> { where(email_type: 'metric_threshold_crossed') }
+    scope :sent_on, ->(date) { where(sent_at: date.all_day) }
 
-    # Backfills ThresholdNotificationLog stubs from historical Message records for all users.
-    # Run from the console: GrdaWarehouse::Monitoring::ThresholdNotificationLog.backfill
-    # TODO: Remove after 2026-09-15 once historical messages are migrated.
-    def self.backfill
-      TodoOrDie('Remove threshold notification history backfill', by: Date.new(2026, 9, 15))
-      existing_message_ids = where.not(message_id: nil).pluck(:message_id).to_set
-
-      subject_filter = THRESHOLD_SUBJECTS.
-        map { |subj| Message.arel_table[:subject].matches("%#{subj}%") }.
-        reduce(:or)
-
-      Message.
-        where(subject_filter).
-        where.not(id: existing_message_ids).
-        find_each do |message|
-          create!(
-            user_id: message.user_id,
-            message_id: message.id,
-            email_type: subject_to_email_type(message.subject),
-            sent_at: message.created_at,
-            details: Monitoring::HistoricalNotificationParser.parse(message),
-          )
-        end
+    # Integer metric_ids the user was already successfully notified about on `date`.
+    # Used by NotifyMetricThresholdCrossingsJob to avoid re-sending the same crossing.
+    def self.notified_metric_ids_for(user_id:, date:)
+      for_user(user_id).
+        metric_threshold.
+        successfully_delivered.
+        sent_on(date).
+        flat_map(&:crossings).
+        filter_map { |crossing| crossing['metric_id'] }.
+        to_set
     end
 
     def metric_threshold_crossed?
@@ -60,10 +49,6 @@ module GrdaWarehouse::Monitoring
 
     def crossings
       details['crossings'] || []
-    end
-
-    private_class_method def self.subject_to_email_type(subject)
-      subject.include?(METRIC_THRESHOLD_SUBJECT) ? 'metric_threshold_crossed' : 'import_processing'
     end
   end
 end

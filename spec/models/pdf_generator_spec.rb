@@ -1,3 +1,9 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # frozen_string_literal: true
 
 require 'rails_helper'
@@ -52,6 +58,15 @@ RSpec.describe PdfGenerator, type: :model do
       end
 
       expect(yielded).to be true
+    end
+  end
+
+  describe 'MEASUREMENT_VIEWPORT' do
+    it 'pairs PRINTABLE_WIDTH_PX with PRINTABLE_HEIGHT_PX (not load-bearing, just tall)' do
+      expect(PdfGenerator::MEASUREMENT_VIEWPORT).to eq(
+        width: PdfGenerator::PRINTABLE_WIDTH_PX,
+        height: PdfGenerator::PRINTABLE_HEIGHT_PX,
+      )
     end
   end
 

@@ -1,10 +1,10 @@
-# frozen_string_literal: true
-
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 module GrdaWarehouse::Vispdat
   class Base < GrdaWarehouseBase
@@ -191,6 +191,7 @@ module GrdaWarehouse::Vispdat
     # Callbacks
     ####################
     before_save :calculate_score, :calculate_priority_score, :set_client_housing_release_status
+    after_commit :rebuild_client_roi_authorization, if: :saved_change_to_housing_release_confirmed?
     after_save :notify_users
     after_save :add_to_cohorts
 
@@ -216,8 +217,26 @@ module GrdaWarehouse::Vispdat
     def set_client_housing_release_status
       return unless housing_release_confirmed_changed?
 
-      status = housing_release_confirmed? ? GrdaWarehouse::Hud::Client.full_release_string : ''
+      status = if housing_release_confirmed?
+        GrdaWarehouse::Hud::Client.full_release_string
+      else
+        # A blank status makes the ROI rebuild clear the client's consent file columns
+        unexpired_consent_file&.consent_type || ''
+      end
       client.update_column :housing_release_status, status
+    end
+
+    # The daily expiry job keeps consent_form_id on the client, so an expired form can still be the active one
+    private def unexpired_consent_file
+      file = GrdaWarehouse::ClientFile.consent_forms.confirmed.find_by(id: client.consent_form_id)
+      return unless file
+
+      expires_on = file.calculated_expiration_date
+      file if expires_on.nil? || expires_on >= Date.current
+    end
+
+    def rebuild_client_roi_authorization
+      GrdaWarehouse::Tasks::GenerateClientRoiAuthorizationsTask.rebuild_clients([client_id])
     end
 
     def notify_users
@@ -623,7 +642,7 @@ module GrdaWarehouse::Vispdat
       # Wellness
       leave_due_to_health: 'Have you ever had to leave an apartment, shelter program, or other place you were staying because of your physical health?',
       chronic_health_issues: 'Do you have any chronic health issues with your liver, kidneys, stomach, lungs or heart?',
-      space_interest: 'If there was space available in a program that specically assists people that live with HIV or AIDS, would that be of interest to you?',
+      space_interest: 'If there was space available in a program that specifically assists people that live with HIV or AIDS, would that be of interest to you?',
       physical_disabilities: 'Do you have any physical disabilities that would limit the type of housing you could access, or would make it hard to live independently because you’d need help?',
       avoid_help: 'When you are sick or not feeling well, do you avoid getting help?',
       currently_pregnant: 'FOR FEMALE RESPONDENTS ONLY:  Are you currently pregnant?',

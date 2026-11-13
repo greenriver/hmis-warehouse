@@ -1,3 +1,9 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 wb = xlsx_package.workbook
 wb.add_worksheet(name: 'Projects') do |sheet|
   date_time = sheet.styles.add_style(num_fmt: Axlsx::NUM_FMT_YYYYMMDDHHMMSS)

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -22,6 +22,8 @@ RSpec.describe HudSpmReport::Adapters::ServiceHistoryEnrollmentFilter, type: :mo
   end
 
   def build_spm_report(filter_overrides = {})
+    grant_report_projects([project.id])
+
     filter = default_filter.dup
     filter.update({ project_ids: [project.id] }.merge(filter_overrides))
     report = HudReports::ReportInstance.from_filter(filter, 'System Performance Measures - FY 2026', build_for_questions: ['Measure 1'])

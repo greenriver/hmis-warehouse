@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -18,7 +18,7 @@ module Mutations
 
     def resolve(id:, input:)
       posting = HmisExternalApis::AcHmis::ReferralPosting.active.viewable_by(current_user).find(id)
-      handle_error('access denied') unless current_user.can_view_enrollment_details_for?(posting.project)
+      handle_error('access denied') unless policy_for(posting.project, policy_type: :hmis_project).can_view_enrollment_details?
       handle_error('referral not found') unless posting
       handle_error('connection not configured') if posting.from_link? && !HmisExternalApis::AcHmis::LinkApi.enabled?
 

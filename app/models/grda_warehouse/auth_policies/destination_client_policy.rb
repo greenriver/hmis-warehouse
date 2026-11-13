@@ -1,10 +1,10 @@
-# frozen_string_literal: true
-
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 class GrdaWarehouse::AuthPolicies::DestinationClientPolicy < GrdaWarehouse::AuthPolicies::BasePolicy
   # delegate some methods to source clients
@@ -15,9 +15,13 @@ class GrdaWarehouse::AuthPolicies::DestinationClientPolicy < GrdaWarehouse::Auth
     :can_view_full_dob,
     :can_view_full_ssn,
     :can_view_hiv_status,
+    :can_view_history_calendar,
+    :can_generate_homeless_verification_pdfs,
+    :can_mark_restricted,
   ].each do |permission|
     method_name = :"#{permission}?"
     define_method(method_name) do
+      context.preload_client(client.id)
       client.source_clients.any? do |source_client|
         # Skip sources that are also destinations. This shouldn't be necessary but avoids SystemStackError on bad data
         next if source_client.destination?(strict: true)
@@ -28,11 +32,17 @@ class GrdaWarehouse::AuthPolicies::DestinationClientPolicy < GrdaWarehouse::Auth
     memoize method_name
   end
 
+  # Hand-written, not delegated: a destination client with no visible source clients would
+  # otherwise return false via the delegation loop above and lose its masked SSN.
+  def can_view_partial_ssn?
+    true
+  end
+
   protected
 
   def validate_resource!(arg)
     ensure_arg_type!(arg, GrdaWarehouse::Hud::Client)
-    raise ArgumentError 'Must be a destination client' unless arg.destination?(strict: true)
+    raise ArgumentError, 'Must be a destination client' unless arg.destination?(strict: true)
   end
 
   def client

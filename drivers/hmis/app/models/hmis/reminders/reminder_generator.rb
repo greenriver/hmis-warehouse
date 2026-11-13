@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -128,7 +128,7 @@ module Hmis
         # client exited before the HoH anniversary
         return if enrollment.exit_date && enrollment.exit_date < hoh_anniversary
 
-        # a relevant assessment ocurred.
+        # a relevant assessment occurred.
         # FIXME: maybe we don't include assessments that occur after end_date? This might
         # encourage people to back-date assessments.
         # TODO: should we check for presence in window? This wont show a task if the enrollment has a recent annual,

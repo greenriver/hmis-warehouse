@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -116,6 +116,48 @@ RSpec.describe model, type: :model do
 
         after do
           user.access_groups = []
+        end
+      end
+    end
+
+    describe 'editability' do
+      editable_ids = ->(user) { model.editable_by(user).pluck(:id).sort }
+
+      describe 'ordinary user' do
+        it 'sees nothing' do
+          expect(model.editable_by(user).exists?).to be false
+        end
+      end
+
+      describe 'user assigned to a data source' do
+        it 'sees ds1, excluding ds2, with no role check on this path' do
+          expect(user.legacy_roles).to be_empty
+          user.add_viewable(ds1)
+          expect(editable_ids[user]).to eq ids[ds1]
+        end
+      end
+
+      describe 'user assigned to a project' do
+        it 'does not grant access to the project\'s data source, unlike viewable_by' do
+          user.add_viewable(p1)
+          expect(model.editable_by(user).exists?).to be false
+        end
+      end
+
+      describe 'user assigned via a shared group' do
+        let!(:shared_group) { create(:access_group) }
+
+        before do
+          shared_group.add_viewable(ds2)
+          user.access_groups = [shared_group]
+        end
+
+        after do
+          user.access_groups = []
+        end
+
+        it 'sees ds2 via the shared group, excluding ds1' do
+          expect(editable_ids[user]).to eq ids[ds2]
         end
       end
     end

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -80,6 +80,19 @@ RSpec.describe 'Client Audit History Query', type: :request do
       records = run_query(id: e1.id, filters: { enrollment_record_type: ['Hmis::Hud::Exit'] })
       expect(records.size).to eq(1)
       expect(records.dig(0, 'recordName')).to eq('Exit')
+    end
+  end
+
+  describe 'authorization' do
+    before(:each) { e1.update!(entry_date: today - 1.day) }
+
+    it 'denies access when the user cannot audit enrollments, even with enrollment details access' do
+      remove_permissions(access_control, :can_audit_enrollments)
+      expect_access_denied post_graphql(id: e1.id, filters: {}) { query }
+    end
+
+    it 'resolves audit history when the user can audit enrollments' do
+      expect(run_query(id: e1.id, filters: {})).to be_present
     end
   end
 end

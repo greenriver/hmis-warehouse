@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -90,6 +90,7 @@ RSpec.feature 'CE Unit Management', type: :system do
     with_user_impersonated(provider.id) do
       visit "/projects/#{target_project.id}/units"
       click_link 'Manage Unit Group SROs'
+      expect(page).to have_content('Displaying 2 of 2 units') # wait for the table to load before selecting rows
       expect(page).not_to have_button('Add Units') # Can view, but not add units
 
       # Can mark units available
@@ -97,6 +98,7 @@ RSpec.feature 'CE Unit Management', type: :system do
       select_all_checkbox.click
       click_button 'Start Accepting Referrals (2)'
       click_button 'Yes, start accepting referrals'
+      table = find('table') # re-find after the reload, shadow the outer `table`
       mui_table_expect('Accepting Referrals', row_index: 0, column_header: 'Referral Status', from: table)
       mui_table_expect('Accepting Referrals', row_index: 1, column_header: 'Referral Status', from: table)
 
@@ -119,11 +121,10 @@ RSpec.feature 'CE Unit Management', type: :system do
 
     # Admin can see the waitlist
     click_link 'Eligible Clients'
-    expect(page).to have_content('The eligible client list for this unit has not been generated yet.')
+    expect(page).to have_content('Eligible clients are still being calculated for this unit. Please check back later.')
 
     # Call the prioritization engine, then reload
     Hmis::Ce::Match::Engine.call(score_pool)
-    score_pool.update!(candidates_generated_at: Time.current)
     visit current_path
     click_link 'Eligible Clients'
 

@@ -1,10 +1,10 @@
-# frozen_string_literal: true
-
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 # health and domestic violence
 module GrdaWarehouse::Hud
@@ -12,7 +12,11 @@ module GrdaWarehouse::Hud
     include HudSharedScopes
     include ::HmisStructure::HealthAndDv
     include ::HmisStructure::Shared
-    include RailsDrivers::Extensions
+    # Extensions from drivers — see ADR 0007
+    include HmisCsvImporter::GrdaWarehouse::Hud::HealthAndDvExtension
+    include HmisCsvTwentyTwenty::GrdaWarehouse::Hud::HealthAndDvExtension
+    include HmisCsvTwentyTwentyFour::GrdaWarehouse::Hud::HealthAndDvExtension
+    include HmisCsvTwentyTwentySix::GrdaWarehouse::Hud::HealthAndDvExtension
 
     attr_accessor :source_id
 

@@ -31,5 +31,6 @@
       = render 'entity_column', entity: @cohorts, f: f
 
 - content_for :page_js do
-  :javascript
-    new App.ViewableEntities()
+  %script{ nonce: content_security_policy_nonce }
+    :plain
+      new App.ViewableEntities()

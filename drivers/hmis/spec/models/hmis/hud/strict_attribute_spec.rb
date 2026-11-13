@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -10,7 +10,7 @@ require 'rails_helper'
 
 RSpec.describe Hmis::Hud::Concerns::WithStrictAttributes, type: :feature do
   describe 'decimal attributes' do
-    let(:income_benefit) { create(:hmis_income_benefit) }
+    let(:income_benefit) { create(:hmis_income_benefit, income_from_any_source: true, earned: true, earned_amount: 1000) }
 
     [
       ['123.45', 123.45],

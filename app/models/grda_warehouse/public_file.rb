@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -9,15 +9,57 @@
 module GrdaWarehouse
   class PublicFile < GrdaWarehouse::File
     include ArelHelper
-    mount_uploader :file, FileUploader
+    has_one_attached :public_file, dependent: false
     acts_as_taggable
+
+    ALLOWED_CONTENT_TYPES = [
+      'image/jpeg',
+      'image/png',
+      'image/gif',
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'text/csv',
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'application/octet-stream',
+    ].freeze
 
     validates_presence_of :name
     validate :file_exists_and_not_too_large
+    validate :content_type_allowed, on: :create
+
+    def file_data
+      return public_file.download if public_file.attached?
+
+      content
+    end
 
     def file_exists_and_not_too_large
-      errors.add :file, 'No uploaded file found' if (content&.size || 0) < 100
-      errors.add :file, 'File size should be less than 4 MB' if (content&.size || 0) > 4.megabytes
+      size = if public_file.attached?
+        public_file.byte_size
+      else
+        content&.size
+      end
+      errors.add :file, 'No uploaded file found' if (size || 0) < 100
+      errors.add :file, 'File size should be less than 4 MB' if (size || 0) > 4.megabytes
+    end
+
+    # A client-supplied MIME type can be spoofed. ActiveStorage derives the blob's
+    # content type from the actual bytes, so validate and store that instead.
+    def detected_content_type
+      return content_type unless public_file.attached?
+
+      public_file.blob&.content_type || content_type
+    end
+
+    def content_type_allowed
+      return unless public_file.attached?
+
+      detected = detected_content_type
+      return if ALLOWED_CONTENT_TYPES.include?(detected)
+
+      errors.add(:file, "You are not allowed to upload #{detected} files")
     end
 
     def self.known_locations
@@ -25,19 +67,7 @@ module GrdaWarehouse
         'client/hmis_consent' => Translation.translate('HMIS Consent Form'), #  app/controllers/clients/files_controller.rb
         'client/chronic_homelessness_verification' => Translation.translate('Verification of Chronic Homelessness'), # app/controllers/clients/files_controller.rb,
         'client/disability_verification' => Translation.translate('Verification of Disability'), # app/controllers/clients/files_controller.rb,
-        'patient/release' => Translation.translate('Patient Signature Form'), # app/controllers/health/release_forms_controller.rb
-        'patient/directed_release' => Translation.translate('Verbal (Directed) Signature Form'), # app/controllers/health/release_forms_controller.rb
-        'patient/release_spanish' => Translation.translate('Spanish Patient Signature Form'), # app/controllers/health/release_forms_controller.rb
-        'patient/directed_release_spanish' => Translation.translate('Spanish Verbal (Directed) Signature Form'), # app/controllers/health/release_forms_controller.rb
-        'patient/participation' => Translation.translate('Participation Form [Unused]'), # app/controllers/health/participation_forms_controller.rb
-        'patient/participation_spanish' => Translation.translate('Participation Form (SPANISH) [Unused]'), # app/controllers/health/participation_forms_controller.rb
-        'patient/directed_participation' => Translation.translate('Patient Directed Participation Form [Unused]'), # app/controllers/health/participation_forms_controller.rb
-        'patient/ssm' => Translation.translate('SSM Form'), # app/controllers/health/self_sufficiency_matrix_forms_controller.rb.rb
-        'patient/cha' => Translation.translate('CHA Form'), # app/controllers/health/comprehensive_health_assessments_controller.rb
-        'patient/care_plan' => Translation.translate('Care Plan Form'), # app/controllers/health/careplans_controller.rb
-        'patient/case_management_note' => Translation.translate('Case Management Note Form'), # app/controllers/health/sdh_case_management_note.rb,
         'client/releases/coc_map' => Translation.translate('CoC Map (png)'), # app/controllers/clients/releases_controller.rb
-        'patient/careplan_logo' => Translation.translate('Careplan Logo'), # drivers/health_pctp/app/controllers/health_pctp/careplans_controller.rb
       }
     end
 
@@ -50,7 +80,7 @@ module GrdaWarehouse
     end
 
     def self.url_for_location location
-      if (id = order(id: :desc).where(name: location).pluck(:id)&.first) # rubocop:disable Style/GuardClause:
+      if (id = order(id: :desc).where(name: location).pluck(:id)&.first)
         Rails.application.routes.url_helpers.public_file_path(id: id)
       end
     end

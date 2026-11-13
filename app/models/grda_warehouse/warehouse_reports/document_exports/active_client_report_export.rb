@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -15,6 +15,14 @@ module GrdaWarehouse::WarehouseReports::DocumentExports
 
     protected def report
       @report ||= report_class.new(filter: filter, user: user)
+    end
+
+    protected def filter
+      @filter ||= begin
+        filters = params['filters']
+        filter_params = filters.present? ? filters.slice(*ClientDetailReports.permitted_filter_keys.map(&:to_s)) : ClientDetailReports.default_filter_params
+        ClientDetailReports.build_filter(user_id: user.id, filter_params: filter_params)
+      end
     end
 
     protected def view_assigns

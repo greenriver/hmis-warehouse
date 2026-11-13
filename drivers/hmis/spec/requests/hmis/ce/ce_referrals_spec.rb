@@ -1,3 +1,9 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # frozen_string_literal: true
 
 require_relative '../../../support/ce_spec_helper'
@@ -22,6 +28,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             offset
             limit
             nodesCount
+            searchQueryId
             nodes {
               id
               status
@@ -108,6 +115,24 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         referrals = perform_referrals_query(**variables)
         expect(referrals.size).to eq(1)
         expect(referrals.first['status']).to eq('accepted')
+      end
+    end
+
+    context 'when filtering by assigned to current user' do
+      let!(:other_user) { create(:hmis_user, data_source: ds1) }
+      let!(:referral_assigned_to_me) { create(:hmis_ce_referral, project: project, data_source: ds1) }
+      let!(:referral_assigned_to_other) { create(:hmis_ce_referral, project: project, data_source: ds1) }
+      let!(:referral_with_completed_step) { create(:hmis_ce_referral, project: project, data_source: ds1) }
+
+      before do
+        create(:hmis_wfe_step, instance: referral_assigned_to_me.workflow_instance, assignees: [hmis_user])
+        create(:hmis_wfe_step, instance: referral_assigned_to_other.workflow_instance, assignees: [other_user])
+        create(:hmis_wfe_step, instance: referral_with_completed_step.workflow_instance, assignees: [hmis_user], status: 'completed')
+      end
+
+      it 'returns only referrals with an open step assigned to the current user' do
+        referrals = perform_referrals_query(filters: { assignedToYou: true })
+        expect(referrals.map { |r| r['id'] }).to contain_exactly(referral_assigned_to_me.id.to_s)
       end
     end
 
@@ -202,6 +227,50 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         referrals = perform_referrals_query(**variables)
         expect(referrals.size).to eq(1)
         expect(referrals.first['id']).to eq(referral2.id.to_s)
+      end
+
+      describe 'searchQueryId persistence' do
+        it 'does not create a ClientSearchQuery when searchTerm is absent' do
+          expect do
+            response, result = post_graphql { query }
+            expect(response.status).to eq(200), result.inspect
+            expect(result.dig('data', 'ceReferrals', 'searchQueryId')).to be_nil
+          end.not_to change(Hmis::ClientSearchQuery, :count)
+        end
+
+        it 'creates a ClientSearchQuery and returns searchQueryId when searching by name' do
+          expect do
+            response, result = post_graphql(filters: { searchTerm: 'Wonderland' }) { query }
+            expect(response.status).to eq(200), result.inspect
+
+            expect(result.dig('data', 'ceReferrals', 'nodes')).to contain_exactly(
+              a_hash_including('id' => referral1.id.to_s),
+            )
+
+            query_id = result.dig('data', 'ceReferrals', 'searchQueryId')
+            expect(query_id).to be_present
+
+            search_query = Hmis::ClientSearchQuery.find(query_id)
+            expect(search_query.params).to eq('text_search' => 'Wonderland')
+            expect(search_query.created_by).to eq(hmis_user)
+            expect(search_query.data_source_id).to eq(ds1.id)
+          end.to change(Hmis::ClientSearchQuery, :count).by(1)
+        end
+
+        it 'reuses an existing ClientSearchQuery for the same term and user' do
+          existing = create(
+            :hmis_client_search_query,
+            created_by: hmis_user,
+            data_source: ds1,
+            params: { 'text_search' => 'Wonderland' },
+          )
+
+          expect do
+            response, result = post_graphql(filters: { searchTerm: 'Wonderland' }) { query }
+            expect(response.status).to eq(200), result.inspect
+            expect(result.dig('data', 'ceReferrals', 'searchQueryId')).to eq(existing.id)
+          end.not_to change(Hmis::ClientSearchQuery, :count)
+        end
       end
     end
 

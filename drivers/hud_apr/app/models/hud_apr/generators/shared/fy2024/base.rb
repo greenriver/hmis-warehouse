@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -613,7 +613,9 @@ module HudApr::Generators::Shared::Fy2024
             relationship_to_hoh: enrollment.enrollment.relationship_to_hoh,
           }
         end
-        [pit_date, enrollments_for_date]
+        # Explicit ISO key: the Q7b/Q8b queries look it up with pit_date.iso8601, and a bare Date
+        # key would be encoded via Date#to_s ("Jan 29, 2025", see legacy_rails_conversions.rb)
+        [pit_date.iso8601, enrollments_for_date]
       end.to_h.select { |_, v| v.present? }
     end
 
@@ -753,7 +755,7 @@ module HudApr::Generators::Shared::Fy2024
         # because we are using a preload, we don't filter earlier events in the SQL, make sure they all occur
         # on or after the report start
         next false if event.EventDate <= @report.start_date
-        # Everyone _should_ have a CE Assessment, but occassionally we get someone who doesn't have one
+        # Everyone _should_ have a CE Assessment, but occasionally we get someone who doesn't have one
         next false if latest_ce_assessment.blank? || latest_ce_assessment.AssessmentDate.blank?
 
         # 2.a [Date of event] >= [date of assessment] from step 1

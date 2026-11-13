@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -63,6 +63,16 @@ module HudApr::Fy2020
         Arel::Nodes::NamedFunction.new('CAST', [table[:client_id].as('TEXT')]),
         Arel::Nodes::NamedFunction.new('CAST', [table[:destination_client_id].as('TEXT')]),
       ]
+    end
+
+    def self.pii_search_columns
+      table = arel_table
+      [table[:first_name], table[:last_name], table[:ssn]]
+    end
+
+    def self.restricted_client_id_columns
+      table = arel_table
+      [table[:client_id], table[:destination_client_id]]
     end
 
     def self.pluck_project_ids

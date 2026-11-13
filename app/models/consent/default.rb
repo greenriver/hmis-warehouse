@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -53,6 +53,11 @@ class Consent::Default
 
   def self.release_string_query
     GrdaWarehouse::Hud::Client.arel_table[:housing_release_status].matches("%#{full_release_string}")
+  end
+
+  # A partial release is CAS-only and does not make a client visible in the warehouse
+  def self.visible_roi_statuses
+    [GrdaWarehouse::ClientRoiAuthorization::FULL_STATUS]
   end
 
   def release_current_status

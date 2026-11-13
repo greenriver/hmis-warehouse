@@ -1,3 +1,9 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # frozen_string_literal: true
 
 #
@@ -40,6 +46,14 @@ module Hmis::Ce::Match
 
     scope :active, -> {
       joins(:unit_groups).merge(Hmis::UnitGroup.with_ce_waitlists_enabled).distinct
+    }
+
+    scope :in_data_source, ->(data_source_id) {
+      joins(:unit_groups).merge(Hmis::UnitGroup.in_data_source(data_source_id)).distinct
+    }
+
+    scope :in_project_group, ->(project_group_id) {
+      joins(:unit_groups).merge(Hmis::UnitGroup.in_project_group(project_group_id)).distinct
     }
 
     def self.mark_all_dirty

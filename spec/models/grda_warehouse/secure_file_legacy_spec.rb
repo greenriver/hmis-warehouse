@@ -1,3 +1,9 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # frozen_string_literal: true
 
 require 'rails_helper'
@@ -24,16 +30,16 @@ RSpec.describe GrdaWarehouse::SecureFile, type: :model do
 
   describe 'secure files have appropriate permissions' do
     it 'senders with no roles can\'t see the file after upload' do
-      expect(GrdaWarehouse::SecureFile.visible_by?(sender).count).to eq 0
+      expect(GrdaWarehouse::SecureFile.viewable_by(sender).count).to eq 0
     end
     it 'recipient can see one upload' do
-      expect(GrdaWarehouse::SecureFile.visible_by?(recipient).count).to eq 1
+      expect(GrdaWarehouse::SecureFile.viewable_by(recipient).count).to eq 1
     end
     it 'recipient can see the upload' do
-      expect(GrdaWarehouse::SecureFile.visible_by?(recipient).first.id).to eq file.id
+      expect(GrdaWarehouse::SecureFile.viewable_by(recipient).first.id).to eq file.id
     end
     it 'admin can see both files' do
-      expect(GrdaWarehouse::SecureFile.visible_by?(admin).count).to eq 2
+      expect(GrdaWarehouse::SecureFile.viewable_by(admin).count).to eq 2
     end
   end
 end

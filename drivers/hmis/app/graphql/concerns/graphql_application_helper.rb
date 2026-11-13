@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -41,7 +41,8 @@ module GraphqlApplicationHelper
   def data_source_client_preloader
     # memoize into context; data source relies on stable object identity
     context[:data_source_client_preloader] ||= ->(clients) {
-      client_ids = clients.compact.map(&:id)
+      # flatten because a has_many association loads a collection per record (e.g. loading all :source_clients on destination client)
+      client_ids = clients.flatten.compact.map(&:id)
       current_user.policy_context.preload_client_dependencies(client_ids)
     }
   end
@@ -79,10 +80,13 @@ module GraphqlApplicationHelper
     # Load all enrollments for the client
     enrollments = load_ar_association(client, :enrollments_with_exits)
 
+    # Perf optimization: preload project dependencies for enrollments, to avoid N+1 in policy check below
+    current_user.policy_context.preload_project_dependencies(enrollments.map(&:project_pk))
+
     # Filter to only enrollments the user has permission to see;
     # Filter down to open enrollments in the specified project on the specified date
     enrollments.filter do |en|
-      has_permission = current_permission?(permission: :can_view_enrollment_details, entity: en)
+      has_permission = current_user.policy_for(en, policy_type: :hmis_enrollment).can_view_details?
       has_permission && en.open_on_date?(open_on_date) && en.project_pk.to_s == project_id.to_s
     end.min_by { |e| [e.entry_date, e.id] }
   end
@@ -92,10 +96,11 @@ module GraphqlApplicationHelper
   # on any of the destination client's HMIS source clients (for the current HMIS data source).
   # If no viewable name is found, it returns nil.
   def load_destination_client_name(destination_client:)
-    source_clients = load_ar_association(destination_client, :hmis_source_clients)
+    source_clients = load_ar_client_association(destination_client, association_name: :hmis_source_clients).
+      filter { |client| client.data_source_id == current_user.hmis_data_source_id }
 
     source_clients.sort_by(&:id).find do |client|
-      current_permission?(permission: :can_view_clients, entity: client) && current_permission?(permission: :can_view_client_name, entity: client)
+      policy_for(client, policy_type: :hmis_client).can_view_name?
     end&.brief_name
   end
 

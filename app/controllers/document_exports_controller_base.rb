@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -7,7 +7,7 @@
 # frozen_string_literal: true
 
 #
-# @see docs/features/document-export.md
+# @see docs/features/warehouse/document-export.md
 
 class DocumentExportsControllerBase < ApplicationController
   def create
@@ -18,6 +18,7 @@ class DocumentExportsControllerBase < ApplicationController
         @export.save!
         export_job_class.perform_later(export_id: @export.id)
       end
+      log_item(@export)
       render json: serialize_export(@export)
     else
       not_authorized!
@@ -31,19 +32,28 @@ class DocumentExportsControllerBase < ApplicationController
   end
 
   def download
-    export = export_scope.find(params[:id])
-    if export.authorized?
-      raise ActiveRecord::RecordNotFound unless export.completed?
+    @export = export_scope.find(params[:id])
+    if @export.authorized?
+      raise ActiveRecord::RecordNotFound unless @export.completed?
 
+      log_item(@export)
       send_data(
-        export.file_data,
-        filename: export.filename,
-        type: export.mime_type,
+        @export.file_data,
+        filename: @export.filename,
+        type: @export.mime_type,
         disposition: :attachment,
       )
     else
       not_authorized!
     end
+  end
+
+  protected def title_for_create
+    @export&.type
+  end
+
+  protected def title_for_download
+    @export&.type
   end
 
   protected def find_or_create
@@ -85,9 +95,6 @@ class DocumentExportsControllerBase < ApplicationController
       'CoreDemographicsReport::DemographicSummary::DocumentExports::DemographicSummaryExport',
       'CoreDemographicsReport::DemographicSummary::DocumentExports::DemographicSummaryExcelExport',
       'ProjectPassFail::DocumentExports::ProjectPassFailExport',
-      'GrdaWarehouse::DocumentExports::BasePerformanceExport',
-      'Health::DocumentExports::HousingStatusChangesExport',
-      'Health::DocumentExports::AgencyPerformanceExport',
       'ProjectScorecard::DocumentExports::ScorecardExport',
       'BostonProjectScorecard::DocumentExports::ScorecardExport',
       'HudApr::DocumentExports::HudAprExport',
@@ -101,6 +108,7 @@ class DocumentExportsControllerBase < ApplicationController
       'PerformanceMeasurement::DocumentExports::ReportExport',
       'HomelessSummaryReport::DocumentExports::ReportExport',
       'GrdaWarehouse::WarehouseReports::DocumentExports::ActiveClientReportExport',
+      'GrdaWarehouse::WarehouseReports::DocumentExports::ActiveClientReportExcelExport',
       'BostonReports::DocumentExports::StreetToHomePdfExport',
       'BostonReports::DocumentExports::CommunityOfOriginPdfExport',
       'HmisDataQualityTool::DocumentExports::ReportExport',
@@ -108,9 +116,6 @@ class DocumentExportsControllerBase < ApplicationController
       'HmisDataQualityTool::DocumentExports::ReportExcelExport',
       'HmisDataQualityTool::DocumentExports::ReportByClientExcelExport',
       'SystemPathways::DocumentExports::ReportExport',
-      'HealthPctp::DocumentExports::HealthPctpPdfExport',
-      'HealthPctp::DocumentExports::HealthPctpSignaturePdfExport',
-      'HealthComprehensiveAssessment::DocumentExports::HealthCaPdfExport',
       'StartDateDq::DocumentExports::StartDateDqExcelExport',
       'ClientDocumentsReport::DocumentExports::ReportExcelExport',
       'InactiveClientReport::DocumentExports::ReportExcelExport',
@@ -123,6 +128,7 @@ class DocumentExportsControllerBase < ApplicationController
       'GrdaWarehouse::DocumentExports::AccessControlsAuditExport',
       'HudSpmReport::DocumentExports::CellDetailExport',
       'HudApr::DocumentExports::CellDetailExport',
+      'GrdaWarehouse::WarehouseReports::DocumentExports::ClientLookupExport',
     ]
   end
 end

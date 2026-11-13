@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -53,7 +53,8 @@ module LongitudinalSpm
     end
 
     def start
-      update(started_at: Time.current)
+      # A retry clears the failure left by the previous attempt
+      update(started_at: Time.current, failed_at: nil)
     end
 
     def complete
@@ -138,6 +139,13 @@ module LongitudinalSpm
       end
     end
 
+    # The backing SPMs whose data has been archived and purged from the database. Their
+    # results are still available here, but the metadata that holds the row and column
+    # labels is gone until the SPM data is restored.
+    def purged_spms
+      @purged_spms ||= spms.order(start_date: :asc).select { |spm| spm.hud_spm.purged? }
+    end
+
     def spm_describe(measure_or_table, cell = nil, row_col = :row)
       return spm_generator.describe_table(measure_or_table) if cell.blank?
 
@@ -146,6 +154,12 @@ module LongitudinalSpm
       return '' if spms.first&.hud_spm&.report_name == 'System Performance Measures - FY 2020'
 
       @sample_spm ||= spms.first.hud_spm # Just find one of the SPMs so we can get metadata
+
+      # A purged SPM keeps its completed state, but its report cells (and the metadata holding
+      # the row and column labels) are gone. Check before calling answer, which uses
+      # first_or_create and would write empty cells back into the purged SPM.
+      return '' if @sample_spm.purged?
+
       # Sometimes we get into a weird state where the SPMs didn't run, return so we don't throw errors
       return '' unless @sample_spm.completed?
 

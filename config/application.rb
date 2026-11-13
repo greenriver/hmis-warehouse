@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -15,9 +15,12 @@ require 'active_record_extended'
 #   * Note, we still use the deprecated behavior for date/time. It's preserved in config/initializers/legacy_rails_conversions.rb
 ENV['RAILS_DISABLE_DEPRECATED_TO_S_CONVERSION'] = 'true'
 
+require_relative '../lib/auth_method'
+
 # Require the gems listed in Gemfile, including any gems
 # you've limited to :test, :development, or :production.
-Bundler.require(*Rails.groups)
+# The :devise group is taken only on the Devise arm; see the group in Gemfile.
+Bundler.require(*Rails.groups, *(AuthMethod.devise? ? [:devise] : []))
 
 require_relative '../lib/util/id_protector'
 require_relative '../lib/util/rails_trusted_proxies_config'
@@ -28,7 +31,7 @@ require_relative '../lib/hud_reports/route_concerns'
 module OpenPath
   class Application < Rails::Application
     # Initialize configuration defaults for originally generated Rails version.
-    config.load_defaults 7.1
+    config.load_defaults 8.1
 
     # Continue to use config/secrets.yml. This is deprecated in rails > 7.0 but we don't want to move to
     # encrypted credentials, it's not appropriate for an open-source project
@@ -54,7 +57,8 @@ module OpenPath
     # config.autoload_lib(ignore: ['assets', 'tasks'])
 
     config.add_autoload_paths_to_load_path = false
-    config.autoload_paths << Rails.root.join('lib', 'devise')
+    # lib/devise subclasses Devise constants, so it loads only on the arm that requires the gem.
+    config.autoload_paths << Rails.root.join('lib', 'devise') if AuthMethod.devise?
 
     # ActionCable
     config.action_cable.mount_path = '/cable'
@@ -68,8 +72,34 @@ module OpenPath
 
     Rails.application.config.active_record.belongs_to_required_by_default = true
     # https://discuss.rubyonrails.org/t/cve-2022-32224-possible-rce-escalation-bug-with-serialized-columns-in-active-record/81017
-    # config.active_record.yaml_column_permitted_classes = [Symbol, Date, Time]
-    config.active_record.use_yaml_unsafe_load = true
+    # Audited via `rails audit:yaml_permitted_classes` (lib/tasks/audit_yaml_permitted_classes.rake)
+    # against production data across multiple environments — re-run that task against
+    # production data before widening this list.
+    # GrdaWarehouse::Cohort#column_state has its own additional per-column allow-list on top of
+    # this — see app/models/grda_warehouse/cohort.rb.
+    config.active_record.yaml_column_permitted_classes = [
+      Symbol, Date, Time, DateTime, ActiveSupport::TimeWithZone, ActiveSupport::TimeZone,
+      ActiveModel::Type::Binary::Data, BigDecimal
+    ]
+
+    # ActiveRecord encryption backs devise-two-factor 6.x's `otp_secret` column (new and
+    # re-enrolled 2FA secrets). Existing secrets remain in encrypted_otp_secret* and are
+    # read via User#legacy_otp_secret. Keys are derived from the existing ENCRYPTION_KEY so
+    # no new secrets need provisioning; set the AR_ENCRYPTION_* env vars to override.
+    if (encryption_root = ENV['ENCRYPTION_KEY']).present?
+      derive_ar_encryption_key = lambda do |label, override_env|
+        ENV[override_env].presence || OpenSSL::KDF.pbkdf2_hmac(
+          encryption_root,
+          salt: "ar-encryption:#{label}",
+          iterations: 2**16,
+          length: 32,
+          hash: 'sha256',
+        ).unpack1('H*')
+      end
+      config.active_record.encryption.primary_key = derive_ar_encryption_key.call('primary_key', 'AR_ENCRYPTION_PRIMARY_KEY')
+      config.active_record.encryption.deterministic_key = derive_ar_encryption_key.call('deterministic_key', 'AR_ENCRYPTION_DETERMINISTIC_KEY')
+      config.active_record.encryption.key_derivation_salt = derive_ar_encryption_key.call('key_derivation_salt', 'AR_ENCRYPTION_KEY_DERIVATION_SALT')
+    end
 
     # Use the responders controller from the responders gem
     config.app_generators.scaffold_controller :responders_controller
@@ -120,18 +150,59 @@ module OpenPath
 
     # additional library paths
     config.eager_load_paths << Rails.root.join('lib', 'util')
-    config.eager_load_paths << Rails.root.join('lib', 'devise')
+    config.eager_load_paths << Rails.root.join('lib', 'devise') if AuthMethod.devise?
+
+    # Each of these subclasses a Devise constant, and their routes are already gated off the JWT
+    # arm. Ignoring them is what lets an unintended JWT-arm reference to Devise or Warden fail at
+    # boot rather than resolve against a class that loaded anyway.
+    unless AuthMethod.devise?
+      Rails.autoloaders.main.ignore(
+        Rails.root.join('app/mailers/account_mailer.rb'),
+        Rails.root.join('app/controllers/users/sessions_controller.rb'),
+        Rails.root.join('app/controllers/users/omniauth_callbacks_controller.rb'),
+        Rails.root.join('app/controllers/users/invitations_controller.rb'),
+        Rails.root.join('drivers/hmis/app/controllers/hmis/sessions_controller.rb'),
+        Rails.root.join('drivers/hmis/app/controllers/hmis/users/omniauth_callbacks_controller.rb'),
+      )
+    end
+
+    # Replace rails_drivers gem autoloading — mirrors what the gem's Railtie did
+    driver_app_components = ['models', 'controllers', 'mailers', 'helpers', 'jobs', 'graphql'].freeze
+
+    Dir[root.join('drivers', '*', 'app')].each do |driver_app|
+      driver_app_components.each do |component|
+        component_dir = File.join(driver_app, component)
+        next unless File.directory?(component_dir)
+
+        # autoload_paths: the catalog of where things can be found (lazy-load)
+        config.autoload_paths << component_dir
+        # eager_load_paths: the subset Rails loads proactively at boot time
+        config.eager_load_paths << component_dir
+      end
+    end
+
+    Dir[root.join('drivers', '*', 'lib')].each do |driver_lib|
+      next unless File.directory?(driver_lib)
+
+      config.autoload_paths << driver_lib
+      tasks_dir = File.join(driver_lib, 'tasks')
+      Rails.autoloaders.main.ignore(tasks_dir) if File.directory?(tasks_dir)
+    end
 
     # serve error pages from the Rails app itself
     # rather than using static error pages in public/.
     config.exceptions_app = routes
-
-    # FIXME: required to make forms in pjax modals work
-    config.action_controller.per_form_csrf_tokens = false
+    config.action_controller.per_form_csrf_tokens = true
 
     # Maintain Rails 7.0 behavior for specific settings
     config.active_record.before_committed_on_all_records = false # Keep due to uploader test issues
     config.active_record.default_column_serializer = YAML # Keep historic behavior
+
+    # load_defaults 7.2+ flips this to true, making raw SQL date/timestamp columns
+    # decode to Date/Time objects instead of Strings. We have a lot of raw SQL that
+    # assumes Strings, so keep the pre-7.2 behavior (must stay after load_defaults to
+    # win); adopting the new default is tracked separately as future work.
+    config.active_record.postgresql_adapter_decode_dates = false
 
     # Extension points
     config.sub_populations = {}
@@ -152,5 +223,17 @@ module OpenPath
     config.location_processors = []
     config.queued_tasks = {}
     config.report_archival_types = []
+
+    initializer 'load_driver_routes', before: :add_routing_paths, after: :bootstrap_hook do |app|
+      Dir[root.join('drivers', '*', 'config', 'routes.rb')].sort.each do |route_path|
+        app.routes_reloader.paths.unshift(route_path)
+      end
+    end
+
+    initializer 'load_driver_feature_initializers', after: :load_config_initializers do
+      Dir[root.join('drivers', '**', 'config', 'initializers', '**', '*.rb')].sort.each do |path|
+        load path
+      end
+    end
   end
 end

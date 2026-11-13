@@ -5,20 +5,22 @@ on:
     branches:
       - '*'
       - '**/*'
+  workflow_dispatch:
 concurrency:
   group: ${{ github.ref }}-todo-or-die
   cancel-in-progress: true
 
 jobs:
   todo_or_die_check:
+    if: vars.CI_AUTO_RUN == 'true' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-24.04
-    container: ruby:3.4.9-slim-bookworm
+    container: ruby:3.4.12-slim-trixie
     permissions:
       contents: read
       pull-requests: read
     strategy:
       matrix:
-        ruby: ['3.4.9']
+        ruby: ['3.4.12']
       fail-fast: false
 
     env:
@@ -27,7 +29,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: 'Container Setup'
         uses: ./.github/workflows/container_setup

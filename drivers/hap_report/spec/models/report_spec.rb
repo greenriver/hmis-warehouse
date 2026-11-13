@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -9,23 +9,50 @@
 require 'rails_helper'
 
 RSpec.describe HapReport::Report, type: :model do
+  before(:all) do
+    HmisCsvTwentyTwenty::Utility.clear!
+    GrdaWarehouse::Utility.clear!
+    import_hmis_csv_fixture(
+      'drivers/hap_report/spec/fixtures/files/fy2020/default',
+      version: 'AutoMigrate',
+      run_jobs: true,
+    )
+  end
+
+  after(:all) do
+    # The access control rows built in before(:all) aren't rolled back, and
+    # cleanup_test_environment only removes users
+    [AccessControl, UserGroupMember, UserGroup, Role, Collection].each do |model|
+      model.with_deleted.delete_all
+    end
+    cleanup_test_environment
+  end
+
+  def report_owner(collection)
+    owner = create(:acl_user)
+    role = create(:role, can_view_assigned_reports: true, can_report_on_confidential_projects: true)
+    setup_access_control(owner, role, collection)
+    owner
+  end
+
+  def run_report(user:, project_ids:)
+    report = HapReport::Report.create!(
+      user: user,
+      options: {
+        start: '2019-01-01'.to_date,
+        end: '2019-12-31'.to_date,
+        project_ids: project_ids,
+      },
+    )
+    report.run_and_save!
+    report
+  end
+
   describe 'with all projects' do
     before(:all) do
-      HmisCsvTwentyTwenty::Utility.clear!
-      GrdaWarehouse::Utility.clear!
-      import_hmis_csv_fixture(
-        'drivers/hap_report/spec/fixtures/files/fy2020/default',
-        version: 'AutoMigrate',
-        run_jobs: true,
-      )
-      @report = HapReport::Report.create!(
-        options: {
-          start: '2019-01-01'.to_date,
-          end: '2019-12-31'.to_date,
-          project_ids: GrdaWarehouse::Hud::Project.pluck(:id),
-        },
-      )
-      @report.run_and_save!
+      Collection.maintain_system_groups
+      owner = report_owner(Collection.system_collection(:data_sources))
+      @report = run_report(user: owner, project_ids: GrdaWarehouse::Hud::Project.pluck(:id))
     end
 
     it 'finds households with children' do
@@ -46,6 +73,30 @@ RSpec.describe HapReport::Report, type: :model do
 
     it 'counts all clients' do
       expect(value(:total_clients_served, :total)).to eq(9)
+    end
+  end
+
+  describe 'with a project the owner cannot see' do
+    before(:all) do
+      visible_project = GrdaWarehouse::Hud::Project.find_by!(ProjectID: 'NBN')
+      invisible_project = GrdaWarehouse::Hud::Project.find_by!(ProjectID: 'DEFAULT-ES')
+      collection = create(:collection)
+      collection.set_viewables({ projects: [visible_project.id] })
+      owner = report_owner(collection)
+      @report = run_report(user: owner, project_ids: [invisible_project.id])
+
+      control_collection = create(:collection)
+      control_collection.set_viewables({ projects: [invisible_project.id] })
+      control_owner = report_owner(control_collection)
+      @control_report = run_report(user: control_owner, project_ids: [invisible_project.id])
+    end
+
+    it 'counts clients in the project for an owner who can see it' do
+      expect(@control_report.cell('total_clients_served_total').summary).to be > 0
+    end
+
+    it 'counts no clients' do
+      expect(value(:total_clients_served, :total)).to eq(0)
     end
   end
 
