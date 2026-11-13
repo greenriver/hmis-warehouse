@@ -1,10 +1,10 @@
-# frozen_string_literal: true
-
 ###
-# Copyright 2016 - 2025 Green River Data Analysis, LLC
+# Copyright Green River Data Group, Inc.
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
+# frozen_string_literal: true
 
 # == AppResourceMonitor::SequenceRisk
 #
@@ -22,8 +22,7 @@ class AppResourceMonitor::SequenceRisk < AppResourceMonitor::S3Analysis
   attr_reader :limit
 
   def initialize(prefix:, database: nil, limit: 20, as_of: nil)
-    super(prefix: prefix, database: database || '', as_of: as_of)
-    @filter_database = database.present?
+    super(prefix: prefix, database: database, as_of: as_of)
     @limit = limit.to_i
   end
 
@@ -34,12 +33,21 @@ class AppResourceMonitor::SequenceRisk < AppResourceMonitor::S3Analysis
     raise ConfigurationError, "No postgres_sequence_stats snapshots found under '#{s3_prefix}'. Has the collector run since the sequence_stats metric was added?" if key.nil?
 
     rows = parse_csv(key)
-    rows = rows.select { |r| r['database'] == database } if @filter_database
+    rows = rows_for_database(rows) if database.present?
 
     print_report(rows: rows, snapshot_at: snapshot_time(key))
   end
 
   private
+
+  # Raise on an unknown database name rather than printing an empty report,
+  # which would read as "nothing at risk".
+  def rows_for_database(rows)
+    available = rows.map { |r| r['database'] }.uniq.compact
+    raise ConfigurationError, "No database named '#{database}' found in snapshot. Available: #{available.join(', ')}" unless available.include?(database)
+
+    rows.select { |r| r['database'] == database }
+  end
 
   def print_report(rows:, snapshot_at:)
     puts ''
