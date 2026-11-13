@@ -323,6 +323,33 @@ RSpec.describe Hmis::Form::Definition, type: :model do
       new_form.save!
     end
 
+    it 'allows reusing the object key of a retired form, but not of an active one' do
+      pit_2026 = create(:hmis_form_definition, data_source: ds1, external_form_object_key: 'pit', role: :EXTERNAL_FORM, status: Hmis::Form::Definition::PUBLISHED)
+      pit_2027 = build(:hmis_form_definition, data_source: ds1, external_form_object_key: 'pit', role: :EXTERNAL_FORM, status: Hmis::Form::Definition::DRAFT)
+      expect(pit_2027).not_to be_valid
+
+      pit_2026.update!(status: Hmis::Form::Definition::RETIRED)
+      expect(pit_2027).to be_valid
+    end
+
+    it 'allows reusing a retired form key when its identifier is active in another data source' do
+      ds2 = create(:hmis_data_source)
+      retired = create(:hmis_form_definition, data_source: ds1, external_form_object_key: 'pit', role: :EXTERNAL_FORM, status: Hmis::Form::Definition::RETIRED)
+      create(:hmis_form_definition, data_source: ds2, identifier: retired.identifier, role: :EXTERNAL_FORM, status: Hmis::Form::Definition::PUBLISHED, external_form_object_key: nil)
+
+      new_form = build(:hmis_form_definition, data_source: ds1, external_form_object_key: 'pit', role: :EXTERNAL_FORM, status: Hmis::Form::Definition::DRAFT)
+      expect(new_form).to be_valid
+    end
+
+    it 'does not allow reusing a key held by an active form in another data source' do
+      ds2 = create(:hmis_data_source)
+      create(:hmis_form_definition, data_source: ds2, external_form_object_key: 'pit', role: :EXTERNAL_FORM, status: Hmis::Form::Definition::PUBLISHED)
+
+      new_form = build(:hmis_form_definition, data_source: ds1, external_form_object_key: 'pit', role: :EXTERNAL_FORM, status: Hmis::Form::Definition::DRAFT)
+      expect(new_form).not_to be_valid
+      expect(new_form.errors.of_kind?(:external_form_object_key, :taken)).to be true
+    end
+
     it 'should error if the object key is set on a form that is not an External Form' do
       form = build(:hmis_form_definition, data_source: ds1, role: :SERVICE, external_form_object_key: 'pit-2027')
       expect(form).not_to be_valid

@@ -371,9 +371,11 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
       return
     end
 
-    # Ensure that external_form_object_key is not reused across forms with different identifiers
-    object_key_taken = Hmis::Form::Definition.where(external_form_object_key: external_form_object_key).
-      where.not(identifier: identifier).exists?
+    # Ensure that external_form_object_key is not held by a draft or published version of another form. Once a form is
+    # retired, its key can be reused. Not scoped to a data source: all External Forms publish to one public bucket.
+    object_key_taken = Hmis::Form::Definition.where(external_form_object_key: external_form_object_key, status: [DRAFT, PUBLISHED]).
+      where.not(identifier: identifier).
+      exists?
     return unless object_key_taken
 
     message = 'is already used by a different form. To reuse it, retire the other forms that use it.'
