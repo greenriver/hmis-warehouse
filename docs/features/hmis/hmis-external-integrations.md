@@ -29,11 +29,10 @@ County-specific behavior belongs in this driver. `drivers/hmis` may call `HmisEx
 
 - **MCI (client clearance).** Outbound. `clearance` sends name, SSN, DOB, and gender and gets scored candidate matches. Creating a client in MCI stores the returned ID as an `ExternalId`. Enrollment requires clearance, except in project types listed in `Mci::PROJECT_TYPES_NOT_REQUIRING_CLEARANCE`.
 - **Data warehouse API.** `WarehouseChangesJob` pulls changes and stores each client's MCI Unique ID as an `ExternalId`. It then soft-merges, in the warehouse, HMIS clients that share an MCI Unique ID: each source client is pointed at the lowest destination client with `GrdaWarehouse::Hud::Client#merge_from`, and pairs in `ClientSplitHistory` are skipped. HMIS client records are not combined.
-- **Legacy referral postings.** There is no inbound referral endpoint; existing postings are kept for history. Postings from LINK have an `identifier`; HMIS-originated postings do not. Status changes are restricted to the transitions in `ReferralPosting::OLD_STATUS_TO_VALID_NEW_STATUS`.
-- **Client involvements (inbound).** `GET /hmis_external_api/ac_hmis/client_involvements` returns enrollment history, including client names, for a list of MCI IDs. It is authorized only by an API key from `InboundApiConfiguration`, so treat it as PII-sensitive.
-- **LINK client.** `LinkApi` calls one LINK endpoint, through `update_referral_posting_status`, to send status changes on LINK postings. Don't add `LinkApi` methods or write to `UnitAvailabilitySync`.
-- **MPER** has no HTTP client and no import. Only its `ExternalId` namespace (`Mper::SYSTEM_ID`, `ac_hmis_mper`) is used, for unit-type mappings (`Hmis::UnitType#mper_id`, the `seed_ac_hmis_unit_types` task). The `Mper` lookup helpers are unused; don't add callers.
 - **Exports.** SFTP exports to the county data warehouse use the `ac_data_warehouse_sftp_server` credential.
+- **Legacy referral postings.** Deprecated, to be removed with https://github.com/open-path/Green-River/issues/8142. Postings from external LINK system have an `identifier`; HMIS-originated postings do not. Status changes are restricted to the transitions in `ReferralPosting::OLD_STATUS_TO_VALID_NEW_STATUS`.
+- **Client involvements (inbound).** `GET /hmis_external_api/ac_hmis/client_involvements` returns enrollment history, including client names, for a list of MCI IDs. It is authorized only by an API key from `InboundApiConfiguration`, so treat it as PII-sensitive.
+- **LINK client.** Deprecated, to be removed with https://github.com/open-path/Green-River/issues/10082. `LinkApi` calls one LINK endpoint, through `update_referral_posting_status`, to send status changes on LINK postings.
 
 ## TC HMIS importers
 
