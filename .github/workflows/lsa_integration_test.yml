@@ -159,15 +159,13 @@ jobs:
       # LSA sample data (input + expected output) is gitignored; fetch it from S3
       # like the datalab testkit. The bucket path must contain sample_hmis_export/,
       # sample_results/, and sample_hic_results/ subdirectories.
-      #
-      # To generate the compressed fixtures, run:
-      # gzip -k -n warehouse_test.sql warehouse_app_test.sql
       - name: "Fetch LSA sample data"
         uses: ./.github/workflows/s3_test_data
         with:
           name: lsa-sample
           source: ${{ secrets.AWS_S3_ACTION_BUCKET }}lsa-sample-09-2026/
           destination: ./drivers/hud_lsa/spec/fixtures/files/lsa/fy2027/
+          encryption_key: ${{ secrets.ACTION_ASSET_ENCRYPTION_KEY }}
 
       # Specs that need SQL Server; the main rspec workflow skips them.
       - name: Run LSA SQL Server specs

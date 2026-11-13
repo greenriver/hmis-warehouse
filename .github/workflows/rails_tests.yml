@@ -233,19 +233,22 @@ jobs:
           name: testkit-source
           source: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_SOURCE_PATH_FY_2026 }}
           destination: ./drivers/datalab_testkit/spec/fixtures/inputs/
+          encryption_key: ${{ secrets.ACTION_ASSET_ENCRYPTION_KEY }}
 
       # fetch pre-processed FY2024 data set; note that we need to update this whenever the test kit source
       # data changes.  To update:
       # 1. Remove the fixtures from `drivers/datalab_testkit/spec/fixpoints/`
       # 2. Replace the source and result files in `drivers/datalab_testkit/spec/fixtures` and on S3
       # 3. Re-run the tests  rspec drivers/hud_apr/spec/models/fy2024/datalab_2_0_spec.rb
-      # 4. Update the fixpoint in S3 from the newly generated file
+      # 4. Compress the newly generated files (`gzip -k -n warehouse_test.sql warehouse_app_test.sql`)
+      #    and replace the fixpoint files in S3 with the .gz copies
       - name: "Fetch testkit fixpoint files"
         uses: ./.github/workflows/s3_test_data
         with:
           name: testkit-fixpoints
           source: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_FIXPOINT_PATH_FY_2026 }}
           destination: ./drivers/datalab_testkit/spec/fixpoints/
+          encryption_key: ${{ secrets.ACTION_ASSET_ENCRYPTION_KEY }}
 
       - name: "Fetch result files"
         uses: ./.github/workflows/s3_test_data
@@ -253,6 +256,7 @@ jobs:
           name: testkit-results
           source: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_RESULTS_PATH_FY_2026 }}
           destination: ./drivers/datalab_testkit/spec/fixtures/results/
+          encryption_key: ${{ secrets.ACTION_ASSET_ENCRYPTION_KEY }}
 
       # Default arm: the AUTH_METHOD=jwt env below is the only arm selector. Don't add a
       # ~devise_only flag here for symmetry with the Devise step — rails_helper.rb already

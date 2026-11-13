@@ -142,6 +142,7 @@ jobs:
           name: testkit-source
           source: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_SOURCE_PATH_FY_2026 }}
           destination: ./drivers/datalab_testkit/spec/fixtures/inputs/
+          encryption_key: ${{ secrets.ACTION_ASSET_ENCRYPTION_KEY }}
       - name: Generate new fixpoint files
         env:
           AWS_ACCESS_KEY_ID: local_access_key
