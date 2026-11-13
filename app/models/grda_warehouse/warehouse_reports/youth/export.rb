@@ -37,10 +37,32 @@ module GrdaWarehouse::WarehouseReports::Youth
     def client_scope
       @client_scope ||= begin
         clients = clients_within_age_range
-        clients = clients.where(id: clients_within_projects.select(:id)) unless filter.all_projects?
+        clients = clients.where(id: clients_within_projects.select(:id))
         clients = clients.where(id: filter.clients_from_cohorts.select(:id)) if filter.clients_from_cohorts.exists?
         clients
       end
+    end
+
+    # The filter's selected projects, narrowed to those the user can report on;
+    # with nothing selected, every residential project the user can view (the picker's choices)
+    memoize private def authorized_project_ids
+      ids = any_project_selection? ? filter.effective_project_ids : filter.all_project_ids
+      GrdaWarehouse::Hud::Project.
+        viewable_by(filter.user, permission: :can_view_assigned_reports).
+        where(id: ids).
+        pluck(:id)
+    end
+
+    # The form's project, organization, and data source pickers all default to "Any"
+    private def any_project_selection?
+      [filter.project_ids, filter.organization_ids, filter.data_source_ids].any? { |ids| ids.compact_blank.present? }
+    end
+
+    private def clients_within_projects
+      @clients_within_projects ||= GrdaWarehouse::Hud::Client.destination.
+        joins(service_history_enrollments: :project).
+        merge(GrdaWarehouse::Hud::Project.where(id: authorized_project_ids)).
+        merge(GrdaWarehouse::ServiceHistoryEnrollment.entry.open_between(start_date: filter.start, end_date: filter.end))
     end
 
     def rows_for_export

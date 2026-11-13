@@ -140,6 +140,15 @@ module AvailableSubPopulations
     }.sort.to_h
   end
 
+  class UnknownSubPopulation < ArgumentError; end
+
+  def self.fetch!(value, allowed = available_sub_populations.values)
+    sub_population = value&.to_sym
+    raise UnknownSubPopulation, "unknown sub-population: #{value}" unless sub_population.in?(allowed)
+
+    sub_population
+  end
+
   def self.add_sub_population(name, symbol, package)
     sub_populations = available_sub_populations
     sub_populations[name] = symbol

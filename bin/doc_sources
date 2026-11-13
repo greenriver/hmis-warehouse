@@ -30,7 +30,7 @@ when 'affected'
   abort "git diff failed:\n#{output}" unless status.success?
 
   changed = output.split("\n")
-  body = DocSources.comment_body(DocSources.affected(root, changed), DocSources.missing_sources(root))
+  body = DocSources.comment_body(DocSources.affected(root, changed), DocSources.missing_sources(root, changed))
   puts body unless body.empty?
 else
   abort usage

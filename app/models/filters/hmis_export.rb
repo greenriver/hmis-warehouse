@@ -185,11 +185,10 @@ module Filters
     end
 
     memoize def effective_project_ids
-      ids = effective_project_ids_from_projects
-      ids += effective_project_ids_from_project_groups
-      ids += effective_project_ids_from_organizations
-      ids += effective_project_ids_from_data_sources
-      ids = all_project_ids if ids.empty?
+      ids = visible_selected_project_ids
+      # No selection means every viewable project. A selection the user can no longer
+      # see (e.g. a recurring export after a permission change) means none, not all
+      ids = all_project_ids if ids.empty? && !any_project_selection?
 
       # Ensure all projects are active in the chosen date range
       if enforce_project_date_scope
@@ -212,7 +211,8 @@ module Filters
     end
 
     def effective_project_ids_from_projects
-      project_ids.reject(&:blank?).map(&:to_i)
+      submitted_ids = project_ids.reject(&:blank?).map(&:to_i)
+      viewable_project_scope.where(id: submitted_ids).pluck(:id)
     end
 
     def effective_project_ids_from_project_groups
@@ -262,6 +262,23 @@ module Filters
 
     def all_project_ids
       viewable_project_scope.pluck(:id)
+    end
+
+    # True when projects, project groups, organizations, or data sources were chosen but
+    # none of them resolve to a project the user can see, so the export would be empty
+    def project_selection_hidden?
+      any_project_selection? && visible_selected_project_ids.empty?
+    end
+
+    private def any_project_selection?
+      [project_ids, project_group_ids, organization_ids, data_source_ids].any? { |ids| ids.compact_blank.present? }
+    end
+
+    private def visible_selected_project_ids
+      ids = effective_project_ids_from_projects
+      ids += effective_project_ids_from_project_groups
+      ids += effective_project_ids_from_organizations
+      ids + effective_project_ids_from_data_sources
     end
 
     def user

@@ -35,6 +35,7 @@ class App.DataQualityReports.PHDestination extends App.DataQualityReports.Base
           value: (v) ->
             "#{v}%"
    _follow_link: (d, element) =>
+    return unless @support_url
     console.log @data
     project_id = @data.projects[d.name]
     if @support_url.includes('individual') # VersionFour support links are different

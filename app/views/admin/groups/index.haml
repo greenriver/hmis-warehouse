@@ -4,7 +4,6 @@
 .o-page
   .o-page__title
     %h1= content_for :title
-    = render partial: 'menus/admin_tabs'
   .alert.alert-info
     %i.icon-warning.mr-4
     %p Groups can be used to assign access to particular sets of data.  Users are assigned groups and inherit data access from the group.  Roles are then assigned to users to grant access to sections of the warehouse.  When used in combination a user can be given access to a sub-set of warehouse data within a specified limited context.

@@ -28,7 +28,16 @@ RSpec.shared_context '2026 SPM test setup', shared_context: :metadata do
     )
   end
 
+  # The report filter drops submitted projects the user cannot see
+  def grant_report_projects(project_ids)
+    GrdaWarehouse::Hud::Project.where(id: project_ids).each do |project|
+      user.access_group.add_viewable(project)
+    end
+  end
+
   def setup_report(project_ids, questions = ['Measure 1'])
+    grant_report_projects(project_ids)
+
     filter = default_filter.dup
     filter.update(project_ids: project_ids)
 

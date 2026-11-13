@@ -613,7 +613,9 @@ module HudApr::Generators::Shared::Fy2024
             relationship_to_hoh: enrollment.enrollment.relationship_to_hoh,
           }
         end
-        [pit_date, enrollments_for_date]
+        # Explicit ISO key: the Q7b/Q8b queries look it up with pit_date.iso8601, and a bare Date
+        # key would be encoded via Date#to_s ("Jan 29, 2025", see legacy_rails_conversions.rb)
+        [pit_date.iso8601, enrollments_for_date]
       end.to_h.select { |_, v| v.present? }
     end
 

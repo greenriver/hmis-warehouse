@@ -340,12 +340,12 @@ RSpec.describe GrdaWarehouse::WarehouseReports::DocumentExports::ClientLookupExp
     end
 
     it 'refuses the export instead of silently producing nothing when the only selected project is unauthorized' do
-      # Regression guard: a single unauthorized (but hand-craftable) project id passes
-      # `any_effective_project_ids?` (which doesn't check authorization) and would
+      # Regression guard: a single unauthorized (but hand-craftable) project id would
       # otherwise silently produce a zero-row export via the `project_source` merge.
+      # The filter drops project ids the user cannot see, so nothing effective remains.
       get_report(project_ids: [unauthorized_project.id], data_source_ids: [])
 
-      expect(@export.filter.any_effective_project_ids?).to be true
+      expect(@export.filter.any_effective_project_ids?).to be false
       expect(@export.report.any_authorized_projects?).to be false
       expect(@export).not_to be_authorized
     end

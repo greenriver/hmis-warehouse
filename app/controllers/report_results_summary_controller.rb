@@ -40,13 +40,21 @@ class ReportResultsSummaryController < ApplicationController
 
   # Use callbacks to share common setup or constraints between actions.
   def set_report_results
-    most_recent_results = @report_results_summary.report_results.runs_visible_to(current_user).most_recent
-    @results = most_recent_results.map { |t, d| ReportResult.where(report_id: Report.where(type: t).first, updated_at: d).first }
-    @options = @report_results_summary.report_results.runs_visible_to(current_user).first&.options
+    most_recent_results = visible_report_results.most_recent
+    @results = most_recent_results.map { |t, d| ReportResult.where(report_id: Report.active.where(type: t).first, updated_at: d).first }
+    @options = visible_report_results.first&.options
+  end
+
+  # Disabled reports are retired, matching ReportResultsController
+  def visible_report_results
+    @report_results_summary.report_results.
+      merge(Report.active).
+      runs_visible_to(current_user)
   end
 
   def set_report_results_summary
     @report_results_summary = report_results_summary_source.
+      where(id: Report.active.select(:report_results_summary_id)).
       runs_visible_to(current_user).
       find(params[:id].to_i)
   end

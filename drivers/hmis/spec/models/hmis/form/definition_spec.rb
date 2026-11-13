@@ -316,11 +316,45 @@ RSpec.describe Hmis::Form::Definition, type: :model do
 
       new_form = build(:hmis_form_definition, data_source: ds1, external_form_object_key: 'existing-key', role: :EXTERNAL_FORM)
       expect(new_form.valid?).to be false
-      expect(new_form.errors.full_messages).to include('External form object key has already been taken')
+      expect(new_form.errors[:external_form_object_key]).to include('is already used by a different form. To reuse it, retire the other forms that use it.')
 
       new_form.external_form_object_key = 'unused-key'
       expect(new_form.valid?).to be true
       new_form.save!
+    end
+
+    it 'should error if the object key is set on a form that is not an External Form' do
+      form = build(:hmis_form_definition, data_source: ds1, role: :SERVICE, external_form_object_key: 'pit-2027')
+      expect(form).not_to be_valid
+      expect(form.errors[:external_form_object_key].sole).to eq('can only be set on External Forms')
+
+      form.external_form_object_key = nil
+      expect(form).to be_valid
+    end
+
+    it 'should store a blank object key as nil and strip whitespace' do
+      form = build(:hmis_form_definition, data_source: ds1, role: :EXTERNAL_FORM, external_form_object_key: '  ')
+      expect(form.external_form_object_key).to be_nil
+      expect(form).to be_valid
+
+      form.external_form_object_key = ' pit-2027 '
+      expect(form.external_form_object_key).to eq('pit-2027')
+    end
+
+    it 'should error if the object key has an invalid format or length' do
+      form = build(:hmis_form_definition, data_source: ds1, role: :EXTERNAL_FORM)
+      ['pit/pit_2027', 'pit.html', 'pit/2027.v2.html', 'a' * 100].each do |key|
+        form.external_form_object_key = key
+        expect(form).to be_valid, key
+      end
+      ['PIT-2027', 'pit//2027', '.pit', 'pit/../secret', 'pit.HTML'].each do |key|
+        form.external_form_object_key = key
+        expect(form).not_to be_valid, key
+        expect(form.errors[:external_form_object_key].sole).to start_with('must contain only lowercase letters')
+      end
+      form.external_form_object_key = 'a' * 101
+      expect(form).not_to be_valid
+      expect(form.errors[:external_form_object_key].sole).to eq('is too long (maximum is 100 characters)')
     end
   end
 end
