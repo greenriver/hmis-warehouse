@@ -49,7 +49,7 @@ Generate a new random key and store it as the repository secret. You never need 
 openssl rand -base64 48 | gh secret set ACTION_ASSET_ENCRYPTION_KEY --repo greenriver/hmis-warehouse
 ```
 
-Rotation needs no other step. The cache key includes a digest of the encryption key, so after a rotation the next run on each branch misses the cache, downloads from S3, and saves a cache entry encrypted with the new key. Entries encrypted with the old key are no longer restored, and the nightly cleanup or GitHub's cache eviction removes them.
+**Rotation:** The cache key includes a digest of the encryption key, so after a rotation the next run on each branch misses the cache, downloads from S3, and saves a cache entry encrypted with the new key. Entries encrypted with the old key are no longer restored, and the nightly cleanup or GitHub's cache eviction removes them.
 
 ### If the key is exposed
 
