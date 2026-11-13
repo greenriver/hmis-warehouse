@@ -28,9 +28,10 @@ County-specific behavior belongs in this driver. `drivers/hmis` may call `HmisEx
 ## AC HMIS
 
 - **MCI (client clearance).** Outbound. `clearance` sends name, SSN, DOB, and gender and gets scored candidate matches. Creating a client in MCI stores the returned ID as an `ExternalId`. Enrollment requires clearance, except in project types listed in `Mci::PROJECT_TYPES_NOT_REQUIRING_CLEARANCE`.
-- **Data warehouse API.** `WarehouseChangesJob` pulls changes, stores each client's MCI Unique ID as an `ExternalId`, then merges HMIS clients that share an MCI Unique ID.
-- **Referrals (inbound).** LINK posts referrals to an API-key endpoint, validated against a JSON schema. Postings from LINK have an `identifier`; HMIS-originated postings do not. Status changes are restricted to the transitions in `ReferralPosting::OLD_STATUS_TO_VALID_NEW_STATUS`.
-- **LINK client is deprecated.** Calling most `LinkApi` methods sends a Sentry notice. `update_referral_posting_status` is still used for legacy postings. Don't add callers to deprecated methods or write to `UnitAvailabilitySync`.
+- **Data warehouse API.** `WarehouseChangesJob` pulls changes and stores each client's MCI Unique ID as an `ExternalId`. It then soft-merges, in the warehouse, HMIS clients that share an MCI Unique ID: each source client is pointed at the lowest destination client with `GrdaWarehouse::Hud::Client#merge_from`, and pairs in `ClientSplitHistory` are skipped. The HMIS client records are not combined. The job used to hard-merge them with `Hmis::MergeClientsJob`; GH#6239 replaced that with the warehouse merge, deployed 2026-02-26.
+- **Legacy referral postings.** The inbound LINK referral endpoint was removed (it was last called 2025-09-30). Existing postings remain. Postings from LINK have an `identifier`; HMIS-originated postings do not. Status changes are restricted to the transitions in `ReferralPosting::OLD_STATUS_TO_VALID_NEW_STATUS`.
+- **Client involvements (inbound).** `GET /hmis_external_api/ac_hmis/client_involvements` returns enrollment history, including client names, for a list of MCI IDs. It is authorized only by an API key from `InboundApiConfiguration`, so treat it as PII-sensitive. The program involvements endpoint was removed.
+- **LINK client is deprecated.** Its only method, `update_referral_posting_status`, is still used for legacy postings. Don't add new `LinkApi` methods or write to `UnitAvailabilitySync`.
 - **MPER** has no HTTP client. It is local lookups only: `ProjectID` is the MPER id, and unit types resolve through `ExternalId`. It is marked for removal but still used.
 - **Exports.** SFTP exports to the county data warehouse use the `ac_data_warehouse_sftp_server` credential.
 
