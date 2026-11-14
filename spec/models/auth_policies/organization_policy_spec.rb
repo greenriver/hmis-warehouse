@@ -243,24 +243,30 @@ RSpec.describe GrdaWarehouse::AuthPolicies::OrganizationPolicy, type: :model do
           expect(project.organization_name(user)).to eq(organization.OrganizationName)
         end
 
-        # Legacy users see a confidential project's organization name whenever they see the
-        # project name, unlike ACL users, who also need a grant on the organization.
-        it 'is false when an access group includes only a project in the organization, but the project shows the organization name' do
+        it 'is true when an access group includes only a project in the organization' do
           access_group.add_viewable(project)
 
-          expect(policy.can_view_name?).to be false
-          expect(organization.name(user)).to eq(masked_organization_name)
-          expect(project.name(user)).to eq('Hidden Project')
-          expect(project.organization_name(user)).to eq(organization.OrganizationName)
+          expect(policy.can_view_name?).to be true
+          expect(organization.name(user)).to eq(organization.OrganizationName)
           expect(project.organization_and_name(user)).to eq("#{organization.OrganizationName} / Hidden Project")
         end
 
-        it 'is false when no access group includes the organization or its data source' do
+        it 'is true when no access group includes the organization, but masks it on projects the user cannot view' do
           access_group.add_viewable(other_organization)
 
-          expect(policy.can_view_name?).to be false
-          expect(organization.name(user)).to eq(masked_organization_name)
+          expect(policy.can_view_name?).to be true
+          expect(organization.name(user)).to eq(organization.OrganizationName)
           expect(project.organization_name(user)).to eq(masked_organization_name)
+        end
+
+        it 'is false without Can View Confidential Project Names' do
+          other_user = create(:user)
+          view_only_role.add(other_user)
+          access_group.add(other_user)
+          access_group.add_viewable(organization)
+
+          expect(other_user.policy_for(organization).can_view_name?).to be false
+          expect(organization.name(other_user)).to eq(masked_organization_name)
         end
       end
     end
