@@ -34,6 +34,7 @@ Match on the subject matter of the code in front of you — whether you're writi
 - **New subsystems, major refactors, or system-level decisions** → read `docs/architecture/README.md`
 - **HAML, the warehouse frontend, or GraphQL** → read `docs/code_patterns_and_conventions.md`
 - **Database queries** — Arel vs. raw SQL, HUD case-sensitive columns, date/time comparisons → read `docs/active-record-arel-and-queries.md`
+- **Writing feature docs** → read `docs/features/writing-feature-docs.md`.
 - **Doc sources:** Feature docs may list the code they describe in `sources:` frontmatter. CI comments on a PR that changes a listed file; re-read those docs and update them if needed.
 - **Architecture docs are read-only:** `docs/architecture/` strictly follows the [arc42](https://arc42.org/) template. Don't modify it unless explicitly asked to, and only with a thorough understanding of arc42 and the section being edited.
 
