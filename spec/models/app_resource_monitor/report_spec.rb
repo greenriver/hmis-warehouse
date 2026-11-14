@@ -123,6 +123,7 @@ RSpec.describe AppResourceMonitor::Report, type: :model do
           'postgres_table_stats',
           'postgres_toast_stats',
           'postgres_index_stats',
+          'postgres_sequence_stats',
           'app_record_stats',
           'app_activity',
           'hud_client_references',

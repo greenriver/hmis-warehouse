@@ -57,6 +57,10 @@ class AppResourceMonitor::PostgresInspector
     select_all(format(TOAST_STATS_SQL, query_variables))
   end
 
+  def sequence_stats
+    select_all(format(SEQUENCE_STATS_SQL, query_variables))
+  end
+
   def query_variables
     db_name = connection.current_database
     {
@@ -113,6 +117,59 @@ class AppResourceMonitor::PostgresInspector
       reltoastrelid != 0
     ORDER BY
       table_name;
+  SQL
+
+  # Capacity is the lower of the sequence's max_value and the max for the
+  # owning column's type: a pre-PG10 serial on an integer column has a bigint
+  # max_value but the column overflows at 2,147,483,647.
+  SEQUENCE_STATS_SQL = <<~SQL.freeze
+    WITH owned_sequences AS (
+      SELECT
+        t.relname                     AS tablename,
+        a.attname                     AS column_name,
+        s.sequencename,
+        format_type(a.atttypid, NULL) AS column_type,
+        s.last_value,
+        s.max_value                   AS sequence_max_value,
+        LEAST(
+          s.max_value,
+          CASE a.atttypid
+            WHEN 'int2'::regtype::oid THEN 32767
+            WHEN 'int4'::regtype::oid THEN 2147483647
+            ELSE s.max_value
+          END
+        ) AS capacity
+      FROM pg_sequences s
+      JOIN pg_class seq
+        ON seq.relname = s.sequencename
+       AND seq.relnamespace = (SELECT oid FROM pg_namespace WHERE nspname = s.schemaname)
+      JOIN pg_depend d
+        ON d.objid        = seq.oid
+       AND d.classid      = 'pg_class'::regclass
+       AND d.refclassid   = 'pg_class'::regclass
+       AND d.deptype      = 'a'
+      JOIN pg_class t ON t.oid = d.refobjid
+      JOIN pg_attribute a
+        ON a.attrelid = t.oid
+       AND a.attnum   = d.refobjsubid
+      JOIN pg_namespace n ON n.oid = t.relnamespace
+      WHERE n.nspname = %{schema}
+    )
+    SELECT
+      %{db_name} AS database,
+      tablename,
+      column_name,
+      sequencename,
+      column_type,
+      COALESCE(last_value, 0)::text AS last_value,
+      sequence_max_value::text      AS sequence_max_value,
+      capacity::text                AS max_value,
+      CASE
+        WHEN last_value IS NULL THEN '0'
+        ELSE ROUND((last_value::numeric / capacity::numeric) * 100, 4)::text
+      END AS pct_used
+    FROM owned_sequences
+    ORDER BY COALESCE(last_value, 0)::numeric / capacity::numeric DESC, tablename;
   SQL
 
   INDEX_STATS_SQL = <<~SQL.freeze
