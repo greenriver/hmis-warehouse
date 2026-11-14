@@ -3,7 +3,7 @@
     .col-md
       .d-md-flex
         %h3.me-auto
-          = org.name(current_user, ignore_confidential_status: can_edit_organizations?)
+          = org.name(current_user)
 
           - if org.confidential?
             .mt-2.mb-auto.me-2.py-2.badge.badge-info.text-bg-info.badge-pill.c-tag-pill Confidential Organization

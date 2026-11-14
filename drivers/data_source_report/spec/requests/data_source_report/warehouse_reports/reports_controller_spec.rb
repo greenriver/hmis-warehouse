@@ -46,6 +46,27 @@ RSpec.describe DataSourceReport::WarehouseReports::ReportsController, type: :req
       expect(response).to have_http_status(:ok)
       expect(response.body).not_to include('same file since:')
     end
+
+    it 'counts unprocessed enrollments only in projects the user can view' do
+      destination_data_source = create(:destination_data_source)
+      org = create(:hud_organization, data_source: data_source)
+      visible_project = create(:hud_project, data_source: data_source, OrganizationID: org.OrganizationID)
+      other_project = create(:hud_project, data_source: data_source, OrganizationID: org.OrganizationID)
+      [visible_project, visible_project, other_project].each do |project|
+        source_client = create(:hud_client, data_source: data_source)
+        destination_client = source_client.dup
+        destination_client.data_source = destination_data_source
+        destination_client.save!
+        create(:warehouse_client, destination_id: destination_client.id, source_id: source_client.id)
+        create(:hud_enrollment, data_source: data_source, project: project, client: source_client, processed_as: nil)
+      end
+      collection.set_viewables(reports: [report_definition.id], data_sources: [], projects: [visible_project.id])
+
+      get data_source_report_warehouse_reports_reports_path
+
+      expect(response.body).to include('Enrollments remaining to process: 2')
+      expect(response.body).not_to include('Enrollments remaining to process: 3')
+    end
   end
 
   describe 'GET #index query efficiency' do

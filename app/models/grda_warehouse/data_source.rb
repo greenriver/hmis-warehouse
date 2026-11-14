@@ -149,6 +149,20 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     # END_ACL
   end
 
+  # Unlike editable_by, checks the permission for legacy users too: the data source index calls
+  # this to decide which delete buttons to show, with no controller permission check in front.
+  scope :deletable_by, ->(user) do
+    return none unless user&.can_delete_data_sources?
+
+    # TODO: START_ACL cleanup after migration to ACLs
+    if user.using_acls?
+      where(id: data_source_ids_from_viewable_entities(user, :can_delete_data_sources))
+    else
+      directly_viewable_by(user)
+    end
+    # END_ACL
+  end
+
   ##
   # Returns DataSources where the user has direct permissions on the record itself.
   #
@@ -544,8 +558,8 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     self.class.data_spans_by_id[id]
   end
 
-  def unprocessed_enrollment_count
-    @unprocessed_enrollment_count ||= enrollments.unprocessed_with_resolvable_project_and_client.count
+  def unprocessed_enrollments(user:)
+    self.class.limit_enrollments_to_viewable_projects(enrollments.unprocessed_with_resolvable_project_and_client, user)
   end
 
   # Batched form of the stalled-date business rules for a page of data sources, to avoid one
@@ -785,13 +799,17 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     Hash.new(0).merge(GrdaWarehouse::Hud::Project.joins(:organization).where(data_source_id: data_source_ids).group(:data_source_id).count)
   end
 
-  # Batched form of #unprocessed_enrollment_count for a page of data sources, to avoid one query per row.
-  def self.unprocessed_enrollment_counts_by_id(data_source_ids)
-    Hash.new(0).merge(
-      GrdaWarehouse::Hud::Enrollment.unprocessed_with_resolvable_project_and_client.
-        where(data_source_id: data_source_ids).
-        group(:data_source_id).count,
-    )
+  # Batched count of #unprocessed_enrollments for a page of data sources, to avoid one query per row.
+  def self.unprocessed_enrollment_counts_by_id(data_source_ids, user:)
+    enrollments = GrdaWarehouse::Hud::Enrollment.unprocessed_with_resolvable_project_and_client.
+      where(data_source_id: data_source_ids)
+    Hash.new(0).merge(limit_enrollments_to_viewable_projects(enrollments, user).group(:data_source_id).count)
+  end
+
+  # Expects enrollment_scope to already join :project.
+  def self.limit_enrollments_to_viewable_projects(enrollment_scope, user)
+    project_ids = GrdaWarehouse::Hud::Project.viewable_by(user, confidential_scope_limiter: :all, permission: :can_view_projects).select(:id)
+    enrollment_scope.where(GrdaWarehouse::Hud::Project.arel_table[:id].in(project_ids.arel))
   end
 
   # A data source's show page renders every project at once unless the list is

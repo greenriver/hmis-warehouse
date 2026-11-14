@@ -7,11 +7,20 @@
 # frozen_string_literal: true
 
 class DataSourcesController < ApplicationController
-  before_action :require_can_edit_projects!, only: [:update]
-  before_action :require_can_edit_data_sources!, only: [:new, :create, :destroy, :edit, :update]
-  before_action :require_can_view_imports_projects_or_organizations!, only: [:show, :index]
+  # Load the data source by visibility (404 when it isn't visible), then ask DataSourcePolicy
+  # what the user may do to it. set_data_source must run before the policy checks.
+  before_action :require_can_view_imports_projects_or_organizations!, only: [:index, :show]
+  before_action :require_can_edit_data_sources!, only: [:new, :create]
   before_action :set_data_source, only: [:show, :edit, :update, :destroy]
+  before_action :require_data_source_edit!, only: [:edit, :update]
+  # data_source_params permits nested projects_attributes
+  before_action :require_data_source_project_edit!, only: [:update]
+  before_action :require_data_source_delete!, only: [:destroy]
   before_action :load_hmis_hostname_options, only: [:new, :create, :edit, :update]
+
+  helper_method def data_source_policy
+    current_user.policy_for(@data_source)
+  end
 
   def index
     # search
@@ -24,12 +33,18 @@ class DataSourcesController < ApplicationController
     data_source_ids = @data_sources.map(&:id)
     @client_counts = GrdaWarehouse::DataSource.client_counts_by_id(data_source_ids)
     @project_counts = GrdaWarehouse::DataSource.project_counts_by_id(data_source_ids)
-    @unprocessed_enrollment_counts = GrdaWarehouse::DataSource.unprocessed_enrollment_counts_by_id(data_source_ids)
+    @unprocessed_enrollment_counts = GrdaWarehouse::DataSource.unprocessed_enrollment_counts_by_id(data_source_ids, user: current_user)
     @stalled_dates = GrdaWarehouse::DataSource.stalled_dates_by_id(data_source_ids)
+    # Scopes for lists, policies for single records: a DataSourcePolicy#can_delete? per row would
+    # query per data source. The parity spec keeps deletable_by and the policy in agreement.
+    @deletable_data_source_ids = GrdaWarehouse::DataSource.
+      deletable_by(current_user).
+      where(id: data_source_ids).
+      pluck(:id).
+      to_set
   end
 
   def show
-    @readonly = ! (can_edit_data_sources? || can_edit_projects?)
     load_overrides
     params[:coc_code] = nil unless valid_coc_code_param?
     @require_coc_choice = @data_source.require_coc_choice?(viewable_projects)
@@ -37,6 +52,7 @@ class DataSourcesController < ApplicationController
       @coc_summaries = @data_source.coc_summaries(viewable_projects)
     else
       @organizations = load_organizations.to_a
+      current_user.policy_context.preload_project_dependencies(@organizations.flat_map(&:projects).map(&:id))
       if @require_coc_choice
         @coc_display_name = params[:coc_code] == 'unknown' ? Translation.translate('Unknown CoC') : HudHelper.util.coc_name(params[:coc_code])
         @coc_project_count = project_scope.count
@@ -49,12 +65,12 @@ class DataSourcesController < ApplicationController
   end
 
   def new
-    @data_source = data_source_source.new
+    @data_source = GrdaWarehouse::DataSource.new
     @per_page_js = ['data_source_form']
   end
 
   def create
-    @data_source = data_source_source.new(new_data_source_params)
+    @data_source = GrdaWarehouse::DataSource.new(new_data_source_params)
     @data_source.source_type = :authoritative if new_data_source_params[:authoritative]
     if @data_source.save
       @data_source.replace_access([current_user], scope: :editor)
@@ -157,6 +173,18 @@ class DataSourcesController < ApplicationController
 
   private def set_data_source
     @data_source = data_source_source.find(params[:id].to_i)
+  end
+
+  private def require_data_source_edit!
+    not_authorized! unless data_source_policy.can_edit?
+  end
+
+  private def require_data_source_project_edit!
+    not_authorized! unless data_source_policy.can_edit_projects?
+  end
+
+  private def require_data_source_delete!
+    not_authorized! unless data_source_policy.can_delete?
   end
 
   private def load_overrides

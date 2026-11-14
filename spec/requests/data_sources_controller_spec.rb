@@ -30,6 +30,117 @@ RSpec.describe DataSourcesController, type: :request do
     end
   end
 
+  # The controller authorizes with before_actions. For a user with no rights, edit, update and
+  # destroy 404 at the viewable_by load before the policy check runs, so the view-only context is
+  # what proves the per-record edit and delete checks are wired up.
+  describe 'authorization guards' do
+    let(:update_params) { { grda_warehouse_data_source: { name: 'Renamed' } } }
+
+    def expect_not_authorized
+      expect(response).to redirect_to(root_path)
+      expect(flash[:alert]).to be_present
+    end
+
+    context 'for a user with no rights' do
+      before { sign_in user }
+
+      it 'denies show' do
+        get data_source_path(data_source)
+        expect_not_authorized
+      end
+
+      it 'does not find the data source to update' do
+        patch data_source_path(data_source), params: update_params
+        expect(response).to have_http_status(:not_found)
+        expect(data_source.reload.name).not_to eq('Renamed')
+      end
+    end
+
+    context 'for a user who can view the data source but has no data source rights' do
+      before do
+        collection.set_viewables({ data_sources: [data_source.id] })
+        setup_access_control(user, create(:role, can_view_projects: true, can_edit_projects: true), collection)
+        sign_in user
+      end
+
+      it 'allows show' do
+        get data_source_path(data_source)
+        expect(response).to have_http_status(:ok)
+      end
+
+      it 'denies edit, update, and destroy' do
+        project = create(:hud_project, data_source: data_source, confidential: false)
+        rename_with_nested_project_params = {
+          grda_warehouse_data_source: {
+            name: 'Renamed',
+            projects_attributes: { '0' => { id: project.id, confidential: '1' } },
+          },
+        }
+
+        get edit_data_source_path(data_source)
+        expect_not_authorized
+
+        patch data_source_path(data_source), params: rename_with_nested_project_params
+        expect_not_authorized
+        expect(data_source.reload.name).not_to eq('Renamed')
+        expect(project.reload.confidential).to be(false)
+
+        expect { delete data_source_path(data_source) }.not_to have_enqueued_job(DeleteItemJob)
+        expect_not_authorized
+      end
+    end
+
+    # Edit and delete rights don't reach a data source the user can't view: the record is loaded
+    # through viewable_by, which requires can_view_projects.
+    context 'for a user who can edit and delete the data source but not view projects' do
+      before do
+        collection.set_viewables({ data_sources: [data_source.id] })
+        role = create(
+          :role,
+          can_view_imports: true,
+          can_edit_data_sources: true,
+          can_delete_data_sources: true,
+        )
+        setup_access_control(user, role, collection)
+        sign_in user
+      end
+
+      # A not-found response drops the sign-in session, so sign in again before each request.
+      it 'does not find the data source for edit, update, or destroy' do
+        get edit_data_source_path(data_source)
+        expect(response).to have_http_status(:not_found)
+
+        sign_in user
+        patch data_source_path(data_source), params: update_params
+        expect(response).to have_http_status(:not_found)
+        expect(data_source.reload.name).not_to eq('Renamed')
+
+        sign_in user
+        expect { delete data_source_path(data_source) }.not_to have_enqueued_job(DeleteItemJob)
+        expect(response).to have_http_status(:not_found)
+      end
+    end
+
+    context 'for a user who can edit the data source but not edit projects' do
+      before do
+        collection.set_viewables({ data_sources: [data_source.id] })
+        setup_access_control(user, create(:role, can_view_projects: true, can_edit_data_sources: true), collection)
+        sign_in user
+      end
+
+      it 'allows edit' do
+        get edit_data_source_path(data_source)
+        expect(response).to have_http_status(:ok)
+      end
+
+      it 'denies update' do
+        patch data_source_path(data_source), params: update_params
+        expect_not_authorized
+        expect(data_source.reload.name).not_to eq('Renamed')
+      end
+    end
+  end
+
   describe 'with permission to view the data source' do
     before do
       collection.set_viewables({ data_sources: [data_source.id] })
@@ -540,6 +651,251 @@ RSpec.describe DataSourcesController, type: :request do
         expect(data_source.reload.name).to eq('Renamed')
         expect(data_source.client_retention_years).to be_nil
       end
+    end
+  end
+
+  describe 'writes to a data source the user can only view through one project' do
+    let(:editor_role) { create(:role, can_view_projects: true, can_edit_projects: true, can_edit_data_sources: true, can_delete_data_sources: true) }
+    let(:viewer_role) { create(:role, can_view_projects: true) }
+    let(:editable_data_source) { create(:source_data_source) }
+    let(:edit_collection) { create(:collection) }
+    let(:view_collection) { create(:collection) }
+    let!(:viewed_org) { create(:hud_organization, data_source: data_source) }
+    let!(:viewed_project) { create(:hud_project, data_source: data_source, OrganizationID: viewed_org.OrganizationID) }
+    let!(:unseen_project) { create(:hud_project, data_source: data_source, OrganizationID: viewed_org.OrganizationID, confidential: false) }
+
+    before do
+      edit_collection.set_viewables({ data_sources: [editable_data_source.id] })
+      view_collection.set_viewables({ projects: [viewed_project.id] })
+      setup_access_control(user, editor_role, edit_collection)
+      setup_access_control(user, viewer_role, view_collection)
+      sign_in user
+    end
+
+    it 'still updates the data source the role covers' do
+      patch data_source_path(editable_data_source), params: { grda_warehouse_data_source: { name: 'Renamed' } }
+      expect(response).to redirect_to(data_source_path(editable_data_source))
+      expect(editable_data_source.reload.name).to eq('Renamed')
+    end
+
+    # The role grants can_edit_data_sources, so only the per-record edit and delete checks stop
+    # these writes to a data source the role doesn't cover.
+    it 'does not update or delete the data source the user can only view' do
+      rename_with_nested_project_params = {
+        grda_warehouse_data_source: {
+          name: 'Renamed',
+          projects_attributes: { '0' => { id: unseen_project.id, confidential: '1' } },
+        },
+      }
+
+      patch data_source_path(data_source), params: rename_with_nested_project_params
+      expect(response).to redirect_to(root_path)
+      expect(flash[:alert]).to be_present
+      expect(data_source.reload.name).not_to eq('Renamed')
+      expect(unseen_project.reload.confidential).to be(false)
+
+      expect { delete data_source_path(data_source) }.not_to have_enqueued_job(DeleteItemJob)
+      expect(response).to redirect_to(root_path)
+      expect(flash[:alert]).to be_present
+    end
+
+    it 'shows the Edit button only on the data source the role covers' do
+      get data_source_path(data_source)
+      expect(Nokogiri::HTML(response.body).css("a[href='#{edit_data_source_path(data_source)}']")).to be_empty
+
+      get data_source_path(editable_data_source)
+      expect(Nokogiri::HTML(response.body).css("a[href='#{edit_data_source_path(editable_data_source)}']").size).to eq(1)
+    end
+
+    it 'shows the index delete button only on the data source the role covers' do
+      get data_sources_path
+      delete_links = Nokogiri::HTML(response.body).css("a[data-method='delete'][href^='/data_sources/']").map { |a| a['href'] }
+      expect(delete_links).to contain_exactly(data_source_path(editable_data_source))
+    end
+  end
+
+  # Building through viewable_by would copy a single viewable id onto the new record, so create
+  # must build from the bare model.
+  describe 'POST #create by a user who can view exactly one data source' do
+    before do
+      collection.set_viewables({ data_sources: [data_source.id] })
+      setup_access_control(user, create(:role, can_view_projects: true, can_edit_data_sources: true), collection)
+      sign_in user
+    end
+
+    it 'creates a new data source' do
+      create_params = { grda_warehouse_data_source: { name: 'New Source', short_name: 'NEW' } }
+
+      expect { post data_sources_path, params: create_params }.
+        to change(GrdaWarehouse::DataSource, :count).by(1)
+      expect(response).to redirect_to(data_sources_path)
+    end
+  end
+
+  describe 'DELETE #destroy' do
+    let(:edit_only_role) { create(:role, can_view_projects: true, can_edit_data_sources: true) }
+    let(:delete_role) { create(:role, can_view_projects: true, can_edit_data_sources: true, can_delete_data_sources: true) }
+
+    before do
+      collection.set_viewables({ data_sources: [data_source.id] })
+      sign_in user
+    end
+
+    it 'refuses an editor without the delete permission' do
+      setup_access_control(user, edit_only_role, collection)
+      expect { delete data_source_path(data_source) }.not_to have_enqueued_job(DeleteItemJob)
+      expect(response).to redirect_to(root_path)
+    end
+
+    it 'queues the delete for a user with the delete permission' do
+      setup_access_control(user, delete_role, collection)
+      expect { delete data_source_path(data_source) }.
+        to have_enqueued_job(DeleteItemJob).with(item_id: data_source.id, item_class: 'GrdaWarehouse::DataSource')
+    end
+
+    context 'with the delete permission only in another collection' do
+      let(:deletable_data_source) { create(:source_data_source) }
+      let(:delete_collection) { create(:collection) }
+
+      before do
+        delete_collection.set_viewables({ data_sources: [deletable_data_source.id] })
+        setup_access_control(user, create(:role, can_view_projects: true, can_delete_data_sources: true), delete_collection)
+        setup_access_control(user, edit_only_role, collection)
+      end
+
+      it 'does not queue the delete of a data source the user can only edit' do
+        expect { delete data_source_path(data_source) }.not_to have_enqueued_job(DeleteItemJob)
+        expect(response).to redirect_to(root_path)
+        expect(flash[:alert]).to be_present
+      end
+    end
+  end
+
+  describe 'GET #show query efficiency' do
+    let!(:org) { create(:hud_organization, data_source: data_source) }
+
+    def create_projects(count, prefix)
+      Array.new(count) { |i| create(:hud_project, data_source: data_source, OrganizationID: org.OrganizationID, ProjectName: "#{prefix} Project #{i}") }
+    end
+
+    def count_queries(&block)
+      count = 0
+      ActiveSupport::Notifications.subscribed(->(*) { count += 1 }, 'sql.active_record', &block)
+      count
+    end
+
+    def rendered_project_names(body)
+      Nokogiri::HTML(body).css('.project__name a').map { |a| a.text.strip }
+    end
+
+    before do
+      collection.set_viewables({ data_sources: [data_source.id] })
+      setup_access_control(user, role, collection)
+      sign_in user
+    end
+
+    it 'runs a bounded number of queries regardless of how many projects are listed' do
+      small_batch = create_projects(2, 'Small')
+      # Warm up one-time schema-cache queries so they don't skew the comparison.
+      get data_source_path(data_source)
+      small_queries = count_queries { get data_source_path(data_source) }
+      expect(rendered_project_names(response.body)).to match_array(small_batch.map(&:ProjectName))
+
+      large_batch = small_batch + create_projects(10, 'Large')
+      large_queries = count_queries { get data_source_path(data_source) }
+      expect(rendered_project_names(response.body)).to match_array(large_batch.map(&:ProjectName))
+
+      # Per-project permission lookups add at least one query per project (10 more here).
+      expect(large_queries).to be_within(5).of(small_queries)
+    end
+  end
+
+  describe 'confidential project names with edit rights in another collection' do
+    let(:editor_role) { create(:role, can_view_projects: true, can_edit_projects: true) }
+    let(:viewer_role) { create(:role, can_view_projects: true) }
+    let(:other_collection) { create(:collection) }
+    let!(:org) { create(:hud_organization, data_source: data_source) }
+    let!(:confidential_project) do
+      create(:hud_project, data_source: data_source, OrganizationID: org.OrganizationID, ProjectName: 'Hidden Shelter Name', confidential: true)
+    end
+
+    before do
+      collection.set_viewables({ data_sources: [data_source.id] })
+      other_collection.set_viewables({ data_sources: [create(:source_data_source).id] })
+      setup_access_control(user, viewer_role, collection)
+      setup_access_control(user, editor_role, other_collection)
+      sign_in user
+    end
+
+    it 'masks the confidential project name' do
+      get data_source_path(data_source)
+      expect(response).to have_http_status(:ok)
+      expect(response.body).not_to include('Hidden Shelter Name')
+      expect(response.body).to include(GrdaWarehouse::Hud::Project.confidential_project_name)
+    end
+
+    it 'shows the name when the user can edit that project' do
+      project_edit_collection = create(:collection)
+      project_edit_collection.set_viewables({ projects: [confidential_project.id] })
+      setup_access_control(user, editor_role, project_edit_collection)
+
+      get data_source_path(data_source)
+      expect(response.body).to include('Hidden Shelter Name')
+    end
+  end
+
+  describe 'confidential organization names' do
+    let(:viewer_role) { create(:role, can_view_projects: true) }
+    let(:org_editor_role) { create(:role, can_view_projects: true, can_edit_organizations: true) }
+    let(:other_collection) { create(:collection) }
+    let!(:confidential_org) { create(:hud_organization, data_source: data_source, OrganizationName: 'Hidden Agency Name', confidential: true) }
+    let!(:project) { create(:hud_project, data_source: data_source, OrganizationID: confidential_org.OrganizationID) }
+
+    before do
+      collection.set_viewables({ data_sources: [data_source.id] })
+      setup_access_control(user, viewer_role, collection)
+      sign_in user
+    end
+
+    it 'masks the name when the user can edit organizations only in another collection' do
+      other_collection.set_viewables({ data_sources: [create(:source_data_source).id] })
+      setup_access_control(user, org_editor_role, other_collection)
+
+      get data_source_path(data_source)
+      expect(response).to have_http_status(:ok)
+      expect(response.body).not_to include('Hidden Agency Name')
+    end
+
+    it 'shows the name when the user can edit that organization' do
+      other_collection.set_viewables({ organizations: [confidential_org.id] })
+      setup_access_control(user, org_editor_role, other_collection)
+
+      get data_source_path(data_source)
+      expect(response.body).to include('Hidden Agency Name')
+    end
+  end
+
+  describe 'PATCH #update with the project edit permission only on another collection' do
+    let(:project) { create(:hud_project, data_source: data_source, confidential: false) }
+
+    before do
+      collection.set_viewables({ data_sources: [data_source.id] })
+      setup_access_control(user, create(:role, can_view_projects: true, can_edit_data_sources: true), collection)
+      setup_access_control(user, create(:role, can_view_projects: true, can_edit_projects: true), create(:collection))
+      sign_in user
+    end
+
+    it 'does not update the data source or its projects' do
+      patch data_source_path(data_source), params: {
+        grda_warehouse_data_source: {
+          name: 'Renamed',
+          projects_attributes: [{ id: project.id, confidential: '1' }],
+        },
+      }
+
+      expect(response).to redirect_to(root_path)
+      expect(data_source.reload.name).not_to eq('Renamed')
+      expect(project.reload.confidential).to be(false)
     end
   end
 end

@@ -1,4 +1,4 @@
-- if can_edit_data_sources?
+- if data_source_policy.can_edit?
   .dropdown
     %button.btn.btn-sm.btn-outline-secondary.dropdown-toggle{ type: :button, data: { 'bs-toggle' => :dropdown, 'bs-boundary' => 'viewport' }, aria: { expanded: false } }
       More
