@@ -12,6 +12,11 @@
 # the top N sequences by percentage of their max value consumed. Useful for
 # spotting tables whose primary key sequence is approaching exhaustion.
 #
+# Max is the capacity computed by PostgresInspector#sequence_stats, which may
+# be set by a narrower integer column that references the key. "Limited by"
+# names that column. Snapshots taken before capacity_limited_by was collected
+# leave it blank.
+#
 # Usage:
 #   AppResourceMonitor::SequenceRisk.new(
 #     prefix: 'clientname-production',
@@ -62,15 +67,24 @@ class AppResourceMonitor::SequenceRisk < AppResourceMonitor::S3Analysis
 
     sorted = rows.sort_by { |r| -r['pct_used'].to_f }.first(limit)
 
-    puts format('  %-4s %-30s %-40s %-14s %s', '#', 'Database', 'Table.Column', 'Used %', 'Current / Max')
-    puts "  #{'-' * 108}"
+    puts format('  %-4s %-30s %-40s %-14s %-40s %s', '#', 'Database', 'Table.Column', 'Used %', 'Current / Max', 'Limited by')
+    puts "  #{'-' * 160}"
 
     sorted.each_with_index do |row, i|
       table_col = "#{row['tablename']}.#{row['column_name']}"
       current = format_number(row['last_value'].to_i)
       max     = format_number(row['max_value'].to_i)
+      pct_used = "#{format('%.4f', row['pct_used'].to_f)}%"
 
-      puts format('  %-4d %-30s %-40s %-14s %s', i + 1, row['database'], table_col, "#{format('%.4f', row['pct_used'].to_f)}%", "#{current} / #{max}")
+      puts format(
+        '  %-4d %-30s %-40s %-14s %-40s %s',
+        i + 1,
+        row['database'],
+        table_col,
+        pct_used,
+        "#{current} / #{max}",
+        row['capacity_limited_by'],
+      )
     end
     puts ''
   end
