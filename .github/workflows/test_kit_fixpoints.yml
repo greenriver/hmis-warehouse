@@ -137,10 +137,12 @@ jobs:
 
       # fetch some closed source files
       - name: "Fetch testkit source files"
-        env:
-          SOURCE: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_SOURCE_PATH_FY_2026 }}
-          DESTINATION: ./drivers/datalab_testkit/spec/fixtures/inputs/
-        run: aws s3 cp --no-progress "$SOURCE" "$DESTINATION" --recursive --region us-east-1
+        uses: ./.github/workflows/s3_test_data
+        with:
+          name: testkit-source
+          source: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_SOURCE_PATH_FY_2026 }}
+          destination: ./drivers/datalab_testkit/spec/fixtures/inputs/
+          encryption_key: ${{ secrets.ACTION_ASSET_ENCRYPTION_KEY }}
       - name: Generate new fixpoint files
         env:
           AWS_ACCESS_KEY_ID: local_access_key
@@ -166,8 +168,16 @@ jobs:
           SOURCE: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_FIXPOINT_PATH_FY_2026 }}
           DESTINATION: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_PREVIOUS_FIXPOINT_PATH_FY_2026 }}${{ env.today }}/
         run: aws s3 cp --no-progress "$SOURCE" "$DESTINATION" --recursive --region us-east-1
+      # The s3_test_data action gunzips these on download.
+      - name: "Compress new fixpoint files"
+        run: |
+          mkdir -p tmp/fixpoints-upload
+          for f in ./drivers/datalab_testkit/spec/fixpoints/*.sql; do
+            gzip -c "$f" > "tmp/fixpoints-upload/$(basename "$f").gz"
+          done
+      # --delete clears files from the last build; the step above copied them to the previous folder.
       - name: "Copy new fixpoint files to current folder"
         env:
-          SOURCE: ./drivers/datalab_testkit/spec/fixpoints/
+          SOURCE: tmp/fixpoints-upload/
           DESTINATION: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_FIXPOINT_PATH_FY_2026 }}
-        run: aws s3 cp --no-progress "$SOURCE" "$DESTINATION" --recursive --region us-east-1
+        run: aws s3 sync --no-progress "$SOURCE" "$DESTINATION" --delete --region us-east-1
