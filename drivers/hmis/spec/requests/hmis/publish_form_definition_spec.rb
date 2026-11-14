@@ -173,4 +173,38 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     # Check that FormDefinition was updated with the new CustomDataElementDefinition key
     expect(fd1.reload.link_id_item_hash['linkid_num'].mapping&.custom_field_key).to eq(new_cded.key)
   end
+
+  describe 'external forms' do
+    let(:mutation_with_errors) do
+      <<~GRAPHQL
+        mutation PublishFormDefinition($id: ID!) {
+          publishFormDefinition(id: $id) {
+            formIdentifier {
+              identifier
+            }
+            #{error_fields}
+          }
+        }
+      GRAPHQL
+    end
+    let!(:external_form) { create :hmis_external_form_definition, status: Hmis::Form::Definition::DRAFT, data_source: ds1 }
+
+    it 'publishes an external form that has an object key' do
+      response, result = post_graphql(id: external_form.id) { mutation_with_errors }
+      expect(response.status).to eq(200), result.inspect
+      expect(result.dig('data', 'publishFormDefinition', 'errors')).to be_empty
+      expect(external_form.reload.status).to eq(Hmis::Form::Definition::PUBLISHED)
+    end
+
+    it 'does not publish an external form without an object key' do
+      live_version = create :hmis_external_form_definition, identifier: external_form.identifier, version: 0, status: Hmis::Form::Definition::PUBLISHED, data_source: ds1
+      external_form.update!(external_form_object_key: nil, version: 1)
+      response, result = post_graphql(id: external_form.id) { mutation_with_errors }
+      expect(response.status).to eq(200), result.inspect
+      errors = result.dig('data', 'publishFormDefinition', 'errors')
+      expect(errors.map { |e| e['fullMessage'] }).to contain_exactly('Set the External Form Key in Edit Form Details before publishing.')
+      expect(external_form.reload.status).to eq(Hmis::Form::Definition::DRAFT)
+      expect(live_version.reload.status).to eq(Hmis::Form::Definition::PUBLISHED)
+    end
+  end
 end

@@ -1,3 +1,13 @@
+---
+sources:
+  - app/models/grda_warehouse/tasks/identify_duplicates.rb
+  - app/models/grda_warehouse/tasks/identify_duplicates_query_matcher.rb
+  - app/models/grda_warehouse/client_match.rb
+  - app/models/grda_warehouse/tasks/client_cleanup.rb
+  - app/models/grda_warehouse/warehouse_client.rb
+  - app/jobs/importing/run_daily_imports_job.rb
+---
+
 # Duplicate Client Identification Algorithm
 
 The `IdentifyDuplicates` deduplicates client records by identifying and linking clients that represent the same person across different data sources.
@@ -174,3 +184,48 @@ The system requires **2 of 3** exact matches across these normalized fields:
 - Handles missing or invalid data gracefully
 - Uses database transactions for critical operations
 - Provides alerts for edge cases and system limits
+
+## Gotchas
+
+### Two switches, two meanings
+- `enable_auto_deduplication` off means no exact matching at all: every unlinked source client gets its own new destination, and `match_existing!` and `accept_exact_matches!` return early.
+- `auto_de_duplication_enabled` is a different key. It only governs threshold-based auto-accept and auto-reject of statistical `ClientMatch` rows.
+
+### Querying people vs records
+- A `Hud::Client` id in a URL, cohort, or report is a destination id. Enrollments and services hang off source clients by `PersonalID` plus `data_source_id`.
+- `Hud::Client.where(...)` with no `.source` or `.destination` scope returns both kinds of row. Go from destination to HUD data through `source_clients`, and from source to person through `destination_client`.
+- Destination demographics (name, SSN, DOB, race, gender, sex, veteran status) are owned by `ClientCleanup`, not by imports. Do not pick a name or DOB in a view by looking across `source_clients`; use the destination's columns, or `SourceClientNameSet` for aliases.
+- Do not hand-roll merges (`update_all(destination_id:)`, deleting a destination). Use `merge_from`, which writes `ClientMergeHistory`, moves dependent items, invalidates service history, clears `ClientMatch` rows, and queues cleanup. Do not detach a source by deleting its `WarehouseClient`; without a `ClientSplitHistory` row the next `match_existing!` re-merges the pair. Use `split`.
+
+### Matching internals
+- The exact-match methods default to `legacy: true` (hand-written SQL). `IdentifyDuplicatesQueryMatcher` is only used with `legacy: false`. Change a filter in both until the legacy methods are removed; the `validate_duplicate_matching` rake task compares them.
+- Source clients hidden from interactive lookups (identities restricted in HMIS or the warehouse, identities with a retention mark) are skipped on name and SSN in `text_search` and in client-create duplicate lookups. DOB matching and the nightly `IdentifyDuplicates` / `ClientMatch` paths do not filter them, so hidden clients still merge.
+- `MAX_SOURCE_CLIENTS` (50): outside production a merge that would exceed it starts a new chain. In production it raises, and the nightly `match_existing!` stops until someone intervenes.
+- `DataSource.source_data_source_ids` and `destination_data_source_ids` are cached for an hour and cleared when a data source is created, so a data source reclassified (source, destination, or authoritative) mid-run may not be recognized until the cache expires.
+- HMIS CSV imports do not call the matcher; their new source clients are picked up as unprocessed by the nightly run.
+
+### ClientMatch rows
+- Both sides of a `candidate` row are source clients, despite the `source_client` / `destination_client` column names. Code that needs the person calls `.destination_client` on each side.
+- `processed_sources` rows are bookkeeping that mark a destination as scanned (both ids are the same). Count `ClientMatch` with a status scope, or candidates are overstated.
+- Statistical scores are negative; more negative is a better match.
+- `accept!` merges only the match's one source client into the other's current destination, so a single `WarehouseClient` row moves.
+
+### Merge and split
+- `merge_from` raises unless the receiver is a destination (`destination?`, which means it has source clients). If the previous destination has a warehouse restriction, or an external-data-sharing exclusion, both carry to the receiver. Restricting a receiver outside a destination data source raises and rolls back the merge.
+- A split is not an undo of a merge. It does not read `ClientMergeHistory`, does not restore the destroyed destination, and creates new destination ids. Only one detached client can receive notes, files, VI-SPDATs, cohort memberships, CE assessments, or custom data elements; everything else stays with the original.
+- `ClientSplitHistory` only blocks `match_existing!`. A brand-new source that exactly matches two destinations that were split from each other is attached to the one with the highest id; a reviewer can split again.
+- `splits_to` / `splits_from` on `Hud::Client` are named inversely to their foreign keys (`split_from` and `split_into`). Read the `foreign_key` before using either.
+- Merges change consent. Consent is resolved through `warehouse_clients` at run time and the daily job reconciles consent before identity, so consent follows a moved source the next night. Dates already written on the old destination are not cleared.
+
+### Destination attribute rules (`ClientCleanup`)
+- Name: take the best `NameDataQuality` tier (1, 2, 8, 9, 99), then earliest or latest `DateCreated` per the `warehouse_client_name_order` config (default earliest).
+- DOB: `dob_selection_method` config picks oldest or newest; otherwise the legacy data-quality tier walk applies. A DOB change invalidates service history.
+- Gender and race: per column, newest source first, and a 0 or 1 wins.
+- `Hmis::MergeClientsJob` reuses `choose_attributes_from_sources`, so changing a `choose_best_*` rule changes HMIS merge results too. That job and `Hmis::UndoMergeClientsJob` change `WarehouseClient` rows and rely on the next `IdentifyDuplicates` and `ClientCleanup` runs to repair destinations.
+- `WarehouseClient` does not use `acts_as_paranoid`, yet `ClientCleanup` clears and re-sets `deleted_at` on every run because external analytics tooling reads it. Do not filter on `deleted_at` inside this app. The `reviewd_by` column is misspelled in the schema and holds a user id as a string.
+
+### Daily job order
+`RunDailyImportsJob` runs consent updates, then CAS sync, then Identify Duplicates (`run!`, `match_existing!`, `ClientMatch.auto_process!`), then `ClientCleanup`. `ClientRetentionJob` is queued after service history is generated so it sees finished identity rewrites. `ClientCleanup` runs again at the end, and statistical candidate generation runs last in system maintenance.
+
+### Concurrency
+Per-client linking is triggered after commit (not after create) because the job queue is in a different database and the client row must exist first. Updating an HMIS client's name, DOB, SSN, or deletion date queues `match_existing!` unless one is already queued. `ClientCleanupJob` allows two concurrent instances and re-queues itself a minute out beyond that.

@@ -135,4 +135,14 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     # trying to duplicate it in this data source returns 'not found'
     expect_gql_error post_graphql(identifier: bad_identifier) { mutation }, message: 'not found'
   end
+
+  it 'does not copy the external form object key, since each form needs its own' do
+    external_form = create :hmis_external_form_definition, status: Hmis::Form::Definition::PUBLISHED, external_form_object_key: 'pit-2027', data_source: ds1
+    response, result = post_graphql(identifier: external_form.identifier) { mutation }
+    expect(response.status).to eq(200), result.inspect
+
+    copy = Hmis::Form::Definition.find_by!(identifier: result.dig('data', 'createDuplicateFormDefinition', 'formIdentifier', 'identifier'), data_source: ds1)
+    expect(copy.role).to eq('EXTERNAL_FORM')
+    expect(copy.external_form_object_key).to be_nil
+  end
 end

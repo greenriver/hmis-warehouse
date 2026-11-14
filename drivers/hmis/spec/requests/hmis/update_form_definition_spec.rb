@@ -98,4 +98,118 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     input = { title: 'a new title!' } # Can't update any forms (even CUSTOM_ASSESSMENT role) without can_manage_forms
     expect_access_denied post_graphql(id: fd1.id, input: input) { mutation }
   end
+
+  describe 'external form object key' do
+    let!(:external_form) { create :hmis_external_form_definition, status: Hmis::Form::Definition::DRAFT, external_form_object_key: nil, data_source: ds1 }
+
+    def update_key(definition, key)
+      post_graphql(id: definition.id, input: { external_form_object_key: key }) { mutation }
+    end
+
+    it 'sets a valid key' do
+      response, result = update_key(external_form, 'pit/pit_2027')
+      expect(response.status).to eq(200), result.inspect
+      expect(result.dig('data', 'updateFormDefinition', 'errors')).to be_empty
+      expect(external_form.reload.external_form_object_key).to eq('pit/pit_2027')
+    end
+
+    it 'accepts a key at the 100 character limit' do
+      key = 'a' * 100
+      response, result = update_key(external_form, key)
+      expect(response.status).to eq(200), result.inspect
+      expect(result.dig('data', 'updateFormDefinition', 'errors')).to be_empty
+      expect(external_form.reload.external_form_object_key).to eq(key)
+    end
+
+    {
+      'PIT-2027' => 'must contain only lowercase letters',
+      '/pit' => 'must contain only lowercase letters',
+      'pit/' => 'must contain only lowercase letters',
+      'pit//2027' => 'must contain only lowercase letters',
+      '../pit' => 'must contain only lowercase letters',
+      'pit 2027' => 'must contain only lowercase letters',
+      'a' * 101 => 'is too long (maximum is 100 characters)',
+    }.each do |key, message|
+      it "rejects invalid key #{key.truncate(20).inspect}" do
+        response, result = update_key(external_form, key)
+        expect(response.status).to eq(200), result.inspect
+        errors = result.dig('data', 'updateFormDefinition', 'errors')
+        expect(errors.map { |e| e['message'] }).to contain_exactly(start_with(message))
+        expect(external_form.reload.external_form_object_key).to be_nil
+      end
+    end
+
+    it 'rejects a key used by a different form' do
+      other_form = create :hmis_external_form_definition, data_source: ds1
+      response, result = update_key(external_form, other_form.external_form_object_key)
+      expect(response.status).to eq(200), result.inspect
+      errors = result.dig('data', 'updateFormDefinition', 'errors')
+      expect(errors.map { |e| e['fullMessage'] }).to contain_exactly('External Form Key is already used by a different form. To reuse it, retire the other forms that use it.')
+      expect(external_form.reload.external_form_object_key).to be_nil
+    end
+
+    context 'when the key is set and the form has never been published' do
+      before { external_form.update!(external_form_object_key: 'pit-2027') }
+
+      it 'allows changing it' do
+        response, result = update_key(external_form, 'pit-2028')
+        expect(response.status).to eq(200), result.inspect
+        expect(result.dig('data', 'updateFormDefinition', 'errors')).to be_empty
+        expect(external_form.reload.external_form_object_key).to eq('pit-2028')
+      end
+
+      it 'clears it when given a blank key' do
+        response, result = update_key(external_form, '  ')
+        expect(response.status).to eq(200), result.inspect
+        expect(result.dig('data', 'updateFormDefinition', 'errors')).to be_empty
+        expect(external_form.reload.external_form_object_key).to be_nil
+      end
+    end
+
+    it 'strips whitespace from the key' do
+      response, result = update_key(external_form, ' pit-2027 ')
+      expect(response.status).to eq(200), result.inspect
+      expect(result.dig('data', 'updateFormDefinition', 'errors')).to be_empty
+      expect(external_form.reload.external_form_object_key).to eq('pit-2027')
+    end
+
+    context 'when the key is set and a previous version has been published' do
+      before do
+        create :hmis_external_form_definition, identifier: external_form.identifier, version: 0, status: Hmis::Form::Definition::RETIRED, external_form_object_key: 'pit-2027', data_source: ds1
+        external_form.update!(version: 1, external_form_object_key: 'pit-2027')
+      end
+
+      it 'accepts the same key' do
+        response, result = update_key(external_form, 'pit-2027')
+        expect(response.status).to eq(200), result.inspect
+        expect(result.dig('data', 'updateFormDefinition', 'errors')).to be_empty
+      end
+
+      it 'does not allow changing it' do
+        expect_gql_error update_key(external_form, 'pit-2028'), message: 'not allowed to change external form object key after the form has been published'
+        expect(external_form.reload.external_form_object_key).to eq('pit-2027')
+      end
+
+      it 'does not allow clearing it' do
+        expect_gql_error update_key(external_form, nil), message: 'not allowed to change external form object key after the form has been published'
+        expect(external_form.reload.external_form_object_key).to eq('pit-2027')
+      end
+
+      it 'keeps the key when the input does not include it' do
+        response, result = post_graphql(id: external_form.id, input: { title: 'PIT 2027' }) { mutation }
+        expect(response.status).to eq(200), result.inspect
+        expect(result.dig('data', 'updateFormDefinition', 'errors')).to be_empty
+        expect(external_form.reload.external_form_object_key).to eq('pit-2027')
+      end
+    end
+
+    it 'allows setting a key on a published form that has none' do
+      create :hmis_external_form_definition, identifier: external_form.identifier, version: 0, status: Hmis::Form::Definition::PUBLISHED, external_form_object_key: nil, data_source: ds1
+      external_form.update!(version: 1)
+      response, result = update_key(external_form, 'pit-2027')
+      expect(response.status).to eq(200), result.inspect
+      expect(result.dig('data', 'updateFormDefinition', 'errors')).to be_empty
+      expect(external_form.reload.external_form_object_key).to eq('pit-2027')
+    end
+  end
 end

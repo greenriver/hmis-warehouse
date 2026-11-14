@@ -1,0 +1,5 @@
+-# Never render submission content or client data here; see the mailer
+%p
+  = "#{@project.project_name} has #{pluralize(@new_count, 'new submission')} to review in #{Translation.translate('Open Path HMIS')}."
+- if @url.present?
+  %p= link_to 'Review External Forms', @url

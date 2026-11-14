@@ -15,13 +15,17 @@ require 'nokogiri'
 class HmisExternalApis::PublishExternalFormsJob
   include SafeInspectable
 
+  # Raised before anything is uploaded when the external forms setup is incomplete, so Mutations::PublishExternalForm
+  # can return it as an error. Other failures are unexpected, because the form is validated when it is published.
+  class MissingConfigError < StandardError; end
+
   def perform(definition_id)
     definition = Hmis::Form::Definition.where(role: :EXTERNAL_FORM).published.find(definition_id)
     # Validate the form structure and CDEDs
     validate_form!(definition)
     # Validate the external forms setup
     missing_config = HmisExternalApis::ExternalForms::Config.validate_external_forms_setup
-    raise "external forms feature is not properly configured: #{missing_config.join(', ')}" if missing_config.any? && (Rails.env.production? || Rails.env.staging?)
+    raise MissingConfigError, "external forms feature is not properly configured: #{missing_config.join(', ')}" if missing_config.any? && (Rails.env.production? || Rails.env.staging?)
 
     publication = definition.external_form_publications.new
 
@@ -47,7 +51,7 @@ class HmisExternalApis::PublishExternalFormsJob
 
     # Validate the form structure and CDEDs
     errors = Hmis::Form::DefinitionValidator.perform(definition.definition, data_source_id: definition.data_source_id)
-    raise "cannot publish form with errors: #{errors.full_messages.join(', ')}" if errors.any?
+    raise "cannot publish form with errors: #{errors.map(&:full_message).join(', ')}" if errors.any?
   end
 
   # prepare form content for publication

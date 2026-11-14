@@ -11,6 +11,24 @@ require 'rails_helper'
 RSpec.describe HmisExternalApis::AcHmis::BulkVoider, type: :job do
   let!(:data_source) { create(:hmis_primary_data_source) }
   let!(:ce_project) { create(:hmis_hud_project, data_source: data_source, project_type: 14) }
+  let(:void_from_item) do
+    {
+      type: 'CHOICE',
+      link_id: 'void_assessment_void_from',
+      required: true,
+      text: 'Void All Referrals',
+      pick_list_options: [{ code: 'Housing' }, { code: 'Rental Assistance' }, { code: 'Both' }],
+      mapping: { custom_field_key: 'void_assessment_void_from' },
+    }
+  end
+  let(:void_form_items) do
+    [
+      { type: 'DATE', link_id: 'linkid_date', required: true, text: 'Assessment Date', assessment_date: true, mapping: { field_name: 'assessmentDate' } },
+      { type: 'BOOLEAN', link_id: 'void_all_referrals', hidden: true, text: 'Void All Referrals', mapping: { custom_field_key: 'void_assessment_void_all_referrals' } },
+      void_from_item,
+      { type: 'STRING', link_id: 'void_reason', required: true, text: 'Reason for Voiding', mapping: { custom_field_key: 'void_assessment_void_reason' } },
+    ]
+  end
   let!(:void_definition) do
     create(
       :hmis_form_definition,
@@ -19,18 +37,13 @@ RSpec.describe HmisExternalApis::AcHmis::BulkVoider, type: :job do
       status: Hmis::Form::Definition::PUBLISHED,
       data_source: data_source,
       generate_cdeds: true,
-      definition: {
-        item: [
-          { type: 'DATE', link_id: 'linkid_date', required: true, text: 'Assessment Date', assessment_date: true, mapping: { field_name: 'assessmentDate' } },
-          { type: 'BOOLEAN', link_id: 'void_all_referrals', required: true, text: 'Void All Referrals', mapping: { custom_field_key: 'void_assessment_void_all_referrals' } },
-          { type: 'STRING', link_id: 'void_reason', required: true, text: 'Reason for Voiding', mapping: { custom_field_key: 'void_assessment_void_reason' } },
-        ],
-      },
+      definition: { item: void_form_items },
     )
   end
   # Form definition factory created the CDEDs; find them by key
   let(:void_cded) { Hmis::Hud::CustomDataElementDefinition.find_by(key: 'void_assessment_void_all_referrals') }
   let(:void_reason_cded) { Hmis::Hud::CustomDataElementDefinition.find_by(key: 'void_assessment_void_reason') }
+  let(:void_from_cded) { Hmis::Hud::CustomDataElementDefinition.find_by(key: 'void_assessment_void_from') }
 
   def perform_bulk_void(destination_client_ids, ce_project_id: ce_project.id, initiated_by_id: nil)
     described_class.new.perform(
@@ -62,12 +75,28 @@ RSpec.describe HmisExternalApis::AcHmis::BulkVoider, type: :job do
       expect(exit_assessment.updated_by_hud_user).to eq(Hmis::Hud::User.system_user(data_source_id: data_source.id))
 
       void_assessment = Hmis::Hud::CustomAssessment.where(enrollment_id: enrollment.enrollment_id, data_collection_stage: 99).sole
-      expect(void_assessment.custom_data_elements.count).to eq(2)
+      expect(void_assessment.custom_data_elements.count).to eq(3)
       expect(void_assessment.custom_data_elements.find_by(data_element_definition: void_cded).value_boolean).to eq(true)
+      expect(void_assessment.custom_data_elements.find_by(data_element_definition: void_from_cded).value_string).to eq('Both')
       expect(void_assessment.custom_data_elements.find_by(data_element_definition: void_reason_cded).value_string).
         to include('CE Waitlist Management Process')
       expect(void_assessment.created_by_hud_user).to eq(Hmis::Hud::User.system_user(data_source_id: data_source.id))
       expect(void_assessment.updated_by_hud_user).to eq(Hmis::Hud::User.system_user(data_source_id: data_source.id))
+    end
+
+    context 'when the Void Assessment has no Housing / Rental Assistance / Both choice' do
+      let(:void_form_items) { super().without(void_from_item) }
+
+      it 'writes the void-all and reason values only' do
+        expect do
+          perform_bulk_void([client.warehouse_id])
+        end.to change(Hmis::Hud::CustomAssessment.where(data_collection_stage: 99), :count).by(1)
+
+        expect(void_from_cded).to be_nil
+        void_assessment = Hmis::Hud::CustomAssessment.where(enrollment_id: enrollment.enrollment_id, data_collection_stage: 99).sole
+        expect(void_assessment.custom_data_elements.count).to eq(2)
+        expect(void_assessment.custom_data_elements.find_by(data_element_definition: void_cded).value_boolean).to eq(true)
+      end
     end
 
     context 'when client is already exited' do
@@ -181,8 +210,9 @@ RSpec.describe HmisExternalApis::AcHmis::BulkVoider, type: :job do
         expect(child_enrollment.exit).to be_present
 
         void_assessment = Hmis::Hud::CustomAssessment.where(enrollment_id: enrollment.enrollment_id, data_collection_stage: 99).sole
-        expect(void_assessment.custom_data_elements.count).to eq(2)
+        expect(void_assessment.custom_data_elements.count).to eq(3)
         expect(void_assessment.custom_data_elements.find_by(data_element_definition: void_cded).value_boolean).to eq(true)
+        expect(void_assessment.custom_data_elements.find_by(data_element_definition: void_from_cded).value_string).to eq('Both')
         expect(void_assessment.custom_data_elements.find_by(data_element_definition: void_reason_cded).value_string).
           to include('CE Waitlist Management Process')
 

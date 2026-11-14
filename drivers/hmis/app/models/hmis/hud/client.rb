@@ -457,7 +457,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     (saved_changes.keys & ['FirstName', 'LastName', 'DOB', 'SSN', 'DateDeleted']).any?
   end
 
-  # Extensions from drivers — see ADR 0007
+  # Extensions from drivers — see docs/architecture/08-concepts/08-3-driver-module-pattern.md
   include ::ClientLocationHistory::Hmis::Hud::ClientExtension
   include HmisExternalApis::Hmis::Hud::ClientExtension
 

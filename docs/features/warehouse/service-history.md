@@ -1,3 +1,14 @@
+---
+sources:
+  - app/models/grda_warehouse/tasks/service_history/enrollment.rb
+  - app/models/grda_warehouse/tasks/project_cleanup.rb
+  - app/models/grda_warehouse/service_history_service.rb
+  - app/models/grda_warehouse/service_history_service_materialized.rb
+  - app/models/grda_warehouse/warehouse_clients_processed.rb
+  - app/jobs/importing/run_daily_imports_job.rb
+  - app/jobs/update_warehouse_clients_caches_job.rb
+---
+
 # Service History
 
 The Service History subsystem provides a flattened, day-by-day representation of a client's journey through various programs. It is a primary source for many reports and data analysis.
@@ -30,9 +41,11 @@ Each `ServiceHistoryService` row carries two boolean flags — `homeless` and `l
 | Project type | `homeless` | `literally_homeless` |
 |---|---|---|
 | ES, SO, SH, TH | `true` | `true` for ES/SO/SH; `false` for TH |
-| PH on or before move-in date | `nil` | `nil` |
-| PH after move-in date | `false` | `false` |
+| PH before move-in date, or without one | `nil` | `nil` |
+| PH on or after move-in date | `false` | `false` |
 | Services Only, Other, Day Shelter, CE | `nil` | `nil` |
+
+The move-in day is the first `false` day. The flip uses the enrollment's own `MoveInDate`, not the household-derived `move_in_date` copied onto the `ServiceHistoryEnrollment` row. The `currently_homeless` and `hud_currently_homeless` scopes on `ServiceHistoryEnrollment` don't read these flags; they take ongoing entry rows in homeless types and exclude clients with an ongoing PH enrollment moved in on or before the date.
 
 A `nil` value means the day is neither homeless nor not-homeless — it will not appear in `homeless` or `non_homeless` scopes. This three-state design lets reports distinguish "known homeless," "known housed," and "not categorized" service days. The episode rules in [Homeless Episodes](homeless-episodes.md) read these flags directly: `literally_homeless = true` nights keep an episode open, `homeless = false` and TH nights count toward a housed break.
 
@@ -40,11 +53,18 @@ The `ProjectCleanup` daily task (see "Automatic Rebuild via Daily Project Cleanu
 
 ## Storage & Performance Considerations
 
- The `service_history_services` dataset is among the largest tables in the warehouse regardless of installation scale. To keep inserts fast and maintenance manageable, we physically shard it by year. PostgreSQL trigger logic (see `db/warehouse_structure.sql`) routes each new service day into the correct annual partition (`service_history_services_2000`, `service_history_services_2001`, …, `service_history_services_2050`) with an overflow table (`service_history_services_remainder`) for out-of-range data. Queries continue to reference the parent `service_history_services` relation, but PostgreSQL prunes to the relevant partitions based on date filters.
+ The `service_history_services` dataset is among the largest tables in the warehouse regardless of installation scale. To keep inserts fast and maintenance manageable, we physically shard it by year. PostgreSQL declarative range partitioning (see `db/warehouse_structure.sql`) routes each new service day into the correct annual partition (`service_history_services_2000`, `service_history_services_2001`, …, `service_history_services_2050`) with an overflow table (`service_history_services_remainder`) for out-of-range data. Queries continue to reference the parent `service_history_services` relation, but PostgreSQL prunes to the relevant partitions based on date filters.
 
 For analytic workloads that benefit from a consistent snapshot—and to avoid the cross-partition overhead of per-client lookups—we expose the `service_history_services_materialized` relation. The `GrdaWarehouse::ServiceHistoryServiceMaterialized` model manages that materialized view, including `refresh!` (to repopulate it) and `rebuild!` (to drop, recreate, and reindex). A notifier-backed `double_check_materialized_view` helper compares recent homeless dates between the live partitions and the materialized copy so we can detect drift. Future work (see ADR 0006) explores replacing daily rows with period-based ranges, which could eliminate the need for this materialized view entirely.
 
-There are some guard rails in place so we don't generate service back to the year 100 or far into the future.
+There are some guard rails in place so we don't generate service back to the year 100 or far into the future. Enrollments with an entry date before the earliest allowed date are refused, and open enrollments are built only through today or the export's effective end date.
+
+Gotchas:
+
+- The partition range is fixed at 2000 to 2050 in both the schema and `ServiceHistoryService.table_years`. Adding a year needs a schema change and a `table_years` update.
+- A query on `service_history_services` without a `date` predicate scans every partition. Use `service_between`, `on_date`, `homeless_between`, or an explicit date range.
+- `on_duplicate_key_update` doesn't work on the partitioned table, so the builder rescues unique and foreign key errors instead. A crash between inserting the entry row and inserting the service days leaves entry rows with no days until the next hash mismatch or sanity check.
+- `refresh!` is a plain `REFRESH MATERIALIZED VIEW`, which blocks readers while it runs.
 
 ### Data Flow Overview
 
@@ -99,7 +119,14 @@ Service history will automatically regenerate when any of the following source d
 -   **Current Living Situations:** Information dates for Street Outreach projects that act as bed-night
 -   **Client data:** Changes to the destination client (e.g., after client merges)
 
-The hash calculation includes these fields to detect changes. When `rebuild_service_history!` is called on an enrollment, it compares the current hash with the stored `processed_as` value. If they differ, a full rebuild occurs.
+The hash calculation includes these fields to detect changes. Two consequences:
+
+- The hash covers `ProjectID`, not the project's type. A type change is caught by `ProjectCleanup` (it compares the type on existing service history rows to the project), which forces the rebuild. Until the nightly job runs, flags reflect the old type.
+- Current Living Situations are hashed only for Street Outreach projects, so a CLS change on any other enrollment doesn't trigger a rebuild.
+
+`rebuild_service_history!` is a no-op for an exited entry/exit enrollment whose exit date is later than its last build date. Invalidate `processed_as` to force work on it. The batch job rebuilds each enrollment on its own and records the outcome in `processing_error` (cleared on success), so one failing enrollment doesn't stop the batch.
+
+Don't write to `service_history_enrollments` or `service_history_services` from feature code. `GrdaWarehouse::Tasks::ServiceHistory::Enrollment` is the only writer; invalidate and let the builder run. Enqueue rebuilds through `ServiceHistory::Builder.queue_enrollments`, which takes the advisory lock and skips ids already queued, rather than enqueuing the batch job directly. Use the stored `homeless` flags or `HudHelper.util` project type lists instead of hard-coding project type numbers.
 
 ### Automatic Rebuild via Daily Project Cleanup Task
 
@@ -111,6 +138,10 @@ A daily `ProjectCleanup` task automatically detects and fixes several types of p
 -   **Project name changes:** Project names in service history are automatically updated when they don't match the source
 
 The cleanup task runs on all projects daily and then processes the invalidated enrollments.
+
+### Nightly ordering
+
+`RunDailyImportsJob` runs service history after consent, ETO, CAS sync, duplicate identification, and project and client cleanup. Identifying duplicates before generation means a merge done tonight is reflected in tonight's service history, because the destination client id is part of the hash. Client cleanup runs again after generation. The client retention job is enqueued after duplicate identification and cleanup have rewritten the warehouse client links, and does nothing unless a retention period is configured.
 
 ### Manual Rebuild Process
 
@@ -183,6 +214,12 @@ The cache is updated automatically by:
 3. **On-Demand Jobs**:
    - `AddCohortClientsJob` updates the cache when clients are added to cohorts
    - `UpdateWarehouseClientsCachesJob` can be queued for specific client sets
+
+- The homeless-day counts read the materialized view, not the live table, and exclude days that overlap a `homeless: false` PH day (and TH, for the literal variants). Extrapolated days are dropped from most-recent dates unless the `ineligible_uses_extrapolated_days` config is on.
+- An on-demand cache update right after a rebuild reports stale numbers until the view is refreshed. The nightly job refreshes before updating.
+- With no client ids, `update_cached_counts` covers only clients with an enrollment open in the last year. Older clients keep stale rows until their ids are passed explicitly.
+- Clients on an active cohort or active in CAS also get ongoing-enrollment flags, household members, and CAS match fields. The "Ongoing RRH Enrollments" last visit leaves out RRH: Services Only.
+- Don't call the cache update from a new scheduled place; the nightly job, the sanity check, and the service history add task already do. Enqueue `UpdateWarehouseClientsCachesJob` for specific clients.
 
 **Important**: The cache update happens **after** service history is generated as part of the daily import process. For immediate updates, use `UpdateWarehouseClientsCachesJob.perform_later(client_ids: [ids])` rather than directly calling model methods.
 

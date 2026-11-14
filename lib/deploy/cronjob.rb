@@ -29,8 +29,16 @@ class Cronjob
     self.k8s_service_account_name = ENV.fetch('K8S_SERVICE_ACCOUNT_NAME', 'default') # provided by kyverno
   end
 
-  def self.clear!
-    dummy.clear!
+  def self.existing_cron_names
+    dummy.existing_cron_names
+  end
+
+  def self.existing_vpa_names
+    dummy.existing_vpa_names
+  end
+
+  def self.clear_defunct!(keep_names)
+    dummy.clear_defunct!(keep_names)
   end
 
   def self.clear_defunct_vpas!
@@ -41,16 +49,28 @@ class Cronjob
     new(description: 'none', schedule_expression: '', command: 'none', capacity_type: 'spot')
   end
 
-  def clear!
+  def existing_cron_names
+    names_of(cron_list)
+  end
+
+  def existing_vpa_names
+    names_of(vpa_list)
+  end
+
+  # Deletes rails cronjobs that are no longer in the schedule. Cascades to their Jobs.
+  def clear_defunct!(keep_names)
+    keep = Set.new(keep_names)
     cron_list.each do |cron|
-      Rails.logger.info "Deleting #{cron.metadata.namespace}/#{cron.metadata.name} (#{cron.metadata.annotations&.description})"
+      next if keep.include?(cron.metadata.name)
+
+      Rails.logger.warn "Deleting #{cron.metadata.namespace}/#{cron.metadata.name} which is no longer scheduled (#{cron.metadata.annotations&.description})"
+      crons.delete_resource(cron)
     end
-    crons.delete_collection(labelSelector: { 'cron-source' => 'rails' })
   end
 
   def clear_defunct_vpas!
     Rails.logger.info 'Looking for orphaned VPAs'
-    existing_crons = Set.new(cron_list.map { |cron| cron.metadata.name })
+    existing_crons = existing_cron_names
     vpa_list.each do |vpa|
       next if existing_crons.include?(vpa.metadata.labels['cronjob-name'])
 
@@ -59,25 +79,44 @@ class Cronjob
     end
   end
 
-  def run!
-    add_cron!
-    upsert_vpa!
+  # Callers pass the names already in the cluster, listed once per deploy rather than once per job
+  def run!(existing_crons:, existing_vpas:)
+    existing_crons.include?(jobname) ? update_cron! : create_cron!
+    existing_vpas.include?(vpa_name) ? update_vpa! : create_vpa!
   end
 
   private
 
-  def add_cron!
-    Rails.logger.info "Adding #{jobname} with capacity #{capacity_type} on schedule of #{schedule_expression}"
+  def create_cron!
+    Rails.logger.info "Creating #{jobname} with capacity #{capacity_type} on schedule of #{schedule_expression}"
     crons.create_resource(materialized_cronjob)
   end
 
+  # Updating in place keeps the CronJob's UID, so its finished Jobs (owned via
+  # ownerReferences) survive the deploy and the history limits keep applying.
+  def update_cron!
+    Rails.logger.info "Updating #{jobname} with capacity #{capacity_type} on schedule of #{schedule_expression}"
+    desired = cronjob_definition
+    # JSON Patch replace, not merge patch, so fields removed from the template are removed here too
+    crons.json_patch(
+      jobname,
+      [
+        { op: 'add', path: '/metadata/labels', value: desired.dig('metadata', 'labels') || {} },
+        { op: 'add', path: '/metadata/annotations', value: desired.dig('metadata', 'annotations') || {} },
+        { op: 'replace', path: '/spec', value: desired.fetch('spec') },
+      ],
+    )
+  end
+
   # vpa is a vertical pod autoscaler
-  def upsert_vpa!
-    Rails.logger.info "Upserting #{jobname} vertical pod autoscaler (VPA)"
+  def create_vpa!
+    Rails.logger.info "Creating #{vpa_name} vertical pod autoscaler (VPA)"
     vpas.create_resource(materialized_vpa)
-  rescue K8s::Error::Conflict
-    Rails.logger.debug { "Already created a VPA for #{command}" }
-    existing = vpas.get("cronjob-#{jobname}")
+  end
+
+  def update_vpa!
+    Rails.logger.info "Updating #{vpa_name} vertical pod autoscaler (VPA)"
+    existing = vpas.get(vpa_name)
     existing[:spec][:updatePolicy] = materialized_vpa[:spec][:updatePolicy]
     existing[:spec][:resourcePolicy] = materialized_vpa[:spec][:resourcePolicy]
     vpas.update_resource(existing)
@@ -92,10 +131,12 @@ class Cronjob
   end
 
   def materialized_cronjob
-    K8s::Resource.new(
-      YAML.load(
-        ERB.new(configmap.data['cronjob.yaml']).result(binding),
-      ),
+    K8s::Resource.new(cronjob_definition)
+  end
+
+  def cronjob_definition
+    @cronjob_definition ||= YAML.load(
+      ERB.new(configmap.data['cronjob.yaml']).result(binding),
     )
   end
 
@@ -106,6 +147,14 @@ class Cronjob
         ERB.new(configmap.data['vpa.yaml']).result(binding),
       ),
     )
+  end
+
+  def vpa_name
+    "cronjob-#{jobname}"
+  end
+
+  def names_of(resources)
+    Set.new(resources.map { |r| r.metadata.name })
   end
 
   def cron_list

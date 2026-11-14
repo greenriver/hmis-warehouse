@@ -1,3 +1,12 @@
+---
+sources:
+  - drivers/hmis/lib/ce_workflows/shared/ce_builder_utils.rb
+  - drivers/hmis/lib/ce_workflows/ac/workflow_builder.rb
+  - drivers/hmis/lib/ce_workflows/ph/workflow_builder.rb
+  - drivers/hmis/lib/ce_workflows/standard/workflow_builder.rb
+  - drivers/hmis/app/models/hmis/workflow_definition/template.rb
+---
+
 # CE Workflow Builders
 
 ## Overview
@@ -85,9 +94,15 @@ end
 Updates to Workflow Templates fall into two categories. See [https://github.com/open-path/Green-River/issues/8515](https://github.com/open-path/Green-River/issues/8515).
 
 - **Form field/label changes** such as label changes, adding a question, or adding a pick list option:
-  - Edit JSON in `lib/form_data/`.
+  - Edit JSON in `drivers/hmis/lib/form_data/`.
   - On deploy, forms are re-seeded automatically.
   - No template version bump.
 - **Graph changes** such as new steps, gateways, side effects:
   - We don't yet have an established pattern for handling this in production.
   - The non-preferred draft-idempotent pattern was partly built to handle this, but due to the downsides listed above, we're retiring that pattern and will cross this bridge when we re-encounter it.
+
+## Gotchas
+
+- Deleting a template does not clear `UnitGroup.workflow_template_identifier`. The builder is expected to recreate the same identifier immediately.
+- Republishing a template does not move in-flight referrals, because they are bound by template `id` at creation.
+- There is no admin UI for templates; they are published from builder scripts.
