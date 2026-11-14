@@ -28,14 +28,14 @@ module WarehouseReports
     def set_jobs
       jobs = Delayed::Job.jobs_for_class(::Filters::HmisExport.job_classes).order(run_at: :desc)
       @job_reports = jobs.filter_map do |job|
-        parameters = YAML.safe_load(
+        job_data = YAML.safe_load(
           job.handler,
           permitted_classes: JOB_HANDLER_PERMITTED_CLASSES,
           aliases: true,
-        ).job_data['arguments'].first
-        parameters.delete('_aj_symbol_keys')
-        parameters.delete('_aj_globalid')
-        parameters['project_ids'] = parameters.delete('projects')
+        ).job_data
+        # Deserialize so ActiveJob-wrapped values (e.g. symbols such as sub_population) come back as Ruby objects.
+        parameters = ActiveJob::Arguments.deserialize(job_data['arguments']).first
+        parameters[:project_ids] = parameters.delete(:projects)
         report = GrdaWarehouse::HmisExport.new(parameters)
         next unless queued_report_visible?(report)
 

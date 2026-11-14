@@ -20,6 +20,12 @@ module GrdaWarehouse
     # offers only 7 and up (HUD's minimum), shorter windows are set from the console.
     validates :client_retention_years, numericality: { only_integer: true, greater_than: 0 }, allow_nil: true
 
+    STATE_CODE = /\A[A-Z]{2}\z/
+
+    before_validation :normalize_relevant_state_codes
+    validates :relevant_state_codes, presence: true
+    validate :relevant_state_codes_are_state_codes
+
     after_save :invalidate_cache
 
     # The multi-select posts a hidden blank alongside the real selections, and that
@@ -36,7 +42,24 @@ module GrdaWarehouse
 
     def self.relevant_state_codes
       # NOTE: memoized class variable, only changes on restart/redeploy
-      @relevant_state_codes ||= GrdaWarehouse::Config.get(:relevant_state_codes)&.split(',') || ['MA']
+      @relevant_state_codes ||= begin
+        value = get(:relevant_state_codes)
+        value.nil? ? ['MA'] : normalize_state_codes(value)
+      end
+    end
+
+    def self.normalize_state_codes(value)
+      value.to_s.split(',').map { |code| code.strip.upcase }.compact_blank
+    end
+
+    private def normalize_relevant_state_codes
+      self.relevant_state_codes = self.class.normalize_state_codes(relevant_state_codes).join(',')
+    end
+
+    private def relevant_state_codes_are_state_codes
+      return if relevant_state_codes.to_s.split(',').all? { |code| code.match?(STATE_CODE) }
+
+      errors.add(:relevant_state_codes, :invalid)
     end
 
     def self.available_cas_methods

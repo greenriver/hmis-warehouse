@@ -10,7 +10,7 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
   include ActionView::Helpers
   include Eto::PathwaysAnswers
   include Eto::CovidAnswers
-  # Extensions from drivers — see ADR 0007
+  # Extensions from drivers — see docs/architecture/08-concepts/08-3-driver-module-pattern.md
   include ClientLocationHistory::GrdaWarehouse::HmisFormExtension
   include MaYyaReport::GrdaWarehouse::HmisFormExtension
   belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', optional: true

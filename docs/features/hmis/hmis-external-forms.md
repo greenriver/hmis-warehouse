@@ -1,3 +1,12 @@
+---
+sources:
+  - drivers/hmis_external_apis/app/models/hmis_external_apis/external_forms/form_generator.rb
+  - drivers/hmis_external_apis/app/models/hmis_external_apis/external_forms/form_submission.rb
+  - drivers/hmis_external_apis/app/models/hmis_external_apis/external_forms/config.rb
+  - drivers/hmis_external_apis/app/jobs/hmis_external_apis/publish_external_forms_job.rb
+  - drivers/hmis_external_apis/app/jobs/hmis_external_apis/consume_external_form_submissions_job.rb
+---
+
 # HMIS external forms
 
 External forms publish an `EXTERNAL_FORM` definition as a static HTML page that anyone can fill out without logging in, for example a Point-in-Time (PIT) count survey or a prevention screening. Submissions travel through S3 to the HMIS, where staff review them in the project's External Forms tab. Marking a submission reviewed runs it through the form processor, which writes the answers to HMIS records.
@@ -14,6 +23,7 @@ Out of scope here:
 2. **Submit.** In the browser, the form gets a reCAPTCHA token and calls `external_forms/presign_url`, an AWS Lambda behind API Gateway. The Lambda checks the token and returns a presigned S3 URL and an encrypted captcha score. The browser uploads the answers as JSON, with `captcha_score` added, to the submissions bucket. Each input is named after its mapping (`FormGenerator.node_name`), for example `Client.firstName`, or the item's `custom_field_key`.
 3. **Consume.** `HmisExternalApis::ConsumeExternalFormSubmissionsJob` runs hourly (`grda_warehouse:hourly`), or on demand through the `RefreshExternalSubmissions` mutation behind the refresh button in the HMIS. It downloads each object, decodes the definition ID, decrypts the captcha score, upserts an `HmisExternalApis::ExternalForms::FormSubmission` (`hmis_external_form_submissions`) holding the raw answers in `raw_data`, and deletes the S3 object. It raises if more than 10,000 objects have piled up.
 4. **Review.** Submissions show on the project's External Forms tab once the form has an active project rule. Submissions that arrive before the rule exists are still stored, and appear once it's added. A captcha score below 0.5 marks a submission as spam. Marking a submission reviewed (`UpdateExternalFormSubmission`, or `BulkReviewExternalSubmissions` for submissions from a single form identifier) calls `FormSubmission#run_form_processor`, unless the submission is spam. Reviewing needs `can_manage_external_form_submissions` on the project. A reviewed submission can't go back to New.
+5. **Notify.** After each successful consume run, `HmisExternalApis::NotifyExternalFormSubmissionsJob` runs once per project with an active external form rule. It looks at submissions in the project's review queue (`FormSubmission.in_review_queue_for`) that have no `reviewers_notified_at`, and stamps them all. If any of them are New and the project has an `EXTERNAL_FORM_SUBMISSION_NOTIFICATIONS` project config, it first emails each active user who has both `can_manage_external_form_submissions` and `can_view_project` on the project (`ExternalFormSubmissionNotificationMailer`). The email gives the project name, the count of new submissions (spam included), and a link to the External Forms tab, and never includes submission content. Projects that haven't opted in are stamped too, so opting in later doesn't email about submissions already in the queue. The email respects each user's email schedule, so daily-digest users get it in their digest.
 
 If the definition maps any item to a `CLIENT` or `ENROLLMENT` field (`Definition#updates_client_or_enrollment?`), review also creates a new client and enrollment in the rule's project, and also needs `can_edit_enrollments`. The entry date is the submission's `created_at`. The enrollment is auto-entered if the project auto-enters; otherwise it's saved as in progress.
 
@@ -73,18 +83,18 @@ The AWS pieces live outside this repository: the presign Lambda and its API Gate
 
 **New form:**
 
-1. **Build the form** in the Form Builder with role `EXTERNAL_FORM`, and publish it there. To start from an existing form, such as last year's PIT, see the last item under Gotchas.
-2. **Set the object key** in the console. The Form Builder displays it but can't set it:
-   `Hmis::Form::Definition.find(id).update!(external_form_object_key: '<form_name>')`
-   The key is the form's path in the public S3 bucket, so it can include a prefix (`pit/<form_name>`) if needed. Each form identifier needs its own key; one can't be reused across identifiers.
+1. **Build the form** in the Form Builder with role `EXTERNAL_FORM`. To start from an existing form, such as last year's PIT, see the last item under Gotchas.
+2. **Set the External Form Key** when creating the form, or later in the Form Builder's Edit Form Details dialog (the pencil next to the title). The key is required to publish.
+   The key is the form's path in the public S3 bucket, so it can include a prefix (`pit/<form_name>`) if needed. It must be lowercase letters, numbers, `-`, `_`, `.` and `/` (for example `pit.html` or `pit/2027.html`), 100 characters or fewer, and each `/`-separated part must start with a letter or number. Each active form needs its own key; a key can only be reused by another form once the form holding it is retired (Retire Form on the form page). Retiring doesn't yet take the page down from S3 ([#10054](https://github.com/open-path/Green-River/issues/10054)). The key can be changed until the form is first published; after that, fixing a wrong key needs a developer at the console.
 3. **Add one active form rule** for the project that will review submissions.
-4. **Publish the HTML:** `HmisExternalApis::PublishExternalFormsJob.new.perform(definition_id)`. The form is then live at `https://<public bucket>.s3.amazonaws.com/<external_form_object_key>`. The first publish can take a few minutes to become reachable.
+4. **Publish the HTML:** click **Publish to Public URL** on the form's page (Admin > Forms). This runs `HmisExternalApis::PublishExternalFormsJob` for the published version, and needs the same permission as publishing in the Form Builder. The form is then live at `https://<public bucket>.s3.amazonaws.com/<external_form_object_key>`, shown on the form's page with when it was last published. The first publish can take a few minutes to become reachable.
 5. **Test the whole pipeline** (see Gotchas).
+6. **Optional: turn on email notifications** by adding an External Form Submission Notifications project config on the Admin Project Config page. The option only appears once external forms are enabled in the environment (`ConsumeExternalFormSubmissionsJob.enabled?`).
 
 **Changing an existing form:**
 
-1. **Edit and publish a new version** in the Form Builder. New versions keep the `external_form_object_key`, so you don't need to set it again.
-2. **Republish the HTML** with the new version's ID: `HmisExternalApis::PublishExternalFormsJob.new.perform(new_definition_id)`. The live page is replaced immediately. ([#6550](https://github.com/open-path/Green-River/issues/6550) is outstanding ticket to automate this)
+1. **Edit and publish a new version** in the Form Builder. New versions keep the External Form Key, so you don't need to set it again.
+2. **Republish the HTML:** click **Publish to Public URL** on the form's page. Publishing a new version in the Form Builder doesn't change the live page until you do. The live page is replaced immediately.
 3. **Test the whole pipeline** (see Gotchas).
 
 **Local development:** set `external_forms/presign_url` to `/hmis_external_api/external_forms/presign`, then open `https://hmis-warehouse.dev.test/hmis_external_api/external_forms/<external_form_object_key>`. In development, the Form Builder's form page links there. That route publishes and serves the form. Submissions go straight into `hmis_external_form_submissions` with a captcha score of `1.0`, with no S3 involved.
@@ -116,8 +126,10 @@ The AWS pieces live outside this repository: the presign Lambda and its API Gate
   - Once reviewed, all of a family's submissions should end up as enrollments in one household in the rule's project, with the same `HouseholdID` and one head of household. Check this when testing a family submission.
 - **`ageRange` on `CLIENT` is parsed, not stored.** If no DOB was given, an age-range answer becomes an approximate DOB (`dob_data_quality: 2`). Option codes must exactly match a key in `HudHelper.util.age_range`, or a missing-data wording ("Doesn't know", "Prefers not to answer", "Data not collected"). Anything else raises at review time.
 - **`pick_list_options` codes are the stored values.** For field mappings, the codes must match the target enum or value the processor expects. Rewording a code breaks processing, even though the form still renders and submits.
-- **Publishing takes effect immediately and isn't tied to form versions** ([#6550](https://github.com/open-path/Green-River/issues/6550)). The S3 object is overwritten as soon as the job runs. Each submission keeps the definition ID it was submitted with, so CDED keys and mappings that already-collected submissions use must keep working until those submissions are reviewed.
+- **Publishing takes effect immediately and isn't tied to form versions**. The S3 object is overwritten as soon as the job runs. Each submission keeps the definition ID it was submitted with, so CDED keys and mappings that already-collected submissions use must keep working until those submissions are reviewed.
+- **Adding or reactivating a rule can trigger a backlog email.** Submissions that arrive while a form has no active project rule aren't in any review queue, so the notify job doesn't stamp them. When the rule is added or reactivated, they join the queue as New, and if the project has opted in, the next run emails reviewers about all of them in one count.
 - **Exactly one active project rule.** `FormSubmission#parent_project` uses `.sole`, so with zero rules or more than one, review fails.
+- **Definition text is rendered unescaped.** `FormGenerator#render_display_node` and the form view mark stored definition text `html_safe` in a public page. Definitions are admin-authored, but don't extend the pattern; if rich text is needed, escape by default and sanitize a fixed markup subset.
 - **Use existing forms as reference.** Before building a new PIT or intake-style form, copy a published `EXTERNAL_FORM` definition from the Form Builder. PIT forms namespace their CDED keys by year (for example `external_form_pit_2026_*`), so each year's survey has its own fields.
 
 ## Related

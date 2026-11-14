@@ -66,6 +66,7 @@ RSpec.describe GrdaWarehouse::Tasks::ProcessRecurringHmisExports, type: :model d
       allow(Filters::HmisExport).to receive(:new).and_wrap_original do |method, *args|
         filter = method.call(*args)
         allow(filter).to receive(:effective_project_ids).and_return([1, 2, 3])
+        allow(filter).to receive(:project_selection_hidden?).and_return(false)
         filter
       end
 

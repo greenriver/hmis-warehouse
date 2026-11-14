@@ -9,8 +9,6 @@
 module Admin
   class TranslationKeysController < ApplicationController
     before_action :require_can_edit_translations!
-    before_action :set_translation, only: [:show, :edit, :update, :destroy]
-    before_action :add_default_locales_to_translation, only: [:show, :new]
 
     def index
       t_t = translation_source.arel_table
@@ -43,46 +41,8 @@ module Admin
       render action: :index
     end
 
-    def new
-      @translation = Translation.new
-
-      render action: :edit
-    end
-
-    def show
-      render action: :edit
-    end
-
-    def edit
-      render action: :edit
-    end
-
-    def update
-      if @translation.update(translation_params)
-        @translation.invalidate_cache
-        flash[:notice] = 'Saved!'
-        redirect_to @translation
-      else
-        flash[:error] = 'Failed to save!'
-        render action: :edit
-      end
-    end
-
     def translation_source
       Translation
-    end
-
-    def translation_params
-      params.require(:translation).
-        permit(
-          :key,
-          :text,
-          :id,
-        )
-    end
-
-    def set_translation
-      @translation = Translation.find(params[:id].to_i)
     end
 
     class Search < ModelForm

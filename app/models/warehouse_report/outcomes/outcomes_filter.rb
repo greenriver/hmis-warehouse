@@ -31,6 +31,17 @@ class WarehouseReport::Outcomes::OutcomesFilter < Filters::FilterBase
     scope
   end
 
+  def any_project_selection?
+    selections = [
+      project_ids,
+      project_group_ids,
+      organization_ids,
+      data_source_ids,
+      coc_codes,
+    ]
+    selections.any?(&:present?)
+  end
+
   def project_id
     project_ids.first if project_ids.count == 1
   end

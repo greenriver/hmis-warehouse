@@ -37,6 +37,22 @@ RSpec.describe GrdaWarehouse::Cohort, type: :model do
     setup_access_control(admin, cohort_editor, cohort_collection)
   end
 
+  describe 'viewable_by followed by a merge on cohort id' do
+    before do
+      setup_access_control(viewer, cohort_viewer, cohort_collection)
+    end
+
+    it 'does not widen to an invisible cohort' do
+      scope = described_class.viewable_by(viewer).merge(described_class.where(id: cohort_2.id))
+      expect(scope.pluck(:id)).to be_empty
+    end
+
+    it 'intersects with the merged ids' do
+      scope = described_class.viewable_by(viewer).merge(described_class.where(id: [cohort.id, cohort_2.id]))
+      expect(scope.pluck(:id)).to eq [cohort.id]
+    end
+  end
+
   describe 'when a user with no roles accesses a cohort column' do
     it 'display_as_editable? should always return false' do
       expect(adjusted_days_homeless.display_as_editable?(user, cohort_client)).to be_falsey

@@ -54,7 +54,8 @@ RSpec.describe HmisUtil::JsonForms do
       end
 
       # Each static role (FORM_RULE, PROJECT_CONFIG, etc.) should have exactly 1 form. Static forms do not have instances.
-      Hmis::Form::Definition::STATIC_FORM_ROLES.each do |role|
+      # FORM_DEFINITION is deprecated: its JSON was removed, so it is no longer seeded.
+      Hmis::Form::Definition::STATIC_FORM_ROLES.excluding(:FORM_DEFINITION).each do |role|
         it_behaves_like 'a seeded form', role: role
       end
 
