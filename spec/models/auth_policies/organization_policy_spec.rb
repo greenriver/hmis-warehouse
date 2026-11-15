@@ -74,6 +74,96 @@ RSpec.describe GrdaWarehouse::AuthPolicies::OrganizationPolicy, type: :model do
 
       expect(policy.can_edit_contacts?).to be false
     end
+
+    describe '#can_view_name?' do
+      let(:edit_role) { create(:role, can_view_projects: true, can_edit_organizations: true) }
+
+      it 'is true for a non-confidential organization without any grant' do
+        expect(policy.can_view_name?).to be true
+      end
+
+      context 'with a confidential organization' do
+        before { organization.update!(confidential: true) }
+
+        it 'is true when Can Edit Organizations is granted on a collection that includes the organization' do
+          grant(edit_role, collection_with(organizations: [organization.id]))
+
+          expect(policy.can_view_name?).to be true
+        end
+
+        it 'is false when Can Edit Organizations is granted only on a collection without the organization' do
+          grant(view_only_role, collection_with(organizations: [organization.id]))
+          grant(edit_role, collection_with(organizations: [other_organization.id]))
+
+          expect(policy.can_view_name?).to be false
+        end
+
+        it 'is false when Can View Confidential Project Names is granted only on a collection without the organization' do
+          grant(view_only_role, collection_with(organizations: [organization.id]))
+          grant(
+            create(:role, can_view_projects: true, can_view_confidential_project_names: true),
+            collection_with(organizations: [other_organization.id]),
+          )
+
+          expect(policy.can_view_name?).to be false
+          expect(organization.name(user)).to eq(GrdaWarehouse::Hud::Organization.confidential_organization_name)
+        end
+
+        describe 'from a project in the organization' do
+          let(:confidential_names_role) { create(:role, can_view_projects: true, can_view_confidential_project_names: true) }
+          let!(:project) do
+            create(:hud_project, data_source: data_source, OrganizationID: organization.OrganizationID, ProjectName: 'Hidden Project')
+          end
+          let(:masked_organization_name) { GrdaWarehouse::Hud::Organization.confidential_organization_name }
+
+          it 'shows only the project name when Can View Confidential Project Names is granted on the project' do
+            grant(confidential_names_role, collection_with(projects: [project.id]))
+
+            expect(policy.can_view_name?).to be false
+            expect(project.name(user)).to eq('Hidden Project')
+            expect(project.organization_name(user)).to eq(masked_organization_name)
+            expect(project.organization_and_name(user)).to eq('Hidden Project')
+          end
+
+          it 'shows the organization and project names when Can View Confidential Project Names is granted on the organization' do
+            grant(confidential_names_role, collection_with(organizations: [organization.id]))
+
+            expect(project.organization_name(user)).to eq(organization.OrganizationName)
+            expect(project.organization_and_name(user)).to eq("#{organization.OrganizationName} / Hidden Project")
+          end
+
+          it 'masks the organization name when Can View Confidential Project Names is granted only on another organization' do
+            grant(view_only_role, collection_with(organizations: [organization.id]))
+            grant(confidential_names_role, collection_with(organizations: [other_organization.id]))
+
+            expect(project.organization_name(user)).to eq(masked_organization_name)
+            expect(project.organization_and_name(user)).to eq(GrdaWarehouse::Hud::Project.confidential_project_name)
+          end
+        end
+      end
+
+      describe 'from a confidential project with no matching organization' do
+        let!(:orphan_project) do
+          create(
+            :hud_project,
+            data_source: data_source,
+            OrganizationID: 'no-such-organization',
+            ProjectName: 'Orphan Project',
+            confidential: true,
+          )
+        end
+
+        it 'shows only the project name and masks the organization name' do
+          grant(
+            create(:role, can_view_projects: true, can_view_confidential_project_names: true),
+            collection_with(projects: [orphan_project.id]),
+          )
+
+          expect(orphan_project.organization_and_name(user)).to eq('Orphan Project')
+          expect(orphan_project.organization_name(user)).to eq(GrdaWarehouse::Hud::Organization.confidential_organization_name)
+        end
+      end
+    end
   end
 
   context 'with legacy role permissions' do
@@ -123,6 +213,62 @@ RSpec.describe GrdaWarehouse::AuthPolicies::OrganizationPolicy, type: :model do
       access_group.add_viewable(organization)
 
       expect(policy.can_edit_contacts?).to be false
+    end
+
+    describe '#can_view_name?' do
+      let(:masked_organization_name) { GrdaWarehouse::Hud::Organization.confidential_organization_name }
+
+      context 'with a confidential organization and Can View Confidential Project Names' do
+        let!(:project) do
+          create(:hud_project, data_source: data_source, OrganizationID: organization.OrganizationID, ProjectName: 'Hidden Project')
+        end
+
+        before do
+          organization.update!(confidential: true)
+          create(:role, can_view_projects: true, can_view_confidential_project_names: true).add(user)
+        end
+
+        it 'is true when an access group includes the organization' do
+          access_group.add_viewable(organization)
+
+          expect(policy.can_view_name?).to be true
+          expect(organization.name(user)).to eq(organization.OrganizationName)
+          expect(project.organization_and_name(user)).to eq("#{organization.OrganizationName} / Hidden Project")
+        end
+
+        it 'is true when an access group includes its data source' do
+          access_group.add_viewable(data_source)
+
+          expect(policy.can_view_name?).to be true
+          expect(project.organization_name(user)).to eq(organization.OrganizationName)
+        end
+
+        it 'is true when an access group includes only a project in the organization' do
+          access_group.add_viewable(project)
+
+          expect(policy.can_view_name?).to be true
+          expect(organization.name(user)).to eq(organization.OrganizationName)
+          expect(project.organization_and_name(user)).to eq("#{organization.OrganizationName} / Hidden Project")
+        end
+
+        it 'is true when no access group includes the organization, but masks it on projects the user cannot view' do
+          access_group.add_viewable(other_organization)
+
+          expect(policy.can_view_name?).to be true
+          expect(organization.name(user)).to eq(organization.OrganizationName)
+          expect(project.organization_name(user)).to eq(masked_organization_name)
+        end
+
+        it 'is false without Can View Confidential Project Names' do
+          other_user = create(:user)
+          view_only_role.add(other_user)
+          access_group.add(other_user)
+          access_group.add_viewable(organization)
+
+          expect(other_user.policy_for(organization).can_view_name?).to be false
+          expect(organization.name(other_user)).to eq(masked_organization_name)
+        end
+      end
     end
   end
 
