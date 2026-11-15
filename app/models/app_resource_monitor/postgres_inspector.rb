@@ -57,6 +57,10 @@ class AppResourceMonitor::PostgresInspector
     select_all(format(TOAST_STATS_SQL, query_variables))
   end
 
+  def sequence_stats
+    select_all(format(SEQUENCE_STATS_SQL, query_variables))
+  end
+
   def query_variables
     db_name = connection.current_database
     {
@@ -113,6 +117,105 @@ class AppResourceMonitor::PostgresInspector
       reltoastrelid != 0
     ORDER BY
       table_name;
+  SQL
+
+  # Capacity is the lowest of:
+  #
+  # * the sequence's max_value
+  # * the max for the owning column's type: a pre-PG10 serial on an integer
+  #   column has a bigint max_value but the column overflows at 2,147,483,647
+  # * the max for the narrowest integer column with a single-column foreign key
+  #   to the owning column: a bigint id referenced by an integer column
+  #   overflows the referencing column first, and inserts into that table fail
+  #
+  # capacity_limited_by names the column that sets the capacity.
+  #
+  # Not covered: referencing columns without a foreign key constraint (most
+  # integer *_id columns in the warehouse), composite foreign keys, and
+  # references that cross databases. Those can still overflow before this
+  # report shows the sequence as used.
+  SEQUENCE_STATS_SQL = <<~SQL.freeze
+    WITH owned_sequences AS (
+      SELECT
+        t.relname                     AS tablename,
+        a.attname                     AS column_name,
+        s.sequencename,
+        format_type(a.atttypid, NULL) AS column_type,
+        s.last_value,
+        s.max_value                   AS sequence_max_value,
+        CASE a.atttypid
+          WHEN 'int2'::regtype::oid THEN 32767
+          WHEN 'int4'::regtype::oid THEN 2147483647
+        END                           AS column_capacity,
+        narrowest_ref.ref_column,
+        narrowest_ref.ref_capacity
+      FROM pg_sequences s
+      JOIN pg_class seq
+        ON seq.relname = s.sequencename
+       AND seq.relnamespace = (SELECT oid FROM pg_namespace WHERE nspname = s.schemaname)
+      JOIN pg_depend d
+        ON d.objid        = seq.oid
+       AND d.classid      = 'pg_class'::regclass
+       AND d.refclassid   = 'pg_class'::regclass
+       AND d.deptype      = 'a'
+      JOIN pg_class t ON t.oid = d.refobjid
+      JOIN pg_attribute a
+        ON a.attrelid = t.oid
+       AND a.attnum   = d.refobjsubid
+      JOIN pg_namespace n ON n.oid = t.relnamespace
+      -- Narrowest integer column with a foreign key to the owning column.
+      -- Partition FKs inherit from the parent's, so prefer the parent's name.
+      LEFT JOIN LATERAL (
+        SELECT
+          ref_t.relname || '.' || ref_a.attname AS ref_column,
+          CASE ref_a.atttypid
+            WHEN 'int2'::regtype::oid THEN 32767
+            WHEN 'int4'::regtype::oid THEN 2147483647
+          END                                   AS ref_capacity
+        FROM pg_constraint con
+        JOIN pg_class ref_t ON ref_t.oid = con.conrelid
+        JOIN pg_attribute ref_a
+          ON ref_a.attrelid = con.conrelid
+         AND ref_a.attnum   = con.conkey[1]
+        WHERE con.contype   = 'f'
+          AND con.confrelid = t.oid
+          AND con.confkey   = ARRAY[a.attnum]
+          AND ref_a.atttypid IN ('int2'::regtype::oid, 'int4'::regtype::oid)
+        ORDER BY
+          ref_capacity,
+          con.conparentid <> 0,
+          ref_t.relname
+        LIMIT 1
+      ) narrowest_ref ON true
+      WHERE n.nspname = %{schema}
+    ),
+    capacities AS (
+      SELECT
+        owned_sequences.*,
+        -- LEAST ignores NULLs, so a missing column or reference cap is skipped
+        LEAST(sequence_max_value, column_capacity, ref_capacity) AS capacity
+      FROM owned_sequences
+    )
+    SELECT
+      %{db_name} AS database,
+      tablename,
+      column_name,
+      sequencename,
+      column_type,
+      COALESCE(last_value, 0)::text AS last_value,
+      sequence_max_value::text      AS sequence_max_value,
+      capacity::text                AS max_value,
+      CASE
+        WHEN capacity = sequence_max_value THEN 'sequence'
+        WHEN capacity = column_capacity THEN tablename || '.' || column_name
+        ELSE ref_column
+      END                           AS capacity_limited_by,
+      CASE
+        WHEN last_value IS NULL THEN '0'
+        ELSE ROUND((last_value::numeric / capacity::numeric) * 100, 4)::text
+      END AS pct_used
+    FROM capacities
+    ORDER BY COALESCE(last_value, 0)::numeric / capacity::numeric DESC, tablename;
   SQL
 
   INDEX_STATS_SQL = <<~SQL.freeze
