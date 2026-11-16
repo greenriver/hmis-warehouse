@@ -10,11 +10,18 @@ class GrdaWarehouse::AuthPolicies::OrganizationPolicy < GrdaWarehouse::AuthPolic
   # expose role permissions. Optionally rename the permission
   [
     [:can_view_imports, :can_edit_contacts?],
+    [:can_edit_organizations, :can_edit?],
   ].each do |permission, method_name|
     method_name ||= :"#{permission}?"
     define_method(method_name) do
       resource_permissions.include?(permission)
     end
+  end
+
+  # Deleting an organization deletes its projects and all their data, so it takes Can Delete Data
+  # Sources (Can Delete Projects is not enough) from a grant that reaches the organization.
+  def can_delete?
+    resource_permissions.include?(:can_delete_data_sources)
   end
 
   # for confidential organizations, is there permission to view the name

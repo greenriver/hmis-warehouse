@@ -75,6 +75,40 @@ RSpec.describe GrdaWarehouse::AuthPolicies::OrganizationPolicy, type: :model do
       expect(policy.can_edit_contacts?).to be false
     end
 
+    describe 'write permissions' do
+      let(:writer_role) { create(:role, can_view_projects: true, can_edit_organizations: true, can_delete_data_sources: true) }
+
+      it 'allows edit and delete from a grant on the organization' do
+        grant(writer_role, collection_with(organizations: [organization.id]))
+
+        expect(policy.can_edit?).to be true
+        expect(policy.can_delete?).to be true
+      end
+
+      it 'denies delete with only Can Delete Projects, even from a grant on the data source' do
+        grant(create(:role, can_view_projects: true, can_delete_projects: true), collection_with(data_sources: [data_source.id]))
+
+        expect(policy.can_delete?).to be false
+        expect(policy.can_edit?).to be false
+      end
+
+      it 'denies edit and delete from a grant on only one of its projects' do
+        project = create(:hud_project, data_source: data_source, OrganizationID: organization.OrganizationID)
+        grant(writer_role, collection_with(projects: [project.id]))
+
+        expect(policy.can_edit?).to be false
+        expect(policy.can_delete?).to be false
+      end
+
+      it 'denies edit and delete when the rights are granted only on another organization' do
+        grant(view_only_role, collection_with(organizations: [organization.id]))
+        grant(writer_role, collection_with(organizations: [other_organization.id]))
+
+        expect(policy.can_edit?).to be false
+        expect(policy.can_delete?).to be false
+      end
+    end
+
     describe '#can_view_name?' do
       let(:edit_role) { create(:role, can_view_projects: true, can_edit_organizations: true) }
 
