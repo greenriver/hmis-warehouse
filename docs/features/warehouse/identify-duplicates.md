@@ -157,6 +157,7 @@ The system requires **2 of 3** exact matches across these normalized fields:
 
 ### System Controls
 - `enable_auto_deduplication`: Controls whether the system automatically identifies and merges duplicate client records
+- `identify_duplicates/use_query_matcher_for_existing_matches` (`AppConfigProperty`): picks the SQL behind the existing-match queries used by `match_existing!`. See [Which SQL runs](#which-sql-runs).
 
 ### Safeguards
 - Advisory locks prevent concurrent execution. Both `run!` and the per-client path wait up to 5 seconds for the lock and enqueue a full run if it is still held, so an import that overlaps a per-client run is never silently skipped.
@@ -198,7 +199,7 @@ The system requires **2 of 3** exact matches across these normalized fields:
 - Do not hand-roll merges (`update_all(destination_id:)`, deleting a destination). Use `merge_from`, which writes `ClientMergeHistory`, moves dependent items, invalidates service history, clears `ClientMatch` rows, and queues cleanup. Do not detach a source by deleting its `WarehouseClient`; without a `ClientSplitHistory` row the next `match_existing!` re-merges the pair. Use `split`.
 
 ### Matching internals
-- The exact-match methods default to `legacy: true` (hand-written SQL). `IdentifyDuplicatesQueryMatcher` is only used with `legacy: false`. Change a filter in both until the legacy methods are removed; the `validate_duplicate_matching` rake task compares them.
+- Each exact-match method has legacy SQL and an `IdentifyDuplicatesQueryMatcher` implementation. A filter has to be changed in both until the legacy methods are removed.
 - Source clients hidden from interactive lookups (identities restricted in HMIS or the warehouse, identities with a retention mark) are skipped on name and SSN in `text_search` and in client-create duplicate lookups. DOB matching and the nightly `IdentifyDuplicates` / `ClientMatch` paths do not filter them, so hidden clients still merge.
 - `MAX_SOURCE_CLIENTS` (50): outside production a merge that would exceed it starts a new chain. In production it raises, and the nightly `match_existing!` stops until someone intervenes.
 - `DataSource.source_data_source_ids` and `destination_data_source_ids` are cached for an hour and cleared when a data source is created, so a data source reclassified (source, destination, or authoritative) mid-run may not be recognized until the cache expires.
@@ -223,6 +224,19 @@ The system requires **2 of 3** exact matches across these normalized fields:
 - Gender and race: per column, newest source first, and a 0 or 1 wins.
 - `Hmis::MergeClientsJob` reuses `choose_attributes_from_sources`, so changing a `choose_best_*` rule changes HMIS merge results too. That job and `Hmis::UndoMergeClientsJob` change `WarehouseClient` rows and rely on the next `IdentifyDuplicates` and `ClientCleanup` runs to repair destinations.
 - `WarehouseClient` does not use `acts_as_paranoid`, yet `ClientCleanup` clears and re-sets `deleted_at` on every run because external analytics tooling reads it. Do not filter on `deleted_at` inside this app. The `reviewd_by` column is misspelled in the schema and holds a user id as a string.
+
+### Which SQL runs
+The legacy existing-match queries (`exact_ssn_matches`, `exact_name_matches`, `exact_dob_matches`) self-join source clients, so their cost grows with the square of the number of source rows that share a value, and they can hit the statement timeout at large installations. `IdentifyDuplicatesQueryMatcher` first groups source rows into arrays of distinct destination ids, then builds pairs from each array. It returns the same pairs.
+
+| Methods | Used by | SQL |
+|---------|---------|-----|
+| `exact_ssn_matches`, `exact_name_matches`, `exact_dob_matches` | `match_existing!` | Matcher when the flag is on, otherwise legacy |
+| `exact_*_matches_for_unprocessed` | `run!`, `ensure_source_client_linked!` | Always legacy. The matcher's unprocessed query aggregates the whole destination table and is not used in production. |
+
+- The flag is the `AppConfigProperty` row `identify_duplicates/use_query_matcher_for_existing_matches`. Only the JSON boolean `true` turns on the matcher. A missing row, or any other value, including the string `"true"`, keeps legacy, so an installation is on legacy until someone creates the row.
+- To switch back to legacy, delete the row. The admin form can't save `false`, because `AppConfigProperty` validates that `value` is present.
+- The flag is read once per `IdentifyDuplicates` instance, so all three queries in a run use the same path, and a change applies to the next run with no deploy.
+- The `validate:duplicate_matching` rake task compares the two paths. It runs legacy first, so at an installation where a legacy existing query times out, leave that method out of the run.
 
 ### Daily job order
 `RunDailyImportsJob` runs consent updates, then CAS sync, then Identify Duplicates (`run!`, `match_existing!`, `ClientMatch.auto_process!`), then `ClientCleanup`. `ClientRetentionJob` is queued after service history is generated so it sees finished identity rewrites. `ClientCleanup` runs again at the end, and statistical candidate generation runs last in system maintenance.
