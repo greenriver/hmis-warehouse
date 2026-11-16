@@ -44,7 +44,6 @@ module UserPermissions
         :can_edit_some_cohorts,
         :can_update_some_cohort_data,
         :can_access_window_search, # TODO: START_ACL remove after ACL migration is complete
-        :can_delete_projects_or_data_sources,
         :can_manage_some_ad_hoc_ds,
         :can_edit_some_project_groups,
       ].freeze
@@ -171,10 +170,6 @@ module UserPermissions
 
     def has_some_edit_access_to_youth_intakes # rubocop:disable Naming/PredicatePrefix
       can_edit_youth_intake? || can_edit_own_agency_youth_intake?
-    end
-
-    def can_delete_projects_or_data_sources
-      can_delete_projects? || can_delete_data_sources?
     end
 
     def can_access_some_cohorts
