@@ -88,6 +88,9 @@ module GrdaWarehouse::Tasks
       # If we do find a match:
       #   create the associated WarehouseClient
 
+      # Snapshot once: the count, the match queries and the batches must all see the same clients.
+      # A source client created after this is left for the next run instead of being batched with no match entry.
+      @unprocessed_ids = unprocessed_ids
       unprocessed_count = unprocessed.count
       Rails.logger.info "Matching #{unprocessed_count} unprocessed clients"
       matched = 0
@@ -118,6 +121,9 @@ module GrdaWarehouse::Tasks
         new_created: new_created,
       )
       Rails.logger.info 'Done'
+    ensure
+      # A later run on this instance must see clients created since this one.
+      @unprocessed_ids = nil
     end
 
     # look at all existing records for duplicates and merge destination clients
@@ -916,6 +922,7 @@ module GrdaWarehouse::Tasks
 
     private def unprocessed_ids
       return @restrict_to_source_ids if @restrict_to_source_ids.present?
+      return @unprocessed_ids unless @unprocessed_ids.nil?
 
       GrdaWarehouse::Hud::Client.source.pluck(:id) - GrdaWarehouse::WarehouseClient.pluck(:source_id)
     end

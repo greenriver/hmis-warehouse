@@ -164,6 +164,7 @@ The system requires **2 of 3** exact matches across these normalized fields:
 - Respects manual administrative decisions about client splits
 - Maintains audit trails of operations
 - The full run skips sources linked by a per-client run after its unprocessed list was computed, and its `warehouse_clients` insert ignores duplicates.
+- The full run computes its unprocessed list once, at the start. A source client created during the run is left for the next run.
 
 ## Performance Optimizations
 

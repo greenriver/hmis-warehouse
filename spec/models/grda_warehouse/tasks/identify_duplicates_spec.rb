@@ -300,6 +300,43 @@ RSpec.describe GrdaWarehouse::Tasks::IdentifyDuplicates, type: :model do
       end
     end
 
+    describe 'identify_duplicates unprocessed snapshot' do
+      let(:processor) { GrdaWarehouse::Tasks::IdentifyDuplicates.new(run_post_processing: false) }
+
+      it 'looks up the unprocessed ids once per run' do
+        allow(GrdaWarehouse::WarehouseClient).to receive(:pluck).and_call_original
+        expect(GrdaWarehouse::WarehouseClient).to receive(:pluck).with(:source_id).once.and_call_original
+
+        processor.identify_duplicates
+      end
+
+      it 'leaves a source client created after matching for the next run' do
+        late_client = nil
+        allow(processor).to receive(:matched_destinations_by_source_id).and_wrap_original do |original|
+          matched_destinations = original.call
+          late_client = create :grda_warehouse_hud_client, data_source: source_data_source
+          matched_destinations
+        end
+
+        processor.identify_duplicates
+
+        aggregate_failures do
+          expect(GrdaWarehouse::WarehouseClient.where(source_id: client_in_source.id)).to exist
+          expect(GrdaWarehouse::WarehouseClient.where(source_id: late_client.id)).not_to exist
+          expect(GrdaWarehouse::IdentifyDuplicatesLog.last.to_match).to eq(1)
+        end
+      end
+
+      it 'sees clients created since the previous run on the same instance' do
+        processor.identify_duplicates
+        next_client = create :grda_warehouse_hud_client, data_source: source_data_source
+
+        processor.identify_duplicates
+
+        expect(GrdaWarehouse::WarehouseClient.where(source_id: next_client.id)).to exist
+      end
+    end
+
     describe 'identify_duplicates with a concurrently linked source' do
       let(:processor) { GrdaWarehouse::Tasks::IdentifyDuplicates.new(run_post_processing: false) }
 
