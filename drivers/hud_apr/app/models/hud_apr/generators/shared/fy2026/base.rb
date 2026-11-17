@@ -86,7 +86,7 @@ module HudApr::Generators::Shared::Fy2026
           hoh_enrollment = hoh_enrollments[hh_id]
           # The annual assessment anniversary follows the household's earliest head of household, who may
           # have exited before the report period and so may not be in hoh_enrollments
-          annual_hoh_enrollment = household_hoh_enrollments[hh_id] || hoh_enrollment
+          annual_hoh_enrollment = household_hoh_enrollments[[last_service_history_enrollment.data_source_id, hh_id]] || hoh_enrollment
           household_assessment_required[last_service_history_enrollment.client_id] = annual_assessment_expected?(hoh_enrollment: annual_hoh_enrollment, enrollment: last_service_history_enrollment, report_end_date: @report.end_date)
           end_date = if needs_ce_assessments?
             # Only HoHs get CE assessments, so we prefer their entry date
@@ -117,7 +117,7 @@ module HudApr::Generators::Shared::Fy2026
           hoh_enrollment = hoh_enrollments[hh_id] || last_service_history_enrollment
           # Annual assessment timing is anchored on the household's HoH even when they exited before
           # the report period, so it does not use the HoH enrollment above
-          annual_hoh_enrollment = household_hoh_enrollments[hh_id] || hoh_enrollment
+          annual_hoh_enrollment = household_hoh_enrollments[[last_service_history_enrollment.data_source_id, hh_id]] || hoh_enrollment
           if needs_ce_assessments?
             ce_latest_assessment = latest_ce_assessment(last_service_history_enrollment, hoh_enrollment)
             ce_latest_event = latest_ce_event(last_service_history_enrollment, hoh_enrollment, ce_latest_assessment)
@@ -633,22 +633,12 @@ module HudApr::Generators::Shared::Fy2026
       scope
     end
 
-    # The earliest head of household enrollment for each household, whose entry date the Annual Assessment
-    # section of the HMIS Reporting Glossary uses as the anniversary date, per: in the event a household has
-    # more than one head of household active in the report range, (i.e., if the first HoH exited and another
-    # household member became the HoH), the later HoH's [project start date] will be back-dated to the first
-    # HoH's [project start date].
-    # Deliberately ignores the report date range so that a household whose head of household exited before
-    # the report period, and where no other member was recorded as the head of household, still has an
-    # anniversary.  Datalab does the same, calculating annual_assessment_dates from the unfiltered
-    # Enrollment table rather than from the enrollments included in the report.
+    # Keyed by [data_source_id, household_id]
     private def household_hoh_enrollments
-      @household_hoh_enrollments ||= begin
-        household_ids = enrollment_scope_without_preloads.where.not(household_id: nil).select(:household_id)
-        scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.heads_of_households.where(household_id: household_ids)
-        scope = scope.in_project(@report.project_ids) if @report.project_ids.present?
-        scope.group_by(&:household_id).transform_values { |enrollments| enrollments.min_by(&:first_date_in_program) }
-      end
+      @household_hoh_enrollments ||= HouseholdHohEnrollments.new(
+        enrollment_scope: enrollment_scope_without_preloads,
+        project_ids: @report.project_ids,
+      ).to_h
     end
 
     private def pit_dates
