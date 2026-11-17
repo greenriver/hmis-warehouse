@@ -86,7 +86,7 @@ module HudApr::Generators::Shared::Fy2026
           hoh_enrollment = hoh_enrollments[hh_id]
           # The annual assessment anniversary follows the household's earliest head of household, who may
           # have exited before the report period and so may not be in hoh_enrollments
-          annual_hoh_enrollment = household_hoh_enrollments[[last_service_history_enrollment.data_source_id, last_service_history_enrollment.household_id]] || hoh_enrollment
+          annual_hoh_enrollment = household_hoh_enrollments[hh_id] || hoh_enrollment
           household_assessment_required[last_service_history_enrollment.client_id] = annual_assessment_expected?(hoh_enrollment: annual_hoh_enrollment, enrollment: last_service_history_enrollment, report_end_date: @report.end_date)
           end_date = if needs_ce_assessments?
             # Only HoHs get CE assessments, so we prefer their entry date
@@ -117,7 +117,7 @@ module HudApr::Generators::Shared::Fy2026
           hoh_enrollment = hoh_enrollments[hh_id] || last_service_history_enrollment
           # Annual assessment timing is anchored on the household's HoH even when they exited before
           # the report period, so it does not use the HoH enrollment above
-          annual_hoh_enrollment = household_hoh_enrollments[[last_service_history_enrollment.data_source_id, last_service_history_enrollment.household_id]] || hoh_enrollment
+          annual_hoh_enrollment = household_hoh_enrollments[hh_id] || hoh_enrollment
           if needs_ce_assessments?
             ce_latest_assessment = latest_ce_assessment(last_service_history_enrollment, hoh_enrollment)
             ce_latest_event = latest_ce_event(last_service_history_enrollment, hoh_enrollment, ce_latest_assessment)
@@ -636,12 +636,13 @@ module HudApr::Generators::Shared::Fy2026
       scope
     end
 
-    # Keyed by [data_source_id, household_id]
+    # Keyed by household_key, like hoh_enrollments. HouseholdHohEnrollments skips enrollments without a
+    # HouseholdID, so the enrollment group fallback in household_key is never needed.
     private def household_hoh_enrollments
       @household_hoh_enrollments ||= HouseholdHohEnrollments.new(
         enrollment_scope: enrollment_scope_without_preloads,
         project_ids: @report.project_ids,
-      ).to_h
+      ).to_h.transform_keys { |data_source_id, household_id| household_key(data_source_id, household_id, nil) }
     end
 
     private def pit_dates
