@@ -1,24 +1,7 @@
-- approvals = @report.approvals.includes(:user).newest_first
-.card.mb-3
-  .card-body
-    %h2.h5 Approval
-    = form_with url: report_action_path(@report, :approval), method: :post do
-      .form-check.mb-2
-        = check_box_tag :approved, '1', @report.approved?, class: 'form-check-input', id: 'approved'
-        = label_tag :approved, 'Approved', class: 'form-check-label'
-      = submit_tag 'Save', class: 'btn btn-primary btn-sm'
-    - if approvals.any?
-      %table.table.table-sm.mt-3
-        %thead
-          %tr
-            %th When
-            %th Who
-            %th Action
-        %tbody
-          - approvals.each do |approval|
-            %tr
-              %td= approval.created_at.to_fs(:long)
-              %td= approval.user&.name
-              %td= approval.action_label
-    - else
-      %p.mt-3.mb-0 Approval Pending
+= form_with url: report_action_path(@report, :approval), method: :post, class: 'd-flex align-items-center' do
+  .form-check.mb-0.me-3
+    = check_box_tag :approved, '1', @report.approved?, class: 'form-check-input', id: 'approved'
+    = label_tag :approved, 'Approved', class: 'form-check-label'
+  = submit_tag 'Save', class: 'btn btn-primary btn-sm'
+- unless @report.approvals.exists?
+  %p.mt-2.mb-0 Approval Pending

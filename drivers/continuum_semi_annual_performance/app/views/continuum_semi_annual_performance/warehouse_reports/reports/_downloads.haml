@@ -3,11 +3,11 @@
   pdf_type = 'ContinuumSemiAnnualPerformance::DocumentExports::ReportPdfExport'
   excel_data = ->(tab) { { url: document_exports_path, type: excel_type, query_string: { id: @report.id, tab: tab }.to_query } }
   pdf_data = ->(tab) { { url: document_exports_path, type: pdf_type, query_string: { id: @report.id, tab: tab }.to_query } }
-.dropdown.mb-3
+.dropdown
   %button#downloadButton.btn.btn-secondary.dropdown-toggle{ aria: { expanded: 'false', haspopup: 'true' }, data: { 'bs-toggle' => 'dropdown' }, type: 'button' }
     %i.icon-download2
     Download Report
-  .dropdown-menu.dropdown-menu-right.px-0.py-2{ aria: { labelledby: 'downloadButton' } }
+  .dropdown-menu.dropdown-menu-end.px-0.py-2{ aria: { labelledby: 'downloadButton' } }
     %a.dropdown-item.j-document-exports.py-2{ href: '#', data: excel_data.call(@tab) }
       Excel - #{tab_title(@tab)}
     %a.dropdown-item.j-document-exports.py-2{ href: '#', data: excel_data.call('all') }

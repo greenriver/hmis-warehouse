@@ -1,0 +1,15 @@
+- approvals = @report.approvals.includes(:user).newest_first
+- if approvals.any?
+  %h2.h5.mt-4 Approval History
+  %table.table.table-sm
+    %thead
+      %tr
+        %th When
+        %th Who
+        %th Action
+    %tbody
+      - approvals.each do |approval|
+        %tr
+          %td= approval.created_at.to_fs(:long)
+          %td= approval.user&.name
+          %td= approval.action_label
