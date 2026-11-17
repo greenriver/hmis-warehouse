@@ -1,15 +1,21 @@
 - approvals = @report.approvals.includes(:user).newest_first
 - if approvals.any?
-  %h2.h5.mt-4 Approval History
-  %table.table.table-sm
-    %thead
-      %tr
-        %th When
-        %th Who
-        %th Action
-    %tbody
-      - approvals.each do |approval|
-        %tr
-          %td= approval.created_at.to_fs(:long)
-          %td= approval.user&.name
-          %td= approval.action_label
+  .accordion.mt-4#approvalHistoryAccordion
+    .accordion-item
+      %h2.accordion-header
+        %button.accordion-button.collapsed{ type: 'button', data: { bs_toggle: 'collapse', bs_target: '#approvalHistoryBody' }, aria: { expanded: 'false', controls: 'approvalHistoryBody' } }
+          Approval History
+      #approvalHistoryBody.accordion-collapse.collapse
+        .accordion-body
+          %table.table.table-striped.mb-0
+            %thead
+              %tr
+                %th When
+                %th Who
+                %th Action
+            %tbody
+              - approvals.each do |approval|
+                %tr
+                  %td= approval.created_at.to_fs(:long)
+                  %td= approval.user&.name
+                  %td= approval.action_label
