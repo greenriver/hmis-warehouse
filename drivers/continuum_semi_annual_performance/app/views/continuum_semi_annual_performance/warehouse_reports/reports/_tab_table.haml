@@ -21,11 +21,7 @@
             %td= row.source
             %td.text-right
               - parts = row.parts || []
-              - visible = links && parts.select { |part| drilldown_visible?(@report, part) }
-              - if visible.present? && parts.one?
+              - if links && parts.one? && drilldown_visible?(@report, parts.first)
                 = link_to row.display_value, drilldown_path(parts.first)
               - else
                 = row.display_value
-                - if visible.present?
-                  - visible.each do |part|
-                    = link_to "#{part['table']}/#{part['cell']}", drilldown_path(part), class: 'ml-2 small'
