@@ -17,7 +17,7 @@ RSpec.describe HudReports::ReportInstance, type: :model do
     let!(:other_report) { described_class.create!(report_name: 'Test Report', user_id: create(:acl_user).id, question_names: ['test']) }
 
     it 'limits a user without can_view_all_hud_reports to their own reports' do
-      setup_access_control(user, create(:role, can_view_own_hud_reports: true), create(:collection))
+      setup_access_control(user, create(:role, can_view_assigned_reports: true), create(:collection))
 
       expect(described_class.viewable_by(user)).to contain_exactly(own_report)
     end

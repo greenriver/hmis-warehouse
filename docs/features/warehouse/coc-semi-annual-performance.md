@@ -75,7 +75,7 @@ Some totals add specific cells instead of reading the APR table's own Total row:
 Each value links to the matching cell of its HUD sub-report. `ReportsHelper#drilldown_visible?` shows the link only when the viewer could open that page, mirroring the checks `HudReports::BaseController` makes:
 
 - the viewer can view reports and has the APR report definition (for `apr` cells) or the CE APR report definition (for `ce_apr` cells), and
-- the viewer owns the sub-report or has `can_view_all_hud_reports`, and
+- the sub-report is in `HudReports::ReportInstance.viewable_by` for the viewer (they own it or have `can_view_all_hud_reports`), the same scope the HUD controller uses to load it, and
 - the sub-report exists and has not been purged.
 
 Otherwise the value shows without a link. `HudApr::DrilldownPresenter` applies the viewer's PII policy once the link is followed.

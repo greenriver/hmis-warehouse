@@ -20,7 +20,7 @@ module ContinuumSemiAnnualPerformance
       end
     end
 
-    # Mirrors the checks HudReports::BaseController makes before opening a cell.
+    # Keep in step with the HUD cell page's access checks, so a link appears only when that page would open.
     def drilldown_visible?(report, part)
       access = drilldown_access(report)
       access[:definitions][part['report']] && access[:openable_ids].include?(part['hud_report_id'])
@@ -53,10 +53,10 @@ module ContinuumSemiAnnualPerformance
     end
 
     private def openable_hud_report_ids(report)
-      sub_reports = HudReports::ReportInstance.where(id: report.hud_report_ids.values.compact).select(:id, :user_id, :archival_metadata).to_a
-      sub_reports.reject(&:purged?).
-        select { |sub_report| current_user.can_view_all_hud_reports? || sub_report.user_id == current_user.id }.
-        map(&:id)
+      HudReports::ReportInstance.viewable_by(current_user).
+        where(id: report.hud_report_ids.values.compact).
+        select(:id, :archival_metadata).to_a.
+        reject(&:purged?).map(&:id)
     end
   end
 end

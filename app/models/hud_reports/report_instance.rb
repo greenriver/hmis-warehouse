@@ -44,6 +44,7 @@ module HudReports
     scope :created_recently, -> { where(created_at: 24.hours.ago .. Time.current) }
     scope :diet, -> { select(column_names - ['options', 'project_ids', 'build_for_questions', 'question_names']) }
     scope :for_report, ->(report_name) { where(report_name: report_name) }
+    scope :viewable_by, ->(user) { user.can_view_all_hud_reports? ? all : where(user_id: user.id) }
 
     def snapshot_completed?
       snapshot_status == HudReports::GeneratorBase::COMPLETED

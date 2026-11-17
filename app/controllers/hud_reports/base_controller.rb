@@ -204,11 +204,7 @@ module HudReports
       report_id = params[report_param_name].to_i
       return if report_id.zero?
 
-      @report = if can_view_all_hud_reports?
-        report_scope.find(report_id)
-      else
-        report_scope.where(user_id: current_user.id).find(report_id)
-      end
+      @report = report_scope.viewable_by(current_user).find(report_id)
       # Force a re-calculation of generator if we have a report so we get the appropriate year
       @generator = nil
       generator
