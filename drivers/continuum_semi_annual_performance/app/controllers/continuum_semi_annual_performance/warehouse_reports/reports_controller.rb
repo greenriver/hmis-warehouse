@@ -59,7 +59,6 @@ module ContinuumSemiAnnualPerformance::WarehouseReports
       return render 'continuum_semi_annual_performance/warehouse_reports/reports/running' unless @report.completed?
 
       @tab = @report.tabs.map(&:to_s).include?(params[:tab].to_s) ? params[:tab].to_s : 'summary'
-      render 'continuum_semi_annual_performance/warehouse_reports/reports/show'
     end
 
     def destroy
