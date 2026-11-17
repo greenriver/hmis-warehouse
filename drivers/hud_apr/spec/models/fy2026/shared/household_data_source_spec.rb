@@ -15,17 +15,6 @@ RSpec.describe 'FY2026 APR households across data sources', type: :model, exclud
   let(:other_data_source) { create(:source_data_source) }
   let(:es_project_type) { HudHelper.util('2026').project_type_number_from_code(:es_entry_exit).first }
 
-  # The builders create records in `data_source`; this points them at another data source for the block.
-  def in_data_source(other)
-    other_organization = create(:hud_organization, data_source: other)
-    define_singleton_method(:data_source) { other }
-    define_singleton_method(:organization) { other_organization }
-    yield
-  ensure
-    singleton_class.send(:remove_method, :data_source)
-    singleton_class.send(:remove_method, :organization)
-  end
-
   def run_apr(project_ids)
     filter = Filters::HudFilterBase.new(
       user: User.setup_system_user,

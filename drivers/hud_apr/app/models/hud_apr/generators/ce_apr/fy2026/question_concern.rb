@@ -46,9 +46,7 @@ module HudApr::Generators::CeApr::Fy2026::QuestionConcern
         reject { |_, enrollments| enrollments.empty? }
 
       other_client_ids = client_ids - assessed_clients.keys
-      assessed_households = assessed_clients.values.map(&:last)
-      household_ids = assessed_households.map(&:household_id)
-      household_keys = assessed_households.map { |enrollment| get_hh_id(enrollment) }.to_set
+      household_ids = assessed_clients.values.map(&:last).map(&:household_id)
 
       other_household_members = scope.
         joins(:project).
@@ -58,9 +56,7 @@ module HudApr::Generators::CeApr::Fy2026::QuestionConcern
         where(client_id: other_client_ids, household_id: household_ids).
         order(first_date_in_program: :asc).
         group_by(&:client_id).
-        transform_values do |enrollments|
-          enrollments.select { |enrollment| household_keys.include?(get_hh_id(enrollment)) && nbn_with_service?(enrollment) }
-        end.
+        transform_values { |enrollments| enrollments.select { |enrollment| nbn_with_service?(enrollment) } }.
         reject { |_, enrollments| enrollments.empty? }
 
       non_household_client_ids = other_client_ids - other_household_members.keys
