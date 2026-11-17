@@ -6,8 +6,6 @@
 
 # frozen_string_literal: true
 
-# frozen_string_literal: true
-
 require 'memery'
 
 # @see docs/features/warehouse/identify-duplicates.md
@@ -177,9 +175,11 @@ module GrdaWarehouse::Tasks
               Rails.logger.info "Attempting merge of #{source_id} into #{destination_id}"
               # merge_from must be called on a destination client, "source" can be a destination or array of source clients
               destination.merge_from(source, reviewed_by: user, reviewed_at: DateTime.current, cleanup: false)
-            # A concurrent merge or split can lock the same rows; merge_from's transaction rolls back,
-            # so skip the pair and let the next run retry it. Anything else bubbles.
-            rescue ActiveRecord::TransactionRollbackError, ActiveRecord::LockWaitTimeout => e
+            # Deliberate exception to the no-StandardError rule: this runs inside the nightly
+            # RunDailyImportsJob, and the same pair is a candidate every night, so one failing pair
+            # would stop ClientCleanup and service history until someone intervened. merge_from's
+            # transaction rolls back; report to Sentry, skip the pair and let the next run retry it.
+            rescue StandardError => e
               Rails.logger.error "Merge failed: #{e.message}\n#{e.backtrace.join("\n")}"
               Sentry.capture_exception_with_info(
                 e,

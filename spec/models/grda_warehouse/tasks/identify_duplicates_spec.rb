@@ -40,30 +40,6 @@ RSpec.describe GrdaWarehouse::Tasks::IdentifyDuplicates, type: :model do
           AppConfigProperty.create!(key: described_class::FEATURE_FLAG_QUERY_MATCHER_FOR_EXISTING, value: true) if use_query_matcher
         end
 
-        describe 'find merge candidates' do
-          let!(:client_two_in_source) { create :grda_warehouse_hud_client, data_source: source_data_source }
-          let!(:warehouse_data_source) { create :destination_data_source }
-
-          before(:each) do
-            processor = GrdaWarehouse::Tasks::IdentifyDuplicates.new(run_post_processing: false)
-            processor.run!
-            processor.match_existing!
-          end
-
-          describe 'merge processing after a split' do
-            it 'sees two destination clients after split' do
-              expect { split_client }.to change(destination_scope, :count).from(1).to(2)
-            end
-
-            it 'does not re-merge the split clients' do
-              expect do
-                split_client
-                GrdaWarehouse::Tasks::IdentifyDuplicates.new(run_post_processing: false).match_existing!
-              end.to change(destination_scope, :count).from(1).to(2)
-            end
-          end
-        end
-
         describe 'source client threshold' do
           before(:each) do
             # We want to know the PPI data for this client, so set it specifically
@@ -172,8 +148,9 @@ RSpec.describe GrdaWarehouse::Tasks::IdentifyDuplicates, type: :model do
       end
     end
 
-    # Runs once: run! already links both sources to one destination, so match_existing! has nothing to merge
-    # and the example does not depend on the existing-match path.
+    # Runs once: run! already links both sources to one destination, so match_existing! has nothing to merge.
+    # After a split the pair is only kept apart by the split-history filter, which is shared by both
+    # existing-match paths; the matcher path would pass vacuously if it found no pair.
     describe 'find merge candidates for two identical source clients' do
       let!(:client_two_in_source) { create :grda_warehouse_hud_client, data_source: source_data_source }
       let!(:warehouse_data_source) { create :destination_data_source }
@@ -187,6 +164,19 @@ RSpec.describe GrdaWarehouse::Tasks::IdentifyDuplicates, type: :model do
       it 'merged client and client 2 into a single destination client' do
         expect(client_in_source.destination_client.id).to eq(client_two_in_source.destination_client.id)
         expect(GrdaWarehouse::Hud::Client.destination.count).to eq(1)
+      end
+
+      describe 'merge processing after a split' do
+        it 'sees two destination clients after split' do
+          expect { split_client }.to change(destination_scope, :count).from(1).to(2)
+        end
+
+        it 'does not re-merge the split clients' do
+          expect do
+            split_client
+            GrdaWarehouse::Tasks::IdentifyDuplicates.new(run_post_processing: false).match_existing!
+          end.to change(destination_scope, :count).from(1).to(2)
+        end
       end
     end
 
@@ -227,6 +217,63 @@ RSpec.describe GrdaWarehouse::Tasks::IdentifyDuplicates, type: :model do
         AppConfigProperty.create!(key: flag_key, value: true)
 
         expect(legacy_existing_match?(processor)).to be true
+      end
+    end
+
+    describe 'match_existing! merge loop' do
+      let(:processor) { described_class.new(run_post_processing: false) }
+      let!(:destination_a) { create :grda_warehouse_hud_client, data_source: destination_data_source }
+      let!(:destination_b) { create :grda_warehouse_hud_client, data_source: destination_data_source }
+      let!(:destination_c) { create :grda_warehouse_hud_client, data_source: destination_data_source }
+      let!(:source_b) { create :grda_warehouse_hud_client, data_source: source_data_source }
+      let!(:source_c) { create :grda_warehouse_hud_client, data_source: source_data_source }
+
+      before(:each) do
+        create(:warehouse_client, source_id: source_b.id, destination_id: destination_b.id)
+        create(:warehouse_client, source_id: source_c.id, destination_id: destination_c.id)
+        allow(Sentry).to receive(:capture_exception_with_info)
+      end
+
+      it 'skips a destination that no longer has source clients and merges the rest' do
+        destination_d = create :grda_warehouse_hud_client, data_source: destination_data_source
+        source_d = create :grda_warehouse_hud_client, data_source: source_data_source
+        create(:warehouse_client, source_id: source_d.id, destination_id: destination_d.id)
+        # destination_a has no source clients, as if a concurrent merge emptied it after candidates were found
+        allow(processor).to receive(:find_merge_candidates_for_match_existing).and_return(
+          {
+            destination_a.id => [destination_b.id],
+            destination_c.id => [destination_d.id],
+          },
+        )
+
+        expect { processor.match_existing! }.not_to raise_error
+
+        aggregate_failures do
+          expect(source_b.reload.destination_client.id).to eq(destination_b.id)
+          expect(source_d.reload.destination_client.id).to eq(destination_c.id)
+          expect(Sentry).not_to have_received(:capture_exception_with_info)
+        end
+      end
+
+      it 'reports a failed merge and continues with the remaining pairs' do
+        create(:warehouse_client, source_id: client_in_source.id, destination_id: destination_a.id)
+        allow(processor).to receive(:find_merge_candidates_for_match_existing).and_return(
+          { destination_a.id => [destination_b.id, destination_c.id] },
+        )
+        allow_any_instance_of(GrdaWarehouse::Hud::Client).to receive(:merge_from).and_wrap_original do |original, other_client, **kwargs|
+          raise ActiveRecord::QueryCanceled, 'canceling statement due to statement timeout' if other_client.id == destination_b.id
+
+          original.call(other_client, **kwargs)
+        end
+
+        expect { processor.match_existing! }.not_to raise_error
+
+        aggregate_failures do
+          expect(Sentry).to have_received(:capture_exception_with_info).
+            with(instance_of(ActiveRecord::QueryCanceled), info: { source_id: destination_b.id, destination_id: destination_a.id })
+          expect(source_b.reload.destination_client.id).to eq(destination_b.id)
+          expect(source_c.reload.destination_client.id).to eq(destination_a.id)
+        end
       end
     end
 

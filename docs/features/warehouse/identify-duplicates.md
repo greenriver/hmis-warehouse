@@ -89,8 +89,8 @@ The system provides three operations that handle different deduplication scenari
 3. For each unprocessed client, the system searches for a matching destination client by applying the **Matching Criteria** defined below.
 4. If a match is found, the unprocessed source client is linked to the existing destination client. If no match is found, a new destination client is created from the source client's data and then linked.
 5. When linking to an existing destination, the system enriches the destination record by filling in any missing SSN, DOB, FirstName, or LastName information from the source client.
-6. Finalizes pending matches by automatically accepting any previously proposed client matches that are now confirmed to be exact duplicates based on the latest data.
-7. Invalidates the service history for any clients that are matched to an existing destination, flagging it for future rebuilding.
+6. Invalidates the service history for any clients that are matched to an existing destination, flagging it for future rebuilding.
+7. Finalizes pending matches by automatically accepting any previously proposed client matches that are now confirmed to be exact duplicates based on the latest data.
 
 ### Operation 2: `match_existing!` - Merge Existing Destinations
 
@@ -106,7 +106,7 @@ The system provides three operations that handle different deduplication scenari
 2. Confirms candidate matches: If a pair of clients being merged was previously identified as a potential (non-exact) match, the system automatically updates the status of that candidate match to 'accepted', streamlining the review process.
 3. Resolves merge chains: When client A matches B and B matches C, the system correctly identifies the entire transitive relationship. It groups clients to ensure they are all merged into a single, correct destination record.
 4. Manages merge size: To maintain system stability, it respects a pre-defined limit on the number of source clients that can be merged into one destination. If a large group of clients are identified as matches, the system intelligently splits the merge. When a merge would exceed the maximum size, the system promotes one of the clients from the match group to become a new destination, ensuring that no single destination client becomes too large.
-5. Executes the merge by transferring all associated data and records from one client to another. After the core merge operation, a separate background job handles cleanup tasks, such as removing the now-redundant client record and updating related data to ensure consistency.
+5. Executes the merge with `merge_from`, which moves the source clients and dependent records to the surviving destination and deletes the merged-away destination once it has no source clients left. `match_existing!` then queues `ClientCleanupJob` for each batch of merged clients.
 6. Invalidates the existing service history for all clients involved in a merge. A background process is then initiated to rebuild a new, consolidated service history, ensuring all historical service events are accurately linked to the final destination client.
 
 ### Operation 3: `ensure_source_client_linked!` - Link One New Client
@@ -117,8 +117,8 @@ The system provides three operations that handle different deduplication scenari
 - After an HMIS client is created (enqueued from `after_commit` on the `short_running` queue, one job per client)
 
 **What `ensure_source_client_linked!` does**:
-1. Returns immediately if the source is already linked, soft-deleted, or not a source client.
-2. Takes the same `identify_duplicates` advisory lock as the full run, waiting up to 5 seconds. If a full run holds the lock, it enqueues a full run instead so the client is still processed.
+1. Takes the same `identify_duplicates` advisory lock as the full run, waiting up to 5 seconds. If a full run holds the lock, it enqueues a full run instead so the client is still processed.
+2. Returns without changes if the source is already linked, soft-deleted, or not a source client.
 3. Runs the same **Matching Criteria** queries as the full run, restricted to this source and to destination clients that share its SSN or DOB.
 4. Processes the newly matched client as with the batch process if a match is found, otherwise create a new destination from the source.
 5. Marks the destination dirty for Coordinated Entry, writes an `identify_duplicates_log` row with `to_match: 1`, and queues a background service history rebuild for the destination.
@@ -165,6 +165,7 @@ The system requires **2 of 3** exact matches across these normalized fields:
 - Maintains audit trails of operations
 - The full run skips sources linked by a per-client run after its unprocessed list was computed, and its `warehouse_clients` insert ignores duplicates.
 - The full run computes its unprocessed list once, at the start. A source client created during the run is left for the next run.
+- `match_existing!` reports a failed merge to Sentry and moves on to the next pair, so one bad pair does not stop the nightly job. It skips a destination that a concurrent merge left with no source clients.
 
 ## Performance Optimizations
 
@@ -227,17 +228,9 @@ The system requires **2 of 3** exact matches across these normalized fields:
 - `WarehouseClient` does not use `acts_as_paranoid`, yet `ClientCleanup` clears and re-sets `deleted_at` on every run because external analytics tooling reads it. Do not filter on `deleted_at` inside this app. The `reviewd_by` column is misspelled in the schema and holds a user id as a string.
 
 ### Which SQL runs
-The legacy existing-match queries (`exact_ssn_matches`, `exact_name_matches`, `exact_dob_matches`) self-join source clients, so their cost grows with the square of the number of source rows that share a value, and they can hit the statement timeout at large installations. `IdentifyDuplicatesQueryMatcher` first groups source rows into arrays of distinct destination ids, then builds pairs from each array. It returns the same pairs.
-
-| Methods | Used by | SQL |
-|---------|---------|-----|
-| `exact_ssn_matches`, `exact_name_matches`, `exact_dob_matches` | `match_existing!` | Matcher when the flag is on, otherwise legacy |
-| `exact_*_matches_for_unprocessed` | `run!`, `ensure_source_client_linked!` | Always legacy. The matcher's unprocessed query aggregates the whole destination table and is not used in production. |
-
-- The flag is the `AppConfigProperty` row `identify_duplicates/use_query_matcher_for_existing_matches`. Only the JSON boolean `true` turns on the matcher. A missing row, or any other value, including the string `"true"`, keeps legacy, so an installation is on legacy until someone creates the row.
+The legacy existing-match queries (`exact_ssn_matches`, `exact_name_matches`, `exact_dob_matches`) self-join source clients, so their cost grows with the square of the number of rows sharing a value and they can hit the statement timeout at large installations. `IdentifyDuplicatesQueryMatcher` groups rows into arrays of destination ids first and returns the same pairs. `match_existing!` uses it when the `AppConfigProperty` row `identify_duplicates/use_query_matcher_for_existing_matches` holds the JSON boolean `true`. Any other value, including the string `"true"`, keeps legacy, and a change applies on the next run.
 - To switch back to legacy, delete the row. The admin form can't save `false`, because `AppConfigProperty` validates that `value` is present.
-- The flag is read once per `IdentifyDuplicates` instance, so all three queries in a run use the same path, and a change applies to the next run with no deploy.
-- The `validate:duplicate_matching` rake task compares the two paths. It runs legacy first, so at an installation where a legacy existing query times out, leave that method out of the run.
+- The `_for_unprocessed` methods always use legacy SQL. The matcher's unprocessed query aggregates the whole destination table and is not used in production.
 
 ### Daily job order
 `RunDailyImportsJob` runs consent updates, then CAS sync, then Identify Duplicates (`run!`, `match_existing!`, `ClientMatch.auto_process!`), then `ClientCleanup`. `ClientRetentionJob` is queued after service history is generated so it sees finished identity rewrites. `ClientCleanup` runs again at the end, and statistical candidate generation runs last in system maintenance.
