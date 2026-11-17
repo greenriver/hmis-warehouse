@@ -9,6 +9,20 @@
 module HudApr::Generators::CeApr::Fy2026::QuestionConcern
   extend ActiveSupport::Concern
 
+  # Covers the CoC lookup, latest_ce_assessment and latest_ce_event, which read each project's CoCs and CE participation
+  CE_ENROLLMENT_PRELOADS = {
+    enrollment: [
+      :disabilities_at_entry,
+      { project: :project_cocs },
+      { assessments: { enrollment: { project: :ce_participations } } },
+    ],
+    project: :ce_participations,
+    client: [
+      :source_assessments,
+      { source_events: { enrollment: { project: :ce_participations } } },
+    ],
+  }.freeze
+
   included do
     # By default, only include members with assessments
     def self.filter_universe_members(associations)
@@ -19,7 +33,7 @@ module HudApr::Generators::CeApr::Fy2026::QuestionConcern
       true
     end
 
-    private def clients_with_enrollments(batch, scope: enrollment_scope, preloads: { enrollment: [:disabilities_at_entry, assessments: { enrollment: { project: :ce_participations } }], project: :ce_participations })
+    private def clients_with_enrollments(batch, scope: enrollment_scope, preloads: CE_ENROLLMENT_PRELOADS)
       client_ids = batch.map(&:id)
       assessed_clients = scope.
         joins(:project, enrollment: :assessments).

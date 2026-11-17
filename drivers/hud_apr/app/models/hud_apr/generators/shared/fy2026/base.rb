@@ -537,7 +537,8 @@ module HudApr::Generators::Shared::Fy2026
       @report.report_cells.joins(universe_members: :apr_client).exists?
     end
 
-    private def clients_with_enrollments(batch, scope: enrollment_scope, **)
+    private def clients_with_enrollments(batch, scope: enrollment_scope, preloads: nil)
+      scope = scope.preload(preloads) if preloads.present?
       scope.
         where(client_id: batch.map(&:id)).
         order(first_date_in_program: :asc).
@@ -604,6 +605,7 @@ module HudApr::Generators::Shared::Fy2026
           :youth_education_statuses,
           project: [
             :funders,
+            :project_cocs,
           ],
           client: [
             assessments: [
@@ -615,6 +617,7 @@ module HudApr::Generators::Shared::Fy2026
           ],
         ],
         client: [:source_events, :source_assessments],
+        project: [],
       }
       enrollment_scope_without_preloads.preload(preloads)
     end

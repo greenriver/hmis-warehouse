@@ -35,10 +35,10 @@ module HudReports::Incomes
 
       anniversary_date = anniversary_date(entry_date: hoh_entry_date, report_end_date: @report.end_date)
 
-      enrollment.send(assessment_relation).
-        where(InformationDate: anniversary_date - 30.days .. [anniversary_date + 30.days, @report.end_date].min).
-        select do |i|
-        i.InformationDate <= report_end_date
+      window = (anniversary_date - 30.days) .. [anniversary_date + 30.days, @report.end_date].min
+      # Filters the loaded association so callers that preload it don't query per enrollment
+      enrollment.send(assessment_relation).select do |i|
+        i.InformationDate.present? && window.cover?(i.InformationDate) && i.InformationDate <= report_end_date
       end.max_by(&:InformationDate)
     end
 
