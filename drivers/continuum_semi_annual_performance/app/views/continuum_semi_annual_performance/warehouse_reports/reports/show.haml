@@ -3,14 +3,19 @@
 = render '/warehouse_reports/breadcrumbs', tab: 'performance'
 %h1.mb-3= @report.title
 %p.mb-3= @report.description
-.mb-3
-  = @report.describe_filter_as_html
+.d-flex.align-items-start.mb-3
+  %div
+    = @report.filter.describe_filter_as_html([:start])
+    = @report.describe_filter_as_html
+  .ms-auto
+    = render 'filters/view_filter_details', filter_hash: @report.filter.to_h, selected_keys: @report.known_params
 - if @report.purged?
   = render 'warehouse_reports/reload_archived_report', report: @report, reload_url: report_action_path(@report, :reload_from_csv)
 - else
   .d-flex.justify-content-between.align-items-start.mb-3
-    %div
-      = render 'continuum_semi_annual_performance/warehouse_reports/reports/approval'
+    .card
+      .card-body
+        = render 'continuum_semi_annual_performance/warehouse_reports/reports/approval'
     = render 'continuum_semi_annual_performance/warehouse_reports/reports/downloads'
   %ul.nav.nav-tabs.mb-3
     - @report.tabs.each do |tab|
