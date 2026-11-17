@@ -367,11 +367,11 @@ module Cohorts
     end
 
     def filter_params
-      params.permit(filter: ::Filters::Chronic.attribute_set.map(&:name))
+      params.permit(filter: ::Filters::Chronic.attribute_names)
     end
 
     def hud_filter_params
-      params.permit(filter: ::Filters::HudChronic.attribute_set.map(&:name))
+      params.permit(filter: ::Filters::HudChronic.attribute_names)
     end
 
     def load_cohort_names

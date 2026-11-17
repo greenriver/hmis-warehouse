@@ -253,7 +253,7 @@ RSpec.describe ModelForm, type: :model do
       active, last_name, age = store_fixture.column_state
 
       expect(active).to be_a(CohortColumns::Active)
-      expect(active.column).to eq(:active)
+      expect(active.column).to eq('active')
       expect(active.visible).to be(false)
       expect(active.editable).to be(true)
       expect(active.title).to eq(Translation.translate('Active'))
@@ -276,7 +276,7 @@ RSpec.describe ModelForm, type: :model do
       active, last_name, age = GrdaWarehouse::Cohort.find(cohort.id).column_state
 
       expect([active.column, active.visible, active.editable, active.title]).
-        to eq([:active, false, true, Translation.translate('Active')])
+        to eq(['active', false, true, Translation.translate('Active')])
       expect([last_name.column, last_name.visible, last_name.editable, last_name.title]).
         to eq(['last_name', true, true, Translation.translate('Last Name')])
       expect([age.column, age.visible, age.editable, age.title]).
