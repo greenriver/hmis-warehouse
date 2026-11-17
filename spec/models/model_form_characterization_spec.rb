@@ -136,6 +136,17 @@ RSpec.describe ModelForm, type: :model do
       expect(filter.coc_codes).to eq([])
       expect(filter.project_ids).to eq([])
     end
+
+    it 'drops blank entries from every list reader' do
+      readers = [
+        :project_ids, :project_group_ids, :organization_ids, :data_source_ids, :funder_ids,
+        :funder_others, :cohort_ids, :secondary_cohort_ids, :coc_codes, :secondary_project_group_ids
+      ]
+
+      results = readers.index_with { |reader| described_class.new(reader => ['', 'x']).public_send(reader) }
+
+      expect(results).to eq(readers.index_with { ['x'] })
+    end
   end
 
   describe Filters::HmisExport do

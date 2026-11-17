@@ -98,6 +98,35 @@ RSpec.describe ModelForm, type: :model do
     end
   end
 
+  describe 'casting branches without a Virtus-visible default' do
+    let(:klass) do
+      form_class do
+        attribute :str, String
+        attribute :date, Date
+      end
+    end
+
+    it 'casts BigDecimal to a plain decimal string' do
+      expect(klass.new(str: BigDecimal('1234567.5')).str).to eql('1234567.5')
+    end
+
+    it 'builds a Date from year, month and day hash parts' do
+      expect(klass.new(date: { year: '2025', month: 3, day: '4' }).date).to eql(Date.new(2025, 3, 4))
+    end
+
+    it 'fills missing hash parts from the current date' do
+      travel_to(Time.zone.local(2026, 5, 6, 12)) do
+        expect(klass.new(date: { year: 2025 }).date).to eql(Date.new(2025, 5, 6))
+      end
+    end
+
+    it 'passes a TimeWithZone through unchanged' do
+      time = Time.zone.local(2025, 3, 4, 5)
+
+      expect(klass.new(str: time, date: time).attributes).to eq(str: time, date: time)
+    end
+  end
+
   describe 'static defaults' do
     let(:klass) do
       form_class do
