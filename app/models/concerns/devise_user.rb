@@ -154,12 +154,6 @@ module DeviseUser
       super && active
     end
 
-    # Allow logins to be case insensitive at login time
-    def self.find_for_authentication(conditions)
-      conditions[:email].downcase!
-      super(conditions)
-    end
-
     # Enforce a known value is included in the devise salt
     # this allows us to invalidate sessions even though they are stored in redis
     def authenticatable_salt
