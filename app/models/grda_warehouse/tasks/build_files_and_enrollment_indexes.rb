@@ -55,14 +55,25 @@ module GrdaWarehouse
         },
       ].freeze
 
+      LOCK_NAME = 'GrdaWarehouse::Tasks::BuildFilesAndEnrollmentIndexes'
+
       def self.run!
         new.run!
       end
 
       # Builds one index at a time: the Enrollment index is partial and an expression index, so
       # any other concurrent build in the database would wait on it anyway.
+      #
+      # On a new database both TaskQueue keys can run at once. ensure_index! reads an index that is
+      # still being built concurrently as invalid and would drop it, so only one run proceeds. The
+      # other returns at once: every run builds the full INDEXES list. It must not wait in
+      # pg_advisory_lock either, since CREATE INDEX CONCURRENTLY waits for that statement to end.
       def run!
-        INDEXES.each { |index| ensure_index!(**index) }
+        acquired = GrdaWarehouseBase.with_advisory_lock(LOCK_NAME, timeout_seconds: 0) do
+          INDEXES.each { |index| ensure_index!(**index) }
+          true
+        end
+        Rails.logger.info("#{LOCK_NAME}: another run holds the lock; skipping") unless acquired
       end
 
       private
