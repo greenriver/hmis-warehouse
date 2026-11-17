@@ -656,10 +656,10 @@ module HudApr::Generators::Shared::Fy2026
           joins(:service_history_services).
           merge(GrdaWarehouse::ServiceHistoryService.bed_night.where(date: pit_date)).
           distinct.
-          pluck(:id, :household_id, :enrollment_group_id)
+          pluck(:id, :data_source_id, :household_id, :enrollment_group_id)
         {
-          enrollment_ids: rows.map(&:shift).to_set,
-          household_ids: rows.map { |household_id, enrollment_group_id| household_id || "#{enrollment_group_id || ''}*HH" }.to_set,
+          enrollment_ids: rows.map(&:first).to_set,
+          household_ids: rows.map { |_, data_source_id, household_id, enrollment_group_id| household_key(data_source_id, household_id, enrollment_group_id) }.to_set,
         }
       end
     end

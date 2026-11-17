@@ -71,11 +71,19 @@ module HudReports::Households
       households[household_id].detect { |hm| hm[:relationship_to_hoh] == 1 }&.try(:[], :exit_date)
     end
 
+    private def get_hh_id(service_history_enrollment)
+      household_key(
+        service_history_enrollment.data_source_id,
+        service_history_enrollment.household_id,
+        service_history_enrollment.enrollment_group_id,
+      )
+    end
+
     # HouseholdID is unique only within a data source, so the key includes it. The key is also stored
     # as household_id on report clients; AprClient#display_household_id strips the data source.
-    private def get_hh_id(service_history_enrollment)
-      household_id = service_history_enrollment.household_id || "#{service_history_enrollment.enrollment_group_id}*HH"
-      "#{service_history_enrollment.data_source_id}*#{household_id}"
+    # Build household keys only here, so every lookup agrees on the format.
+    private def household_key(data_source_id, household_id, enrollment_group_id)
+      "#{data_source_id}*#{household_id || "#{enrollment_group_id}*HH"}"
     end
 
     private def households
