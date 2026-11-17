@@ -43,7 +43,7 @@ module HudApr::Generators::CeApr::Fy2020::QuestionConcern
     private def household_member_data(enrollment, date)
       # return nil unless enrollment[:head_of_household]
 
-      active_members = households[enrollment.household_id] || []
+      active_members = households[get_hh_id(enrollment)] || []
       active_members.reject do |client|
         client[:entry_date] > date || client[:exit_date].present? && client[:exit_date] < date
       end

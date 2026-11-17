@@ -86,7 +86,7 @@ module HudApr::Generators::Shared::Fy2026
           hoh_enrollment = hoh_enrollments[hh_id]
           # The annual assessment anniversary follows the household's earliest head of household, who may
           # have exited before the report period and so may not be in hoh_enrollments
-          annual_hoh_enrollment = household_hoh_enrollments[[last_service_history_enrollment.data_source_id, hh_id]] || hoh_enrollment
+          annual_hoh_enrollment = household_hoh_enrollments[[last_service_history_enrollment.data_source_id, last_service_history_enrollment.household_id]] || hoh_enrollment
           household_assessment_required[last_service_history_enrollment.client_id] = annual_assessment_expected?(hoh_enrollment: annual_hoh_enrollment, enrollment: last_service_history_enrollment, report_end_date: @report.end_date)
           end_date = if needs_ce_assessments?
             # Only HoHs get CE assessments, so we prefer their entry date
@@ -117,7 +117,7 @@ module HudApr::Generators::Shared::Fy2026
           hoh_enrollment = hoh_enrollments[hh_id] || last_service_history_enrollment
           # Annual assessment timing is anchored on the household's HoH even when they exited before
           # the report period, so it does not use the HoH enrollment above
-          annual_hoh_enrollment = household_hoh_enrollments[[last_service_history_enrollment.data_source_id, hh_id]] || hoh_enrollment
+          annual_hoh_enrollment = household_hoh_enrollments[[last_service_history_enrollment.data_source_id, last_service_history_enrollment.household_id]] || hoh_enrollment
           if needs_ce_assessments?
             ce_latest_assessment = latest_ce_assessment(last_service_history_enrollment, hoh_enrollment)
             ce_latest_event = latest_ce_event(last_service_history_enrollment, hoh_enrollment, ce_latest_assessment)
@@ -681,7 +681,7 @@ module HudApr::Generators::Shared::Fy2026
 
       present = if enrollment.project_type.in?([3, 13]) || enrollment.enrollment.project.pay_for_success?
         # PSH/RRH OR project type 7 (other) with Funder 35 (Pay for Success)
-        move_in_date = calculate_hh_move_in_date(enrollment.household_id, enrollment)
+        move_in_date = calculate_hh_move_in_date(get_hh_id(enrollment), enrollment)
         (enrollment.last_date_in_program.nil? || enrollment.last_date_in_program > pit_date) && # Exclude exit date
           move_in_date.present? && # Check that move in date is present and is before the PIT data and on or after the entry date
           move_in_date <= pit_date &&
@@ -705,7 +705,7 @@ module HudApr::Generators::Shared::Fy2026
             last_date_in_program: enrollment.last_date_in_program,
             project_type: enrollment.project_type,
             project_tracking_method: enrollment.project_tracking_method,
-            move_in_date: calculate_hh_move_in_date(enrollment.household_id, enrollment),
+            move_in_date: calculate_hh_move_in_date(get_hh_id(enrollment), enrollment),
             relationship_to_hoh: enrollment.enrollment.relationship_to_hoh,
             household_presence_only: presence == :household,
           }
