@@ -61,7 +61,7 @@ module ContinuumSemiAnnualPerformance
       op = entry[:op].to_sym
       cells = entry[:cells].map { |cell| cell.slice(:report, :table, :cell) }
       cells = expand_range(cells) if op == :sum_range
-      row.merge(format: entry[:format].to_sym, op: op == :sum_range ? :sum : op, cells: cells)
+      row.merge(format: entry[:format].to_sym, op: op == :sum_range ? :sum : op, cells: cells, source: entry[:source])
     end
     private_class_method :build_row
 

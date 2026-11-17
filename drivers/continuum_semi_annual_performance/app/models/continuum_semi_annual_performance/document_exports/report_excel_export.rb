@@ -72,7 +72,7 @@ module ContinuumSemiAnnualPerformance::DocumentExports
         if row.header
           sheet.add_row([row.label], style: row.level.to_i == 1 ? styles[:bold] : styles[:italic])
         else
-          sheet.add_row([row.label, row.value], style: [nil, styles[row.format.to_sym]])
+          sheet.add_row([row.label, row.source, row.value], style: [nil, nil, styles[row.format.to_sym]])
         end
       end
     end

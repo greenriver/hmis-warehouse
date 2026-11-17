@@ -7,7 +7,7 @@
 # frozen_string_literal: true
 
 module ContinuumSemiAnnualPerformance
-  DisplayRow = Struct.new(:label, :header, :level, :format, :value, :parts, keyword_init: true) do
+  DisplayRow = Struct.new(:label, :header, :level, :format, :source, :value, :parts, keyword_init: true) do
     def display_value
       case format.to_s
       when 'count' then ActiveSupport::NumberHelper.number_to_delimited(value.to_i)

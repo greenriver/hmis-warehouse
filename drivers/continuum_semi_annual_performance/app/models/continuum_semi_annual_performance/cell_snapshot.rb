@@ -51,7 +51,7 @@ module ContinuumSemiAnnualPerformance
     end
 
     def row_data(row, values)
-      data = { label: row[:label], header: row[:header], level: row[:level], format: row[:format], value: nil, parts: [] }
+      data = { label: row[:label], header: row[:header], level: row[:level], format: row[:format], source: row[:source], value: nil, parts: [] }
       return data if row[:header]
 
       data[:parts] = row[:cells].map { |cell| cell.merge(hud_report_id: hud_report.id).slice(:report, :hud_report_id, :table, :cell) }

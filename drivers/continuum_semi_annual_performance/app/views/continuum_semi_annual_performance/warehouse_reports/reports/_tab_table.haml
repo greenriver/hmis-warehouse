@@ -1,18 +1,24 @@
 - links = local_assigns.fetch(:links, false)
 .table-responsive
-  %table.table.table-sm
+  %table.table.table-striped
+    %thead
+      %tr
+        %th
+        %th Source
+        %th.text-right Value
     %tbody
       - rows.each do |row|
         - if row.header
           - if row.level.to_i == 1
             %tr.table-active
-              %th{ colspan: 2 }= row.label
+              %th{ colspan: 3 }= row.label
           - else
             %tr
-              %th.pl-4.font-italic{ colspan: 2 }= row.label
+              %th.pl-4.font-italic{ colspan: 3 }= row.label
         - else
           %tr
             %td= row.label
+            %td= row.source
             %td.text-right
               - parts = row.parts || []
               - visible = links && parts.select { |part| drilldown_visible?(@report, part) }

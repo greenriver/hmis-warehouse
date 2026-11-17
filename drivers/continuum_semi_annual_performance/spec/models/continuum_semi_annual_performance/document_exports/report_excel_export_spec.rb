@@ -86,7 +86,8 @@ RSpec.describe ContinuumSemiAnnualPerformance::DocumentExports::ReportExcelExpor
       row = (1..book.last_row).find { |i| book.cell(i, 1) == 'Persons Served - Total' }
 
       expect(book.sheets).to eq(['ES', 'Report Info'])
-      expect(book.cell(row, 2)).to eq(42)
+      expect(book.cell(row, 2)).to eq('APR Table Q7a - Cell B6')
+      expect(book.cell(row, 3)).to eq(42)
     end
   end
 end

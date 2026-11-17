@@ -54,7 +54,7 @@ The rows each report shows live in `drivers/continuum_semi_annual_performance/co
 | `op` | `value` (one cell), `sum` (several cells) or `sum_range` (two cells naming the ends of a column range) |
 | `cells` | `report` (`apr` or `ce_apr`), `table` and `cell` |
 | `format` | `count`, `percent` or `decimal` |
-| `source` | A plain-language description of the cells. Not read at runtime |
+| `source` | A plain-language description of the cells, such as `APR Table Q6f - Cell C2`. Copied into each snapshot row and shown in the Source column on the page and in the exports |
 
 `rows_yaml_shape_spec.rb` checks the shape: allowed keys, positive unique positions per type, valid ops and formats, one cell for `value`, and the right report for each section. A malformed edit fails that spec rather than a report run.
 
