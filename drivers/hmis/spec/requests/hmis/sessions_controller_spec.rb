@@ -391,6 +391,65 @@ RSpec.describe 'Hmis::SessionsController', :devise_only, type: :request do
     end
   end
 
+  # Stored emails are lowercase (Devise case_insensitive_keys); users may type them with capitals
+  describe 'Login with a mixed-case email' do
+    def post_login(email:, password:)
+      post hmis_user_session_path(hmis_user: { email: email, password: password }),
+           headers: { 'HOST' => GraphqlHelpers::HMIS_HOSTNAME }
+    end
+
+    context 'without 2FA' do
+      # Guards Devise's case_insensitive_keys. find_user only decides whether 2FA runs, so it is
+      # not on this path; the 2FA contexts below cover it.
+      it 'signs in the same as the lowercase email' do
+        expect(user.email.swapcase).not_to eq(user.email)
+
+        post_login(email: user.email.swapcase, password: user.password)
+
+        aggregate_failures 'checking response' do
+          expect(response.status).to eq 200
+          expect(api_query_response.status).to eq 200
+        end
+      end
+    end
+
+    context 'with 2FA enabled' do
+      before do
+        post_login(email: user_2fa.email.swapcase, password: user_2fa.password)
+      end
+
+      it 'prompts for 2FA the same as the lowercase email, without signing in' do
+        aggregate_failures 'checking response' do
+          expect(response.status).to eq 403
+          expect(response.body).to include 'mfa_required'
+          expect(api_query_response.status).to eq 401
+        end
+      end
+
+      it 'signs in when the correct 2FA code is entered' do
+        post hmis_user_session_path(hmis_user: { otp_attempt: user_2fa.current_otp }),
+             headers: { 'HOST' => GraphqlHelpers::HMIS_HOSTNAME }
+
+        aggregate_failures 'checking response' do
+          expect(response.status).to eq 200
+          expect(user_2fa.reload.failed_attempts).to eq 0
+          expect(api_query_response.status).to eq 200
+        end
+      end
+    end
+
+    context 'with surrounding whitespace and 2FA enabled' do
+      it 'prompts for 2FA the same as the trimmed email' do
+        post_login(email: " #{user_2fa.email.swapcase} ", password: user_2fa.password)
+
+        aggregate_failures 'checking response' do
+          expect(response.status).to eq 403
+          expect(response.body).to include 'mfa_required'
+        end
+      end
+    end
+  end
+
   def api_query_response
     query = <<~GRAPHQL
       query ClientSearch($input: ClientSearchInput!) {
