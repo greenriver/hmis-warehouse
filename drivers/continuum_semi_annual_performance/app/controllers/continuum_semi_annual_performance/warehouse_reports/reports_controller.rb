@@ -129,11 +129,6 @@ module ContinuumSemiAnnualPerformance::WarehouseReports
     end
     helper_method :path_for_clear_view_filter
 
-    private def related_report
-      GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: report_class.url)
-    end
-    helper_method :related_report
-
     private def can_view_all_reports?
       current_user.can_view_all_reports?
     end

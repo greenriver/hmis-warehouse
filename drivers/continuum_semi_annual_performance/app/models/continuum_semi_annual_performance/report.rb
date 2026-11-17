@@ -28,6 +28,9 @@ module ContinuumSemiAnnualPerformance
       GrdaWarehouse::WarehouseReports::ReportDefinition.url_viewable_by?(url, user)
     end
 
+    # run_and_save! deletes the previous attempt's cells and runs new APR instances.
+    def self.supports_idempotent_retry? = true
+
     def self.url
       raise NotImplementedError
     end
@@ -177,13 +180,6 @@ module ContinuumSemiAnnualPerformance
 
     def approved?
       approvals.newest_first.first&.approved || false
-    end
-
-    def approval_status
-      latest = approvals.newest_first.first
-      return 'Approval Pending' unless latest
-
-      latest.action_label
     end
 
     def archival_csv_config

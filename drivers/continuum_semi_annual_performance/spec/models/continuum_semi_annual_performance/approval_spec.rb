@@ -14,7 +14,7 @@ RSpec.describe ContinuumSemiAnnualPerformance::Approval, type: :model do
   let(:report) { ContinuumSemiAnnualPerformance::EndOfYearReport.create!(user_id: user.id, options: { coc_codes: ['XX-500'] }) }
 
   it 'is pending before anyone approves' do
-    expect(report.approval_status).to eq('Approval Pending')
+    expect(report.approvals.exists?).to be(false)
     expect(report.approved?).to be(false)
   end
 
@@ -29,12 +29,11 @@ RSpec.describe ContinuumSemiAnnualPerformance::Approval, type: :model do
     travel_to(Time.zone.local(2027, 1, 9, 14)) { report.approve!(user: user, approved: true) }
     travel_to(Time.zone.local(2027, 1, 10, 9)) { report.approve!(user: approver, approved: false) }
 
-    expect(report.approval_status).to eq('Approval Removed')
+    expect(report.approved?).to be(false)
     travel_to(Time.zone.local(2027, 1, 12, 15)) { report.approve!(user: user, approved: true) }
 
     expect(report.approvals.newest_first.map(&:action_label)).to eq(['Approved', 'Approval Removed', 'Approved'])
     expect(report.approved?).to be(true)
-    expect(report.approval_status).to eq('Approved')
   end
 
   it 'adds no row when approving an approved report' do

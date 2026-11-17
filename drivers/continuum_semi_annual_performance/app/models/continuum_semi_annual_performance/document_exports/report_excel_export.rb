@@ -37,7 +37,11 @@ module ContinuumSemiAnnualPerformance::DocumentExports
     end
 
     private def sheet_name(tab_key)
-      tab_key == :summary ? 'Summary' : tab_key.to_s.upcase
+      case tab_key
+      when :summary then 'Summary'
+      when :ce_tab then 'CE'
+      else tab_key.to_s.upcase
+      end
     end
 
     private def export_styles(wb_styles)
