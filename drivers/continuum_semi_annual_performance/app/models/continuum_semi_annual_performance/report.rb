@@ -166,10 +166,13 @@ module ContinuumSemiAnnualPerformance
     end
 
     # Logs only a change of state; returns nil when the report is already in the requested state.
+    # The row lock keeps two overlapping saves from both logging the same change.
     def approve!(user:, approved:)
-      return if approved == approved?
+      with_lock do
+        next if approved == approved?
 
-      approvals.create!(user_id: user.id, approved: approved)
+        approvals.create!(user_id: user.id, approved: approved)
+      end
     end
 
     def approved?
