@@ -71,7 +71,7 @@ class ModelForm
       private def from_parts(value)
         now = ::Time.now
         parts = { year: now.year, month: now.month, day: now.day }.map do |key, fallback|
-          Integer.new.cast(value.fetch(key, fallback))
+          Types::Integer.new.cast(value.fetch(key, fallback))
         end
         ::Date.new(*parts)
       end
