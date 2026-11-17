@@ -1,0 +1,3901 @@
+# Shape checked by spec/models/continuum_semi_annual_performance/rows_yaml_shape_spec.rb; keys described in docs/features/warehouse/coc-semi-annual-performance.md.
+mid_year:
+  - label: "Q7a: Number of Persons Served"
+    order:
+      es: 1
+      hp: 1
+      so: 1
+      rrh: 1
+    header: true
+    level: 1
+  - label: Persons Served - Total
+    order:
+      es: 2
+      hp: 2
+      so: 2
+      rrh: 2
+    source: APR Table Q7a - Cell B6
+    op: value
+    cells:
+      - report: apr
+        table: Q7a
+        cell: B6
+    format: count
+  - label: "Q8a: Number of Households Served"
+    order:
+      es: 3
+      hp: 3
+      so: 3
+      rrh: 3
+    header: true
+    level: 1
+  - label: Total Households
+    order:
+      es: 4
+      hp: 4
+      so: 4
+      rrh: 4
+    source: APR Table Q8a - Cell B2
+    op: value
+    cells:
+      - report: apr
+        table: Q8a
+        cell: B2
+    format: count
+  - label: "Q11: Age"
+    order:
+      es: 5
+      hp: 5
+      so: 5
+      rrh: 5
+    header: true
+    level: 1
+  - label: "Age: Under 5"
+    order:
+      es: 6
+      hp: 6
+      so: 6
+      rrh: 6
+    source: APR Table Q11 - Cell B2
+    op: value
+    cells:
+      - report: apr
+        table: Q11
+        cell: B2
+    format: count
+  - label: "Age: 5-12"
+    order:
+      es: 7
+      hp: 7
+      so: 7
+      rrh: 7
+    source: APR Table Q11 - Cell B3
+    op: value
+    cells:
+      - report: apr
+        table: Q11
+        cell: B3
+    format: count
+  - label: "Age: 13-17"
+    order:
+      es: 8
+      hp: 8
+      so: 8
+      rrh: 8
+    source: APR Table Q11 - Cell B4
+    op: value
+    cells:
+      - report: apr
+        table: Q11
+        cell: B4
+    format: count
+  - label: "Age: 18-24"
+    order:
+      es: 9
+      hp: 9
+      so: 9
+      rrh: 9
+    source: APR Table Q11 - Cell B5
+    op: value
+    cells:
+      - report: apr
+        table: Q11
+        cell: B5
+    format: count
+  - label: "Age: 25-34"
+    order:
+      es: 10
+      hp: 10
+      so: 10
+      rrh: 10
+    source: APR Table Q11 - Cell B6
+    op: value
+    cells:
+      - report: apr
+        table: Q11
+        cell: B6
+    format: count
+  - label: "Age: 35-44"
+    order:
+      es: 11
+      hp: 11
+      so: 11
+      rrh: 11
+    source: APR Table Q11 - Cell B7
+    op: value
+    cells:
+      - report: apr
+        table: Q11
+        cell: B7
+    format: count
+  - label: "Age: 45-54"
+    order:
+      es: 12
+      hp: 12
+      so: 12
+      rrh: 12
+    source: APR Table Q11 - Cell B8
+    op: value
+    cells:
+      - report: apr
+        table: Q11
+        cell: B8
+    format: count
+  - label: "Age: 55-64"
+    order:
+      es: 13
+      hp: 13
+      so: 13
+      rrh: 13
+    source: APR Table Q11 - Cell B9
+    op: value
+    cells:
+      - report: apr
+        table: Q11
+        cell: B9
+    format: count
+  - label: "Age: 65+"
+    order:
+      es: 14
+      hp: 14
+      so: 14
+      rrh: 14
+    source: APR Table Q11 - Cell B10
+    op: value
+    cells:
+      - report: apr
+        table: Q11
+        cell: B10
+    format: count
+  - label: "Age: Client Doesn't Know/Prefers Not to Answer"
+    order:
+      es: 15
+      hp: 15
+      so: 15
+      rrh: 15
+    source: APR Table Q11 - Cell B11
+    op: value
+    cells:
+      - report: apr
+        table: Q11
+        cell: B11
+    format: count
+  - label: "Age: Data Not Collected"
+    order:
+      es: 16
+      hp: 16
+      so: 16
+      rrh: 16
+    source: APR Table Q11 - Cell B12
+    op: value
+    cells:
+      - report: apr
+        table: Q11
+        cell: B12
+    format: count
+  - label: "Age: Total"
+    order:
+      es: 17
+      hp: 17
+      so: 17
+      rrh: 17
+    source: SUM of APR Table Q11 - Cell B2 to APR Table Q11 - Cell B12
+    op: sum_range
+    cells:
+      - report: apr
+        table: Q11
+        cell: B2
+      - report: apr
+        table: Q11
+        cell: B12
+    format: count
+  - label: "Q23c: Exit Destinations"
+    order:
+      es: 18
+      hp: 18
+      so: 18
+      rrh: 18
+    header: true
+    level: 1
+  - label: Homeless Situations
+    order:
+      es: 19
+      hp: 19
+      so: 19
+      rrh: 19
+    header: true
+    level: 2
+  - label: Place not meant for habitation (e.g., a vehicle, an abandoned building, bus/train/subway station/airport or anywhere outside)
+    order:
+      es: 20
+      hp: 20
+      so: 20
+      rrh: 20
+    source: APR Table Q23c - Cell B3
+    op: value
+    cells:
+      - report: apr
+        table: Q23c
+        cell: B3
+    format: count
+  - label: Emergency shelter, including hotel or motel paid for with emergency shelter voucher, Host Home shelter
+    order:
+      es: 21
+      hp: 21
+      so: 21
+      rrh: 21
+    source: APR Table Q23c - Cell B4
+    op: value
+    cells:
+      - report: apr
+        table: Q23c
+        cell: B4
+    format: count
+  - label: Safe Haven
+    order:
+      es: 22
+      hp: 22
+      so: 22
+      rrh: 22
+    source: APR Table Q23c - Cell B5
+    op: value
+    cells:
+      - report: apr
+        table: Q23c
+        cell: B5
+    format: count
+  - label: Homeless Destinations Subtotal
+    order:
+      es: 23
+      hp: 23
+      so: 23
+      rrh: 23
+    source: APR Table Q23c - Cell B6
+    op: value
+    cells:
+      - report: apr
+        table: Q23c
+        cell: B6
+    format: count
+  - label: Institutional Situations
+    order:
+      es: 24
+      hp: 24
+      so: 24
+      rrh: 24
+    header: true
+    level: 2
+  - label: Foster care home or foster care group home
+    order:
+      es: 25
+      hp: 25
+      so: 25
+      rrh: 25
+    source: APR Table Q23c - Cell B8
+    op: value
+    cells:
+      - report: apr
+        table: Q23c
+        cell: B8
+    format: count
+  - label: Hospital or other residential non-psychiatric medical facility
+    order:
+      es: 26
+      hp: 26
+      so: 26
+      rrh: 26
+    source: APR Table Q23c - Cell B9
+    op: value
+    cells:
+      - report: apr
+        table: Q23c
+        cell: B9
+    format: count
+  - label: Jail, prison or juvenile detention facility
+    order:
+      es: 27
+      hp: 27
+      so: 27
+      rrh: 27
+    source: APR Table Q23c - Cell B10
+    op: value
+    cells:
+      - report: apr
+        table: Q23c
+        cell: B10
+    format: count
+  - label: Long-term care facility or nursing home
+    order:
+      es: 28
+      hp: 28
+      so: 28
+      rrh: 28
+    source: APR Table Q23c - Cell B11
+    op: value
+    cells:
+      - report: apr
+        table: Q23c
+        cell: B11
+    format: count
+  - label: Psychiatric hospital or other psychiatric facility
+    order:
+      es: 29
+      hp: 29
+      so: 29
+      rrh: 29
+    source: APR Table Q23c - Cell B12
+    op: value
+    cells:
+      - report: apr
+        table: Q23c
+        cell: B12
+    format: count
+  - label: Substance abuse treatment facility or detox center
+    order:
+      es: 30
+      hp: 30
+      so: 30
+      rrh: 30
+    source: APR Table Q23c - Cell B13
+    op: value
+    cells:
+      - report: apr
+        table: Q23c
+        cell: B13
+    format: count
+  - label: Institutional Destinations Subtotal
+    order:
+      es: 31
+      hp: 31
+      so: 31
+      rrh: 31
+    source: APR Table Q23c - Cell B14
+    op: value
+    cells:
+      - report: apr
+        table: Q23c
+        cell: B14
+    format: count
+  - label: Temporary Situations
+    order:
+      es: 32
+      hp: 32
+      so: 32
+      rrh: 32
+    header: true
+    level: 2
+  - label: Transitional housing for homeless persons (including homeless youth)
+    order:
+      es: 33
+      hp: 33
+      so: 33
+      rrh: 33
+    source: APR Table Q23c - Cell B16
+    op: value
+    cells:
+      - report: apr
+        table: Q23c
+        cell: B16
+    format: count
+  - label: Residential project or halfway house with no homeless criteria
+    order:
+      es: 34
+      hp: 34
+      so: 34
+      rrh: 34
+    source: APR Table Q23c - Cell B17
+    op: value
+    cells:
+      - report: apr
+        table: Q23c
+        cell: B17
+    format: count
+  - label: Hotel or motel paid for without emergency shelter voucher
+    order:
+      es: 35
+      hp: 35
+      so: 35
+      rrh: 35
+    source: APR Table Q23c - Cell B18
+    op: value
+    cells:
+      - report: apr
+        table: Q23c
+        cell: B18
+    format: count
+  - label: Host Home (non-crisis)
+    order:
+      es: 36
+      hp: 36
+      so: 36
+      rrh: 36
+    source: APR Table Q23c - Cell B19
+    op: value
+    cells:
+      - report: apr
+        table: Q23c
+        cell: B19
+    format: count
+  - label: Staying or living with family, temporary tenure (e.g., room, apartment, or house)
+    order:
+      es: 37
+      hp: 37
+      so: 37
+      rrh: 37
+    source: APR Table Q23c - Cell B20
+    op: value
+    cells:
+      - report: apr
+        table: Q23c
+        cell: B20
+    format: count
+  - label: Staying or living with friends, temporary tenure (e.g., room, apartment, or house)
+    order:
+      es: 38
+      hp: 38
+      so: 38
+      rrh: 38
+    source: APR Table Q23c - Cell B21
+    op: value
+    cells:
+      - report: apr
+        table: Q23c
+        cell: B21
+    format: count
+  - label: Moved from one HOPWA funded project to HOPWA TH
+    order:
+      es: 39
+      hp: 39
+      so: 39
+      rrh: 39
+    source: APR Table Q23c - Cell B22
+    op: value
+    cells:
+      - report: apr
+        table: Q23c
+        cell: B22
+    format: count
+  - label: Temporary Destinations Subtotal
+    order:
+      es: 40
+      hp: 40
+      so: 40
+      rrh: 40
+    source: APR Table Q23c - Cell B23
+    op: value
+    cells:
+      - report: apr
+        table: Q23c
+        cell: B23
+    format: count
+  - label: Permanent Situations
+    order:
+      es: 41
+      hp: 41
+      so: 41
+      rrh: 41
+    header: true
+    level: 2
+  - label: Staying or living with family, permanent tenure
+    order:
+      es: 42
+      hp: 42
+      so: 42
+      rrh: 42
+    source: APR Table Q23c - Cell B25
+    op: value
+    cells:
+      - report: apr
+        table: Q23c
+        cell: B25
+    format: count
+  - label: Staying or living with friends, permanent tenure
+    order:
+      es: 43
+      hp: 43
+      so: 43
+      rrh: 43
+    source: APR Table Q23c - Cell B26
+    op: value
+    cells:
+      - report: apr
+        table: Q23c
+        cell: B26
+    format: count
+  - label: Moved from one HOPWA funded project to HOPWA PH
+    order:
+      es: 44
+      hp: 44
+      so: 44
+      rrh: 44
+    source: APR Table Q23c - Cell B27
+    op: value
+    cells:
+      - report: apr
+        table: Q23c
+        cell: B27
+    format: count
+  - label: Rental by client, no ongoing housing subsidy
+    order:
+      es: 45
+      hp: 45
+      so: 45
+      rrh: 45
+    source: APR Table Q23c - Cell B28
+    op: value
+    cells:
+      - report: apr
+        table: Q23c
+        cell: B28
+    format: count
+  - label: Rental by client, with ongoing housing subsidy
+    order:
+      es: 46
+      hp: 46
+      so: 46
+      rrh: 46
+    source: APR Table Q23c - Cell B29
+    op: value
+    cells:
+      - report: apr
+        table: Q23c
+        cell: B29
+    format: count
+  - label: Owned by client, with ongoing housing subsidy
+    order:
+      es: 47
+      hp: 47
+      so: 47
+      rrh: 47
+    source: APR Table Q23c - Cell B30
+    op: value
+    cells:
+      - report: apr
+        table: Q23c
+        cell: B30
+    format: count
+  - label: Owned by client, no ongoing housing subsidy
+    order:
+      es: 48
+      hp: 48
+      so: 48
+      rrh: 48
+    source: APR Table Q23c - Cell B31
+    op: value
+    cells:
+      - report: apr
+        table: Q23c
+        cell: B31
+    format: count
+  - label: Permanent Destinations Subtotal
+    order:
+      es: 49
+      hp: 49
+      so: 49
+      rrh: 49
+    source: APR Table Q23c - Cell B32
+    op: value
+    cells:
+      - report: apr
+        table: Q23c
+        cell: B32
+    format: count
+  - label: Other Situations
+    order:
+      es: 50
+      hp: 50
+      so: 50
+      rrh: 50
+    header: true
+    level: 2
+  - label: No Exit Interview completed
+    order:
+      es: 51
+      hp: 51
+      so: 51
+      rrh: 51
+    source: APR Table Q23c - Cell B34
+    op: value
+    cells:
+      - report: apr
+        table: Q23c
+        cell: B34
+    format: count
+  - label: Other
+    order:
+      es: 52
+      hp: 52
+      so: 52
+      rrh: 52
+    source: APR Table Q23c - Cell B35
+    op: value
+    cells:
+      - report: apr
+        table: Q23c
+        cell: B35
+    format: count
+  - label: Deceased
+    order:
+      es: 53
+      hp: 53
+      so: 53
+      rrh: 53
+    source: APR Table Q23c - Cell B36
+    op: value
+    cells:
+      - report: apr
+        table: Q23c
+        cell: B36
+    format: count
+  - label: Client Doesn’t Know/Prefers Not to Answer
+    order:
+      es: 54
+      hp: 54
+      so: 54
+      rrh: 54
+    source: APR Table Q23c - Cell B37
+    op: value
+    cells:
+      - report: apr
+        table: Q23c
+        cell: B37
+    format: count
+  - label: Data Not Collected
+    order:
+      es: 55
+      hp: 55
+      so: 55
+      rrh: 55
+    source: APR Table Q23c - Cell B38
+    op: value
+    cells:
+      - report: apr
+        table: Q23c
+        cell: B38
+    format: count
+  - label: Other Destinations Subtotal
+    order:
+      es: 56
+      hp: 56
+      so: 56
+      rrh: 56
+    source: APR Table Q23c - Cell B39
+    op: value
+    cells:
+      - report: apr
+        table: Q23c
+        cell: B39
+    format: count
+  - label: Total Exit Destinations
+    order:
+      es: 57
+      hp: 57
+      so: 57
+      rrh: 57
+    source: APR Table Q23c - Cell B40
+    op: value
+    cells:
+      - report: apr
+        table: Q23c
+        cell: B40
+    format: count
+end_of_year:
+  - label: VHSP End-Year Report Type
+    order:
+      es: 1
+      hp: 1
+    header: true
+    level: 1
+  - label: "Q6a: Personally Identifiable Information"
+    order:
+      es: 2
+      hp: 2
+      rrh: 1
+    header: true
+    level: 1
+  - label: Name Total
+    order:
+      es: 3
+      hp: 3
+      rrh: 2
+    source: APR Table Q6a - Cell E2
+    op: value
+    cells:
+      - report: apr
+        table: Q6a
+        cell: E2
+    format: count
+  - label: Name Error Rate
+    order:
+      es: 4
+      hp: 4
+      rrh: 3
+    source: APR Table Q6a - Cell F2
+    op: value
+    cells:
+      - report: apr
+        table: Q6a
+        cell: F2
+    format: percent
+  - label: SSN Total
+    order:
+      es: 5
+      hp: 5
+      rrh: 4
+    source: APR Table Q6a - Cell E3
+    op: value
+    cells:
+      - report: apr
+        table: Q6a
+        cell: E3
+    format: count
+  - label: SSN Error Rate
+    order:
+      es: 6
+      hp: 6
+      rrh: 5
+    source: APR Table Q6a - Cell F3
+    op: value
+    cells:
+      - report: apr
+        table: Q6a
+        cell: F3
+    format: percent
+  - label: DOB Total
+    order:
+      es: 7
+      hp: 7
+      rrh: 6
+    source: APR Table Q6a - Cell E4
+    op: value
+    cells:
+      - report: apr
+        table: Q6a
+        cell: E4
+    format: count
+  - label: DOB Error Rate
+    order:
+      es: 8
+      hp: 8
+      rrh: 7
+    source: APR Table Q6a - Cell F4
+    op: value
+    cells:
+      - report: apr
+        table: Q6a
+        cell: F4
+    format: percent
+  - label: Race/Ethnicity Total
+    order:
+      es: 9
+      hp: 9
+      rrh: 8
+    source: APR Table Q6a - Cell E5
+    op: value
+    cells:
+      - report: apr
+        table: Q6a
+        cell: E5
+    format: count
+  - label: Race/Ethnicity Error Rate
+    order:
+      es: 10
+      hp: 10
+      rrh: 9
+    source: APR Table Q6a - Cell F5
+    op: value
+    cells:
+      - report: apr
+        table: Q6a
+        cell: F5
+    format: percent
+  - label: "Q6b: Universal Data Elements Counts"
+    order:
+      es: 11
+      hp: 11
+      rrh: 10
+    header: true
+    level: 1
+  - label: Veteran Status Total
+    order:
+      es: 12
+      hp: 12
+      rrh: 11
+    source: APR Table Q6b - Cell E2
+    op: value
+    cells:
+      - report: apr
+        table: Q6b
+        cell: E2
+    format: count
+  - label: Veteran Status Error Rate
+    order:
+      es: 13
+      hp: 13
+      rrh: 12
+    source: APR Table Q6b - Cell F2
+    op: value
+    cells:
+      - report: apr
+        table: Q6b
+        cell: F2
+    format: percent
+  - label: Project Start Date Total
+    order:
+      es: 14
+      hp: 14
+      rrh: 13
+    source: APR Table Q6b - Cell E3
+    op: value
+    cells:
+      - report: apr
+        table: Q6b
+        cell: E3
+    format: count
+  - label: Project Start Date Error Rate
+    order:
+      es: 15
+      hp: 15
+      rrh: 14
+    source: APR Table Q6b - Cell F3
+    op: value
+    cells:
+      - report: apr
+        table: Q6b
+        cell: F3
+    format: percent
+  - label: Relationship w/ HOH Total
+    order:
+      es: 16
+      hp: 16
+      rrh: 15
+    source: APR Table Q6b - Cell E4
+    op: value
+    cells:
+      - report: apr
+        table: Q6b
+        cell: E4
+    format: count
+  - label: Relationship w/ HOH Error Rate
+    order:
+      es: 17
+      hp: 17
+      rrh: 16
+    source: APR Table Q6b - Cell F4
+    op: value
+    cells:
+      - report: apr
+        table: Q6b
+        cell: F4
+    format: percent
+  - label: Enrollment CoC Total
+    order:
+      es: 18
+      hp: 18
+      rrh: 17
+    source: APR Table Q6b - Cell E5
+    op: value
+    cells:
+      - report: apr
+        table: Q6b
+        cell: E5
+    format: count
+  - label: Enrollment CoC Error Rate
+    order:
+      es: 19
+      hp: 19
+      rrh: 18
+    source: APR Table Q6b - Cell F5
+    op: value
+    cells:
+      - report: apr
+        table: Q6b
+        cell: F5
+    format: percent
+  - label: Disabling Condition Total
+    order:
+      es: 20
+      hp: 20
+      rrh: 19
+    source: APR Table Q6b - Cell E6
+    op: value
+    cells:
+      - report: apr
+        table: Q6b
+        cell: E6
+    format: count
+  - label: Disabling Condition Error Rate
+    order:
+      es: 21
+      hp: 21
+      rrh: 20
+    source: APR Table Q6b - Cell F6
+    op: value
+    cells:
+      - report: apr
+        table: Q6b
+        cell: F6
+    format: percent
+  - label: "Q6c: Income and Housing Data Quality"
+    order:
+      es: 22
+      hp: 22
+      rrh: 21
+    header: true
+    level: 1
+  - label: Destination Total
+    order:
+      es: 23
+      hp: 23
+      rrh: 22
+    source: APR Table Q6c - Cell E2
+    op: value
+    cells:
+      - report: apr
+        table: Q6c
+        cell: E2
+    format: count
+  - label: Destination Error Rate
+    order:
+      es: 24
+      hp: 24
+      rrh: 23
+    source: APR Table Q6c - Cell F2
+    op: value
+    cells:
+      - report: apr
+        table: Q6c
+        cell: F2
+    format: percent
+  - label: Income and Sources at Start Total
+    order:
+      es: 25
+      hp: 25
+      rrh: 24
+    source: APR Table Q6c - Cell E3
+    op: value
+    cells:
+      - report: apr
+        table: Q6c
+        cell: E3
+    format: count
+  - label: Income and Sources at Start Error Rate
+    order:
+      es: 26
+      hp: 26
+      rrh: 25
+    source: APR Table Q6c - Cell F3
+    op: value
+    cells:
+      - report: apr
+        table: Q6c
+        cell: F3
+    format: percent
+  - label: Income and Sources at Annual Assessment Total
+    order:
+      es: 27
+      hp: 27
+      rrh: 26
+    source: APR Table Q6c - Cell E4
+    op: value
+    cells:
+      - report: apr
+        table: Q6c
+        cell: E4
+    format: count
+  - label: Income and Sources at Annual Assessment Error Rate
+    order:
+      es: 28
+      hp: 28
+      rrh: 27
+    source: APR Table Q6c - Cell F4
+    op: value
+    cells:
+      - report: apr
+        table: Q6c
+        cell: F4
+    format: percent
+  - label: Income and Sources at Exit Total
+    order:
+      es: 29
+      hp: 29
+      rrh: 28
+    source: APR Table Q6c - Cell E5
+    op: value
+    cells:
+      - report: apr
+        table: Q6c
+        cell: E5
+    format: count
+  - label: Income and Sources at Exit Error Rate
+    order:
+      es: 30
+      hp: 30
+      rrh: 29
+    source: APR Table Q6c - Cell F5
+    op: value
+    cells:
+      - report: apr
+        table: Q6c
+        cell: F5
+    format: percent
+  - label: "Q7a: Number of Persons Served"
+    order:
+      es: 31
+      hp: 31
+      so: 4
+      rrh: 30
+    header: true
+    level: 1
+  - label: Persons Served - Adults
+    order:
+      es: 32
+      hp: 32
+      so: 5
+      rrh: 31
+    source: APR Table Q7a - Cell B2
+    op: value
+    cells:
+      - report: apr
+        table: Q7a
+        cell: B2
+    format: count
+  - label: Persons Served - Children
+    order:
+      es: 33
+      hp: 33
+      so: 6
+      rrh: 32
+    source: APR Table Q7a - Cell B3
+    op: value
+    cells:
+      - report: apr
+        table: Q7a
+        cell: B3
+    format: count
+  - label: Persons Served - Client Doesn't Know/Prefers Not to Answer
+    order:
+      es: 34
+      hp: 34
+      so: 7
+      rrh: 33
+    source: APR Table Q7a - Cell B4
+    op: value
+    cells:
+      - report: apr
+        table: Q7a
+        cell: B4
+    format: count
+  - label: Persons Served - Data Not Collected
+    order:
+      es: 35
+      hp: 35
+      so: 8
+      rrh: 34
+    source: APR Table Q7a - Cell B5
+    op: value
+    cells:
+      - report: apr
+        table: Q7a
+        cell: B5
+    format: count
+  - label: Persons Served - Total
+    order:
+      es: 36
+      hp: 36
+      so: 9
+      rrh: 35
+    source: APR Table Q7a - Cell B6
+    op: value
+    cells:
+      - report: apr
+        table: Q7a
+        cell: B6
+    format: count
+  - label: Total Persons Served Who Moved Into Housing
+    order:
+      es: 37
+      hp: 37
+      rrh: 36
+    source: APR Table Q7a - Cell B7
+    op: value
+    cells:
+      - report: apr
+        table: Q7a
+        cell: B7
+    format: count
+  - label: "Q8a: Number of Households Served"
+    order:
+      es: 38
+      hp: 38
+      rrh: 37
+    header: true
+    level: 1
+  - label: Total Households
+    order:
+      es: 39
+      hp: 39
+      rrh: 38
+    source: APR Table Q8a - Cell B2
+    op: value
+    cells:
+      - report: apr
+        table: Q8a
+        cell: B2
+    format: count
+  - label: "Q11: Age"
+    order:
+      es: 40
+      hp: 40
+      so: 15
+      rrh: 40
+    header: true
+    level: 1
+  - label: "Age: Under 5"
+    order:
+      es: 41
+      hp: 41
+      so: 16
+      rrh: 41
+    source: APR Table Q11 - Cell B2
+    op: value
+    cells:
+      - report: apr
+        table: Q11
+        cell: B2
+    format: count
+  - label: "Age: 5-12"
+    order:
+      es: 42
+      hp: 42
+      so: 17
+      rrh: 42
+    source: APR Table Q11 - Cell B3
+    op: value
+    cells:
+      - report: apr
+        table: Q11
+        cell: B3
+    format: count
+  - label: "Age: 13-17"
+    order:
+      es: 43
+      hp: 43
+      so: 18
+      rrh: 43
+    source: APR Table Q11 - Cell B4
+    op: value
+    cells:
+      - report: apr
+        table: Q11
+        cell: B4
+    format: count
+  - label: "Age: 18-24"
+    order:
+      es: 44
+      hp: 44
+      so: 19
+      rrh: 44
+    source: APR Table Q11 - Cell B5
+    op: value
+    cells:
+      - report: apr
+        table: Q11
+        cell: B5
+    format: count
+  - label: "Age: 25-34"
+    order:
+      es: 45
+      hp: 45
+      so: 20
+      rrh: 45
+    source: APR Table Q11 - Cell B6
+    op: value
+    cells:
+      - report: apr
+        table: Q11
+        cell: B6
+    format: count
+  - label: "Age: 35-44"
+    order:
+      es: 46
+      hp: 46
+      so: 21
+      rrh: 46
+    source: APR Table Q11 - Cell B7
+    op: value
+    cells:
+      - report: apr
+        table: Q11
+        cell: B7
+    format: count
+  - label: "Age: 45-54"
+    order:
+      es: 47
+      hp: 47
+      so: 22
+      rrh: 47
+    source: APR Table Q11 - Cell B8
+    op: value
+    cells:
+      - report: apr
+        table: Q11
+        cell: B8
+    format: count
+  - label: "Age: 55-64"
+    order:
+      es: 48
+      hp: 48
+      so: 23
+      rrh: 48
+    source: APR Table Q11 - Cell B9
+    op: value
+    cells:
+      - report: apr
+        table: Q11
+        cell: B9
+    format: count
+  - label: "Age: 65+"
+    order:
+      es: 49
+      hp: 49
+      so: 24
+      rrh: 49
+    source: APR Table Q11 - Cell B10
+    op: value
+    cells:
+      - report: apr
+        table: Q11
+        cell: B10
+    format: count
+  - label: "Age: Client Doesn't Know/Prefers Not to Answer"
+    order:
+      es: 50
+      hp: 50
+      so: 25
+      rrh: 50
+    source: APR Table Q11 - Cell B11
+    op: value
+    cells:
+      - report: apr
+        table: Q11
+        cell: B11
+    format: count
+  - label: "Age: Data Not Collected"
+    order:
+      es: 51
+      hp: 51
+      so: 26
+      rrh: 51
+    source: APR Table Q11 - Cell B12
+    op: value
+    cells:
+      - report: apr
+        table: Q11
+        cell: B12
+    format: count
+  - label: "Age: Total"
+    order:
+      es: 52
+      hp: 52
+      so: 27
+      rrh: 52
+    source: SUM of APR Table Q11 - Cell B2 to APR Table Q11 - Cell B12
+    op: sum_range
+    cells:
+      - report: apr
+        table: Q11
+        cell: B2
+      - report: apr
+        table: Q11
+        cell: B12
+    format: count
+  - label: "Q12: Race & Ethnicity"
+    order:
+      es: 53
+      hp: 53
+      so: 28
+      rrh: 53
+    header: true
+    level: 1
+  - label: American Indian, Alaska Native, or Indigenous
+    order:
+      es: 54
+      hp: 54
+      so: 29
+      rrh: 54
+    source: APR Table Q12 - Cell B2
+    op: value
+    cells:
+      - report: apr
+        table: Q12
+        cell: B2
+    format: count
+  - label: Asian or Asian American
+    order:
+      es: 55
+      hp: 55
+      so: 30
+      rrh: 55
+    source: APR Table Q12 - Cell B3
+    op: value
+    cells:
+      - report: apr
+        table: Q12
+        cell: B3
+    format: count
+  - label: Black, African American, or African
+    order:
+      es: 56
+      hp: 56
+      so: 31
+      rrh: 56
+    source: APR Table Q12 - Cell B4
+    op: value
+    cells:
+      - report: apr
+        table: Q12
+        cell: B4
+    format: count
+  - label: Hispanic/Latina/e/o
+    order:
+      es: 57
+      hp: 57
+      so: 32
+      rrh: 57
+    source: APR Table Q12 - Cell B5
+    op: value
+    cells:
+      - report: apr
+        table: Q12
+        cell: B5
+    format: count
+  - label: Middle Eastern or North African
+    order:
+      es: 58
+      hp: 58
+      so: 33
+      rrh: 58
+    source: APR Table Q12 - Cell B6
+    op: value
+    cells:
+      - report: apr
+        table: Q12
+        cell: B6
+    format: count
+  - label: Native Hawaiian or Pacific Islander
+    order:
+      es: 59
+      hp: 59
+      so: 34
+      rrh: 59
+    source: APR Table Q12 - Cell B7
+    op: value
+    cells:
+      - report: apr
+        table: Q12
+        cell: B7
+    format: count
+  - label: White
+    order:
+      es: 60
+      hp: 60
+      so: 35
+      rrh: 60
+    source: APR Table Q12 - Cell B8
+    op: value
+    cells:
+      - report: apr
+        table: Q12
+        cell: B8
+    format: count
+  - label: Asian or Asian American AND American Indian, Alaska Native, or Indigenous
+    order:
+      es: 61
+      hp: 61
+      so: 36
+      rrh: 61
+    source: APR Table Q12 - Cell B9
+    op: value
+    cells:
+      - report: apr
+        table: Q12
+        cell: B9
+    format: count
+  - label: Black, African American, or African AND American Indian, Alaska Native, or Indigenous
+    order:
+      es: 62
+      hp: 62
+      so: 37
+      rrh: 62
+    source: APR Table Q12 - Cell B10
+    op: value
+    cells:
+      - report: apr
+        table: Q12
+        cell: B10
+    format: count
+  - label: Hispanic/Latina/e/o AND American Indian, Alaska Native, or Indigenous
+    order:
+      es: 63
+      hp: 63
+      so: 38
+      rrh: 63
+    source: APR Table Q12 - Cell B11
+    op: value
+    cells:
+      - report: apr
+        table: Q12
+        cell: B11
+    format: count
+  - label: Middle Eastern or North African AND American Indian, Alaska Native, or Indigenous
+    order:
+      es: 64
+      hp: 64
+      so: 39
+      rrh: 64
+    source: APR Table Q12 - Cell B12
+    op: value
+    cells:
+      - report: apr
+        table: Q12
+        cell: B12
+    format: count
+  - label: Native Hawaiian or Pacific Islander AND American Indian, Alaska Native, or Indigenous
+    order:
+      es: 65
+      hp: 65
+      so: 40
+      rrh: 65
+    source: APR Table Q12 - Cell B13
+    op: value
+    cells:
+      - report: apr
+        table: Q12
+        cell: B13
+    format: count
+  - label: White AND American Indian, Alaska Native, or Indigenous
+    order:
+      es: 66
+      hp: 66
+      so: 41
+      rrh: 66
+    source: APR Table Q12 - Cell B14
+    op: value
+    cells:
+      - report: apr
+        table: Q12
+        cell: B14
+    format: count
+  - label: Black, African American, or African AND Asian or Asian American
+    order:
+      es: 67
+      hp: 67
+      so: 42
+      rrh: 67
+    source: APR Table Q12 - Cell B15
+    op: value
+    cells:
+      - report: apr
+        table: Q12
+        cell: B15
+    format: count
+  - label: Hispanic/Latina/e/o AND Asian or Asian American
+    order:
+      es: 68
+      hp: 68
+      so: 43
+      rrh: 68
+    source: APR Table Q12 - Cell B16
+    op: value
+    cells:
+      - report: apr
+        table: Q12
+        cell: B16
+    format: count
+  - label: Middle Eastern or North African AND Asian or Asian American
+    order:
+      es: 69
+      hp: 69
+      so: 44
+      rrh: 69
+    source: APR Table Q12 - Cell B17
+    op: value
+    cells:
+      - report: apr
+        table: Q12
+        cell: B17
+    format: count
+  - label: Native Hawaiian or Pacific Islander AND Asian or Asian American
+    order:
+      es: 70
+      hp: 70
+      so: 45
+      rrh: 70
+    source: APR Table Q12 - Cell B18
+    op: value
+    cells:
+      - report: apr
+        table: Q12
+        cell: B18
+    format: count
+  - label: White AND Asian or Asian American
+    order:
+      es: 71
+      hp: 71
+      so: 46
+      rrh: 71
+    source: APR Table Q12 - Cell B19
+    op: value
+    cells:
+      - report: apr
+        table: Q12
+        cell: B19
+    format: count
+  - label: Hispanic/Latina/e/o AND Black, African American, or African
+    order:
+      es: 72
+      hp: 72
+      so: 47
+      rrh: 72
+    source: APR Table Q12 - Cell B20
+    op: value
+    cells:
+      - report: apr
+        table: Q12
+        cell: B20
+    format: count
+  - label: Middle Eastern or North African AND Black, African American, or African
+    order:
+      es: 73
+      hp: 73
+      so: 48
+      rrh: 73
+    source: APR Table Q12 - Cell B21
+    op: value
+    cells:
+      - report: apr
+        table: Q12
+        cell: B21
+    format: count
+  - label: Native Hawaiian or Pacific Islander AND Black, African American, or African
+    order:
+      es: 74
+      hp: 74
+      so: 49
+      rrh: 74
+    source: APR Table Q12 - Cell B22
+    op: value
+    cells:
+      - report: apr
+        table: Q12
+        cell: B22
+    format: count
+  - label: White AND Black, African American, or African
+    order:
+      es: 75
+      hp: 75
+      so: 50
+      rrh: 75
+    source: APR Table Q12 - Cell B23
+    op: value
+    cells:
+      - report: apr
+        table: Q12
+        cell: B23
+    format: count
+  - label: Middle Eastern or North African AND Hispanic/Latina/e/o
+    order:
+      es: 76
+      hp: 76
+      so: 51
+      rrh: 76
+    source: APR Table Q12 - Cell B24
+    op: value
+    cells:
+      - report: apr
+        table: Q12
+        cell: B24
+    format: count
+  - label: Native Hawaiian or Pacific Islander AND Hispanic/Latina/e/o
+    order:
+      es: 77
+      hp: 77
+      so: 52
+      rrh: 77
+    source: APR Table Q12 - Cell B25
+    op: value
+    cells:
+      - report: apr
+        table: Q12
+        cell: B25
+    format: count
+  - label: White AND Hispanic/Latina/e/o
+    order:
+      es: 78
+      hp: 78
+      so: 53
+      rrh: 78
+    source: APR Table Q12 - Cell B26
+    op: value
+    cells:
+      - report: apr
+        table: Q12
+        cell: B26
+    format: count
+  - label: Native Hawaiian or Pacific Islander AND Middle Eastern or North African
+    order:
+      es: 79
+      hp: 79
+      so: 54
+      rrh: 79
+    source: APR Table Q12 - Cell B27
+    op: value
+    cells:
+      - report: apr
+        table: Q12
+        cell: B27
+    format: count
+  - label: White AND Middle Eastern or North African
+    order:
+      es: 80
+      hp: 80
+      so: 55
+      rrh: 80
+    source: APR Table Q12 - Cell B28
+    op: value
+    cells:
+      - report: apr
+        table: Q12
+        cell: B28
+    format: count
+  - label: White AND Native Hawaiian or Pacific Islander
+    order:
+      es: 81
+      hp: 81
+      so: 56
+      rrh: 81
+    source: APR Table Q12 - Cell B29
+    op: value
+    cells:
+      - report: apr
+        table: Q12
+        cell: B29
+    format: count
+  - label: Multiracial – more than 2 races/ethnicity with one being Hispanic/Latina/e/o
+    order:
+      es: 82
+      hp: 82
+      so: 57
+      rrh: 82
+    source: APR Table Q12 - Cell B30
+    op: value
+    cells:
+      - report: apr
+        table: Q12
+        cell: B30
+    format: count
+  - label: Multiracial – more than 2 races where no option is Hispanic/Latina/e/o
+    order:
+      es: 83
+      hp: 83
+      so: 58
+      rrh: 83
+    source: APR Table Q12 - Cell B31
+    op: value
+    cells:
+      - report: apr
+        table: Q12
+        cell: B31
+    format: count
+  - label: Client Doesn’t Know/Prefers Not to Answer
+    order:
+      es: 84
+      hp: 84
+      so: 59
+      rrh: 84
+    source: APR Table Q12 - Cell B32
+    op: value
+    cells:
+      - report: apr
+        table: Q12
+        cell: B32
+    format: count
+  - label: Data Not Collected
+    order:
+      es: 85
+      hp: 85
+      so: 60
+      rrh: 85
+    source: APR Table Q12 - Cell B33
+    op: value
+    cells:
+      - report: apr
+        table: Q12
+        cell: B33
+    format: count
+  - label: Total
+    order:
+      es: 86
+      hp: 86
+      so: 61
+      rrh: 86
+    source: SUM of APR Table Q12 - Cell B2 to APR Table Q12 - Cell B33
+    op: sum_range
+    cells:
+      - report: apr
+        table: Q12
+        cell: B2
+      - report: apr
+        table: Q12
+        cell: B33
+    format: count
+  - label: "Q13a1: Physical and Mental Conditions (At Start)"
+    order:
+      es: 87
+      hp: 87
+      so: 62
+      rrh: 87
+    header: true
+    level: 1
+  - label: Q13a1 [Column C] - Adults without Children
+    order:
+      es: 88
+      hp: 88
+      so: 63
+      rrh: 88
+    header: true
+    level: 2
+  - label: Mental Health Disorder
+    order:
+      es: 89
+      hp: 89
+      so: 64
+      rrh: 89
+    source: APR Table Q13a1[C] - Cell C2
+    op: value
+    cells:
+      - report: apr
+        table: Q13a1
+        cell: C2
+    format: count
+  - label: Alcohol Use Disorder
+    order:
+      es: 90
+      hp: 90
+      so: 65
+      rrh: 90
+    source: APR Table Q13a1[C] - Cell C3
+    op: value
+    cells:
+      - report: apr
+        table: Q13a1
+        cell: C3
+    format: count
+  - label: Drug Use Disorder
+    order:
+      es: 91
+      hp: 91
+      so: 66
+      rrh: 91
+    source: APR Table Q13a1[C] - Cell C4
+    op: value
+    cells:
+      - report: apr
+        table: Q13a1
+        cell: C4
+    format: count
+  - label: Both Alcohol and Drug Use Disorders
+    order:
+      es: 92
+      hp: 92
+      so: 67
+      rrh: 92
+    source: APR Table Q13a1[C] - Cell C5
+    op: value
+    cells:
+      - report: apr
+        table: Q13a1
+        cell: C5
+    format: count
+  - label: Chronic Health Condition
+    order:
+      es: 93
+      hp: 93
+      so: 68
+      rrh: 93
+    source: APR Table Q13a1[C] - Cell C6
+    op: value
+    cells:
+      - report: apr
+        table: Q13a1
+        cell: C6
+    format: count
+  - label: HIV/AIDS
+    order:
+      es: 94
+      hp: 94
+      so: 69
+      rrh: 94
+    source: APR Table Q13a1[C] - Cell C7
+    op: value
+    cells:
+      - report: apr
+        table: Q13a1
+        cell: C7
+    format: count
+  - label: Developmental Disability
+    order:
+      es: 95
+      hp: 95
+      so: 70
+      rrh: 95
+    source: APR Table Q13a1[C] - Cell C8
+    op: value
+    cells:
+      - report: apr
+        table: Q13a1
+        cell: C8
+    format: count
+  - label: Physical Disability
+    order:
+      es: 96
+      hp: 96
+      so: 71
+      rrh: 96
+    source: APR Table Q13a1[C] - Cell C9
+    op: value
+    cells:
+      - report: apr
+        table: Q13a1
+        cell: C9
+    format: count
+  - label: Q13a1 [Column D] - Adults in HH with Children & Adults
+    order:
+      es: 97
+      hp: 97
+      so: 72
+      rrh: 97
+    header: true
+    level: 2
+  - label: Mental Health Disorder
+    order:
+      es: 98
+      hp: 98
+      so: 73
+      rrh: 98
+    source: APR Table Q13a1[D] - Cell D2
+    op: value
+    cells:
+      - report: apr
+        table: Q13a1
+        cell: D2
+    format: count
+  - label: Alcohol Use Disorder
+    order:
+      es: 99
+      hp: 99
+      so: 74
+      rrh: 99
+    source: APR Table Q13a1[D] - Cell D3
+    op: value
+    cells:
+      - report: apr
+        table: Q13a1
+        cell: D3
+    format: count
+  - label: Drug Use Disorder
+    order:
+      es: 100
+      hp: 100
+      so: 75
+      rrh: 100
+    source: APR Table Q13a1[D] - Cell D4
+    op: value
+    cells:
+      - report: apr
+        table: Q13a1
+        cell: D4
+    format: count
+  - label: Both Alcohol and Drug Use Disorders
+    order:
+      es: 101
+      hp: 101
+      so: 76
+      rrh: 101
+    source: APR Table Q13a1[D] - Cell D5
+    op: value
+    cells:
+      - report: apr
+        table: Q13a1
+        cell: D5
+    format: count
+  - label: Chronic Health Condition
+    order:
+      es: 102
+      hp: 102
+      so: 77
+      rrh: 102
+    source: APR Table Q13a1[D] - Cell D6
+    op: value
+    cells:
+      - report: apr
+        table: Q13a1
+        cell: D6
+    format: count
+  - label: HIV/AIDS
+    order:
+      es: 103
+      hp: 103
+      so: 78
+      rrh: 103
+    source: APR Table Q13a1[D] - Cell D7
+    op: value
+    cells:
+      - report: apr
+        table: Q13a1
+        cell: D7
+    format: count
+  - label: Developmental Disability
+    order:
+      es: 104
+      hp: 104
+      so: 79
+      rrh: 104
+    source: APR Table Q13a1[D] - Cell D8
+    op: value
+    cells:
+      - report: apr
+        table: Q13a1
+        cell: D8
+    format: count
+  - label: Physical Disability
+    order:
+      es: 105
+      hp: 105
+      so: 80
+      rrh: 105
+    source: APR Table Q13a1[D] - Cell D9
+    op: value
+    cells:
+      - report: apr
+        table: Q13a1
+        cell: D9
+    format: count
+  - label: Adults Totals
+    order:
+      es: 106
+      hp: 106
+      so: 81
+      rrh: 106
+    header: true
+    level: 2
+  - label: Total Persons - Mental Health Disorder
+    order:
+      es: 107
+      hp: 107
+      so: 82
+      rrh: 107
+    source: APR Table Q13a1[C] - Cell C2 + APR Table Q13a1[D] - Cell D2
+    op: sum
+    cells:
+      - report: apr
+        table: Q13a1
+        cell: C2
+      - report: apr
+        table: Q13a1
+        cell: D2
+    format: count
+  - label: Total Persons - Alcohol Use Disorder
+    order:
+      es: 108
+      hp: 108
+      so: 83
+      rrh: 108
+    source: APR Table Q13a1[C] - Cell C3 + APR Table Q13a1[D] - Cell D3
+    op: sum
+    cells:
+      - report: apr
+        table: Q13a1
+        cell: C3
+      - report: apr
+        table: Q13a1
+        cell: D3
+    format: count
+  - label: Total Persons - Drug Use Disorder
+    order:
+      es: 109
+      hp: 109
+      so: 84
+      rrh: 109
+    source: APR Table Q13a1[C] - Cell C4 + APR Table Q13a1[D] - Cell D4
+    op: sum
+    cells:
+      - report: apr
+        table: Q13a1
+        cell: C4
+      - report: apr
+        table: Q13a1
+        cell: D4
+    format: count
+  - label: Total Persons - Both Alcohol and Drug Use Disorders
+    order:
+      es: 110
+      hp: 110
+      so: 85
+      rrh: 110
+    source: APR Table Q13a1[C] - Cell C5 + APR Table Q13a1[D] - Cell D5
+    op: sum
+    cells:
+      - report: apr
+        table: Q13a1
+        cell: C5
+      - report: apr
+        table: Q13a1
+        cell: D5
+    format: count
+  - label: Total Persons - Chronic Health Condition
+    order:
+      es: 111
+      hp: 111
+      so: 86
+      rrh: 111
+    source: APR Table Q13a1[C] - Cell C6 + APR Table Q13a1[D] - Cell D6
+    op: sum
+    cells:
+      - report: apr
+        table: Q13a1
+        cell: C6
+      - report: apr
+        table: Q13a1
+        cell: D6
+    format: count
+  - label: Total Persons - HIV/AIDS
+    order:
+      es: 112
+      hp: 112
+      so: 87
+      rrh: 112
+    source: APR Table Q13a1[C] - Cell C7 + APR Table Q13a1[D] - Cell D7
+    op: sum
+    cells:
+      - report: apr
+        table: Q13a1
+        cell: C7
+      - report: apr
+        table: Q13a1
+        cell: D7
+    format: count
+  - label: Total Persons - Developmental Disability
+    order:
+      es: 113
+      hp: 113
+      so: 88
+      rrh: 113
+    source: APR Table Q13a1[C] - Cell C8 + APR Table Q13a1[D] - Cell D8
+    op: sum
+    cells:
+      - report: apr
+        table: Q13a1
+        cell: C8
+      - report: apr
+        table: Q13a1
+        cell: D8
+    format: count
+  - label: Total Persons - Physical Disability
+    order:
+      es: 114
+      hp: 114
+      so: 89
+      rrh: 114
+    source: APR Table Q13a1[C] - Cell C9 + APR Table Q13a1[D] - Cell D9
+    op: sum
+    cells:
+      - report: apr
+        table: Q13a1
+        cell: C9
+      - report: apr
+        table: Q13a1
+        cell: D9
+    format: count
+  - label: "Q14a: Domestic Violence History"
+    order:
+      es: 115
+      hp: 115
+      so: 90
+      rrh: 115
+    header: true
+    level: 1
+  - label: "Yes"
+    order:
+      es: 116
+      hp: 116
+      so: 91
+      rrh: 116
+    source: APR Table Q14a - Cell B2
+    op: value
+    cells:
+      - report: apr
+        table: Q14a
+        cell: B2
+    format: count
+  - label: "No"
+    order:
+      es: 117
+      hp: 117
+      so: 92
+      rrh: 117
+    source: APR Table Q14a - Cell B3
+    op: value
+    cells:
+      - report: apr
+        table: Q14a
+        cell: B3
+    format: count
+  - label: Client Doesn’t Know/Prefers Not to Answer
+    order:
+      es: 118
+      hp: 118
+      so: 93
+      rrh: 118
+    source: APR Table Q14a - Cell B4
+    op: value
+    cells:
+      - report: apr
+        table: Q14a
+        cell: B4
+    format: count
+  - label: Data Not Collected
+    order:
+      es: 119
+      hp: 119
+      so: 94
+      rrh: 119
+    source: APR Table Q14a - Cell B5
+    op: value
+    cells:
+      - report: apr
+        table: Q14a
+        cell: B5
+    format: count
+  - label: Total
+    order:
+      es: 120
+      hp: 120
+      so: 95
+      rrh: 120
+    source: APR Table Q14a - Cell B6
+    op: value
+    cells:
+      - report: apr
+        table: Q14a
+        cell: B6
+    format: count
+  - label: Number of Veterans
+    order:
+      es: 121
+      hp: 121
+      so: 96
+      rrh: 121
+    header: true
+    level: 1
+  - label: Chronically Homeless Veteran
+    order:
+      es: 122
+      hp: 122
+      so: 97
+      rrh: 122
+    source: APR Table Q25a - Cell B2
+    op: value
+    cells:
+      - report: apr
+        table: Q25a
+        cell: B2
+    format: count
+  - label: Non-Chronically Homeless Veteran
+    order:
+      es: 123
+      hp: 123
+      so: 98
+      rrh: 123
+    source: APR Table Q25a - Cell B3
+    op: value
+    cells:
+      - report: apr
+        table: Q25a
+        cell: B3
+    format: count
+  - label: Total Number of Veterans
+    order:
+      es: 124
+      hp: 124
+      so: 99
+      rrh: 124
+    source: APR Table Q25a - Cell B2 + APR Table Q25a - Cell B3
+    op: sum
+    cells:
+      - report: apr
+        table: Q25a
+        cell: B2
+      - report: apr
+        table: Q25a
+        cell: B3
+    format: count
+  - label: "Q26b: Number of Chronically Homeless Persons by Household"
+    order:
+      es: 125
+      hp: 125
+      so: 100
+      rrh: 125
+    header: true
+    level: 1
+  - label: Chronically Homeless without Children
+    order:
+      es: 126
+      hp: 126
+      so: 101
+      rrh: 126
+    source: APR Table Q26b - Cell C2
+    op: value
+    cells:
+      - report: apr
+        table: Q26b
+        cell: C2
+    format: count
+  - label: Chronically Homeless with Children
+    order:
+      es: 127
+      hp: 127
+      so: 102
+      rrh: 127
+    source: APR Table Q26b - Cell D2
+    op: value
+    cells:
+      - report: apr
+        table: Q26b
+        cell: D2
+    format: count
+  - label: Total Chronically Homeless Persons by Household
+    order:
+      es: 128
+      hp: 128
+      so: 103
+      rrh: 128
+    source: APR Table Q26b - Cell C2 + APR Table Q26b - Cell D2
+    op: sum
+    cells:
+      - report: apr
+        table: Q26b
+        cell: C2
+      - report: apr
+        table: Q26b
+        cell: D2
+    format: count
+  - label: "Q15: Prior Living Situation"
+    order:
+      es: 129
+      hp: 129
+      so: 104
+      rrh: 129
+    header: true
+    level: 1
+  - label: Homeless Situation Subtotal
+    order:
+      es: 130
+      hp: 130
+      so: 105
+      rrh: 130
+    source: APR Table Q15 - Cell B6
+    op: value
+    cells:
+      - report: apr
+        table: Q15
+        cell: B6
+    format: count
+  - label: Institutional Setting Subtotal
+    order:
+      es: 131
+      hp: 131
+      so: 106
+      rrh: 131
+    source: APR Table Q15 - Cell B14
+    op: value
+    cells:
+      - report: apr
+        table: Q15
+        cell: B14
+    format: count
+  - label: Temporary Situation Subtotal
+    order:
+      es: 132
+      hp: 132
+      so: 107
+      rrh: 132
+    source: APR Table Q15 - Cell B22
+    op: value
+    cells:
+      - report: apr
+        table: Q15
+        cell: B22
+    format: count
+  - label: Permanent Situation Subtotal
+    order:
+      es: 133
+      hp: 133
+      so: 108
+      rrh: 133
+    source: APR Table Q15 - Cell B28
+    op: value
+    cells:
+      - report: apr
+        table: Q15
+        cell: B28
+    format: count
+  - label: Client Doesn’t Know/Prefers Not to Answer
+    order:
+      es: 134
+      hp: 134
+      so: 109
+      rrh: 134
+    source: APR Table Q15 - Cell B29
+    op: value
+    cells:
+      - report: apr
+        table: Q15
+        cell: B29
+    format: count
+  - label: Data Not Collected
+    order:
+      es: 135
+      hp: 135
+      so: 110
+      rrh: 135
+    source: APR Table Q15 - Cell B30
+    op: value
+    cells:
+      - report: apr
+        table: Q15
+        cell: B30
+    format: count
+  - label: Living Situation Total
+    order:
+      es: 136
+      hp: 136
+      so: 111
+      rrh: 136
+    source: "APR Table Q15 - Cell B6 +
+
+      APR Table Q15 - Cell B14 +
+
+      APR Table Q15 - Cell B22 +
+
+      APR Table Q15 - Cell B28 +
+
+      APR Table Q15 - Cell B29 +
+
+      APR Table Q15 - Cell B30"
+    op: sum
+    cells:
+      - report: apr
+        table: Q15
+        cell: B6
+      - report: apr
+        table: Q15
+        cell: B14
+      - report: apr
+        table: Q15
+        cell: B22
+      - report: apr
+        table: Q15
+        cell: B28
+      - report: apr
+        table: Q15
+        cell: B29
+      - report: apr
+        table: Q15
+        cell: B30
+    format: count
+  - label: "Q21: Health Insurance (At Start)"
+    order:
+      es: 137
+      hp: 137
+      rrh: 137
+    header: true
+    level: 1
+  - label: MEDICAID
+    order:
+      es: 138
+      hp: 138
+      rrh: 138
+    source: APR Table Q21 - Cell B2
+    op: value
+    cells:
+      - report: apr
+        table: Q21
+        cell: B2
+    format: count
+  - label: MEDICARE
+    order:
+      es: 139
+      hp: 139
+      rrh: 139
+    source: APR Table Q21 - Cell B3
+    op: value
+    cells:
+      - report: apr
+        table: Q21
+        cell: B3
+    format: count
+  - label: State Children's Health Insurance Program
+    order:
+      es: 140
+      hp: 140
+      rrh: 140
+    source: APR Table Q21 - Cell B4
+    op: value
+    cells:
+      - report: apr
+        table: Q21
+        cell: B4
+    format: count
+  - label: Veteran’s Health Administration (VHA)
+    order:
+      es: 141
+      hp: 141
+      rrh: 141
+    source: APR Table Q21 - Cell B5
+    op: value
+    cells:
+      - report: apr
+        table: Q21
+        cell: B5
+    format: count
+  - label: Employer - Provided Health Insurances
+    order:
+      es: 142
+      hp: 142
+      rrh: 142
+    source: APR Table Q21 - Cell B6
+    op: value
+    cells:
+      - report: apr
+        table: Q21
+        cell: B6
+    format: count
+  - label: Health Insurance obtained through COBRA
+    order:
+      es: 143
+      hp: 143
+      rrh: 143
+    source: APR Table Q21 - Cell B7
+    op: value
+    cells:
+      - report: apr
+        table: Q21
+        cell: B7
+    format: count
+  - label: Private Pay Health Insurance
+    order:
+      es: 144
+      hp: 144
+      rrh: 144
+    source: APR Table Q21 - Cell B8
+    op: value
+    cells:
+      - report: apr
+        table: Q21
+        cell: B8
+    format: count
+  - label: State Health Insurance for Adults
+    order:
+      es: 145
+      hp: 145
+      rrh: 145
+    source: APR Table Q21 - Cell B9
+    op: value
+    cells:
+      - report: apr
+        table: Q21
+        cell: B9
+    format: count
+  - label: Indian Health Services Program
+    order:
+      es: 146
+      hp: 146
+      rrh: 146
+    source: APR Table Q21 - Cell B10
+    op: value
+    cells:
+      - report: apr
+        table: Q21
+        cell: B10
+    format: count
+  - label: Other
+    order:
+      es: 147
+      hp: 147
+      rrh: 147
+    source: APR Table Q21 - Cell B11
+    op: value
+    cells:
+      - report: apr
+        table: Q21
+        cell: B11
+    format: count
+  - label: No Health Insurance
+    order:
+      es: 148
+      hp: 148
+      rrh: 148
+    source: APR Table Q21 - Cell B12
+    op: value
+    cells:
+      - report: apr
+        table: Q21
+        cell: B12
+    format: count
+  - label: Client Doesn’t Know/Prefers Not to Answer
+    order:
+      es: 149
+      hp: 149
+      rrh: 149
+    source: APR Table Q21 - Cell B13
+    op: value
+    cells:
+      - report: apr
+        table: Q21
+        cell: B13
+    format: count
+  - label: Data Not Collected
+    order:
+      es: 150
+      hp: 150
+      rrh: 150
+    source: APR Table Q21 - Cell B14
+    op: value
+    cells:
+      - report: apr
+        table: Q21
+        cell: B14
+    format: count
+  - label: "Q22b: Average and Median Length of Participation in Days"
+    order:
+      es: 151
+      hp: 151
+      rrh: 151
+    header: true
+    level: 1
+  - label: Leavers Average Length
+    order:
+      es: 152
+      hp: 152
+      rrh: 152
+    source: APR Table Q22b - Cell B2
+    op: value
+    cells:
+      - report: apr
+        table: Q22b
+        cell: B2
+    format: decimal
+  - label: Stayers Average Length
+    order:
+      es: 153
+      hp: 153
+      rrh: 153
+    source: APR Table Q22b - Cell C2
+    op: value
+    cells:
+      - report: apr
+        table: Q22b
+        cell: C2
+    format: decimal
+  - label: Leavers Median Length
+    order:
+      es: 154
+      hp: 154
+      rrh: 154
+    source: APR Table Q22b - Cell B3
+    op: value
+    cells:
+      - report: apr
+        table: Q22b
+        cell: B3
+    format: decimal
+  - label: Stayers Median Length
+    order:
+      es: 155
+      hp: 155
+      rrh: 155
+    source: APR Table Q22b - Cell C3
+    op: value
+    cells:
+      - report: apr
+        table: Q22b
+        cell: C3
+    format: decimal
+  - label: "Q23c: Exit Destinations"
+    order:
+      es: 156
+      hp: 156
+      so: 112
+      rrh: 170
+    header: true
+    level: 1
+  - label: Homeless Situations
+    order:
+      es: 157
+      hp: 157
+      so: 113
+      rrh: 171
+    header: true
+    level: 2
+  - label: Place not meant for habitation (e.g., a vehicle, an abandoned building, bus/train/subway station/airport or anywhere outside)
+    order:
+      es: 158
+      hp: 158
+      so: 114
+      rrh: 172
+    source: APR Table Q23c - Cell B3
+    op: value
+    cells:
+      - report: apr
+        table: Q23c
+        cell: B3
+    format: count
+  - label: Emergency shelter, including hotel or motel paid for with emergency shelter voucher, Host Home shelter
+    order:
+      es: 159
+      hp: 159
+      so: 115
+      rrh: 173
+    source: APR Table Q23c - Cell B4
+    op: value
+    cells:
+      - report: apr
+        table: Q23c
+        cell: B4
+    format: count
+  - label: Safe Haven
+    order:
+      es: 160
+      hp: 160
+      so: 116
+      rrh: 174
+    source: APR Table Q23c - Cell B5
+    op: value
+    cells:
+      - report: apr
+        table: Q23c
+        cell: B5
+    format: count
+  - label: Homeless Destinations Subtotal
+    order:
+      es: 161
+      hp: 161
+      so: 117
+      rrh: 175
+    source: APR Table Q23c - Cell B6
+    op: value
+    cells:
+      - report: apr
+        table: Q23c
+        cell: B6
+    format: count
+  - label: Institutional Situations
+    order:
+      es: 162
+      hp: 162
+      so: 118
+      rrh: 176
+    header: true
+    level: 2
+  - label: Foster care home or foster care group home
+    order:
+      es: 163
+      hp: 163
+      so: 119
+      rrh: 177
+    source: APR Table Q23c - Cell B8
+    op: value
+    cells:
+      - report: apr
+        table: Q23c
+        cell: B8
+    format: count
+  - label: Hospital or other residential non-psychiatric medical facility
+    order:
+      es: 164
+      hp: 164
+      so: 120
+      rrh: 178
+    source: APR Table Q23c - Cell B9
+    op: value
+    cells:
+      - report: apr
+        table: Q23c
+        cell: B9
+    format: count
+  - label: Jail, prison or juvenile detention facility
+    order:
+      es: 165
+      hp: 165
+      so: 121
+      rrh: 179
+    source: APR Table Q23c - Cell B10
+    op: value
+    cells:
+      - report: apr
+        table: Q23c
+        cell: B10
+    format: count
+  - label: Long-term care facility or nursing home
+    order:
+      es: 166
+      hp: 166
+      so: 122
+      rrh: 180
+    source: APR Table Q23c - Cell B11
+    op: value
+    cells:
+      - report: apr
+        table: Q23c
+        cell: B11
+    format: count
+  - label: Psychiatric hospital or other psychiatric facility
+    order:
+      es: 167
+      hp: 167
+      so: 123
+      rrh: 181
+    source: APR Table Q23c - Cell B12
+    op: value
+    cells:
+      - report: apr
+        table: Q23c
+        cell: B12
+    format: count
+  - label: Substance abuse treatment facility or detox center
+    order:
+      es: 168
+      hp: 168
+      so: 124
+      rrh: 182
+    source: APR Table Q23c - Cell B13
+    op: value
+    cells:
+      - report: apr
+        table: Q23c
+        cell: B13
+    format: count
+  - label: Institutional Destinations Subtotal
+    order:
+      es: 169
+      hp: 169
+      so: 125
+      rrh: 183
+    source: APR Table Q23c - Cell B14
+    op: value
+    cells:
+      - report: apr
+        table: Q23c
+        cell: B14
+    format: count
+  - label: Temporary Situations
+    order:
+      es: 170
+      hp: 170
+      so: 126
+      rrh: 184
+    header: true
+    level: 2
+  - label: Transitional housing for homeless persons (including homeless youth)
+    order:
+      es: 171
+      hp: 171
+      so: 127
+      rrh: 185
+    source: APR Table Q23c - Cell B16
+    op: value
+    cells:
+      - report: apr
+        table: Q23c
+        cell: B16
+    format: count
+  - label: Residential project or halfway house with no homeless criteria
+    order:
+      es: 172
+      hp: 172
+      so: 128
+      rrh: 186
+    source: APR Table Q23c - Cell B17
+    op: value
+    cells:
+      - report: apr
+        table: Q23c
+        cell: B17
+    format: count
+  - label: Hotel or motel paid for without emergency shelter voucher
+    order:
+      es: 173
+      hp: 173
+      so: 129
+      rrh: 187
+    source: APR Table Q23c - Cell B18
+    op: value
+    cells:
+      - report: apr
+        table: Q23c
+        cell: B18
+    format: count
+  - label: Host Home (non-crisis)
+    order:
+      es: 174
+      hp: 174
+      so: 130
+      rrh: 188
+    source: APR Table Q23c - Cell B19
+    op: value
+    cells:
+      - report: apr
+        table: Q23c
+        cell: B19
+    format: count
+  - label: Staying or living with family, temporary tenure (e.g., room, apartment, or house)
+    order:
+      es: 175
+      hp: 175
+      so: 131
+      rrh: 189
+    source: APR Table Q23c - Cell B20
+    op: value
+    cells:
+      - report: apr
+        table: Q23c
+        cell: B20
+    format: count
+  - label: Staying or living with friends, temporary tenure (e.g., room, apartment, or house)
+    order:
+      es: 176
+      hp: 176
+      so: 132
+      rrh: 190
+    source: APR Table Q23c - Cell B21
+    op: value
+    cells:
+      - report: apr
+        table: Q23c
+        cell: B21
+    format: count
+  - label: Moved from one HOPWA funded project to HOPWA TH
+    order:
+      es: 177
+      hp: 177
+      so: 133
+      rrh: 191
+    source: APR Table Q23c - Cell B22
+    op: value
+    cells:
+      - report: apr
+        table: Q23c
+        cell: B22
+    format: count
+  - label: Temporary Destinations Subtotal
+    order:
+      es: 178
+      hp: 178
+      so: 134
+      rrh: 192
+    source: APR Table Q23c - Cell B23
+    op: value
+    cells:
+      - report: apr
+        table: Q23c
+        cell: B23
+    format: count
+  - label: Permanent Situations
+    order:
+      es: 179
+      hp: 179
+      so: 135
+      rrh: 193
+    header: true
+    level: 2
+  - label: Staying or living with family, permanent tenure
+    order:
+      es: 180
+      hp: 180
+      so: 136
+      rrh: 194
+    source: APR Table Q23c - Cell B25
+    op: value
+    cells:
+      - report: apr
+        table: Q23c
+        cell: B25
+    format: count
+  - label: Staying or living with friends, permanent tenure
+    order:
+      es: 181
+      hp: 181
+      so: 137
+      rrh: 195
+    source: APR Table Q23c - Cell B26
+    op: value
+    cells:
+      - report: apr
+        table: Q23c
+        cell: B26
+    format: count
+  - label: Moved from one HOPWA funded project to HOPWA PH
+    order:
+      es: 182
+      hp: 182
+      so: 138
+      rrh: 196
+    source: APR Table Q23c - Cell B27
+    op: value
+    cells:
+      - report: apr
+        table: Q23c
+        cell: B27
+    format: count
+  - label: Rental by client, no ongoing housing subsidy
+    order:
+      es: 183
+      hp: 183
+      so: 139
+      rrh: 197
+    source: APR Table Q23c - Cell B28
+    op: value
+    cells:
+      - report: apr
+        table: Q23c
+        cell: B28
+    format: count
+  - label: Rental by client, with ongoing housing subsidy
+    order:
+      es: 184
+      hp: 184
+      so: 140
+      rrh: 198
+    source: APR Table Q23c - Cell B29
+    op: value
+    cells:
+      - report: apr
+        table: Q23c
+        cell: B29
+    format: count
+  - label: Owned by client, with ongoing housing subsidy
+    order:
+      es: 185
+      hp: 185
+      so: 141
+      rrh: 199
+    source: APR Table Q23c - Cell B30
+    op: value
+    cells:
+      - report: apr
+        table: Q23c
+        cell: B30
+    format: count
+  - label: Owned by client, no ongoing housing subsidy
+    order:
+      es: 186
+      hp: 186
+      so: 142
+      rrh: 200
+    source: APR Table Q23c - Cell B31
+    op: value
+    cells:
+      - report: apr
+        table: Q23c
+        cell: B31
+    format: count
+  - label: Permanent Destinations Subtotal
+    order:
+      es: 187
+      hp: 187
+      so: 143
+      rrh: 201
+    source: APR Table Q23c - Cell B32
+    op: value
+    cells:
+      - report: apr
+        table: Q23c
+        cell: B32
+    format: count
+  - label: Other Situations
+    order:
+      es: 188
+      hp: 188
+      so: 144
+      rrh: 202
+    header: true
+    level: 2
+  - label: No Exit Interview completed
+    order:
+      es: 189
+      hp: 189
+      so: 145
+      rrh: 203
+    source: APR Table Q23c - Cell B34
+    op: value
+    cells:
+      - report: apr
+        table: Q23c
+        cell: B34
+    format: count
+  - label: Other
+    order:
+      es: 190
+      hp: 190
+      so: 146
+      rrh: 204
+    source: APR Table Q23c - Cell B35
+    op: value
+    cells:
+      - report: apr
+        table: Q23c
+        cell: B35
+    format: count
+  - label: Deceased
+    order:
+      es: 191
+      hp: 191
+      so: 147
+      rrh: 205
+    source: APR Table Q23c - Cell B36
+    op: value
+    cells:
+      - report: apr
+        table: Q23c
+        cell: B36
+    format: count
+  - label: Client Doesn’t Know/Prefers Not to Answer
+    order:
+      es: 192
+      hp: 192
+      so: 148
+      rrh: 206
+    source: APR Table Q23c - Cell B37
+    op: value
+    cells:
+      - report: apr
+        table: Q23c
+        cell: B37
+    format: count
+  - label: Data Not Collected
+    order:
+      es: 193
+      hp: 193
+      so: 149
+      rrh: 207
+    source: APR Table Q23c - Cell B38
+    op: value
+    cells:
+      - report: apr
+        table: Q23c
+        cell: B38
+    format: count
+  - label: Other Destinations Subtotal
+    order:
+      es: 194
+      hp: 194
+      so: 150
+      rrh: 208
+    source: APR Table Q23c - Cell B39
+    op: value
+    cells:
+      - report: apr
+        table: Q23c
+        cell: B39
+    format: count
+  - label: Total Exit Destinations
+    order:
+      es: 195
+      hp: 195
+      so: 151
+      rrh: 209
+    source: APR Table Q23c - Cell B40
+    op: value
+    cells:
+      - report: apr
+        table: Q23c
+        cell: B40
+    format: count
+  - label: Street Outreach and Emergency Shelter
+    order:
+      so: 1
+    header: true
+    level: 1
+  - label: Contact (Adults and Heads of Household in Street Outreach or PATH-funded SSO) All Records
+    order:
+      so: 2
+    source: APR Table Q6f- Cell B2
+    op: value
+    cells:
+      - report: apr
+        table: Q6f
+        cell: B2
+    format: count
+  - label: Contact (Adults and Heads of Household in Street Outreach or PATH-funded SSO) (Inactive)
+    order:
+      so: 3
+    source: APR Table Q6f- Cell C2
+    op: value
+    cells:
+      - report: apr
+        table: Q6f
+        cell: C2
+    format: count
+  - label: "Q9a: Number of Persons Engaged"
+    order:
+      so: 10
+    header: true
+    level: 1
+  - label: Total Persons Contacted
+    order:
+      so: 11
+    source: APR Table Q9a- Cell B6
+    op: value
+    cells:
+      - report: apr
+        table: Q9a
+        cell: B6
+    format: count
+  - label: "Q9b: Number of Persons Newly Engaged"
+    order:
+      so: 12
+    header: true
+    level: 1
+  - label: Rate of Engagement
+    order:
+      so: 13
+    source: APR Table Q9b- Cell B7
+    op: value
+    cells:
+      - report: apr
+        table: Q9b
+        cell: B7
+    format: percent
+  - label: Total Persons Engaged
+    order:
+      so: 14
+    source: APR Table Q9b - Cell B6
+    op: value
+    cells:
+      - report: apr
+        table: Q9b
+        cell: B6
+    format: count
+  - label: Total Households Served Who Moved Into Housing
+    order:
+      rrh: 39
+    source: APR Table Q8a - Cell B3
+    op: value
+    cells:
+      - report: apr
+        table: Q8a
+        cell: B3
+    format: count
+  - label: "Q22c: Length of Time (LoT) between Project Start Date and Housing Move-in Date"
+    order:
+      rrh: 156
+    header: true
+    level: 1
+  - label: 7 days or less
+    order:
+      rrh: 157
+    source: APR Table Q22c LoT - Cell B2
+    op: value
+    cells:
+      - report: apr
+        table: Q22c
+        cell: B2
+    format: count
+  - label: 8 to 14 days
+    order:
+      rrh: 158
+    source: APR Table Q22c LoT - Cell B3
+    op: value
+    cells:
+      - report: apr
+        table: Q22c
+        cell: B3
+    format: count
+  - label: 15 to 21 days
+    order:
+      rrh: 159
+    source: APR Table Q22c LoT - Cell B4
+    op: value
+    cells:
+      - report: apr
+        table: Q22c
+        cell: B4
+    format: count
+  - label: 22 to 30 days
+    order:
+      rrh: 160
+    source: APR Table Q22c LoT - Cell B5
+    op: value
+    cells:
+      - report: apr
+        table: Q22c
+        cell: B5
+    format: count
+  - label: 31 to 60 days
+    order:
+      rrh: 161
+    source: APR Table Q22c LoT - Cell B6
+    op: value
+    cells:
+      - report: apr
+        table: Q22c
+        cell: B6
+    format: count
+  - label: 61 to 90 days
+    order:
+      rrh: 162
+    source: APR Table Q22c LoT - Cell B7
+    op: value
+    cells:
+      - report: apr
+        table: Q22c
+        cell: B7
+    format: count
+  - label: 91 to 180 days
+    order:
+      rrh: 163
+    source: APR Table Q22c LoT - Cell B8
+    op: value
+    cells:
+      - report: apr
+        table: Q22c
+        cell: B8
+    format: count
+  - label: 181 to 365 days
+    order:
+      rrh: 164
+    source: APR Table Q22c LoT - Cell B9
+    op: value
+    cells:
+      - report: apr
+        table: Q22c
+        cell: B9
+    format: count
+  - label: 366 to 730 days (1-2 Yrs)
+    order:
+      rrh: 165
+    source: APR Table Q22c LoT - Cell B10
+    op: value
+    cells:
+      - report: apr
+        table: Q22c
+        cell: B10
+    format: count
+  - label: Total of Persons Moved into Housing
+    order:
+      rrh: 166
+    source: APR Table Q22c LoT - Cell B11
+    op: value
+    cells:
+      - report: apr
+        table: Q22c
+        cell: B11
+    format: count
+  - label: Average Length of Time to Housing
+    order:
+      rrh: 167
+    source: APR Table Q22c LoT - Cell B12
+    op: value
+    cells:
+      - report: apr
+        table: Q22c
+        cell: B12
+    format: decimal
+  - label: Persons Who Were Exited Without a Move-In
+    order:
+      rrh: 168
+    source: APR Table Q22c LoT - Cell B13
+    op: value
+    cells:
+      - report: apr
+        table: Q22c
+        cell: B13
+    format: count
+  - label: Total Persons
+    order:
+      rrh: 169
+    source: APR Table Q22c LoT - Cell B14
+    op: value
+    cells:
+      - report: apr
+        table: Q22c
+        cell: B14
+    format: count
+end_of_year_ce:
+  - label: "Q7a: Number of Persons Served"
+    order:
+      ce: 1
+    header: true
+    level: 1
+  - label: Persons Served - Adults
+    order:
+      ce: 2
+    source: CE APR Table Q7a - Cell B2
+    op: value
+    cells:
+      - report: ce_apr
+        table: Q7a
+        cell: B2
+    format: count
+  - label: Persons Served - Children
+    order:
+      ce: 3
+    source: CE APR Table Q7a - Cell B3
+    op: value
+    cells:
+      - report: ce_apr
+        table: Q7a
+        cell: B3
+    format: count
+  - label: Persons Served - Client Doesn't Know/Prefers Not to Answer
+    order:
+      ce: 4
+    source: CE APR Table Q7a - Cell B4
+    op: value
+    cells:
+      - report: ce_apr
+        table: Q7a
+        cell: B4
+    format: count
+  - label: Persons Served - Data Not Collected
+    order:
+      ce: 5
+    source: CE APR Table Q7a - Cell B5
+    op: value
+    cells:
+      - report: ce_apr
+        table: Q7a
+        cell: B5
+    format: count
+  - label: Persons Served - Total
+    order:
+      ce: 6
+    source: CE APR Table Q7a - Cell B6
+    op: value
+    cells:
+      - report: ce_apr
+        table: Q7a
+        cell: B6
+    format: count
+  - label: "Q8a: Number of Households Served"
+    order:
+      ce: 7
+    header: true
+    level: 1
+  - label: Total Households
+    order:
+      ce: 8
+    source: CE APR Table Q8a - Cell B2
+    op: value
+    cells:
+      - report: ce_apr
+        table: Q8a
+        cell: B2
+    format: count
+  - label: "Q10: Total Coordinated Activity During the Year"
+    order:
+      ce: 9
+    header: true
+    level: 1
+  - label: "Q10 - Column B: Total Occurrences"
+    order:
+      ce: 10
+    header: true
+    level: 2
+  - label: Crisis Needs Assessment
+    order:
+      ce: 11
+    source: CE APR Table Q10 - Cell B2
+    op: value
+    cells:
+      - report: ce_apr
+        table: Q10
+        cell: B2
+    format: count
+  - label: Housing Needs Assessment
+    order:
+      ce: 12
+    source: CE APR Table Q10 - Cell B3
+    op: value
+    cells:
+      - report: ce_apr
+        table: Q10
+        cell: B3
+    format: count
+  - label: Referral to Prevention Assistance project
+    order:
+      ce: 13
+    source: CE APR Table Q10 - Cell B4
+    op: value
+    cells:
+      - report: ce_apr
+        table: Q10
+        cell: B4
+    format: count
+  - label: Problem Solving/Diversion/Rapid Resolution intervention or service
+    order:
+      ce: 14
+    source: CE APR Table Q10 - Cell B5
+    op: value
+    cells:
+      - report: ce_apr
+        table: Q10
+        cell: B5
+    format: count
+  - label: Referral to scheduled Coordinated Entry Crisis Needs Assessment
+    order:
+      ce: 15
+    source: CE APR Table Q10 - Cell B6
+    op: value
+    cells:
+      - report: ce_apr
+        table: Q10
+        cell: B6
+    format: count
+  - label: Referral to scheduled Coordinated Entry Housing Needs Assessment
+    order:
+      ce: 16
+    source: CE APR Table Q10 - Cell B7
+    op: value
+    cells:
+      - report: ce_apr
+        table: Q10
+        cell: B7
+    format: count
+  - label: Referral to post-placement/follow-up case management
+    order:
+      ce: 17
+    source: CE APR Table Q10 - Cell B8
+    op: value
+    cells:
+      - report: ce_apr
+        table: Q10
+        cell: B8
+    format: count
+  - label: Referral to Street Outreach project or services
+    order:
+      ce: 18
+    source: CE APR Table Q10 - Cell B9
+    op: value
+    cells:
+      - report: ce_apr
+        table: Q10
+        cell: B9
+    format: count
+  - label: Referral to Housing Navigation project or services
+    order:
+      ce: 19
+    source: CE APR Table Q10 - Cell B10
+    op: value
+    cells:
+      - report: ce_apr
+        table: Q10
+        cell: B10
+    format: count
+  - label: Ineligible for continuum services
+    order:
+      ce: 20
+    source: CE APR Table Q10 - Cell B11
+    op: value
+    cells:
+      - report: ce_apr
+        table: Q10
+        cell: B11
+    format: count
+  - label: No availability in continuum services
+    order:
+      ce: 21
+    source: CE APR Table Q10 - Cell B12
+    op: value
+    cells:
+      - report: ce_apr
+        table: Q10
+        cell: B12
+    format: count
+  - label: Referral to Emergency Shelter bed opening
+    order:
+      ce: 22
+    source: CE APR Table Q10 - Cell B13
+    op: value
+    cells:
+      - report: ce_apr
+        table: Q10
+        cell: B13
+    format: count
+  - label: Referral to Transitional Housing bed/unit opening
+    order:
+      ce: 23
+    source: CE APR Table Q10 - Cell B14
+    op: value
+    cells:
+      - report: ce_apr
+        table: Q10
+        cell: B14
+    format: count
+  - label: Referral to Joint TH-RRH project/unit/resource opening
+    order:
+      ce: 24
+    source: CE APR Table Q10 - Cell B15
+    op: value
+    cells:
+      - report: ce_apr
+        table: Q10
+        cell: B15
+    format: count
+  - label: Referral to RRH project resource opening
+    order:
+      ce: 25
+    source: CE APR Table Q10 - Cell B16
+    op: value
+    cells:
+      - report: ce_apr
+        table: Q10
+        cell: B16
+    format: count
+  - label: Referral to PSH project resource opening
+    order:
+      ce: 26
+    source: CE APR Table Q10 - Cell B17
+    op: value
+    cells:
+      - report: ce_apr
+        table: Q10
+        cell: B17
+    format: count
+  - label: Referral to Other PH project/unit/resource opening
+    order:
+      ce: 27
+    source: CE APR Table Q10 - Cell B18
+    op: value
+    cells:
+      - report: ce_apr
+        table: Q10
+        cell: B18
+    format: count
+  - label: Referral to emergency assistance/flex fund/furniture assistance
+    order:
+      ce: 28
+    source: CE APR Table Q10 - Cell B19
+    op: value
+    cells:
+      - report: ce_apr
+        table: Q10
+        cell: B19
+    format: count
+  - label: Referral to Emergency Housing Voucher (EHV)
+    order:
+      ce: 29
+    source: CE APR Table Q10 - Cell B20
+    op: value
+    cells:
+      - report: ce_apr
+        table: Q10
+        cell: B20
+    format: count
+  - label: Referral to a Housing Stability Voucher
+    order:
+      ce: 30
+    source: CE APR Table Q10 - Cell B21
+    op: value
+    cells:
+      - report: ce_apr
+        table: Q10
+        cell: B21
+    format: count
+  - label: "Q10 - Column C: Successful Referrals"
+    order:
+      ce: 31
+    header: true
+    level: 2
+  - label: Referral to Emergency Shelter bed opening
+    order:
+      ce: 32
+    source: CE APR Table Q10 - Cell C13
+    op: value
+    cells:
+      - report: ce_apr
+        table: Q10
+        cell: C13
+    format: count
+  - label: Referral to Transitional Housing bed/unit opening
+    order:
+      ce: 33
+    source: CE APR Table Q10 - Cell C14
+    op: value
+    cells:
+      - report: ce_apr
+        table: Q10
+        cell: C14
+    format: count
+  - label: Referral to Joint TH-RRH project/unit/resource opening
+    order:
+      ce: 34
+    source: CE APR Table Q10 - Cell C15
+    op: value
+    cells:
+      - report: ce_apr
+        table: Q10
+        cell: C15
+    format: count
+  - label: Referral to RRH project resource opening
+    order:
+      ce: 35
+    source: CE APR Table Q10 - Cell C16
+    op: value
+    cells:
+      - report: ce_apr
+        table: Q10
+        cell: C16
+    format: count
+  - label: Referral to PSH project resource opening
+    order:
+      ce: 36
+    source: CE APR Table Q10 - Cell C17
+    op: value
+    cells:
+      - report: ce_apr
+        table: Q10
+        cell: C17
+    format: count
+  - label: Referral to Other PH project/unit/resource opening
+    order:
+      ce: 37
+    source: CE APR Table Q10 - Cell C18
+    op: value
+    cells:
+      - report: ce_apr
+        table: Q10
+        cell: C18
+    format: count
+  - label: Referral to Emergency Housing Voucher (EHV)
+    order:
+      ce: 38
+    source: CE APR Table Q10 - Cell C20
+    op: value
+    cells:
+      - report: ce_apr
+        table: Q10
+        cell: C20
+    format: count
+  - label: Referral to a Housing Stability Voucher
+    order:
+      ce: 39
+    source: CE APR Table Q10 - Cell C21
+    op: value
+    cells:
+      - report: ce_apr
+        table: Q10
+        cell: C21
+    format: count
+  - label: "Q10 - Column D: Unsuccessful Referral: Client Rejected"
+    order:
+      ce: 40
+    header: true
+    level: 2
+  - label: Referral to Emergency Shelter bed opening
+    order:
+      ce: 41
+    source: CE APR Table Q10 - Cell D13
+    op: value
+    cells:
+      - report: ce_apr
+        table: Q10
+        cell: D13
+    format: count
+  - label: Referral to Transitional Housing bed/unit opening
+    order:
+      ce: 42
+    source: CE APR Table Q10 - Cell D14
+    op: value
+    cells:
+      - report: ce_apr
+        table: Q10
+        cell: D14
+    format: count
+  - label: Referral to Joint TH-RRH project/unit/resource opening
+    order:
+      ce: 43
+    source: CE APR Table Q10 - Cell D15
+    op: value
+    cells:
+      - report: ce_apr
+        table: Q10
+        cell: D15
+    format: count
+  - label: Referral to RRH project resource opening
+    order:
+      ce: 44
+    source: CE APR Table Q10 - Cell D16
+    op: value
+    cells:
+      - report: ce_apr
+        table: Q10
+        cell: D16
+    format: count
+  - label: Referral to PSH project resource opening
+    order:
+      ce: 45
+    source: CE APR Table Q10 - Cell D17
+    op: value
+    cells:
+      - report: ce_apr
+        table: Q10
+        cell: D17
+    format: count
+  - label: Referral to Other PH project/unit/resource opening
+    order:
+      ce: 46
+    source: CE APR Table Q10 - Cell D18
+    op: value
+    cells:
+      - report: ce_apr
+        table: Q10
+        cell: D18
+    format: count
+  - label: Referral to Emergency Housing Voucher (EHV)
+    order:
+      ce: 47
+    source: CE APR Table Q10 - Cell D20
+    op: value
+    cells:
+      - report: ce_apr
+        table: Q10
+        cell: D20
+    format: count
+  - label: Referral to a Housing Stability Voucher
+    order:
+      ce: 48
+    source: CE APR Table Q10 - Cell D21
+    op: value
+    cells:
+      - report: ce_apr
+        table: Q10
+        cell: D21
+    format: count
+  - label: "Q10 - Column E: Unsuccessful Referral: Provider Rejected"
+    order:
+      ce: 49
+    header: true
+    level: 2
+  - label: Referral to Emergency Shelter bed opening
+    order:
+      ce: 50
+    source: CE APR Table Q10 - Cell E13
+    op: value
+    cells:
+      - report: ce_apr
+        table: Q10
+        cell: E13
+    format: count
+  - label: Referral to Transitional Housing bed/unit opening
+    order:
+      ce: 51
+    source: CE APR Table Q10 - Cell E14
+    op: value
+    cells:
+      - report: ce_apr
+        table: Q10
+        cell: E14
+    format: count
+  - label: Referral to Joint TH-RRH project/unit/resource opening
+    order:
+      ce: 52
+    source: CE APR Table Q10 - Cell E15
+    op: value
+    cells:
+      - report: ce_apr
+        table: Q10
+        cell: E15
+    format: count
+  - label: Referral to RRH project resource opening
+    order:
+      ce: 53
+    source: CE APR Table Q10 - Cell E16
+    op: value
+    cells:
+      - report: ce_apr
+        table: Q10
+        cell: E16
+    format: count
+  - label: Referral to PSH project resource opening
+    order:
+      ce: 54
+    source: CE APR Table Q10 - Cell E17
+    op: value
+    cells:
+      - report: ce_apr
+        table: Q10
+        cell: E17
+    format: count
+  - label: Referral to Other PH project/unit/resource opening
+    order:
+      ce: 55
+    source: CE APR Table Q10 - Cell E18
+    op: value
+    cells:
+      - report: ce_apr
+        table: Q10
+        cell: E18
+    format: count
+  - label: Referral to Emergency Housing Voucher (EHV)
+    order:
+      ce: 56
+    source: CE APR Table Q10 - Cell E20
+    op: value
+    cells:
+      - report: ce_apr
+        table: Q10
+        cell: E20
+    format: count
+  - label: Referral to a Housing Stability Voucher
+    order:
+      ce: 57
+    source: CE APR Table Q10 - Cell E21
+    op: value
+    cells:
+      - report: ce_apr
+        table: Q10
+        cell: E21
+    format: count
+  - label: "Q10 - Column F: Unsuccessful Referral: Re-housed in Safe Alternative"
+    order:
+      ce: 58
+    header: true
+    level: 2
+  - label: Problem Solving/Diversion/Rapid Resolution intervention or service
+    order:
+      ce: 59
+    source: CE APR Table Q10 - Cell F5
+    op: value
+    cells:
+      - report: ce_apr
+        table: Q10
+        cell: F5
+    format: count
+  - label: "Q10 - Column G: Unsuccessful Referral: Enrolled in Aftercare"
+    order:
+      ce: 60
+    header: true
+    level: 2
+  - label: Referral to post-placement/follow-up case management
+    order:
+      ce: 61
+    source: CE APR Table Q10 - Cell G8
+    op: value
+    cells:
+      - report: ce_apr
+        table: Q10
+        cell: G8
+    format: count

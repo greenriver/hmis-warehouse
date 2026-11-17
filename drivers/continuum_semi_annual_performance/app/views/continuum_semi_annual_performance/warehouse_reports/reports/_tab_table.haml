@@ -1,0 +1,25 @@
+- links = local_assigns.fetch(:links, false)
+.table-responsive
+  %table.table.table-sm
+    %tbody
+      - rows.each do |row|
+        - if row.header
+          - if row.level.to_i == 1
+            %tr.table-active
+              %th{ colspan: 2 }= row.label
+          - else
+            %tr
+              %th.pl-4.font-italic{ colspan: 2 }= row.label
+        - else
+          %tr
+            %td= row.label
+            %td.text-right
+              - parts = row.parts || []
+              - visible = links && parts.select { |part| drilldown_visible?(@report, part) }
+              - if visible.present? && parts.one?
+                = link_to row.display_value, drilldown_path(parts.first)
+              - else
+                = row.display_value
+                - if visible.present?
+                  - visible.each do |part|
+                    = link_to "#{part['table']}/#{part['cell']}", drilldown_path(part), class: 'ml-2 small'

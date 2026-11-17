@@ -1,0 +1,20 @@
+- content_for :title, @report.title
+
+= render '/warehouse_reports/breadcrumbs', tab: 'performance'
+%h1.mb-3= @report.title
+%p.mb-3= @report.description
+.mb-3
+  = @report.describe_filter_as_html
+- if @report.purged?
+  = render 'warehouse_reports/reload_archived_report', report: @report, reload_url: report_action_path(@report, :reload_from_csv)
+- else
+  = render 'continuum_semi_annual_performance/warehouse_reports/reports/approval'
+  = render 'continuum_semi_annual_performance/warehouse_reports/reports/downloads'
+  %ul.nav.nav-tabs.mb-3
+    - @report.tabs.each do |tab|
+      %li.nav-item
+        = link_to tab_title(tab), report_action_path(@report, :show, tab: tab), class: ['nav-link', ('active' if tab.to_s == @tab)]
+  - if @tab == 'summary'
+    = render 'continuum_semi_annual_performance/warehouse_reports/reports/summary_table', links: true
+  - else
+    = render 'continuum_semi_annual_performance/warehouse_reports/reports/tab_table', rows: @report.rows_for(@tab), links: true

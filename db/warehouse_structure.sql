@@ -27448,6 +27448,38 @@ ALTER SEQUENCE public.content_pages_id_seq OWNED BY public.content_pages.id;
 
 
 --
+-- Name: continuum_semi_annual_performance_approvals; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.continuum_semi_annual_performance_approvals (
+    id bigint NOT NULL,
+    report_instance_id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    approved boolean NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: continuum_semi_annual_performance_approvals_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.continuum_semi_annual_performance_approvals_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: continuum_semi_annual_performance_approvals_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.continuum_semi_annual_performance_approvals_id_seq OWNED BY public.continuum_semi_annual_performance_approvals.id;
+
+
+--
 -- Name: csg_engage_agencies; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -57527,6 +57559,13 @@ ALTER TABLE ONLY public.content_pages ALTER COLUMN id SET DEFAULT nextval('publi
 
 
 --
+-- Name: continuum_semi_annual_performance_approvals id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.continuum_semi_annual_performance_approvals ALTER COLUMN id SET DEFAULT nextval('public.continuum_semi_annual_performance_approvals_id_seq'::regclass);
+
+
+--
 -- Name: csg_engage_agencies id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -64253,6 +64292,14 @@ ALTER TABLE ONLY public.contacts
 
 ALTER TABLE ONLY public.content_pages
     ADD CONSTRAINT content_pages_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: continuum_semi_annual_performance_approvals continuum_semi_annual_performance_approvals_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.continuum_semi_annual_performance_approvals
+    ADD CONSTRAINT continuum_semi_annual_performance_approvals_pkey PRIMARY KEY (id);
 
 
 --
@@ -214362,6 +214409,13 @@ CREATE INDEX idx_on_pending_reentry_on_ae4c85c12b ON public.hmis_simulation_conc
 
 
 --
+-- Name: idx_on_report_instance_id_ea20642c22; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_on_report_instance_id_ea20642c22 ON public.continuum_semi_annual_performance_approvals USING btree (report_instance_id);
+
+
+--
 -- Name: idx_on_service_history_enrollment_id_1626906dfe; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -216620,6 +216674,13 @@ CREATE INDEX index_contacts_on_user_id ON public.contacts USING btree (user_id);
 --
 
 CREATE UNIQUE INDEX index_content_pages_on_slug ON public.content_pages USING btree (slug) WHERE (deleted_at IS NULL);
+
+
+--
+-- Name: index_continuum_semi_annual_performance_approvals_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_continuum_semi_annual_performance_approvals_on_user_id ON public.continuum_semi_annual_performance_approvals USING btree (user_id);
 
 
 --
@@ -360306,12 +360367,21 @@ ALTER TABLE ONLY public.import_logs
 
 
 --
+-- Name: continuum_semi_annual_performance_approvals fk_rails_fffda9299e; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.continuum_semi_annual_performance_approvals
+    ADD CONSTRAINT fk_rails_fffda9299e FOREIGN KEY (report_instance_id) REFERENCES public.simple_report_instances(id);
+
+
+--
 -- PostgreSQL database dump complete
 --
 
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261116150000'),
 ('20261104120200'),
 ('20261104120100'),
 ('20261104120000'),
