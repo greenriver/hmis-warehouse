@@ -41,6 +41,14 @@ class ModelForm
     end
   end
 
+  # ActiveModel freezes the attribute set, so unresolved lazy defaults are resolved first.
+  def freeze
+    self.class.model_form_defaults.each do |name, default|
+      apply_model_form_default(name, default) if default.lazy && !model_form_assigned?(name)
+    end
+    super
+  end
+
   # Reader output, keyed by symbol.
   def attributes
     self.class.attribute_names.to_h { |name| [name.to_sym, public_send(name)] }

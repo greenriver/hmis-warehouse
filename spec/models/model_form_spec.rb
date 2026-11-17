@@ -265,6 +265,34 @@ RSpec.describe ModelForm, type: :model do
     end
   end
 
+  describe 'sibling subclasses redeclaring an attribute' do
+    let(:parent) { form_class { attribute :scope, String, default: 'parent' } }
+    let(:first) { form_class(parent) { attribute :scope, String, default: 'first' } }
+    let(:second) { form_class(parent) { attribute :scope, String, default: 'second' } }
+
+    it 'keeps a separate default for each sibling and the parent' do
+      expect([first.new.scope, second.new.scope, parent.new.scope]).to eq(['first', 'second', 'parent'])
+    end
+  end
+
+  describe 'freezing' do
+    let(:klass) do
+      form_class do
+        attribute :base, String, default: 'b'
+        attribute :title, String, lazy: true, default: ->(r, _attr) { "#{r.base}!" }
+        attribute :note, String, lazy: true, default: 'n'
+      end
+    end
+
+    it 'returns lazy defaults from a frozen instance' do
+      form = klass.new(note: 'given').freeze
+
+      expect(form).to be_frozen
+      expect(form.title).to eq('b!')
+      expect(form.note).to eq('given')
+    end
+  end
+
   describe '#attributes' do
     let(:klass) do
       form_class do
