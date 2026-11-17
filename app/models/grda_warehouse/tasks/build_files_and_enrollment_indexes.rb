@@ -8,20 +8,22 @@
 
 module GrdaWarehouse
   module Tasks
-    # One-time rollout of two indexes to busy production warehouse databases, run by the
-    # :files_client_id_and_enrollment_household_id_indexes TaskQueue task.
+    # One-time rollout of indexes to busy production warehouse databases, run by the
+    # :files_client_id_and_enrollment_household_id_indexes and :service_history_enrollment_household_index
+    # TaskQueue tasks. Each run builds every missing index in INDEXES.
     #
-    # Built here rather than in a migration because both tables are large and busy: a concurrent
+    # Built here rather than in a migration because these tables are large and busy: a concurrent
     # build waits for every older snapshot in the database (long reports included), so it can't
     # finish under a deploy's lock_timeout. Outside a deploy it can wait as long as it needs, and
     # waiting doesn't block reads or writes.
     #
     # Development and test get the same indexes from the Rails.env.local?-guarded migrations
-    # 20261104120100_add_index_to_files_on_client_id and
-    # 20261104120200_add_lower_household_id_index_to_enrollment. Keep the definitions in sync.
+    # 20261104120100_add_index_to_files_on_client_id,
+    # 20261104120200_add_lower_household_id_index_to_enrollment and
+    # 20261117160000_add_data_source_household_index_to_service_history_enrollments. Keep the definitions in sync.
     #
-    # DISPOSABLE: once every staging and production database has completed the task, delete this
-    # class, its spec, and the TaskQueue entry.
+    # DISPOSABLE: once every staging and production database has completed both tasks, delete this
+    # class, its spec, and the TaskQueue entries.
     #
     # Usage: GrdaWarehouse::Tasks::BuildFilesAndEnrollmentIndexes.run!
     class BuildFilesAndEnrollmentIndexes
@@ -42,6 +44,14 @@ module GrdaWarehouse
           columns: 'lower("HouseholdID") text_pattern_ops',
           name: 'idx_enrollment_on_lower_household_id_pattern',
           where: '"DateDeleted" IS NULL',
+        },
+        # HUD report household lookups (HudApr::Generators::Shared::Fy2026::HouseholdHohEnrollments)
+        # join head of household entries to the report's households on these columns.
+        {
+          table: :service_history_enrollments,
+          columns: [:data_source_id, :household_id],
+          name: 'index_she_on_ds_household_id_entry',
+          where: "record_type = 'entry'",
         },
       ].freeze
 

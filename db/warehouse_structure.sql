@@ -221983,6 +221983,13 @@ CREATE INDEX index_she_on_computed_project_type ON public.service_history_enroll
 
 
 --
+-- Name: index_she_on_ds_household_id_entry; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_she_on_ds_household_id_entry ON public.service_history_enrollments USING btree (data_source_id, household_id) WHERE ((record_type)::text = 'entry'::text);
+
+
+--
 -- Name: index_she_on_first_date_in_program; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -360381,6 +360388,7 @@ ALTER TABLE ONLY public.continuum_semi_annual_performance_approvals
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261117160000'),
 ('20261116150000'),
 ('20261104120200'),
 ('20261104120100'),
