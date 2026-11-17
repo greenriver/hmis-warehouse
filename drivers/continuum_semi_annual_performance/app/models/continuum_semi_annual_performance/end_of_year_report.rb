@@ -20,7 +20,7 @@ module ContinuumSemiAnnualPerformance
     end
 
     def project_types
-      [:es, :hp, :so, :rrh, :ce]
+      [:es, :hp, :so, :rrh, :ce_tab]
     end
 
     def row_set

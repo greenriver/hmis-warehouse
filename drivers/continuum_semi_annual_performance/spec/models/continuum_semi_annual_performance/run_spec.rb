@@ -52,7 +52,7 @@ RSpec.describe ContinuumSemiAnnualPerformance::EndOfYearReport, type: :model, ex
   it 'runs one sub-report per project type that has projects in the CoC' do
     report = run
 
-    expect(report.tabs).to eq([:summary, :es, :rrh, :ce])
+    expect(report.tabs).to eq([:summary, :es, :rrh, :ce_tab])
     expect(hud_report(report, :es).project_ids).to contain_exactly(es_project.id)
     expect(hud_report(report, :es).user_id).to eq(user.id)
   end
@@ -71,7 +71,7 @@ RSpec.describe ContinuumSemiAnnualPerformance::EndOfYearReport, type: :model, ex
   it 'gives each sub-report the report dates' do
     report = run
 
-    [:es, :ce].each do |type|
+    [:es, :ce_tab].each do |type|
       expect(hud_report(report, type).start_date).to eq(Date.new(2026, 1, 1))
       expect(hud_report(report, type).end_date).to eq(Date.new(2026, 12, 31))
     end
@@ -96,14 +96,14 @@ RSpec.describe ContinuumSemiAnnualPerformance::EndOfYearReport, type: :model, ex
   end
 
   it 'runs the CE APR on every selected project in the CoC' do
-    expect(hud_report(run, :ce).project_ids).to contain_exactly(es_project.id, rrh_project.id)
+    expect(hud_report(run, :ce_tab).project_ids).to contain_exactly(es_project.id, rrh_project.id)
   end
 
   it 'limits the tabs and the CE APR to the project types the user kept' do
     report = run(project_type_codes: ['rrh'])
 
-    expect(report.tabs).to eq([:summary, :rrh, :ce])
-    expect(hud_report(report, :ce).project_ids).to contain_exactly(rrh_project.id)
+    expect(report.tabs).to eq([:summary, :rrh, :ce_tab])
+    expect(hud_report(report, :ce_tab).project_ids).to contain_exactly(rrh_project.id)
   end
 
   it 'keeps a picked project out of another project type\'s APR' do
@@ -117,8 +117,8 @@ RSpec.describe ContinuumSemiAnnualPerformance::EndOfYearReport, type: :model, ex
   it 'runs only the picked project when no project type is selected' do
     report = run(project_type_codes: [], project_ids: [rrh_project.id])
 
-    expect(report.tabs).to eq([:summary, :rrh, :ce])
-    expect(hud_report(report, :ce).project_ids).to contain_exactly(rrh_project.id)
+    expect(report.tabs).to eq([:summary, :rrh, :ce_tab])
+    expect(hud_report(report, :ce_tab).project_ids).to contain_exactly(rrh_project.id)
   end
 
   context 'when the user cannot see the RRH project' do
@@ -127,8 +127,8 @@ RSpec.describe ContinuumSemiAnnualPerformance::EndOfYearReport, type: :model, ex
     it 'leaves RRH out of the report and its sub-reports' do
       report = run
 
-      expect(report.tabs).to eq([:summary, :es, :ce])
-      expect(hud_report(report, :ce).project_ids).to contain_exactly(es_project.id)
+      expect(report.tabs).to eq([:summary, :es, :ce_tab])
+      expect(hud_report(report, :ce_tab).project_ids).to contain_exactly(es_project.id)
     end
   end
 

@@ -43,7 +43,7 @@ module ContinuumSemiAnnualPerformance
     end
 
     def run_sub_report(project_type, project_ids)
-      generator = project_type == :ce ? HudApr.current_generator(report: :ce_apr) : HudApr.current_generator(report: :apr)
+      generator = project_type == :ce_tab ? HudApr.current_generator(report: :ce_apr) : HudApr.current_generator(report: :apr)
       hud_report = HudReports::ReportInstance.from_filter(
         sub_report_filter(project_ids),
         generator.title,

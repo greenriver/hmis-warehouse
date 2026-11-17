@@ -23,6 +23,10 @@ module ContinuumSemiAnnualPerformance
       [:es, :hp, :so, :rrh]
     end
 
+    def default_project_type_codes
+      project_types.map { |project_type| PERFORMANCE_KEYS.fetch(project_type) }
+    end
+
     def row_set
       :mid_year
     end

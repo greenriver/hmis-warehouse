@@ -30,7 +30,8 @@ module ContinuumSemiAnnualPerformance
       tab = tab.to_sym
       return SUMMARY_TAB_TITLE if tab == :summary
 
-      HudHelper.util.project_type_group_titles.fetch(ContinuumSemiAnnualPerformance::Report::PERFORMANCE_KEYS.fetch(tab, tab))
+      title_key = tab == :ce_tab ? :ce : ContinuumSemiAnnualPerformance::Report::PERFORMANCE_KEYS.fetch(tab, tab)
+      HudHelper.util.project_type_group_titles.fetch(title_key)
     end
 
     def tab_title(tab)

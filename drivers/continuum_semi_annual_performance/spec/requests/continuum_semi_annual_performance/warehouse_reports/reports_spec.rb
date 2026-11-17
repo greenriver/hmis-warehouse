@@ -12,9 +12,9 @@ require 'support/shared_examples/report_visibility_examples'
 
 RSpec.describe 'CoC semi-annual performance reports', type: :request, exclude_fixpoints: true do
   [
-    [ContinuumSemiAnnualPerformance::MidYearReport, 'continuum_semi_annual_performance/warehouse_reports/mid_year_reports', :continuum_semi_annual_performance_warehouse_reports_mid_year_report_path],
-    [ContinuumSemiAnnualPerformance::EndOfYearReport, 'continuum_semi_annual_performance/warehouse_reports/end_of_year_reports', :continuum_semi_annual_performance_warehouse_reports_end_of_year_report_path],
-  ].each do |klass, url, path_helper|
+    [ContinuumSemiAnnualPerformance::MidYearReport, 'continuum_semi_annual_performance/warehouse_reports/mid_year_reports', :continuum_semi_annual_performance_warehouse_reports_mid_year_report_path, ['es', 'prevention', 'so', 'rrh']],
+    [ContinuumSemiAnnualPerformance::EndOfYearReport, 'continuum_semi_annual_performance/warehouse_reports/end_of_year_reports', :continuum_semi_annual_performance_warehouse_reports_end_of_year_report_path, HudHelper.util.performance_reporting.keys.map(&:to_s)],
+  ].each do |klass, url, path_helper, offered_project_types|
     describe klass.name do
       let(:report_class) { klass }
       let(:report_definition_url) { url }
@@ -318,18 +318,30 @@ RSpec.describe 'CoC semi-annual performance reports', type: :request, exclude_fi
           expect(response.body).not_to include(report_path.call(own_report))
         end
 
-        def selected_project_types
-          Nokogiri::HTML(response.body).css('select[name="filters[project_type_codes][]"] option[selected]').map { |o| o['value'] }
+        def project_type_options(selector = 'option')
+          Nokogiri::HTML(response.body).css("select[name=\"filters[project_type_codes][]\"] #{selector}").map { |o| o['value'] }.reject(&:blank?)
         end
 
-        it 'pre-selects every performance project type for a user with no previous report' do
+        def selected_project_types
+          project_type_options('option[selected]')
+        end
+
+        it 'offers only the project types the report uses' do
+          sign_in(own_reports_user)
+
+          get index_path
+
+          expect(project_type_options).to match_array(offered_project_types)
+        end
+
+        it 'pre-selects every offered project type for a user with no previous report' do
           fresh_user = user_with_role(can_view_assigned_reports: true)
           sign_in(fresh_user)
 
           get index_path
 
           expect(report_class.where(user_id: fresh_user.id)).not_to exist
-          expect(selected_project_types).to match_array(HudHelper.util.performance_reporting.keys.map(&:to_s))
+          expect(selected_project_types).to match_array(offered_project_types)
         end
 
         it 'pre-selects the project types of the previous report' do

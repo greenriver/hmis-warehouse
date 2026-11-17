@@ -3336,12 +3336,12 @@ end_of_year:
 end_of_year_ce:
   - label: "Q7a: Number of Persons Served"
     order:
-      ce: 1
+      ce_tab: 1
     header: true
     level: 1
   - label: Persons Served - Adults
     order:
-      ce: 2
+      ce_tab: 2
     source: CE APR Table Q7a - Cell B2
     op: value
     cells:
@@ -3351,7 +3351,7 @@ end_of_year_ce:
     format: count
   - label: Persons Served - Children
     order:
-      ce: 3
+      ce_tab: 3
     source: CE APR Table Q7a - Cell B3
     op: value
     cells:
@@ -3361,7 +3361,7 @@ end_of_year_ce:
     format: count
   - label: Persons Served - Client Doesn't Know/Prefers Not to Answer
     order:
-      ce: 4
+      ce_tab: 4
     source: CE APR Table Q7a - Cell B4
     op: value
     cells:
@@ -3371,7 +3371,7 @@ end_of_year_ce:
     format: count
   - label: Persons Served - Data Not Collected
     order:
-      ce: 5
+      ce_tab: 5
     source: CE APR Table Q7a - Cell B5
     op: value
     cells:
@@ -3381,7 +3381,7 @@ end_of_year_ce:
     format: count
   - label: Persons Served - Total
     order:
-      ce: 6
+      ce_tab: 6
     source: CE APR Table Q7a - Cell B6
     op: value
     cells:
@@ -3391,12 +3391,12 @@ end_of_year_ce:
     format: count
   - label: "Q8a: Number of Households Served"
     order:
-      ce: 7
+      ce_tab: 7
     header: true
     level: 1
   - label: Total Households
     order:
-      ce: 8
+      ce_tab: 8
     source: CE APR Table Q8a - Cell B2
     op: value
     cells:
@@ -3406,17 +3406,17 @@ end_of_year_ce:
     format: count
   - label: "Q10: Total Coordinated Activity During the Year"
     order:
-      ce: 9
+      ce_tab: 9
     header: true
     level: 1
   - label: "Q10 - Column B: Total Occurrences"
     order:
-      ce: 10
+      ce_tab: 10
     header: true
     level: 2
   - label: Crisis Needs Assessment
     order:
-      ce: 11
+      ce_tab: 11
     source: CE APR Table Q10 - Cell B2
     op: value
     cells:
@@ -3426,7 +3426,7 @@ end_of_year_ce:
     format: count
   - label: Housing Needs Assessment
     order:
-      ce: 12
+      ce_tab: 12
     source: CE APR Table Q10 - Cell B3
     op: value
     cells:
@@ -3436,7 +3436,7 @@ end_of_year_ce:
     format: count
   - label: Referral to Prevention Assistance project
     order:
-      ce: 13
+      ce_tab: 13
     source: CE APR Table Q10 - Cell B4
     op: value
     cells:
@@ -3446,7 +3446,7 @@ end_of_year_ce:
     format: count
   - label: Problem Solving/Diversion/Rapid Resolution intervention or service
     order:
-      ce: 14
+      ce_tab: 14
     source: CE APR Table Q10 - Cell B5
     op: value
     cells:
@@ -3456,7 +3456,7 @@ end_of_year_ce:
     format: count
   - label: Referral to scheduled Coordinated Entry Crisis Needs Assessment
     order:
-      ce: 15
+      ce_tab: 15
     source: CE APR Table Q10 - Cell B6
     op: value
     cells:
@@ -3466,7 +3466,7 @@ end_of_year_ce:
     format: count
   - label: Referral to scheduled Coordinated Entry Housing Needs Assessment
     order:
-      ce: 16
+      ce_tab: 16
     source: CE APR Table Q10 - Cell B7
     op: value
     cells:
@@ -3476,7 +3476,7 @@ end_of_year_ce:
     format: count
   - label: Referral to post-placement/follow-up case management
     order:
-      ce: 17
+      ce_tab: 17
     source: CE APR Table Q10 - Cell B8
     op: value
     cells:
@@ -3486,7 +3486,7 @@ end_of_year_ce:
     format: count
   - label: Referral to Street Outreach project or services
     order:
-      ce: 18
+      ce_tab: 18
     source: CE APR Table Q10 - Cell B9
     op: value
     cells:
@@ -3496,7 +3496,7 @@ end_of_year_ce:
     format: count
   - label: Referral to Housing Navigation project or services
     order:
-      ce: 19
+      ce_tab: 19
     source: CE APR Table Q10 - Cell B10
     op: value
     cells:
@@ -3506,7 +3506,7 @@ end_of_year_ce:
     format: count
   - label: Ineligible for continuum services
     order:
-      ce: 20
+      ce_tab: 20
     source: CE APR Table Q10 - Cell B11
     op: value
     cells:
@@ -3516,7 +3516,7 @@ end_of_year_ce:
     format: count
   - label: No availability in continuum services
     order:
-      ce: 21
+      ce_tab: 21
     source: CE APR Table Q10 - Cell B12
     op: value
     cells:
@@ -3526,7 +3526,7 @@ end_of_year_ce:
     format: count
   - label: Referral to Emergency Shelter bed opening
     order:
-      ce: 22
+      ce_tab: 22
     source: CE APR Table Q10 - Cell B13
     op: value
     cells:
@@ -3536,7 +3536,7 @@ end_of_year_ce:
     format: count
   - label: Referral to Transitional Housing bed/unit opening
     order:
-      ce: 23
+      ce_tab: 23
     source: CE APR Table Q10 - Cell B14
     op: value
     cells:
@@ -3546,7 +3546,7 @@ end_of_year_ce:
     format: count
   - label: Referral to Joint TH-RRH project/unit/resource opening
     order:
-      ce: 24
+      ce_tab: 24
     source: CE APR Table Q10 - Cell B15
     op: value
     cells:
@@ -3556,7 +3556,7 @@ end_of_year_ce:
     format: count
   - label: Referral to RRH project resource opening
     order:
-      ce: 25
+      ce_tab: 25
     source: CE APR Table Q10 - Cell B16
     op: value
     cells:
@@ -3566,7 +3566,7 @@ end_of_year_ce:
     format: count
   - label: Referral to PSH project resource opening
     order:
-      ce: 26
+      ce_tab: 26
     source: CE APR Table Q10 - Cell B17
     op: value
     cells:
@@ -3576,7 +3576,7 @@ end_of_year_ce:
     format: count
   - label: Referral to Other PH project/unit/resource opening
     order:
-      ce: 27
+      ce_tab: 27
     source: CE APR Table Q10 - Cell B18
     op: value
     cells:
@@ -3586,7 +3586,7 @@ end_of_year_ce:
     format: count
   - label: Referral to emergency assistance/flex fund/furniture assistance
     order:
-      ce: 28
+      ce_tab: 28
     source: CE APR Table Q10 - Cell B19
     op: value
     cells:
@@ -3596,7 +3596,7 @@ end_of_year_ce:
     format: count
   - label: Referral to Emergency Housing Voucher (EHV)
     order:
-      ce: 29
+      ce_tab: 29
     source: CE APR Table Q10 - Cell B20
     op: value
     cells:
@@ -3606,7 +3606,7 @@ end_of_year_ce:
     format: count
   - label: Referral to a Housing Stability Voucher
     order:
-      ce: 30
+      ce_tab: 30
     source: CE APR Table Q10 - Cell B21
     op: value
     cells:
@@ -3616,12 +3616,12 @@ end_of_year_ce:
     format: count
   - label: "Q10 - Column C: Successful Referrals"
     order:
-      ce: 31
+      ce_tab: 31
     header: true
     level: 2
   - label: Referral to Emergency Shelter bed opening
     order:
-      ce: 32
+      ce_tab: 32
     source: CE APR Table Q10 - Cell C13
     op: value
     cells:
@@ -3631,7 +3631,7 @@ end_of_year_ce:
     format: count
   - label: Referral to Transitional Housing bed/unit opening
     order:
-      ce: 33
+      ce_tab: 33
     source: CE APR Table Q10 - Cell C14
     op: value
     cells:
@@ -3641,7 +3641,7 @@ end_of_year_ce:
     format: count
   - label: Referral to Joint TH-RRH project/unit/resource opening
     order:
-      ce: 34
+      ce_tab: 34
     source: CE APR Table Q10 - Cell C15
     op: value
     cells:
@@ -3651,7 +3651,7 @@ end_of_year_ce:
     format: count
   - label: Referral to RRH project resource opening
     order:
-      ce: 35
+      ce_tab: 35
     source: CE APR Table Q10 - Cell C16
     op: value
     cells:
@@ -3661,7 +3661,7 @@ end_of_year_ce:
     format: count
   - label: Referral to PSH project resource opening
     order:
-      ce: 36
+      ce_tab: 36
     source: CE APR Table Q10 - Cell C17
     op: value
     cells:
@@ -3671,7 +3671,7 @@ end_of_year_ce:
     format: count
   - label: Referral to Other PH project/unit/resource opening
     order:
-      ce: 37
+      ce_tab: 37
     source: CE APR Table Q10 - Cell C18
     op: value
     cells:
@@ -3681,7 +3681,7 @@ end_of_year_ce:
     format: count
   - label: Referral to Emergency Housing Voucher (EHV)
     order:
-      ce: 38
+      ce_tab: 38
     source: CE APR Table Q10 - Cell C20
     op: value
     cells:
@@ -3691,7 +3691,7 @@ end_of_year_ce:
     format: count
   - label: Referral to a Housing Stability Voucher
     order:
-      ce: 39
+      ce_tab: 39
     source: CE APR Table Q10 - Cell C21
     op: value
     cells:
@@ -3701,12 +3701,12 @@ end_of_year_ce:
     format: count
   - label: "Q10 - Column D: Unsuccessful Referral: Client Rejected"
     order:
-      ce: 40
+      ce_tab: 40
     header: true
     level: 2
   - label: Referral to Emergency Shelter bed opening
     order:
-      ce: 41
+      ce_tab: 41
     source: CE APR Table Q10 - Cell D13
     op: value
     cells:
@@ -3716,7 +3716,7 @@ end_of_year_ce:
     format: count
   - label: Referral to Transitional Housing bed/unit opening
     order:
-      ce: 42
+      ce_tab: 42
     source: CE APR Table Q10 - Cell D14
     op: value
     cells:
@@ -3726,7 +3726,7 @@ end_of_year_ce:
     format: count
   - label: Referral to Joint TH-RRH project/unit/resource opening
     order:
-      ce: 43
+      ce_tab: 43
     source: CE APR Table Q10 - Cell D15
     op: value
     cells:
@@ -3736,7 +3736,7 @@ end_of_year_ce:
     format: count
   - label: Referral to RRH project resource opening
     order:
-      ce: 44
+      ce_tab: 44
     source: CE APR Table Q10 - Cell D16
     op: value
     cells:
@@ -3746,7 +3746,7 @@ end_of_year_ce:
     format: count
   - label: Referral to PSH project resource opening
     order:
-      ce: 45
+      ce_tab: 45
     source: CE APR Table Q10 - Cell D17
     op: value
     cells:
@@ -3756,7 +3756,7 @@ end_of_year_ce:
     format: count
   - label: Referral to Other PH project/unit/resource opening
     order:
-      ce: 46
+      ce_tab: 46
     source: CE APR Table Q10 - Cell D18
     op: value
     cells:
@@ -3766,7 +3766,7 @@ end_of_year_ce:
     format: count
   - label: Referral to Emergency Housing Voucher (EHV)
     order:
-      ce: 47
+      ce_tab: 47
     source: CE APR Table Q10 - Cell D20
     op: value
     cells:
@@ -3776,7 +3776,7 @@ end_of_year_ce:
     format: count
   - label: Referral to a Housing Stability Voucher
     order:
-      ce: 48
+      ce_tab: 48
     source: CE APR Table Q10 - Cell D21
     op: value
     cells:
@@ -3786,12 +3786,12 @@ end_of_year_ce:
     format: count
   - label: "Q10 - Column E: Unsuccessful Referral: Provider Rejected"
     order:
-      ce: 49
+      ce_tab: 49
     header: true
     level: 2
   - label: Referral to Emergency Shelter bed opening
     order:
-      ce: 50
+      ce_tab: 50
     source: CE APR Table Q10 - Cell E13
     op: value
     cells:
@@ -3801,7 +3801,7 @@ end_of_year_ce:
     format: count
   - label: Referral to Transitional Housing bed/unit opening
     order:
-      ce: 51
+      ce_tab: 51
     source: CE APR Table Q10 - Cell E14
     op: value
     cells:
@@ -3811,7 +3811,7 @@ end_of_year_ce:
     format: count
   - label: Referral to Joint TH-RRH project/unit/resource opening
     order:
-      ce: 52
+      ce_tab: 52
     source: CE APR Table Q10 - Cell E15
     op: value
     cells:
@@ -3821,7 +3821,7 @@ end_of_year_ce:
     format: count
   - label: Referral to RRH project resource opening
     order:
-      ce: 53
+      ce_tab: 53
     source: CE APR Table Q10 - Cell E16
     op: value
     cells:
@@ -3831,7 +3831,7 @@ end_of_year_ce:
     format: count
   - label: Referral to PSH project resource opening
     order:
-      ce: 54
+      ce_tab: 54
     source: CE APR Table Q10 - Cell E17
     op: value
     cells:
@@ -3841,7 +3841,7 @@ end_of_year_ce:
     format: count
   - label: Referral to Other PH project/unit/resource opening
     order:
-      ce: 55
+      ce_tab: 55
     source: CE APR Table Q10 - Cell E18
     op: value
     cells:
@@ -3851,7 +3851,7 @@ end_of_year_ce:
     format: count
   - label: Referral to Emergency Housing Voucher (EHV)
     order:
-      ce: 56
+      ce_tab: 56
     source: CE APR Table Q10 - Cell E20
     op: value
     cells:
@@ -3861,7 +3861,7 @@ end_of_year_ce:
     format: count
   - label: Referral to a Housing Stability Voucher
     order:
-      ce: 57
+      ce_tab: 57
     source: CE APR Table Q10 - Cell E21
     op: value
     cells:
@@ -3871,12 +3871,12 @@ end_of_year_ce:
     format: count
   - label: "Q10 - Column F: Unsuccessful Referral: Re-housed in Safe Alternative"
     order:
-      ce: 58
+      ce_tab: 58
     header: true
     level: 2
   - label: Problem Solving/Diversion/Rapid Resolution intervention or service
     order:
-      ce: 59
+      ce_tab: 59
     source: CE APR Table Q10 - Cell F5
     op: value
     cells:
@@ -3886,12 +3886,12 @@ end_of_year_ce:
     format: count
   - label: "Q10 - Column G: Unsuccessful Referral: Enrolled in Aftercare"
     order:
-      ce: 60
+      ce_tab: 60
     header: true
     level: 2
   - label: Referral to post-placement/follow-up case management
     order:
-      ce: 61
+      ce_tab: 61
     source: CE APR Table Q10 - Cell G8
     op: value
     cells:

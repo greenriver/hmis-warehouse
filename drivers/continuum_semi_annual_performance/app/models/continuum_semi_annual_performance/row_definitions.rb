@@ -44,7 +44,7 @@ module ContinuumSemiAnnualPerformance
     end
 
     def self.entries(row_set, project_type)
-      section = row_set.to_sym == :end_of_year && project_type == :ce ? :end_of_year_ce : row_set.to_sym
+      section = row_set.to_sym == :end_of_year && project_type == :ce_tab ? :end_of_year_ce : row_set.to_sym
       DATA.fetch(section)
     end
     private_class_method :entries

@@ -13,7 +13,7 @@ RSpec.describe 'continuum_semi_annual_performance config/rows.yml shape' do
   let(:data) { YAML.safe_load_file(path) }
   let(:allowed_keys) { ['label', 'order', 'header', 'level', 'source', 'op', 'cells', 'format'] }
   let(:section_types) do
-    { 'mid_year' => ['es', 'hp', 'so', 'rrh'], 'end_of_year' => ['es', 'hp', 'so', 'rrh'], 'end_of_year_ce' => ['ce'] }
+    { 'mid_year' => ['es', 'hp', 'so', 'rrh'], 'end_of_year' => ['es', 'hp', 'so', 'rrh'], 'end_of_year_ce' => ['ce_tab'] }
   end
 
   def violations_for(section, entry, positions)

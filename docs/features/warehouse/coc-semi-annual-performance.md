@@ -27,12 +27,12 @@ Code, paths, routes and tables say `continuum_semi_annual_performance`. Titles, 
 
 ## What a run does
 
-A user picks one CoC (exactly one is required), a date range, and optionally narrows projects. The pickers (projects, organizations, data sources, project groups, project types) add together and apply only inside that CoC, as `HudFilterBase#effective_project_ids` does for HUD reports. The form pre-selects every project type, so an untouched form covers the whole CoC. The form lists the included projects and disables "Queue Report" when there are none; `create` enforces the same rule.
+A user picks one CoC (exactly one is required), a date range, and optionally narrows projects. The pickers (projects, organizations, data sources, project groups, project types) add together and apply only inside that CoC, as `HudFilterBase#effective_project_ids` does for HUD reports. The project type picker offers only the types the report uses (Mid-Year: ES, Homelessness Prevention, SO, RRH; End of Year: every performance reporting type, since any selected project feeds the CE APR) and pre-selects all of them, so an untouched form covers the whole CoC. The form lists the included projects and disables "Queue Report" when there are none; `create` enforces the same rule.
 
 `ContinuumSemiAnnualPerformance::Report#run_and_save!` runs from `WarehouseReports::GenericReportJob`:
 
 1. `SubReportRunner` resolves the selection to project ids once.
-2. For each project type the report has (Mid-Year: ES, HP, SO, RRH; End of Year adds CE) with at least one project, it builds a `HudReports::ReportInstance` and runs the APR (or the CE APR for CE). A type with no projects gets no sub-report, no tab and no summary row.
+2. For each project type the report has (Mid-Year: ES, HP, SO, RRH; End of Year adds the CE tab, keyed `ce_tab` because it is not limited to project type 14) with at least one project, it builds a `HudReports::ReportInstance` and runs the APR (or the CE APR for the CE tab). A type with no projects gets no sub-report, no tab and no summary row.
 3. Each APR receives only the selected projects of its type. The CE APR receives every selected project, whatever its type, so narrowing the selection narrows CE too.
 4. `CellSnapshot` copies the cells the row definitions name into `simple_report_cells`. A re-run deletes the report's previous cells first.
 

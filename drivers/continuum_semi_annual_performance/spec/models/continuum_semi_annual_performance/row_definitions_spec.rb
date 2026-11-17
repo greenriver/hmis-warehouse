@@ -49,7 +49,7 @@ RSpec.describe ContinuumSemiAnnualPerformance::RowDefinitions do
 
     expect(by_label.call(:end_of_year, :es, 'Income and Sources at Annual Assessment Total')).to eq([{ report: 'apr', table: 'Q6c', cell: 'E4' }])
     expect(by_label.call(:end_of_year, :es, 'White AND Black, African American, or African')).to eq([{ report: 'apr', table: 'Q12', cell: 'B23' }])
-    ehv = described_class.rows(:end_of_year, :ce).select { |r| r[:label] == 'Referral to Emergency Housing Voucher (EHV)' }.map { |r| r[:cells].first[:cell] }
+    ehv = described_class.rows(:end_of_year, :ce_tab).select { |r| r[:label] == 'Referral to Emergency Housing Voucher (EHV)' }.map { |r| r[:cells].first[:cell] }
     expect(ehv).to eq(['B20', 'C20', 'D20', 'E20'])
   end
 
@@ -62,6 +62,6 @@ RSpec.describe ContinuumSemiAnnualPerformance::RowDefinitions do
 
   it 'lists the generator questions each sub-report must build' do
     expect(described_class.questions(:mid_year, :es)).to eq(['Question 7', 'Question 8', 'Question 11', 'Question 23'])
-    expect(described_class.questions(:end_of_year, :ce)).to eq(['Question 7', 'Question 8', 'Question 10'])
+    expect(described_class.questions(:end_of_year, :ce_tab)).to eq(['Question 7', 'Question 8', 'Question 10'])
   end
 end

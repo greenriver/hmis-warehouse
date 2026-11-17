@@ -120,7 +120,7 @@ module ContinuumSemiAnnualPerformance::WarehouseReports
       if previous_report
         @filter.update(previous_report.options)
       else
-        @filter.project_type_codes = HudHelper.util.performance_reporting.keys
+        @filter.project_type_codes = @report.default_project_type_codes
       end
     end
 

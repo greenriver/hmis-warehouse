@@ -134,7 +134,7 @@ module ContinuumSemiAnnualPerformance
 
     def project_ids_for(project_type)
       project_type = project_type.to_sym
-      return selected_project_ids if project_type == :ce
+      return selected_project_ids if project_type == :ce_tab
 
       numbers = HudHelper.util.performance_reporting.fetch(PERFORMANCE_KEYS.fetch(project_type))
       GrdaWarehouse::Hud::Project.where(id: selected_project_ids).with_project_type(numbers).pluck(:id)
@@ -142,7 +142,7 @@ module ContinuumSemiAnnualPerformance
 
     # Project type numbers the form should limit its project list to, or nil when every type is used.
     def supported_project_type_ids
-      return if project_types.include?(:ce)
+      return if project_types.include?(:ce_tab)
 
       project_types.flat_map { |project_type| HudHelper.util.performance_reporting.fetch(PERFORMANCE_KEYS.fetch(project_type)) }
     end
