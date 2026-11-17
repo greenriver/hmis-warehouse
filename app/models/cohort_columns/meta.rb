@@ -34,7 +34,7 @@ module CohortColumns
 
     def comments
       comments = ''
-      comments += "No homeless service or intentional contacts in #{@cohort.days_of_inactivity} days\r\n" if inactive
+      comments += "No homeless service or intentional contacts in #{cohort.days_of_inactivity} days\r\n" if inactive
       comments += "Client ineligible\r\n" if cohort_client.ineligible?
       comments
     end

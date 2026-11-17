@@ -81,7 +81,7 @@ module WarehouseReports
       end
 
       def columns
-        @columns.select(&:present?)
+        super.select(&:present?)
       end
 
       def client_column?(column)

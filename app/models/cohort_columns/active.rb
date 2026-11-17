@@ -8,7 +8,7 @@
 
 module CohortColumns
   class Active < CohortBoolean
-    attribute :column, Boolean, lazy: true, default: :active
+    attribute :column, String, lazy: true, default: :active
     attribute :translation_key, String, lazy: true, default: 'Active'
     attribute :title, String, lazy: true, default: ->(model, _attr) { Translation.translate(model.translation_key) }
     attribute :description_translation_key, String, lazy: true, default: ->(model, _attr) { "#{model.translation_key} Description" }

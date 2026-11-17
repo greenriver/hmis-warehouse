@@ -8,7 +8,7 @@
 
 module CohortColumns
   class Ineligible < CohortBoolean
-    attribute :column, Boolean, lazy: true, default: :ineligible
+    attribute :column, String, lazy: true, default: :ineligible
     attribute :translation_key, String, lazy: true, default: 'Ineligible'
     attribute :title, String, lazy: true, default: ->(model, _attr) { Translation.translate(model.translation_key) }
     attribute :description_translation_key, String, lazy: true, default: ->(model, _attr) { "#{model.translation_key} Description" }

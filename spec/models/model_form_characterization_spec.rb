@@ -218,8 +218,8 @@ RSpec.describe ModelForm, type: :model do
   describe CohortColumns::Active do
     let(:column) { described_class.new }
 
-    it 'has a symbol column and true visible and editable defaults' do
-      expect(column.column).to eq(:active)
+    it 'has a string column and true visible and editable defaults' do
+      expect(column.column).to eq('active')
       expect(column.visible).to be(true)
       expect(column.editable).to be(true)
     end
