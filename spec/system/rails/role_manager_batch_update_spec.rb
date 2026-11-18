@@ -41,6 +41,8 @@ RSpec.feature 'Role manager batch update', type: :rails_system do
 
     check "role-toggle-#{visible_role.id}"
     toggle_permission(visible_role, :can_view_clients)
+    expect(page).to have_content('2 changes pending')
+    expect(page).to have_css("#can_view_clients_#{visible_role.id}.dirty")
 
     click_button 'Save Changes', match: :first
 
