@@ -146,6 +146,33 @@
   }
 }
 
+// At full width, keep the menu in view and let it scroll on its own instead
+// of stretching the page. .o-menu stays stretched as the dark background
+// column; only the nav sticks. .o-menu's overflow has to be visible here, or
+// the nav would stick to .o-menu (which never scrolls) instead of the window.
+@mixin o-menu-sticky {
+  overflow: visible;
+
+  > nav {
+    position: sticky;
+    top: 0;
+    max-height: 100vh;
+    overflow-y: auto;
+  }
+}
+
+.l-content-width-md .o-menu {
+  @include media-breakpoint-up($nav-side-on-canvas-md) {
+    @include o-menu-sticky;
+  }
+}
+
+.l-content-width-lg .o-menu {
+  @include media-breakpoint-up($nav-side-on-canvas-lg) {
+    @include o-menu-sticky;
+  }
+}
+
 // Lock page scroll while the drawer is open so the header and its close
 // button can't scroll away. The drawer scrolls on its own.
 body.l-content-width-md.menu-open {
