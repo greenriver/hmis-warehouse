@@ -10,6 +10,23 @@ footer {
   z-index: $page-z-index;
 }
 
+// When the menu sits beside the content, the fixed Back to Top bar
+// (.o-menu .js-back-to-top) covers the bottom of the window under the menu.
+// Leave room so it doesn't hide the footer's last row (session expiry).
+// Matches the nav padding in objects/_menu.scss; breakpoints follow
+// $nav-side-on-canvas-* in _settings/_variables.scss.
+.l-content-width-md footer.with-menu {
+  @include media-breakpoint-up($nav-side-on-canvas-md) {
+    padding-bottom: 5.5rem;
+  }
+}
+
+.l-content-width-lg footer.with-menu {
+  @include media-breakpoint-up($nav-side-on-canvas-lg) {
+    padding-bottom: 5.5rem;
+  }
+}
+
 footer p {
   margin: 0;
   font-size: rem(12px);
