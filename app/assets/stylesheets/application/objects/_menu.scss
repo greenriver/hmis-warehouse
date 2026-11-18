@@ -15,8 +15,12 @@
   padding-top: space(6);
   transition: .35s transform ease-in-out;
 
+  // Hide the closed drawer from Tab and screen readers. Delay visibility until
+  // the slide-out finishes; opening switches it back immediately.
   &.off-canvas {
     transform: translateX(100%);
+    visibility: hidden;
+    transition: .35s transform ease-in-out, visibility 0s linear .35s;
   }
 }
 
