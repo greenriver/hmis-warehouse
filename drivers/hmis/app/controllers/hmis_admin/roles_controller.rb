@@ -46,7 +46,7 @@ class HmisAdmin::RolesController < ApplicationController
         end
       end
       flash[:notice] = 'All permissions saved'
-    rescue Exception
+    rescue ActiveRecord::RecordNotFound
       flash[:error] = 'Error saving permissions'
     end
     redirect_to(hmis_admin_roles_path)
