@@ -45,5 +45,28 @@ RSpec.describe Admin::RolesController, type: :request do
       expect(flash[:error]).to eq('Error saving permissions')
       expect(changed_role.reload.can_view_clients).to be(false)
     end
+
+    it 'rolls back every role and reports an error when a posted role is a system role' do
+      system_role = create(:role, name: 'System', system: true, can_view_clients: false)
+
+      patch batch_update_admin_roles_path, params: {
+        role: {
+          changed_role.id => { can_view_clients: '1' },
+          system_role.id => { can_view_clients: '1' },
+        },
+      }
+
+      expect(response).to redirect_to(admin_roles_path)
+      expect(flash[:error]).to eq('Error saving permissions')
+      expect(changed_role.reload.can_view_clients).to be(false)
+      expect(system_role.reload.can_view_clients).to be(false)
+    end
+
+    it 'redirects without changing any role when no role is posted' do
+      patch batch_update_admin_roles_path
+
+      expect(response).to redirect_to(admin_roles_path)
+      expect(changed_role.reload.slice(:can_view_clients, :can_view_projects)).to eq('can_view_clients' => false, 'can_view_projects' => true)
+    end
   end
 end

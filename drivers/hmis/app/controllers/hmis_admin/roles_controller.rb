@@ -41,7 +41,7 @@ class HmisAdmin::RolesController < ApplicationController
   def batch_update
     begin
       Hmis::Role.transaction do
-        batch_params[:role].each do |role_id, permissions|
+        batch_params.fetch(:role, {}).each do |role_id, permissions|
           role_scope.find(role_id).update!(**permissions)
         end
       end

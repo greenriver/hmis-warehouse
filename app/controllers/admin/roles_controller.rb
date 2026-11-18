@@ -43,8 +43,8 @@ module Admin
     def batch_update
       begin
         Role.transaction do
-          batch_params[:role].each do |role_id, permissions|
-            Role.find(role_id).update!(**permissions)
+          batch_params.fetch(:role, {}).each do |role_id, permissions|
+            role_scope.find(role_id).update!(**permissions)
           end
         end
         flash[:notice] = 'All permissions saved'
