@@ -242,6 +242,17 @@ const controller = class extends Controller {
     this.updateUi()
   }
 
+  // Every role column renders a field per permission, hidden columns included, and Rack rejects a
+  // body with more than 4,096 params. Submit only the roles with pending changes.
+  disableUnchangedRoles() {
+    this.updateState()
+    this.roleColumnTargets.forEach((column) => {
+      const inputs = $(column).find('input')
+      const changed = inputs.toArray().some((input) => this.initialState[input.name] !== this.currentState[input.name])
+      if (!changed) inputs.prop('disabled', true)
+    })
+  }
+
   updateUi() {
     let changed = 0
     $.each(this.currentState, (key, value) => {
