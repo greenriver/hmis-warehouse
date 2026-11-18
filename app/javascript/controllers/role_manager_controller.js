@@ -237,29 +237,45 @@ const controller = class extends Controller {
   // Collect all form fields, determine if any have changed from their initial state
   // make note by enabling the save button and count of changes if there are any
   updateState(e) {
-    this.currentState = {}
-    this.setState(this.currentState)
-    this.updateUi()
+    this.refreshCurrentState()
+    this.markInput($(e.currentTarget).attr('name'))
+    this.updateChangeCount()
   }
 
-  updateUi() {
-    let changed = 0
-    $.each(this.currentState, (key, value) => {
-      const input = $(`input[name="${key}"]`)
-      const input_status = input.closest('.form-check').find('.input-status')
-      const dirty_note = '<div class="dirty-note d-flex"><div class="ml-auto"><i>change pending</i></div></div>';
-      if (this.initialState[key] != value) {
-        changed += 1
-        input.addClass('dirty')
-        // ensure we only get the pending note once
-        input_status.find('.dirty-note').remove()
-        input_status.append(dirty_note)
-      }
-      else {
-        input.removeClass('dirty')
-        input_status.find('.dirty-note').remove()
-      }
+  refreshCurrentState() {
+    this.currentState = {}
+    this.setState(this.currentState)
+  }
+
+  // Every role column renders a field per permission, hidden columns included, and Rack rejects a
+  // body with more than 4,096 params. Submit only the roles with pending changes.
+  disableUnchangedRoles() {
+    this.refreshCurrentState()
+    this.roleColumnTargets.forEach((column) => {
+      const inputs = $(column).find('input')
+      const changed = inputs.toArray().some((input) => this.initialState[input.name] !== this.currentState[input.name])
+      if (!changed) inputs.prop('disabled', true)
     })
+  }
+
+  // Touching the DOM for every permission of every role takes seconds once there are many roles,
+  // so only the clicked permission's markers are updated.
+  markInput(name) {
+    const input = $(`input[name="${name}"]`)
+    const input_status = input.closest('.form-check').find('.input-status')
+    const dirty_note = '<div class="dirty-note d-flex"><div class="ml-auto"><i>change pending</i></div></div>';
+    // ensure we only get the pending note once
+    input_status.find('.dirty-note').remove()
+    if (this.initialState[name] != this.currentState[name]) {
+      input.addClass('dirty')
+      input_status.append(dirty_note)
+    } else {
+      input.removeClass('dirty')
+    }
+  }
+
+  updateChangeCount() {
+    const changed = Object.keys(this.currentState).filter((key) => this.initialState[key] != this.currentState[key]).length
     if (changed == 0) {
       $(this.changeCountTargets).text('')
       $(this.changeButtonTargets).addClass('hide')
