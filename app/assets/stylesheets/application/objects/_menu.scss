@@ -6,7 +6,9 @@
   right: 0;
   top: 0;
   bottom: 0;
-  padding-top: calc(#{$header-height} + #{space(6)});
+  // --o-menu-drawer-top is set by site_menu.js.coffee to the header's bottom
+  // edge, which moves when warning bars render above the header.
+  padding-top: calc(var(--o-menu-drawer-top, #{$header-height}) + #{space(6)});
   min-height: 100vh;
   transition: .35s transform ease-in-out;
 
@@ -32,6 +34,8 @@
 
 .nav-link[data-bs-toggle] [class*='toggle-icon-'] {
   padding-top: 0.25rem;
+  // Long labels otherwise squeeze the chevron against the text.
+  flex-shrink: 0;
 }
 
 .nav-link[data-bs-toggle].collapsed .toggle-icon-down {
@@ -92,20 +96,6 @@
   padding-top: 0.25rem;
 }
 
-// Below the on-canvas breakpoint the menu is a drawer. See
-// $nav-side-on-canvas-* in _settings/_variables.scss before changing these.
-.l-content-width-md .site-menu {
-  @include media-breakpoint-down($nav-side-on-canvas-md) {
-    @include o-menu-drawer;
-  }
-}
-
-.l-content-width-lg .site-menu {
-  @include media-breakpoint-down($nav-side-on-canvas-lg) {
-    @include o-menu-drawer;
-  }
-}
-
 /* End Site Menu */
 
 .o-menu {
@@ -135,6 +125,8 @@
   bottom: 0;
 }
 
+// Below the on-canvas breakpoint the menu is a drawer. See
+// $nav-side-on-canvas-* in _settings/_variables.scss before changing these.
 .l-content-width-md .o-menu {
   @include media-breakpoint-down($nav-side-on-canvas-md) {
     @include o-menu-drawer;

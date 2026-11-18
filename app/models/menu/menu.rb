@@ -513,6 +513,7 @@ class Menu::Menu
     menu = Menu::Item.new(
       user: user,
       title: Translation.translate('HMIS Admin'),
+      id: 'hmis-admin',
       icon: 'icon-cog',
       match_pattern_terminator: '.*',
     )
