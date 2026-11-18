@@ -158,6 +158,9 @@
     top: 0;
     max-height: 100vh;
     overflow-y: auto;
+    // Room for the fixed Back to Top bar (.js-back-to-top) so the last links
+    // can scroll clear of it.
+    padding-bottom: 5.5rem;
   }
 }
 
