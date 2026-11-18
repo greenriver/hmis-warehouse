@@ -18,6 +18,14 @@
   overflow-x: auto;
 }
 
+// overflow-x: auto makes .l-main__content a scroll container, so sticky
+// elements inside it stick to a box that never scrolls. List search (Warehouse
+// Reports) needs its filter bar and section headers to stick to the window and
+// has no wide tables, so drop the overflow there only.
+.l-main__content:has(.c-list-search) {
+  overflow-x: visible;
+}
+
 // Give back the width the on-canvas menu takes. Must stay in lockstep with the
 // drawer breakpoints in objects/_menu.scss — see $nav-side-on-canvas-* in
 // _settings/_variables.scss.
