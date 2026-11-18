@@ -71,6 +71,7 @@ class ModelForm
   def init_with(coder)
     @attributes = self.class._default_attributes.deep_dup
     coder.map.each do |key, value|
+      # Skip so a stored key can't replace the attribute set, which encode_with never writes.
       next if key == 'attributes'
 
       if self.class.attribute_types.key?(key)
