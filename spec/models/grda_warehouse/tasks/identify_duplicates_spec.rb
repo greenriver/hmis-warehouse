@@ -32,7 +32,126 @@ RSpec.describe GrdaWarehouse::Tasks::IdentifyDuplicates, type: :model do
       @config.update(enable_auto_deduplication: true)
     end
 
-    describe 'find merge candidates' do
+    # The scenarios that go through find_merge_candidates_for_match_existing run on both paths.
+    # TODO: remove the legacy pass with the legacy existing-match methods
+    [false, true].each do |use_query_matcher|
+      context "with #{described_class::FEATURE_FLAG_QUERY_MATCHER_FOR_EXISTING} #{use_query_matcher ? 'on' : 'off'}" do
+        before(:each) do
+          AppConfigProperty.create!(key: described_class::FEATURE_FLAG_QUERY_MATCHER_FOR_EXISTING, value: true) if use_query_matcher
+        end
+
+        describe 'source client threshold' do
+          before(:each) do
+            # We want to know the PPI data for this client, so set it specifically
+            client_in_source.update(first_name: 'A', last_name: 'Client', dob: '2000-01-01', ssn: 'XXXXX1234')
+            # Clear out the existing destination client, this will be generated for `client_in_source` later in the test
+            client_in_destination.destroy
+          end
+          it 'never creates more than the maximum number of source clients' do
+            number_sample_clients = 125
+
+            # Generating n unique clients that won't match the existing client or each other.
+            # We are generating `number_sample_clients` - 1 because we are using the existing client (`client_in_source`)
+            # as a baseline. This will bring our total number of clients to `number_sample_clients`.
+            (1..(number_sample_clients - 1)).each do |n|
+              client = create :grda_warehouse_hud_client, data_source: source_data_source
+              date = Date.new(2000, 1, 1) + n.days - n.months
+              str_n = n.to_s.rjust(4, '0')
+              ssn = "#{str_n.last(3)}#{str_n.last(2)}#{str_n.last(4)}"
+              client.update(first_name: "client_#{n}", last_name: 'Test', dob: date, ssn: ssn)
+            end
+
+            GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
+            GrdaWarehouse::Tasks::IdentifyDuplicates.new.match_existing!
+
+            # Test that each unique client received a destination client
+            expect(GrdaWarehouse::Hud::Client.destination.count).to eq(number_sample_clients)
+            expect(GrdaWarehouse::WarehouseClient.count).to eq(number_sample_clients)
+
+            # Update the n unique clients so that they all match the baseline client.
+            (1..(number_sample_clients - 1)).each do |n|
+              str_n = n.to_s.rjust(4, '0')
+              ssn = "#{str_n.last(3)}#{str_n.last(2)}#{str_n.last(4)}"
+              client = GrdaWarehouse::Hud::Client.source.find_by(SSN: ssn)
+              client.update(first_name: 'A', last_name: 'Client', dob: '2000-01-01', ssn: 'XXXXX1234')
+            end
+
+            GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
+            GrdaWarehouse::Tasks::IdentifyDuplicates.new.match_existing!
+
+            # # The code below will calculate the number of expected destination clients in the case that MAX_SOURCE_CLIENTS changes enough to affect this number
+            # expected_number_destination_clients = ((number_sample_clients * 1.0) / GrdaWarehouse::Tasks::IdentifyDuplicates::MAX_SOURCE_CLIENTS).ceil
+
+            # With MAX_SOURCE_CLIENTS set to 50, we are expecting 3 destination clients. 2 with 50 source clients and 1 with 25 source clients.
+            # We are setting this specifically instead of using the calculated number in case `MAX_SOURCE_CLIENTS` gets set to a number larger than
+            # `number_sample_clients`. If that happened, we wouldn't be reaching the threshold for the number of source clients that we are testing.
+            expected_number_destination_clients = 3
+
+            destination_clients = GrdaWarehouse::Hud::Client.destination.to_a
+            source_client_counts = destination_clients.map { |client| [client.id, client.source_clients.count] }.to_h
+            min_expected = number_sample_clients - (GrdaWarehouse::Tasks::IdentifyDuplicates::MAX_SOURCE_CLIENTS * (expected_number_destination_clients - 1))
+            max_expected = GrdaWarehouse::Tasks::IdentifyDuplicates::MAX_SOURCE_CLIENTS
+            max_value = source_client_counts.values.max
+            min_value = source_client_counts.values.min
+            aggregate_failures do
+              expect(source_client_counts.count).to eq(expected_number_destination_clients)
+              expect(GrdaWarehouse::WarehouseClient.count).to eq(number_sample_clients)
+              expect(source_client_counts.values.sum).to eq(number_sample_clients)
+              # Allow for some flexibility.  We calculate the number of source clients before actually merging, so sometimes
+              # it is off by one.
+              # We don't really care as long as we don't have run-away matches
+              expect(max_value).to be <= max_expected + 2
+              expect(min_value).to be >= min_expected - 2
+            end
+          end
+        end
+
+        describe '#find_merge_candidates_for_match_existing' do
+          it 'treats pairs found by multiple heuristics as a single candidate' do
+            destination_a = create(:grda_warehouse_hud_client, data_source: destination_data_source)
+            destination_b = create(:grda_warehouse_hud_client, data_source: destination_data_source)
+            source_a = create(:grda_warehouse_hud_client, data_source: source_data_source)
+            source_b = create(:grda_warehouse_hud_client, data_source: source_data_source)
+
+            create(:warehouse_client, source_id: source_a.id, destination_id: destination_a.id)
+            create(:warehouse_client, source_id: source_b.id, destination_id: destination_b.id)
+
+            [source_a, source_b].each do |client|
+              client.update(SSN: '246810123', FirstName: 'Alex', LastName: 'Doe', DOB: '1985-05-05')
+            end
+
+            result = described_class.new(run_post_processing: false).send(:find_merge_candidates_for_match_existing)
+            root, child = [destination_a.id, destination_b.id].minmax
+
+            expect(result).to eq({ root => [child] })
+          end
+
+          it 'sends the existing-match queries through the chosen path' do
+            matcher = GrdaWarehouse::Tasks::IdentifyDuplicatesQueryMatcher
+            matcher_methods = [:for_ssn_matches, :for_name_matches, :for_dob_matches]
+            matcher_methods.each do |matcher_method|
+              allow(matcher).to receive(matcher_method).and_call_original
+            end
+            processor = described_class.new(run_post_processing: false)
+
+            processor.send(:find_merge_candidates_for_match_existing)
+
+            matcher_methods.each do |matcher_method|
+              if use_query_matcher
+                expect(matcher).to have_received(matcher_method).with(match_type: :existing)
+              else
+                expect(matcher).not_to have_received(matcher_method)
+              end
+            end
+          end
+        end
+      end
+    end
+
+    # Runs once: run! already links both sources to one destination, so match_existing! has nothing to merge.
+    # After a split the pair is only kept apart by the split-history filter, which is shared by both
+    # existing-match paths; the matcher path would pass vacuously if it found no pair.
+    describe 'find merge candidates for two identical source clients' do
       let!(:client_two_in_source) { create :grda_warehouse_hud_client, data_source: source_data_source }
       let!(:warehouse_data_source) { create :destination_data_source }
 
@@ -57,6 +176,103 @@ RSpec.describe GrdaWarehouse::Tasks::IdentifyDuplicates, type: :model do
             split_client
             GrdaWarehouse::Tasks::IdentifyDuplicates.new(run_post_processing: false).match_existing!
           end.to change(destination_scope, :count).from(1).to(2)
+        end
+      end
+    end
+
+    describe 'existing-match path flag' do
+      let(:flag_key) { described_class::FEATURE_FLAG_QUERY_MATCHER_FOR_EXISTING }
+      let(:processor) { described_class.new(run_post_processing: false) }
+
+      def legacy_existing_match?(processor)
+        processor.send(:legacy_existing_match?)
+      end
+
+      it 'uses legacy when the row is missing' do
+        expect(legacy_existing_match?(processor)).to be true
+      end
+
+      it 'uses legacy when the value is false' do
+        # The model's presence validation rejects false, so write the row directly
+        AppConfigProperty.new(key: flag_key, value: false).save!(validate: false)
+
+        expect(legacy_existing_match?(processor)).to be true
+      end
+
+      it 'uses legacy when the value is the string "true"' do
+        AppConfigProperty.create!(key: flag_key, value: 'true')
+
+        expect(legacy_existing_match?(processor)).to be true
+      end
+
+      it 'uses the query matcher when the value is JSON true' do
+        AppConfigProperty.create!(key: flag_key, value: true)
+
+        expect(legacy_existing_match?(processor)).to be false
+      end
+
+      it 'reads the flag once per instance' do
+        expect(legacy_existing_match?(processor)).to be true
+
+        AppConfigProperty.create!(key: flag_key, value: true)
+
+        expect(legacy_existing_match?(processor)).to be true
+      end
+    end
+
+    describe 'match_existing! merge loop' do
+      let(:processor) { described_class.new(run_post_processing: false) }
+      let!(:destination_a) { create :grda_warehouse_hud_client, data_source: destination_data_source }
+      let!(:destination_b) { create :grda_warehouse_hud_client, data_source: destination_data_source }
+      let!(:destination_c) { create :grda_warehouse_hud_client, data_source: destination_data_source }
+      let!(:source_b) { create :grda_warehouse_hud_client, data_source: source_data_source }
+      let!(:source_c) { create :grda_warehouse_hud_client, data_source: source_data_source }
+
+      before(:each) do
+        create(:warehouse_client, source_id: source_b.id, destination_id: destination_b.id)
+        create(:warehouse_client, source_id: source_c.id, destination_id: destination_c.id)
+        allow(Sentry).to receive(:capture_exception_with_info)
+      end
+
+      it 'skips a destination that no longer has source clients and merges the rest' do
+        destination_d = create :grda_warehouse_hud_client, data_source: destination_data_source
+        source_d = create :grda_warehouse_hud_client, data_source: source_data_source
+        create(:warehouse_client, source_id: source_d.id, destination_id: destination_d.id)
+        # destination_a has no source clients, as if a concurrent merge emptied it after candidates were found
+        allow(processor).to receive(:find_merge_candidates_for_match_existing).and_return(
+          {
+            destination_a.id => [destination_b.id],
+            destination_c.id => [destination_d.id],
+          },
+        )
+
+        expect { processor.match_existing! }.not_to raise_error
+
+        aggregate_failures do
+          expect(source_b.reload.destination_client.id).to eq(destination_b.id)
+          expect(source_d.reload.destination_client.id).to eq(destination_c.id)
+          expect(Sentry).not_to have_received(:capture_exception_with_info)
+        end
+      end
+
+      it 'reports a failed merge and continues with the remaining pairs' do
+        create(:warehouse_client, source_id: client_in_source.id, destination_id: destination_a.id)
+        allow(processor).to receive(:find_merge_candidates_for_match_existing).and_return(
+          { destination_a.id => [destination_b.id, destination_c.id] },
+        )
+        allow_any_instance_of(GrdaWarehouse::Hud::Client).to receive(:merge_from).and_wrap_original do |original, other_client, **kwargs|
+          raise ActiveRecord::QueryCanceled, 'canceling statement due to statement timeout' if other_client.id == destination_b.id
+
+          original.call(other_client, **kwargs)
+        end
+
+        expect { processor.match_existing! }.not_to raise_error
+
+        aggregate_failures do
+          expect(Sentry).to have_received(:capture_exception_with_info).
+            with(instance_of(ActiveRecord::QueryCanceled), info: { source_id: destination_b.id, destination_id: destination_a.id })
+          expect(source_b.reload.destination_client.id).to eq(destination_b.id)
+          expect(source_c.reload.destination_client.id).to eq(destination_a.id)
         end
       end
     end
@@ -128,6 +344,43 @@ RSpec.describe GrdaWarehouse::Tasks::IdentifyDuplicates, type: :model do
             expect(ids_from_warehouse_clients).to eq(ids_from_clients)
           end
         end
+      end
+    end
+
+    describe 'identify_duplicates unprocessed snapshot' do
+      let(:processor) { GrdaWarehouse::Tasks::IdentifyDuplicates.new(run_post_processing: false) }
+
+      it 'looks up the unprocessed ids once per run' do
+        allow(GrdaWarehouse::WarehouseClient).to receive(:pluck).and_call_original
+        expect(GrdaWarehouse::WarehouseClient).to receive(:pluck).with(:source_id).once.and_call_original
+
+        processor.identify_duplicates
+      end
+
+      it 'leaves a source client created after matching for the next run' do
+        late_client = nil
+        allow(processor).to receive(:matched_destinations_by_source_id).and_wrap_original do |original|
+          matched_destinations = original.call
+          late_client = create :grda_warehouse_hud_client, data_source: source_data_source
+          matched_destinations
+        end
+
+        processor.identify_duplicates
+
+        aggregate_failures do
+          expect(GrdaWarehouse::WarehouseClient.where(source_id: client_in_source.id)).to exist
+          expect(GrdaWarehouse::WarehouseClient.where(source_id: late_client.id)).not_to exist
+          expect(GrdaWarehouse::IdentifyDuplicatesLog.last.to_match).to eq(1)
+        end
+      end
+
+      it 'sees clients created since the previous run on the same instance' do
+        processor.identify_duplicates
+        next_client = create :grda_warehouse_hud_client, data_source: source_data_source
+
+        processor.identify_duplicates
+
+        expect(GrdaWarehouse::WarehouseClient.where(source_id: next_client.id)).to exist
       end
     end
 
@@ -415,93 +668,6 @@ RSpec.describe GrdaWarehouse::Tasks::IdentifyDuplicates, type: :model do
             expect(client_in_destination.source_client_ids).to include(new_source_client.id)
           end
         end
-      end
-    end
-
-    describe 'source client threshold' do
-      before(:each) do
-        # We want to know the PPI data for this client, so set it specifically
-        client_in_source.update(first_name: 'A', last_name: 'Client', dob: '2000-01-01', ssn: 'XXXXX1234')
-        # Clear out the existing destination client, this will be generated for `client_in_source` later in the test
-        client_in_destination.destroy
-      end
-      it 'never creates more than the maximum number of source clients' do
-        number_sample_clients = 125
-
-        # Generating n unique clients that won't match the existing client or each other.
-        # We are generating `number_sample_clients` - 1 because we are using the existing client (`client_in_source`)
-        # as a baseline. This will bring our total number of clients to `number_sample_clients`.
-        (1..(number_sample_clients - 1)).each do |n|
-          client = create :grda_warehouse_hud_client, data_source: source_data_source
-          date = Date.new(2000, 1, 1) + n.days - n.months
-          str_n = n.to_s.rjust(4, '0')
-          ssn = "#{str_n.last(3)}#{str_n.last(2)}#{str_n.last(4)}"
-          client.update(first_name: "client_#{n}", last_name: 'Test', dob: date, ssn: ssn)
-        end
-
-        GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
-        GrdaWarehouse::Tasks::IdentifyDuplicates.new.match_existing!
-
-        # Test that each unique client received a destination client
-        expect(GrdaWarehouse::Hud::Client.destination.count).to eq(number_sample_clients)
-        expect(GrdaWarehouse::WarehouseClient.count).to eq(number_sample_clients)
-
-        # Update the n unique clients so that they all match the baseline client.
-        (1..(number_sample_clients - 1)).each do |n|
-          str_n = n.to_s.rjust(4, '0')
-          ssn = "#{str_n.last(3)}#{str_n.last(2)}#{str_n.last(4)}"
-          client = GrdaWarehouse::Hud::Client.source.find_by(SSN: ssn)
-          client.update(first_name: 'A', last_name: 'Client', dob: '2000-01-01', ssn: 'XXXXX1234')
-        end
-
-        GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
-        GrdaWarehouse::Tasks::IdentifyDuplicates.new.match_existing!
-
-        # # The code below will calculate the number of expected destination clients in the case that MAX_SOURCE_CLIENTS changes enough to affect this number
-        # expected_number_destination_clients = ((number_sample_clients * 1.0) / GrdaWarehouse::Tasks::IdentifyDuplicates::MAX_SOURCE_CLIENTS).ceil
-
-        # With MAX_SOURCE_CLIENTS set to 50, we are expecting 3 destination clients. 2 with 50 source clients and 1 with 25 source clients.
-        # We are setting this specifically instead of using the calculated number in case `MAX_SOURCE_CLIENTS` gets set to a number larger than
-        # `number_sample_clients`. If that happened, we wouldn't be reaching the threshold for the number of source clients that we are testing.
-        expected_number_destination_clients = 3
-
-        destination_clients = GrdaWarehouse::Hud::Client.destination.to_a
-        source_client_counts = destination_clients.map { |client| [client.id, client.source_clients.count] }.to_h
-        min_expected = number_sample_clients - (GrdaWarehouse::Tasks::IdentifyDuplicates::MAX_SOURCE_CLIENTS * (expected_number_destination_clients - 1))
-        max_expected = GrdaWarehouse::Tasks::IdentifyDuplicates::MAX_SOURCE_CLIENTS
-        max_value = source_client_counts.values.max
-        min_value = source_client_counts.values.min
-        aggregate_failures do
-          expect(source_client_counts.count).to eq(expected_number_destination_clients)
-          expect(GrdaWarehouse::WarehouseClient.count).to eq(number_sample_clients)
-          expect(source_client_counts.values.sum).to eq(number_sample_clients)
-          # Allow for some flexibility.  We calculate the number of source clients before actually merging, so sometimes
-          # it is off by one.
-          # We don't really care as long as we don't have run-away matches
-          expect(max_value).to be <= max_expected + 2
-          expect(min_value).to be >= min_expected - 2
-        end
-      end
-    end
-
-    describe '#find_merge_candidates_for_match_existing' do
-      it 'treats pairs found by multiple heuristics as a single candidate' do
-        destination_a = create(:grda_warehouse_hud_client, data_source: destination_data_source)
-        destination_b = create(:grda_warehouse_hud_client, data_source: destination_data_source)
-        source_a = create(:grda_warehouse_hud_client, data_source: source_data_source)
-        source_b = create(:grda_warehouse_hud_client, data_source: source_data_source)
-
-        create(:warehouse_client, source_id: source_a.id, destination_id: destination_a.id)
-        create(:warehouse_client, source_id: source_b.id, destination_id: destination_b.id)
-
-        [source_a, source_b].each do |client|
-          client.update(SSN: '246810123', FirstName: 'Alex', LastName: 'Doe', DOB: '1985-05-05')
-        end
-
-        result = described_class.new(run_post_processing: false).send(:find_merge_candidates_for_match_existing)
-        root, child = [destination_a.id, destination_b.id].minmax
-
-        expect(result).to eq({ root => [child] })
       end
     end
 
