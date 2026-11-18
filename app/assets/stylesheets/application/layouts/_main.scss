@@ -2,6 +2,9 @@
 
 .l-main__wrapper {
   display: flex;
+  // Grow to fill the body's flex column so the footer sits at the bottom of
+  // short pages.
+  flex: 1 0 auto;
 
   @if ($show-menu-on-left ==false) {
     flex-direction: row-reverse;
@@ -20,15 +23,21 @@
 // _settings/_variables.scss.
 .l-content-width-md .l-main__content {
   @include media-breakpoint-up($nav-side-on-canvas-md) {
-    flex: 0 0 calc(100vw - #{$nav-side-width});
-    max-width: calc(100vw - #{$nav-side-width});
+    // Take the space the menu leaves. 100vw would include the scrollbar and
+    // push content off the left edge.
+    flex: 1 1 0;
+    min-width: 0;
+    max-width: none;
   }
 }
 
 .l-content-width-lg .l-main__content {
   @include media-breakpoint-up($nav-side-on-canvas-lg) {
-    flex: 0 0 calc(100vw - #{$nav-side-width});
-    max-width: calc(100vw - #{$nav-side-width});
+    // Take the space the menu leaves. 100vw would include the scrollbar and
+    // push content off the left edge.
+    flex: 1 1 0;
+    min-width: 0;
+    max-width: none;
   }
 }
 
