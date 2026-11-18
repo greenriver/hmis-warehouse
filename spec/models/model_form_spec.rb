@@ -98,7 +98,7 @@ RSpec.describe ModelForm, type: :model do
     end
   end
 
-  describe 'casting branches without a Virtus-visible default' do
+  describe 'casting BigDecimal, date-part Hash, and TimeWithZone values' do
     let(:klass) do
       form_class do
         attribute :str, String
@@ -269,7 +269,7 @@ RSpec.describe ModelForm, type: :model do
       end
     end
 
-    it 'are bypassed by defaults, which are still cast' do
+    it 'skip custom writers for defaults, which are still cast' do
       form = klass.new
 
       expect(form.code).to eql(7)
@@ -411,6 +411,16 @@ RSpec.describe ModelForm, type: :model do
       expect(loaded.count).to eql(5)
       expect(loaded.title).to eq('stored title')
       expect(loaded.instance_variable_get(:@cohort_column)).to eq('kept')
+    end
+
+    it 'ignores an attributes key so declared attributes still read their values' do
+      loaded = YAML.unsafe_load(<<~YAML)
+        --- !ruby/object:TestForm
+        attributes: replaced
+        name: stored
+      YAML
+
+      expect(loaded.name).to eq('stored')
     end
   end
 end

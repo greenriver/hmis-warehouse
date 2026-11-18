@@ -71,6 +71,8 @@ class ModelForm
   def init_with(coder)
     @attributes = self.class._default_attributes.deep_dup
     coder.map.each do |key, value|
+      next if key == 'attributes'
+
       if self.class.attribute_types.key?(key)
         _write_attribute(key, value)
       else
