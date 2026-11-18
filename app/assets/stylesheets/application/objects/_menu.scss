@@ -1,19 +1,22 @@
 @import '../helpers';
 
 @mixin o-menu-drawer {
-  width: 45vw;
+  // unquote: libsass tries to evaluate min() and fails on mixed units.
+  width: unquote("min(45vw, 260px)");
+  max-width: none;
   position: fixed;
   right: 0;
-  top: 0;
-  bottom: 0;
   // --o-menu-drawer-top is set by site_menu.js.coffee to the header's bottom
-  // edge, which moves when warning bars render above the header.
-  padding-top: calc(var(--o-menu-drawer-top, #{$header-height}) + #{space(6)});
-  min-height: 100vh;
+  // edge, which moves when warning bars render above the header. Page scroll
+  // is locked while the drawer is open, so the header stays put.
+  top: var(--o-menu-drawer-top, #{$header-height});
+  bottom: 0;
+  min-height: 0;
+  padding-top: space(6);
   transition: .35s transform ease-in-out;
 
   &.off-canvas {
-    transform: translateX(45vw);
+    transform: translateX(100%);
   }
 }
 
@@ -136,6 +139,20 @@
 .l-content-width-lg .o-menu {
   @include media-breakpoint-down($nav-side-on-canvas-lg) {
     @include o-menu-drawer;
+  }
+}
+
+// Lock page scroll while the drawer is open so the header and its close
+// button can't scroll away. The drawer scrolls on its own.
+body.l-content-width-md.menu-open {
+  @include media-breakpoint-down($nav-side-on-canvas-md) {
+    overflow: hidden;
+  }
+}
+
+body.l-content-width-lg.menu-open {
+  @include media-breakpoint-down($nav-side-on-canvas-lg) {
+    overflow: hidden;
   }
 }
 
