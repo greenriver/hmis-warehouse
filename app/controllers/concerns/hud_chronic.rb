@@ -49,7 +49,7 @@ module HudChronic
     alias_method :set_sort, :set_hud_chronic_sort
 
     def filter_params
-      params.permit(filter: Filters::HudChronic.attribute_names)
+      params.permit(filter: Filters::HudChronic.attribute_names.map(&:to_sym))
     end
 
     def hud_chronic_source

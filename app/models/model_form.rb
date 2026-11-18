@@ -18,7 +18,7 @@ class ModelForm
   include ActiveModel::Attributes
   extend  ActiveModel::Naming
 
-  Boolean = Types::Boolean
+  Boolean = AttributeTypes::Boolean
 
   AttributeDefault = Struct.new(:value, :lazy)
   private_constant :AttributeDefault
@@ -30,7 +30,7 @@ class ModelForm
 
   def self.attribute(name, type = nil, default: nil, lazy: false)
     name = name.to_s
-    super(name, Types.lookup(type))
+    super(name, AttributeTypes.lookup(type))
     self.model_form_defaults = model_form_defaults.merge(name => AttributeDefault.new(default, lazy)).freeze
   end
 

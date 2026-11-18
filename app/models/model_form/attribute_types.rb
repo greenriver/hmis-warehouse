@@ -9,14 +9,20 @@
 class ModelForm
   # Attribute types that cast the way Virtus (via the coercible gem) did: a value that can't be
   # converted is returned unchanged rather than becoming nil, 0 or true.
-  module Types
+  module AttributeTypes
     def self.lookup(type)
       case type
-      when nil then nil
+      when nil then Untyped.new
       when ::Array then Array.new(member: lookup(type.first))
       else
         BY_CLASS[type]&.new
       end
+    end
+
+    # Not mutable, so a dup of the form shares the value instead of duping it, which would turn
+    # a persisted record into an unsaved copy.
+    class Untyped < ActiveModel::Type::Value
+      def mutable? = false
     end
 
     class String < ActiveModel::Type::Value
@@ -71,7 +77,7 @@ class ModelForm
       private def from_parts(value)
         now = ::Time.now
         parts = { year: now.year, month: now.month, day: now.day }.map do |key, fallback|
-          Types::Integer.new.cast(value.fetch(key, fallback))
+          Integer.new.cast(value.fetch(key, fallback))
         end
         ::Date.new(*parts)
       end

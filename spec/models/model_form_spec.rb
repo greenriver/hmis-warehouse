@@ -234,6 +234,22 @@ RSpec.describe ModelForm, type: :model do
     end
   end
 
+  describe 'dup' do
+    let(:klass) do
+      form_class do
+        attribute :record
+      end
+    end
+
+    it 'shares an untyped value with the copy after the value was read' do
+      record = Object.new
+      original = klass.new(record: record)
+      original.record
+
+      expect(original.dup.record).to equal(record)
+    end
+  end
+
   describe 'symbol defaults' do
     let(:klass) do
       form_class do
