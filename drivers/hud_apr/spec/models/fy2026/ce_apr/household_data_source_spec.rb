@@ -16,6 +16,7 @@ RSpec.describe 'FY2026 CE APR households across data sources', type: :model, exc
   let(:es_project_type) { HudHelper.util('2026').project_type_number_from_code(:es_entry_exit).first }
   let(:report_start) { Date.new(2025, 10, 1) }
   let(:report_end) { Date.new(2026, 9, 30) }
+  let(:question) { 'Question 7' }
 
   let(:report) do
     filter = Filters::HudFilterBase.new(
@@ -26,8 +27,8 @@ RSpec.describe 'FY2026 CE APR households across data sources', type: :model, exc
       enforce_one_year_range: false,
     )
     filter.update(project_ids: [project.id, other_project.id])
-    report = HudReports::ReportInstance.from_filter(filter, HudApr::Generators::CeApr::Fy2026::Generator.title, build_for_questions: ['Question 7'])
-    report.update!(question_names: ['Question 7'], started_at: Time.current)
+    report = HudReports::ReportInstance.from_filter(filter, HudApr::Generators::CeApr::Fy2026::Generator.title, build_for_questions: [question])
+    report.update!(question_names: [question], started_at: Time.current)
     report
   end
   let(:generator) { HudApr::Generators::CeApr::Fy2026::Generator.new(report) }
@@ -82,5 +83,30 @@ RSpec.describe 'FY2026 CE APR households across data sources', type: :model, exc
     universe = report.universe('Question 7').members.map(&:universe_membership)
 
     expect(universe.map { |c| [c.client_id, c.household_members.size] }).to eq([[hoh.id, 1]])
+  end
+
+  context 'when a client from another data source left a household with a matching HouseholdID' do
+    let(:question) { 'Question 10' }
+    let!(:other_enrollment) do
+      in_data_source(other_data_source) do
+        create_enrollment(client: other_adult, project: other_project, entry_date: Date.new(2025, 11, 1), exit_date: Date.new(2026, 1, 1), household_id: 'H1')
+      end
+    end
+    let!(:later_enrollment) do
+      in_data_source(other_data_source) do
+        create_enrollment(client: other_adult, project: other_project, entry_date: Date.new(2026, 3, 1), household_id: 'H9')
+      end
+    end
+
+    it 'reports the client from their latest enrollment, not the matching household' do
+      create_ce_record(:hud_event, other_enrollment, EventDate: Date.new(2025, 12, 15))
+      rebuild_service_history
+
+      HudApr::Generators::CeApr::Fy2026::QuestionTen.new(generator, report).run_question!
+      member = report.universe('Question 10').members.map(&:universe_membership).find { |c| c.client_id == other_adult.id }
+
+      expect([member.first_date_in_program, member.last_date_in_program, member.household_id]).
+        to eq([Date.new(2026, 3, 1), nil, "#{other_data_source.id}*H9"])
+    end
   end
 end
