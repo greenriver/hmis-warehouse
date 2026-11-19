@@ -211,14 +211,17 @@ module GrdaWarehouse
       score_sum / weight_sum
     end
 
+    # Returns false, without merging, when another save got to the match first.
     def accept!(user: User.system_user, run_service_history_add: true)
-      flagged = flag_as(user: user, status: 'accepted')
-      return unless flagged && destination_client && source_client
+      return false unless flag_as(user: user, status: 'accepted')
 
-      dst = destination_client.destination_client
-      src = source_client
-      dst.merge_from(src, reviewed_by: user, reviewed_at: Time.current, client_match_id: id)
-      GrdaWarehouse::Tasks::ServiceHistory::Add.new(force_sequential_processing: true).run! if run_service_history_add
+      if destination_client && source_client
+        dst = destination_client.destination_client
+        src = source_client
+        dst.merge_from(src, reviewed_by: user, reviewed_at: Time.current, client_match_id: id)
+        GrdaWarehouse::Tasks::ServiceHistory::Add.new(force_sequential_processing: true).run! if run_service_history_add
+      end
+      true
     end
 
     def flag_as(user: User.system_user, status:)
@@ -233,7 +236,6 @@ module GrdaWarehouse
 
     def reject!(user: nil)
       flag_as(user: user, status: 'rejected')
-      save!
     end
   end
 end

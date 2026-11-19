@@ -161,5 +161,19 @@ RSpec.describe model, type: :model do
         end
       end
     end
+
+    describe 'deletability' do
+      before { user.add_viewable(ds1) }
+
+      it 'is empty for a user without the delete permission' do
+        expect(model.deletable_by(user).exists?).to be false
+      end
+
+      it 'includes the directly assigned data source for a user with the delete permission' do
+        user.legacy_roles << create(:role, can_delete_data_sources: true)
+        # A fresh instance, since User memoizes its permissions.
+        expect(model.deletable_by(User.find(user.id)).pluck(:id)).to contain_exactly(ds1.id)
+      end
+    end
   end
 end

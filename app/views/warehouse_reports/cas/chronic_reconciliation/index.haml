@@ -50,7 +50,6 @@
     %table.table.table-sm.table-hover
       %thead
         %tr
-          %th
           %th Client
           %th Days
           %th Months
@@ -58,9 +57,7 @@
       %tbody
         - @not_on_list.each do |client|
           - pii = client.pii_provider(user: current_user)
-          %tr.jClient
-            %td
-              = link_to 'Remove', cas_active_path(id: client[:id]), method: :patch, remote: true, class: 'btn btn-sm btn-secondary jRemoveCasActive'
+          %tr
             %td
               = link_to_if can_view_clients?, pii.brief_name, appropriate_client_path(client[:id])
             %td
@@ -69,14 +66,3 @@
               = client.site_chronics.find_by_date(@filter.date)&.months_in_last_three_years
             %td
               = client.site_chronics.find_by_date(@filter.date)&.trigger
-
-= content_for :page_js do
-  %script{ nonce: content_security_policy_nonce }
-    :plain
-      $(document).on('ajax:success', '.jRemoveCasActive', function(evt, data, status, xhr){
-        $(evt.currentTarget).closest('.jClient').fadeOut();
-      }).on('ajax:error', '.jRemoveCasActive', function(evt, data, status, xhr){
-        $(evt.currentTarget).text('Remove Failed').
-          removeClass('btn-secondary').
-          addClass('btn-danger');
-      });

@@ -57,7 +57,7 @@
                 %br/
                 %small.text-muted= user.name
                 - if (match = c.warehouse_client_source.client_match)
-                  %button.btn.btn-secondary.btn-xs.mt-2{type: :button, data: { 'bs-toggle' => :popover, trigger: :click, title: 'Match Details', html: :true, content: "#{client_match_scorecard(match)}"}}
+                  %button.btn.btn-secondary.btn-xs.mt-2{type: :button, data: { 'bs-toggle' => :popover, 'bs-trigger' => :click, 'bs-title' => 'Match Details', 'bs-html' => :true, 'bs-content' => "#{client_match_scorecard(match)}"}}
                     Match Details
 
 
