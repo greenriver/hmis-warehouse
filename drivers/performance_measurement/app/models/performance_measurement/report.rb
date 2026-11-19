@@ -1600,7 +1600,7 @@ module PerformanceMeasurement
         },
         {
           name: 'icons.woff2',
-          content: -> { AssetHelper.asset_content('icons.woff') },
+          content: -> { AssetHelper.asset_content('icons.woff2') },
           type: 'text/css',
         },
       ]

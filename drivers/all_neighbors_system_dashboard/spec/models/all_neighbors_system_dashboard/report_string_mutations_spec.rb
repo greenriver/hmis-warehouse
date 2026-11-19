@@ -43,10 +43,10 @@ RSpec.describe AllNeighborsSystemDashboard::Report, type: :model do
       expect(css).to eq(fonts.map { |font| "@font-face{src:url(#{font}?v=1)}" }.join)
     end
 
-    it 'publishes the precompiled font files' do
-      ttf = report.publish_files.find { |f| f[:name] == 'icons.ttf' }[:content].call
+    it 'publishes each font file from its own precompiled asset' do
+      published = report.publish_files.select { |f| f[:name].in?(fonts) }.to_h { |f| [f[:name], f[:content].call] }
 
-      expect(ttf).to eq('content of icons-0123.ttf')
+      expect(published).to eq(fonts.to_h { |font| [font, "content of #{font.sub('.', '-0123.')}"] })
     end
   end
 
