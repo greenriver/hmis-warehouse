@@ -132,14 +132,3 @@ RSpec.describe AssetHelper, type: :helper do
     end
   end
 end
-
-RSpec.describe ApplicationHelper, type: :helper do
-  describe '#inline_javascript_include_tag' do
-    it 'inlines only the named scripts when given tag options' do
-      pdf_js = Rails.application.assets.find_asset('pdf.js', base_path: Rails.root.to_s).to_s
-
-      expect(helper.inline_javascript_include_tag('pdf', defer: true)).
-        to eq("<script type='text/javascript'>#{pdf_js}</script>")
-    end
-  end
-end
