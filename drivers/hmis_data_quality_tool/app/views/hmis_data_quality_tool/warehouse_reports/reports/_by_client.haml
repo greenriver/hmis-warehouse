@@ -17,11 +17,15 @@
         - @pivot_details.groups.values.map(&:keys).flatten.each do |key|
           %th= @pivot_details.lookup[key]
     %tbody
-      - client_ids_per_project = @report.enrollments.pluck(:project_id, :destination_client_id).group_by(&:shift)
-      - current_user.policy_context.preload_project_dependencies(client_ids_per_project.keys)
+      - policy_project_ids = @report.policy_project_ids_by_destination_client(user: current_user)
+      - current_user.policy_context.preload_project_dependencies(policy_project_ids.values.uniq)
       - @clients.each do |client|
-        - project_id = client_ids_per_project.find { |k, v| v.flatten.include?(client.destination_client_id) }&.first
-        - pii_policy = current_user.reporting_policy_for_project(project_id: project_id, client_id: client.destination_client_id_for_pii)
+        - project_id = policy_project_ids[client.destination_client_id]
+        -# A client with no project in the report gets DenyPiiPolicy; reporting_policy_for_project would allow names for a nil project.
+        - if project_id.nil?
+          - pii_policy = GrdaWarehouse::AuthPolicies::DenyPiiPolicy.instance
+        - else
+          - pii_policy = current_user.reporting_policy_for_project(project_id: project_id, client_id: client.destination_client_id_for_pii)
         %tr
           - if @pivot_details.clients_with_flags.include?([client.personal_id, client.data_source_id])
             %td.text-warning.icon-warning
