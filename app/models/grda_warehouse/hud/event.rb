@@ -11,7 +11,7 @@ module GrdaWarehouse::Hud
     include HudSharedScopes
     include ::HmisStructure::Event
     include ::HmisStructure::Shared
-    # Extensions from drivers — see ADR 0007
+    # Extensions from drivers — see docs/architecture/08-concepts/08-3-driver-module-pattern.md
     include HmisCsvImporter::GrdaWarehouse::Hud::EventExtension
     include HmisCsvTwentyTwenty::GrdaWarehouse::Hud::EventExtension
     include HmisCsvTwentyTwentyFour::GrdaWarehouse::Hud::EventExtension

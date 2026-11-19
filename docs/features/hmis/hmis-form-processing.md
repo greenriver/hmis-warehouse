@@ -1,3 +1,11 @@
+---
+sources:
+  - drivers/hmis/app/models/hmis/form/form_processor.rb
+  - drivers/hmis/app/models/hmis/hud/processors/base.rb
+  - drivers/hmis/app/models/hmis/form/record_type.rb
+  - drivers/hmis/app/graphql/mutations/submit_form.rb
+---
+
 # HMIS form processing
 
 What happens between a user pressing Submit and data landing in database records. The central class is `Hmis::Form::FormProcessor`, which is both an ActiveRecord model (table `hmis_form_processors`) and the engine that turns a submitted payload into HUD records.

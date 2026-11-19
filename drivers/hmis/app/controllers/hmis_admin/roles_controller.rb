@@ -41,12 +41,12 @@ class HmisAdmin::RolesController < ApplicationController
   def batch_update
     begin
       Hmis::Role.transaction do
-        batch_params[:role].each do |role_id, permissions|
+        batch_params.fetch(:role, {}).each do |role_id, permissions|
           role_scope.find(role_id).update!(**permissions)
         end
       end
       flash[:notice] = 'All permissions saved'
-    rescue Exception
+    rescue ActiveRecord::RecordNotFound
       flash[:error] = 'Error saving permissions'
     end
     redirect_to(hmis_admin_roles_path)

@@ -1,0 +1,48 @@
+name: Doc Sources
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+concurrency:
+  group: ${{ github.ref }}-doc-sources
+  cancel-in-progress: true
+
+jobs:
+  doc_sources:
+    name: Docs that describe changed code
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Check doc frontmatter
+        run: ruby bin/doc_sources check
+
+      - name: List docs that describe changed code
+        run: ruby bin/doc_sources affected "${{ github.event.pull_request.base.sha }}" > "$RUNNER_TEMP/doc_sources_comment.md"
+
+      - name: Comment on the PR
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          body="$RUNNER_TEMP/doc_sources_comment.md"
+          existing=$(gh api "repos/${{ github.repository }}/issues/$PR/comments" --paginate \
+            --jq '.[] | select(.body | contains("<!-- doc-sources -->")) | .id' | head -n 1)
+          if [ ! -s "$body" ]; then
+            if [ -z "$existing" ]; then
+              exit 0
+            fi
+            printf '%s\n%s\n' '<!-- doc-sources -->' 'This PR no longer changes code that docs list in `sources:`.' > "$body"
+          fi
+          if [ -z "$existing" ]; then
+            gh pr comment "$PR" --repo "${{ github.repository }}" --body-file "$body"
+          else
+            gh api --method PATCH "repos/${{ github.repository }}/issues/comments/$existing" -F "body=@$body" > /dev/null
+          fi

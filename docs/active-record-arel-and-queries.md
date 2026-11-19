@@ -1,3 +1,10 @@
+---
+sources:
+  - lib/rubocop/cop/queries/unsafe_bulk_update_sql.rb
+  - lib/rubocop/cop/queries/date_interpolation_in_sql.rb
+  - config/initializers/legacy_rails_conversions.rb
+---
+
 # ActiveRecord, Arel, and Query Best Practices
 
 This document describes how we prefer to build database queries in this

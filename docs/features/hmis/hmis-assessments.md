@@ -1,3 +1,13 @@
+---
+sources:
+  - drivers/hmis/app/models/hmis/hud/custom_assessment.rb
+  - drivers/hmis/app/graphql/mutations/submit_assessment.rb
+  - drivers/hmis/app/graphql/mutations/submit_household_assessments.rb
+  - drivers/hmis/app/graphql/mutations/save_assessment.rb
+  - drivers/hmis/app/jobs/hmis/migrate_assessments_job.rb
+  - drivers/hmis/app/models/hmis/hud/validators/custom_assessment_validator.rb
+---
+
 # HMIS assessments
 
 The word "assessment" can refer to several related but distinct record types. This document clarifies what "assessment" may mean in different contexts.
@@ -121,3 +131,21 @@ The Form Builder UI can't be used to set this up; it must be configured in the J
 }
 ```
 
+## Submission and WIP behavior
+
+- **Save vs submit.** `SaveAssessment` stores the processor's `values` and `hud_values` as WIP and skips every enrollment side effect. `SubmitAssessment` runs the form processor, validates, and in one transaction sets `wip: false` and applies the side effects: an intake moves the enrollment out of WIP and accepts the LINK referral; an exit releases the unit and closes the LINK referral. WIP assessments edit with their original form definition; submitted ones use the newest published version.
+- **Household submit.** `SubmitHouseholdAssessments` submits several existing assessments for one household and one data collection stage in a single transaction. If the last member fails, all roll back, but LINK calls that already ran do not. It checks `can_edit?` on the first enrollment only.
+- **Household rules live in two places.** Head-of-household exit while other members are open, exit of a WIP enrollment, and non-HoH intake before the HoH intake are enforced separately in `SubmitAssessment` and `SubmitHouseholdAssessments`. Add new household rules to `Hmis::Hud::Validators::CustomAssessmentValidator` so both mutations pick them up, rather than writing a third copy.
+- **One intake and one exit per enrollment.** Creating a second is refused. Re-submitting an existing one is allowed.
+- **Deleting an exit assessment** can leave two open enrollments in one project; `deletion_would_cause_conflicting_enrollments?` detects this.
+- **Every `CustomAssessment` needs a `FormProcessor`.** Build with `new_with_defaults` or let `Hmis::MigrateAssessmentsJob` build both. Migrated assessments have no definition on the processor, so the GraphQL type falls back to the definition for the role. Don't request `definition` or `upgradedDefinitionForEditing` in list queries; they are expensive.
+- **Stage codes in two places.** The stage scopes hard-code 1/2/3/5/6 while `hud_assessment?` reads `HudHelper.util.data_collection_stages`. Update both if HUD adds a stage.
+
+## Migration job details
+
+`Hmis::MigrateAssessmentsJob` groups related HUD rows by enrollment, person, and stage (plus information date for stages 2, 5, 6), and creates one `CustomAssessment` and `FormProcessor` per group. It is enqueued after an import into an HMIS data source with `upsert: true` and `generate_empty_intakes: true`.
+
+- Without `upsert`, existing assessments are skipped. With it, each is reconciled in place and WIP assessments are skipped. Reconciling clears and reapplies the processor's HUD record columns, so a HUD record deleted upstream becomes unlinked; custom data element and definition references are untouched.
+- When duplicates exist for a group, the row with the latest `DateUpdated` wins (or the `preferred_source_hash` row). With `delete_dangling_records`, the losers and exit rows on open enrollments are soft-deleted.
+- `generate_empty_intakes` builds a synthetic intake for enrollments that lack one. Stage 99 rows are never touched.
+- `project_ids` and `enrollment_ids` are row primary keys, not HUD IDs, and are mutually exclusive.

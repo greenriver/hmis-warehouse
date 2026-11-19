@@ -32,7 +32,7 @@ RSpec.describe HmisExternalApis::AcHmis::InvolvementsController, type: :request 
   end
 
   it 'fails with valid key that is for a different system' do
-    conf = create(:inbound_api_configuration, internal_system: create(:internal_system, :referrals))
+    conf = create(:inbound_api_configuration, internal_system: create(:internal_system, name: 'Other System'))
 
     headers = { 'Authorization' => "Bearer #{conf.plain_text_api_key}" }
 

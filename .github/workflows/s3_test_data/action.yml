@@ -1,0 +1,137 @@
+# @see docs/features/warehouse/ci-test-data.md (data sets, key setup and rotation)
+#
+## Call from the caller workflow after AWS credentials are configured:
+# - name: "Fetch testkit source files"
+#   uses: ./.github/workflows/s3_test_data
+#   with:
+#     name: testkit-source
+#     source: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_SOURCE_PATH_FY_2026 }}
+#     destination: ./drivers/datalab_testkit/spec/fixtures/inputs/
+#     encryption_key: ${{ secrets.ACTION_ASSET_ENCRYPTION_KEY }}
+
+name: 'S3 Test Data'
+description: >-
+  Copies an S3 prefix into a local directory, served from the Actions cache unless
+  an object under the prefix has changed. Files ending in .gz are decompressed.
+  The cached copy is encrypted: this repository is public, and workflows run from
+  fork pull requests can restore caches saved on the base branch but never receive
+  secrets.
+
+inputs:
+  name:
+    description: 'Short, unique name for this data set; used in the cache key and cache path'
+    required: true
+  source:
+    description: 'S3 URL of the prefix to fetch (s3://bucket/prefix/)'
+    required: true
+  destination:
+    description: 'Local directory to populate'
+    required: true
+  encryption_key:
+    description: 'Passphrase used to encrypt the cached copy (secrets.ACTION_ASSET_ENCRYPTION_KEY)'
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Compute cache key from S3 ETags
+      id: s3
+      shell: bash
+      env:
+        SOURCE: ${{ inputs.source }}
+        ENCRYPTION_KEY: ${{ inputs.encryption_key }}
+      run: |
+        set -euo pipefail
+        if [ -z "$ENCRYPTION_KEY" ]; then
+          echo "::error::encryption_key is empty; set the ACTION_ASSET_ENCRYPTION_KEY repository secret"
+          exit 1
+        fi
+        path="${SOURCE#s3://}"
+        bucket="${path%%/*}"
+        prefix="${path#*/}"
+        listing=$(aws s3api list-objects-v2 --bucket "$bucket" --prefix "$prefix" --region us-east-1 \
+          --query 'Contents[].[Key,ETag]' --output text)
+        if [ -z "$listing" ] || [ "$listing" = "None" ]; then
+          count=0
+        else
+          count=$(printf '%s\n' "$listing" | wc -l)
+        fi
+        # A digest of the key is part of the hash so a rotated key misses the cache
+        # instead of failing to decrypt the old entry.
+        key_digest=$(printf '%s' "$ENCRYPTION_KEY" | sha256sum | cut -d' ' -f1)
+        echo "count=$count" >> "$GITHUB_OUTPUT"
+        echo "hash=$(printf '%s\n%s' "$key_digest" "$listing" | sha256sum | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
+        echo "Found $count objects"
+
+    - name: Restore from cache
+      id: cache
+      if: steps.s3.outputs.count != '0'
+      uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: tmp/s3-test-data-cache/${{ inputs.name }}.tar.enc
+        key: s3-test-data-${{ inputs.name }}-${{ steps.s3.outputs.hash }}
+
+    - name: Decrypt cached copy
+      if: steps.s3.outputs.count != '0' && steps.cache.outputs.cache-hit == 'true'
+      shell: bash
+      env:
+        ENCRYPTION_KEY: ${{ inputs.encryption_key }}
+        CACHE_FILE: tmp/s3-test-data-cache/${{ inputs.name }}.tar.enc
+        DATA_DIR: tmp/s3-test-data/${{ inputs.name }}
+      run: |
+        set -euo pipefail
+        mkdir -p "$DATA_DIR"
+        openssl enc -d -aes-256-cbc -pbkdf2 -pass env:ENCRYPTION_KEY -in "$CACHE_FILE" \
+          | tar -C "$DATA_DIR" -xf -
+
+    - name: Download from S3
+      if: steps.s3.outputs.count != '0' && steps.cache.outputs.cache-hit != 'true'
+      shell: bash
+      env:
+        SOURCE: ${{ inputs.source }}
+        DATA_DIR: tmp/s3-test-data/${{ inputs.name }}
+      run: aws s3 cp --no-progress "$SOURCE" "$DATA_DIR" --recursive --region us-east-1
+
+    - name: Encrypt for cache
+      if: steps.s3.outputs.count != '0' && steps.cache.outputs.cache-hit != 'true'
+      shell: bash
+      env:
+        ENCRYPTION_KEY: ${{ inputs.encryption_key }}
+        CACHE_FILE: tmp/s3-test-data-cache/${{ inputs.name }}.tar.enc
+        DATA_DIR: tmp/s3-test-data/${{ inputs.name }}
+      run: |
+        set -euo pipefail
+        mkdir -p "$(dirname "$CACHE_FILE")"
+        tar -C "$DATA_DIR" -cf - . \
+          | openssl enc -aes-256-cbc -pbkdf2 -salt -pass env:ENCRYPTION_KEY -out "$CACHE_FILE"
+
+    - name: Save to cache
+      if: steps.s3.outputs.count != '0' && steps.cache.outputs.cache-hit != 'true'
+      uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: tmp/s3-test-data-cache/${{ inputs.name }}.tar.enc
+        key: s3-test-data-${{ inputs.name }}-${{ steps.s3.outputs.hash }}
+
+    - name: Unpack into destination
+      if: steps.s3.outputs.count != '0'
+      shell: bash
+      env:
+        DATA_DIR: tmp/s3-test-data/${{ inputs.name }}
+        DESTINATION: ${{ inputs.destination }}
+        CACHE_FILE: tmp/s3-test-data-cache/${{ inputs.name }}.tar.enc
+      run: |
+        set -euo pipefail
+        rm -f "$CACHE_FILE"
+        mkdir -p "$DESTINATION"
+        dest=$(cd "$DESTINATION" && pwd)
+        cd "$DATA_DIR"
+        # Plain files first, then .gz, so foo.gz overwrites foo when the prefix holds both.
+        find . -type f ! -name '*.gz' -print0 | while IFS= read -r -d '' f; do
+          mkdir -p "$dest/$(dirname "$f")"
+          mv "$f" "$dest/$f"
+        done
+        find . -type f -name '*.gz' -print0 | while IFS= read -r -d '' f; do
+          mkdir -p "$dest/$(dirname "$f")"
+          gunzip -c "$f" > "$dest/${f%.gz}"
+          rm "$f"
+        done

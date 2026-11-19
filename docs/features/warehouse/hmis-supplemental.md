@@ -1,3 +1,11 @@
+---
+sources:
+  - drivers/hmis_supplemental/app/jobs/hmis_supplemental/import_job.rb
+  - drivers/hmis_supplemental/app/models/hmis_supplemental/data_set.rb
+  - drivers/hmis_supplemental/app/controllers/hmis_supplemental/client_data_sets_controller.rb
+  - app/models/grda_warehouse/auth_policies/source_client_policy.rb
+---
+
 # HMIS Supplemental Data
 
 HMIS Supplemental Data provides a mechanism to attach external data sets to HMIS Clients and Enrollments. This data is uploaded via CSV from S3 and displayed as configurable tabs on the client dashboard.
@@ -59,3 +67,11 @@ To view a supplemental data set for a **Destination Client** (warehouse client),
 
 ## Notes
 - feature is also referred to as "Configurable Client Record Pages"
+
+## Gotchas
+
+- **Full replace.** Each import replaces all values for the data set inside one transaction, under an advisory lock named after the data set. The S3 object must contain every row, not a delta. A CSV that maps to no values returns before the delete, so it does not wipe the data set.
+- **Errors are not raised.** CSV parse errors are logged and sent to Sentry rather than raised.
+- **Schedule.** A daily scheduled rake task imports every data set with `sync_enabled`.
+- **ROI condition.** The destination-client ROI condition is evaluated per source client: the source's data source must have `obey_consent` on, and the destination needs an authorization visible in the user's CoCs. A data source with `obey_consent` off never shows supplemental data through this path.
+- **Data source match.** Field values are looked up by owner only when the data set's data source equals the owner's data source, so the same `personal_id` in two data sources never shares values.
