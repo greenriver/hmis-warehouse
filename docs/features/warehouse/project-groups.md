@@ -20,7 +20,7 @@ This doc covers the warehouse `GrdaWarehouse::ProjectGroup`. HMIS has its own `H
 
 The project group form tells editors this: confidential projects must be added individually.
 
-The form's project picker shows only projects the editor can see, so saving the form drops picks the editor can't see. The form warns about this.
+The form's pickers show only the projects, organizations, and data sources the editor can see, so saving the form drops picks the editor can't see. Excluded projects the editor can't see are kept, since dropping them would add those projects back. The form warns about this.
 
 ## Using a Group
 
