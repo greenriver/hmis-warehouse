@@ -40,6 +40,7 @@ class ProjectGroupsController < ApplicationController
         @project_group.assign_attributes(name: group_params[:name], notes: group_params[:notes])
         filter = ::Filters::HudFilterBase.new(user_id: current_user.id, project_type_numbers: []).update(filter_params.merge(coc_codes: []))
         filter.coc_codes = []
+        limit_selections_to_viewable(filter)
         @project_group.options = filter.to_h
         @project_group.save!
         editors = user_params[:editor_ids]&.reject(&:blank?)&.map(&:to_i)
@@ -78,6 +79,7 @@ class ProjectGroupsController < ApplicationController
         @project_group.assign_attributes(name: group_params[:name], notes: group_params[:notes])
         filter = ::Filters::HudFilterBase.new(user_id: current_user.id, project_type_numbers: []).update(filter_params)
         filter.coc_codes = []
+        limit_selections_to_viewable(filter)
         @project_group.options = filter.to_h
         @project_group.save!
         # START_ACL remove when ACL transition complete
@@ -99,6 +101,12 @@ class ProjectGroupsController < ApplicationController
   end
 
   def destroy
+    unless @project_group.available_for_delete?
+      flash[:error] = "#{@project_group.name} cannot be deleted, it is used to populate a cohort, or in determining CAS availability."
+      redirect_to edit_project_group_path(@project_group)
+      return
+    end
+
     destroyed = nil
     project_group_source.transaction do
       @project_group.remove_from_group_viewable_entities!
@@ -117,9 +125,15 @@ class ProjectGroupsController < ApplicationController
     redirect_to project_groups_path and return unless group_ids
 
     destroyed_groups = []
+    skipped_groups = []
     project_group_source.transaction do
       group_ids.each do |group|
-        project_group = project_group_scope.find(group)
+        project_group = editable_project_group_scope.find(group)
+        unless project_group.available_for_delete?
+          skipped_groups << project_group
+          next
+        end
+
         project_group.remove_from_group_viewable_entities!
         destroyed = project_group.destroy
         destroyed_groups << project_group if destroyed
@@ -128,6 +142,10 @@ class ProjectGroupsController < ApplicationController
     # primary-database teardown, outside the warehouse transaction
     destroyed_groups.each(&:remove_system_collections!)
     AccessGroup.maintain_system_groups
+    if skipped_groups.any?
+      skipped_names = skipped_groups.map(&:name).to_sentence
+      flash[:error] = "Some project groups were not deleted because they are used to populate a cohort, or in determining CAS availability: #{skipped_names}"
+    end
     redirect_to project_groups_path
   end
 
@@ -157,6 +175,40 @@ class ProjectGroupsController < ApplicationController
     params.require(:import).permit(:file)
   end
 
+  # Saved options are resolved against every project (`Filters::SystemProjectHudFilter`), so a
+  # save keeps only what the form's pickers offer this editor:
+  # - Projects, organizations, and data sources: only ones the editor can see. The edit page
+  #   warns that saving drops the rest.
+  # - Excluded projects: the editor's visible picks, plus the group's saved exclusions the editor
+  #   can't see, since dropping an exclusion would add its project back.
+  # - Project groups: cleared. The form has no project group picker.
+  # Project types aren't limited, so a type selection can still add projects the editor can't see.
+  private def limit_selections_to_viewable(filter)
+    viewable_projects = GrdaWarehouse::Hud::Project.viewable_by(current_user)
+    viewable_organizations = GrdaWarehouse::Hud::Organization.viewable_by(current_user)
+    viewable_data_sources = GrdaWarehouse::DataSource.viewable_by(current_user)
+
+    saved_excluded_ids = clean_ids(@project_group.filter.excluded_project_ids)
+    hidden_saved_excluded_ids = saved_excluded_ids - viewable_ids(viewable_projects, saved_excluded_ids)
+
+    filter.project_ids = viewable_ids(viewable_projects, filter.project_ids)
+    filter.excluded_project_ids = viewable_ids(viewable_projects, filter.excluded_project_ids) | hidden_saved_excluded_ids
+    filter.organization_ids = viewable_ids(viewable_organizations, filter.organization_ids)
+    filter.data_source_ids = viewable_ids(viewable_data_sources, filter.data_source_ids)
+    filter.project_group_ids = []
+  end
+
+  private def viewable_ids(viewable_scope, submitted_ids)
+    submitted_ids = clean_ids(submitted_ids)
+    return [] if submitted_ids.empty?
+
+    viewable_scope.where(id: submitted_ids).pluck(:id)
+  end
+
+  private def clean_ids(ids)
+    Array.wrap(ids).reject(&:blank?).map(&:to_i)
+  end
+
   def filter_params
     params.require(:filters).permit(::Filters::HudFilterBase.new(user_id: current_user.id).known_params)
   end
@@ -178,7 +230,7 @@ class ProjectGroupsController < ApplicationController
   end
 
   def set_project_group
-    @project_group = project_group_source.find(params[:id].to_i)
+    @project_group = editable_project_group_scope.find(params[:id].to_i)
   end
 
   def set_access
@@ -197,9 +249,12 @@ class ProjectGroupsController < ApplicationController
     GrdaWarehouse::ProjectGroup
   end
 
+  def editable_project_group_scope
+    project_group_source.editable_by(current_user)
+  end
+
   def project_group_scope
-    project_group_source.
-      editable_by(current_user).
+    editable_project_group_scope.
       includes(:projects).order(name: :asc)
   end
 

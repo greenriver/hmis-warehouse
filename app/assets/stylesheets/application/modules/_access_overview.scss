@@ -27,15 +27,6 @@
     background-color: rgba(25, 118, 210, 0.1);
   }
 
-  .popover {
-    max-width: 400px;
-    font-size: 1.2rem;
-
-    .popover-header {
-      font-size: 1.3rem;
-    }
-  }
-
   .access-control-description-table {
 
     .access-control,
@@ -44,5 +35,14 @@
     .collection {
       padding: .75em;
     }
+  }
+}
+
+.popover.access-overview-popover {
+  max-width: 400px;
+  font-size: 1.2rem;
+
+  .popover-header {
+    font-size: 1.3rem;
   }
 }

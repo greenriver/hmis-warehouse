@@ -94,6 +94,15 @@ module UserPermissions
       end
     end
 
+    # True when client search needs no filtering for this user.
+    # Users on access controls are always limited by them, whatever their roles grant.
+    # This is a performance optimization for role-based users with access to all clients.
+    def legacy_can_search_across_all_clients?
+      # TODO: START_ACL cleanup after ACL migration is complete
+      !using_acls? && (can_search_all_clients? || system_user?)
+      # END_ACL
+    end
+
     def window_file_access
       can_see_own_file_uploads? || can_manage_window_client_files? || can_generate_homeless_verification_pdfs?
     end

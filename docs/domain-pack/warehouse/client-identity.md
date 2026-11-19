@@ -211,6 +211,12 @@ Review paths:
 - `ClientMatchesController#index` orders candidates by `defer_count`, `score`, `id` and preloads
   each side's current destination. `#update` with `status: accepted` calls
   `ClientMatch#accept!(user:)`; `rejected` calls `#reject!`. `#defer` increments `defer_count`.
+- Every action reads matches through `client_match_scope`, which keeps only matches whose source
+  and destination clients are both in `Client.searchable_to(current_user)`. The searchable ids are
+  built once in a CTE. Users where `User#legacy_can_search_across_all_clients?` is true skip the filter.
+- `#update` with `status: candidate` on a rejected match undoes the rejection through
+  `ClientMatch#flag_as`; a stale record returns 409. JSON responses are `{id, status}`.
+- `#index` lists ongoing enrollments only for projects the user can view with `:can_view_clients`.
 - `ClientMatch.auto_process!` (daily) initializes `SimilarityMetric` if no match rows exist,
   then accepts `within_auto_accept_threshold` and rejects `within_auto_reject_threshold`. Both
   scopes return none unless `GrdaWarehouse::Config.get(:auto_de_duplication_enabled)` is true

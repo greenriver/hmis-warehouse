@@ -41,4 +41,53 @@ RSpec.describe 'Cohorts::ClientsController edit/pre_destroy', type: :request do
     expect(response.body).not_to include('Restricted Client')
     expect(response.body).to include('Name Redacted')
   end
+
+  context 'when the user can view the cohort but cannot add cohort clients' do
+    let!(:viewer) { create(:acl_user) }
+    let!(:viewer_role) { create(:role, name: 'cohort viewer', can_view_clients: true, can_view_cohorts: true) }
+
+    before do
+      setup_access_control(viewer, viewer_role, all_cohorts_collection)
+      sign_in viewer
+    end
+
+    it 'does not restore a removed client via pre_destroy' do
+      cohort_client.destroy
+
+      get pre_destroy_cohort_cohort_client_path(cohort, cohort_client)
+
+      expect(response).to redirect_to(viewer.my_root_path)
+      expect(cohort_client.reload.deleted_at).to be_present
+    end
+
+    it 'does not run a saved cohort client search' do
+      search_query = create(:grda_warehouse_client_search_query, created_by: user, params: { q: 'Client' })
+
+      get cohort_cohort_client_search_query_path(cohort_id: cohort.id, id: search_query.id)
+
+      expect(response).to redirect_to(viewer.my_root_path)
+    end
+
+    it 'does not render the bulk removal confirmation' do
+      post pre_bulk_destroy_cohort_cohort_clients_path(cohort_id: cohort.id), params: { cc: { cohort_client_ids: cohort_client.id.to_s } }
+
+      expect(response).to redirect_to(viewer.my_root_path)
+    end
+  end
+
+  context 'when the user can add cohort clients' do
+    it 'runs a saved cohort client search' do
+      search_query = create(:grda_warehouse_client_search_query, created_by: user, params: { q: 'Client' })
+
+      get cohort_cohort_client_search_query_path(cohort_id: cohort.id, id: search_query.id)
+
+      expect(response).to have_http_status(:ok)
+    end
+
+    it 'renders the bulk removal confirmation' do
+      post pre_bulk_destroy_cohort_cohort_clients_path(cohort_id: cohort.id), params: { cc: { cohort_client_ids: cohort_client.id.to_s } }
+
+      expect(response).to have_http_status(:ok)
+    end
+  end
 end

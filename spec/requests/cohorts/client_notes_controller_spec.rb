@@ -38,4 +38,72 @@ RSpec.describe Cohorts::ClientNotesController, type: :request do
     expect(response.body).not_to include('Restricted Client')
     expect(response.body).to include('Name Redacted')
   end
+
+  describe 'changing notes' do
+    let(:editor) { create(:acl_user) }
+    let!(:own_note) do
+      GrdaWarehouse::ClientNotes::CohortNote.create!(client: restricted_destination_client, user: editor, note: 'Own client note')
+    end
+    let!(:unrelated_note) do
+      GrdaWarehouse::ClientNotes::CohortNote.create!(client: create(:grda_warehouse_hud_client), user: user, note: 'Unrelated note')
+    end
+
+    before do
+      setup_access_control(editor, create(:cohort_client_editor), all_cohorts_collection)
+      sign_in editor
+    end
+
+    it 'deletes a note on the URL client' do
+      delete cohort_cohort_client_client_note_path(cohort, cohort_client, own_note)
+
+      expect(GrdaWarehouse::ClientNotes::CohortNote.exists?(own_note.id)).to be(false)
+    end
+
+    it 'does not delete a note that belongs to another client' do
+      delete cohort_cohort_client_client_note_path(cohort, cohort_client, unrelated_note)
+
+      expect(response).to have_http_status(:not_found)
+      expect(GrdaWarehouse::ClientNotes::CohortNote.exists?(unrelated_note.id)).to be(true)
+    end
+
+    context 'when the Client Notes column is read-only on the cohort' do
+      before do
+        columns = GrdaWarehouse::Cohort.available_columns
+        columns.find { |c| c.is_a?(CohortColumns::ClientNotes) }.editable = false
+        cohort.update!(column_state: columns)
+      end
+
+      it 'does not delete the note' do
+        delete cohort_cohort_client_client_note_path(cohort, cohort_client, own_note)
+
+        expect(response).to have_http_status(:redirect)
+        expect(GrdaWarehouse::ClientNotes::CohortNote.exists?(own_note.id)).to be(true)
+      end
+
+      it 'does not create a note' do
+        expect do
+          post cohort_cohort_client_client_notes_path(cohort, cohort_client),
+               params: { grda_warehouse_client_notes_cohort_note: { note: 'New note' } }
+        end.not_to change(GrdaWarehouse::ClientNotes::CohortNote, :count)
+      end
+    end
+
+    context 'when the user can view but not edit the cohort' do
+      let(:viewer) { create(:acl_user) }
+
+      before do
+        setup_access_control(viewer, create(:cohort_client_viewer), all_cohorts_collection)
+        # can_participate_in_cohorts granted on a collection that does not contain this cohort
+        setup_access_control(viewer, create(:cohort_client_editor), create(:collection))
+        sign_in viewer
+      end
+
+      it 'does not delete the note' do
+        delete cohort_cohort_client_client_note_path(cohort, cohort_client, own_note)
+
+        expect(response).to have_http_status(:redirect)
+        expect(GrdaWarehouse::ClientNotes::CohortNote.exists?(own_note.id)).to be(true)
+      end
+    end
+  end
 end

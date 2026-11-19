@@ -33,10 +33,13 @@ module WarehouseReports
     end
 
     def set_report
+      @cohort = GrdaWarehouse::Cohort.viewable_by(current_user).find_by(id: @filter.cohort_id)
+      not_authorized! if @filter.cohort_id.present? && @cohort.nil?
+
       @report = WarehouseReport::CohortChanges.new(
         start_date: @filter.start,
         end_date: @filter.end,
-        cohort_id: @filter.cohort_id,
+        cohort_id: @cohort&.id,
       )
     end
 
