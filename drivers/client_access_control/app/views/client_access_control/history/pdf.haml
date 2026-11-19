@@ -14,7 +14,7 @@
   - content_for :title, title
   -# Similar to = render 'layouts/print_seal', but different size and classes
   - logo = GrdaWarehouse::Theme.print_logo
-  - if logo.attached?
+  - if GrdaWarehouse::Theme.allowed_logo?(logo)
     .history__logo
       - content_type = logo.blob.content_type
       = image_tag("data:#{content_type};base64,#{GrdaWarehouse::Theme.encoded_print_logo}", class: :seal, width: 100, height: 100)
