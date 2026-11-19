@@ -96,14 +96,14 @@
             - if @ongoing_enrollments.present?
               - enrollments = @ongoing_enrollments[client_a.destination_client.id] rescue []
               - if enrollments.present?
-                = enrollments.join('<br />').html_safe
+                = safe_join(enrollments, tag.br)
           %td
           %td
           %td
             - if @ongoing_enrollments.present?
               - enrollments = @ongoing_enrollments[client_b.destination_client.id] rescue []
               - if enrollments.present?
-                = enrollments.join('<br />').html_safe
+                = safe_join(enrollments, tag.br)
     .client-match--actions
       - if match.candidate?
         :ruby
