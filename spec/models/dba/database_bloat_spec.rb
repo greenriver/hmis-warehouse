@@ -163,6 +163,14 @@ RSpec.describe Dba::DatabaseBloat, type: :model do
     end
   end
 
+  [:bloated_indexes, :bloated_tables, :unused_indexes].each do |query|
+    describe "##{query}" do
+      it 'runs against a real database' do
+        expect { db.send(query).to_a }.not_to raise_error
+      end
+    end
+  end
+
   describe '#quote_pg_identifier' do
     it 'leaves lowercase snake_case identifiers unquoted' do
       expect(db.send(:quote_pg_identifier, 'my_table')).to eq('my_table')

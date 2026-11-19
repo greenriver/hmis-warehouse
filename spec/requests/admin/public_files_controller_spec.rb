@@ -42,5 +42,14 @@ RSpec.describe Admin::PublicFilesController, type: :request do
       created = GrdaWarehouse::PublicFile.order(:id).last
       expect(created.public_file).to be_attached
     end
+
+    it 'sets the error flash to the validation messages only' do
+      post admin_public_files_path, params: { grda_warehouse_public_file: { name: 'client/hmis_consent' } }
+
+      expected = GrdaWarehouse::PublicFile.new(name: 'client/hmis_consent', user_id: user.id).tap(&:valid?).errors.full_messages.join('; ')
+      expect(expected).not_to be_empty
+      expect(flash[:error]).to eq(expected)
+      expect(flash[:error]).not_to include('grda_warehouse_public_file')
+    end
   end
 end

@@ -1,7 +1,6 @@
 - title = 'Edit Theme'
 - content_for :title, title
 %h1= title
-= render 'menus/admin_tabs'
 
 %p
   The theme
@@ -21,7 +20,7 @@
       .col
         = f.input :logo, as: :file, label: 'Logo'
         %p The logo will be displayed at 85px tall, with a max width of 450px
-      - if @theme.logo.attached?
+      - if @theme.logo_image?('logo')
         .col
           %h5 Current Logo
           .seal-image
@@ -35,7 +34,7 @@
       .col
         = f.input :print_logo, as: :file, label: 'Print Logo'
         %p The print logo will be displayed in the header of the printed reports.
-      - if @theme.print_logo.attached?
+      - if @theme.logo_image?('print_logo')
         .col
           %h5 Current Print Logo
           .seal-image
@@ -52,7 +51,7 @@
       .col
         = f.input :hmis_logo, as: :file, label: 'HMIS Logo'
         %p The HMIS logo will be displayed on the HMIS login page.
-      - if @theme.hmis_logo.attached?
+      - if @theme.logo_image?('hmis_logo')
         .col
           %h5 Current HMIS Logo
           .seal-image

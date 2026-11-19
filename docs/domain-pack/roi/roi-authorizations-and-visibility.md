@@ -79,6 +79,9 @@ when changing what CAS receives about consent.
   the ACL branch and `consent_sub_query(coc_codes, user)` on the legacy branch. Callers use the
   public `clients_source_visible_to`, `clients_source_searchable_to`, `enrollments_visible_to`,
   and the `Client` scopes `source_visible_to`, `searchable_to`, `destination_visible_to`.
+  `User#legacy_can_search_across_all_clients?` (in `UserPermissions`) is true for non-ACL users
+  with `can_search_all_clients` and for system users; `searchable_to` then applies no restriction.
+  ACL users are always limited.
 - `GrdaWarehouse::Hud::Client#show_demographics_to?(user)` and
   `#active_confirmed_consent_in_cocs?(coc_codes)`, defined in
   `drivers/client_access_control/.../client_extension.rb`.

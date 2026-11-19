@@ -1,7 +1,6 @@
 - title = 'Warehouse Colors'
 - content_for :title, title
 %h1= title
-= render 'menus/admin_tabs'
 
 = simple_form_for :colors, as: :theme, url: admin_color_path, method: :patch do |f|
   .row.mt-6

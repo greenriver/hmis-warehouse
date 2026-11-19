@@ -17,5 +17,9 @@ module ClientDependentControllers
     def destination_searchable_client_scope
       client_source.destination_from_searchable_to(current_user)
     end
+
+    def destination_visible_client_scope
+      client_source.destination_visible_to(current_user)
+    end
   end
 end

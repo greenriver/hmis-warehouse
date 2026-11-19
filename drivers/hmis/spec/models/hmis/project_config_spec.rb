@@ -59,6 +59,25 @@ RSpec.describe Hmis::ProjectConfig, type: :model do
     expect(config.errors[:config_type]).to include('cannot be changed once set')
   end
 
+  describe 'external form submission notifications' do
+    it 'creates a config of the new type' do
+      config = Hmis::ProjectConfig.config_factory('EXTERNAL_FORM_SUBMISSION_NOTIFICATIONS')
+      config.assign_attributes(project: p1, data_source: ds1)
+
+      expect(config).to be_valid
+      config.save!
+      expect(Hmis::ProjectConfig.with_config_type('EXTERNAL_FORM_SUBMISSION_NOTIFICATIONS').for_project(p1)).to contain_exactly(config)
+    end
+
+    it 'is offered in the picklist only when external forms are enabled' do
+      allow(HmisExternalApis::ConsumeExternalFormSubmissionsJob).to receive(:enabled?).and_return(false)
+      expect(Types::Forms::PickListOption.project_config_types_picklist.pluck(:code)).not_to include('EXTERNAL_FORM_SUBMISSION_NOTIFICATIONS')
+
+      allow(HmisExternalApis::ConsumeExternalFormSubmissionsJob).to receive(:enabled?).and_return(true)
+      expect(Types::Forms::PickListOption.project_config_types_picklist.pluck(:code)).to include('EXTERNAL_FORM_SUBMISSION_NOTIFICATIONS')
+    end
+  end
+
   describe '.viewable_by' do
     let!(:ds1) { create(:hmis_data_source) }
     let!(:ds2) { create(:hmis_data_source) }

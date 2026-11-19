@@ -27,6 +27,12 @@ RSpec.describe TaskQueue, '.register_tasks' do
 
     config.queued_tasks[:hmis_csv_2026_importer_log_id_date_updated_index].call
   end
+
+  it 'builds the files and Enrollment indexes' do
+    expect(GrdaWarehouse::Tasks::BuildFilesAndEnrollmentIndexes).to receive(:run!)
+
+    config.queued_tasks[:files_client_id_and_enrollment_household_id_indexes].call
+  end
 end
 
 RSpec.describe TaskQueue, '#run!' do

@@ -151,6 +151,30 @@ RSpec.describe Menu::Menu, type: :model do
     end
   end
 
+  describe '#warehouse_configuration_menu' do
+    let(:user) { create(:user) }
+    let(:titles) { Array(menu.warehouse_configuration_menu.children).map(&:title) }
+
+    before { user.legacy_roles << role }
+
+    context 'with only can_edit_translations' do
+      let(:role) { create(:role, can_edit_translations: true) }
+
+      it 'shows Translations' do
+        expect(titles).to include('Translations')
+      end
+    end
+
+    context 'with only can_manage_config' do
+      let(:role) { create(:role, can_manage_config: true) }
+
+      it 'shows Site Config but not Translations' do
+        expect(titles).to include('Site Config')
+        expect(titles).not_to include('Translations')
+      end
+    end
+  end
+
   describe '#site_menu' do
     let(:user) { create(:acl_user) }
     let(:context) do

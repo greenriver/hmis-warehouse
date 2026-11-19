@@ -1,0 +1,33 @@
+// Colors: http://colorbrewer2.org/#type=diverging&scheme=RdYlGn&n=5
+.match-flag {
+  font-family: monospace;
+  border-radius: 4px;
+  font-weight: bold;
+  padding: 1px 2px;
+  margin: 1px;
+}
+
+.match-flag-neutral {
+  background-color: #ddd;
+  color: #fff;
+}
+
+.match-flag-strong-for {
+  background-color: #1a9641;
+  color: #fff;
+}
+
+.match-flag-for {
+  background-color: #a6d96a;
+  color: #000;
+}
+
+.match-flag-against {
+  background-color: #fdae61;
+  color: #000;
+}
+
+.match-flag-strong-against {
+  background-color: #d7191c;
+  color: #fff;
+}

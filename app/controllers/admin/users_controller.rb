@@ -34,9 +34,14 @@ module Admin
       @user.set_initial_two_factor_secret!
     end
 
-    # Devise arm: clear 2FA when the admin unsets it in the form.
+    # Devise arm: clear 2FA when the admin unsets it in the form, but only if 2FA is on
+    # (or was switched off via the profile param, leaving confirmed_2fa >= 2).
+    # Leaves a user who is mid-setup alone.
     private def disable_two_factor_if_requested
-      @user.disable_2fa! if user_params[:otp_required_for_login] == 'false'
+      return unless user_params[:otp_required_for_login] == 'false'
+      return unless @user.otp_required_for_login? || @user.confirmed_2fa >= 2
+
+      @user.disable_2fa!
     end
 
     # Devise arm: suppress the :confirmable reconfirmation email on admin edits.

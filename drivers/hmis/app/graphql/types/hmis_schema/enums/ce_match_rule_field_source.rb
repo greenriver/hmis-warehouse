@@ -22,7 +22,7 @@ module Types
     # These use "HUD" as their user-facing label.
     value 'PSDE', 'HUD'
 
-    # Future choices:
-    # value 'HOUSEHOLD', 'Household' # e.g. household size, youngest member age, etc.
+    # Household composition fields, such as `household.size` or `household.youngest_member_age`
+    value 'HOUSEHOLD', 'Household'
   end
 end

@@ -7,6 +7,7 @@
 # frozen_string_literal: true
 
 require 'rails_helper'
+require_relative '../../../requests/hmis/login_and_permissions'
 RSpec.describe Hmis::Hud::HmisService, type: :model do
   let(:ds1) { create :hmis_data_source }
   let!(:service_type) { create :hmis_custom_service_type_for_hud_service, data_source: ds1, name: 'some service' }
@@ -16,6 +17,53 @@ RSpec.describe Hmis::Hud::HmisService, type: :model do
   it 'works' do
     # contains view model of the service
     expect(project.hmis_services).to contain_exactly(Hmis::Hud::HmisService.find_by(owner: service))
+  end
+
+  describe '.with_service_ids' do
+    # Same primary key as the HUD service, so only the view id prefix tells them apart.
+    let!(:custom_service) { create :hmis_custom_service, id: service.id, data_source: ds1 }
+
+    it 'resolves a HUD service view id to that service only' do
+      expect(described_class.with_service_ids("1#{service.id}").map(&:owner)).to contain_exactly(service)
+    end
+
+    it 'resolves a custom service view id to that service only' do
+      expect(described_class.with_service_ids("2#{custom_service.id}").map(&:owner)).to contain_exactly(custom_service)
+    end
+
+    it 'resolves a mixed list of integer ids' do
+      ids = ["1#{service.id}".to_i, "2#{custom_service.id}".to_i]
+      expect(described_class.with_service_ids(ids).map(&:owner)).to contain_exactly(service, custom_service)
+    end
+
+    it 'returns no rows for malformed ids' do
+      ['1', "1#{service.id}abc", "10#{service.id}", '1' + '9' * 25, '', nil].each do |id|
+        expect(described_class.with_service_ids(id).to_a).to eq([]), "expected no rows for #{id.inspect}"
+      end
+    end
+
+    it 'uses the primary keys of the underlying tables when scoped to a viewer' do
+      viewer = create(:user).related_hmis_user(ds1)
+      create_access_control(viewer, ds1)
+
+      described_class.connection.execute('SET LOCAL enable_seqscan = off')
+      relation = described_class.viewable_by(viewer).with_service_ids(["1#{service.id}", "2#{custom_service.id}"])
+      plan = described_class.connection.select_values("EXPLAIN #{relation.to_sql}").join("\n")
+
+      expect(plan).to include('Services_pkey', 'CustomServices_pkey')
+      expect(plan).not_to match(/Seq Scan on "(Custom)?Services"/)
+    end
+  end
+
+  describe '.find_owner_by_service_id' do
+    it 'returns the owner of the matching row' do
+      expect(described_class.find_owner_by_service_id("1#{service.id}")).to eq(service)
+    end
+
+    it 'returns nil when the current scope excludes the row' do
+      scope = described_class.where(owner_type: 'Hmis::Hud::CustomService')
+      expect(scope.find_owner_by_service_id("1#{service.id}")).to be_nil
+    end
   end
 
   # Reverted behavior for performance reasons. If this happens, a data cleanup should occur instead.

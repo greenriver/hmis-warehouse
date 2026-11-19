@@ -1,6 +1,5 @@
 - content_for :title, t('.title')
 %h1= content_for :title
-= render partial: 'menus/admin_tabs'
 
 = render 'admin/users/tabs', selected_path: admin_account_requests_path
 

@@ -85,4 +85,12 @@ RSpec.describe 'WarehouseReports::Cas::ChronicReconciliationController#index', t
 
     expect(response.body.scan(Date.current.strftime(Date::DATE_FORMATS[:default])).size).to be >= 2
   end
+
+  it 'renders without a control to remove a client from CAS' do
+    get warehouse_reports_cas_chronic_reconciliation_index_path
+
+    expect(response).to have_http_status(:ok)
+    expect(response.body).not_to include('jRemoveCasActive')
+    expect(response.body).not_to include('>Remove<')
+  end
 end

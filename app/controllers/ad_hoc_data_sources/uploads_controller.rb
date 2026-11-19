@@ -18,11 +18,11 @@ class AdHocDataSources::UploadsController < ApplicationController
   def show
     @found_clients = GrdaWarehouse::Hud::Client.where(id: @upload.ad_hoc_clients.joins(:client).select(:client_id)).index_by(&:id)
     current_user.policy_context.preload_client_dependencies(@found_clients.keys)
-    possible_client_ids = @upload.ad_hoc_clients.pluck(:matching_client_ids).flatten
+    row_matches = @upload.ad_hoc_clients.pluck(:id, :matching_client_ids)
+    possible_client_ids = row_matches.flat_map { |_id, ids| Array(ids) }.uniq
     possible_matches = GrdaWarehouse::Hud::Client.where(id: possible_client_ids).index_by(&:id)
-    @possible_matches = {}
-    @upload.ad_hoc_clients.each do |ad_hoc_client|
-      @possible_matches[ad_hoc_client.id] = possible_matches.values_at(*ad_hoc_client.matching_client_ids).compact
+    @possible_matches = row_matches.to_h do |row_id, ids|
+      [row_id, possible_matches.values_at(*Array(ids).uniq).compact]
     end
   end
 

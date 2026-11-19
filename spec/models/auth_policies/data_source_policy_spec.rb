@@ -24,6 +24,11 @@ RSpec.describe GrdaWarehouse::AuthPolicies::DataSourcePolicy, type: :model do
            can_edit_data_sources: true)
   end
 
+  let(:delete_only_role) do
+    create(:role,
+           can_delete_data_sources: true)
+  end
+
   let(:upload_only_role) do
     create(:role,
            can_upload_hud_zips: true)
@@ -52,6 +57,23 @@ RSpec.describe GrdaWarehouse::AuthPolicies::DataSourcePolicy, type: :model do
       end
     end
 
+    context 'with delete-only role' do
+      let(:role) { delete_only_role }
+
+      it 'grants delete but denies edit' do
+        expect(policy.can_delete?).to be true
+        expect(policy.can_edit?).to be false
+      end
+    end
+
+    context 'with edit-only role, for delete' do
+      let(:role) { edit_only_role }
+
+      it 'denies delete' do
+        expect(policy.can_delete?).to be false
+      end
+    end
+
     context 'with upload-only role' do
       let(:role) { upload_only_role }
 
@@ -72,6 +94,14 @@ RSpec.describe GrdaWarehouse::AuthPolicies::DataSourcePolicy, type: :model do
   end
 
   shared_examples 'permission checks without access' do
+    context 'with delete-only role' do
+      let(:role) { delete_only_role }
+
+      it 'denies delete' do
+        expect(policy.can_delete?).to be false
+      end
+    end
+
     it 'denies all access when user lacks resource access' do
       [full_access_role, edit_only_role, upload_only_role, no_access_role].each do |test_role|
         expect(policy.can_edit?).to be(false),
@@ -133,6 +163,68 @@ RSpec.describe GrdaWarehouse::AuthPolicies::DataSourcePolicy, type: :model do
 
     context 'without any access' do
       include_examples 'permission checks without access'
+    end
+  end
+
+  describe '#can_edit_projects?' do
+    let(:user) { create(:acl_user) }
+    let(:collection) { create(:collection) }
+    let(:policy) { User.find(user.id).policy_for(data_source) }
+    let(:project_editor_role) { create(:role, can_edit_projects: true) }
+
+    it 'allows a user with the permission from a grant on the data source' do
+      collection.set_viewables({ data_sources: [data_source.id] })
+      setup_access_control(user, project_editor_role, collection)
+      expect(policy.can_edit_projects?).to be true
+    end
+
+    it 'denies a user with the permission only on another collection' do
+      setup_access_control(user, project_editor_role, create(:collection))
+      expect(policy.can_edit_projects?).to be false
+    end
+  end
+
+  describe 'import monitoring checks' do
+    let(:user) { create(:acl_user) }
+    let(:collection) { create(:collection) }
+    let(:policy) { User.find(user.id).policy_for(data_source) }
+    let(:alerts_role) { create(:role, can_edit_warehouse_alerts: true) }
+
+    before { collection.set_viewables({ data_sources: [data_source.id] }) }
+
+    # The three checks share one rule today; each example asks all of them so a later split
+    # shows up here.
+    def import_monitoring_answers
+      {
+        thresholds: policy.can_edit_import_thresholds?,
+        csv_monitors: policy.can_edit_import_csv_monitors?,
+        alert_recipients: policy.can_edit_import_alert_recipients?,
+      }
+    end
+
+    def all_answers(value)
+      { thresholds: value, csv_monitors: value, alert_recipients: value }
+    end
+
+    it 'allows a user with the warehouse alerts permission on the data source' do
+      setup_access_control(user, alerts_role, collection)
+      expect(policy.can_edit?).to be false
+      expect(import_monitoring_answers).to eq(all_answers(true))
+    end
+
+    it 'denies a user with the warehouse alerts permission only on another collection' do
+      setup_access_control(user, alerts_role, create(:collection))
+      expect(import_monitoring_answers).to eq(all_answers(false))
+    end
+
+    it 'allows a user with an edit grant on the data source' do
+      setup_access_control(user, edit_only_role, collection)
+      expect(import_monitoring_answers).to eq(all_answers(true))
+    end
+
+    it 'denies a user with neither' do
+      setup_access_control(user, upload_only_role, collection)
+      expect(import_monitoring_answers).to eq(all_answers(false))
     end
   end
 

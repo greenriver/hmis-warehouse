@@ -64,7 +64,8 @@ Rails.application.configure do
   # Skip http-to-https redirect for the default health check endpoint.
   # config.ssl_options = { redirect: { exclude: ->(request) { request.path == "/up" } } }
 
-  # Log to STDOUT by default
+  # Log to STDOUT by default; unbuffered so log lines stay ordered with stderr (e.g. exceptions) in pods
+  $stdout.sync = true
   config.logger = ActiveSupport::Logger.new($stdout).
     tap  { |logger| logger.formatter = ::Logger::Formatter.new }.
     then { |logger| ActiveSupport::TaggedLogging.new(logger) }

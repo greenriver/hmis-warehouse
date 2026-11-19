@@ -180,5 +180,11 @@ class TaskQueue < ApplicationRecord
         HmisCsvTwentyTwentySix.data_lake_file_class(name, 'Importer').ensure_importer_log_id_date_updated_index!
       end
     end
+
+    # Indexes behind client file lists/counts and the HMIS enrollment HouseholdID search; both
+    # tables are too busy to index inside a deploy. Remove with the class once rolled out.
+    config.queued_tasks[:files_client_id_and_enrollment_household_id_indexes] = -> do
+      GrdaWarehouse::Tasks::BuildFilesAndEnrollmentIndexes.run!
+    end
   end
 end

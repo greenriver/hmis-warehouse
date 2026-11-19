@@ -22,9 +22,9 @@ wb.add_worksheet(name: 'Clients with Disabilities') do |sheet|
     style: title,
   )
   @clients.each do |client|
-    disabilities = client['disabilities'].join(', ')
     enrollment = client['enrollment']
     policy = current_user.reporting_policy_for_project(project_id: nil, mode: :download, client_id: client['id'])
+    disabilities = visible_disabilities(client, policy: policy).join(', ')
     pii = GrdaWarehouse::PiiProvider.from_attributes(policy: policy, first_name: client['FirstName'], last_name: client['LastName'])
     sheet.add_row [
       client['id'],

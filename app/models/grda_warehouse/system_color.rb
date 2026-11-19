@@ -8,6 +8,10 @@
 
 module GrdaWarehouse
   class SystemColor < GrdaWarehouseBase
+    HEX_COLOR = /\A#\h{3}(\h{3})?\z/
+
+    validates :background_color, format: { with: HEX_COLOR }
+
     # A method to deal with not having enough colors sometimes
     # if the full slug is "disabling-condition-5", pass in 'disabling-condition' and 5
     def color_for(slug, id)
@@ -17,7 +21,8 @@ module GrdaWarehouse
     end
 
     def self.as_css
-      css = all.map do |color|
+      # as_css is emitted html_safe into a <style> block, so skip stored values that fail the format check
+      css = all.select { |color| color.background_color.to_s.match?(HEX_COLOR) }.map do |color|
         color_css = ".#{color.slug} { background-color: #{color.background_color}; "
         color_css += "color: #{color.calculated_foreground_color(color.background_color)}; "
         color_css + '}'

@@ -8,7 +8,7 @@
 
 OpenPath::Application.routes.draw do
   scope module: :hud_path_report, path: :hud_reports, as: :hud_reports do
-    resources :paths do
+    resources :paths, except: [:edit, :update] do
       get :running, on: :collection
       get :running_all_questions, on: :collection
       get :history, on: :collection

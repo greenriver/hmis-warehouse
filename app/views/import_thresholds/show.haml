@@ -6,7 +6,11 @@
 
 %h2 Import-Wide Monitoring Thresholds
 .mb-4= render 'scenarios'
-= simple_form_for import_threshold, url: data_source_import_threshold_path, method: :patch do |f|
+- can_edit_thresholds = data_source_policy.can_edit_import_thresholds?
+- can_edit_recipients = data_source_policy.can_edit_import_alert_recipients?
+- unless can_edit_thresholds
+  .alert.alert-info You can view this configuration but not change it.
+= simple_form_for import_threshold, url: data_source_import_threshold_path, method: :patch, defaults: { disabled: !can_edit_thresholds } do |f|
   .row
     .col-sm
       .well
@@ -23,10 +27,11 @@
         %div{ class: slug.parameterize }
           - if import_threshold.items_for(slug).any?
             = render 'table', slug: slug
-        .none-found
-          = link_to new_data_source_import_threshold_notification_configuration_path(notification_slug: slug), class: 'btn btn-secondary btn-sm', data: {loads_in_ajax_modal: true} do
-            %i.icon-plus
-            Add Notification
+        - if can_edit_recipients
+          .none-found
+            = link_to new_data_source_import_threshold_notification_configuration_path(notification_slug: slug), class: 'btn btn-secondary btn-sm', data: {loads_in_ajax_modal: true} do
+              %i.icon-plus
+              Add Notification
     .col-sm
       .well
         %h2 Error Counts
@@ -41,10 +46,12 @@
         %div{ class: slug.parameterize }
           - if import_threshold.items_for(slug).any?
             = render 'table', slug: slug
-        .none-found
-          = link_to new_data_source_import_threshold_notification_configuration_path(notification_slug: slug), class: 'btn btn-secondary btn-sm', data: {loads_in_ajax_modal: true} do
-            %i.icon-plus
-            Add Notification
-      .d-flex.justify-content-end= f.submit 'Update Thresholds', class: 'btn btn-primary'
+        - if can_edit_recipients
+          .none-found
+            = link_to new_data_source_import_threshold_notification_configuration_path(notification_slug: slug), class: 'btn btn-secondary btn-sm', data: {loads_in_ajax_modal: true} do
+              %i.icon-plus
+              Add Notification
+      - if can_edit_thresholds
+        .d-flex.justify-content-end= f.submit 'Update Thresholds', class: 'btn btn-primary'
 %hr
 = render 'import_csv_monitors/monitors_section', import_csv_monitors: @import_csv_monitors, data_source: data_source, metric_defs_by_subtype: @metric_defs_by_subtype

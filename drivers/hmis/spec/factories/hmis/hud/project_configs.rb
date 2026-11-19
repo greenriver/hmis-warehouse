@@ -49,4 +49,7 @@ FactoryBot.define do
 
   factory :hmis_project_sends_direct_ce_referrals_config, parent: :hmis_project_config_base, class: 'Hmis::ProjectSendsDirectCeReferralsConfig' do
   end
+
+  factory :hmis_project_external_form_submission_notification_config, parent: :hmis_project_config_base, class: 'Hmis::ProjectExternalFormSubmissionNotificationConfig' do
+  end
 end

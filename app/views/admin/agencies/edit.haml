@@ -11,7 +11,7 @@
     %li.nav-item
       %a.nav-link.active{href: '#active', role: "presentation", data: { 'bs-toggle' => :tab}, aria: {controls:"active", selected:"true"}}
         Active Users
-        .badge.badge-primary.badge-pill
+        .badge.text-bg-primary.rounded-pill
           #{@agency.users.active.count}
     %li.nav-item
       %a.nav-link{href: '#inactive', role: "presentation", data: { 'bs-toggle' => :tab}, aria: {controls:"inactive", selected:"false"}}

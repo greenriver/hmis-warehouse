@@ -11,6 +11,7 @@ module Clients
     include ClientPathGenerator
     include AjaxModalRails::Controller
     include ClientDependentControllers
+    include ClientEnrollmentVisibility
 
     before_action :require_can_view_enrollment_details!
     before_action :client
@@ -23,11 +24,13 @@ module Clients
     end
 
     def client
-      @client ||= destination_searchable_client_scope.find(params[:client_id].to_i)
+      @client ||= destination_visible_client_scope.find(params[:client_id].to_i)
     end
 
     def assessment
-      @assessment ||= @client.source_assessments.preload(:assessment_questions, :assessment_results, enrollment: :project).
+      @assessment ||= @client.source_assessments.
+        where(visible_enrollment_condition).
+        preload(:assessment_questions, :assessment_results, enrollment: :project).
         find(params[:id].to_i)
     end
   end

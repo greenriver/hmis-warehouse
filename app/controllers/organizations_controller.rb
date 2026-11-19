@@ -6,11 +6,17 @@
 
 # frozen_string_literal: true
 
-class OrganizationsController < ApplicationController
+class OrganizationsController < ApplicationControllerV2
   include ArelHelper
-  before_action :require_can_delete_projects_or_data_sources!, only: [:destroy]
-  before_action :require_can_edit_organizations!, only: [:edit, :update]
+  # viewable_by includes organizations reached only through one of their projects, so the
+  # policy decides whether the user may change the organization itself.
   before_action :set_organization, only: [:destroy, :edit, :update]
+  authorize_with(only: :destroy) { organization_policy.can_delete? }
+  authorize_with(only: [:edit, :update]) { organization_policy.can_edit? }
+
+  helper_method def organization_policy
+    current_user.policy_for(@organization)
+  end
 
   def destroy
     name = @organization.OrganizationName

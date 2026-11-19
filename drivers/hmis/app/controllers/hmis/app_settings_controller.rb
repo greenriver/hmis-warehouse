@@ -13,8 +13,8 @@ class Hmis::AppSettingsController < Hmis::BaseController
   def show
     okta_enabled = ENV['HMIS_OKTA_CLIENT_ID'].present? && ENV['OKTA_DOMAIN'].present?
 
-    logo = GrdaWarehouse::Theme.hmis_logo.presence # prefer HMIS_LOGO if provided, otherwise LOGO
-    logo_path = logo_path('hmis_logo') if logo.present?
+    logo = GrdaWarehouse::Theme.hmis_logo # prefer HMIS_LOGO if provided, otherwise LOGO
+    logo_path = logo_path('hmis_logo') if GrdaWarehouse::Theme.allowed_logo?(logo)
 
     hostname = ENV['FQDN']
 

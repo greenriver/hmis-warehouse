@@ -327,7 +327,7 @@ class Menu::Menu
     menu.add_child(
       Menu::Item.new(
         user: user,
-        visible: ->(user) { user.can_manage_config? }, # rubocop:disable Style/SymbolProc
+        visible: ->(user) { user.can_edit_translations? }, # rubocop:disable Style/SymbolProc
         path: admin_translation_keys_path,
         title: 'Translations',
       ),

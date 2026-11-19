@@ -27,7 +27,7 @@ class ExternalHmisConfigurationsController < ApplicationController
   end
 
   private def data_source_scope
-    GrdaWarehouse::DataSource.viewable_by(current_user, permission: :can_edit_data_sources)
+    GrdaWarehouse::DataSource.editable_by(current_user)
   end
 
   private def data_source

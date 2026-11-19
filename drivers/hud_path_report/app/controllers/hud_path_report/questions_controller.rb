@@ -23,7 +23,7 @@ module HudPathReport
     end
 
     def create
-      question = params[:question]
+      question = generator.valid_question_number(params[:question])
       @report = report_source.from_filter(@filter, report_name, build_for_questions: [question])
       generator.new(@report).queue
       redirect_to history_hud_reports_paths_path

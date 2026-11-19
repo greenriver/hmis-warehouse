@@ -41,6 +41,18 @@ class GrdaWarehouse::AuthPolicies::ProjectPolicy < GrdaWarehouse::AuthPolicies::
     resource_permissions.include?(:can_edit_projects) || resource_permissions.include?(:can_view_confidential_project_names)
   end
 
+  # For confidential projects, may the user see the name of the project's organization? Imported
+  # projects can reference an OrganizationID with no matching organization; there is no name to
+  # show then.
+  def can_view_organization_name?
+    return true unless project.confidential?
+    return false if project.organization.blank?
+    return false unless can_view_name?
+    return true unless context.organization_name_requires_organization_grant?
+
+    user.policy_for(project.organization).can_view_name?
+  end
+
   protected
 
   def validate_resource!(arg)

@@ -43,7 +43,7 @@
                 %td
                   - if k.to_s == 'destination_client_id'
                     = link_to_if @report.can_see_client_details?(current_user), value, appropriate_client_path(item[k])
-                    %a{href: '#', class: ['btn', 'btn-sm'], data: { 'bs-toggle' => :popover, title: 'Client Information', url: api_client_path(item.client_id), html: 'true' }}
+                    %a{href: '#', class: ['btn', 'btn-sm'], data: { 'bs-toggle' => :popover, 'bs-title' => 'Client Information', 'bs-url' => api_client_path(item.client_id), 'bs-html' => 'true' }}
                       %i.icon-info
                   - elsif k.to_s == 'hmis_enrollment_id'
                     = hmis_external_link(item.enrollment, data_source: item.data_source, user: current_user, wrapper_class: nil, text: formatted_value, icon_class: nil, icon_style: nil) || formatted_value
