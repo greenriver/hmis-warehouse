@@ -4,7 +4,7 @@
     .d-flex
       %h3.mb-0 Details & visibility
       .d-flex.ml-auto
-        - if can_edit_data_sources?
+        - if data_source_policy.can_edit?
           = link_to edit_data_source_path, class: 'btn btn-secondary btn-sm mr-2' do
             Edit
         = render 'more_actions_menu'

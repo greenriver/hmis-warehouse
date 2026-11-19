@@ -13,9 +13,12 @@ module WarehouseReports
     def perform(params)
       report = GrdaWarehouse::WarehouseReports::EnrolledDisabledReport.new
       report.started_at = DateTime.now
-      report.parameters = params
-
       @user = User.find(params[:current_user_id])
+
+      filter_params = params[:filter]
+      disability_types = permitted_disability_types(filter_params[:disabilities])
+      permitted_filter = filter_params.merge(disabilities: disability_types.map(&:to_s))
+      report.parameters = params.merge(filter: permitted_filter)
 
       report.user_id = @user.id
       report.parameters[:visible_projects] = if GrdaWarehouse::DataSource.can_see_all_data_sources?(@user)
@@ -24,10 +27,8 @@ module WarehouseReports
         project_source.pluck(:id, :ProjectName)
       end
 
-      filter_params = params[:filter]
-
       clients = []
-      if filter_params[:disabilities].empty?
+      if disability_types.empty?
         clients = client_source.none
       else
         start_date = filter_params[:start].to_date
@@ -45,7 +46,7 @@ module WarehouseReports
         enrollment_scope = enrollment_scope.in_age_ranges(filter_params[:age_ranges], on_date: start_date)
 
         clients = client_source.joins(source_disabilities: :project, source_enrollments: :service_history_enrollment).
-          merge(GrdaWarehouse::Hud::Disability.where(DisabilityType: filter_params[:disabilities].reject(&:blank?), DisabilityResponse: [1, 2, 3])).
+          merge(GrdaWarehouse::Hud::Disability.where(DisabilityType: disability_types, DisabilityResponse: [1, 2, 3])).
           merge(GrdaWarehouse::Hud::Project.with_project_type(filter_params[:project_types].reject(&:blank?))).
           merge(project_source).
           merge(enrollment_scope).
@@ -66,9 +67,23 @@ module WarehouseReports
       report.client_count = clients.size
       report.finished_at = DateTime.now
       report.data = data
-      report.save
+      # The controller validated the request; skip the parameter validation here so a report
+      # whose types were all removed for lack of permission still saves as an empty report.
+      report.save(validate: false)
 
       NotifyUser.enrolled_disabled_report_finished(params[:current_user_id], report.id).deliver_later
+    end
+
+    # The job must enforce sensitive-type permissions itself; it can't trust the posted list.
+    private def permitted_disability_types(requested)
+      # Raise on a missing label so a renamed HUD value can't silently skip the exclusion
+      hud_util = ::HudHelper.util
+      excluded = []
+      excluded << hud_util.disability_type('HIV/AIDS', true, raise_on_missing: true) unless @user.can_view_hiv_status?
+      excluded << hud_util.disability_type('Mental health disorder', true, raise_on_missing: true) unless @user.can_view_dmh_status?
+
+      requested_types = Array(requested).reject(&:blank?).map(&:to_i)
+      requested_types - excluded
     end
 
     def client_source

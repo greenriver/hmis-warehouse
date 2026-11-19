@@ -17,7 +17,7 @@
               - if k.to_sym == :client_id
                 = link_to appropriate_client_path(client[k]) do
                   = client[k]
-                %a{href: '#', class: ['btn', 'btn-sm'], data: { 'bs-toggle' => :popover, title: 'Client Information', url: api_client_path(client.client_id), html: 'true' }}
+                %a{href: '#', class: ['btn', 'btn-sm'], data: { 'bs-toggle' => :popover, 'bs-title' => 'Client Information', 'bs-url' => api_client_path(client.client_id), 'bs-html' => 'true' }}
                   %i.icon-info
               - elsif k.to_s.match?(/personal_id/)
                 - # Using regex here as the personal_id header value is a nested key (e.g. 'enrollment.personal_id', exit_enrollment.personal_id, etc.)

@@ -10,9 +10,11 @@ module Filters
   # Resolves a project group's saved options into its project list, against every project
   # rather than the ones a user can see.
   #
-  # The options were submitted by a group editor and are not limited to projects that editor
-  # can see; that's an accepted risk. Build it only through `for_project_group`, so it is never
-  # given request params or any options other than a saved group's.
+  # `ProjectGroupsController` saves only the projects, organizations, and data sources the editor
+  # can see. Project type selections aren't limited, so they can add projects the editor can't
+  # see; that's an accepted risk. Selections made outside that form, such as by
+  # `ProjectGroup.import_csv`, aren't limited either. Build it only through `for_project_group`,
+  # so it is never given request params or any options other than a saved group's.
   #
   # Confidential projects are kept when picked by name, and left out of organization, data
   # source, and project type selections, as the project group form tells editors.

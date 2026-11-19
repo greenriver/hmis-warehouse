@@ -1,4 +1,4 @@
-- project_display_name = project.name(current_user, ignore_confidential_status: can_edit_projects?)
+- project_display_name = project.name(current_user)
 %tr{ data: { 'table-filter-target' => 'row', 'project-type' => project.ProjectType, confidential: (!!project.confidential).to_s, 'search-text' => project_display_name } }
   %td
     .project__name.mb-2{id: "project-#{project.id}"}

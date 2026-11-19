@@ -101,7 +101,7 @@
                       = f.input :client_id, label: 'No match found', required: false, input_html: { name: "clients[#{client.id}][client_id]", style: 'width: 8em;', placeholder: 'Client ID' }
                   %td.text-center
                     - if matched_client && priority_rendered.add?(matched_client.id)
-                      = f.input :health_prioritized, as: :boolean, label: false, input_html: { name: "clients[#{matched_client.id}][health_prioritized]", checked: matched_client.health_prioritized_for_cas? }
+                      = f.input :health_prioritized, as: :boolean, label: false, input_html: { name: "clients[#{matched_client.id}][health_prioritized]", checked: matched_client.health_prioritized == 'Yes' }
                     - elsif matched_client
                       %span.text-muted See above
                 - unless matched_client
@@ -113,7 +113,7 @@
                         (#{possible.id})
                       %td.text-center
                         - if priority_rendered.add?(possible.id)
-                          = f.input :health_prioritized, as: :boolean, label: false, input_html: { name: "clients[#{possible.id}][health_prioritized]", checked: possible.health_prioritized_for_cas? }
+                          = f.input :health_prioritized, as: :boolean, label: false, input_html: { name: "clients[#{possible.id}][health_prioritized]", checked: possible.health_prioritized == 'Yes' }
                         - else
                           %span.text-muted See above
   .text-right

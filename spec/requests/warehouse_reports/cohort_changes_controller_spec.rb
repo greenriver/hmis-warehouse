@@ -11,7 +11,7 @@ require 'rails_helper'
 RSpec.describe 'WarehouseReports::CohortChangesController', type: :request do
   let!(:user) { create(:acl_user) }
   let!(:collection) { create(:collection) }
-  let!(:role) { create(:report_viewer) }
+  let!(:role) { create(:report_viewer, can_view_cohorts: true) }
   let!(:report) { create(:touch_point_report, url: 'warehouse_reports/cohort_changes', name: 'Cohort Changes') }
   let!(:cohort) { create(:cohort) }
 
@@ -34,7 +34,7 @@ RSpec.describe 'WarehouseReports::CohortChangesController', type: :request do
 
   before do
     Collection.maintain_system_groups
-    collection.set_viewables({ reports: [report.id] })
+    collection.set_viewables({ reports: [report.id], cohorts: [cohort.id] })
     setup_access_control(user, role, collection)
     GrdaWarehouse::WarehouseClient.create!(destination_id: restricted_destination_client.id, source_id: restricted_source_client.id, data_source_id: hmis_ds.id, id_in_source: restricted_source_client.id.to_s)
     restricted_source_client.mark_as_restricted!(user: hmis_user)
@@ -103,6 +103,29 @@ RSpec.describe 'WarehouseReports::CohortChangesController', type: :request do
       data_row = (sheet.first_row..sheet.last_row).map { |i| sheet.row(i) }.find { |r| r[0] == open_destination_client.id }
       expect(data_row[1]).to eq('Name Redacted')
       expect(data_row[2]).to eq('Name Redacted')
+    end
+  end
+
+  describe 'a cohort outside the user\'s collection' do
+    let!(:hidden_cohort) { create(:cohort, name: 'Hidden Cohort') }
+    let!(:hidden_client) { create(:grda_warehouse_hud_client, FirstName: 'Hiddenfirst', LastName: 'Hiddenlast') }
+    let!(:hidden_cohort_client) { GrdaWarehouse::CohortClient.create!(cohort: hidden_cohort, client: hidden_client) }
+    let!(:hidden_change) do
+      GrdaWarehouse::CohortClientChange.create!(cohort: hidden_cohort, cohort_client: hidden_cohort_client, user: user, change: 'create', changed_at: 1.week.ago)
+    end
+    let(:hidden_params) { filter_params.merge(cohort_id: hidden_cohort.id) }
+
+    it 'refuses the html report' do
+      get warehouse_reports_cohort_changes_path(filter: hidden_params)
+
+      expect(response).to redirect_to(user.my_root_path)
+      expect(response.body).not_to include('Hiddenfirst')
+    end
+
+    it 'refuses the Excel report' do
+      get warehouse_reports_cohort_changes_path(filter: hidden_params, format: :xlsx)
+
+      expect(response).to redirect_to(user.my_root_path)
     end
   end
 end
