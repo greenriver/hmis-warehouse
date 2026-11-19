@@ -175,8 +175,11 @@ module Types
           sort_by_option(:organization_and_name).
           map(&:to_pick_list_option)
       when 'OTHER_FUNDERS'
+        # The Funder column is a string, but the model casts it to an integer, so compare with a quoted string.
+        # An integer literal fails in Postgres when prepared statements are off.
+        local_funder = Arel::Nodes.build_quoted(HudHelper.util.local_or_other_funding_source.to_s)
         Hmis::Hud::Funder.where(data_source_id: user.hmis_data_source_id).
-          where(Funder: HudHelper.util.local_or_other_funding_source).where.not(OtherFunder: nil).
+          where(Hmis::Hud::Funder.arel_table[:Funder].eq(local_funder)).where.not(OtherFunder: nil).
           pluck(:OtherFunder).uniq.sort.map do |other_funder|
             { code: other_funder, label: other_funder }
           end
