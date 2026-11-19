@@ -124,6 +124,18 @@ RSpec.describe HmisUtil::FormTransfer::Importer do
       )
     end
 
+    it 'frees a slot held by a local version that the file gives a different status' do
+      payload
+      create(:hmis_form_definition, data_source: data_source, identifier: 'pets', role: 'CUSTOM_ASSESSMENT', version: 5, status: 'retired')
+      create(:hmis_form_definition, data_source: data_source, identifier: 'pets', role: 'CUSTOM_ASSESSMENT', version: 6, status: 'published')
+
+      import(payload)
+
+      expect(Hmis::Form::Definition.where(data_source_id: data_source.id, identifier: 'pets').order(:version).pluck(:version, :status)).to eq(
+        [[5, 'published'], [6, 'draft']],
+      )
+    end
+
     it 'overwrites a local definition with the same version' do
       payload
       local = create(:hmis_form_definition, data_source: data_source, identifier: 'pets', role: 'CUSTOM_ASSESSMENT', version: 5, status: 'published', title: 'Local edit')
@@ -141,12 +153,14 @@ RSpec.describe HmisUtil::FormTransfer::Importer do
       export(identifiers: ['pets'], include_projects: false).tap { wipe(data_source) }
     end
 
-    it 'picks a new reporting_key when a different local CDED already uses it' do
+    it 'picks a new reporting_key when a different local CDED already uses it, and keeps it on re-import' do
       payload
       create(:hmis_custom_data_element_definition, data_source: data_source, owner_type: 'Hmis::Hud::CustomAssessment', key: 'local_field', reporting_key: 'pet_name')
 
       import(payload)
+      expect(Hmis::Hud::CustomDataElementDefinition.find_by(key: 'pet_name').reporting_key).to eq('pet_name_1')
 
+      import(payload)
       expect(Hmis::Hud::CustomDataElementDefinition.find_by(key: 'pet_name').reporting_key).to eq('pet_name_1')
     end
 

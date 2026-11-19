@@ -103,7 +103,7 @@ module HmisUtil
       def import_definitions
         @payload.fetch('definitions', []).group_by { |d| d['identifier'] }.each do |identifier, versions|
           local = Hmis::Form::Definition.where(data_source_id: @data_source_id, identifier: identifier)
-          make_room(local.where.not(version: versions.map { |d| d['version'] }), versions.map { |d| d['status'] })
+          make_room(local, versions.to_h { |d| [d['version'], d['status']] })
 
           versions.each do |attrs|
             definition = local.find_or_initialize_by(version: attrs['version'])
@@ -114,18 +114,26 @@ module HmisUtil
       end
 
       # The unique indexes allow one published and one draft per identifier.
-      def make_room(other_local_versions, incoming_statuses)
-        if incoming_statuses.include?(Hmis::Form::Definition::PUBLISHED)
-          other_local_versions.published.each do |definition|
-            log("retiring local #{definition.identifier} v#{definition.version} so the imported published version can take its place")
-            definition.update!(status: Hmis::Form::Definition::RETIRED)
-          end
-        end
-        return unless incoming_statuses.include?(Hmis::Form::Definition::DRAFT)
+      # incoming_statuses maps each version in the file to its status.
+      def make_room(local, incoming_statuses)
+        local.published.each do |definition|
+          next if incoming_statuses[definition.version] == Hmis::Form::Definition::PUBLISHED
+          next unless incoming_statuses.key?(definition.version) || incoming_statuses.value?(Hmis::Form::Definition::PUBLISHED)
 
-        other_local_versions.draft.each do |definition|
-          log("soft-deleting local draft #{definition.identifier} v#{definition.version} (id #{definition.id})")
-          definition.destroy!
+          log("retiring local #{definition.identifier} v#{definition.version} so the imported published version can take its place")
+          definition.update!(status: Hmis::Form::Definition::RETIRED)
+        end
+
+        local.draft.each do |definition|
+          next if incoming_statuses[definition.version] == Hmis::Form::Definition::DRAFT
+
+          # Retired, not soft-deleted: the import then overwrites this row instead of adding a second one at the same version.
+          if incoming_statuses.key?(definition.version)
+            definition.update!(status: Hmis::Form::Definition::RETIRED)
+          elsif incoming_statuses.value?(Hmis::Form::Definition::DRAFT)
+            log("soft-deleting local draft #{definition.identifier} v#{definition.version} (id #{definition.id})")
+            definition.destroy!
+          end
         end
       end
 
@@ -152,16 +160,21 @@ module HmisUtil
 
       def available_reporting_key(cded, reporting_key)
         return reporting_key if reporting_key.blank?
+        return reporting_key unless reporting_key_taken?(cded, reporting_key)
 
-        taken = Hmis::Hud::CustomDataElementDefinition.
-          where(owner_type: cded.owner_type, reporting_key: reporting_key).
-          where.not(id: cded.id).
-          exists?
-        return reporting_key unless taken
+        current = cded.reporting_key_was
+        return current if current.present? && !reporting_key_taken?(cded, current)
 
         replacement = Hmis::Form::CustomDataElementGenerator.generate_reporting_key(reporting_key, owner_type: cded.owner_type)
         log("reporting_key #{reporting_key} is taken locally; using #{replacement} for #{cded.key}")
         replacement
+      end
+
+      def reporting_key_taken?(cded, reporting_key)
+        Hmis::Hud::CustomDataElementDefinition.
+          where(owner_type: cded.owner_type, reporting_key: reporting_key).
+          where.not(id: cded.id).
+          exists?
       end
 
       def find_entity(attrs, projects)
