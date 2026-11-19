@@ -244,6 +244,16 @@ RSpec.describe ActivityLog do
       it 'is nil when path is nil' do
         expect(log(path: nil).reload.client_id).to be_nil
       end
+
+      it 'keeps a client_id set before save' do
+        entry = described_class.create!(user: user, path: '/clients/52', client_id: 70, controller_name: 'x', action_name: 'show', ip_address: '127.0.0.1')
+
+        expect(entry.reload.client_id).to eq(70)
+
+        entry.update!(title: 'Renamed')
+
+        expect(entry.reload.client_id).to eq(70)
+      end
     end
 
     describe '.backfill_client_id!' do

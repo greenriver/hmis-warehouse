@@ -9,7 +9,7 @@ $('.jThumb').each (e) ->
 
 $(document).on 'change', '.jFileTag', (e) ->
   # Show notes
-  if $(this).data('toggle') == 'popover' && $(this).is(':checked')
+  if $(this).data('bs-toggle') == 'popover' && $(this).is(':checked')
     $('.jFileTag').not(this).popover('hide')
     $(this).popover('show')
   else

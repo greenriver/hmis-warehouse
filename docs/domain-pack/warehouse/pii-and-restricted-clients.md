@@ -23,6 +23,7 @@ sources:
   - app/controllers/clients_controller.rb
   - app/controllers/concerns/client_controller.rb
   - drivers/client_access_control/app/controllers/client_access_control/clients_controller.rb
+  - app/controllers/api/clients_controller.rb
   - app/models/grda_warehouse/client_search_query.rb
   - drivers/client_access_control/README.md
   - drivers/access_logs/README.md
@@ -296,8 +297,11 @@ stay in step with it; it redacts name and SSN, not DOB.
 `title_for_show` returns `@client.pii_provider(user: current_user).full_name` or `@user.name`)
 and saves when `user_id` is present. `ClientsController` and
 `ClientAccessControl::ClientsController` add `after_action :log_client`, the former for `show`,
-`edit`, `merge`, `unmerge`, the latter for `show`. Dashboard `rollup` and `image` requests are
-excluded from logging entirely.
+`edit`, `merge`, `unmerge`, the latter for `show`. `Api::ClientsController#show` (the Client
+Information popover on HUD report drilldowns, which may pass a source client id) sets `item_id`
+and `client_id` to the destination client so the row appears on that client's Audit tab; it
+shows each source client's name through `pii_provider`. Dashboard `rollup` and `image` requests
+are excluded from logging entirely.
 
 Titles are stored at visit time, so a row logged before a client was restricted holds the name.
 `ActivityLog#display_title(name_redacted:)` swaps the name for `Name Redacted` and keeps a
@@ -307,8 +311,8 @@ pages `item_id` is the nested record) and calls `preload_client_restrictions` fo
 
 `ActivityLog` (`app/models/activity_log.rb`) keeps `reporting_path`, a 200-character mirror of
 `path` set in `before_save`, because `path` is unbounded and cannot be indexed. It also keeps
-`client_id`, set in `before_save` from the first `/clients/<id>` segment of `path` before any
-query string (`CLIENT_PATH_PATTERN`), so `/source_clients/<id>` and `?return_to=/clients/<id>`
+`client_id`, set in `before_save` (unless the caller already set it) from the first
+`/clients/<id>` segment of `path` before any query string (`CLIENT_PATH_PATTERN`), so `/source_clients/<id>` and `?return_to=/clients/<id>`
 don't match. `CLIENT_PATH_SQL_PATTERN` is the Postgres equivalent used by `backfill_client_id!`
 for older rows. The `:activity_log_client_id` TaskQueue task runs that backfill and then
 `ensure_client_id_index!`, which builds the partial `(client_id, created_at)` index concurrently.

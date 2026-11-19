@@ -48,12 +48,12 @@
           %th
           %td
             - if pii_dest.image?
-              = image_tag(polymorphic_path([:image, :source_client], id: client_a.id), style: 'width: 125px;')
+              = image_tag(polymorphic_path([:image, :source_client], id: client_a.id), width: 125, alt: '')
           %td
           %td
           %td
             - if pii_source.image?
-              = image_tag(polymorphic_path([:image, :source_client], id: client_b.id), style: 'width: 125px;')
+              = image_tag(polymorphic_path([:image, :source_client], id: client_b.id), width: 125, alt: '')
           %td
         %tr
           %th Name
