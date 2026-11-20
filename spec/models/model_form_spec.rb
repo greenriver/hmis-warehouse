@@ -27,7 +27,6 @@ RSpec.describe ModelForm, type: :model do
         attribute :sym, Symbol
         attribute :list, Array
         attribute :strings, Array[String]
-        attribute :path, Pathname
         attribute :untyped
       end
     end
@@ -36,38 +35,59 @@ RSpec.describe ModelForm, type: :model do
       klass.new(name => value).public_send(name)
     end
 
-    it 'casts String like Virtus, leaving values without to_str unchanged' do
+    def object_responding_to(method, value)
+      Object.new.tap { |object| object.define_singleton_method(method) { value } }
+    end
+
+    it 'casts String from scalars and to_str, leaving other values unchanged' do
       expect(cast(:str, true)).to eql('true')
+      expect(cast(:str, false)).to eql('false')
       expect(cast(:str, 5)).to eql('5')
       expect(cast(:str, :abc)).to eql('abc')
+      expect(cast(:str, object_responding_to(:to_str, 'converted'))).to eql('converted')
       expect(cast(:str, ['a'])).to eql(['a'])
       expect(cast(:str, nil)).to be_nil
     end
 
-    it 'casts Integer like Virtus, leaving unparseable values unchanged' do
+    it 'casts Integer from integer and numeric strings, leaving other strings unchanged' do
       expect(cast(:int, '12')).to eql(12)
+      expect(cast(:int, '-3')).to eql(-3)
+      expect(cast(:int, '+4')).to eql(4)
       expect(cast(:int, '1.5')).to eql(1)
+      expect(cast(:int, '1e3')).to eql(1000)
+      expect(cast(:int, '.5')).to eql(0)
       expect(cast(:int, 2.9)).to eql(2)
+      expect(cast(:int, Time.utc(2025, 1, 1))).to eql(1_735_689_600)
+      expect(cast(:int, object_responding_to(:to_int, 7))).to eql(7)
       expect(cast(:int, '')).to eql('')
       expect(cast(:int, '12abc')).to eql('12abc')
+      expect(cast(:int, ' 7 ')).to eql(' 7 ')
+      expect(cast(:int, '1,000')).to eql('1,000')
       expect(cast(:int, true)).to be(true)
     end
 
-    it 'casts Date like Virtus, leaving unparseable values unchanged' do
+    it 'casts Date from parseable strings, dates and times, leaving other values unchanged' do
       expect(cast(:date, '2025-01-01')).to eql(Date.new(2025, 1, 1))
+      expect(cast(:date, Date.new(2025, 1, 2))).to eql(Date.new(2025, 1, 2))
       expect(cast(:date, Time.utc(2025, 3, 4, 5))).to eql(Date.new(2025, 3, 4))
+      expect(cast(:date, DateTime.new(2025, 3, 4, 5, 6))).to be_an_instance_of(Date).and eq(Date.new(2025, 3, 4))
       expect(cast(:date, '')).to eql('')
       expect(cast(:date, '2025-13-45')).to eql('2025-13-45')
       expect(cast(:date, 5)).to eql(5)
     end
 
-    it 'casts Boolean from the Virtus true/false words and 0/1 only' do
+    it 'casts Boolean from true/false words and 0/1 only' do
       expect(cast(:bool, 'YES')).to be(true)
       expect(cast(:bool, 'no')).to be(false)
+      ['1', 'true', 't', 'y', 'on'].each { |word| expect(cast(:bool, word)).to be(true), word }
+      ['0', 'false', 'off'].each { |word| expect(cast(:bool, word)).to be(false), word }
+      expect(cast(:bool, true)).to be(true)
+      expect(cast(:bool, false)).to be(false)
       expect(cast(:bool, 1)).to be(true)
       expect(cast(:bool, 0)).to be(false)
       expect(cast(:bool, '')).to eql('')
       expect(cast(:bool, 5)).to eql(5)
+      expect(cast(:bool, 1.0)).to eql(1.0)
     end
 
     it 'casts Symbol from strings only' do
@@ -83,18 +103,29 @@ RSpec.describe ModelForm, type: :model do
       expect(cast(:list, { k: 'v' })).to eql([[:k, 'v']])
     end
 
+    it 'casts Array to a copy, so changing the result leaves the assigned array alone' do
+      assigned = ['a']
+      cast(:list, assigned) << 'b'
+
+      expect(assigned).to eq(['a'])
+    end
+
     it 'casts Array[String] members to strings, keeping nil members' do
       expect(cast(:strings, [1, :x, nil])).to eql(['1', 'x', nil])
       expect(cast(:strings, nil)).to eql([])
     end
 
-    it 'passes values through for other classes and untyped attributes' do
-      expect(cast(:path, '/tmp')).to eql('/tmp')
+    it 'passes values through for untyped attributes' do
       expect(cast(:untyped, :abc)).to eql(:abc)
     end
 
+    it 'raises when an attribute or Array member is declared with an unsupported class' do
+      expect { form_class { attribute :rate, Float } }.to raise_error(ArgumentError, /Float/)
+      expect { form_class { attribute :paths, Array[Pathname] } }.to raise_error(ArgumentError, /Pathname/)
+    end
+
     it 'exposes declared attribute names as strings' do
-      expect(klass.attribute_names).to eq(['str', 'int', 'date', 'bool', 'sym', 'list', 'strings', 'path', 'untyped'])
+      expect(klass.attribute_names).to eq(['str', 'int', 'date', 'bool', 'sym', 'list', 'strings', 'untyped'])
     end
   end
 
@@ -118,6 +149,16 @@ RSpec.describe ModelForm, type: :model do
       travel_to(Time.zone.local(2026, 5, 6, 12)) do
         expect(klass.new(date: { year: 2025 }).date).to eql(Date.new(2025, 5, 6))
       end
+    end
+
+    it 'ignores string-keyed hash parts, building the current date' do
+      travel_to(Time.zone.local(2026, 5, 6, 12)) do
+        expect(klass.new(date: { 'year' => 2025, 'month' => 1, 'day' => 2 }).date).to eql(Date.new(2026, 5, 6))
+      end
+    end
+
+    it 'raises Date::Error for hash parts that describe an impossible date' do
+      expect { klass.new(date: { year: 2025, month: 2, day: 31 }).date }.to raise_error(Date::Error)
     end
 
     it 'passes a TimeWithZone through unchanged' do

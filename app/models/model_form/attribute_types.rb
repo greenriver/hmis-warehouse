@@ -15,7 +15,9 @@ class ModelForm
       when nil then Untyped.new
       when ::Array then Array.new(member: lookup(type.first))
       else
-        BY_CLASS[type]&.new
+        BY_CLASS.fetch(type) do
+          raise ArgumentError, "ModelForm does not support attribute type #{type}; add it to ModelForm::AttributeTypes or declare the attribute untyped"
+        end.new
       end
     end
 
