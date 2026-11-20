@@ -413,7 +413,7 @@ class Collection < ApplicationRecord
       hud_ids = all_reports.hud.pluck(:id)
       system_collection(:hmis_reports).set_viewables({ reports: all_reports.pluck(:id) - hud_ids })
       system_user_access_group.set_viewables({ reports: all_reports.pluck(:id) })
-      system_collection(:hud_reports).set_viewables({ reports: hud_ids })
+      system_collection(:hud_reports).set_viewables({ reports: all_reports.system_granted_hud.pluck(:id) })
     end
 
     if group.blank? || group == :cohorts
