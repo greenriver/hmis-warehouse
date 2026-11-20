@@ -5,6 +5,10 @@ sources:
   - drivers/hmis/lib/ce_workflows/ph/workflow_builder.rb
   - drivers/hmis/lib/ce_workflows/standard/workflow_builder.rb
   - drivers/hmis/app/models/hmis/workflow_definition/template.rb
+  - drivers/hmis/app/models/hmis/workflow_execution/engine.rb
+  - drivers/hmis/app/models/hmis/unit_group.rb
+  - drivers/hmis/app/models/hmis/workflow_definition/user_task.rb
+  - drivers/hmis/app/models/hmis/ce/referral_task_assignment_handler.rb
 ---
 
 # CE Workflow Builders
@@ -14,6 +18,26 @@ sources:
 Workflow builders are Rake task dev/setup scripts, not runtime application logic. They create `Hmis::WorkflowDefinition::Template` graphs wired to CE referral forms. Each client/installation may have its own builder under `ce_workflows/{client_key}/`. Eventually we plan to build admin Template management tools and move these out of version control.
 
 For workflow-specific details (diagrams, form identifiers, rake usage), see the per-client README linked from each builder's directory.
+
+## What a template is, and what lives outside it
+
+A template is data. Its graph is stored as `Hmis::WorkflowDefinition::Node` rows (start and end events, `UserTask`, `ScriptTask`, `Gateway`), `Flow` rows that connect them, and `Swimlane` rows. When a referral is created, `Hmis::WorkflowExecution::Engine` runs the stored graph of the unit group's template. Neither the engine nor the CE message and assignment handlers check a template's identifier, so a new template needs no application code change.
+
+Creating that data does need a developer. Builders are the only code that creates templates, through `CeBuilderUtils.create_template` and `CeBuilderUtils.find_or_create_draft_template`. No GraphQL mutation creates, edits, or copies a template.
+
+Other parts of a CE setup live outside the template:
+
+| Part | Where it lives | How it changes |
+| --- | --- | --- |
+| Steps, gateways, swimlanes, side effects | The template graph | A builder |
+| Questions on a step | A `CE_REFERRAL_STEP` form definition. Each `UserTask` references one by `form_definition_identifier`. | Form JSON in `drivers/hmis/lib/form_data/` (see [Updates](#updates)) |
+| Eligibility and priority | `Hmis::Ce::Match::Rule`, owned by any type in `Hmis::Ce::Match::Rule::OWNER_PRECEDENCE` | The `CreateCeMatchRule`, `UpdateCeMatchRule`, and `DeleteCeMatchRule` mutations |
+| Which template a unit group uses | `Hmis::UnitGroup#workflow_template_identifier` and `#direct_referral_workflow_template_identifier` | The `CreateUnitGroup` and `UpdateUnitGroup` mutations |
+| Default contacts for a step | `Hmis::Ce::DefaultSwimlaneAssignment`, keyed by `swimlane_id` | The `AssignCeDefaultContacts` mutation |
+
+Two workflows that differ only in eligibility or priority can share one template, because rules are resolved for the unit group, not stored on the template. Workflows that differ in steps or step names need a second template with its own identifier. One builder can build several templates from shared helpers: the AC builder's `build_housing_workflow` and `build_admin_assign_workflow` both call `build_shared_sub_workflow`.
+
+Templates can share forms. The AC housing and admin assign templates reference the same provider outcome and denial review forms, and the PH direct referral templates share `provider_decision`. A form change reaches every template in the same data source whose steps reference that form's identifier, so a second template that needs different questions on a step also needs its own form definitions.
 
 ## Two workflow builder patterns
 
@@ -106,3 +130,5 @@ Updates to Workflow Templates fall into two categories. See [https://github.com/
 - Deleting a template does not clear `UnitGroup.workflow_template_identifier`. The builder is expected to recreate the same identifier immediately.
 - Republishing a template does not move in-flight referrals, because they are bound by template `id` at creation.
 - There is no admin UI for templates; they are published from builder scripts.
+- A new template has no default contacts. Its swimlanes are new rows, and `Hmis::Ce::DefaultSwimlaneAssignment` matches by `swimlane_id`. Until someone assigns default contacts to them, the template's referrals start with no participants, and `Hmis::Ce::ReferralTaskAssignmentHandler` assigns its tasks to nobody. Rebuilding a template in dev also creates new swimlanes, so default contacts must be reassigned after each rebuild.
+- A unit group can't switch templates. `Hmis::UnitGroup` doesn't allow `workflow_template_identifier` or `direct_referral_workflow_template_identifier` to change once set, so only a unit group with no identifier yet, or a new one, can use a new template.
