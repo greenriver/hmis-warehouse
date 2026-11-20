@@ -130,5 +130,25 @@ RSpec.describe AssetHelper, type: :helper do
         expect(described_class.digest_path('pdf.js')).to eq('pdf-0123.js')
       end
     end
+
+    context 'with assets.compile off (staging) and the real PDF stylesheets precompiled' do
+      let(:stylesheets) { ['application.css', 'print.css', 'dashboard_pdf.css', 'roi_pdf.css'] }
+      let(:manifest_assets) { stylesheets.to_h { |name| [name, name.sub('.', '-0123.')] } }
+
+      before do
+        manifest_assets.each do |name, digest_path|
+          File.write(File.join(manifest_dir, digest_path), Rails.application.assets.find_asset(name, base_path: Rails.root.to_s).to_s)
+        end
+        allow(Rails).to receive(:env).and_return(ActiveSupport::EnvironmentInquirer.new('staging'))
+        allow(Rails.application).to receive(:assets).and_return(nil)
+      end
+
+      it 'inlines each stylesheet, resolving every url() it references' do
+        inlined = stylesheets.to_h { |name| [name, described_class.wicked_pdf_stylesheet_link_tag(name)] }
+
+        expect(inlined.values).to all(start_with("<style type='text/css'>"))
+        expect(inlined['application.css']).to include('url(#default#VML)')
+      end
+    end
   end
 end

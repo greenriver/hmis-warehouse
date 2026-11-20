@@ -44,7 +44,8 @@ module AssetHelper
     end.join("\n")
 
     stylesheet_contents.gsub(ASSET_URL_REGEX) do
-      if Regexp.last_match[1].starts_with?('data:')
+      # A url(#id) points at an element in the document, not at a file.
+      if Regexp.last_match[1].starts_with?('data:', '#')
         "url(#{Regexp.last_match[1]})"
       else
         "url(#{wicked_pdf_asset_path(Regexp.last_match[1])})"
