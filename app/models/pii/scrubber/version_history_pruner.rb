@@ -17,13 +17,16 @@ module Pii::Scrubber
 
       version_class = owner.version_class_name.constantize
       to_delete = version_class.where(item_type: item_types(owner))
-      if owner.base_class != owner
-        # An STI base class's table holds sibling types that share the version item_type
-        item_ids = owner.unscoped.select(:id)
-        item_ids = item_ids.where(id: ids) if ids
-        to_delete = to_delete.where(item_id: item_ids)
+      if owner.base_class == owner
+        to_delete = to_delete.where(item_id: ids) if ids
       elsif ids
-        to_delete = to_delete.where(item_id: ids)
+        to_delete = to_delete.where(item_id: owner.unscoped.where(id: ids).select(:id))
+      else
+        # The base class's table holds sibling STI types that share the version item_type.
+        # Keep versions of live siblings; everything else is the owner's or an orphan
+        # left by really_destroy!.
+        live_siblings = owner.base_class.unscoped.where.not(owner.inheritance_column => owner.sti_name).select(:id)
+        to_delete = to_delete.where.not(item_id: live_siblings)
       end
 
       to_delete.delete_all
