@@ -25,8 +25,11 @@ module HopwaCaper::Tasks
 
       GrdaWarehouse::WarehouseReports::ReportDefinition.maintain_report_definitions
       ApplicationRecord.transaction do
-        role = Role.create!(name: ROLE_NAME, system: false, can_view_assigned_reports: true)
-        grant(role) if hopwa_caper_run?
+        # Two separate connections; nesting makes a failed grant roll back both.
+        GrdaWarehouseBase.transaction do
+          role = Role.create!(name: ROLE_NAME, system: false, can_view_assigned_reports: true)
+          grant(role) if hopwa_caper_run?
+        end
       end
       # Seeding only maintains the data source groups, so without this the first
       # deploy would leave HOPWA CAPER in All HUD Reports.
@@ -52,13 +55,22 @@ module HopwaCaper::Tasks
     private def grant_acl_user_groups(role)
       collection = Collection.create!(name: NAME, collection_type: 'Reports')
       collection.set_viewables({ reports: [definition.id] })
-      AccessControl.where(collection_id: Collection.system_collection(:hud_reports).id).distinct.pluck(:user_group_id).each do |user_group_id|
+      report_user_group_ids.each do |user_group_id|
         AccessControl.where(role_id: role.id, collection_id: collection.id, user_group_id: user_group_id).first_or_create!
       end
     end
 
+    private def report_user_group_ids
+      AccessControl.
+        joins(:role).
+        merge(Role.where(can_view_assigned_reports: true)).
+        where(collection_id: Collection.system_collection(:hud_reports).id).
+        distinct.
+        pluck(:user_group_id)
+    end
+
     private def grant_legacy_users
-      group = AccessGroup.where(name: NAME).first_or_create!
+      group = AccessGroup.create!(name: NAME)
       group.set_viewables({ reports: [definition.id] })
       group.add(AccessGroup.system_group(:hud_reports).users.to_a)
     end
