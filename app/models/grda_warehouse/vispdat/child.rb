@@ -8,6 +8,12 @@
 
 module GrdaWarehouse::Vispdat
   class Child < GrdaWarehouseBase
+    include HasPiiAttributes
+
+    pii_attr :first_name
+    pii_attr :last_name
+    pii_attr :dob
+
     belongs_to :family, optional: true
   end
 end

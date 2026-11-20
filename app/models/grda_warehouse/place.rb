@@ -8,6 +8,14 @@
 
 module GrdaWarehouse
   class Place < GrdaWarehouseBase
+    include HasPiiAttributes
+
+    pii_attr :location, as: :geo_street, required: true
+    pii_attr :zipcode, as: :geo_postal_code
+    pii_attr :lat_lon, as: :json, level: 1
+    pii_attr :lat, as: :geo_street, level: 1
+    pii_attr :lon, as: :geo_street, level: 1
+
     include NotifierConfig
 
     belongs_to :shape_zip_code, class_name: 'GrdaWarehouse::Shape::ZipCode', primary_key: 'zcta5ce10', foreign_key: 'zipcode', optional: true

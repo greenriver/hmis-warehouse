@@ -72,6 +72,12 @@ RSpec.describe GrdaWarehouse::Tasks::ScrubPii::ScrubAllPiiTask do
     assessment.form_processor.tap { |fp| fp.update!(backup_values: { 'ssn' => real_ssn }) }
   end
 
+  let(:enrollment) do
+    create(:grda_warehouse_hud_enrollment, data_source: hud_client.data_source, client: hud_client, LastPermanentStreet: '1 Real St', LastPermanentZIP: '02139')
+  end
+
+  let(:place) { GrdaWarehouse::Place.create!(location: '1 Real St/Boston/MA/02139/us', zipcode: '02139', lat: 42.3, lon: -71.1, lat_lon: { 'lat' => 42.3 }) }
+
   let(:staff_user) { create(:user, email: 'staff@example.org') }
 
   def reload_records
@@ -82,6 +88,8 @@ RSpec.describe GrdaWarehouse::Tasks::ScrubPii::ScrubAllPiiTask do
       case_note,
       form_submission,
       form_processor,
+      enrollment,
+      place,
       spm_2026_enrollment,
       dqt_living_situation,
       staff_user,
@@ -149,6 +157,15 @@ RSpec.describe GrdaWarehouse::Tasks::ScrubPii::ScrubAllPiiTask do
       expect { perform_task }.to change { form_processor.values }.to(nil).
         and change { form_processor.hud_values }.to(nil).
         and change { form_processor.backup_values }.to(nil)
+    end
+
+    it 'clears enrollment addresses and geocoding cache entries' do
+      expect { perform_task }.to change { enrollment.LastPermanentStreet }.to(nil).
+        and change { enrollment.LastPermanentZIP }.to(nil).
+        and change { place.location }.to("Street#{place.id}").
+        and change { place.zipcode }.to(nil).
+        and change { place.lat }.to(nil).
+        and change { place.lat_lon }.to(nil)
     end
 
     it 'leaves staff login accounts alone' do

@@ -8,6 +8,10 @@
 
 module GrdaWarehouse::Youth
   class YouthCaseManagement < GrdaWarehouseBase
+    include HasPiiAttributes
+
+    pii_attr :zip_code, as: :geo_postal_code
+
     include ArelHelper
     include YouthExport
 
