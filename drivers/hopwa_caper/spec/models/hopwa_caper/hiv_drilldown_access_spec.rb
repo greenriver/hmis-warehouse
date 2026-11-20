@@ -72,6 +72,21 @@ RSpec.describe HopwaCaper::HivDrilldownAccess, type: :model do
       expect(access_for.allowed?).to be(false)
     end
 
+    it 'denies when the role grants other client data permissions but not HIV status' do
+      role = create(:role, can_view_clients: true, can_view_client_name: true, can_view_full_dob: true, can_view_full_ssn: true, can_view_hiv_status: false)
+      grant_project_access(user, role, [project_a], mode: :acl)
+
+      expect(access_for.allowed?).to be(false)
+    end
+
+    it 'denies a legacy user whose role grants other client data permissions but not HIV status' do
+      legacy_user = create(:user)
+      role = create(:role, can_view_clients: true, can_view_client_name: true, can_view_full_dob: true, can_view_full_ssn: true, can_view_hiv_status: false)
+      grant_project_access(legacy_user, role, [project_a], mode: :legacy)
+
+      expect(access_for(for_user: legacy_user).allowed?).to be(false)
+    end
+
     it 'allows a legacy user whose role grants HIV status on the project' do
       legacy_user = create(:user)
       grant_project_access(legacy_user, hiv_role, [project_a], mode: :legacy)
@@ -137,10 +152,12 @@ RSpec.describe HopwaCaper::HivDrilldownAccess, type: :model do
     let(:report) { create_report([project_a, project_b]) }
 
     before do
-      create_enrolled_client_with_service(client_attrs: {}, project: project_a, entry_date: report_start_date)
+      service_records_a
       create_enrolled_client_with_service(client_attrs: {}, project: project_b, entry_date: report_start_date)
       run_report(report)
     end
+
+    let(:service_records_a) { create_enrolled_client_with_service(client_attrs: {}, project: project_a, entry_date: report_start_date) }
 
     let(:missing_enrollment_id) { 999_999_999 }
 
@@ -155,6 +172,23 @@ RSpec.describe HopwaCaper::HivDrilldownAccess, type: :model do
       expect(services_on(project_b).count).to be >= 1
       expect(access_for(enrollments: HopwaCaper::Enrollment.none, services: services_on(project_b)).allowed?).to be(false)
       expect(access_for(enrollments: HopwaCaper::Enrollment.none, services: services_on(project_a)).allowed?).to be(true)
+    end
+
+    it 'denies a restricted client who appears only in the service rows' do
+      grant_project_access(user, hiv_role, [project_a, project_b], mode: :acl)
+      no_enrollments = HopwaCaper::Enrollment.none
+      Hmis::Hud::Client.find(service_records_a[:client].id).mark_as_restricted!(user: create(:hmis_user, data_source: data_source))
+
+      expect(access_for(enrollments: no_enrollments, services: services_on(project_b)).allowed?).to be(true)
+      expect(access_for(enrollments: no_enrollments, services: services_on(project_a)).allowed?).to be(false)
+    end
+
+    it 'evaluates the service rows of the whole report' do
+      grant_project_access(user, hiv_role, [project_a], mode: :acl)
+      expect(described_class.for_report(user: user, report: report).allowed?).to be(false)
+
+      grant_project_access(user, hiv_role, [project_b], mode: :acl)
+      expect(described_class.for_report(user: user, report: report).allowed?).to be(true)
     end
 
     it 'denies a service with no matching enrollment' do
