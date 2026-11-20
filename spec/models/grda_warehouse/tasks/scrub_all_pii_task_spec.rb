@@ -96,11 +96,13 @@ RSpec.describe GrdaWarehouse::Tasks::ScrubPii::ScrubAllPiiTask do
     ].each(&:reload)
   end
 
-  let(:database_name) { GrdaWarehouseBase.connection.current_database }
+  let(:database_names) do
+    (Pii::Scrubber::ScrubbableModels.all.map { |model| model.connection.current_database } << GrdaWarehouseBase.connection.current_database).uniq
+  end
 
   def perform_task(**opts)
     travel_to(today) do
-      described_class.new.perform(confirm_database: database_name, **opts)
+      described_class.new.perform(confirm_databases: database_names, **opts)
     end
     reload_records
   end
@@ -191,15 +193,27 @@ RSpec.describe GrdaWarehouse::Tasks::ScrubPii::ScrubAllPiiTask do
   context 'with a database confirmation' do
     before { PaperTrailHelper.with_paper_trail { hud_client.update!(FirstName: 'Changed') } }
 
-    it 'refuses a mismatched database name and leaves data and versions untouched' do
-      expect { described_class.new.perform(confirm_database: 'some_other_db') }.to raise_error(ArgumentError, /#{database_name}/)
+    it 'refuses a wrong database list and leaves data and versions untouched' do
+      expect { described_class.new.perform(confirm_databases: ['some_other_db']) }.to raise_error(ArgumentError, /confirm_databases/)
 
       expect(hud_client.reload.first_name).to eq('Changed')
       expect(hud_client.versions.count).to be > 0
     end
 
+    it 'refuses a list missing one database' do
+      expect(database_names.size).to be > 1
+
+      expect { described_class.new.perform(confirm_databases: database_names.drop(1)) }.to raise_error(ArgumentError, /confirm_databases/)
+      expect(hud_client.reload.first_name).to eq('Changed')
+    end
+
+    it 'refuses a list with an extra database' do
+      expect { described_class.new.perform(confirm_databases: database_names + ['some_other_db']) }.to raise_error(ArgumentError, /confirm_databases/)
+      expect(hud_client.versions.count).to be > 0
+    end
+
     it 'requires the keyword' do
-      expect { described_class.new.perform }.to raise_error(ArgumentError, /confirm_database/)
+      expect { described_class.new.perform }.to raise_error(ArgumentError, /confirm_databases/)
     end
 
     it 'prunes versions before scrubbing, so a scrub failure leaves no history' do
@@ -207,7 +221,7 @@ RSpec.describe GrdaWarehouse::Tasks::ScrubPii::ScrubAllPiiTask do
       allow(failing).to receive(:perform).and_raise(RuntimeError, 'scrub failed')
       allow(Pii::Scrubber::ScrubModelPii).to receive(:new).and_return(failing)
 
-      expect { described_class.new.perform(confirm_database: database_name) }.to raise_error(RuntimeError, 'scrub failed')
+      expect { described_class.new.perform(confirm_databases: database_names) }.to raise_error(RuntimeError, 'scrub failed')
       expect(hud_client.versions.count).to eq(0)
     end
   end
