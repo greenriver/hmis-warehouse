@@ -16,11 +16,11 @@ module AssetHelper
   end
 
   def self.wicked_pdf_asset_base64(path)
-    asset = find_asset(path)
-    raise "Could not find asset '#{path}'" if asset.nil?
+    content = asset_content(path)
+    raise "Could not find asset '#{path}'" if content.nil?
 
-    base64 = Base64.encode64(asset.to_s).gsub(/\s+/, '')
-    "data:#{asset.content_type};base64,#{Rack::Utils.escape(base64)}"
+    base64 = Base64.strict_encode64(content)
+    "data:#{Rack::Mime.mime_type(File.extname(path))};base64,#{Rack::Utils.escape(base64)}"
   end
 
   # Using `image_tag` with URLs when generating PDFs (specifically large PDFs with lots of pages) can cause buffer/stack overflows.
@@ -44,7 +44,8 @@ module AssetHelper
     end.join("\n")
 
     stylesheet_contents.gsub(ASSET_URL_REGEX) do
-      if Regexp.last_match[1].starts_with?('data:')
+      # A url(#id) points at an element in the document, not at a file.
+      if Regexp.last_match[1].starts_with?('data:', '#')
         "url(#{Regexp.last_match[1]})"
       else
         "url(#{wicked_pdf_asset_path(Regexp.last_match[1])})"
@@ -52,34 +53,11 @@ module AssetHelper
     end.html_safe
   end
 
-  def self.wicked_pdf_image_tag(img, options = {})
-    image_tag wicked_pdf_asset_path(img), options
-  end
-
-  def self.wicked_pdf_javascript_src_tag(jsfile, options = {})
-    jsfile = add_extension(jsfile, 'js')
-    ApplicationController.helpers.javascript_include_tag wicked_pdf_asset_path(jsfile), options
-  end
-
   def self.wicked_pdf_javascript_include_tag(*sources)
     sources.collect do |source|
       source = add_extension(source, 'js')
       "<script type='text/javascript'>#{read_asset(source)}</script>"
     end.join("\n").html_safe
-  end
-
-  def self.inline_js_for_es_build(sources)
-    content = sources.map do |source|
-      # In deployed environments the asset gets a fancy cache busting hash appended
-      # so we need to take that into account before reading it
-      if Rails.env.development?
-        find_asset(add_extension(source, 'js')).to_s
-      else
-        path = File.join(Rails.public_path, ActionController::Base.helpers.compute_asset_path(add_extension(source, 'js')))
-        File.read(path)
-      end
-    end.join("\n")
-    "<script type='text/javascript'>#{content}</script>".html_safe
   end
 
   def self.wicked_pdf_asset_path(asset)
@@ -94,7 +72,7 @@ module AssetHelper
   URI_REGEXP = /^[-a-z]+:\/\/|^(?:cid|data):|^\/\//
 
   def self.asset_pathname(source)
-    if precompiled_or_absolute_asset?(source)
+    if absolute_source?(source)
       asset = ApplicationController.helpers.asset_path(source)
       pathname = prepend_protocol(asset)
       if pathname =~ URI_REGEXP
@@ -104,18 +82,45 @@ module AssetHelper
         File.join(Rails.public_path, asset.sub(/\A#{Rails.application.config.action_controller.relative_url_root}/, ''))
       end
     else
-      asset = find_asset(source)
-      if asset
-        # older versions need pathname, Sprockets 4 supports only filename
-        asset.respond_to?(:filename) ? asset.filename : asset.pathname
-      else
-        File.join(Rails.public_path, source)
-      end
+      precompiled = precompiled_path(source)
+      return precompiled if precompiled
+
+      compiled_asset(source)&.filename || File.join(Rails.public_path, source)
     end
   end
 
   def self.find_asset(path)
     Rails.application.assets.find_asset(path, base_path: Rails.application.root.to_s)
+  end
+
+  # Outside development and test, assets are read from the precompiled files so that
+  # web processes don't compile them. Compiling is the fallback for an asset missing
+  # from the manifest, and only works where assets.compile is on.
+  def self.asset_content(source)
+    precompiled = precompiled_path(source)
+    return File.read(precompiled) if precompiled
+
+    compiled_asset(source)&.to_s
+  end
+
+  def self.digest_path(source)
+    return find_asset(source)&.digest_path if running_in_development?
+
+    Rails.application.assets_manifest.assets[source] || compiled_asset(source)&.digest_path
+  end
+
+  def self.precompiled_path(source)
+    return if running_in_development?
+
+    manifest = Rails.application.assets_manifest
+    digest_path = manifest.assets[source]
+    File.join(manifest.directory, digest_path) if digest_path
+  end
+
+  def self.compiled_asset(source)
+    raise Sprockets::Rails::Helper::AssetNotFound, "The asset \"#{source}\" is not precompiled" if Rails.application.assets.nil?
+
+    find_asset(source)
   end
 
   # will prepend a http or default_protocol to a protocol relative URL
@@ -130,23 +135,18 @@ module AssetHelper
     source
   end
 
-  def self.precompiled_or_absolute_asset?(source)
-    !Rails.configuration.respond_to?(:assets) ||
-      Rails.configuration.assets.compile == false ||
-      source.to_s[0] == '/' ||
-      source.to_s.match(/\Ahttps?\:\/\//)
+  def self.absolute_source?(source)
+    source.to_s[0] == '/' || source.to_s.match?(/\Ahttps?:\/\//)
   end
 
   def self.read_asset(source)
-    if precompiled_or_absolute_asset?(source)
-      pathname = asset_pathname(source)
-      if pathname =~ URI_REGEXP
-        read_from_uri(pathname)
-      elsif File.file?(pathname)
-        IO.read(pathname)
-      end
-    else
-      find_asset(source).to_s
+    return asset_content(source) unless absolute_source?(source)
+
+    pathname = asset_pathname(source)
+    if pathname =~ URI_REGEXP
+      read_from_uri(pathname)
+    elsif File.file?(pathname)
+      File.read(pathname)
     end
   end
 

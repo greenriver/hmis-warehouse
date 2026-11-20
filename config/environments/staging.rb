@@ -36,9 +36,10 @@ Rails.application.configure do
   config.assets.js_compressor = :terser
   # config.assets.css_compressor = :sass
 
-  config.assets.compile = true
+  # Production keeps live compilation as a fallback; on staging an asset missing from the
+  # precompile manifest raises AssetNotFound, so the miss is caught before release.
+  config.assets.compile = false
   config.assets.digest = true
-  config.assets.check_precompiled_asset = false
 
   # Enable serving of images, stylesheets, and JavaScripts from an asset server.
   # config.asset_host = 'http://assets.example.com'

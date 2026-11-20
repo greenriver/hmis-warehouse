@@ -259,6 +259,11 @@ RUN bundle config without development test doc \
   && mkdir -p public/assets var
 
 COPY --chown=app-user:app-user . ./
+
+# Sprockets only adds asset directories that exist when Rails boots, and assets:precompile boots
+# before javascript:build writes app/assets/builds. Without this, `link_tree ../builds` skips every
+# esbuild bundle without error and production compiles them on first request.
+RUN mkdir -p app/assets/builds
 COPY --chown=app-user:app-user sample.irbrc ./.irbrc
 COPY --chown=app-user:app-user docker/app/REVISION ./
 COPY --chown=app-user:app-user docker/app/GIT_BRANCH ./
