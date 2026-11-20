@@ -10,21 +10,26 @@ module GrdaWarehouse::Tasks::ScrubPii
   # Best-effort to scrub personally identifiable information (PII) from all warehouse and reporting tables
   # * Suitable for sanitizing a production database for staging/development use
   # * Delete versions
+  # * Requires confirm_database: matching the warehouse database name
   class ScrubAllPiiTask
     def self.perform(...)
       new.perform(...)
     end
 
-    def perform(...)
+    def perform(confirm_database:, **scrubber_opts)
+      expected = GrdaWarehouseBase.connection.current_database
+      raise ArgumentError, "confirm_database must equal '#{expected}'" unless confirm_database == expected
+
       with_lock do
         total = 0
-        scrubber = Pii::Scrubber::ScrubModelPii.new(...)
+        scrubber = Pii::Scrubber::ScrubModelPii.new(**scrubber_opts)
         version_pruner = Pii::Scrubber::VersionHistoryPruner.new
-        Pii::Scrubber::ScrubbableModels.to_scrub.each do |model|
-          total += scrubber.perform(model.unscoped)
-        end
+        # Versions go first so a scrub failure still leaves no history behind
         Pii::Scrubber::ScrubbableModels.all.each do |model|
           version_pruner.perform(owner: model)
+        end
+        Pii::Scrubber::ScrubbableModels.to_scrub.each do |model|
+          total += scrubber.perform(model.unscoped)
         end
         total
       end
