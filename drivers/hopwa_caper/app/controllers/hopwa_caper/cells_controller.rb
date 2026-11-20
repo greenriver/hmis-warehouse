@@ -30,11 +30,11 @@ module HopwaCaper
       @cell = @report.valid_cell_name(params[:id])
       @table = @report.valid_table_name(params[:table])
       @enrollments = @report.hopwa_caper_enrollments.
-        preload(enrollment: :project).
+        preload(enrollment: [:project, :client, :data_source]).
         joins(hud_reports_universe_members: { report_cell: :report_instance }).
         merge(::HudReports::ReportCell.for_table(@table).for_cell(@cell))
       @services = @report.hopwa_caper_services.
-        preload(enrollment: { enrollment: :project }).
+        preload(enrollment: { enrollment: [:project, :client, :data_source] }).
         joins(hud_reports_universe_members: { report_cell: :report_instance }).
         merge(::HudReports::ReportCell.for_table(@table).for_cell(@cell))
     end

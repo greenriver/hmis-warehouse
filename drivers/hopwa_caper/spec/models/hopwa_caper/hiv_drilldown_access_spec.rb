@@ -191,6 +191,17 @@ RSpec.describe HopwaCaper::HivDrilldownAccess, type: :model do
       expect(described_class.for_report(user: user, report: report).allowed?).to be(true)
     end
 
+    it 'evaluates a restricted client who appears only in the report services' do
+      grant_project_access(user, hiv_role, [project_a, project_b], mode: :acl)
+      expect(described_class.for_report(user: user, report: report).allowed?).to be(true)
+
+      Hmis::Hud::Client.find(client_b.id).mark_as_restricted!(user: create(:hmis_user, data_source: data_source))
+      report.hopwa_caper_services.update_all(destination_client_id: destination_id(client_b))
+
+      expect(report.hopwa_caper_enrollments.pluck(:destination_client_id)).not_to include(destination_id(client_b))
+      expect(described_class.for_report(user: user, report: report).allowed?).to be(false)
+    end
+
     it 'denies a service with no matching enrollment' do
       grant_project_access(user, hiv_role, [project_a, project_b], mode: :acl)
       services = services_on(project_a)
