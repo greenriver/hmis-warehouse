@@ -91,7 +91,6 @@ RSpec.describe 'PII attribute catalog' do
           "#{db_name}: #{table}.#{column}"
         end
       end
-
     end
 
     expect(violations.sort).to eq([])
