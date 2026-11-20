@@ -12,7 +12,7 @@ module Pii::Scrubber
     # Staff login accounts; scrubbing their emails would lock people out of staging.
     EXCLUDED_MODEL_NAMES = ['User', 'Hmis::User'].freeze
 
-    # Every concrete PII model with an existing table, including STI subclasses and
+    # Every concrete PII model with an existing table (not a view), including STI subclasses and
     # same-table aliases. Version history is pruned for all of these.
     def self.all
       Rails.application.eager_load! unless Rails.application.config.eager_load
@@ -20,6 +20,7 @@ module Pii::Scrubber
       ActiveRecord::Base.descendants.
         select { |model| pii_model?(model) }.
         select(&:table_exists?).
+        reject { |model| model.connection.view_exists?(model.table_name) }.
         sort_by(&:name)
     end
 

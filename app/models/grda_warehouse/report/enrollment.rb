@@ -11,7 +11,6 @@ module GrdaWarehouse::Report
   class Enrollment < Base
     self.table_name = :report_enrollments
     include ArelHelper
-    include ::HmisStructure::EnrollmentAddressPii
 
     belongs :demographic # source client
     belongs :client

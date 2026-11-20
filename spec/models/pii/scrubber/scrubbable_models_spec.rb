@@ -119,6 +119,19 @@ RSpec.describe Pii::Scrubber::ScrubbableModels do
       expect(described_class.all).not_to include(no_table)
     end
 
+    it 'skips a model over a database view in both lists' do
+      view_model = Class.new(GrdaWarehouseBase) do
+        include HasPiiAttributes
+        self.table_name = 'report_enrollments'
+        pii_attr :LastPermanentStreet, as: :geo_street
+      end
+      stub_const('PiiViewModel', view_model)
+
+      expect(view_model.connection.view_exists?('report_enrollments')).to be(true)
+      expect(described_class.all).not_to include(view_model)
+      expect(described_class.to_scrub).not_to include(view_model)
+    end
+
     it 'skips a model whose constant is not registered under its name' do
       klass = Class.new(GrdaWarehouse::Contact::Base) do
         def self.name = 'PiiUnregisteredContact'
