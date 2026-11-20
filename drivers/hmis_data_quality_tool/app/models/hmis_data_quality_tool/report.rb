@@ -234,6 +234,25 @@ module HmisDataQualityTool
       user.can_access_some_version_of_clients?
     end
 
+    # The project whose PII policy applies to each client in the report, as {destination_client_id => project_id}.
+    # Picks the way DqConcern#project_id_for_policy does: the client's lowest-id project the user can
+    # view clients in (:can_view_clients), otherwise the client's lowest-id project.
+    # Name permission is not considered when picking: if the picked project denies names, they are
+    # redacted even when another of the client's projects would allow them.
+    # @param user [User]
+    def policy_project_ids_by_destination_client(user:)
+      viewable_project_ids = user.viewable_project_ids(:can_view_clients).to_set
+      client_project_pairs = enrollments.
+        distinct.
+        order(:destination_client_id, :project_id).
+        pluck(:destination_client_id, :project_id)
+      project_ids_by_client = client_project_pairs.group_by(&:first).transform_values { |pairs| pairs.map(&:last) }
+
+      project_ids_by_client.transform_values do |project_ids|
+        project_ids.detect { |project_id| viewable_project_ids.include?(project_id) } || project_ids.first
+      end
+    end
+
     # Names, as the viewing user may see them, for projects referenced by overlap details.
     # Projects outside the report are redacted unless the user can report on them.
     def overlap_project_names(items:, user:)

@@ -223,6 +223,6 @@ class ActivityLog < ApplicationRecord
   end
 
   private def set_client_id
-    self.client_id = path&.split('?', 2)&.first&.match(CLIENT_PATH_PATTERN)&.[](1)&.to_i
+    self.client_id ||= path&.split('?', 2)&.first&.match(CLIENT_PATH_PATTERN)&.[](1)&.to_i
   end
 end

@@ -33,6 +33,13 @@ module GrdaWarehouse
       attachable.variant :thumb, resize_to_limit: [100, 100]
     end
 
+    ALLOWED_LOGO_CONTENT_TYPES = ['image/png', 'image/jpeg', 'image/gif', 'image/webp', 'image/svg+xml'].freeze
+    LOGO_SLOTS = ['logo', 'print_logo', 'hmis_logo'].freeze
+    MAX_LOGO_BYTE_SIZE = 2.megabytes
+
+    # Only slots being changed are checked, so saving the theme never fails on a stored logo that predates this check.
+    validate :validate_changed_logos
+
     # Max 1 theme per HMIS origin
     validates_uniqueness_of :hmis_origin,
                             scope: :client,
@@ -64,10 +71,20 @@ module GrdaWarehouse
 
     def self.hmis_logo
       theme = active_theme
-      # Use the default logo of no HMIS logo has been defined
-      return theme.logo unless theme.hmis_logo.attached?
+      # Use the main logo unless an HMIS logo is attached and is an allowed image type
+      return theme.logo unless allowed_logo?(theme.hmis_logo)
 
       theme.hmis_logo
+    end
+
+    def self.allowed_logo?(attachment)
+      attachment.attached? && ALLOWED_LOGO_CONTENT_TYPES.include?(attachment.blob.content_type)
+    end
+
+    def logo_image?(slot)
+      return false unless LOGO_SLOTS.include?(slot.to_s)
+
+      self.class.allowed_logo?(public_send(slot))
     end
 
     def self.logo_for_type(type)
@@ -118,31 +135,20 @@ module GrdaWarehouse
 
     def set_theme_default_logo!
       return if logo.attached?
-      return unless logo_file_exists?
 
-      logo.attach(logo_default)
+      attach_default_logo(logo, find_logo_path(ENV['LOGO']))
     end
 
     def set_theme_default_hmis_logo!
       return if hmis_logo.attached?
-      return unless logo_file_exists?
 
-      hmis_logo.attach(logo_default)
+      attach_default_logo(hmis_logo, find_logo_path(ENV['LOGO']))
     end
 
     def set_theme_default_print_logo!
       return if print_logo.attached?
 
-      print_logo.attach(print_logo_default) if print_logo_file_exists?
-      print_logo.attach(logo_default) if logo_file_exists?
-    end
-
-    def logo_default
-      find_and_open_logo(ENV['LOGO'])
-    end
-
-    def print_logo_default
-      find_and_open_logo(ENV['PRINT_LOGO'])
+      attach_default_logo(print_logo, client_logo_path(ENV['PRINT_LOGO']) || find_logo_path(ENV['LOGO']))
     end
 
     def self.encoded_logo
@@ -178,29 +184,23 @@ module GrdaWarehouse
     end
 
     private def find_logo_path(logo_name)
-      default_logo = 'open_path.svg'
-      return logo_directory.join(default_logo) if logo_name.blank?
-
-      logo_base_path = logo_directory.join(logo_name)
-      found_path = Dir.glob(logo_base_path.to_s + '.*').first
-      return logo_directory.join(default_logo) if found_path.blank?
-
-      found_path
+      client_logo_path(logo_name) || logo_directory.join('open_path.svg').to_s
     end
 
-    private def find_and_open_logo(logo_name)
-      ::File.open(find_logo_path(logo_name))
+    private def client_logo_path(logo_name)
+      return if logo_name.blank?
+
+      Dir.glob("#{logo_directory.join(logo_name)}.*").first
+    end
+
+    private def attach_default_logo(attachment, path)
+      return unless ::File.exist?(path)
+
+      attachment.attach(io: StringIO.new(::File.binread(path)), filename: ::File.basename(path))
     end
 
     private def logo_directory
       Rails.root.join('app', 'assets', 'images', 'theme', 'logo')
-    end
-    private def logo_file_exists?
-      ::File.exist?(find_logo_path(ENV['LOGO']))
-    end
-
-    private def print_logo_file_exists?
-      ::File.exist?(find_logo_path(ENV['PRINT_LOGO']))
     end
 
     def set_theme_default_css!
@@ -211,6 +211,16 @@ module GrdaWarehouse
 
     def hmis_theme?
       hmis_value.present?
+    end
+
+    private def validate_changed_logos
+      LOGO_SLOTS.select { |slot| attachment_changes.key?(slot) }.each do |slot|
+        attachment = public_send(slot)
+        next unless attachment.attached?
+
+        errors.add(slot, 'must be a PNG, JPEG, GIF, WebP or SVG image') unless self.class.allowed_logo?(attachment)
+        errors.add(slot, "must be #{MAX_LOGO_BYTE_SIZE / 1.megabyte} MB or smaller") if attachment.blob.byte_size > MAX_LOGO_BYTE_SIZE
+      end
     end
 
     def self.hmis_theme_for_origin(origin)

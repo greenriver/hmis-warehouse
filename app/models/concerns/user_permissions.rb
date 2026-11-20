@@ -44,7 +44,6 @@ module UserPermissions
         :can_edit_some_cohorts,
         :can_update_some_cohort_data,
         :can_access_window_search, # TODO: START_ACL remove after ACL migration is complete
-        :can_delete_projects_or_data_sources,
         :can_manage_some_ad_hoc_ds,
         :can_edit_some_project_groups,
       ].freeze
@@ -93,6 +92,15 @@ module UserPermissions
       else
         can_search_window? || can_use_strict_search? || can_search_own_clients?
       end
+    end
+
+    # True when client search needs no filtering for this user.
+    # Users on access controls are always limited by them, whatever their roles grant.
+    # This is a performance optimization for role-based users with access to all clients.
+    def legacy_can_search_across_all_clients?
+      # TODO: START_ACL cleanup after ACL migration is complete
+      !using_acls? && (can_search_all_clients? || system_user?)
+      # END_ACL
     end
 
     def window_file_access
@@ -171,10 +179,6 @@ module UserPermissions
 
     def has_some_edit_access_to_youth_intakes # rubocop:disable Naming/PredicatePrefix
       can_edit_youth_intake? || can_edit_own_agency_youth_intake?
-    end
-
-    def can_delete_projects_or_data_sources
-      can_delete_projects? || can_delete_data_sources?
     end
 
     def can_access_some_cohorts

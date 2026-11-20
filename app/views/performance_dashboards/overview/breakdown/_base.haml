@@ -10,6 +10,15 @@
 
   legend_id = "legend-#{SecureRandom.hex(8)}"
   excluded_categories = local_assigns[:excluded_categories].presence
+  note_parts = [content_tag(:p, 'Clients with multiple enrollments may be counted in multiple categories.')]
+  if excluded_categories.present?
+    note_parts << content_tag(:p, 'Data explicitly excluded from the universe is not shown.')
+    chips = excluded_categories.map { |cat| content_tag(:li, cat, class: 'list-inline-item chip-v1-prs1') }
+    note_parts << content_tag(:div, class: 'fw-bold') do
+      safe_join(['Currently excluding: ', content_tag(:ul, safe_join(chips), class: 'list-inline d-inline')])
+    end
+  end
+  note_content = safe_join(note_parts)
   chart_options = {
     params: detail_params,
     columns: columns,
@@ -40,15 +49,7 @@
   .col-md-8
     .description.mb-5
       = desc
-      - note_content = '<p>Clients with multiple enrollments may be counted in multiple categories.'
-      - if excluded_categories.present?
-        - note_content += '<br/>Data explicitly excluded from the universe is not shown. </p>'
-        - note_content += '<p class="font-weight-bold mr-2">Currently excluding: <ul class="list-inline d-inline mt-4">'
-        - excluded_categories.each do |cat|
-          - note_content += "<li class='list-inline-item chip-v1-prs1'>#{cat}</li>"
-        - note_content += '</ul></div></div>'
-      - note_content += '</p>'
-      %span.icon-info{data: { 'bs-toggle' => :popover, title: 'Note', placement: :bottom, trigger: :focus, content: note_content, html: :true }}
+      %span.icon-info{tabindex: 0, data: { 'bs-toggle' => :popover, 'bs-title' => 'Note', 'bs-placement' => :bottom, 'bs-trigger' => :focus, 'bs-content' => note_content, 'bs-html' => :true }}
       - breakdown_notes ||= false
       - if breakdown_notes
         .perf-overview-breakdown-notes

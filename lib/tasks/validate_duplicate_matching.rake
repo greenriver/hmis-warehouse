@@ -8,12 +8,12 @@
 
 # TODO: remove after QA of #8391
 namespace :validate do
-  desc 'Compare legacy vs new duplicate matching implementations'
+  desc 'Compare legacy vs new duplicate matching implementations and time each. Limit with METHODS=a,b (default: all six)'
   task duplicate_matching: :environment do
     puts 'Validating duplicate matching implementations...'
     puts '=' * 80
 
-    methods = [
+    all_methods = [
       :exact_ssn_matches,
       :exact_name_matches,
       :exact_dob_matches,
@@ -22,15 +22,41 @@ namespace :validate do
       :exact_dob_matches_for_unprocessed,
     ]
 
+    # METHODS=exact_ssn_matches,exact_dob_matches limits the run, e.g. to skip legacy queries that time out
+    requested_methods = ENV.fetch('METHODS', '').
+      split(',').
+      map(&:strip).
+      reject(&:blank?).
+      map(&:to_sym)
+    unknown_methods = requested_methods - all_methods
+    abort "Unknown METHODS: #{unknown_methods.join(', ')}. Valid: #{all_methods.join(', ')}" if unknown_methods.any?
+
+    methods = requested_methods.presence || all_methods
+
     task = GrdaWarehouse::Tasks::IdentifyDuplicates.new(run_post_processing: false)
     all_match = true
 
     methods.each do |method_name|
       puts "\nValidating legacy #{method_name}..."
+      legacy_started_at = Process.clock_gettime(Process::CLOCK_MONOTONIC)
       legacy_results = task.send(method_name, legacy: true).to_set
+      legacy_elapsed = Process.clock_gettime(Process::CLOCK_MONOTONIC) - legacy_started_at
+      puts "  legacy elapsed: #{legacy_elapsed.round(2)}s"
 
       puts "Validating refactored #{method_name}..."
+      new_started_at = Process.clock_gettime(Process::CLOCK_MONOTONIC)
       new_results = task.send(method_name, legacy: false).to_set
+      new_elapsed = Process.clock_gettime(Process::CLOCK_MONOTONIC) - new_started_at
+      puts "  refactored elapsed: #{new_elapsed.round(2)}s"
+
+      if method_name.end_with?('_for_unprocessed')
+        # Both paths look up unprocessed_ids twice (the blank? guard and the query),
+        # so each elapsed time above includes two lookups on top of the SQL.
+        lookup_started_at = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+        task.send(:unprocessed_ids)
+        lookup_elapsed = Process.clock_gettime(Process::CLOCK_MONOTONIC) - lookup_started_at
+        puts "  unprocessed_ids lookup: #{lookup_elapsed.round(2)}s (each path above includes 2 lookups)"
+      end
 
       if legacy_results == new_results
         puts "  ✓ MATCH (#{new_results.count} pairs)"

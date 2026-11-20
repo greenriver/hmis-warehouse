@@ -78,7 +78,7 @@
               .label.label-info
                 import paused
           %td
-            - if can_delete_data_sources?
+            - if @deletable_data_source_ids.include?(data_source.id)
               = link_to data_source_path(data_source), method: :delete, data: {confirm: "Deleting the #{data_source.name} Data Source will delete ALL associated data. Do you want to proceed?"}, class: 'btn btn-sm btn-danger btn-icon-only' do
                 %span.icon-cross
 = render 'common/pagination_bottom', item_name: 'data source'

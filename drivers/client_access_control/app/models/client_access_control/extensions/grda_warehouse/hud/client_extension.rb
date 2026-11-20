@@ -50,17 +50,11 @@ module ClientAccessControl::GrdaWarehouse::Hud
       #
       # Note, this may return either source or destination clients
       replace_scope :searchable_to, ->(user, client_ids: nil) do
-        # TODO: START_ACL cleanup after ACL migration is complete
-        limited_scope = if user.using_acls?
-          arbiter(user).clients_source_searchable_to(user, client_ids: client_ids)
+        limited_scope = if user.legacy_can_search_across_all_clients?
+          current_scope || all
         else
-          if user.can_search_all_clients? || user.system_user? # rubocop:disable Style/IfInsideElse
-            current_scope || all
-          else
-            arbiter(user).clients_source_searchable_to(user, client_ids: client_ids)
-          end
+          arbiter(user).clients_source_searchable_to(user, client_ids: client_ids)
         end
-        # END_ACL
         limited_scope = limited_scope.where(id: client_ids) if client_ids.present?
 
         return limited_scope if current_scope.nil?

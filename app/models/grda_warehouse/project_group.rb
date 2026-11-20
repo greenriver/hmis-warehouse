@@ -98,7 +98,7 @@ module GrdaWarehouse
       return none unless user.present?
 
       if user.using_acls?
-        return unless editable_permissions.map { |perm| user.send("#{perm}?") }.any?
+        return none unless editable_permissions.map { |perm| user.send("#{perm}?") }.any?
 
         ids = editable_permissions.flat_map do |perm|
           group_ids = user.collections_for_permission(perm)

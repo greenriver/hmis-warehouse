@@ -46,5 +46,5 @@
           %td
             = checkmark(enrollment&.[]('head_of_household'))
           %td
-            - client['disabilities'].each do |disability|
+            - visible_disabilities(client, policy: policy).each do |disability|
               %label.label.label-info= disability
