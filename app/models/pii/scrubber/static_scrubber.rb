@@ -14,7 +14,8 @@ module Pii::Scrubber
         next unless Pii::Scrubber::ReplacementPii.static_type?(field)
         next if field.real_value.blank?
 
-        field.scrub(Pii::Scrubber::ReplacementPii.static_value(field, id: field.record_id))
+        value = Pii::Scrubber::ReplacementPii.static_value(field, id: field.record_id)
+        field.scrub(value) unless value.nil?
       end
     end
   end

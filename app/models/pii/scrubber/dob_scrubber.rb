@@ -15,7 +15,7 @@ module Pii::Scrubber
 
       # a custom scrubber may already have replaced the dob
       dob_fields.reject(&:scrubbed?).each do |dob_field|
-        real_dob = parse_date(dob_field.real_value)
+        real_dob = Pii::Scrubber::ReplacementPii.parse_date(dob_field.real_value)
         dob_field.scrub(scramble_dob(real_dob))
       end
 
@@ -55,16 +55,6 @@ module Pii::Scrubber
 
     def age_in_years(dob)
       ((today - dob) / 365.25).floor
-    end
-
-    def parse_date(value)
-      return value unless value.is_a?(String)
-
-      begin
-        Date.strptime(value, '%Y-%m-%d')
-      rescue ArgumentError
-        nil
-      end
     end
 
     def today

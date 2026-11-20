@@ -16,7 +16,7 @@ RSpec.describe Pii::Scrubber::StaticScrubber do
       MiddleName: 'Q',
       LastName: 'Public',
       SSN: '123456789',
-      DOB: Date.new(1980, 1, 1),
+      DOB: Date.new(2007, 5, 1),
     )
   end
   let(:client2) do
@@ -26,7 +26,7 @@ RSpec.describe Pii::Scrubber::StaticScrubber do
       MiddleName: '',
       LastName: 'Doe',
       SSN: '987654321',
-      DOB: Date.new(1985, 2, 15),
+      DOB: Date.new(2008, 10, 17),
     )
   end
 
@@ -45,14 +45,46 @@ RSpec.describe Pii::Scrubber::StaticScrubber do
       MiddleName: "MiddleName#{client1.id}",
       LastName: "LastName#{client1.id}",
       SSN: '999000000',
-      DOB: Date.new(2000, 1, 1),
+      DOB: Date.new(2005, 1, 1),
     )
     expect(scrubbed_values(fields2)).to eq(
       FirstName: "FirstName#{client2.id}",
       LastName: "LastName#{client2.id}",
       SSN: '999000000',
-      DOB: Date.new(2000, 1, 1),
+      DOB: Date.new(2010, 1, 1),
     )
+  end
+
+  describe 'DOB' do
+    include ActiveSupport::Testing::TimeHelpers
+
+    def dob_field(record)
+      Pii::Scrubber::PiiAttribute.new(name: :DOB, type: :dob, required: false, level: 2, record: record)
+    end
+
+    it 'rounds down instead of up when rounding up would be after today' do
+      field = dob_field(build(:grda_warehouse_hud_client, DOB: Date.new(2028, 2, 1)))
+
+      travel_to(Date.new(2028, 6, 1)) { described_class.new.perform([field]) }
+
+      expect(field.scrubbed_value).to eq(Date.new(2025, 1, 1))
+    end
+
+    it 'rounds a DOB stored as a string' do
+      field = dob_field(HmisCsvTwentyTwentySix::Loader::Client.new(DOB: '2008-10-17'))
+
+      described_class.new.perform([field])
+
+      expect(field.scrubbed_value).to eq(Date.new(2010, 1, 1))
+    end
+
+    it 'leaves an unparseable DOB for the later scrubbers' do
+      field = dob_field(HmisCsvTwentyTwentySix::Loader::Client.new(DOB: '10/17/2008'))
+
+      described_class.new.perform([field])
+
+      expect(field.scrubbed?).to be(false)
+    end
   end
 
   it 'leaves a field without a static placeholder for the later scrubbers' do

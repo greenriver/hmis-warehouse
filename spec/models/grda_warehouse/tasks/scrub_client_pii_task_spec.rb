@@ -95,7 +95,7 @@ RSpec.describe GrdaWarehouse::Tasks::ScrubPii::ScrubClientPiiTask do
 
   context 'with static scrubber' do
     let(:other_client) do
-      create(:grda_warehouse_hud_client, data_source: data_source, FirstName: 'Alice', MiddleName: nil)
+      create(:grda_warehouse_hud_client, data_source: data_source, FirstName: 'Alice', MiddleName: nil, DOB: '2007-05-01')
     end
 
     before do
@@ -110,9 +110,12 @@ RSpec.describe GrdaWarehouse::Tasks::ScrubPii::ScrubClientPiiTask do
         'MiddleName' => "MiddleName#{client1.id}",
         'LastName' => "LastName#{client1.id}",
         'SSN' => '999000000',
-        'DOB' => Date.new(2000, 1, 1),
+        'DOB' => Date.new(1980, 1, 1),
       )
-      expect(other_client.FirstName).to eq("FirstName#{other_client.id}")
+      expect(other_client.attributes.slice('FirstName', 'DOB')).to eq(
+        'FirstName' => "FirstName#{other_client.id}",
+        'DOB' => Date.new(2005, 1, 1),
+      )
     end
 
     it 'leaves blank PII blank' do

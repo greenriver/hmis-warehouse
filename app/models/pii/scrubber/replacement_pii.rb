@@ -19,7 +19,6 @@ module Pii::Scrubber
       last_name: 'LastName%{id}',
       full_name: 'FullName%{id}',
       ssn: '999000000',
-      dob: Date.new(2000, 1, 1),
       email: 'no-reply@example.com',
       phone: '2125550100',
       geo_street: 'Street%{id}',
@@ -27,14 +26,33 @@ module Pii::Scrubber
     }.freeze
 
     def self.static_type?(field)
-      STATIC_TYPE_VALUES.key?(field.type)
+      field.type == :dob || STATIC_TYPE_VALUES.key?(field.type)
     end
 
+    # nil when a dob can't be parsed
     def self.static_value(field, id:)
       raise "can't scrub required field '#{field.description}'" unless static_type?(field)
+      return rounded_dob(field.real_value) if field.type == :dob
 
-      value = STATIC_TYPE_VALUES[field.type]
-      value.is_a?(String) ? format(value, id: id) : value
+      format(STATIC_TYPE_VALUES[field.type], id: id)
+    end
+
+    # January 1 of the nearest birth year divisible by 5, rounded down when that would be in the future
+    def self.rounded_dob(value)
+      dob = parse_date(value)
+      return unless dob
+
+      rounded = Date.new((dob.year / 5.0).round * 5, 1, 1)
+      rounded > Date.current ? rounded - 5.years : rounded
+    end
+
+    # HMIS CSV loader tables store DOB as a YYYY-MM-DD string
+    def self.parse_date(value)
+      return value unless value.is_a?(String)
+
+      Date.strptime(value, '%Y-%m-%d')
+    rescue ArgumentError
+      nil
     end
 
     def self.fake_value(field)
