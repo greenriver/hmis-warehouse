@@ -46,7 +46,7 @@ module HopwaCaper
       client_ids = pairs.map(&:last).uniq.compact
       policy_context = @user.policy_context
       policy_context.preload_project_dependencies(project_ids)
-      policy_context.preload_client_dependencies(client_ids)
+      policy_context.preload_client_restrictions(client_ids)
 
       project_ids.all? { |project_id| project_hiv_allowed?(project_id) } &&
         client_ids.none? { |client_id| policy_context.client_restricted?(client_id) }
