@@ -39,10 +39,36 @@ RSpec.describe GrdaWarehouse::Tasks::ScrubPii::ScrubAllPiiTask do
     )
   end
 
+  let(:case_note) { create(:hmis_hud_custom_case_note, content: "Client disclosed #{real_first_name} #{real_last_name}") }
+
+  let(:form_submission) { create(:hmis_external_form_submission, raw_data: { 'first_name' => real_first_name }) }
+
+  let(:spm_2026_enrollment) do
+    HudSpmReport::Fy2026::SpmEnrollment.new(first_name: real_first_name, last_name: real_last_name).tap { |r| r.save!(validate: false) }
+  end
+
+  let(:dqt_living_situation) do
+    HmisDataQualityTool::CurrentLivingSituation.create!(
+      first_name: real_first_name,
+      last_name: real_last_name,
+      current_living_situation_id: 1,
+      enrollment_id: 1,
+      client_id: 1,
+      report_id: 1,
+    )
+  end
+
+  let(:staff_user) { create(:user, email: 'staff@example.org') }
+
   def reload_records
     [
       hud_client,
       apr_client,
+      case_note,
+      form_submission,
+      spm_2026_enrollment,
+      dqt_living_situation,
+      staff_user,
     ].each(&:reload)
   end
 
@@ -89,6 +115,22 @@ RSpec.describe GrdaWarehouse::Tasks::ScrubPii::ScrubAllPiiTask do
         and change { apr_client.dob }.to(scrubbed_dob).
         and change { apr_client.age }.to(scrubbed_age)
     end
+
+    it 'replaces required fields with placeholders and clears optional PII in models the hand-typed list missed' do
+      expect do
+        perform_task
+      end.to change { case_note.content }.to("Note#{case_note.id}").
+        and change { form_submission.raw_data }.to({}).
+        and change { spm_2026_enrollment.first_name }.to(nil).
+        and change { spm_2026_enrollment.last_name }.to(nil).
+        and change { dqt_living_situation.first_name }.to(nil).
+        and change { dqt_living_situation.last_name }.to(nil)
+    end
+
+    it 'leaves staff login accounts alone' do
+      expect { perform_task }.not_to change { staff_user.email }
+      expect(staff_user.email).to eq('staff@example.org')
+    end
   end
 
   context 'with fake strategy' do
@@ -100,6 +142,13 @@ RSpec.describe GrdaWarehouse::Tasks::ScrubPii::ScrubAllPiiTask do
         and change { apr_client.ssn }.to(fake_ssn).
         and change { apr_client.dob }.to(scrubbed_dob).
         and change { apr_client.age }.to(scrubbed_age)
+    end
+
+    it 'uses placeholders for required fields that have no fake generator' do
+      expect do
+        perform_task(custom_scrubber: :fake)
+      end.to change { case_note.content }.to("Note#{case_note.id}").
+        and change { form_submission.raw_data }.to({})
     end
   end
 end

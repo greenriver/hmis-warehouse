@@ -24,12 +24,15 @@ module Pii::Scrubber
       phone: '212-555-0100',
       geo_street: 'Street%{id}',
       geo_postal_code: '00000',
+      free_text: 'Note%{id}',
+      json: {},
     }.freeze
 
     def self.static_value(field, id:)
       raise "can't scrub required field '#{field.description}'" unless STATIC_TYPE_VALUES.key?(field.type)
 
-      format(STATIC_TYPE_VALUES[field.type], id: id)
+      value = STATIC_TYPE_VALUES[field.type]
+      value.is_a?(String) ? format(value, id: id) : value
     end
 
     def self.fake_value(field)

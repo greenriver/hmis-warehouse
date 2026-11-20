@@ -63,7 +63,7 @@ module Pii::Scrubber
             [column, record.send(column)]
           end
 
-          pii_attrs.merge(required_attrs)
+          required_attrs.merge(pii_attrs)
         end
         import!(model, values)
         progress&.increment!(batch.size)
