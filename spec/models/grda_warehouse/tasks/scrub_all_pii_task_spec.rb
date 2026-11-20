@@ -67,6 +67,11 @@ RSpec.describe GrdaWarehouse::Tasks::ScrubPii::ScrubAllPiiTask do
     )
   end
 
+  let(:form_processor) do
+    assessment = create(:hmis_custom_assessment, values: { 'ssn' => real_ssn }, hud_values: { 'SSN' => real_ssn })
+    assessment.form_processor.tap { |fp| fp.update!(backup_values: { 'ssn' => real_ssn }) }
+  end
+
   let(:staff_user) { create(:user, email: 'staff@example.org') }
 
   def reload_records
@@ -76,6 +81,7 @@ RSpec.describe GrdaWarehouse::Tasks::ScrubPii::ScrubAllPiiTask do
       contact,
       case_note,
       form_submission,
+      form_processor,
       spm_2026_enrollment,
       dqt_living_situation,
       staff_user,
@@ -137,6 +143,12 @@ RSpec.describe GrdaWarehouse::Tasks::ScrubPii::ScrubAllPiiTask do
         and change { spm_2026_enrollment.last_name }.to(nil).
         and change { dqt_living_situation.first_name }.to(nil).
         and change { dqt_living_situation.last_name }.to(nil)
+    end
+
+    it 'clears form processor answer JSON' do
+      expect { perform_task }.to change { form_processor.values }.to(nil).
+        and change { form_processor.hud_values }.to(nil).
+        and change { form_processor.backup_values }.to(nil)
     end
 
     it 'leaves staff login accounts alone' do
