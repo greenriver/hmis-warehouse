@@ -13,7 +13,13 @@ export default class extends Controller {
     if (this.hasNavTarget && window.ResizeObserver) {
       // The nav's size changes when a scrollbar appears; its content's size
       // changes when sections expand or collapse.
-      this.resizeObserver = new ResizeObserver(() => this.syncScrollbarWidth());
+      // Defer to the next frame: widening the menu resizes the observed nav,
+      // and doing that inside the callback makes the browser fire "ResizeObserver
+      // loop completed with undelivered notifications".
+      this.resizeObserver = new ResizeObserver(() => {
+        cancelAnimationFrame(this.syncFrame);
+        this.syncFrame = requestAnimationFrame(() => this.syncScrollbarWidth());
+      });
       this.resizeObserver.observe(this.navTarget);
       Array.from(this.navTarget.children).forEach((child) => this.resizeObserver.observe(child));
     }
@@ -21,6 +27,7 @@ export default class extends Controller {
 
   disconnect() {
     this.resizeObserver?.disconnect();
+    cancelAnimationFrame(this.syncFrame);
   }
 
   get isOpen() {
@@ -69,6 +76,10 @@ export default class extends Controller {
   // take no width, so this stays 0 for them.
   syncScrollbarWidth() {
     const scrollbarWidth = this.navTarget.offsetWidth - this.navTarget.clientWidth;
+    // Widening the menu triggers the observer again; stop once it's settled.
+    if (scrollbarWidth === this.scrollbarWidth) return;
+
+    this.scrollbarWidth = scrollbarWidth;
     this.menuTargets.forEach((menu) => menu.style.setProperty('--o-menu-scrollbar-width', `${scrollbarWidth}px`));
   }
 

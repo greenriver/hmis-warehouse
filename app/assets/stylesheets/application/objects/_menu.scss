@@ -14,6 +14,10 @@
   min-height: 0;
   padding-top: space(6);
   transition: .35s transform ease-in-out;
+  // Under the horizontal header, over page content. Set on the drawer itself,
+  // not .on-canvas, so it stays on top while sliding out after .off-canvas
+  // replaces .on-canvas (e.g. over the sticky .pdq_actions bar).
+  z-index: $page-z-index - 1;
 
   // Hide the closed drawer from Tab and screen readers. Delay visibility until
   // the slide-out finishes; opening switches it back immediately.
@@ -124,11 +128,6 @@
   border-top: 2px solid var(--theme-background-d);
   border-bottom: 2px solid var(--theme-background-d);
   ;
-
-  &.on-canvas {
-    // minus 1 because it should be under the horizontal header
-    z-index: $page-z-index - 1;
-  }
 }
 
 .o-menu .o-menu__to-top {
