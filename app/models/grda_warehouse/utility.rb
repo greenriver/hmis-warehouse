@@ -126,6 +126,8 @@ class GrdaWarehouse::Utility
     tables << HudDataQualityReport::Fy2020::DqClient
     tables << HudDataQualityReport::Fy2020::DqLivingSituation
 
+    # Approvals reference simple_report_instances, which PerformanceMeasurement::Report shares
+    tables << ContinuumSemiAnnualPerformance::Approval
     tables << PerformanceMeasurement::Report
     tables << PerformanceMeasurement::Client
     tables << PerformanceMeasurement::Project
@@ -207,6 +209,8 @@ class GrdaWarehouse::Utility
       GrdaWarehouse::ServiceHistoryEnrollment,
       ActiveStorage::Attachment,
       ActiveStorage::Blob,
+      PerformanceMeasurement::Report,
+      SimpleReports::ReportInstance,
       User,
     ]
     return 'CASCADE' if cascade_models.include?(model)

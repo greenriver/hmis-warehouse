@@ -30,21 +30,20 @@ module ClientMatchHelper
   private def match_flag(score, exact_match, threshold: 2)
     return '' unless score.present? || exact_match
 
-    # http://colorbrewer2.org/#type=diverging&scheme=RdYlGn&n=5
-    color, icon, color2, title = if score.nil? || score.abs < threshold.abs / 2
-      ['#dddddd', "\u00A0~", '#ffffff', 'neutral']
+    state, icon, title = if score.nil? || score.abs < threshold.abs / 2
+      ['neutral', "\u00A0~", 'neutral']
     elsif score < -threshold.abs
-      ['#1a9641', '++', '#ffffff', 'strong evidence for']
+      ['strong-for', '++', 'strong evidence for']
     elsif score.negative?
-      ['#a6d96a', "\u00A0+", '#000000', 'evidence for']
+      ['for', "\u00A0+", 'evidence for']
     elsif score < threshold.abs
-      ['#fdae61', "\u00A0-", '#000000', 'evidence against']
+      ['against', "\u00A0-", 'evidence against']
     else
-      ['#d7191c', '--', '#ffffff', 'strong against']
+      ['strong-against', '--', 'strong against']
     end
     title = "#{title}/exact match" if exact_match
     title = "#{title}: #{score.round(2)}" if score
-    content_tag(:abbr, title: title, style: "font-family: monospace; border-radius: 4px; font-weight: bold; background-color:#{color}; color:#{color2}; padding:1px 2px; margin:1px;") do
+    content_tag(:abbr, title: title, class: ['match-flag', "match-flag-#{state}"]) do
       exact_match ? icon.gsub(/[-+~]/, '=') : icon
     end
   end

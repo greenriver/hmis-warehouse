@@ -31,7 +31,7 @@ module WarehouseReports
       @filter.valid?
       @report = report_source.new(parameters: filter_params)
       if @report.valid?
-        WarehouseReports::RunEnrolledDisabledJob.perform_later({ filter: job_params }.merge(current_user_id: current_user.id))
+        WarehouseReports::RunEnrolledDisabledJob.perform_later({ filter: filter_params }.merge(current_user_id: current_user.id))
       else
         flash[:error] = @report.errors.messages.values.join('<br />').html_safe
       end
@@ -72,18 +72,6 @@ module WarehouseReports
 
     def set_report
       @report = report_scope.find params[:id].to_i
-    end
-
-    def job_params
-      params.require(:filter).permit(
-        :start,
-        :end,
-        :sub_population,
-        :heads_of_household,
-        age_ranges: [],
-        disabilities: [],
-        project_types: [],
-      )
     end
 
     def filter_params
@@ -129,6 +117,21 @@ module WarehouseReports
       ::HudHelper.util.disability_types.invert.except(*exclude)
     end
     helper_method :available_disabilities
+
+    # A stored run carries the labels its runner could see, but other users can open it,
+    # so filter sensitive labels by the viewer's permissions. The row's PII policy covers
+    # client restriction and the detail-download PII setting; it doesn't check the viewer's
+    # HIV permission when there's no project, so check that too.
+    def visible_disabilities(client, policy:)
+      hud_util = ::HudHelper.util
+      hidden = []
+      hiv_hidden = !can_view_hiv_status? || !policy.can_view_hiv_status?
+      hidden << hud_util.disability_type(8, raise_on_missing: true) if hiv_hidden
+      hidden << hud_util.disability_type(9, raise_on_missing: true) unless can_view_dmh_status?
+
+      client['disabilities'] - hidden
+    end
+    helper_method :visible_disabilities
 
     def available_project_types
       ::HudHelper.util.project_types.invert

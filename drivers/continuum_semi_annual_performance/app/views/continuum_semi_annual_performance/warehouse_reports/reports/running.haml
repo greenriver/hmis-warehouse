@@ -1,0 +1,10 @@
+- content_for :title, @report.title
+
+= render '/warehouse_reports/breadcrumbs', tab: 'performance'
+%h1.mb-3= @report.title
+- if @report.failed?
+  %h2 Report Failed
+- else
+  %h2 Report Running
+%p= @report.status
+= link_to 'Back to reports', @report.index_path, class: 'btn btn-secondary'

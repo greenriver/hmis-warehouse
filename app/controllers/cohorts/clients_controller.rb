@@ -18,7 +18,16 @@ module Cohorts
     include Search
 
     before_action :require_can_access_cohort!
-    before_action :require_can_add_cohort_clients!, only: [:new, :create, :destroy, :bulk_destroy, :bulk_restore]
+    before_action :require_can_add_cohort_clients!, only: [
+      :new,
+      :create,
+      :search,
+      :pre_destroy,
+      :destroy,
+      :pre_bulk_destroy,
+      :bulk_destroy,
+      :bulk_restore,
+    ]
     before_action :require_can_update_some_cohort_data!, only: [:re_rank, :edit, :update]
     before_action :set_cohort
     before_action :set_client, only: [:destroy, :update, :show, :pre_destroy, :field]
@@ -171,13 +180,15 @@ module Cohorts
 
     # Setup @clients prior to calling this method
     private def calculate_search_result_data
+      # Every search branch funnels through here; limit results to clients the user can see.
+      # Use a sub-query rather than merge (see #search).
+      @clients = @clients.where(id: client_scope.select(:id))
       counts = GrdaWarehouse::WarehouseClientsProcessed.
         where(client_id: @clients.reorder(id: :asc).select(:id)).
         pluck(:client_id, :homeless_days, :days_homeless_last_three_years, :literally_homeless_last_three_years)
       @days_homeless = counts.map { |client_id, days_homeless, _, _| [client_id, days_homeless] }.to_h
       @days_homeless_three_years = counts.map { |client_id, _, days_homeless_last_three_years, _| [client_id, days_homeless_last_three_years] }.to_h
       @days_literally_homeless_three_years = counts.map { |client_id, _, _, literally_homeless_last_three_years| [client_id, literally_homeless_last_three_years] }.to_h
-      Rails.logger.info "CLIENTS: #{@clients.to_sql}"
       @clients = @clients.where.not(id: @cohort.cohort_clients.select(:client_id)).pluck(*client_columns).map do |row|
         Hash[client_columns.zip(row)]
       end
@@ -386,9 +397,16 @@ module Cohorts
     end
 
     def create
-      client_ids = cohort_params[:client_ids]
+      requested_ids = cohort_params[:client_ids].to_s.split(',').map(&:to_i)
+      # Only add clients the user can see, preserving the requested order
+      visible_ids = client_scope.where(id: requested_ids).pluck(:id)
+      incoming = requested_ids & visible_ids
+      if incoming.empty?
+        flash[:error] = "No clients were added to #{@cohort.name}."
+        return respond_with(@cohort, location: cohort_path(@cohort))
+      end
+
       # Add all of the cohort clients quickly with no data
-      incoming = client_ids.split(',').map(&:to_i)
       existing = cohort_client_source.with_deleted.where(cohort_id: @cohort.id).pluck(:client_id)
       needed = incoming - existing
       to_add = needed.map { |id| [id, @cohort.id, Time.now, Time.now] }
@@ -401,7 +419,7 @@ module Cohorts
       cohort_client_source.only_deleted.where(cohort_id: @cohort.id, client_id: to_restore).update_all(deleted_at: nil)
 
       # Go back and get set the data for each client
-      AddCohortClientsJob.perform_later(@cohort.id, client_ids, current_user.id)
+      AddCohortClientsJob.perform_later(@cohort.id, incoming.join(','), current_user.id)
       flash[:notice] = "#{pluralize(needed.count + to_restore.count, 'Client')} added to #{@cohort.name}; Some client data won't be available immediately, but will show up in a few minutes."
       respond_with(@cohort, location: cohort_path(@cohort))
     end
@@ -477,7 +495,7 @@ module Cohorts
     def bulk_destroy
       unless @cohort.system_cohort || @cohort.auto_maintained?
         @cohort_client_ids = params.require(:cc).permit(:cohort_client_ids)[:cohort_client_ids].split(',').map(&:to_i)
-        @cohort_clients = cohort_client_source.where(id: @cohort_client_ids)
+        @cohort_clients = @cohort.cohort_clients.where(id: @cohort_client_ids)
         removed = 0
         @cohort_clients.each do |client|
           log_removal(client.cohort_id, client.id, params.dig(:cc, :reason))
@@ -491,7 +509,7 @@ module Cohorts
     def bulk_restore
       unless @cohort.system_cohort || @cohort.auto_maintained?
         @cohort_client_ids = params.require(:cc).permit(:cohort_client_ids)[:cohort_client_ids].split(',').map(&:to_i)
-        @cohort_clients = cohort_client_source.only_deleted.where(id: @cohort_client_ids)
+        @cohort_clients = @cohort.cohort_clients.only_deleted.where(id: @cohort_client_ids)
         @cohort_clients.each(&:restore)
       end
 

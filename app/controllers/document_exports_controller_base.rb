@@ -115,6 +115,8 @@ class DocumentExportsControllerBase < ApplicationController
       'HmisDataQualityTool::DocumentExports::ReportChartPdfExport',
       'HmisDataQualityTool::DocumentExports::ReportExcelExport',
       'HmisDataQualityTool::DocumentExports::ReportByClientExcelExport',
+      'ContinuumSemiAnnualPerformance::DocumentExports::ReportExcelExport',
+      'ContinuumSemiAnnualPerformance::DocumentExports::ReportPdfExport',
       'SystemPathways::DocumentExports::ReportExport',
       'StartDateDq::DocumentExports::StartDateDqExcelExport',
       'ClientDocumentsReport::DocumentExports::ReportExcelExport',

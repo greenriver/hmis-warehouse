@@ -63,7 +63,7 @@ class HmisImportConfigsController < ApplicationController
   end
 
   private def set_data_source
-    @data_source = GrdaWarehouse::DataSource.viewable_by(current_user).find(params[:data_source_id].to_i)
+    @data_source = GrdaWarehouse::DataSource.editable_by(current_user).find(params[:data_source_id].to_i)
   end
 
   private def set_config

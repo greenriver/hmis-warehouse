@@ -91,7 +91,7 @@ module HudApr::Generators::CeApr::Fy2026
           within_ce_participation_range, # step 4.a. and 4.b .The relevant date is within the time the project was participating in CE
         ).
         merge(GrdaWarehouse::ServiceHistoryEnrollment.heads_of_households).
-        select(:household_id)
+        select(she_t[:data_source_id], she_t[:household_id])
 
       client_ids_from_events = client_source.
         distinct.
@@ -112,7 +112,7 @@ module HudApr::Generators::CeApr::Fy2026
         joins(service_history_enrollments: { enrollment: :project }).
         preload(service_history_enrollments: { enrollment: { project: :project_cocs } }).
         where(
-          she_t[:household_id].in(household_ids.arel).
+          Arel::Nodes::Grouping.new([she_t[:data_source_id], she_t[:household_id]]).in(household_ids.arel).
           or(she_t[:client_id].in(client_ids_from_events.arel)),
         )
 

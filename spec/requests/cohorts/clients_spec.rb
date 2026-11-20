@@ -199,9 +199,119 @@ RSpec.describe Cohorts::ClientsController, type: :request do
     end
   end
 
+  describe 'GET /cohorts/:cohort_id/cohort_clients/new (touchpoint search)' do
+    let(:searcher) { create(:acl_user) }
+    let!(:window_assessment) do
+      GrdaWarehouse::Hmis::Assessment.create!(
+        data_source_id: window_visible_data_source.id,
+        site_id: 1,
+        assessment_id: 1,
+        name: 'Intake',
+        site_name: 'Main',
+        confidential: false,
+        active: true,
+      )
+    end
+    let!(:non_window_assessment) do
+      GrdaWarehouse::Hmis::Assessment.create!(
+        data_source_id: non_window_visible_data_source.id,
+        site_id: 1,
+        assessment_id: 1,
+        name: 'Intake',
+        site_name: 'Main',
+        confidential: false,
+        active: true,
+      )
+    end
+
+    before do
+      # only_window would hide non-window clients regardless of the user's visibility
+      cohort.update!(only_window: false)
+      non_window_destination_client.update!(FirstName: 'Seen', LastName: 'Searchable')
+      window_destination_client.update!(FirstName: 'Unseen', LastName: 'Elsewhere')
+      sources = [
+        [window_source_client, window_visible_data_source],
+        [non_window_source_client, non_window_visible_data_source],
+      ]
+      sources.each do |source, data_source|
+        GrdaWarehouse::HmisForm.create!(
+          client_id: source.id,
+          data_source_id: data_source.id,
+          site_id: 1,
+          assessment_id: 1,
+          name: 'Intake',
+          collected_at: Date.current,
+          staff: 'Staff',
+          answers: { sections: [] },
+        )
+      end
+      setup_access_control(searcher, cohort_role, all_cohorts_collection)
+      setup_access_control(searcher, can_view_clients, non_window_data_source_viewable_collection)
+      sign_in searcher
+    end
+
+    it 'lists only clients the user can see' do
+      touchpoint_params = { start: 1.week.ago.to_date, end: Date.tomorrow, assessment_id: 1 }
+
+      get new_cohort_cohort_client_path(cohort), params: { touchpoints: touchpoint_params }
+
+      expect(response.body).to include('Searchable')
+      expect(response.body).not_to include('Elsewhere')
+    end
+  end
+
+  describe 'GET /cohorts/:cohort_id/cohort_clients/new (chronic searches)' do
+    let(:searcher) { create(:acl_user) }
+
+    before do
+      # only_window would hide non-window clients regardless of the user's visibility
+      cohort.update!(only_window: false)
+      non_window_destination_client.update!(FirstName: 'Seen', LastName: 'Searchable')
+      window_destination_client.update!(FirstName: 'Unseen', LastName: 'Elsewhere')
+      service_history_enrollments = {
+        window_destination_client => window_service_history_enrollment,
+        non_window_destination_client => non_window_service_history_enrollment,
+      }
+      service_history_enrollments.each do |client, enrollment|
+        create(:chronic, client: client, date: Date.current, age: 30)
+        create(:hud_chronic, client: client, date: Date.current, age: 30)
+        create(
+          :service_history_service,
+          client_id: client.id,
+          service_history_enrollment_id: enrollment.id,
+          record_type: 'service',
+          date: Date.current,
+          project_type: 1,
+          homeless: true,
+          literally_homeless: true,
+        )
+      end
+      setup_access_control(searcher, cohort_role, all_cohorts_collection)
+      setup_access_control(searcher, can_view_clients, non_window_data_source_viewable_collection)
+      sign_in searcher
+    end
+
+    it 'lists only clients the user can see from the chronic panel' do
+      get new_cohort_cohort_client_path(cohort), params: { filter: { hoh: '0' } }
+
+      expect(response.body).to include('Searchable')
+      expect(response.body).not_to include('Elsewhere')
+    end
+
+    it 'lists only clients the user can see from the HUD chronic panel' do
+      get new_cohort_cohort_client_path(cohort), params: { hud_filter: { hoh: '0' } }
+
+      expect(response.body).to include('Searchable')
+      expect(response.body).not_to include('Elsewhere')
+    end
+  end
+
   describe 'POST /cohorts/:cohort_id/cohort_clients (create)' do
-    let!(:client1) { create(:grda_warehouse_hud_client, data_source_id: warehouse_data_source.id) }
-    let!(:client2) { create(:grda_warehouse_hud_client, data_source_id: warehouse_data_source.id) }
+    let!(:client1) { non_window_destination_client }
+    let!(:client2) { both_destination_client }
+
+    # only_window would hide non-window clients regardless of the user's visibility
+    before { cohort.update!(only_window: false) }
     let(:create_params) { { grda_warehouse_cohort: { client_ids: "#{client1.id},#{client2.id}" } } }
 
     context 'when logged out' do
@@ -223,8 +333,43 @@ RSpec.describe Cohorts::ClientsController, type: :request do
       end
     end
 
+    context 'with a client outside the user\'s visibility' do
+      let(:adder) { create(:acl_user) }
+
+      before do
+        setup_access_control(adder, cohort_role, all_cohorts_collection)
+        setup_access_control(adder, can_view_clients, non_window_data_source_viewable_collection)
+        sign_in adder
+      end
+
+      it 'adds only the visible client' do
+        params = { grda_warehouse_cohort: { client_ids: "#{non_window_destination_client.id},#{window_destination_client.id}" } }
+
+        expect do
+          post cohort_cohort_clients_path(cohort), params: params
+        end.to have_enqueued_job(AddCohortClientsJob).with(cohort.id, non_window_destination_client.id.to_s, adder.id)
+
+        expect(cohort.cohort_clients.pluck(:client_id)).to contain_exactly(non_window_destination_client.id)
+        expect(flash[:notice]).to include('1 Client added')
+      end
+
+      it 'adds nothing when no requested client is visible' do
+        params = { grda_warehouse_cohort: { client_ids: window_destination_client.id.to_s } }
+
+        expect do
+          post cohort_cohort_clients_path(cohort), params: params
+        end.not_to have_enqueued_job(AddCohortClientsJob)
+
+        expect(cohort.cohort_clients.count).to eq(0)
+        expect(flash[:error]).to include('No clients were added')
+      end
+    end
+
     context 'when logged in with sufficient permissions' do
-      before { sign_in user }
+      before do
+        setup_access_control(user, can_view_clients, non_window_data_source_viewable_collection)
+        sign_in user
+      end
 
       it 'adds clients to the cohort' do
         expect do
@@ -347,6 +492,39 @@ RSpec.describe Cohorts::ClientsController, type: :request do
 
       expect(response).to have_http_status(:ok)
       expect(response.body.scan('jCohortClient').size).to eq(4)
+    end
+  end
+
+  describe 'bulk removing and restoring clients' do
+    let!(:other_cohort) { create(:cohort) }
+    let!(:own_cohort_client) { cohort.cohort_clients.create!(client_id: create(:hud_client).id) }
+    let!(:other_cohort_client) { other_cohort.cohort_clients.create!(client_id: create(:hud_client).id) }
+    let(:cohort_client_ids) { [own_cohort_client.id, other_cohort_client.id].join(',') }
+
+    before { sign_in user }
+
+    describe 'DELETE /cohorts/:cohort_id/cohort_clients/bulk_destroy' do
+      it 'removes only cohort clients that belong to the URL cohort' do
+        delete bulk_destroy_cohort_cohort_clients_path(cohort), params: { cc: { cohort_client_ids: cohort_client_ids } }
+
+        expect(own_cohort_client.reload.deleted?).to be(true)
+        expect(other_cohort_client.reload.deleted?).to be(false)
+        expect(flash[:notice]).to eq('Removed 1 client')
+      end
+    end
+
+    describe 'POST /cohorts/:cohort_id/cohort_clients/bulk_restore' do
+      before do
+        own_cohort_client.destroy!
+        other_cohort_client.destroy!
+      end
+
+      it 'restores only cohort clients that belong to the URL cohort' do
+        post bulk_restore_cohort_cohort_clients_path(cohort), params: { cc: { cohort_client_ids: cohort_client_ids } }
+
+        expect(own_cohort_client.reload.deleted?).to be(false)
+        expect(other_cohort_client.reload.deleted?).to be(true)
+      end
     end
   end
 end

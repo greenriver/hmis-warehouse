@@ -62,6 +62,22 @@ RSpec.describe 'HUD report authorization', type: :request do
 
       expect(response.body).to include(hud_reports_apr_path(own_run), hud_reports_apr_path(other_run))
     end
+
+    it "refuses another user's run without can_view_all_hud_reports" do
+      grant_hud_report(user, 'hud_reports/aprs')
+
+      get hud_reports_apr_path(other_run)
+
+      expect(response).to have_http_status(:not_found)
+    end
+
+    it "opens another user's run with can_view_all_hud_reports" do
+      grant_hud_report(user, 'hud_reports/aprs', role: create(:role, can_view_assigned_reports: true, can_view_all_hud_reports: true))
+
+      get hud_reports_apr_path(other_run)
+
+      expect(response).to have_http_status(:ok)
+    end
   end
 
   describe 'warehouse reports index for a legacy user with only a HUD flag' do

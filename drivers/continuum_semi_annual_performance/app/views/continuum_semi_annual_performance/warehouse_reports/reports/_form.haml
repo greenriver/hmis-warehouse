@@ -1,0 +1,19 @@
+- url = polymorphic_path(@report.report_path_array)
+- alert = 'Included projects are limited by the selected CoC.'
+- supported_types = @report.supported_project_type_ids
+
+= simple_form_for @filter, as: :filters, url: url, data: { controller: 'filter-projects', 'filter-projects-supported-project-types-value': supported_types } do |f|
+  - content_for :filters_col_full do
+    %h2 Required Options
+    .row.mb-4
+      .col-sm-3
+        = f.input :start, as: :date_picker, label: 'Start Date', required: true
+      .col-sm-3
+        = f.input :end, as: :date_picker, label: 'End Date', required: true
+      .col-sm-6
+        = f.input :coc_codes, collection: @filter.coc_code_options_for_select(user: current_user), as: :select_two, input_html: { multiple: false, name: 'filters[coc_codes][]', placeholder: 'Choose a CoC', data: { 'filter-projects-target' => 'cocCodes', 'action': 'change->filter-projects#update' } }, label: 'CoC', required: true
+    = render 'hud_reports/project_filter', f: f, api_projects_parameters: { project_types: @filter.default_project_type_codes }, alert: alert, show_organization_picker: true
+  - content_for :filter_actions do
+    = f.submit 'Queue Report', class: ['btn', 'btn-primary'], data: { 'filter-projects-target' => 'submitButton' }
+
+  = render 'warehouse_reports/filters', f: f
