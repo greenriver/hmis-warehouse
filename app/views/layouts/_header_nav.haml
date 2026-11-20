@@ -7,7 +7,7 @@
         = render 'layouts/messages'
 
       %li.c-header-nav__mobile-link
-        = link_to '#', class: 'c-header-nav__link js-toggle-menu', aria: {label: 'Site Navigation', expanded: false}  do
+        = link_to '#', class: 'c-header-nav__link', aria: { label: 'Site Navigation', expanded: false }, data: { site_menu_target: 'toggle', action: 'site-menu#toggle' } do
           %i.icon-menu
     - elsif lookup_context.exists?('homepage_content', ['root'], true) && !@showing_sign_in_form
       = render 'layouts/mini_sign_in_form'

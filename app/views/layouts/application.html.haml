@@ -42,6 +42,7 @@
     = yield :head
   - data = {}
   - data.merge!({ spy: :scroll, target: '.scrollspy' }) if content_for(:body_data_scrollspy)
+  - data.merge!({ controller: 'site-menu', action: 'keydown@document->site-menu#closeOnEscape mousedown@document->site-menu#closeOnOutsideClick scroll@window->site-menu#updateBackToTop:passive' }) if user_signed_in?
   %body{class: body_classes, data: data}
     = render 'layouts/header_warnings'
 

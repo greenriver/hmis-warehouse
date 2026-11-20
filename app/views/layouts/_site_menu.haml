@@ -1,7 +1,7 @@
-.o-menu.js-menu.off-canvas{class: @layout__plain_inner ? 'o-menu-prs1' : nil}
-  %nav{'aria-labelledby': 'site-menu-label'}
+.o-menu.off-canvas{class: @layout__plain_inner ? 'o-menu-prs1' : nil, data: { site_menu_target: 'menu' }}
+  %nav{'aria-labelledby': 'site-menu-label', data: { site_menu_target: 'nav' }}
     %h2#site-menu-label.visually-hidden Site Menu
     = render 'menus/site_menu'
 
-  %a.js-back-to-top.o-menu__to-top.o-menu__link{ href:'#' }
+  %a.o-menu__to-top.o-menu__link{ href: '#', data: { site_menu_target: 'backToTop', action: 'site-menu#backToTop' } }
     Back to Top

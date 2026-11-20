@@ -7,11 +7,12 @@ footer {
   background-color: var(--theme-background);
   /* box-shadow: inset 0 0 0 2px rgba(0,0,0,0.50); */
   color: var(--theme-foreground);
-  z-index: $page-z-index;
+  // No z-index: body is a flex column, so a z-index here would make the footer
+  // its own stacking layer and draw it over the open side menu drawer.
 }
 
 // When the menu sits beside the content, the fixed Back to Top bar
-// (.o-menu .js-back-to-top) covers the bottom of the window under the menu.
+// (.o-menu .o-menu__to-top) covers the bottom of the window under the menu.
 // Leave room so it doesn't hide the footer's last row (session expiry).
 // Matches the nav padding in objects/_menu.scss; breakpoints follow
 // $nav-side-on-canvas-* in _settings/_variables.scss.

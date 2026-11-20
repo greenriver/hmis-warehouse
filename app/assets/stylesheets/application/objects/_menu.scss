@@ -6,7 +6,7 @@
   max-width: none;
   position: fixed;
   right: 0;
-  // --o-menu-drawer-top is set by site_menu.js.coffee to the header's bottom
+  // --o-menu-drawer-top is set by site_menu_controller.js to the header's bottom
   // edge, which moves when warning bars render above the header. Page scroll
   // is locked while the drawer is open, so the header stays put.
   top: var(--o-menu-drawer-top, #{$header-height});
@@ -131,7 +131,7 @@
   }
 }
 
-.o-menu .js-back-to-top {
+.o-menu .o-menu__to-top {
   background: var(--theme-background-d);
   padding: 2em;
   width: $nav-side-width;
@@ -158,14 +158,26 @@
 // column; only the nav sticks. .o-menu's overflow has to be visible here, or
 // the nav would stick to .o-menu (which never scrolls) instead of the window.
 @mixin o-menu-sticky {
+  // --o-menu-scrollbar-width is set by site_menu_controller.js to the width of
+  // the nav's scrollbar: 0 unless the nav is taller than the window and the
+  // browser shows classic scrollbars. Widening by exactly that keeps the labels
+  // as wide as they are without a scrollbar, so they don't wrap.
+  --o-menu-width: calc(#{$nav-side-width} + var(--o-menu-scrollbar-width, 0px));
+  flex-basis: var(--o-menu-width);
+  max-width: var(--o-menu-width);
   overflow: visible;
+
+  .o-menu__to-top {
+    width: var(--o-menu-width);
+    right: calc(var(--o-menu-width) / 2);
+  }
 
   > nav {
     position: sticky;
     top: 0;
     max-height: 100vh;
     overflow-y: auto;
-    // Room for the fixed Back to Top bar (.js-back-to-top) so the last links
+    // Room for the fixed Back to Top bar (.o-menu__to-top) so the last links
     // can scroll clear of it.
     padding-bottom: 5.5rem;
   }
