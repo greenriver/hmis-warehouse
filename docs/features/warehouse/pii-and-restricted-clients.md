@@ -53,7 +53,7 @@ A client is hidden in the warehouse when it is restricted in HMIS, restricted in
 - Both tasks take a zero-timeout advisory lock, so a concurrent run fails immediately.
 - Scrubbing acts on the live database only. Backups and S3 copies are untouched.
 - `ScrubAllPiiTask` uses a hand-maintained list of models, not the catalog. A new snapshot table with PII needs both a `pii_attr` declaration and an entry in that list. Several models that declare PII are currently missing from it, including newer SPM enrollment tables and the newest HMIS CSV loader and importer tables.
-- Both tasks take an optional `custom_scrubber:` that runs before the default handling. `:fake` fills names and SSN with Faker values. `:static` replaces present values with placeholders keyed to the record id (`FirstName<id>`, SSN `999000000`, DOB 2000-01-01, phone `2125550100`); it leaves blank values blank and leaves types with no placeholder to the default handling. Age fields are recomputed from the new DOB under either option.
+- Both tasks take an optional `custom_scrubber:` that runs before the default handling. `:fake` fills names and SSN with Faker values. `:static` replaces present values with placeholders keyed to the record id (`FirstName<id>`, SSN `999000000`, DOB 2000-01-01, phone `2125550100`); it leaves blank values blank and leaves types with no placeholder to the default handling. Age fields are recomputed from the new DOB when the model has exactly one DOB field and it is present.
 
 ## Other gotchas
 

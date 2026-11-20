@@ -23,7 +23,7 @@ RSpec.describe Pii::Scrubber::StaticScrubber do
     create(
       :grda_warehouse_hud_client,
       FirstName: 'Jane',
-      MiddleName: nil,
+      MiddleName: '',
       LastName: 'Doe',
       SSN: '987654321',
       DOB: Date.new(1985, 2, 15),
@@ -56,10 +56,10 @@ RSpec.describe Pii::Scrubber::StaticScrubber do
   end
 
   it 'leaves a field without a static placeholder for the later scrubbers' do
-    notes = Pii::Scrubber::PiiAttribute.new(name: :FirstName, type: :free_text, required: false, level: 4, record: client1)
+    unsupported_field = Pii::Scrubber::PiiAttribute.new(name: :FirstName, type: :free_text, required: false, level: 4, record: client1)
 
-    described_class.new.perform([notes])
+    described_class.new.perform([unsupported_field])
 
-    expect(notes.scrubbed?).to be(false)
+    expect(unsupported_field.scrubbed?).to be(false)
   end
 end

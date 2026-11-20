@@ -12,7 +12,7 @@ module Pii::Scrubber
     def perform(fields)
       fields.each do |field|
         next unless Pii::Scrubber::ReplacementPii.static_type?(field)
-        next if field.real_value.nil?
+        next if field.real_value.blank?
 
         field.scrub(Pii::Scrubber::ReplacementPii.static_value(field, id: field.record_id))
       end
