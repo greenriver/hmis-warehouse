@@ -113,6 +113,36 @@ RSpec.describe HopwaCaper::CellsController, type: :request do
     end
   end
 
+  context 'when the cell holds only service rows and the user can view HIV status on the service project' do
+    let(:strmu_funder) { HudHelper.util('2026').funding_sources.invert.fetch('HUD: HOPWA - Short-Term Rent, Mortgage, Utility assistance') }
+    let(:service_project) { create_hopwa_project(funder: strmu_funder) }
+    let(:report) { create_report([project, service_project]) }
+    let(:extra_rows) do
+      create_enrolled_client_with_service(
+        client_attrs: { first_name: 'Sam', last_name: 'Served' },
+        project: service_project,
+        entry_date: report_start_date,
+      )
+    end
+    let(:cell) do
+      report.report_cells.detect do |c|
+        types = c.universe_members.pluck(:universe_membership_type).uniq
+        types == [HopwaCaper::Service.sti_name]
+      end
+    end
+
+    before { grant_project_access(user, hiv_role, [project, service_project], mode: :acl) }
+
+    it 'renders the drilldown with the client' do
+      expect(cell).to be_present
+
+      get hud_reports_hopwa_caper_question_cell_path(cell_path_args)
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('Sam')
+    end
+  end
+
   context 'when the user cannot view HIV status on the project' do
     it 'redirects the HTML drilldown to the result page with the denial alert' do
       get hud_reports_hopwa_caper_question_cell_path(cell_path_args)

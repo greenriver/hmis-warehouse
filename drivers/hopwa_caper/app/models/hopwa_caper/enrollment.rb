@@ -156,6 +156,10 @@ module HopwaCaper
       )
     end
 
+    def hud_enrollment
+      enrollment
+    end
+
     def hmis_enrollment_id
       enrollment.enrollment_id
     end
