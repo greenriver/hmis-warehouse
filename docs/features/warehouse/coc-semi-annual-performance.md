@@ -44,7 +44,9 @@ Sub-reports are given explicit project ids and nothing else. The generator rebui
 
 ## Row definitions
 
-The rows each report shows live in `drivers/continuum_semi_annual_performance/config/rows.yml`, loaded once at boot into `RowDefinitions::DATA`. The file has three sections: `mid_year`, `end_of_year` and `end_of_year_ce`. Each entry has:
+The rows each report shows live in `drivers/continuum_semi_annual_performance/config/rows.yml`, loaded once at boot into `RowDefinitions::DATA`. Other reports that read HUD sub-report cells call `answer(report, table, cell)` in Ruby, but these reports define about 340 rows across four project types, each type orders them differently, and product checks them line by line against a spec they own, so the rows are kept as data. Use this approach for a new report with a long, spec-driven list of sub-report cells, and the Ruby approach for a report with a few computed metrics.
+
+The file has three sections: `mid_year`, `end_of_year` and `end_of_year_ce`. Each entry has:
 
 | Key | Meaning |
 |---|---|
