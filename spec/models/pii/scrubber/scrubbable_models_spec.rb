@@ -12,7 +12,7 @@ RSpec.describe Pii::Scrubber::ScrubbableModels do
   describe '.to_scrub' do
     subject(:models) { described_class.to_scrub }
 
-    it 'includes PII models the hand-typed list missed' do
+    it 'includes PII models declared outside the legacy warehouse namespaces' do
       expect(models).to include(
         HmisDataQualityTool::CurrentLivingSituation,
         HmisExternalApis::AcHmis::ReferralPosting,
@@ -47,11 +47,45 @@ RSpec.describe Pii::Scrubber::ScrubbableModels do
     it 'keeps an STI subclass whose PII config differs from its base class' do
       subclass = Class.new(GrdaWarehouse::Contact::Base) do
         def self.name = 'PiiExtraConfigContact'
-        pii_attr :phone
+        pii_attr :email, level: 1
       end
       stub_const('PiiExtraConfigContact', subclass)
 
       expect(described_class.to_scrub).to include(subclass)
+    end
+
+    it 'keeps unrelated models on one table when their PII configs differ' do
+      first = Class.new(GrdaWarehouseBase) do
+        include HasPiiAttributes
+        self.table_name = 'contacts'
+        def self.name = 'PiiSharedTableFirst'
+        pii_attr :first_name
+      end
+      second = Class.new(GrdaWarehouseBase) do
+        include HasPiiAttributes
+        self.table_name = 'contacts'
+        def self.name = 'PiiSharedTableSecond'
+        pii_attr :last_name
+      end
+      stub_const('PiiSharedTableFirst', first)
+      stub_const('PiiSharedTableSecond', second)
+
+      expect(described_class.to_scrub).to include(first, second)
+    end
+
+    it 'covers every model left out of the scrub list with a scrubbed model on the same table and config' do
+      left_out = described_class.all - models
+      uncovered = left_out.reject do |model|
+        models.any? do |kept|
+          kept.connection_db_config.database == model.connection_db_config.database &&
+            kept.table_name == model.table_name &&
+            kept.pii_attributes_config == model.pii_attributes_config &&
+            (kept == model.base_class || (kept.base_class == kept && model.base_class == model))
+        end
+      end
+
+      expect(left_out).not_to be_empty
+      expect(uncovered.map(&:name)).to eq([])
     end
 
     it 'scrubs the warehouse Client table through one model' do
@@ -83,6 +117,15 @@ RSpec.describe Pii::Scrubber::ScrubbableModels do
       stub_const('PiiNoTable', no_table)
 
       expect(described_class.all).not_to include(no_table)
+    end
+
+    it 'skips a model whose constant is not registered under its name' do
+      klass = Class.new(GrdaWarehouse::Contact::Base) do
+        def self.name = 'PiiUnregisteredContact'
+        pii_attr :email, level: 1
+      end
+
+      expect(described_class.all).not_to include(klass)
     end
   end
 end

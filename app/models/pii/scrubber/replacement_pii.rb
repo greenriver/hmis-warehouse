@@ -25,7 +25,7 @@ module Pii::Scrubber
       geo_street: 'Street%{id}',
       geo_postal_code: '00000',
       free_text: 'Note%{id}',
-      json: {},
+      json: {}.freeze,
     }.freeze
 
     def self.static_value(field, id:)

@@ -58,12 +58,22 @@ RSpec.describe GrdaWarehouse::Tasks::ScrubPii::ScrubAllPiiTask do
     )
   end
 
+  let(:contact) do
+    GrdaWarehouse::Contact::Organization.create!(
+      entity: create(:grda_warehouse_hud_organization, data_source: hud_client.data_source),
+      first_name: real_first_name,
+      last_name: real_last_name,
+      email: 'contact@example.org',
+    )
+  end
+
   let(:staff_user) { create(:user, email: 'staff@example.org') }
 
   def reload_records
     [
       hud_client,
       apr_client,
+      contact,
       case_note,
       form_submission,
       spm_2026_enrollment,
@@ -116,7 +126,7 @@ RSpec.describe GrdaWarehouse::Tasks::ScrubPii::ScrubAllPiiTask do
         and change { apr_client.age }.to(scrubbed_age)
     end
 
-    it 'replaces required fields with placeholders and clears optional PII in models the hand-typed list missed' do
+    it 'replaces required fields with placeholders and clears optional PII in models without a legacy scrub entry' do
       expect do
         perform_task
       end.to change { case_note.content }.to("Note#{case_note.id}").
@@ -129,7 +139,21 @@ RSpec.describe GrdaWarehouse::Tasks::ScrubPii::ScrubAllPiiTask do
 
     it 'leaves staff login accounts alone' do
       expect { perform_task }.not_to(change { staff_user.email })
-      expect(staff_user.email).to eq('staff@example.org')
+    end
+
+    it 'scrubs STI subclass rows through the base class' do
+      expect { perform_task }.to change { contact.first_name }.to(nil).
+        and change { contact.last_name }.to(nil).
+        and change { contact.email }.to(nil)
+    end
+
+    it 'deletes version history for scrubbed records' do
+      PaperTrailHelper.with_paper_trail { hud_client.update!(FirstName: 'Changed') }
+      expect(hud_client.versions.count).to be > 0
+
+      perform_task
+
+      expect(hud_client.versions.count).to eq(0)
     end
   end
 

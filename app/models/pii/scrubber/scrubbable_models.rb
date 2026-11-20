@@ -34,7 +34,7 @@ module Pii::Scrubber
     def self.pii_model?(model)
       model.include?(HasPiiAttributes) &&
         model.stores_pii? &&
-        model.name.present? &&
+        model.name&.safe_constantize == model &&
         EXCLUDED_MODEL_NAMES.exclude?(model.name) &&
         !model.abstract_class?
     end
