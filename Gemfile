@@ -139,7 +139,6 @@ gem 'terser'
 gem 'daemons'
 
 gem 'simple_form'
-gem 'virtus'
 
 # Asset related
 gem 'jsbundling-rails', '~> 1.1'

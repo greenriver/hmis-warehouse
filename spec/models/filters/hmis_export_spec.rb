@@ -63,6 +63,35 @@ RSpec.describe Filters::HmisExport, type: :model do
     end
   end
 
+  describe '#adjust_reporting_period' do
+    around { |example| travel_to(Date.new(2026, 3, 15)) { example.run } }
+
+    let(:fixed_start) { Date.new(2020, 1, 1) }
+    let(:fixed_end) { Date.new(2020, 1, 31) }
+
+    def adjusted(range, days: 0)
+      filter.assign_attributes(reporting_range: range, reporting_range_days: days, start_date: fixed_start, end_date: fixed_end)
+      filter.adjust_reporting_period
+      [filter.start_date, filter.end_date]
+    end
+
+    it 'leaves the dates alone for a fixed range' do
+      expect(adjusted('fixed')).to eq([fixed_start, fixed_end])
+    end
+
+    it 'ends today and starts n days earlier for n_days' do
+      expect(adjusted('n_days', days: 30)).to eq([Date.new(2026, 2, 13), Date.new(2026, 3, 15)])
+    end
+
+    it 'spans the previous calendar month for month' do
+      expect(adjusted('month')).to eq([Date.new(2026, 2, 1), Date.new(2026, 2, 28)])
+    end
+
+    it 'spans the previous calendar year for year' do
+      expect(adjusted('year')).to eq([Date.new(2025, 1, 1), Date.new(2025, 12, 31)])
+    end
+  end
+
   describe '#for_params' do
     it 'includes custom_file_types in the parameters hash' do
       filter.custom_file_types = ['CustomGender', 'CustomSexualOrientation']

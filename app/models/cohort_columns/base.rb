@@ -13,7 +13,7 @@ module CohortColumns
     include ApplicationHelper
     include Rails.application.routes.url_helpers
     include ArelHelper
-    attr_accessor :column, :translation_key, :title, :hint, :visible
+    attr_accessor :column, :translation_key, :title, :hint
 
     attribute :visible, Boolean, lazy: false, default: true
     attribute :input_type, String, lazy: true, default: ->(r, _) { r.default_input_type }

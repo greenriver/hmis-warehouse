@@ -1,0 +1,28 @@
+---
+- !ruby/object:CohortColumns::Active
+  _routes:
+  visible: false
+  cohort:
+  cohort_names:
+  cohort_client:
+  editable: true
+  current_user:
+  column: :active
+- !ruby/object:CohortColumns::LastName
+  _routes:
+  visible: true
+  cohort:
+  cohort_names:
+  cohort_client:
+  editable: true
+  current_user:
+  column: last_name
+- !ruby/object:CohortColumns::Age
+  _routes:
+  visible: true
+  cohort:
+  cohort_names:
+  cohort_client:
+  editable: true
+  current_user:
+  column: age

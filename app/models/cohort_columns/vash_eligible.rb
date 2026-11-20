@@ -8,7 +8,7 @@
 
 module CohortColumns
   class VashEligible < CohortBoolean
-    attribute :column, Boolean, lazy: true, default: :vash_eligible
+    attribute :column, String, lazy: true, default: :vash_eligible
     attribute :translation_key, String, lazy: true, default: 'VASH Eligible'
     attribute :title, String, lazy: true, default: ->(model, _attr) { Translation.translate(model.translation_key) }
     attribute :description_translation_key, String, lazy: true, default: ->(model, _attr) { "#{model.translation_key} Description" }
