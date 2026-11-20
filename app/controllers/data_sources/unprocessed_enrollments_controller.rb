@@ -12,8 +12,7 @@ module DataSources
     before_action :set_data_source
 
     def index
-      @enrollments = @data_source.enrollments.
-        unprocessed_with_resolvable_project_and_client.
+      @enrollments = @data_source.unprocessed_enrollments(user: current_user).
         preload(:project, :client, :destination_client).
         order(EntryDate: :desc, id: :desc)
     end

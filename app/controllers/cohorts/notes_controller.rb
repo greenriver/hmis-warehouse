@@ -12,13 +12,13 @@ module Cohorts
     include CohortAuthorization
     before_action :require_can_access_cohort!
     before_action :require_can_update_some_cohort_data!, only: [:new, :create, :destroy]
-    before_action :set_note, only: [:destroy]
     before_action :set_cohort_client
+    before_action :require_notes_column_editable!, only: [:new, :create, :destroy]
+    before_action :set_note, only: [:destroy]
 
     def index
       @modal_size = :lg
-      notes_column = @cohort.column_state.find { |c| c.is_a?(::CohortColumns::Notes) }
-      @column_editable = notes_column.display_as_editable?(current_user, nil, on_cohort: @cohort)
+      @column_editable = notes_column_editable?
     end
 
     def new
@@ -76,8 +76,21 @@ module Cohorts
       GrdaWarehouse::CohortClientNote
     end
 
+    private def notes_column_editable?
+      notes_column = @cohort.column_state.find { |c| c.is_a?(::CohortColumns::Notes) }
+      return false unless notes_column
+
+      notes_column.display_as_editable?(current_user, nil, on_cohort: @cohort)
+    end
+
+    private def require_notes_column_editable!
+      return if notes_column_editable?
+
+      not_authorized!
+    end
+
     def set_note
-      @note = note_source.find(params[:id].to_i)
+      @note = @cohort_client.cohort_client_notes.find(params[:id].to_i)
     end
 
     def set_cohort_client

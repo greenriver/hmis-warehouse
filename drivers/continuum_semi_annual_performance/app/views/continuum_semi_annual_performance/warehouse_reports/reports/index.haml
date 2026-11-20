@@ -1,0 +1,10 @@
+- content_for :title, @report.title
+
+= render '/warehouse_reports/breadcrumbs', tab: 'performance'
+%h1.mb-3= @report.title
+%p.mb-5= @report.description
+= render 'continuum_semi_annual_performance/warehouse_reports/reports/form'
+.d-flex
+  .ml-auto.mb-4
+    = render 'common/background_report/history_filter'
+= render 'common/background_report/history_table'

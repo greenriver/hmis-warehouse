@@ -1,0 +1,12 @@
+- content_for :title, @report.title
+%p.mb-0= "CoC: #{@report.coc_code}"
+%p.mb-0= "Date range: #{@report.filter.start} - #{@report.filter.end}"
+.well.report-listing.mb-3
+  = @report.describe_filter_as_html
+- @tabs.each do |tab|
+  .page-break-after
+    %h2.mb-3= tab_title(tab)
+    - if tab.to_sym == :summary
+      = render 'continuum_semi_annual_performance/warehouse_reports/reports/summary_table', links: false
+    - else
+      = render 'continuum_semi_annual_performance/warehouse_reports/reports/tab_table', rows: @report.rows_for(tab), links: false

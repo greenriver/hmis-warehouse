@@ -1,0 +1,15 @@
+{
+  "item": [
+    {
+      "text": "TB Expiration Date",
+      "type": "DATE",
+      "link_id": "tb_expiration_date",
+      "mapping": {
+        "custom_field_key": "tb_expiration_date"
+      }
+    }
+  ],
+  "text": "TB Dates",
+  "link_id": "client_tb_dates",
+  "type": "GROUP"
+}

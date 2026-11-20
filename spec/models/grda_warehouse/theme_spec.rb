@@ -256,4 +256,199 @@ RSpec.describe GrdaWarehouse::Theme, type: :model do
       end
     end
   end
+
+  describe 'logo handling' do
+    let(:image_dir) { Rails.root.join('spec/fixtures/files/images') }
+
+    around do |example|
+      original_client = ENV['CLIENT']
+      ENV['CLIENT'] = 'test'
+      example.run
+    ensure
+      ENV['CLIENT'] = original_client
+    end
+
+    describe '.hmis_logo' do
+      let!(:theme) { create(:theme) }
+
+      before { theme.logo.attach(io: StringIO.new('<svg xmlns="http://www.w3.org/2000/svg"/>'), filename: 'logo.svg', content_type: 'image/svg+xml') }
+
+      it 'returns the HMIS logo when it is an allowed image' do
+        theme.hmis_logo.attach(io: ::File.open(image_dir.join('test_print_logo.png')), filename: 'hmis.png', content_type: 'image/png')
+
+        expect(GrdaWarehouse::Theme.hmis_logo.blob.filename.to_s).to eq('hmis.png')
+      end
+
+      it 'falls back to the main logo when none is attached' do
+        expect(GrdaWarehouse::Theme.hmis_logo.blob.filename.to_s).to eq('logo.svg')
+      end
+
+      it 'falls back to the main logo when the stored HMIS logo is not an allowed type' do
+        store_unvalidated_logo(theme, 'hmis_logo', content_type: 'text/javascript')
+
+        expect(GrdaWarehouse::Theme.hmis_logo.blob.filename.to_s).to eq('logo.svg')
+      end
+    end
+
+    describe 'validation' do
+      let!(:theme) { create(:theme) }
+
+      it 'rejects a changed slot with a non-image type and names the slot' do
+        theme.logo.attach(io: StringIO.new('<html></html>'), filename: 'logo.html', content_type: 'text/html')
+
+        expect(theme).not_to be_valid
+        expect(theme.errors[:logo]).to eq(['must be a PNG, JPEG, GIF, WebP or SVG image'])
+      end
+
+      it 'does not flag unchanged slots that hold a stored non-image' do
+        store_unvalidated_logo(theme, 'logo', content_type: 'text/javascript')
+
+        theme.reload.css_file_contents = ':root { --x: 1; }'
+
+        expect(theme).to be_valid
+        expect(theme.logo_image?('logo')).to be(false)
+      end
+
+      it 'flags only the slot being changed' do
+        store_unvalidated_logo(theme, 'logo', content_type: 'text/javascript')
+        theme.reload.print_logo.attach(io: StringIO.new('<html></html>'), filename: 'p.html', content_type: 'text/html')
+
+        theme.valid?
+
+        expect(theme.errors.attribute_names).to eq([:print_logo])
+      end
+
+      describe 'logo size' do
+        def svg_of_size(byte_size)
+          open_tag = '<svg xmlns="http://www.w3.org/2000/svg">'
+          close_tag = '</svg>'
+          open_tag + (' ' * (byte_size - open_tag.bytesize - close_tag.bytesize)) + close_tag
+        end
+
+        it 'accepts a logo of exactly the maximum size' do
+          theme.logo.attach(io: StringIO.new(svg_of_size(described_class::MAX_LOGO_BYTE_SIZE)), filename: 'logo.svg', content_type: 'image/svg+xml')
+
+          expect(theme).to be_valid
+        end
+
+        it 'rejects a logo one byte over the maximum size and names the slot' do
+          theme.hmis_logo.attach(io: StringIO.new(svg_of_size(described_class::MAX_LOGO_BYTE_SIZE + 1)), filename: 'logo.svg', content_type: 'image/svg+xml')
+
+          expect(theme).not_to be_valid
+          expect(theme.errors[:hmis_logo]).to eq(['must be 2 MB or smaller'])
+        end
+      end
+    end
+
+    describe '#logo_image?' do
+      let!(:theme) { create(:theme) }
+
+      it 'returns false for a name that is not a logo slot without calling it' do
+        expect(theme.logo_image?('destroy')).to be(false)
+        expect(theme.logo_image?(:css_file_contents)).to be(false)
+        expect(described_class.exists?(theme.id)).to be(true)
+      end
+    end
+
+    describe 'default logos' do
+      let!(:theme) { create(:theme) }
+
+      let(:print_logo_env) { 'test_print_logo' }
+
+      before do
+        stub_const('ENV', ENV.to_h.merge('LOGO' => 'test_logo', 'PRINT_LOGO' => print_logo_env))
+        allow(theme).to receive(:logo_directory).and_return(image_dir)
+      end
+
+      it 'attaches the default logo as an allowed image type' do
+        theme.set_theme_default_logo!
+        theme.set_theme_default_hmis_logo!
+        theme.reload
+
+        expect(theme.logo.blob.content_type).to eq('image/svg+xml')
+        expect(theme.hmis_logo.blob.content_type).to eq('image/svg+xml')
+        expect(theme.logo_image?('logo')).to be(true)
+        expect(theme.logo_image?('hmis_logo')).to be(true)
+      end
+
+      it 'attaches the PRINT_LOGO file as the default print logo' do
+        theme.set_theme_default_print_logo!
+        theme.reload
+
+        expect(theme.print_logo.blob.filename.to_s).to eq('test_print_logo.png')
+        expect(theme.print_logo.blob.content_type).to eq('image/png')
+        expect(theme.logo_image?('print_logo')).to be(true)
+      end
+
+      context 'when no file matches PRINT_LOGO' do
+        let(:print_logo_env) { 'no_such_print_logo' }
+
+        it 'attaches the LOGO file as the default print logo' do
+          theme.set_theme_default_print_logo!
+          theme.reload
+
+          expect(theme.print_logo.blob.filename.to_s).to eq('test_logo.svg')
+        end
+      end
+
+      context 'when PRINT_LOGO is blank' do
+        let(:print_logo_env) { '' }
+
+        it 'attaches the LOGO file as the default print logo' do
+          theme.set_theme_default_print_logo!
+          theme.reload
+
+          expect(theme.print_logo.blob.filename.to_s).to eq('test_logo.svg')
+        end
+      end
+
+      it 'attaches the default logo to a persisted theme with other pending changes' do
+        theme.update!(css_file_contents: ':root { --x: 1; }')
+        theme.css_file_contents = ':root { --x: 2; }'
+
+        theme.set_theme_default_logo!
+        expect { theme.save! }.not_to raise_error
+
+        expect(theme.reload.logo.blob.download).to eq(::File.binread(image_dir.join('test_logo.svg')))
+      end
+
+      it 'does not leave a file handle open on the default logo files' do
+        opened_paths = []
+        allow(::File).to receive(:open).and_wrap_original do |original, path, *args, **kwargs, &block|
+          opened_paths << path.to_s
+          original.call(path, *args, **kwargs, &block)
+        end
+
+        theme.set_theme_default_logo!
+        theme.set_theme_default_print_logo!
+        theme.set_theme_default_hmis_logo!
+        theme.reload
+
+        expect(theme.logo).to be_attached
+        expect(theme.print_logo).to be_attached
+        expect(theme.hmis_logo).to be_attached
+        expect(opened_paths.select { |path| path.start_with?(image_dir.to_s) }).to be_empty
+      end
+
+      context 'when the logo directory has no logo files' do
+        around do |example|
+          Dir.mktmpdir do |dir|
+            @empty_dir = Pathname.new(dir)
+            example.run
+          end
+        end
+
+        before { allow(theme).to receive(:logo_directory).and_return(@empty_dir) }
+
+        it 'leaves the logos unattached' do
+          theme.set_theme_default_logo!
+          theme.set_theme_default_print_logo!
+          theme.reload
+
+          expect(theme.logo).not_to be_attached
+          expect(theme.print_logo).not_to be_attached
+        end
+      end
+    end
+  end
 end

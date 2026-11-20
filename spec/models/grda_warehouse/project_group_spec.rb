@@ -9,6 +9,8 @@
 require 'rails_helper'
 
 RSpec.describe GrdaWarehouse::ProjectGroup, type: :model do
+  include AccessControlSetup
+
   let!(:ds) { create :data_source_fixed_id }
   let!(:project1) { create :grda_warehouse_hud_project, ProjectID: 958 }
   let!(:project2) { create :grda_warehouse_hud_project, ProjectID: 882 }
@@ -206,6 +208,32 @@ RSpec.describe GrdaWarehouse::ProjectGroup, type: :model do
       expect(updated_editable_user_group.id).to eq(original_editable_user_group.id)
       # Confirm the collection's name has been updated to match the new ProjectGroup name
       expect(updated_collection.name).to eq('New Name')
+    end
+  end
+
+  describe '.editable_by' do
+    let!(:group_1) { create(:project_group, skip_maintain_system_group: true) }
+    let!(:group_2) { create(:project_group, skip_maintain_system_group: true) }
+
+    it 'returns no groups for an ACL user with none of the editable permissions' do
+      acl_user = create(:acl_user)
+      role = create(:role, can_view_projects: true)
+      collection = create(:collection)
+      collection.set_viewables(project_groups: [group_1.id])
+      setup_access_control(acl_user, role, collection)
+
+      expect(GrdaWarehouse::ProjectGroup.editable_by(acl_user)).to be_empty
+      expect(GrdaWarehouse::ProjectGroup.where(id: group_1.id).editable_by(acl_user)).to be_empty
+    end
+
+    it 'returns every group for a legacy user with can_edit_project_groups' do
+      legacy_user = create(:user)
+      legacy_user.legacy_roles << create(:role, can_edit_project_groups: true)
+
+      expect(GrdaWarehouse::ProjectGroup.editable_by(legacy_user)).to include(group_1, group_2)
+      chained = GrdaWarehouse::ProjectGroup.editable_by(legacy_user).includes(:projects).order(name: :asc)
+      expect(chained).to include(group_1, group_2)
+      expect(GrdaWarehouse::ProjectGroup.where(id: group_1.id).editable_by(legacy_user)).to contain_exactly(group_1)
     end
   end
 

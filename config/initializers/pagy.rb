@@ -4,9 +4,12 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # Rails.logger.debug "Running initializer in #{__FILE__}"
 require 'pagy/extras/bootstrap'
 require 'pagy/extras/array'
+require 'pagy/countless'
 require 'pagy/extras/overflow'
 
 Pagy::DEFAULT[:items] = 25 # items per page

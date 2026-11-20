@@ -6,6 +6,7 @@ import Sentry from './sentry';
 // Always include the following
 import * as bootstrap from "bootstrap"
 import * as Popper from "@popperjs/core"
+import { initializePopovers } from "./lib/popovers"
 
 function initializeControllers() {
   // Dynamically import and register all your Stimulus controllers
@@ -34,6 +35,8 @@ const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => {
     return null
   }
 })
+
+initializePopovers()
 
 // Make both Bootstrap and Popper globally available for legacy scripts.
 window.bootstrap = bootstrap

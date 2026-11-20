@@ -20,12 +20,9 @@ module Admin
 
     def update
       @theme = GrdaWarehouse::Theme.where(client: ENV.fetch('CLIENT')).first
-      theme_params = allowed_params
-      update_attributes = theme_params.to_h.except(:logo, :print_logo)
-
-      @theme.update(update_attributes)
-      @theme.logo.attach(theme_params[:logo]) if theme_params[:logo].present?
-      @theme.print_logo.attach(theme_params[:print_logo]) if theme_params[:print_logo].present?
+      @theme.update(allowed_params)
+      # A rejected upload must not drive the "current logo" previews on the re-rendered form
+      @theme.attachment_changes.clear if @theme.errors.any?
       respond_with(@theme, location: edit_admin_theme_path)
     end
 

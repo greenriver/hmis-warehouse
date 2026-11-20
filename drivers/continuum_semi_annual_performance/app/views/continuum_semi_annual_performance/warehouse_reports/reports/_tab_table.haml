@@ -1,0 +1,27 @@
+- links = local_assigns.fetch(:links, false)
+.table-responsive
+  %table.table.table-striped
+    %thead
+      %tr
+        %th Category
+        %th Source
+        %th.text-right Value
+    %tbody
+      - rows.each do |row|
+        - if row.header
+          - if row.level.to_i == 1
+            %tr.table-active
+              %th{ colspan: 3 }= row.label
+          - else
+            %tr
+              %th.pl-4.fst-italic{ colspan: 3 }= row.label
+        - else
+          %tr
+            %td= row.label
+            %td= row.source
+            %td.text-right
+              - parts = row.parts || []
+              - if links && parts.one? && drilldown_visible?(@report, parts.first)
+                = link_to row.display_value, drilldown_path(parts.first)
+              - else
+                = row.display_value

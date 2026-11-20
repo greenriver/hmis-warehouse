@@ -33,8 +33,10 @@ module WarehouseReports
     end
 
     def client_scope
+      # Join HealthAndDV through the same enrollment as the project so the fleeing record
+      # comes from an enrollment at a project the user can view.
       GrdaWarehouse::Hud::Client.
-        joins(:health_and_dvs, enrollments: :project).
+        joins(enrollments: [:project, :health_and_dvs]).
         where(hdv_t[:InformationDate].gteq(@filter.start).and(hdv_t[:InformationDate].lteq(@filter.end).and(hdv_t[:CurrentlyFleeing].eq(1)))).
         merge(GrdaWarehouse::Hud::Project.viewable_by(current_user, permission: :can_view_assigned_reports)).
         distinct
