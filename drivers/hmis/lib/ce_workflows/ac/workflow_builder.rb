@@ -39,6 +39,43 @@ module CeWorkflows::Ac
       initial_outgoing_referral: 'admin_assign_workflow_initial_outgoing_referral',
     }.freeze
 
+    # Swimlane and user task names, keyed like CE_STEP_FORMS. Templates built from the same helpers
+    # (build_waitlist_workflow, build_shared_sub_workflow) share a graph and forms, and differ only by these names.
+    # Script task names and the 'Admin Assign' task name are hard-coded, since they are the same for every template.
+    HOUSING_WORKFLOW_NAMES = {
+      ce_staff_swimlane: 'CE Staff',
+      project_staff_swimlane: 'Project Staff',
+      initial_review: 'Initial Review',
+      initial_client_engagement: 'Initial Client Engagement',
+      client_engagement: 'Client Engagement',
+      client_offer_outcome: 'Client Offer Outcome',
+      provider_outcome_1: 'Provider Outcome',
+      change_provider_outcome: 'Change Provider Outcome (Optional)',
+      denial_review_1: 'Denial Review',
+      provider_outcome_2: 'Provider Outcome (Second Attempt)',
+      denial_review_2: 'Denial Review (Second)',
+      provider_outcome_3: 'Provider Outcome (Third Attempt)',
+      denial_review_3: 'Denial Review (Third)',
+      confirm_success: 'Confirm Success',
+    }.freeze
+
+    OBH_PSH_WORKFLOW_NAMES = {
+      ce_staff_swimlane: 'DHS Staff',
+      project_staff_swimlane: 'Provider Staff',
+      initial_review: 'Initial Review',
+      initial_client_engagement: 'Initial Referral Source Engagement',
+      client_engagement: 'Referral Source Engagement',
+      client_offer_outcome: 'Offer Outcome',
+      provider_outcome_1: 'Provider Outcome',
+      change_provider_outcome: 'Change Provider Outcome',
+      denial_review_1: 'Denial Review',
+      provider_outcome_2: 'Provider Outcome (Second Attempt)',
+      denial_review_2: 'Denial Review (Second Attempt)',
+      provider_outcome_3: 'Provider Outcome (Third Attempt)',
+      denial_review_3: 'Denial Review (Third Attempt)',
+      confirm_success: 'Confirm Success',
+    }.freeze
+
     def initialize(data_source, unsafe_run_in_production: false)
       @data_source = data_source
       @unsafe_run_in_production = unsafe_run_in_production # flag to allow running in prod ONLY for initial setup
@@ -56,16 +93,34 @@ module CeWorkflows::Ac
     # This method builds the AC housing workflow, which is a referral workflow for housing opportunities.
     # TODO: make this more ergonomic for Direct Referrals (used for housing transfers). The "continue workflow" field doesn't make sense in that scenario.
     def build_housing_workflow
-      identifier = 'housing_workflow_v1'
-      template_name = 'Housing Referral Workflow V1'
+      build_waitlist_workflow(
+        identifier: 'housing_workflow_v1',
+        template_name: 'Housing Referral Workflow V1',
+        names: HOUSING_WORKFLOW_NAMES,
+      )
+    end
+
+    # This method builds the AC OBH PSH workflow. It has the same graph and forms as the housing workflow,
+    # but different task and swimlane names (see OBH_PSH_WORKFLOW_NAMES).
+    def build_obh_psh_workflow
+      build_waitlist_workflow(
+        identifier: 'obh_psh_workflow',
+        template_name: 'OBH PSH Workflow',
+        names: OBH_PSH_WORKFLOW_NAMES,
+      )
+    end
+
+    # Builds a waitlist (housing) referral workflow. Templates built with this method share a graph and forms,
+    # and differ only by identifier, template name, and task/swimlane names.
+    def build_waitlist_workflow(identifier:, template_name:, names:)
       CeWorkflows::Shared::CeBuilderUtils.delete_template_and_associated_data(identifier, data_source: @data_source) unless @unsafe_run_in_production
 
       puts "Creating workflow definition template '#{identifier}'"
       template = CeWorkflows::Shared::CeBuilderUtils.create_template(identifier, template_name, @data_source)
 
       # Create Swimlanes
-      ce_staff_swimlane = template.swimlanes.create!(name: 'CE Staff')
-      project_staff_swimlane = template.swimlanes.create!(name: 'Project Staff')
+      ce_staff_swimlane = template.swimlanes.create!(name: names.fetch(:ce_staff_swimlane))
+      project_staff_swimlane = template.swimlanes.create!(name: names.fetch(:project_staff_swimlane))
 
       # Create Statuses
       matching_in_progress_status = Hmis::Ce::CustomReferralStatus.find_or_create_by!(
@@ -78,27 +133,27 @@ module CeWorkflows::Ac
       start_event = CeWorkflows::Shared::CeBuilderUtils.find_or_create_start_event(template)
 
       initial_review_task = Hmis::WorkflowDefinition::UserTask.create!(
-        name: 'Initial Review',
+        name: names.fetch(:initial_review),
         form_definition_identifier: CE_STEP_FORMS.fetch(:initial_review),
         template: template,
         swimlane: ce_staff_swimlane,
         trigger_config: matching_in_progress_status_trigger_config,
       )
       initial_client_engagement_task = Hmis::WorkflowDefinition::UserTask.create!(
-        name: 'Initial Client Engagement',
+        name: names.fetch(:initial_client_engagement),
         form_definition_identifier: CE_STEP_FORMS.fetch(:initial_client_engagement),
         template: template,
         swimlane: ce_staff_swimlane,
       )
       client_engagement_task = Hmis::WorkflowDefinition::UserTask.create!(
-        name: 'Client Engagement',
+        name: names.fetch(:client_engagement),
         form_definition_identifier: CE_STEP_FORMS.fetch(:client_engagement),
         template: template,
         swimlane: ce_staff_swimlane,
       )
 
       client_offer_outcome_task = Hmis::WorkflowDefinition::UserTask.create!(
-        name: 'Client Offer Outcome',
+        name: names.fetch(:client_offer_outcome),
         form_definition_identifier: CE_STEP_FORMS.fetch(:client_offer_outcome),
         template_id: template.id,
         swimlane: ce_staff_swimlane,
@@ -113,6 +168,7 @@ module CeWorkflows::Ac
       # Build the sub-workflow shared with Admin Assign. This includes the provider outcome / denial review loop.
       sub_workflow_nodes = build_shared_sub_workflow(
         template: template,
+        names: names,
         ce_staff_swimlane: ce_staff_swimlane,
         project_staff_swimlane: project_staff_swimlane,
       )
@@ -148,6 +204,7 @@ module CeWorkflows::Ac
       template.validate!
       template
     end
+    private :build_waitlist_workflow
 
     # This method builds the Admin Assign workflow, which is a workflow meant to be used for direct (outgoing) referrals to non-housing projects
     def build_admin_assign_workflow
@@ -202,6 +259,7 @@ module CeWorkflows::Ac
       # Build the sub-workflow shared with the Housing Workflow. This includes the provider outcome / denial review loop.
       sub_workflow_nodes = build_shared_sub_workflow(
         template: template,
+        names: HOUSING_WORKFLOW_NAMES,
         ce_staff_swimlane: ce_staff_swimlane,
         project_staff_swimlane: project_staff_swimlane,
       )
@@ -218,13 +276,13 @@ module CeWorkflows::Ac
 
     private
 
-    # Shared code for building the parts of the workflow that are the same for Housing Workflow and Admin Assign.
+    # Shared code for building the parts of the workflow that are the same for the waitlist workflows (Housing, OBH PSH) and Admin Assign.
     # This handles:
     # - Building the nodes and connections in the Provider Outcome / Denial Review loop (see build_provider_outcome_denial_review_loop below)
     # - Updating custom referral status to 'Assigned' or 'Denial Pending' as appropriate
     # - Setting the CE Event result (both for decline and accept)
     # - Generating the target Enrollment when the referral is accepted by the provider
-    def build_shared_sub_workflow(template:, ce_staff_swimlane:, project_staff_swimlane:)
+    def build_shared_sub_workflow(template:, names:, ce_staff_swimlane:, project_staff_swimlane:)
       # Statuses
       assigned_status = Hmis::Ce::CustomReferralStatus.find_or_create_by!(
         key: 'assigned',
@@ -253,7 +311,7 @@ module CeWorkflows::Ac
 
       # Provider Outcome Task 1 - defined outside the loop since it's only available once
       provider_outcome_task_1 = Hmis::WorkflowDefinition::UserTask.create!(
-        name: 'Provider Outcome',
+        name: names.fetch(:provider_outcome_1),
         form_definition_identifier: CE_STEP_FORMS.fetch(:provider_outcome_1),
         template_id: template.id,
         swimlane: project_staff_swimlane,
@@ -262,7 +320,7 @@ module CeWorkflows::Ac
 
       # Confirm Success User Task
       confirm_success_task = Hmis::WorkflowDefinition::UserTask.create!(
-        name: 'Confirm Success',
+        name: names.fetch(:confirm_success),
         form_definition_identifier: CE_STEP_FORMS.fetch(:confirm_success),
         template_id: template.id,
         swimlane: ce_staff_swimlane,
@@ -330,6 +388,7 @@ module CeWorkflows::Ac
         denied_pending_trigger_config: denied_pending_trigger_config,
         assigned_status_trigger_config: assigned_status_trigger_config,
         template: template,
+        names: names,
         ce_staff_swimlane: ce_staff_swimlane,
         project_staff_swimlane: project_staff_swimlane,
       )
@@ -344,7 +403,7 @@ module CeWorkflows::Ac
       # Change Provider Outcome optional user task.
       # After the first Provider Outcome, the user can use this optional task to re-initiate the loop
       change_provider_outcome_task = Hmis::WorkflowDefinition::UserTask.create!(
-        name: 'Change Provider Outcome (Optional)',
+        name: names.fetch(:change_provider_outcome),
         form_definition_identifier: CE_STEP_FORMS.fetch(:change_provider_outcome),
         template_id: template.id,
         swimlane: project_staff_swimlane,
@@ -364,6 +423,7 @@ module CeWorkflows::Ac
         denied_pending_trigger_config: denied_pending_trigger_config,
         assigned_status_trigger_config: assigned_status_trigger_config,
         template: template,
+        names: names,
         ce_staff_swimlane: ce_staff_swimlane,
         project_staff_swimlane: project_staff_swimlane,
       )
@@ -385,10 +445,19 @@ module CeWorkflows::Ac
     # This method defines its outflows internally, so it accepts tasks as args:
     # - next_task_after_success: the task that should be executed next on the "happy path" if the Provider Outcome step is successful
     # - next_task_after_denial: the task that should be executed next on the "unhappy path" if the Denial Review step is approved
-    def build_provider_outcome_denial_review_loop(next_task_after_success:, next_task_after_denial:, denied_pending_trigger_config:, assigned_status_trigger_config:, template:, ce_staff_swimlane:, project_staff_swimlane:)
+    def build_provider_outcome_denial_review_loop(
+      next_task_after_success:,
+      next_task_after_denial:,
+      denied_pending_trigger_config:,
+      assigned_status_trigger_config:,
+      template:,
+      names:,
+      ce_staff_swimlane:,
+      project_staff_swimlane:
+    )
       # Provider Outcome User Tasks (first one is handled in build_shared_sub_workflow)
       provider_outcome_task_2 = Hmis::WorkflowDefinition::UserTask.create!(
-        name: 'Provider Outcome (Second Attempt)',
+        name: names.fetch(:provider_outcome_2),
         form_definition_identifier: CE_STEP_FORMS.fetch(:provider_outcome_2),
         template_id: template.id,
         swimlane: project_staff_swimlane,
@@ -405,7 +474,7 @@ module CeWorkflows::Ac
         ],
       )
       provider_outcome_task_3 = Hmis::WorkflowDefinition::UserTask.create!(
-        name: 'Provider Outcome (Third Attempt)',
+        name: names.fetch(:provider_outcome_3),
         form_definition_identifier: CE_STEP_FORMS.fetch(:provider_outcome_3),
         template_id: template.id,
         swimlane: project_staff_swimlane,
@@ -424,21 +493,21 @@ module CeWorkflows::Ac
 
       # Denial Review User Tasks
       denial_review_task = Hmis::WorkflowDefinition::UserTask.create!(
-        name: 'Denial Review',
+        name: names.fetch(:denial_review_1),
         form_definition_identifier: CE_STEP_FORMS.fetch(:denial_review_1),
         template_id: template.id,
         swimlane: ce_staff_swimlane,
         trigger_config: denied_pending_trigger_config,
       )
       denial_review_task_2 = Hmis::WorkflowDefinition::UserTask.create!(
-        name: 'Denial Review (Second)',
+        name: names.fetch(:denial_review_2),
         form_definition_identifier: CE_STEP_FORMS.fetch(:denial_review_2),
         template_id: template.id,
         swimlane: ce_staff_swimlane,
         trigger_config: denied_pending_trigger_config,
       )
       denial_review_task_3 = Hmis::WorkflowDefinition::UserTask.create!(
-        name: 'Denial Review (Third)',
+        name: names.fetch(:denial_review_3),
         form_definition_identifier: CE_STEP_FORMS.fetch(:denial_review_3),
         template_id: template.id,
         swimlane: ce_staff_swimlane,
