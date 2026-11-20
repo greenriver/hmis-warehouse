@@ -130,6 +130,17 @@ RSpec.shared_context 'HUD enrollment builders', shared_context: :metadata do
   end
   # rubocop:enable Metrics/ParameterLists
 
+  # The builders create records in `data_source`; this points them at another data source for the block.
+  def in_data_source(other)
+    other_organization = create(:hud_organization, data_source: other)
+    define_singleton_method(:data_source) { other }
+    define_singleton_method(:organization) { other_organization }
+    yield
+  ensure
+    singleton_class.send(:remove_method, :data_source)
+    singleton_class.send(:remove_method, :organization)
+  end
+
   def create_bed_night_service(enrollment:, date:)
     create(
       :hud_service,

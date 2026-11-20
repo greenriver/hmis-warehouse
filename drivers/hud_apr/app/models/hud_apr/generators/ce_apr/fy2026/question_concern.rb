@@ -9,6 +9,20 @@
 module HudApr::Generators::CeApr::Fy2026::QuestionConcern
   extend ActiveSupport::Concern
 
+  # Covers the CoC lookup, latest_ce_assessment and latest_ce_event, which read each project's CoCs and CE participation
+  CE_ENROLLMENT_PRELOADS = {
+    enrollment: [
+      :disabilities_at_entry,
+      { project: :project_cocs },
+      { assessments: { enrollment: { project: :ce_participations } } },
+    ],
+    project: :ce_participations,
+    client: [
+      :source_assessments,
+      { source_events: { enrollment: { project: :ce_participations } } },
+    ],
+  }.freeze
+
   included do
     # By default, only include members with assessments
     def self.filter_universe_members(associations)
@@ -19,7 +33,7 @@ module HudApr::Generators::CeApr::Fy2026::QuestionConcern
       true
     end
 
-    private def clients_with_enrollments(batch, scope: enrollment_scope, preloads: { enrollment: [:disabilities_at_entry, assessments: { enrollment: { project: :ce_participations } }], project: :ce_participations })
+    private def clients_with_enrollments(batch, scope: enrollment_scope, preloads: CE_ENROLLMENT_PRELOADS)
       client_ids = batch.map(&:id)
       assessed_clients = scope.
         joins(:project, enrollment: :assessments).
@@ -32,14 +46,15 @@ module HudApr::Generators::CeApr::Fy2026::QuestionConcern
         reject { |_, enrollments| enrollments.empty? }
 
       other_client_ids = client_ids - assessed_clients.keys
-      household_ids = assessed_clients.values.map(&:last).map(&:household_id)
+      household_keys = assessed_clients.values.map(&:last).map { |enrollment| [enrollment.data_source_id, enrollment.household_id] }
 
       other_household_members = scope.
         joins(:project).
         preload(**preloads).
         merge(GrdaWarehouse::Hud::Project.coc_funded).
         where.not(household_id: nil).
-        where(client_id: other_client_ids, household_id: household_ids).
+        where(client_id: other_client_ids).
+        where([:data_source_id, :household_id] => household_keys).
         order(first_date_in_program: :asc).
         group_by(&:client_id).
         transform_values { |enrollments| enrollments.select { |enrollment| nbn_with_service?(enrollment) } }.
@@ -87,7 +102,7 @@ module HudApr::Generators::CeApr::Fy2026::QuestionConcern
     private def household_member_data(enrollment, date)
       # return nil unless enrollment[:head_of_household]
 
-      active_members = households[enrollment.household_id] || []
+      active_members = households[get_hh_id(enrollment)] || []
       active_members.reject do |client|
         client[:entry_date] > date || client[:exit_date].present? && client[:exit_date] < date
       end

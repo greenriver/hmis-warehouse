@@ -149,7 +149,7 @@ module HudApr::Generators::Shared::Fy2026::Dq::QuestionTwo
       # DOB quality
       answer = @report.answer(question: table_name, cell: 'D4')
       q_member_ids = []
-      universe_members.find_each do |u_member|
+      universe_members.preload(:universe_membership).find_each do |u_member|
         member = u_member.universe_membership
         q_member_ids << u_member.id if member.dob_quality == 2 ||
           (member.dob_quality == 1 && !valid_dob?(member)) ||
@@ -188,7 +188,7 @@ module HudApr::Generators::Shared::Fy2026::Dq::QuestionTwo
 
       dkr_member_ids = []
       m_member_ids = []
-      universe_members.find_each do |u_member|
+      universe_members.preload(:universe_membership).find_each do |u_member|
         member = u_member.universe_membership
         race_array = member.race_multi_include_race_none
         # For [race and ethnicity], include records with an 8 or 9 indicated even if

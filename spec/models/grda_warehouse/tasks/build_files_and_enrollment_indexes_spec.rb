@@ -60,6 +60,37 @@ RSpec.describe GrdaWarehouse::Tasks::BuildFilesAndEnrollmentIndexes do
     expect(definition).to include('WHERE ("DateDeleted" IS NULL)')
   end
 
+  it 'builds the partial data_source_id, household_id index on service history entries' do
+    she_index_name = 'index_she_on_ds_household_id_entry'
+
+    expect { described_class.run! }.to change { index_validity(she_index_name) }.from(nil).to(true)
+
+    definition = index_definition(she_index_name)
+    expect(definition).to include('ON public.service_history_enrollments USING btree (data_source_id, household_id)')
+    expect(definition).to include("WHERE ((record_type)::text = 'entry'::text)")
+  end
+
+  it 'builds nothing while another run holds the lock' do
+    locked = Queue.new
+    release = Queue.new
+    holder = Thread.new do
+      GrdaWarehouseBase.connection_pool.with_connection do
+        GrdaWarehouseBase.with_advisory_lock(described_class::LOCK_NAME) do
+          locked << true
+          release.pop
+        end
+      end
+    end
+    expect(locked.pop(timeout: 10)).to be(true)
+
+    described_class.run!
+
+    expect(described_class::INDEXES.map { |index| index_validity(index[:name]) }).to all(be_nil)
+  ensure
+    release << true
+    holder.join
+  end
+
   it 'leaves existing valid indexes in place' do
     described_class.run!
     original_oids = [files_index_name, enrollment_index_name].map { |name| index_oid(name) }

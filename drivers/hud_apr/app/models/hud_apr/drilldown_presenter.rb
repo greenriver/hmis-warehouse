@@ -102,7 +102,7 @@ module HudApr
         # Household
         Field.new(name: 'head_of_household', groups: [:common, :household]),
         Field.new(name: 'head_of_household_id', groups: [:household]),
-        Field.new(name: 'household_id', groups: [:household]),
+        Field.new(name: 'display_household_id', label: 'Household ID', groups: [:household]),
         Field.new(name: 'household_type', groups: [:household]),
         Field.new(name: 'household_members', groups: [:household]),
         Field.new(name: 'move_in_date', label: 'Move-in Date', groups: [:household]),
