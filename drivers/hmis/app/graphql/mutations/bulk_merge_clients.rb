@@ -15,7 +15,7 @@ module Mutations
       access_denied! unless policy_for(Hmis::Hud::Client, policy_type: :hmis_client).can_merge_clients?
 
       all_client_ids = input.map(&:client_ids).flatten.uniq
-      clients = Hmis::Hud::Client.viewable_by(current_user).where(id: all_client_ids)
+      clients = Hmis::Hud::Client.viewable_by(current_user, client_ids: all_client_ids)
       raise 'not found' unless clients.size == all_client_ids.size
 
       Hmis::Hud::Client.transaction do
