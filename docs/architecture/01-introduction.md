@@ -4,7 +4,7 @@
 
 ## 1.1 Requirements Overview
 
-Open Path is an integrated platform for homeless services management, built to help one or more **Continua of Care (CoC)** meet federal data collection and reporting requirements. It supports deployments of varying scale, ranging from a single organization to multi-state installations.
+Open Path is an integrated platform for homeless services management, built to help one or more **Continuums of Care (CoC)** meet federal data collection and reporting requirements. It supports deployments of varying scale, ranging from a single organization to multi-state installations.
 
 > **Scope:** This architecture documentation covers the entire Open Path Platform across all of its repositories. Individual building blocks are mapped to their source repositories in [Section 5](05-building-blocks/05-0-building-blocks.md).
 

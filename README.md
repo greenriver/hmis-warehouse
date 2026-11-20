@@ -1,6 +1,6 @@
 # Open Path HMIS Warehouse [![Actions Status](https://github.com/greenriver/hmis-warehouse/workflows/Bundle%20Audit%20and%20Brakeman/badge.svg)](https://github.com/greenriver/hmis-warehouse/actions)
 
-Open Path is an open-source platform for managing homeless services. It helps Continua of Care (CoCs) collect client data and meet the reporting requirements of the U.S. Department of Housing and Urban Development (HUD). An installation can serve a single organization or a multi-state region.
+Open Path is an open-source platform for managing homeless services. It helps Continuums of Care (CoCs) collect client data and meet the reporting requirements of the U.S. Department of Housing and Urban Development (HUD). An installation can serve a single organization or a multi-state region.
 
 This repository holds the core application. It covers:
 

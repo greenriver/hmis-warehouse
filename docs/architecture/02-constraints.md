@@ -10,7 +10,7 @@ This section describes the constraints that limit design and implementation free
 | --- | --- |
 | **HUD HMIS Data Standards** | Data models, collection forms, and reports must conform to HUD specifications, and published updates must be implemented by HUD's compliance deadlines. Data collected in the platform's own HMIS must be HUD-compliant at the point of entry. |
 | **Data Portability** | The platform must consume HUD CSV exports from external HMIS vendors and produce exports conforming to the same published specification, so a community can migrate in or out. The format and its revisions are dictated by HUD, not chosen. |
-| **Multi-CoC Deployment** | A single deployment must support multiple Continua of Care with data partitioning for access control, ruling out per-CoC isolation strategies. Clients move between CoCs, so records must remain correlatable across those boundaries. |
+| **Multi-CoC Deployment** | A single deployment must support multiple Continuums of Care with data partitioning for access control, ruling out per-CoC isolation strategies. Clients move between CoCs, so records must remain correlatable across those boundaries. |
 | **Multi-Installation Customization** | A single codebase must serve many independent installations, each customized to its community, and every installation must be able to take core upgrades — so per-customer forks or long-lived branches are not available. |
 | **PII Protection** | Client PII must be encrypted at rest and in transit, and all access to it must be auditable. |
 | **Externalized Credential Management** | The platform must integrate with existing community identity providers, delegating authentication to an external layer rather than managing user credentials in-app. |
