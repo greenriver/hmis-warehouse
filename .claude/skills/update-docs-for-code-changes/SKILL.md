@@ -37,7 +37,7 @@ git merge-base origin/main HEAD
 edits. List those docs too, and treat each one like an `affected` doc:
 
 ```bash
-git diff --name-only HEAD | xargs -r -I{} sh -c 'grep -lF "$1" docs/*.md; grep -rlF --include="*.md" "$1" docs/features' _ {}
+git diff --name-only HEAD | while read -r changed; do grep -lF "$changed" docs/*.md; grep -rlF --include="*.md" "$changed" docs/features; done | sort -u
 ```
 
 This searches the same docs `affected` does (`docs/*.md` and `docs/features/**/*.md`) and matches
