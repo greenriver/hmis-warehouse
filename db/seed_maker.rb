@@ -255,6 +255,8 @@ class SeedMaker
     GrdaWarehouse::WarehouseReports::ReportDefinition.maintain_report_definitions
     # Remove with the GrantAllHudReports class; see its TodoOrDie.
     GrdaWarehouse::Tasks::GrantAllHudReports.new.run!
+    # Remove with the GrantExistingAccess class; see its TodoOrDie.
+    HopwaCaper::Tasks::GrantExistingAccess.new.run!
     maintain_cp_seed
     setup_hmis_admin_access
     load_hmis_data
