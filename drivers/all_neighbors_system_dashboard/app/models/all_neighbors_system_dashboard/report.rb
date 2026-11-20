@@ -354,27 +354,27 @@ module AllNeighborsSystemDashboard
         },
         {
           name: 'bar.js',
-          content: -> { File.read(per_page_js_asset_path('all_neighbors_system_dashboard_bar.js')) },
+          content: -> { AssetHelper.asset_content('all_neighbors_system_dashboard_bar.js') },
           type: 'text/javascript',
         },
         {
           name: 'donut.js',
-          content: -> { File.read(per_page_js_asset_path('all_neighbors_system_dashboard_donut.js')) },
+          content: -> { AssetHelper.asset_content('all_neighbors_system_dashboard_donut.js') },
           type: 'text/javascript',
         },
         {
           name: 'filters.js',
-          content: -> { File.read(per_page_js_asset_path('all_neighbors_system_dashboard_filters.js')) },
+          content: -> { AssetHelper.asset_content('all_neighbors_system_dashboard_filters.js') },
           type: 'text/javascript',
         },
         {
           name: 'line.js',
-          content: -> { File.read(per_page_js_asset_path('all_neighbors_system_dashboard_line.js')) },
+          content: -> { AssetHelper.asset_content('all_neighbors_system_dashboard_line.js') },
           type: 'text/javascript',
         },
         {
           name: 'stack.js',
-          content: -> { File.read(per_page_js_asset_path('all_neighbors_system_dashboard_stack.js')) },
+          content: -> { AssetHelper.asset_content('all_neighbors_system_dashboard_stack.js') },
           type: 'text/javascript',
         },
       ]
@@ -397,16 +397,6 @@ module AllNeighborsSystemDashboard
           filename: -> { "#{report_type}-enrollments-#{id}.csv" },
         },
       }
-    end
-
-    # This should probably use something like what we do in AssetHelper.inline_js_for_es_build
-    private def per_page_js_asset_path(asset)
-      return Rails.root.join('app', 'assets', 'builds', asset) if Rails.env.development?
-
-      ext = File.extname(asset)
-      asset_name = File.basename(asset, ext)
-      asset_path = Rails.root.join('public', 'assets', "#{asset_name}-*#{ext}")
-      Dir.glob(asset_path).first
     end
   end
 end

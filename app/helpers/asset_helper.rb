@@ -53,34 +53,11 @@ module AssetHelper
     end.html_safe
   end
 
-  def self.wicked_pdf_image_tag(img, options = {})
-    image_tag wicked_pdf_asset_path(img), options
-  end
-
-  def self.wicked_pdf_javascript_src_tag(jsfile, options = {})
-    jsfile = add_extension(jsfile, 'js')
-    ApplicationController.helpers.javascript_include_tag wicked_pdf_asset_path(jsfile), options
-  end
-
   def self.wicked_pdf_javascript_include_tag(*sources)
     sources.collect do |source|
       source = add_extension(source, 'js')
       "<script type='text/javascript'>#{read_asset(source)}</script>"
     end.join("\n").html_safe
-  end
-
-  def self.inline_js_for_es_build(sources)
-    content = sources.map do |source|
-      # In deployed environments the asset gets a fancy cache busting hash appended
-      # so we need to take that into account before reading it
-      if Rails.env.development?
-        find_asset(add_extension(source, 'js')).to_s
-      else
-        path = File.join(Rails.public_path, ActionController::Base.helpers.compute_asset_path(add_extension(source, 'js')))
-        File.read(path)
-      end
-    end.join("\n")
-    "<script type='text/javascript'>#{content}</script>".html_safe
   end
 
   def self.wicked_pdf_asset_path(asset)

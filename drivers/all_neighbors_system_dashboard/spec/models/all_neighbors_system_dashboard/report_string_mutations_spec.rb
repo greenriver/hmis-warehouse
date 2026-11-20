@@ -22,9 +22,11 @@ RSpec.describe AllNeighborsSystemDashboard::Report, type: :model do
   describe '#publish_files' do
     let(:manifest_dir) { Dir.mktmpdir }
     let(:fonts) { ['icons.ttf', 'icons.svg', 'icons.eot', 'icons.woff', 'icons.woff2'] }
+    let(:scripts) { ['bar.js', 'donut.js', 'filters.js', 'line.js', 'stack.js'] }
 
     before do
       assets = fonts.to_h { |font| [font, font.sub('.', '-0123.')] }
+      scripts.each { |script| assets["all_neighbors_system_dashboard_#{script}"] = "all_neighbors_system_dashboard_#{script.sub('.', '-0123.')}" }
       assets['application.css'] = 'application-0123.css'
       assets.each_value { |digest_path| File.write(File.join(manifest_dir, digest_path), "content of #{digest_path}") }
       File.write(File.join(manifest_dir, 'application-0123.css'), fonts.map { |font| "@font-face{src:url(/assets/#{font.sub('.', '-0123.')}?v=1)}" }.join)
@@ -47,6 +49,12 @@ RSpec.describe AllNeighborsSystemDashboard::Report, type: :model do
       published = report.publish_files.select { |f| f[:name].in?(fonts) }.to_h { |f| [f[:name], f[:content].call] }
 
       expect(published).to eq(fonts.to_h { |font| [font, "content of #{font.sub('.', '-0123.')}"] })
+    end
+
+    it 'publishes each chart script from its own precompiled asset' do
+      published = report.publish_files.select { |f| f[:name].in?(scripts) }.to_h { |f| [f[:name], f[:content].call] }
+
+      expect(published).to eq(scripts.to_h { |script| [script, "content of all_neighbors_system_dashboard_#{script.sub('.', '-0123.')}"] })
     end
   end
 

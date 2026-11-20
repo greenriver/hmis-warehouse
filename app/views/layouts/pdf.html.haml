@@ -61,7 +61,7 @@
 
     = inline_javascript_include_tag 'application_esbuild', 'data-turbo-track': 'reload', defer: true
     - if @per_page_js.present?
-      = AssetHelper.inline_js_for_es_build(@per_page_js)
+      = inline_javascript_include_tag(*@per_page_js)
     = yield :page_js
     - if current_user
       = render "inactive_session_modal"
