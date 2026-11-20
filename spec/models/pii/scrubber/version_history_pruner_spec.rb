@@ -73,6 +73,18 @@ RSpec.describe Pii::Scrubber::VersionHistoryPruner do
     end
   end
 
+  describe '#perform for a subclass without a type column' do
+    it 'deletes versions recorded under the base class and keeps other item types' do
+      client = create(:grda_warehouse_hud_client).tap { |c| c.update!(first_name: 'Changed') }
+      file = create(:client_file).tap { |f| f.update!(name: 'Renamed') }
+      expect(versions_for(client)).to exist
+
+      expect { described_class.new.perform(owner: GrdaWarehouse::Hud::WithDeleted::Client) }.
+        to change { versions_for(client).count }.to(0).
+        and(not_change { versions_for(file).count })
+    end
+  end
+
   describe '#perform for an aliased model' do
     it 'deletes versions recorded under the other alias of the owner' do
       client = create(:hmis_hud_client).tap { |c| c.update!(first_name: 'Changed') }

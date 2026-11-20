@@ -17,7 +17,7 @@ module Pii::Scrubber
 
       version_class = owner.version_class_name.constantize
       to_delete = version_class.where(item_type: item_types(owner))
-      if owner.base_class == owner
+      if !sti_subclass?(owner)
         to_delete = to_delete.where(item_id: ids) if ids
       elsif ids
         to_delete = to_delete.where(item_id: owner.unscoped.where(id: ids).select(:id))
@@ -36,9 +36,15 @@ module Pii::Scrubber
 
     # PaperTrail records STI models under the base class name
     def item_types(owner)
-      return [owner.base_class.name] if owner.base_class != owner
+      return [owner.base_class.name] if sti_subclass?(owner)
 
-      ([owner] + model_aliases(owner)).uniq.map(&:sti_name)
+      model = owner.base_class
+      ([model] + model_aliases(model)).uniq.map(&:sti_name)
+    end
+
+    # Subclasses such as the WithDeleted variants share the base table without a type column
+    def sti_subclass?(owner)
+      owner.base_class != owner && owner.base_class.column_names.include?(owner.inheritance_column)
     end
 
     # Finds model aliases across GrdaWarehouse/Hmis namespaces that share the same backing table
