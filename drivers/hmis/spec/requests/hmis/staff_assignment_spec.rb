@@ -106,6 +106,18 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
     end
 
+    context 'with assignment in a project the user cannot view' do
+      let!(:p_hidden) { create :hmis_hud_project, data_source: ds1 }
+      let!(:e_hidden) { create :hmis_hud_enrollment, data_source: ds1, project: p_hidden }
+      let!(:hidden_assignment) { create :hmis_staff_assignment, staff_assignment_relationship: ar, data_source: ds1, enrollment: e_hidden, user: hmis_user }
+
+      it 'excludes the hidden household' do
+        response, result = post_graphql(id: hmis_user.id) { query }
+        expect(response.status).to eq(200), result.inspect
+        expect(result.dig('data', 'userDashboard', 'staffAssignments', 'nodes').map { |n| n['id'] }).to eq([ds1_assignment.id.to_s])
+      end
+    end
+
     context 'with multi-member household assigned' do
       let!(:e2) { create :hmis_hud_enrollment, data_source: ds1, project: p1, relationship_to_hoh: 99, household_id: e1.household_id }
 
