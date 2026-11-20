@@ -8,7 +8,7 @@
 
 # Answers whether a user may see HIV status for every client in a set of HOPWA CAPER rows.
 # Drilldown membership reveals HIV status, so access requires the project-level HIV permission on
-# each row's project and no HMIS restriction on any row's client.
+# each row's project, and no row's client may be hidden (see GrdaWarehouse::HiddenClients).
 #
 # Project permissions do not depend on the client, and restriction does not depend on the
 # project, so projects and clients are checked separately rather than as pairs.
