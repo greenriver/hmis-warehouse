@@ -7,6 +7,9 @@ sources:
   - app/models/activity_log.rb
   - app/models/grda_warehouse/tasks/scrub_pii/scrub_all_pii_task.rb
   - app/models/pii/scrubber/scrub_model_pii.rb
+  - app/models/pii/scrubber/scrubbable_models.rb
+  - app/models/pii/scrubber/version_history_pruner.rb
+  - app/models/pii/scrubber/replacement_pii.rb
   - app/models/pii/scrubber/static_scrubber.rb
 ---
 
@@ -50,7 +53,7 @@ A client is hidden in the warehouse when it is restricted in HMIS, restricted in
 - `ScrubClientPiiTask` also deletes custom data elements whose label looks like PII, files, custom names, addresses, contact points, and case notes for the client, and prunes version history. Deletion is `delete_all`, bypassing soft delete and callbacks.
 - Both tasks take a zero-timeout advisory lock, so a concurrent run fails immediately.
 - Scrubbing acts on the live database only. Backups and S3 copies are untouched.
-- `ScrubAllPiiTask` uses a hand-maintained list of models, not the catalog. A new snapshot table with PII needs both a `pii_attr` declaration and an entry in that list. Several models that declare PII are currently missing from it, including newer SPM enrollment tables and the newest HMIS CSV loader and importer tables.
+- `ScrubAllPiiTask` scrubs every concrete model that declares `pii_attr`, except staff accounts (`User`, `Hmis::User`), whose emails are logins. STI subclasses with their base class's config, and models sharing a table and config, run once. Version history is pruned for all of them. Required free-text fields get a `Note<id>` placeholder and required JSON fields get `{}`.
 - The `:static` custom scrubber raises because it omits a required argument. Use `:fake` or no custom scrubber.
 
 ## Other gotchas

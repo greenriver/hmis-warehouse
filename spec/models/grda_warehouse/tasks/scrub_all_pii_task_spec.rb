@@ -128,7 +128,7 @@ RSpec.describe GrdaWarehouse::Tasks::ScrubPii::ScrubAllPiiTask do
     end
 
     it 'leaves staff login accounts alone' do
-      expect { perform_task }.not_to change { staff_user.email }
+      expect { perform_task }.not_to(change { staff_user.email })
       expect(staff_user.email).to eq('staff@example.org')
     end
   end

@@ -30,7 +30,7 @@ RSpec.describe Pii::Scrubber::VersionHistoryPruner do
 
       expect { described_class.new.perform(owner: GrdaWarehouse::ClientFile) }.
         to change { versions_for(client_file).count }.to(0).
-        and not_change { versions_for(hmis_file).count }
+        and(not_change { versions_for(hmis_file).count })
     end
 
     it 'limits deletion to the given ids' do
@@ -38,7 +38,7 @@ RSpec.describe Pii::Scrubber::VersionHistoryPruner do
 
       expect { described_class.new.perform(owner: GrdaWarehouse::ClientFile, ids: [client_file.id]) }.
         to change { versions_for(client_file).count }.to(0).
-        and not_change { versions_for(other_file).count }
+        and(not_change { versions_for(other_file).count })
     end
   end
 
