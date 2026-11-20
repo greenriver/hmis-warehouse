@@ -11,6 +11,16 @@ require 'rails_helper'
 # Declared PII attributes must be scrubbable: a real column, nullable unless the
 # scrubber has a placeholder for it.
 RSpec.describe 'PII attribute declarations' do
+  def placeholder_fits?(column, type)
+    placeholder = type == :dob ? Date : Pii::Scrubber::ReplacementPii::STATIC_TYPE_VALUES[type].class
+    case placeholder.name
+    when 'String' then [:string, :text].include?(column.type)
+    when 'Hash' then [:json, :jsonb].include?(column.type)
+    when 'Date' then column.type == :date
+    else false
+    end
+  end
+
   it 'can be scrubbed on every model the scrub task visits' do
     violations = Pii::Scrubber::ScrubbableModels.all.flat_map do |model|
       model.pii_attributes_config.values.filter_map do |config|
@@ -24,6 +34,8 @@ RSpec.describe 'PII attribute declarations' do
           "#{label} is sensitive, optional and on a NOT NULL column"
         elsif config[:required] && !(Pii::Scrubber::ReplacementPii::STATIC_TYPE_VALUES.key?(config[:type]) || config[:type] == :dob)
           "#{label} is required but has no placeholder for type #{config[:type]}"
+        elsif config[:required] && !placeholder_fits?(column, config[:type])
+          "#{label} is required but its #{config[:type]} placeholder does not fit a #{column.type} column"
         end
       end
     end

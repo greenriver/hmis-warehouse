@@ -11,7 +11,7 @@ require 'rails_helper'
 # Rules for the catalog guard below.
 module PiiCatalogGuard
   # Matched against the column name split into snake_case words (FirstName -> first_name).
-  PII_COLUMN_PATTERN = /(\A|_)(first_name|last_name|middle_name|ssn|dob|date_of_birth|birth_date|birthdate|emails?|phones?|cell|mobile|fax|city|address|street\d*|zip(code)?\d*|postal)(_|\z)/
+  PII_COLUMN_PATTERN = /(\A|_)(first_name|last_name|middle_name|ssn|dob|date_of_birth|birth_date|birthdate|emails?|phones?|cell|mobile|fax|city|address|street|zip(code)?|postal)\d*(_|\z)/
 
   # Columns that match the pattern but hold a flag, count, code, or secret instead of a value.
   NON_VALUE_PATTERN = Regexp.union(
@@ -42,8 +42,6 @@ module PiiCatalogGuard
     ['financial_providers', 'address_line_2'] => 'vendor address',
     ['financial_providers', 'city'] => 'vendor address',
     ['financial_providers', 'service_provider_area_by_city'] => 'vendor service area',
-    ['hud_report_hic_project_cocs', 'Zip'] => 'project site address',
-    ['hud_report_hic_project_cocs', 'City'] => 'project site address',
     ['ma_monthly_performance_projects', 'city'] => 'project site address',
     ['hud_report_instances', 'zip_file'] => 'attached report file, not scrubbed (level 4)',
     ['import_logs', 'zip'] => 'import file reference',
@@ -56,20 +54,21 @@ module PiiCatalogGuard
     ['login_activities', 'city'] => 'staff login location',
     ['Geography', 'City'] => 'project geography, not client data',
     ['Geography', 'ZIP'] => 'project geography, not client data',
+    ['Geography', 'Address1'] => 'project geography, not client data',
+    ['Geography', 'Address2'] => 'project geography, not client data',
   }.freeze
 
   # Allowed by [table pattern, column], for tables repeated per HMIS CSV year.
   PROJECT_COC_TABLE = /(\A|_)project_?cocs?\z/i
-  SITE_TABLE = /(\A|_)sites?\z/i
   EXIT_TABLE = /(\A|_)exits?\z/i
   EXPORT_TABLE = /(\A|_)exports?\z/i
   ALLOWED_BY_TABLE_PATTERN = {
     [PROJECT_COC_TABLE, 'City'] => 'project site address',
     [PROJECT_COC_TABLE, 'ZIP'] => 'project site address',
     [PROJECT_COC_TABLE, 'Zip'] => 'project site address',
+    [PROJECT_COC_TABLE, 'Address1'] => 'project site address',
+    [PROJECT_COC_TABLE, 'Address2'] => 'project site address',
     [PROJECT_COC_TABLE, 'deleted_zip_override'] => 'project site address override',
-    [SITE_TABLE, 'City'] => 'project site address',
-    [SITE_TABLE, 'ZIP'] => 'project site address',
     [EXIT_TABLE, 'EmailSocialMedia'] => 'integer HUD follow-up code',
     [EXPORT_TABLE, 'SourceContactEmail'] => 'data source contact person, not a client',
     [EXPORT_TABLE, 'SourceContactPhone'] => 'data source contact person, not a client',
@@ -133,7 +132,7 @@ RSpec.describe 'PII attribute catalog' do
 
   describe PiiCatalogGuard do
     describe '.pii_named?' do
-      ['LastPermanentZIP', 'FirstName', 'cell', 'city', 'LastPermanentCity', 'address_line_1', 'MsgPhone', 'client_email'].each do |column|
+      ['LastPermanentZIP', 'FirstName', 'cell', 'city', 'LastPermanentCity', 'address_line_1', 'MsgPhone', 'client_email', 'Address2', 'phone1'].each do |column|
         it "flags #{column}" do
           expect(described_class.pii_named?(column)).to be(true)
         end

@@ -39,7 +39,12 @@ module GrdaWarehouse::Tasks::ScrubPii
 
     def expected_databases
       models = Pii::Scrubber::ScrubbableModels.all
-      (models.map { |model| model.connection.current_database } << GrdaWarehouseBase.connection.current_database).uniq.sort
+      databases = models.map { |model| model.connection.current_database }
+      # The pruner deletes from each paper-trail model's version table, which can live in another database
+      models.each do |model|
+        databases << model.version_class_name.constantize.connection.current_database if model.include?(::PaperTrail::Model::InstanceMethods)
+      end
+      (databases << GrdaWarehouseBase.connection.current_database).uniq.sort
     end
 
     def with_lock(&block)
