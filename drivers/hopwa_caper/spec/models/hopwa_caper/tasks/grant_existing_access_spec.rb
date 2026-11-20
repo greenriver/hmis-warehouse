@@ -93,6 +93,65 @@ RSpec.describe HopwaCaper::Tasks::GrantExistingAccess do
       expect(viewer_role.access_controls.map { |ac| ac.collection.name }).to contain_exactly('All HUD Reports')
     end
 
+    it 'does not mirror a user group whose system-collection role lacks report access' do
+      other_user = create(:acl_user)
+      other_group = create(:user_group)
+      other_group.add(other_user)
+      AccessControl.create!(
+        role: create(:role, can_view_assigned_reports: false),
+        collection: Collection.system_collection(:hud_reports),
+        user_group: other_group,
+      )
+      route_group = create(:user_group)
+      route_group.add(other_user)
+      unrelated = create(:collection, collection_type: 'Reports')
+      AccessControl.create!(role: viewer_role, collection: unrelated, user_group: route_group)
+      expect(hopwa_viewable?(other_user)).to be false
+
+      described_class.new.run!
+
+      hopwa_collection = Collection.find_by!(name: described_class::NAME)
+      expect(AccessControl.where(collection_id: hopwa_collection.id).pluck(:user_group_id)).to contain_exactly(user_group.id)
+      expect(hopwa_viewable?(other_user)).to be false
+    end
+
+    it 'leaves an access group already named HOPWA CAPER untouched' do
+      existing = AccessGroup.create!(name: described_class::NAME)
+      data_source = create(:source_data_source)
+      existing.set_viewables({ data_sources: [data_source.id] })
+      existing_member = create(:user)
+      existing.add(existing_member)
+
+      described_class.new.run!
+
+      existing.reload
+      expect(existing.data_source_ids).to contain_exactly(data_source.id)
+      expect(existing.users.pluck(:id)).to contain_exactly(existing_member.id)
+    end
+
+    it 'does not grant a user whose only access group membership is an unrelated group' do
+      other_group = create(:user_group)
+      other_group.add(outsider)
+      unrelated = create(:collection, collection_type: 'Reports')
+      AccessControl.create!(role: viewer_role, collection: unrelated, user_group: other_group)
+
+      described_class.new.run!
+
+      expect(hopwa_viewable?(outsider)).to be false
+    end
+
+    it 'leaves no partial grant when a step fails' do
+      hopwa_grants = GrdaWarehouse::GroupViewableEntity.where(entity_type: hopwa_definition.class.sti_name, entity_id: hopwa_definition.id)
+      grant_ids_before = hopwa_grants.pluck(:id)
+      allow(AccessGroup).to receive(:create!).and_raise(ActiveRecord::RecordInvalid)
+
+      expect { described_class.new.run! }.to raise_error(ActiveRecord::RecordInvalid)
+
+      expect(Role.with_deleted.where(name: described_class::ROLE_NAME)).to be_empty
+      expect(Collection.where(name: described_class::NAME)).to be_empty
+      expect(hopwa_grants.pluck(:id)).to match_array(grant_ids_before)
+    end
+
     it 'does not re-grant after an admin removes the grant' do
       described_class.new.run!
       AccessControl.where(collection_id: Collection.find_by!(name: described_class::NAME).id).destroy_all
@@ -101,6 +160,17 @@ RSpec.describe HopwaCaper::Tasks::GrantExistingAccess do
 
       expect(hopwa_viewable?(acl_user)).to be false
     end
+  end
+
+  it 'does nothing when the viewer role was already created and later deleted' do
+    create_run(fy2026_title)
+    Role.create!(name: described_class::ROLE_NAME, system: false).destroy
+
+    described_class.new.run!
+
+    expect(Collection.where(name: described_class::NAME)).to be_empty
+    expect(Role.with_deleted.where(name: described_class::ROLE_NAME).count).to eq(1)
+    expect(Collection.system_collection(:hud_reports).report_ids).to include(hopwa_definition.id)
   end
 
   it 'counts a run of another fiscal year' do
