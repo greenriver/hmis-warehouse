@@ -15,17 +15,28 @@ module Pii::Scrubber
       # the model does not use paper trail
       return unless owner.include?(::PaperTrail::Model::InstanceMethods)
 
-      item_classes = ([owner] + model_aliases(owner)).uniq
-      item_types = item_classes.map(&:sti_name)
-
       version_class = owner.version_class_name.constantize
-      to_delete = version_class.where(item_type: item_types)
-      to_delete = to_delete.where(item_id: ids) if ids
+      to_delete = version_class.where(item_type: item_types(owner))
+      if owner.base_class != owner
+        # An STI base class's table holds sibling types that share the version item_type
+        item_ids = owner.unscoped.select(:id)
+        item_ids = item_ids.where(id: ids) if ids
+        to_delete = to_delete.where(item_id: item_ids)
+      elsif ids
+        to_delete = to_delete.where(item_id: ids)
+      end
 
       to_delete.delete_all
     end
 
     protected
+
+    # PaperTrail records STI models under the base class name
+    def item_types(owner)
+      return [owner.base_class.name] if owner.base_class != owner
+
+      ([owner] + model_aliases(owner)).uniq.map(&:sti_name)
+    end
 
     # Finds model aliases across GrdaWarehouse/Hmis namespaces that share the same backing table
     def model_aliases(model)
