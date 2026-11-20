@@ -96,9 +96,7 @@ RSpec.describe GrdaWarehouse::Tasks::ScrubPii::ScrubAllPiiTask do
     ].each(&:reload)
   end
 
-  let(:database_names) do
-    (Pii::Scrubber::ScrubbableModels.all.map { |model| model.connection.current_database } << GrdaWarehouseBase.connection.current_database).uniq
-  end
+  let(:database_names) { described_class.new.expected_databases }
 
   def perform_task(**opts)
     travel_to(today) do
@@ -209,6 +207,17 @@ RSpec.describe GrdaWarehouse::Tasks::ScrubPii::ScrubAllPiiTask do
 
     it 'refuses a list with an extra database' do
       expect { described_class.new.perform(confirm_databases: database_names + ['some_other_db']) }.to raise_error(ArgumentError, /confirm_databases/)
+      expect(hud_client.versions.count).to be > 0
+    end
+
+    it 'refuses a list missing the database holding a model\'s version table' do
+      model = GrdaWarehouse::Hud::Client
+      allow(model).to receive(:version_class_name).and_return('Health::HealthVersion')
+      allow(Pii::Scrubber::ScrubbableModels).to receive(:all).and_return([model])
+      health_database = HealthDbBase.connection.current_database
+      without_health = database_names - [health_database]
+
+      expect { described_class.new.perform(confirm_databases: without_health) }.to raise_error(ArgumentError, /#{Regexp.escape(health_database)}/)
       expect(hud_client.versions.count).to be > 0
     end
 

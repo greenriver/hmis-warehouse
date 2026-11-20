@@ -10,7 +10,7 @@ module GrdaWarehouse::Tasks::ScrubPii
   # Best-effort to scrub personally identifiable information (PII) from all warehouse and reporting tables
   # * Suitable for sanitizing a production database for staging/development use
   # * Delete versions
-  # * Requires confirm_databases: naming every database the scrubbed models live in
+  # * Requires confirm_databases: naming every database the scrubbed models and their version tables live in
   class ScrubAllPiiTask
     def self.perform(...)
       new.perform(...)
@@ -35,17 +35,17 @@ module GrdaWarehouse::Tasks::ScrubPii
       end
     end
 
-    protected
-
+    # The sorted database names an operator must pass as confirm_databases
     def expected_databases
       models = Pii::Scrubber::ScrubbableModels.all
       databases = models.map { |model| model.connection.current_database }
       # The pruner deletes from each paper-trail model's version table, which can live in another database
-      models.each do |model|
-        databases << model.version_class_name.constantize.connection.current_database if model.include?(::PaperTrail::Model::InstanceMethods)
-      end
+      pruner = Pii::Scrubber::VersionHistoryPruner.new
+      databases += models.filter_map { |model| pruner.version_class(model)&.connection&.current_database }
       (databases << GrdaWarehouseBase.connection.current_database).uniq.sort
     end
+
+    protected
 
     def with_lock(&block)
       lock_name = self.class.name.demodulize

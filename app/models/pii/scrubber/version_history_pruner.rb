@@ -12,10 +12,10 @@
 module Pii::Scrubber
   class VersionHistoryPruner
     def perform(owner:, ids: nil)
+      version_class = version_class(owner)
       # the model does not use paper trail
-      return unless owner.include?(::PaperTrail::Model::InstanceMethods)
+      return unless version_class
 
-      version_class = owner.version_class_name.constantize
       to_delete = version_class.where(item_type: item_types(owner))
       if !sti_subclass?(owner)
         to_delete = to_delete.where(item_id: ids) if ids
@@ -30,6 +30,13 @@ module Pii::Scrubber
       end
 
       to_delete.delete_all
+    end
+
+    # The class backing the owner's versions, nil when the model does not use paper trail
+    def version_class(owner)
+      return unless owner.include?(::PaperTrail::Model::InstanceMethods)
+
+      owner.version_class_name.constantize
     end
 
     protected
