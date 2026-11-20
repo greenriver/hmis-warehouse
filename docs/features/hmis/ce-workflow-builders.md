@@ -5,6 +5,9 @@ sources:
   - drivers/hmis/lib/ce_workflows/ph/workflow_builder.rb
   - drivers/hmis/lib/ce_workflows/standard/workflow_builder.rb
   - drivers/hmis/app/models/hmis/workflow_definition/template.rb
+  - drivers/hmis/app/models/hmis/workflow_execution/engine.rb
+  - drivers/hmis/app/models/hmis/unit_group.rb
+  - drivers/hmis/app/models/hmis/workflow_definition/user_task.rb
 ---
 
 # CE Workflow Builders
@@ -14,6 +17,23 @@ sources:
 Workflow builders are Rake task dev/setup scripts, not runtime application logic. They create `Hmis::WorkflowDefinition::Template` graphs wired to CE referral forms. Each client/installation may have its own builder under `ce_workflows/{client_key}/`. Eventually we plan to build admin Template management tools and move these out of version control.
 
 For workflow-specific details (diagrams, form identifiers, rake usage), see the per-client README linked from each builder's directory.
+
+## What a template is, and what lives outside it
+
+A template is data. Its graph is stored as `Hmis::WorkflowDefinition::Node` rows (start and end events, `UserTask`, `ScriptTask`, `Gateway`), `Flow` rows that connect them, and `Swimlane` rows. When a referral is created, `Hmis::WorkflowExecution::Engine` runs the stored graph of the unit group's template. Neither the engine nor the CE message and assignment handlers check a template's identifier, so a new template needs no application code change.
+
+Creating that data does need a developer. Builders are the only code that creates templates, through `CeBuilderUtils.create_template` and `CeBuilderUtils.find_or_create_draft_template`. No GraphQL mutation creates, edits, or copies a template, and nothing clones an existing one.
+
+Other parts of a CE setup live outside the template:
+
+| Part | Where it lives | How it changes |
+| --- | --- | --- |
+| Steps, gateways, swimlanes, side effects | The template graph | A builder |
+| Questions on a step | A `CE_REFERRAL_STEP` form definition. Each `UserTask` references one by `form_definition_identifier`. | Form JSON in `drivers/hmis/lib/form_data/` (see [Updates](#updates)) |
+| Eligibility and priority | `Hmis::Ce::Match::Rule`, owned by any type in `Hmis::Ce::Match::Rule::OWNER_PRECEDENCE` | The `CreateCeMatchRule`, `UpdateCeMatchRule`, and `DeleteCeMatchRule` mutations |
+| Which template a unit group uses | `Hmis::UnitGroup#workflow_template_identifier` and `#direct_referral_workflow_template_identifier` | The `CreateUnitGroup` and `UpdateUnitGroup` mutations |
+
+Two workflows that differ only in eligibility or priority can share one template, because rules are resolved for the unit group, not stored on the template. Workflows that differ in steps or step names need a second template with its own identifier. One builder can build several templates from shared helpers: the AC builder's `build_housing_workflow` and `build_admin_assign_workflow` both call `build_shared_sub_workflow`. A second template that needs different questions on a step also needs its own form definitions, because a form change reaches every template in the same data source whose steps reference that form's identifier.
 
 ## Two workflow builder patterns
 
