@@ -4,6 +4,7 @@ sources:
   - drivers/hmis/lib/ce_workflows/ac/workflow_builder.rb
   - drivers/hmis/lib/ce_workflows/ph/workflow_builder.rb
   - drivers/hmis/lib/ce_workflows/standard/workflow_builder.rb
+  - drivers/hmis/lib/ce_workflows/shared/template_cloner.rb
   - drivers/hmis/app/models/hmis/workflow_definition/template.rb
   - drivers/hmis/app/models/hmis/workflow_execution/engine.rb
   - drivers/hmis/app/models/hmis/unit_group.rb
@@ -22,7 +23,7 @@ For workflow-specific details (diagrams, form identifiers, rake usage), see the 
 
 A template is data. Its graph is stored as `Hmis::WorkflowDefinition::Node` rows (start and end events, `UserTask`, `ScriptTask`, `Gateway`), `Flow` rows that connect them, and `Swimlane` rows. When a referral is created, `Hmis::WorkflowExecution::Engine` runs the stored graph of the unit group's template. Neither the engine nor the CE message and assignment handlers check a template's identifier, so a new template needs no application code change.
 
-Creating that data does need a developer. Builders are the only code that creates templates, through `CeBuilderUtils.create_template` and `CeBuilderUtils.find_or_create_draft_template`. No GraphQL mutation creates, edits, or copies a template, and nothing clones an existing one.
+Creating that data does need a developer. Builders create templates through `CeBuilderUtils.create_template` and `CeBuilderUtils.find_or_create_draft_template`, and `CeWorkflows::Shared::TemplateCloner` copies an existing template (see [Copying a template](#copying-a-template)). No GraphQL mutation creates, edits, or copies a template.
 
 Other parts of a CE setup live outside the template:
 
@@ -108,6 +109,19 @@ end
 - In practice, devs used `FORCE_RECREATE` anyway because drafts can't be used for referrals.
 - Idempotent `connect_if_not_connected`-style guards add complexity and cruft.
 - Implies that we support changing a prod template *without* incrementing the version number, which we don't want to support.
+
+## Copying a template
+
+`CeWorkflows::Shared::TemplateCloner` copies a template's swimlanes, nodes, and flows into a new, independent draft template with a new identifier. It is console tooling, like the builders. The class comment covers usage and exactly what is copied.
+
+Copy when a customer needs a second workflow that starts from one an environment already runs, with small edits such as renamed steps. The copy is taken from the rows the environment actually has, so it doesn't depend on whether the source still matches its builder. Write a builder when the graph itself needs to be designed, or when the template must be rebuilt from code in every environment.
+
+A copy is limited in these ways:
+
+- **Forms, custom statuses, and decline reasons are shared.** Nodes reference them by key (`form_definition_identifier`, a `custom_status_key` in `trigger_config`, pick list options on the step's form), so a change to one reaches both templates. A copy that needs different questions on a step needs its own form definitions.
+- **No default contacts.** The copy's swimlanes are new rows, and `Hmis::Ce::DefaultSwimlaneAssignment` matches by `swimlane_id`. Until someone assigns default contacts to them, the copy's referrals start with no participants, and `Hmis::Ce::ReferralTaskAssignmentHandler` assigns its tasks to nobody.
+- **Only a new unit group can use it.** `Hmis::UnitGroup` doesn't allow a template identifier to change once set, so an existing unit group can't be moved to the copy.
+- **The repo doesn't record it.** A copy has no builder code, so rebuilding an environment means re-running the copy and the edits.
 
 ## Updates
 
