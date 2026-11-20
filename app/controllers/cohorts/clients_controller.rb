@@ -382,7 +382,7 @@ module Cohorts
     end
 
     def hud_filter_params
-      params.permit(filter: ::Filters::HudChronic.attribute_names)
+      params.permit(hud_filter: ::Filters::HudChronic.attribute_names)
     end
 
     def load_cohort_names
