@@ -93,6 +93,38 @@ RSpec.describe GrdaWarehouse::Tasks::ScrubPii::ScrubClientPiiTask do
     end
   end
 
+  context 'with static scrubber' do
+    let(:other_client) do
+      create(:grda_warehouse_hud_client, data_source: data_source, FirstName: 'Alice', MiddleName: nil)
+    end
+
+    before do
+      described_class.new.perform(client_ids: [client1.id, other_client.id], custom_scrubber: :static)
+      reload_records
+      other_client.reload
+    end
+
+    it 'replaces PII on the selected clients with per-record placeholders' do
+      expect(client1.attributes.slice('FirstName', 'MiddleName', 'LastName', 'SSN', 'DOB')).to eq(
+        'FirstName' => "FirstName#{client1.id}",
+        'MiddleName' => "MiddleName#{client1.id}",
+        'LastName' => "LastName#{client1.id}",
+        'SSN' => '999000000',
+        'DOB' => Date.new(2000, 1, 1),
+      )
+      expect(other_client.FirstName).to eq("FirstName#{other_client.id}")
+    end
+
+    it 'leaves blank PII blank' do
+      expect(other_client.MiddleName).to be_nil
+    end
+
+    it 'does not touch clients outside the selection' do
+      expect(client2.FirstName).to eq('Jane')
+      expect(client2.SSN).to eq('987-65-4321')
+    end
+  end
+
   context 'with specific data_source_ids' do
     let(:other_data_source) { create(:grda_warehouse_data_source) }
     let!(:other_client) do

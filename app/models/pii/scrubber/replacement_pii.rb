@@ -21,15 +21,20 @@ module Pii::Scrubber
       ssn: '999000000',
       dob: Date.new(2000, 1, 1),
       email: 'no-reply@example.com',
-      phone: '212-555-0100',
+      phone: '2125550100',
       geo_street: 'Street%{id}',
       geo_postal_code: '00000',
     }.freeze
 
-    def self.static_value(field, id:)
-      raise "can't scrub required field '#{field.description}'" unless STATIC_TYPE_VALUES.key?(field.type)
+    def self.static_type?(field)
+      STATIC_TYPE_VALUES.key?(field.type)
+    end
 
-      format(STATIC_TYPE_VALUES[field.type], id: id)
+    def self.static_value(field, id:)
+      raise "can't scrub required field '#{field.description}'" unless static_type?(field)
+
+      value = STATIC_TYPE_VALUES[field.type]
+      value.is_a?(String) ? format(value, id: id) : value
     end
 
     def self.fake_value(field)

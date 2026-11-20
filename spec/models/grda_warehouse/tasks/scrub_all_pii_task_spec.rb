@@ -102,4 +102,26 @@ RSpec.describe GrdaWarehouse::Tasks::ScrubPii::ScrubAllPiiTask do
         and change { apr_client.age }.to(scrubbed_age)
     end
   end
+
+  context 'with static strategy' do
+    let(:hud_user) do
+      create(:hud_user, data_source: create(:grda_warehouse_data_source), UserFirstName: 'Real', UserPhone: '6175551234')
+    end
+
+    def reload_records
+      super
+      hud_user.reload
+    end
+
+    it 'replaces PII with placeholders and derives age from the placeholder DOB' do
+      expect do
+        perform_task(custom_scrubber: :static)
+      end.to change { apr_client.first_name }.to("FirstName#{apr_client.id}").
+        and change { apr_client.ssn }.to('999000000').
+        and change { apr_client.dob }.to(Date.new(2000, 1, 1)).
+        and change { apr_client.age }.to(24).
+        and change { hud_user.UserFirstName }.to("FirstName#{hud_user.id}").
+        and change { hud_user.UserPhone }.to('2125550100')
+    end
+  end
 end

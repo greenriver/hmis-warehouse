@@ -13,7 +13,8 @@ module Pii::Scrubber
     def perform(fields)
       dob_fields = fields.filter { |f| f.type == :dob }
 
-      dob_fields.each do |dob_field|
+      # a custom scrubber may already have replaced the dob
+      dob_fields.reject(&:scrubbed?).each do |dob_field|
         real_dob = parse_date(dob_field.real_value)
         dob_field.scrub(scramble_dob(real_dob))
       end
@@ -22,7 +23,7 @@ module Pii::Scrubber
       dob_field = dob_fields.size == 1 ? dob_fields.first : nil
       return unless dob_field
 
-      age_fields = fields.filter { |f| f.type == :age }
+      age_fields = fields.filter { |f| f.type == :age && !f.scrubbed? }
       age_fields.each do |age_field|
         age_value = dob_field.scrubbed_value ? age_in_years(dob_field.scrubbed_value) : age_field.real_value
         age_field.scrub(age_value)

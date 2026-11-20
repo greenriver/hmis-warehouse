@@ -48,7 +48,7 @@ module Pii::Scrubber
           custom_scrubber&.perform(pii_fields)
 
           # handle dob and age fields
-          dob_scrubber.perform(pii_fields.reject(&:scrubbed?))
+          dob_scrubber.perform(pii_fields)
 
           # scrub remaining sensitive fields
           remaining_sensitive_fields = pii_fields.filter { |f| f.sensitive? && !f.scrubbed? }
