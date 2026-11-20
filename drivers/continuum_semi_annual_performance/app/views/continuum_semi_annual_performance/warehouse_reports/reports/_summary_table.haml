@@ -1,0 +1,20 @@
+- links = local_assigns.fetch(:links, false)
+.table-responsive
+  %table.table.table-striped
+    %thead
+      %tr
+        %th Project type
+        %th Projects
+        %th Persons served
+        %th Households served
+    %tbody
+      - @report.summary_rows.each do |row|
+        %tr
+          %td
+            - if links
+              = link_to tab_title(row[:project_type]), report_action_path(@report, :show, tab: row[:project_type])
+            - else
+              = tab_title(row[:project_type])
+          %td= number_with_delimiter(row[:projects].to_i)
+          %td= number_with_delimiter(row[:persons].to_i)
+          %td= number_with_delimiter(row[:households].to_i)

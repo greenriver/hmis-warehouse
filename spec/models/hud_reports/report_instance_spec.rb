@@ -11,6 +11,24 @@ require 'rails_helper'
 RSpec.describe HudReports::ReportInstance, type: :model do
   include ActiveSupport::Testing::TimeHelpers
 
+  describe '.viewable_by' do
+    let(:user) { create(:acl_user) }
+    let!(:own_report) { described_class.create!(report_name: 'Test Report', user_id: user.id, question_names: ['test']) }
+    let!(:other_report) { described_class.create!(report_name: 'Test Report', user_id: create(:acl_user).id, question_names: ['test']) }
+
+    it 'limits a user without can_view_all_hud_reports to their own reports' do
+      setup_access_control(user, create(:role, can_view_assigned_reports: true), create(:collection))
+
+      expect(described_class.viewable_by(user)).to contain_exactly(own_report)
+    end
+
+    it 'includes every user\'s reports for a user with can_view_all_hud_reports' do
+      setup_access_control(user, create(:role, can_view_all_hud_reports: true), create(:collection))
+
+      expect(described_class.viewable_by(user)).to contain_exactly(own_report, other_report)
+    end
+  end
+
   describe '#start_report' do
     after { travel_back }
 

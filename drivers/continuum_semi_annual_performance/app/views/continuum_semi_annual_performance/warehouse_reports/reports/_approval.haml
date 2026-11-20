@@ -1,0 +1,7 @@
+= form_with url: report_action_path(@report, :approval), method: :post, class: 'd-flex align-items-center' do
+  .form-check.mb-0.me-3
+    = check_box_tag :approved, '1', @report.approved?, class: 'form-check-input', id: 'approved'
+    = label_tag :approved, 'Approved', class: 'form-check-label'
+  = submit_tag 'Save', class: 'btn btn-primary btn-sm'
+- unless @report.approvals.exists?
+  %p.mt-2.mb-0 Approval Pending

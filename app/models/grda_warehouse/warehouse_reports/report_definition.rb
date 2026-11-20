@@ -1011,6 +1011,18 @@ module GrdaWarehouse::WarehouseReports
         limitable: true,
       }
       r_list['Performance'] << {
+        url: 'continuum_semi_annual_performance/warehouse_reports/mid_year_reports',
+        name: 'CoC Mid-Year Performance Report',
+        description: 'Summary of APR and CE APR performance by project type as defined for mid-year reporting.',
+        limitable: true,
+      }
+      r_list['Performance'] << {
+        url: 'continuum_semi_annual_performance/warehouse_reports/end_of_year_reports',
+        name: 'CoC End of Year Performance Report',
+        description: 'Summary of APR and CE APR performance by project type as defined for end of year reporting.',
+        limitable: true,
+      }
+      r_list['Performance'] << {
         url: 'ce_performance/warehouse_reports/goal_configs',
         name: 'Coordinated Entry Performance Goal Configurator',
         description: 'Set per-CoC Coordinated Entry Performance Measurement Goals',
