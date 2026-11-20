@@ -12,6 +12,7 @@ module GrdaWarehouse
 
     pii_attr :location, as: :geo_street, required: true
     pii_attr :zipcode, as: :geo_postal_code
+    pii_attr :city, as: :geo_locality
     pii_attr :lat_lon, as: :json, level: 1
     pii_attr :lat, as: :geo_street, level: 1
     pii_attr :lon, as: :geo_street, level: 1

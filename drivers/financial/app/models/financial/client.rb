@@ -17,6 +17,7 @@ module Financial
     pii_attr :address_line_1, as: :geo_street
     pii_attr :address_line_2, as: :geo_street
     pii_attr :city, as: :geo_locality
+    pii_attr :city_of_unit, as: :geo_locality
     pii_attr :state, as: :geo_admin_1
     pii_attr :zip_code, as: :geo_postal_code
 

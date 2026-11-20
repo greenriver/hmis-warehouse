@@ -16,5 +16,6 @@ module HmisStructure::EnrollmentAddressPii
   included do
     pii_attr :LastPermanentStreet, as: :geo_street
     pii_attr :LastPermanentZIP, as: :geo_postal_code
+    pii_attr :LastPermanentCity, as: :geo_locality
   end
 end

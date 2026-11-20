@@ -11,6 +11,7 @@ module GrdaWarehouse::Youth
     include HasPiiAttributes
 
     pii_attr :staff_name, as: :full_name
+    pii_attr :how_to_contact, as: :free_text
 
     include YouthExport
 

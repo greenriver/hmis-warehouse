@@ -12,6 +12,8 @@ module EccoviaData
 
     pii_attr :email
     pii_attr :phone
+    pii_attr :cell, as: :phone
+    pii_attr :city, as: :geo_locality
     pii_attr :street, as: :geo_street
     pii_attr :street2, as: :geo_street
     pii_attr :zip, as: :geo_postal_code
