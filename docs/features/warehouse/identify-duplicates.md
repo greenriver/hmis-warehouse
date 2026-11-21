@@ -19,7 +19,7 @@ sources:
 
 Every `GrdaWarehouse::Hud::Client` row is either a source client or a destination client:
 
-- A **source client** is a record imported from, or entered in, an HMIS data source. Enrollments and services hang off source clients by `PersonalID` plus `data_source_id`.
+- A **source client** is a record imported from, or entered in, an HMIS data source. Enrollments hang off source clients by `PersonalID` plus `data_source_id`.
 - A **destination client** lives in the warehouse destination data source and represents one person.
 - A **`GrdaWarehouse::WarehouseClient`** row links one source client (`source_id`) to its destination (`destination_id`).
 
@@ -51,8 +51,7 @@ Pitfalls when querying:
 
 - A `Hud::Client` id in a URL, cohort, or report is a destination id.
 - `Hud::Client.where(...)` with no `.source` or `.destination` scope returns both kinds of row. Go from a destination to HUD data through `source_clients`, and from a source to the person through `destination_client`.
-- `WarehouseClient` does not use `acts_as_paranoid`. Its `deleted_at` is set by `ClientCleanup`: a run that finds destinations with no live source client left clears it on every row, then sets it on those destinations' links. A run that finds none leaves `deleted_at` alone. External analytics tooling reads it, and `GrdaWarehouse::HiddenClients` and `GrdaWarehouse::ClientRetentionMark` treat rows with `deleted_at IS NULL` as live links.
-- The `reviewd_by` column is misspelled in the schema and holds a user id as a string.
+- `WarehouseClient` does not use `acts_as_paranoid`. Its `deleted_at` is set by `ClientCleanup`: a run that finds destinations with no live source client left clears it on every row, then sets it on those destinations' links. A run that finds none leaves `deleted_at` alone. A row with `deleted_at IS NULL` is a live link.
 
 ## When deduplication runs
 
@@ -74,9 +73,7 @@ The HMIS callbacks fire only on saves through the model. `update_columns`, `upda
 
 ### Order in the daily job
 
-`RunDailyImportsJob` runs consent updates, HMIS form updates, and the CAS sync, then Identify Duplicates, then `ClientCleanup`, then service history generation. Consent is resolved through `warehouse_clients` at run time, so consent follows a moved source client the next night. Dates already written on the old destination are not cleared.
-
-`ClientRetentionJob` is queued after service history generation, so it sees the finished identity rewrites. `ClientCleanup` runs a second time in the "Finalize client history" task. Statistical candidate generation (`create_statistical_matches`) runs in the final "System maintenance" task.
+`RunDailyImportsJob` runs consent updates, HMIS form updates, and the CAS sync, then Identify Duplicates, then `ClientCleanup`, then service history generation. `ClientCleanup` runs a second time in the "Finalize client history" task. Statistical candidate generation (`create_statistical_matches`) runs in the final "System maintenance" task.
 
 ## How a match is decided
 
@@ -102,7 +99,7 @@ All matching runs as SQL queries that return id pairs, so client records are nev
 
 ### Hidden clients still match
 
-Source clients hidden from interactive lookups (identities restricted in HMIS or the warehouse, or identities with a retention mark) are skipped on name and SSN in `text_search` and in client-create duplicate lookups. DOB matching and the `IdentifyDuplicates` and `ClientMatch` paths do not filter them, so hidden clients still merge.
+Source clients hidden from interactive lookups (identities restricted in HMIS or the warehouse, or identities with a retention mark) are not filtered by the `IdentifyDuplicates` or `ClientMatch` paths, so hidden clients still match and merge.
 
 ### Which SQL runs
 
@@ -178,7 +175,7 @@ Use `merge_from` and `split` rather than editing links by hand.
 
 ## How destination attributes are chosen
 
-Destination demographics (name, SSN, DOB, race, gender, sex, veteran status) are set by `ClientCleanup` from the destination's source clients, not by imports. Don't pick a name or DOB in a view by looking across `source_clients`. Use the destination's columns, or `SourceClientNameSet` for aliases.
+Destination demographics (name, SSN, DOB, race, gender, sex, veteran status) are set by `ClientCleanup` from the destination's source clients, not by imports.
 
 `ClientCleanup#choose_attributes_from_sources` applies these rules:
 
@@ -197,8 +194,7 @@ Destination demographics (name, SSN, DOB, race, gender, sex, veteran status) are
 Statistical candidate generation creates `ClientMatch` rows for reviewers. The rows also interact with exact matching:
 
 - Both sides of a `candidate` row are source clients, despite the `source_client` and `destination_client` column names. Code that needs the person calls `.destination_client` on each side.
-- `processed_sources` rows are bookkeeping that mark a destination as scanned. Both ids are the destination's id. Count `ClientMatch` with a status scope, or candidates are overstated.
-- Statistical scores are negative. A more negative score is a better match.
+- `processed_sources` rows are bookkeeping that mark a destination as scanned. Both ids are the destination's id.
 - `ClientMatch#accept!` merges only the match's one source client into the other side's current destination, so a single `WarehouseClient` row moves.
 - `ClientMatch.accept_exact_matches!` accepts any `candidate` whose two clients match on 2 of 3 fields, and deletes candidates whose clients no longer exist. Its comparison is looser than the SQL matching: names are compared exactly as stored, without the normalization above, and DOB has no 1920 floor. It runs `ServiceHistory::Add` inline when it finishes.
 
@@ -213,8 +209,6 @@ Statistical candidate generation creates `ClientMatch` rows for reviewers. The r
 
 - [HMIS Client Merges](../hmis/hmis-client-merges.md): merging and unmerging clients in the HMIS app, and how those jobs call into this one.
 - [HMIS CSV Importer](hmis-csv-importer.md): the import that runs `run!` in its post-processing and uses `source_hash` to detect changed clients.
-- [Client ROI and Consent](client-roi-and-consent.md): how client consent is resolved, which runs before Identify Duplicates in the daily job.
 - [PII and Restricted Clients](pii-and-restricted-clients.md): the hidden and restricted clients that are filtered from lookups but still matched.
-- [Client Data Retention](client-data-retention.md): `ClientRetentionJob`, which runs after identity rewrites.
 - [App Config Property](app-config-property.md): the key-value store that holds the query-matcher flag.
 - [Warehouse building blocks](../../architecture/05-building-blocks/05-2-1-warehouse.md) and [Risks, R-2](../../architecture/11-risks.md): where deduplication sits in the warehouse, and the accuracy risk it carries.
