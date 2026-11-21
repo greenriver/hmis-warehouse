@@ -161,6 +161,10 @@ module HmisDataQualityTool
       'hmis_data_quality_tool/warehouse_reports/reports'
     end
 
+    def policy_class
+      HmisDataQualityTool::ReportPolicy
+    end
+
     def url
       hmis_data_quality_tool_warehouse_reports_report_url(host: ENV.fetch('FQDN'), id: id, protocol: 'https')
     end
