@@ -8,11 +8,13 @@ sources:
   - app/models/grda_warehouse/tasks/scrub_pii/scrub_all_pii_task.rb
   - app/models/pii/scrubber/scrub_model_pii.rb
   - app/models/pii/scrubber/static_scrubber.rb
+  - app/models/pii/scrubber/replacement_pii.rb
+  - app/models/pii/scrubber/dob_scrubber.rb
 ---
 
 # PII Cataloging, Access Logging, and Scrubbing
 
-How the warehouse catalogs client PII, records who viewed which client, and scrubs PII for non-production copies. Who may see PII, how restriction hides a client, and search and export exclusion are in [Warehouse Auth Policies](warehouse-auth-policies.md#pii-redaction). Aging out inactive clients is in [Client Data Retention](client-data-retention.md).
+This document covers how the warehouse catalogs client PII, records who viewed which client, and scrubs PII for non-production copies. Who may see PII, how restriction hides a client, and search and export exclusion are in [Warehouse Auth Policies](warehouse-auth-policies.md#pii-redaction). Aging out inactive clients is in [Client Data Retention](client-data-retention.md).
 
 ## Restriction sources
 
@@ -51,7 +53,7 @@ A client is hidden in the warehouse when it is restricted in HMIS, restricted in
 - Both tasks take a zero-timeout advisory lock, so a concurrent run fails immediately.
 - Scrubbing acts on the live database only. Backups and S3 copies are untouched.
 - `ScrubAllPiiTask` uses a hand-maintained list of models, not the catalog. A new snapshot table with PII needs both a `pii_attr` declaration and an entry in that list. Several models that declare PII are currently missing from it, including newer SPM enrollment tables and the newest HMIS CSV loader and importer tables.
-- The `:static` custom scrubber raises because it omits a required argument. Use `:fake` or no custom scrubber.
+- Both tasks take an optional `custom_scrubber:` that runs before the default handling. `:fake` fills names and SSN with Faker values. `:static` gives the same result on every run. It replaces present values with placeholders keyed to the record id (`FirstName<id>`, SSN `999000000`, phone `2125550100`) and moves a DOB to January 1 of the nearest year divisible by 5, rounding down when that would be in the future; it leaves blank values blank and leaves types with no placeholder, or a DOB it can't parse, to the default handling. Age fields are recomputed from the new DOB when the model has exactly one DOB field and it is present.
 
 ## Other gotchas
 
