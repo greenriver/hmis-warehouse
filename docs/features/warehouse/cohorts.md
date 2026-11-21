@@ -58,7 +58,7 @@ Inactivity does not remove a client from the cohort but may remove them from cer
 
 2. **Cached Aggregation**: A nightly job aggregates service history data into the `WarehouseClientsProcessed` table, computing:
    - `last_homeless_date`: Most recent date with a homeless service
-   - `last_intentional_contacts`: JSON array of the most recent contact per project: HUD services, Current Living Situations, and CE Events from enrollments open in the last 3 years, plus custom services
+   - `last_intentional_contacts`: JSON array of the most recent contact per project: HUD services, Current Living Situations, and CE Events from enrollments open in the last 3 years, plus the most recent custom service
 
 3. **Inactivity Detection**: When displaying cohort clients, the system checks:
    ```ruby
@@ -72,7 +72,7 @@ Inactivity does not remove a client from the cohort but may remove them from cer
 **Important Notes:**
 - The `active` boolean and calculated inactivity are **independent** - a client can be marked `active: true` but still be considered inactive due to no recent services
 - Auto-maintained system cohorts (like "Currently Homeless") may automatically remove clients when they become inactive
-- The cached data in `WarehouseClientsProcessed` is periodically via `Cohort.prepare_active_cohorts`. So changes in service history may not immediately affect cohorts.
+- The cached data in `WarehouseClientsProcessed` is refreshed periodically via `Cohort.prepare_active_cohorts`. So changes in service history may not immediately affect cohorts.
 
 For a detailed explanation of how the Service History is generated and how it impacts client activity, please see the [Service History documentation](./service-history.md).
 
