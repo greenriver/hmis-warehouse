@@ -54,7 +54,7 @@ Each `ServiceHistoryService` row carries two boolean flags — `homeless` and `l
 | PH on or after move-in date | `false` | `false` |
 | All other project types (Services Only, Other, Day Shelter, HP, CE) | `nil` | `nil` |
 
-The move-in day is the first `false` day. The flip uses the enrollment's own `MoveInDate`, not the household-derived `move_in_date` copied onto the `ServiceHistoryEnrollment` row. PH includes RRH of every sub-type: an RRH: Services Only enrollment with a move-in date is `homeless: false` from that date, and one without a move-in date never is, so logic driven by `homeless: false` needs no sub-type check. See [RRH: Services Only](rrh-services-only.md).
+The move-in day is the first `false` day. The flip uses the enrollment's own `MoveInDate`, not the household-derived `move_in_date` copied onto the `ServiceHistoryEnrollment` row. PH includes RRH of every sub-type: an RRH: Services Only enrollment with a move-in date is `homeless: false` from that date, and one without a move-in date never is, so logic driven by `homeless: false` needs no sub-type check. Logic built on the project `residential` scopes behaves differently: it excludes RRH: Services Only even after move-in. See [Project Type Classification](project-type-classification.md).
 
 A `nil` value means the day is neither homeless nor not-homeless — it will not appear in `homeless` or `non_homeless` scopes. This three-state design lets reports distinguish "known homeless," "known housed," and "not categorized" service days. The episode rules in [Homeless Episodes](homeless-episodes.md) read these flags directly: `literally_homeless = true` nights keep an episode open, `homeless = false` and TH nights count toward a housed break.
 
@@ -269,6 +269,6 @@ Because the counts read the materialized view, an on-demand update right after a
 - [Background Jobs](background-jobs.md): the full phase order of `RunDailyImportsJob`.
 - [Data Sources](data-sources.md): soft deletion of a data source, which the nightly purge follows.
 - [Cohorts](cohorts.md): inactivity checks that read the `WarehouseClientsProcessed` cache.
-- [RRH: Services Only](rrh-services-only.md): how RRH sub-types interact with move-in dates outside service history.
+- [Project Type Classification](project-type-classification.md): the project type groupings behind these flags, and how the RRH sub-type changes them.
 - [Warehouse building blocks](../../architecture/05-building-blocks/05-2-1-warehouse.md): where HUD reporting's use of service history sits in the architecture.
 - [Quality scenario Q-11](../../architecture/10-quality.md): the expected regeneration of service history after a source change.

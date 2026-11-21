@@ -143,6 +143,7 @@ After the universe is created, the report calculates project capacities using HU
 
 - For each project and each period (reporting/comparison), the report computes an average bed capacity per night.
 - Days with zero inventory are excluded from the average to correctly handle seasonal projects.
+- A permanent housing night occupies a bed only on or after the household's move-in date. RRH: Services Only nights never occupy one, because HUD collects no bed inventory for those projects (HMIS Data Standards 2.02 and 2.07). See `PerformanceMeasurement::Report#occupied_bed_night`.
 
 ### Result Calculation Process
 
