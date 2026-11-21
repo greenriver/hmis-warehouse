@@ -141,8 +141,6 @@ However, note that **destination clients are not necessarily deleted** because:
 - Even if one HMIS source client is merged away, the warehouse client remains active if it still has other source clients pointing to it
 - Only warehouse clients with no remaining source clients are cleaned up
 
-`ClientCleanup` does more than orphan removal — see `GrdaWarehouse::Tasks::ClientCleanup` for its full scope. The relevant consequence here is that a destination client's attributes may legitimately differ from any individual source record: `ClientCleanup` synthesizes values across all remaining sources rather than mirroring any one of them.
-
 ### Restrictions and merges
 
 - **A merged client is restricted if any source was.** The retained client is marked restricted when any merged client was.

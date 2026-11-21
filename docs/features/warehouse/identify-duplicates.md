@@ -183,6 +183,8 @@ Destination demographics (name, SSN, DOB, race, gender, sex, veteran status) are
 - **DOB:** with `dob_selection_method` set, `GrdaWarehouse::DOBSelector` picks by `DOBDataQuality` first, then by the oldest or newest source record (`DateCreated`). It never picks by the earliest or latest birth date. If it isn't set, the legacy data-quality tier walk applies. A DOB change invalidates service history.
 - **Gender and race:** per column, newest source first by `DateUpdated`, and a 0 or 1 wins.
 
+Because each field is chosen independently, a destination's demographics can combine values from several sources and may not match any single source record.
+
 `Hmis::MergeClientsJob` reuses `choose_attributes_from_sources`, so changing a `choose_best_*` rule changes HMIS merge results too. That job and `Hmis::UndoMergeClientsJob` change `WarehouseClient` rows directly:
 
 - `UndoMergeClientsJob` runs `IdentifyDuplicates#run!` inline to re-link sources.
