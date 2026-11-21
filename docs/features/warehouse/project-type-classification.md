@@ -51,7 +51,6 @@ RRH is the one case where project type alone doesn't decide the group:
 
 - `Project.residential`, `hud_residential`, `residential_non_homeless`, and `hud_residential_non_homeless` count RRH only when `RRHSubType` is 2 or blank. Blank counts as residential because older data often lacks the sub-type. `non_residential` and `hud_non_residential` include sub-type 1.
 - The `ServiceHistoryEnrollment` residential scopes join the project and apply the same rule.
-- `ServiceHistoryService.residential` filters on the copied project type without a join, so it includes RRH: Services Only.
 - The generated `rrh` and `ph` scopes, `ServiceHistoryEnrollment.permanent_housing`, and `permanent_housing_project_types` include every sub-type.
 
 To ask about the sub-type directly, use `Project#rrh_sso_only?` or `Hmis::Hud::Project#services_only_rrh?`, and `HudHelper.util.rrh_sub_type_sso_only` for the code. `Project#rrh_with_housing?` is true for a blank sub-type too.
