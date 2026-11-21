@@ -5,6 +5,9 @@ sources:
   - app/models/grda_warehouse/auth_policies/user_legacy_context.rb
   - app/models/grda_warehouse/auth_policies/organization_policy.rb
   - app/models/grda_warehouse/auth_policies/hud_report_policy.rb
+  - app/models/hud_reports/report_instance.rb
+  - drivers/hopwa_caper/app/models/hopwa_caper/report_policy.rb
+  - drivers/hmis_data_quality_tool/app/models/hmis_data_quality_tool/report_policy.rb
   - app/models/grda_warehouse/auth_policies/cohort_pii_policy.rb
   - app/models/grda_warehouse/pii_provider.rb
   - app/controllers/concerns/controller_authorization_v2.rb
@@ -63,6 +66,8 @@ Both contexts expose the same methods, so policies don't branch on user type. Tw
 3. Add `policy_class` to the model. `user.policy_for(record)` raises `ArgumentError` for a model without it, unless the caller passes `policy_class:`.
 4. In the controller, use `authorize_with` (see [Controller authorization](warehouse-permissions.md#controller-authorization)).
 5. Spec with a user on each `permission_context`.
+
+A policy for a subset of a model's records (`HopwaCaper::ReportPolicy`) is obtained with `policy_for(record, policy_class:)`. The memo key includes `policy_class`, and `validate_resource!` rejects records outside the subset.
 
 Get policies from `user.policy_for` and `user.policy_context`, which are memoized for the request. Don't construct a context per check.
 
@@ -156,7 +161,7 @@ When there's no client record at all (plucked columns or a hash row), use `GrdaW
 
 `GrdaWarehouse::PiiProvider` mediates display of a client's name, SSN, DOB, photo, and HIV status. It takes any policy object that answers the `can_view_*?` PII questions and asks them before showing each value. The client dashboard, HUD report drilldowns and exports, cohort grids, and most warehouse reports display PII through it.
 
-PII policies are duck-typed: anything answering the `can_view_*?` questions works. `CohortPiiPolicy` allows everything except the full SSN, which follows `user.can_view_full_ssn?`. `HudReportPolicy#can_view_checkpoints?` reads `user.can_*?` flags directly because report instances have no Collection relationship; don't copy that for resources that do. PII policies decide display, not query scope: use `Model.viewable_by(user)` to limit which records load.
+PII policies are duck-typed: anything answering the `can_view_*?` questions works. `CohortPiiPolicy` allows everything except the full SSN, which follows `user.can_view_full_ssn?`. `HudReportPolicy#can_view?` is `can_view_definition?` (the run's definition, from `ReportInstance#report_definition_url`, is viewable) and `run_visible?` (the run is in `ReportInstance.viewable_by(user)`). `HmisDataQualityTool::ReportPolicy` overrides both halves with the tool's own definition and `visible_to`. Only `can_view_checkpoints?` reads `user.can_*?` flags directly, because report instances have no Collection relationship; don't copy that for resources that do. PII policies decide display, not query scope: use `Model.viewable_by(user)` to limit which records load.
 
 `PiiProvider#ssn` returns `nil` for a blank value, `Redacted` when a value exists but the policy denies it, and a masked or full string otherwise. `#dob` returns `nil` both when the value is blank and when the policy denies it, so presence checks can't tell a redacted DOB from an empty one.
 

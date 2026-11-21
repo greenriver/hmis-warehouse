@@ -6,6 +6,7 @@ sources:
   - app/models/concerns/user_permission_cache.rb
   - app/models/concerns/user_concern.rb
   - app/models/grda_warehouse/hud/project.rb
+  - app/models/grda_warehouse/auth_policies/hud_report_policy.rb
   - app/controllers/application_controller.rb
 ---
 
@@ -118,7 +119,7 @@ HUD reports are ordinary report definitions in the `HUD Reports` report group (`
 
 HOPWA CAPER is opt-in because its drilldowns reveal HIV status; see [HOPWA CAPER](hopwa-caper.md).
 
-`can_view_all_hud_reports` only widens which report *runs* a user can see (everyone's instead of their own). `can_view_own_hud_reports` is deprecated; own-run visibility is the default. Project scoping inside a HUD report comes from `can_view_assigned_reports` collections, the same as other reports.
+`can_view_all_hud_reports` only widens which report *runs* a user can see (everyone's instead of their own). `can_view_own_hud_reports` is deprecated; own-run visibility is the default. Project scoping inside a HUD report comes from `can_view_assigned_reports` collections, the same as other reports. `HudReportPolicy#can_view?` combines the definition grant and run ownership for one run.
 
 Legacy users: a HUD flag on a legacy role counts as report access for HUD definitions only, so users who never had `can_view_assigned_reports` do not gain other reports that happen to be in their access groups.
 
