@@ -13,6 +13,8 @@ class GrdaWarehouse::HmisForm < GrdaWarehouseBase
   pii_attr :client_emails, as: :email
   pii_attr :staff_email, as: :email
   pii_attr :rrh_assessment_contact_info, as: :free_text
+  pii_attr :answers, as: :json, level: 1
+  pii_attr :api_response, as: :json, level: 1
 
   include ActionView::Helpers
   include Eto::PathwaysAnswers

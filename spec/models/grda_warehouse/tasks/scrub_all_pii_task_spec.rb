@@ -80,6 +80,16 @@ RSpec.describe GrdaWarehouse::Tasks::ScrubPii::ScrubAllPiiTask do
 
   let(:staff_user) { create(:user, email: 'staff@example.org') }
 
+  let(:eto_form) do
+    GrdaWarehouse::HmisForm.create!(
+      data_source_id: hud_client.data_source_id,
+      answers: { sections: [{ questions: [{ question: 'Phone', answer: '617-555-1234' }] }] },
+      api_response: { 'FirstName' => real_first_name },
+    )
+  end
+
+  let(:eto_client) { GrdaWarehouse::HmisClient.create!(client_id: hud_client.id, response: { 'FirstName' => real_first_name }.to_json) }
+
   def reload_records
     [
       hud_client,
@@ -93,6 +103,8 @@ RSpec.describe GrdaWarehouse::Tasks::ScrubPii::ScrubAllPiiTask do
       spm_2026_enrollment,
       dqt_living_situation,
       staff_user,
+      eto_form,
+      eto_client,
     ].each(&:reload)
   end
 
@@ -166,6 +178,12 @@ RSpec.describe GrdaWarehouse::Tasks::ScrubPii::ScrubAllPiiTask do
         and change { place.zipcode }.to(nil).
         and change { place.lat }.to(nil).
         and change { place.lat_lon }.to(nil)
+    end
+
+    it 'clears ETO form answers and API payloads, leaving client payloads parseable' do
+      expect { perform_task }.to change { eto_form.answers }.to({}).
+        and change { eto_form.api_response }.to({}).
+        and change { JSON.parse(eto_client.response) }.to({})
     end
 
     it 'leaves staff login accounts alone' do

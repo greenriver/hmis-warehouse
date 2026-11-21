@@ -25,8 +25,11 @@ module Pii::Scrubber
         # The base class's table holds sibling STI types that share the version item_type.
         # Keep versions of live siblings; everything else is the owner's or an orphan
         # left by really_destroy!.
-        live_siblings = owner.base_class.unscoped.where.not(owner.inheritance_column => owner.sti_name).select(:id)
-        to_delete = to_delete.where.not(item_id: live_siblings)
+        base = owner.base_class
+        live_siblings = base.unscoped.
+          where.not(owner.inheritance_column => owner.sti_name).
+          where(base.arel_table[:id].eq(version_class.arel_table[:item_id]))
+        to_delete = to_delete.where.not(live_siblings.arel.exists)
       end
 
       to_delete.delete_all
