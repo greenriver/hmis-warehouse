@@ -11,6 +11,48 @@ require 'rails_helper'
 RSpec.describe HudReports::ReportInstance, type: :model do
   include ActiveSupport::Testing::TimeHelpers
 
+  describe '#report_definition_url' do
+    let(:urls) { GrdaWarehouse::WarehouseReports::ReportDefinition::HUD_URLS }
+
+    def url_for(generator) = described_class.new(report_name: generator.title).report_definition_url
+
+    it 'maps a run to the definition url of the generator that produced it' do
+      expect(url_for(HudApr::Generators::Apr::Fy2026::Generator)).to eq(urls[:aprs])
+      expect(url_for(HudApr::Generators::Caper::Fy2026::Generator)).to eq(urls[:capers])
+      expect(url_for(HopwaCaper::Generators::Fy2024::Generator)).to eq(urls[:hopwa_capers])
+      expect(url_for(HopwaCaper::Generators::Fy2026::Generator)).to eq(urls[:hopwa_capers])
+      expect(url_for(HudLsa::Generators::Fy2027::Lsa)).to eq(urls[:lsas])
+    end
+
+    it 'maps retired generators to their parent report without making them runnable' do
+      expect(url_for(HudLsa::Generators::Fy2024::Lsa)).to eq(urls[:lsas])
+      expect(url_for(HudDataQualityReport::Generators::Fy2022::Generator)).to eq(urls[:dqs])
+      expect(Rails.application.config.hud_reports.keys).not_to include('HudLsa::Generators::Fy2024::Lsa', 'HudDataQualityReport::Generators::Fy2022::Generator')
+    end
+
+    it 'returns nil for a report name no generator produces' do
+      expect(described_class.new(report_name: 'Not a HUD report').report_definition_url).to be_nil
+    end
+
+    it 'gives every registered and aliased generator a distinct title' do
+      names = Rails.application.config.hud_reports.keys + Rails.application.config.hud_report_definition_aliases.keys
+      titles = names.map { |name| name.constantize.title }
+
+      expect(titles).to eq(titles.uniq)
+    end
+
+    it 'maps every generator a HUD controller serves' do
+      Rails.application.eager_load!
+      generators = HudReports::BaseController.descendants.
+        select { |controller| controller.private_method_defined?(:possible_generator_classes) || controller.method_defined?(:possible_generator_classes) }.
+        flat_map { |controller| controller.new.send(:possible_generator_classes).values }.
+        uniq
+
+      expect(generators).to include(HudLsa::Generators::Fy2022::Lsa, HudDataQualityReport::Generators::Fy2020::Generator, HudPathReport::Generators::Fy2026::Generator)
+      expect(generators.reject { |generator| described_class.report_definition_url_for(generator.title) }).to eq([])
+    end
+  end
+
   describe '.viewable_by' do
     let(:user) { create(:acl_user) }
     let!(:own_report) { described_class.create!(report_name: 'Test Report', user_id: user.id, question_names: ['test']) }

@@ -62,6 +62,29 @@ module HudReports
       GrdaWarehouse::AuthPolicies::HudReportPolicy
     end
 
+    # Built once from both registries; a spec that stubs or changes either registry must reset
+    # HudReports::ReportInstance.instance_variable_set(:@report_definition_urls, nil) before and after.
+    def self.report_definition_url_for(report_name)
+      report_definition_urls[report_name]
+    end
+
+    def self.report_definition_urls
+      HudReports::ReportInstance.instance_variable_get(:@report_definition_urls) ||
+        HudReports::ReportInstance.instance_variable_set(:@report_definition_urls, build_report_definition_urls)
+    end
+
+    def self.build_report_definition_urls
+      config = Rails.application.config
+      config.hud_reports.merge(config.hud_report_definition_aliases).to_h do |class_name, options|
+        [class_name.constantize.title, HudReports::GeneratorBase.definition_url_for_helper(options.fetch(:helper))]
+      end
+    end
+    private_class_method :report_definition_urls, :build_report_definition_urls
+
+    def report_definition_url
+      HudReports::ReportInstance.report_definition_url_for(report_name)
+    end
+
     def self.from_filter(filter, report_name, build_for_questions:)
       new(
         report_name: report_name,
