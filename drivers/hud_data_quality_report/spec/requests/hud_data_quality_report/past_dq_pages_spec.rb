@@ -121,6 +121,7 @@ RSpec.describe 'Past HUD Data Quality report pages', type: :request do
         end.not_to change(HudReports::ReportInstance, :count)
 
         expect(response).to redirect_to(hud_reports_past_dqs_path)
+        expect(flash[:alert]).to eq('This report version can no longer be run.')
       end
     end
   end
