@@ -49,10 +49,10 @@ RSpec.describe 'HOPWA CAPER run access', type: :request do
         sign_in(user)
       end
 
-      it 'renders the user\'s own run' do
+      it 'serves the user\'s own run' do
         get page_for.call(own_run)
 
-        expect(response.status).to eq(expected_own_status)
+        expect_own_run_response
       end
 
       it 'returns 404 for another user\'s run without can_view_all_hud_reports' do
@@ -69,27 +69,37 @@ RSpec.describe 'HOPWA CAPER run access', type: :request do
     end
 
     context 'when the user lacks the HOPWA grant' do
-      before { sign_in(user) }
+      before do
+        grant_hud_report(user, 'hud_reports/aprs')
+        sign_in(user)
+      end
 
-      it 'redirects without rendering the run' do
+      it 'redirects to the user\'s home with a not-authorized alert' do
         get page_for.call(own_run)
 
-        expect(response).to have_http_status(:redirect)
-        expect(response.body).not_to include(generator.title)
+        expect(response).to redirect_to(user.my_root_path)
+        expect(flash[:alert]).to eq('Sorry you are not authorized to do that.')
       end
     end
   end
 
   describe 'question result page' do
     let(:page_for) { method(:result_page) }
-    let(:expected_own_status) { 200 }
+
+    def expect_own_run_response
+      expect(response).to have_http_status(:ok)
+    end
 
     include_examples 'a HOPWA run page'
   end
 
   describe 'cell page' do
     let(:page_for) { method(:cell_page) }
-    let(:expected_own_status) { 302 }
+
+    def expect_own_run_response
+      expect(response).to redirect_to(result_page(own_run))
+      expect(flash[:alert]).to eq('This drilldown is not available.')
+    end
 
     include_examples 'a HOPWA run page'
   end

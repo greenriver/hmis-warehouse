@@ -163,7 +163,7 @@ When there's no client record at all (plucked columns or a hash row), use `GrdaW
 
 `GrdaWarehouse::PiiProvider` mediates display of a client's name, SSN, DOB, photo, and HIV status. It takes any policy object that answers the `can_view_*?` PII questions and asks them before showing each value. The client dashboard, HUD report drilldowns and exports, cohort grids, and most warehouse reports display PII through it.
 
-PII policies are duck-typed: anything answering the `can_view_*?` questions works. `CohortPiiPolicy` allows everything except the full SSN, which follows `user.can_view_full_ssn?`. Only `can_view_checkpoints?` reads `user.can_*?` flags directly, because report instances have no Collection relationship; don't copy that for resources that do. PII policies decide display, not query scope: use `Model.viewable_by(user)` to limit which records load.
+PII policies are duck-typed: anything answering the `can_view_*?` questions works. `CohortPiiPolicy` allows everything except the full SSN, which follows `user.can_view_full_ssn?`. Only `HudReportPolicy#can_view_checkpoints?` reads `user.can_*?` flags directly, because report instances have no Collection relationship; don't copy that for resources that do. PII policies decide display, not query scope: use `Model.viewable_by(user)` to limit which records load.
 
 `PiiProvider#ssn` returns `nil` for a blank value, `Redacted` when a value exists but the policy denies it, and a masked or full string otherwise. `#dob` returns `nil` both when the value is blank and when the policy denies it, so presence checks can't tell a redacted DOB from an empty one.
 
