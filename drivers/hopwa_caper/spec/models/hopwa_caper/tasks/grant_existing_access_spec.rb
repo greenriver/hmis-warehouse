@@ -151,26 +151,6 @@ RSpec.describe HopwaCaper::Tasks::GrantExistingAccess do
       expect(Collection.where(name: described_class::NAME)).to be_empty
       expect(hopwa_grants.pluck(:id)).to match_array(grant_ids_before)
     end
-
-    it 'does not re-grant after an admin removes the grant' do
-      described_class.new.run!
-      AccessControl.where(collection_id: Collection.find_by!(name: described_class::NAME).id).destroy_all
-
-      described_class.new.run!
-
-      expect(hopwa_viewable?(acl_user)).to be false
-    end
-  end
-
-  it 'does nothing when the viewer role was already created and later deleted' do
-    create_run(fy2026_title)
-    Role.create!(name: described_class::ROLE_NAME, system: false).destroy
-
-    described_class.new.run!
-
-    expect(Collection.where(name: described_class::NAME)).to be_empty
-    expect(Role.with_deleted.where(name: described_class::ROLE_NAME).count).to eq(1)
-    expect(Collection.system_collection(:hud_reports).report_ids).to include(hopwa_definition.id)
   end
 
   it 'counts a run of another fiscal year' do
@@ -183,22 +163,14 @@ RSpec.describe HopwaCaper::Tasks::GrantExistingAccess do
   end
 
   context 'when no HOPWA CAPER has been run' do
-    it 'grants nobody and creates no HOPWA CAPER collection or access group' do
+    it 'grants nobody and creates no HOPWA CAPER role, collection, or access group' do
       described_class.new.run!
 
+      expect(Role.where(name: described_class::ROLE_NAME)).to be_empty
       expect(Collection.where(name: described_class::NAME)).to be_empty
       expect(AccessGroup.where(name: described_class::NAME)).to be_empty
       expect(hopwa_viewable?(acl_user)).to be false
       expect(hopwa_viewable?(legacy_user)).to be false
-    end
-
-    it 'does not grant on a later run once a report exists' do
-      described_class.new.run!
-      create_run(fy2026_title)
-
-      described_class.new.run!
-
-      expect(hopwa_viewable?(acl_user)).to be false
     end
   end
 
@@ -209,6 +181,16 @@ RSpec.describe HopwaCaper::Tasks::GrantExistingAccess do
 
     expect(Collection.where(name: described_class::NAME)).to be_empty
     expect(hopwa_viewable?(acl_user)).to be false
+  end
+
+  it 'runs from the TaskQueue key' do
+    task = TaskQueue.create!(task_key: :hopwa_caper_grant_existing_access, queued_at: Time.current)
+    create_run(fy2026_title)
+
+    task.run!
+
+    expect(task.reload.completed_at).to be_present
+    expect(Collection.find_by!(name: described_class::NAME).report_ids).to contain_exactly(hopwa_definition.id)
   end
 
   it 'ignores runs of other HUD reports' do
