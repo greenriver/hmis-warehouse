@@ -2,6 +2,10 @@
 sources:
   - app/models/grda_warehouse/tasks/service_history/enrollment.rb
   - app/models/grda_warehouse/tasks/project_cleanup.rb
+  - app/models/grda_warehouse/tasks/client_cleanup.rb
+  - app/models/concerns/hud_concerns/enrollment.rb
+  - drivers/hmis/app/models/hmis/hud/enrollment.rb
+  - drivers/hmis/app/graphql/mutations/split_household.rb
   - app/models/grda_warehouse/service_history_service.rb
   - app/models/grda_warehouse/service_history_service_materialized.rb
   - app/models/grda_warehouse/warehouse_clients_processed.rb
@@ -145,7 +149,39 @@ The operational HMIS is a third rebuild trigger, alongside the CSV importer and 
 
 Four models carry this behavior: `Hmis::Hud::Enrollment`, `Hmis::Hud::Exit`, `Hmis::Hud::Service`, and `Hmis::Hud::CurrentLivingSituation`. Each checks whether the fields relevant to a service history rebuild actually changed before doing anything — saves that touch unrelated fields are ignored. Exit, Service, and CLS records invalidate their **parent enrollment** rather than themselves, since service history is keyed by enrollment.
 
-The callbacks use `after_save` rather than `after_commit` deliberately: `after_save` gives reliable access to `saved_changes` within a transaction, at the cost of occasionally queuing a redundant rebuild if the transaction is later rolled back. The queue is de-duplicated so rapid edits do not pile up jobs. Shared queuing logic lives in `Hmis::Hud::Concerns::ServiceHistoryQueuer` (`drivers/hmis/app/models/hmis/hud/concerns/service_history_queuer.rb`).
+`Hmis::Hud::Enrollment` uses `after_create` and `after_update`; the other three use `after_save`. None use `after_commit`, deliberately: `after_save` gives reliable access to `saved_changes` within a transaction, at the cost of occasionally queuing a redundant rebuild if the transaction is later rolled back. The queue is de-duplicated so rapid edits do not pile up jobs. Shared queuing logic lives in `Hmis::Hud::Concerns::ServiceHistoryQueuer` (`drivers/hmis/app/models/hmis/hud/concerns/service_history_queuer.rb`).
+
+These callbacks invalidate only the edited enrollment, not the rest of its household. See "Reprocessing a whole household" below.
+
+### Invalidating enrollments
+
+Two methods clear an enrollment's processed state:
+
+| Method | Defined on | Clears | Scope |
+|---|---|---|---|
+| `invalidate_processing!` (instance and relation) | `HudConcerns::Enrollment`, so every enrollment model | `processed_as` and `processed_hash` | Only the given enrollment(s) |
+| `invalidate_source_data!` | `GrdaWarehouse::Tasks::ServiceHistory::Enrollment` only | `processed_as` | The enrollment and every enrollment sharing its `HouseholdID` and `data_source_id` |
+
+`processed_as` is the only column the builder reads; `service_history_valid?` compares it to `calculate_hash`. No code in this repo reads `processed_hash`, so clearing it has no effect on whether an enrollment rebuilds. The header comment in `GrdaWarehouse::Tasks::ClientCleanup` that says to clear `processed_hash` to force a rebuild is out of date.
+
+Neither method enqueues a rebuild. The caller enqueues one separately, as in "Manual Rebuild Process" below.
+
+### Reprocessing a whole household
+
+Each `ServiceHistoryEnrollment` row carries values derived from the *other* enrollments in its household: `head_of_household_id`, the `other_clients_over_25` / `other_clients_under_18` / `other_clients_between_18_and_25` counts, the youth and family flags computed from those counts (`unaccompanied_youth`, `parenting_youth`, `children_only`, and others), `presented_as_individual` when `infer_family_from_household_id` is on, and `move_in_date`, which non-HoH members inherit from the HoH.
+
+The hash only covers the enrollment's own rows: its enrollment, exit, services, destination client, and (for Street Outreach) CLS. A change to one household member does not change any other member's hash, and the builder has no step that pulls in the rest of the household. The caller is responsible for invalidating every affected member.
+
+For example, if one member of a household with an adult and a child is deleted, the remaining adult's row still reports `other_clients_under_18: 1` until that adult's enrollment is also invalidated and rebuilt. The same applies when the HoH changes, when a member is added or moved between households, or when the HoH's move-in date changes.
+
+Callers handle this in one of two ways:
+
+- Call `invalidate_source_data!` on a `GrdaWarehouse::Tasks::ServiceHistory::Enrollment`, which clears the whole household.
+- Invalidate each member explicitly. The HMIS `SplitHousehold` mutation does this: it calls `invalidate_processing!` on the enrollments that remain in the donor household, because their composition changed.
+
+The HMIS model callbacks above do neither, so an HMIS edit that changes household composition (for example `RelationshipToHoH` or `MoveInDate` on the HoH) leaves the other members' rows stale until something else invalidates them.
+
+The nightly `ClientCleanup` run catches only part of this. `invalidate_incorrect_family_enrollments` re-checks `presented_as_individual` against the project or household and invalidates mismatches. Nothing re-checks the head of household, the age counts, the youth flags, or the inherited move-in date.
 
 ### Nightly ordering
 
@@ -158,14 +194,16 @@ The steps below are required in two situations: targeted developer intervention,
 To manually trigger a service history rebuild for specific enrollments:
 
 ```ruby
-# Invalidate enrollment(s) - this clears the processed_as hash
+# Invalidate an enrollment and the rest of its household.
+# invalidate_source_data! exists only on the ServiceHistory task class.
+enrollment = GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find(enrollment_id)
 enrollment.invalidate_source_data!
 
-# Or invalidate all enrollments for a project
+# Or invalidate all enrollments for a project (this covers whole households)
 GrdaWarehouse::Hud::Enrollment.where(
   ProjectID: project_id,
   data_source_id: data_source_id
-).update_all(processed_as: nil)
+).invalidate_processing!
 
 # Queue for reprocessing
 GrdaWarehouse::Tasks::ServiceHistory::Enrollment.queue_batch_process_unprocessed!
