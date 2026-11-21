@@ -106,7 +106,7 @@ RSpec.describe HopwaCaper::CellsController, type: :request do
       get hud_reports_hopwa_caper_question_cell_path(cell_path_args)
 
       expect(response).to redirect_to(result_path)
-      expect(flash[:alert]).to eq('This question is not complete yet.')
+      expect(flash[:alert]).to eq('This drilldown is not available.')
     end
 
     it 'redirects the xlsx drilldown without sending a file' do
@@ -134,7 +134,7 @@ RSpec.describe HopwaCaper::CellsController, type: :request do
       get hud_reports_hopwa_caper_question_cell_path(cell_path_args.merge(question_id: other_question))
 
       expect(response).to redirect_to(other_result_path)
-      expect(flash[:alert]).to eq('This question is not complete yet.')
+      expect(flash[:alert]).to eq('This drilldown is not available.')
     end
 
     it 'redirects the xlsx drilldown without sending a file' do
@@ -144,6 +144,17 @@ RSpec.describe HopwaCaper::CellsController, type: :request do
 
       expect(response).to redirect_to(other_result_path)
       expect(response.headers['Content-Disposition']).to be_nil
+    end
+  end
+
+  context 'when the request has no table param' do
+    before { grant_project_access(user, hiv_role, [project], mode: :acl) }
+
+    it 'redirects to the question result without rendering rows' do
+      get hud_reports_hopwa_caper_question_cell_path(cell_path_args.except(:table))
+
+      expect(response).to redirect_to(result_path)
+      expect(flash[:alert]).to eq('This drilldown is not available.')
     end
   end
 
