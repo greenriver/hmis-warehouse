@@ -6,33 +6,29 @@
 
 # frozen_string_literal: true
 
-# One-shot grant run from db:seed: HOPWA CAPER is no longer part of All HUD
-# Reports, so on installs that have run it, everyone who reached it through that
-# collection or access group keeps it through a new HOPWA CAPER collection and
-# group. Installs with no HOPWA CAPER run grant nobody. The viewer role marks the
-# task as done, so later deploys do not re-grant access an admin has since removed.
+# One-time TaskQueue task: HOPWA CAPER is no longer part of All HUD Reports, so on
+# installs that have run it, everyone who reached it through that collection or
+# access group keeps it through a new HOPWA CAPER collection and group. Installs
+# with no HOPWA CAPER run grant nobody.
 module HopwaCaper::Tasks
   class GrantExistingAccess
-    # Delete this class, its spec, and the call in SeedMaker#run_all. Every install
-    # has seeded by then, so the viewer role already exists everywhere.
-    TodoOrDie('Delete HopwaCaper::Tasks::GrantExistingAccess one-shot grant', by: Date.new(2027, 4, 1))
+    # Delete this class, its spec, and its TaskQueue registration in the HOPWA CAPER
+    # initializer. Every install has run the task by then.
+    TodoOrDie('Delete HopwaCaper::Tasks::GrantExistingAccess one-time grant', by: Date.new(2027, 4, 1))
 
     NAME = 'HOPWA CAPER'
     ROLE_NAME = 'HOPWA CAPER Viewer'
 
     def run!
-      return if Role.with_deleted.where(name: ROLE_NAME).exists?
-
       GrdaWarehouse::WarehouseReports::ReportDefinition.maintain_report_definitions
-      ApplicationRecord.transaction do
-        # Two separate connections; nesting makes a failed grant roll back both.
-        GrdaWarehouseBase.transaction do
-          role = Role.create!(name: ROLE_NAME, system: false, can_view_assigned_reports: true)
-          grant(role) if hopwa_caper_run?
+      if hopwa_caper_run?
+        ApplicationRecord.transaction do
+          # Two separate connections; nesting makes a failed grant roll back both.
+          GrdaWarehouseBase.transaction { grant }
         end
       end
-      # Seeding only maintains the data source groups, so without this the first
-      # deploy would leave HOPWA CAPER in All HUD Reports.
+      # Seeding maintains only the data source collections, so without this ACL
+      # users would keep HOPWA CAPER through All HUD Reports.
       Collection.maintain_system_groups(group: :reports)
       AccessGroup.maintain_system_groups(group: :reports)
       User.clear_cached_permissions
@@ -47,8 +43,8 @@ module HopwaCaper::Tasks
       GrdaWarehouse::WarehouseReports::ReportDefinition.find_by!(url: GrdaWarehouse::WarehouseReports::ReportDefinition.hud_url(:hopwa_capers))
     end
 
-    private def grant(role)
-      grant_acl_user_groups(role)
+    private def grant
+      grant_acl_user_groups(Role.create!(name: ROLE_NAME, system: false, can_view_assigned_reports: true))
       grant_legacy_users
     end
 
