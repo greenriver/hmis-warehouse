@@ -6,12 +6,10 @@
 
 # frozen_string_literal: true
 
-# Answers whether a user may see HIV status for every client in a set of HOPWA CAPER rows.
+# Answers whether a user may see HIV status for every project in a set of HOPWA CAPER rows.
 # Drilldown membership reveals HIV status, so access requires the project-level HIV permission on
-# each row's project, and no row's client may be hidden (see GrdaWarehouse::HiddenClients).
-#
-# Project permissions do not depend on the client, and restriction does not depend on the
-# project, so projects and clients are checked separately rather than as pairs.
+# each row's project. Restricted clients (see GrdaWarehouse::HiddenClients) do not block access;
+# the drilldown presenters redact their rows.
 module HopwaCaper
   class HivDrilldownAccess
     def self.for_report(user:, report:, mode: :browse)
@@ -39,36 +37,26 @@ module HopwaCaper
     private
 
     def compute_allowed
-      pairs = project_client_pairs
-      project_ids = pairs.map(&:first).uniq
+      project_ids = distinct_project_ids
       return false if project_ids.include?(nil)
 
-      policy_context = @user.policy_context
-      policy_context.preload_project_dependencies(project_ids)
-      return false unless project_ids.all? { |project_id| project_hiv_allowed?(project_id) }
-
-      client_ids = pairs.map(&:last).uniq.compact
-      policy_context.preload_client_restrictions(client_ids)
-      client_ids.none? { |client_id| policy_context.client_restricted?(client_id) }
+      @user.policy_context.preload_project_dependencies(project_ids)
+      project_ids.all? { |project_id| project_hiv_allowed?(project_id) }
     end
 
     def project_hiv_allowed?(project_id)
       @user.reporting_policy_for_project(project_id: project_id, mode: @mode).can_view_hiv_status?
     end
 
-    # Distinct [project_id, destination_client_id] pairs from both relations. A service takes its
-    # project from its enrollment, so a service without a matching enrollment yields a nil project.
-    def project_client_pairs
-      enrollment_pairs = @enrollments.reorder(nil).distinct.pluck(:project_id, :destination_client_id)
-
-      service_table = HopwaCaper::Service.arel_table
-      enrollment_table = HopwaCaper::Enrollment.arel_table
-      service_pairs = @services.reorder(nil).
+    # A service takes its project from its enrollment, so a service without a matching enrollment yields a nil project.
+    def distinct_project_ids
+      enrollment_project_ids = @enrollments.reorder(nil).distinct.pluck(:project_id)
+      service_project_ids = @services.reorder(nil).
         left_outer_joins(:enrollment).
         distinct.
-        pluck(enrollment_table[:project_id], service_table[:destination_client_id])
+        pluck(HopwaCaper::Enrollment.arel_table[:project_id])
 
-      (enrollment_pairs + service_pairs).uniq
+      (enrollment_project_ids + service_project_ids).uniq
     end
   end
 end

@@ -214,6 +214,81 @@ RSpec.describe HopwaCaper::CellsController, type: :request do
     end
   end
 
+  context 'when the cell holds a restricted client and an unrestricted client' do
+    let(:hidden_client) { create_client_with_warehouse_link(first_name: 'Hal', last_name: 'Hidden') }
+    let(:extra_rows) do
+      create_hiv_positive_enrollment(
+        client: hidden_client,
+        project: project,
+        entry_date: report_start_date,
+        household_id: Hmis::Hud::Base.generate_uuid,
+        relationship_to_ho_h: 1,
+      )
+    end
+    let(:hidden_row) { report.hopwa_caper_enrollments.find_by!(destination_client_id: hidden_client.destination_client.id) }
+    let(:visible_row) { report.hopwa_caper_enrollments.where.not(id: hidden_row.id).first }
+    let(:cell) { report.report_cells.detect { |c| c.universe_members.count == 2 } }
+
+    before do
+      grant_project_access(user, hiv_role, [project], mode: :acl)
+      Hmis::Hud::Client.find(hidden_client.id).mark_as_restricted!(user: create(:hmis_user, data_source: data_source))
+    end
+
+    def client_link(row)
+      /\/clients\/#{row.destination_client_id}(?!\d)/
+    end
+
+    def table_cell(value)
+      />\s*#{Regexp.escape(value)}\s*</
+    end
+
+    def hidden_identifiers
+      [hidden_row.personal_id, hidden_row.hmis_enrollment_id, hidden_row.destination_client_id.to_s]
+    end
+
+    def xlsx_values
+      file = Tempfile.new(['drilldown', '.xlsx'])
+      file.binmode
+      file.write(response.body)
+      file.close
+      Roo::Excelx.new(file.path).sheet(0).to_a.flatten.compact.map(&:to_s)
+    ensure
+      file&.unlink
+    end
+
+    it 'renders the HTML drilldown without the restricted client identifiers or name' do
+      expect(cell.universe_members.count).to eq(2)
+
+      get hud_reports_hopwa_caper_question_cell_path(cell_path_args)
+
+      expect(response).to have_http_status(:ok)
+      hidden_identifiers.each { |value| expect(response.body).not_to match(table_cell(value)) }
+      expect(response.body).not_to match(client_link(hidden_row))
+      expect(response.body).not_to include('Hidden')
+      expect(response.body).to include('Redacted')
+    end
+
+    it 'keeps identifiers and the client link for the unrestricted client' do
+      get hud_reports_hopwa_caper_question_cell_path(cell_path_args)
+
+      expect(response.body).to include('Ann')
+      expect(response.body).to match(table_cell(visible_row.personal_id))
+      expect(response.body).to match(table_cell(visible_row.hmis_enrollment_id))
+      expect(response.body).to match(client_link(visible_row))
+    end
+
+    it 'redacts the restricted client identifiers in the xlsx drilldown and keeps the others' do
+      get hud_reports_hopwa_caper_question_cell_path(cell_path_args.merge(format: :xlsx))
+
+      expect(response).to have_http_status(:ok)
+      values = xlsx_values
+      expect(values).to include(visible_row.personal_id, visible_row.hmis_enrollment_id, visible_row.destination_client_id.to_s)
+      expect(values & hidden_identifiers).to be_empty
+      expect(values).to include('Redacted')
+      expect(values).not_to include('Hal', 'Hidden')
+    end
+  end
+
   context 'when the user cannot view HIV status on the project' do
     it 'redirects the HTML drilldown to the result page with the denial alert' do
       get hud_reports_hopwa_caper_question_cell_path(cell_path_args)
