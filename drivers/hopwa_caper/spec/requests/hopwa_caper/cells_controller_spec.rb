@@ -289,6 +289,56 @@ RSpec.describe HopwaCaper::CellsController, type: :request do
     end
   end
 
+  context 'when the cell holds only service rows for a restricted client' do
+    let(:strmu_funder) { HudHelper.util('2026').funding_sources.invert.fetch('HUD: HOPWA - Short-Term Rent, Mortgage, Utility assistance') }
+    let(:service_project) { create_hopwa_project(funder: strmu_funder) }
+    let(:report) { create_report([project, service_project]) }
+    let(:hidden_client) { create_client_with_warehouse_link(first_name: 'Hal', last_name: 'Hidden') }
+    let(:extra_rows) do
+      enrollment = create_hiv_positive_enrollment(
+        client: hidden_client,
+        project: service_project,
+        entry_date: report_start_date,
+        household_id: Hmis::Hud::Base.generate_uuid,
+        relationship_to_ho_h: 1,
+      )
+      create(
+        :hud_service,
+        enrollment: enrollment,
+        record_type: hopwa_financial_assistance,
+        type_provided: rental_assistance,
+        fa_amount: 100,
+        date_provided: report_start_date,
+        data_source: data_source,
+      )
+    end
+    let(:hidden_row) { report.hopwa_caper_services.find_by!(destination_client_id: hidden_client.destination_client.id) }
+    let(:cell) do
+      report.report_cells.detect do |c|
+        types = c.universe_members.pluck(:universe_membership_type).uniq
+        types == [HopwaCaper::Service.sti_name]
+      end
+    end
+
+    before do
+      grant_project_access(user, hiv_role, [project, service_project], mode: :acl)
+      Hmis::Hud::Client.find(hidden_client.id).mark_as_restricted!(user: create(:hmis_user, data_source: data_source))
+    end
+
+    it 'renders the drilldown without the client link or identifiers' do
+      expect(cell.universe_members.count).to eq(1)
+
+      get hud_reports_hopwa_caper_question_cell_path(cell_path_args)
+
+      expect(response).to have_http_status(:ok)
+      identifiers = [hidden_row.personal_id, hidden_row.hmis_enrollment_id, hidden_row.destination_client_id.to_s, hidden_row.service_id.to_s]
+      identifiers.each { |value| expect(response.body).not_to match(/>\s*#{Regexp.escape(value)}\s*</) }
+      expect(response.body).not_to match(/\/clients\/#{hidden_row.destination_client_id}(?!\d)/)
+      expect(response.body).not_to include('Hidden')
+      expect(response.body).to include('Redacted')
+    end
+  end
+
   context 'when the user cannot view HIV status on the project' do
     it 'redirects the HTML drilldown to the result page with the denial alert' do
       get hud_reports_hopwa_caper_question_cell_path(cell_path_args)
