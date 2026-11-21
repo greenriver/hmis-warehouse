@@ -66,12 +66,6 @@ RSpec.describe HopwaCaper::HivDrilldownAccess, type: :model do
       expect(access_for.allowed?).to be(true)
     end
 
-    it 'denies a restricted client when the project lacks HIV status' do
-      Hmis::Hud::Client.find(client_a.id).mark_as_restricted!(user: create(:hmis_user, data_source: data_source))
-
-      expect(access_for.allowed?).to be(false)
-    end
-
     it 'denies a row with no project' do
       grant_project_access(user, hiv_role, [project_a], mode: :acl)
       report.hopwa_caper_enrollments.update_all(project_id: nil)

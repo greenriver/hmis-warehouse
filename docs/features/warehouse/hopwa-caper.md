@@ -5,6 +5,9 @@ sources:
   - drivers/hopwa_caper/app/models/hopwa_caper/extensions/hud_reports/report_instance_extension.rb
   - drivers/hopwa_caper/app/models/hopwa_caper/enrollment.rb
   - drivers/hopwa_caper/app/models/hopwa_caper/service.rb
+  - drivers/hopwa_caper/app/models/hopwa_caper/drilldown_presenter.rb
+  - drivers/hopwa_caper/app/models/hopwa_caper/service_drilldown_presenter.rb
+  - drivers/hopwa_caper/app/views/hopwa_caper/cells/_list.haml
   - drivers/hopwa_caper/app/models/hopwa_caper/hiv_drilldown_access.rb
   - drivers/hopwa_caper/app/models/hopwa_caper/tasks/grant_existing_access.rb
   - drivers/hopwa_caper/app/controllers/hopwa_caper/cells_controller.rb
@@ -34,9 +37,9 @@ Drilldown membership reveals which clients are HIV positive, so HOPWA CAPER acce
 
 - **Opt-in report access.** The HOPWA CAPER definition is not in the system "All HUD Reports" collection or access group (`ReportDefinition::OPT_IN_HUD_URLS`, `ReportDefinition.system_granted_hud`). Put it in a Collection bound to a Role with `can_view_assigned_reports`, or add it to a legacy access group, to give users the report.
 - **Existing installs.** `HopwaCaper::Tasks::GrantExistingAccess` runs once as the `hopwa_caper_grant_existing_access` TaskQueue task, queued by the hourly `grda_warehouse:hourly` job after deploy. If the install has a non-deleted HOPWA CAPER run, it creates a "HOPWA CAPER" collection and a "HOPWA CAPER Viewer" role, binds them to every user group that was bound to "All HUD Reports", and adds the members of the legacy "All HUD Reports" access group to a "HOPWA CAPER" access group. Installs with no run grant nobody. The deploy's seed removes HOPWA CAPER from the legacy "All HUD Reports" access group, so legacy users lose it until the task runs.
-- **Drilldown links.** The question result page shows cell links only when `HopwaCaper::HivDrilldownAccess` allows the whole report: the user must have `can_view_hiv_status?` on the project of every enrollment and service row. Restricted clients do not block access. Their rows show redacted name and date of birth (from the restricted PII policy) and `Redacted` for HMIS Personal ID, HMIS Enrollment ID, and Warehouse Client ID, with no client link or HMIS link (see [PII and restricted clients](pii-and-restricted-clients.md)).
+- **Drilldown links.** The question result page shows cell links only when `HopwaCaper::HivDrilldownAccess` allows the whole report: the user must have `can_view_hiv_status?` on the project of every enrollment and service row. Restricted clients do not block access. Their rows show redacted name and date of birth (from the restricted PII policy) and `Redacted` for HMIS Personal ID, HMIS Enrollment ID, Warehouse Client ID, and (on service rows) HMIS Service ID, with no client link or HMIS link (see [PII and restricted clients](pii-and-restricted-clients.md)).
 - **Each request is checked again.** `CellsController#show` repeats the check for the rows in the requested cell and redirects back to the question result page when it fails. Hiding the links is not the protection. Drilldowns open only for completed questions; otherwise the request redirects to the result page.
-- **No redaction.** Drilldowns do not blank HIV fields for users who lack project access. Access is all-or-nothing per request; only restricted clients' rows are redacted.
+- **No redaction.** Drilldowns do not blank HIV fields for users who lack project access. Access is all-or-nothing per request; on restricted clients' rows only the identifiers and name and date of birth are redacted. HIV and other non-identifying fields stay visible.
 - **Downloads.** Every non-HTML format, including `.xlsx`, is checked in `:download` mode, which uses the download policy. When "include PII in detail downloads" is off in the warehouse config, no user can download HOPWA drilldowns.
 
 ## Household Counting Methodology

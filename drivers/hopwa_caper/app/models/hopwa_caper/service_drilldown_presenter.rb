@@ -10,7 +10,7 @@ module HopwaCaper
   class ServiceDrilldownPresenter
     Field = Struct.new(:name, :label, :transform, :not_collected, keyword_init: true)
 
-    CLIENT_IDENTIFIER_FIELDS = ['personal_id', 'hmis_enrollment_id', 'destination_client_id'].freeze
+    CLIENT_IDENTIFIER_FIELDS = ['personal_id', 'hmis_enrollment_id', 'destination_client_id', 'service_id'].freeze
 
     def initialize(records, report, user, format: :html)
       @records = records
