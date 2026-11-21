@@ -59,8 +59,14 @@ RSpec.feature 'site menu drawer', type: :rails_system do
   describe 'drawer', js: true do
     it 'closes on Escape and returns focus to the hamburger' do
       open_drawer
+      # Clicking the hamburger focused it; blur so the assertion below proves
+      # Escape moved focus back.
+      page.execute_script('document.activeElement.blur()')
 
-      find('body').send_keys(:escape)
+      # Type on the keyboard directly: Cuprite's element#send_keys clicks the
+      # element first, and that click would close the drawer as an outside click
+      # before Escape is pressed.
+      page.driver.browser.keyboard.type(:escape)
 
       expect_drawer_closed
       focused_label = page.evaluate_script('document.activeElement.getAttribute("aria-label")')
