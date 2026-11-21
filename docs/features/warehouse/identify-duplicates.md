@@ -43,6 +43,8 @@ graph TD
 
 A source client with no `WarehouseClient` row is **unprocessed**. `identify_duplicates` links unprocessed sources to destinations. `match_existing!` merges destinations that are already linked.
 
+The second operation is needed because a destination can become a duplicate after it is linked. When a source client's name, SSN, or DOB is corrected, two destinations that did not match before can now match on 2 of 3 fields. Keeping the two operations separate means linking new clients never re-evaluates every existing pair. The costly scan for destinations to merge runs only in `match_existing!`.
+
 Pitfalls when querying:
 
 - A `Hud::Client` id in a URL, cohort, or report is a destination id.
@@ -82,6 +84,8 @@ Two clients match when at least **2 of 3** normalized fields match exactly:
 | SSN | Must pass `HudHelper.util.valid_social?`. Blanks and known placeholder values are excluded. |
 | Name | First and last name, unaccented, lowercased, with non-alphanumeric characters stripped. Both parts must be present. |
 | DOB | Present, with a year after 1920. |
+
+All matching runs as SQL queries that return id pairs, so client records are never loaded into Ruby to be compared.
 
 ### Two config keys with different meanings
 
@@ -139,9 +143,9 @@ Step 1 and `ClientCleanup` handle opposite failures in the same link. Step 1 res
 
 1. Returns if `enable_auto_deduplication` is off.
 2. Collects destination pairs that match on at least 2 of 3 fields, and drops any pair that has a `ClientSplitHistory` row.
-3. Groups the pairs into chains (`group_merge_chains`), each merged into a root destination.
-4. Splits each chain so no destination ends up with more than `MAX_SOURCE_CLIENTS` source clients. Outside production, a merge that would exceed the limit starts a new chain rooted at that client. In production, `will_exceed_source_counts?` raises instead.
-5. In slices of 500 chains, calls `merge_from` for each pair with `cleanup: false`. It skips a destination that a concurrent merge has left with no source clients. A merge that raises is reported to Sentry and skipped, so one bad pair does not stop the run.
+3. Groups the pairs into chains (`group_merge_chains`), each merged into a root destination. If A matches B and B matches C, all three end up in one chain, even though A and C were never paired directly.
+4. Splits each chain so no destination ends up with more than `MAX_SOURCE_CLIENTS` (50) source clients. Outside production, a merge that would exceed the limit starts a new chain rooted at that client. In production, `will_exceed_source_counts?` raises instead. This happens while candidates are being collected, before any merge, so the whole `match_existing!` run stops and stops again every night until someone intervenes.
+5. In slices of 500 chains, calls `merge_from` for each pair with `cleanup: false`. It skips a destination that a concurrent merge has left with no source clients. Before each merge, it marks any `processed_sources` or `candidate` `ClientMatch` row between the two clients as `accepted`, so the row survives `merge_from`'s cleanup as a record of the match. A merge that raises is reported to Sentry and skipped, so one bad pair does not stop the run.
 6. After each slice, queues `ClientCleanupJob` for the slice's clients and marks the root destinations dirty for Coordinated Entry.
 7. When `run_post_processing` is true (the default), runs `ServiceHistory::Add` inline at the end.
 
