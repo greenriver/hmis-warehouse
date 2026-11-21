@@ -51,13 +51,11 @@ module HopwaCaper
     end
 
     private def enforce_hiv_drilldown_access
-      access = HopwaCaper::HivDrilldownAccess.new(
-        user: current_user,
+      return if hopwa_report_policy.can_view_cell?(
         enrollments: @enrollments,
         services: @services,
         mode: request.format.html? ? :browse : :download,
       )
-      return if access.allowed?
 
       redirect_to(
         path_for_question_result(@question, report: @report),
