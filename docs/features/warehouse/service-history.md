@@ -54,7 +54,7 @@ Each `ServiceHistoryService` row carries two boolean flags — `homeless` and `l
 | PH on or after move-in date | `false` | `false` |
 | All other project types (Services Only, Other, Day Shelter, HP, CE) | `nil` | `nil` |
 
-The move-in day is the first `false` day. The flip uses the enrollment's own `MoveInDate`, not the household-derived `move_in_date` copied onto the `ServiceHistoryEnrollment` row. PH includes RRH of every sub-type: an RRH: Services Only enrollment with a move-in date is `homeless: false` from that date, and one without a move-in date never is, so logic driven by `homeless: false` needs no sub-type check. Logic built on the project `residential` scopes behaves differently: it excludes RRH: Services Only even after move-in. See [Project Type Classification](project-type-classification.md).
+The move-in day is the first `false` day. The flip uses the enrollment's own `MoveInDate`, not the household-derived `move_in_date` copied onto the `ServiceHistoryEnrollment` row. PH includes RRH of every sub-type, so an RRH: Services Only enrollment with a move-in date is `homeless: false` from that date. [Project Type Classification](project-type-classification.md) explains how this differs from the project `residential` scopes.
 
 A `nil` value means the day is neither homeless nor not-homeless — it will not appear in `homeless` or `non_homeless` scopes. This three-state design lets reports distinguish "known homeless," "known housed," and "not categorized" service days. The episode rules in [Homeless Episodes](homeless-episodes.md) read these flags directly: `literally_homeless = true` nights keep an episode open, `homeless = false` and TH nights count toward a housed break.
 
