@@ -9,8 +9,6 @@
 require 'rails_helper'
 
 RSpec.describe HmisDataQualityTool::ReportPolicy, type: :model do
-  include HudReportAccess
-
   def dq_tool_report(owner)
     HmisDataQualityTool::Report.create!(
       user_id: owner.id,

@@ -6,8 +6,8 @@
 
 # frozen_string_literal: true
 
-# Drilldown membership reveals HIV status. Get it with `policy_for(report, policy_class: HopwaCaper::ReportPolicy)`.
 module HopwaCaper
+  # Drilldown membership reveals HIV status. Get it with `policy_for(report, policy_class: HopwaCaper::ReportPolicy)`.
   class ReportPolicy < GrdaWarehouse::AuthPolicies::HudReportPolicy
     memoize def can_view_drilldowns?
       can_view? && HivDrilldownAccess.for_report(user: user, report: resource, mode: :browse).allowed?

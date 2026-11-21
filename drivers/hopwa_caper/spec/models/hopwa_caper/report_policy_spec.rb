@@ -53,6 +53,7 @@ RSpec.describe HopwaCaper::ReportPolicy, type: :model do
         grant_project_access(user, hiv_role, [project_a], mode: :acl)
 
         expect(report.hopwa_caper_enrollments.pluck(:project_id).uniq).to contain_exactly(project_a.id, project_b.id)
+        expect(policy.can_view?).to be(true)
         expect(policy.can_view_drilldowns?).to be(false)
       end
 
