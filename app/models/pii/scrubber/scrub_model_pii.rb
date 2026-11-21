@@ -72,7 +72,7 @@ module Pii::Scrubber
 
     # special handling for dob/age
     def dob_scrubber
-      @dob_scrubber || Pii::Scrubber::DobScrubber.new
+      @dob_scrubber ||= Pii::Scrubber::DobScrubber.new
     end
 
     # catch-all scrubber
