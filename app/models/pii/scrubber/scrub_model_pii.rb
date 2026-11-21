@@ -63,7 +63,7 @@ module Pii::Scrubber
             [column, record.send(column)]
           end
 
-          pii_attrs.merge(required_attrs)
+          required_attrs.merge(pii_attrs)
         end
         import!(model, values)
         progress&.increment!(batch.size)
@@ -72,7 +72,7 @@ module Pii::Scrubber
 
     # special handling for dob/age
     def dob_scrubber
-      @dob_scrubber || Pii::Scrubber::DobScrubber.new
+      @dob_scrubber ||= Pii::Scrubber::DobScrubber.new
     end
 
     # catch-all scrubber

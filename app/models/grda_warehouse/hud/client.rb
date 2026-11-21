@@ -18,6 +18,7 @@ module GrdaWarehouse::Hud
     include ArelHelper
     include ::HudConcerns::Client
     include ::HmisStructure::Client
+    include ::WarehouseClientPii
     include ::HmisStructure::Shared
     include HudSharedScopes
     include HudChronicDefinition

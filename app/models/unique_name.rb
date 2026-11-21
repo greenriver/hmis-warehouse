@@ -7,6 +7,11 @@
 # frozen_string_literal: true
 
 class UniqueName < ApplicationRecord
+  include HasPiiAttributes
+
+  pii_attr :name, as: :first_name
+  pii_attr :double_metaphone, as: :first_name
+
   # Build double metaphone representations for all names in the database
   def self.update!(...)
     with_advisory_lock('UniqueNameUpdate', timeout_seconds: 0) { _update!(...) }

@@ -8,6 +8,10 @@
 
 module PerformanceMeasurement
   class Client < GrdaWarehouseBase
+    include HasPiiAttributes
+
+    pii_attr :dob
+
     include Filter::FilterScopes # for race-ethnicity combination scopes
     self.table_name = :pm_clients
     acts_as_paranoid

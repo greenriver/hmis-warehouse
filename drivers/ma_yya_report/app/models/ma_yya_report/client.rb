@@ -14,6 +14,7 @@ module MaYyaReport
 
     include HasPiiAttributes
     pii_attr :age
+    pii_attr :zip_codes, as: :json
 
     has_many :simple_reports_universe_members, inverse_of: :universe_membership, class_name: 'SimpleReports::UniverseMember', foreign_key: :universe_membership_id
     belongs_to :service_history_enrollment, class_name: 'GrdaWarehouse::ServiceHistoryEnrollment', optional: true

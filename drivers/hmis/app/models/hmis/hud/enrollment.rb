@@ -11,6 +11,10 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   self.sequence_name = "public.\"#{table_name}_id_seq\""
 
   include ::HmisStructure::Enrollment
+  include ::HmisStructure::EnrollmentAddressPii
+
+  pii_attr :last_zipcode, as: :geo_postal_code
+
   include ::Hmis::Hud::Concerns::Shared
   include ::HudConcerns::Enrollment
   include ::Hmis::Hud::Concerns::FormSubmittable
