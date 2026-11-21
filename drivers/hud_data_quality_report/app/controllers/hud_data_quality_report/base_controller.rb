@@ -10,6 +10,7 @@
 module HudDataQualityReport
   class BaseController < ::HudReports::BaseController
     before_action :filter
+    before_action :require_runnable_generator, only: :create
 
     def available_report_versions
       {
@@ -21,6 +22,12 @@ module HudDataQualityReport
 
     def default_report_version
       :fy2022
+    end
+
+    private def require_runnable_generator
+      return if Rails.application.config.hud_reports.key?(generator&.name)
+
+      redirect_to path_for_reports, alert: 'This report version can no longer be run.'
     end
 
     private def filter_class
