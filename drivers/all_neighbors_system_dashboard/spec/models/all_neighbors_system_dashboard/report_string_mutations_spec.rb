@@ -19,38 +19,42 @@ RSpec.describe AllNeighborsSystemDashboard::Report, type: :model do
     report
   end
 
-  describe '#publish_files method with gsub! operations' do
-    it 'calls method that exercises gsub! operations for CSS processing' do
-      # Test the gsub! operations from lines 327, 329: css.gsub!("url(...)", "url(...)")
+  describe '#publish_files' do
+    let(:manifest_dir) { Dir.mktmpdir }
+    let(:fonts) { ['icons.ttf', 'icons.svg', 'icons.eot', 'icons.woff', 'icons.woff2'] }
+    let(:scripts) { ['bar.js', 'donut.js', 'filters.js', 'line.js', 'stack.js'] }
 
-      # Mock Rails assets to avoid complex setup
-      asset = double('asset', to_s: "url(#{Rails.application.config.assets.prefix}/icons.ttf)", digest_path: 'icons-abc123.ttf')
-      assets = double('assets')
-      allow(assets).to receive(:[]).and_return(asset)
-      allow(Rails.application).to receive(:assets).and_return(assets)
-      allow(Rails.application.config).to receive_message_chain(:assets, :prefix).and_return('/assets')
+    before do
+      assets = fonts.to_h { |font| [font, font.sub('.', '-0123.')] }
+      scripts.each { |script| assets["all_neighbors_system_dashboard_#{script}"] = "all_neighbors_system_dashboard_#{script.sub('.', '-0123.')}" }
+      assets['application.css'] = 'application-0123.css'
+      assets.each_value { |digest_path| File.write(File.join(manifest_dir, digest_path), "content of #{digest_path}") }
+      File.write(File.join(manifest_dir, 'application-0123.css'), fonts.map { |font| "@font-face{src:url(/assets/#{font.sub('.', '-0123.')}?v=1)}" }.join)
+      File.write(File.join(manifest_dir, ".sprockets-manifest-#{'0' * 32}.json"), { files: {}, assets: assets }.to_json)
 
-      # Mock other assets that don't have gsub! operations
-      ['icons.svg', 'icons.eot', 'icons.woff', 'icons.woff2'].each do |filename|
-        mock_asset = double('asset', to_s: 'mock content', digest_path: "#{filename.split('.').first}-abc123.#{filename.split('.').last}")
-        allow(assets).to receive(:[]).with(filename).and_return(mock_asset)
-      end
+      allow(Rails.application).to receive(:assets_manifest).and_return(Sprockets::Manifest.new(nil, manifest_dir))
+      allow(Rails.application).to receive(:assets).and_return(nil)
+      allow(Rails).to receive(:env).and_return(ActiveSupport::EnvironmentInquirer.new('staging'))
+    end
 
-      # Mock HTML generation
-      allow(report).to receive(:as_html).and_return('<html></html>')
+    after { FileUtils.remove_entry(manifest_dir) }
 
-      # Mock JS asset paths
-      allow(report).to receive(:per_page_js_asset_path).and_return('/path/to/js')
-      allow(File).to receive(:read).and_return('js content')
+    it 'points the published stylesheet at the published font files' do
+      css = report.publish_files.find { |f| f[:name] == 'application.css' }[:content].call
 
-      # This will exercise the gsub! operations on CSS content
-      files = report.publish_files
-      css_file = files.find { |f| f[:name] == 'application.css' }
-      expect(css_file).to be_present
+      expect(css).to eq(fonts.map { |font| "@font-face{src:url(#{font}?v=1)}" }.join)
+    end
 
-      # Call the content proc to exercise gsub! operations
-      css_content = css_file[:content].call
-      expect(css_content).to be_a(String)
+    it 'publishes each font file from its own precompiled asset' do
+      published = report.publish_files.select { |f| f[:name].in?(fonts) }.to_h { |f| [f[:name], f[:content].call] }
+
+      expect(published).to eq(fonts.to_h { |font| [font, "content of #{font.sub('.', '-0123.')}"] })
+    end
+
+    it 'publishes each chart script from its own precompiled asset' do
+      published = report.publish_files.select { |f| f[:name].in?(scripts) }.to_h { |f| [f[:name], f[:content].call] }
+
+      expect(published).to eq(scripts.to_h { |script| [script, "content of all_neighbors_system_dashboard_#{script.sub('.', '-0123.')}"] })
     end
   end
 

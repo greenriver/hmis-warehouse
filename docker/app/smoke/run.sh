@@ -54,6 +54,18 @@ bytes=$(get -o /dev/null -w '%{content_type} %{size_download}' "$url$css")
 echo "$css $bytes"
 [[ $bytes == text/css* && ${bytes##* } -gt 10000 ]]
 
+echo '== esbuild bundles precompiled'
+# Production's assets.compile serves a missing bundle anyway, so the page check above can't see one
+app ruby -rjson -e '
+  manifest = Dir["public/assets/.sprockets-manifest-*.json"].first or abort "no sprockets manifest"
+  precompiled = JSON.parse(File.read(manifest))["assets"].keys
+  built = Dir.children("app/assets/builds").grep_v(/\A\.|\.map\z/)
+  abort "no esbuild output in app/assets/builds" if built.empty?
+  missing = built - precompiled
+  abort "not precompiled: #{missing.join(", ")}" if missing.any?
+  puts "#{built.size} bundles precompiled"
+'
+
 echo '== delayed job'
 # Preflight calls AWS STS in production; own queue keeps seed-enqueued jobs out
 app rails runner '

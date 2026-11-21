@@ -72,7 +72,18 @@ module HudReports::Households
     end
 
     private def get_hh_id(service_history_enrollment)
-      service_history_enrollment.household_id || "#{service_history_enrollment.enrollment_group_id}*HH"
+      household_key(
+        service_history_enrollment.data_source_id,
+        service_history_enrollment.household_id,
+        service_history_enrollment.enrollment_group_id,
+      )
+    end
+
+    # HouseholdID is unique only within a data source, so the key includes it. The key is also stored
+    # as household_id on report clients; AprClient#display_household_id strips the data source.
+    # Build household keys only here, so every lookup agrees on the format.
+    private def household_key(data_source_id, household_id, enrollment_group_id)
+      "#{data_source_id}*#{household_id || "#{enrollment_group_id}*HH"}"
     end
 
     private def households
@@ -160,7 +171,7 @@ module HudReports::Households
         )
         enrollments_by_client_id.each do |_, enrollments|
           enrollments.each do |enrollment|
-            @hoh_enrollments[enrollment.household_id] = enrollment if enrollment.head_of_household?
+            @hoh_enrollments[get_hh_id(enrollment)] = enrollment if enrollment.head_of_household?
             next unless enrollment&.enrollment&.client.present?
 
             date = [enrollment.first_date_in_program, @report.start_date].max
@@ -205,7 +216,7 @@ module HudReports::Households
     # overrides this method with actual date-scoped filtering. In FY2026+, date-scoped household
     # composition is handled upstream in AprClientBuilder#ce_scoped_household_members.
     private def household_member_data(enrollment, _date = nil)
-      households[enrollment.household_id] || []
+      households[get_hh_id(enrollment)] || []
     end
 
     # --- Question answer phase ---
