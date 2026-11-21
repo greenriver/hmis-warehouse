@@ -11,8 +11,11 @@ $show-menu-on-left: false !default;
 
 // Header
 $header-height: 60px !default;
-$nav-side-width: 185px !default;
+$nav-side-width: 200px !default;
 $nav-side-collapsed-width: 65px !default;
+// Space left below the menu's last links and the footer so the fixed Back to
+// Top bar (.o-menu__to-top) doesn't cover them.
+$nav-side-to-top-clearance: 5.5rem !default;
 
 // Breakpoint at and above which the side menu sits on-canvas; below it the menu
 // is a drawer. One per body layout class (ApplicationHelper#body_classes).
