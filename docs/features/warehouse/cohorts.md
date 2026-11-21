@@ -58,7 +58,7 @@ Inactivity does not remove a client from the cohort but may remove them from cer
 
 2. **Cached Aggregation**: A nightly job aggregates service history data into the `WarehouseClientsProcessed` table, computing:
    - `last_homeless_date`: Most recent date with a homeless service
-   - `last_intentional_contacts`: JSON array of recent intentional contacts (bed nights, case management, assessments, etc.)
+   - `last_intentional_contacts`: JSON array of the most recent contact per project: HUD services, Current Living Situations, and CE Events from enrollments open in the last 3 years, plus custom services
 
 3. **Inactivity Detection**: When displaying cohort clients, the system checks:
    ```ruby
