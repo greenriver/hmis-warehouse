@@ -29,7 +29,6 @@ module HopwaCaper
 
     private def set_cell_records
       @cell = @report.valid_cell_name(params[:id])
-      @table = @report.valid_table_name(params[:table])
       @enrollments = @report.hopwa_caper_enrollments.
         preload(enrollment: [:project, :client, :data_source]).
         joins(hud_reports_universe_members: { report_cell: :report_instance }).
@@ -42,12 +41,12 @@ module HopwaCaper
 
     private def enforce_question_completed
       universe = @report.existing_universe(@question)
-      table = @report.valid_table_name(params[:table])
-      return if universe&.status == 'Completed' && Array(universe.metadata&.dig('tables')).include?(table)
+      @table = @report.valid_table_name(params[:table])
+      return if universe&.status == 'Completed' && Array(universe.metadata&.dig('tables')).include?(@table)
 
       redirect_to(
         path_for_question_result(@question, report: @report),
-        alert: 'This question is not complete yet.',
+        alert: 'This drilldown is not available.',
       )
     end
 
