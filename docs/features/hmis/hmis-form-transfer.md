@@ -44,7 +44,7 @@ Outside development and test, the import refuses to run, dry run included, unles
 
 - Every version of the selected form definitions, plus the forms used by the exported workflow templates' steps, since a template can't be imported without them.
 - The CDEDs those forms use. Older CDEDs may have no `form_definition_identifier`, so the exporter also walks each version's `custom_field_key` mappings and warns about mappings with no CDED.
-- Active, non-system form rules (`Hmis::Form::Instance`), with projects and organizations referenced by HUD ID.
+- Active, non-system form rules (`Hmis::Form::Instance`), with projects and organizations referenced by HUD ID. A rule whose service type or category is deleted is left out with a warning, because it would fail validation on import.
 - All custom service types and categories, any HUD service types that form rules use, and all file tags (`GrdaWarehouse::AvailableFileTag`). These feed the `ALL_SERVICE_TYPES`, `ALL_SERVICE_CATEGORIES`, and `AVAILABLE_FILE_TYPES` pick lists.
 - All project configs (`Hmis::ProjectConfig` subclasses), except a config whose project, organization, or `receives_direct_referrals_from` project is deleted. Without its scope a config can't be saved, and an emptied `receives_direct_referrals_from` accepts referrals from every project. The export warns about each one it leaves out.
 - Coordinated Entry configuration: the `hmis_ce/*` settings, the CE eligibility project group, referral statuses, decline reasons, workflow templates with their swimlanes, nodes, and flows, unit types, project unit type mappings, unit groups, units with their active ranges, and match rules.
@@ -68,11 +68,11 @@ A record that would fail validation, or that conflicts with local data in a way 
 | Organization, project, funder, ProjectCoC, inventory | HUD ID | Updated if it is the same record; otherwise the copy gets a new HUD ID (see below). |
 | Form rule | all of its attributes | Left alone. |
 | Project config | type and scope (project, organization, or project type) | Updated. Skipped when it has no scope, or when a `receives_direct_referrals_from` project isn't found locally. |
-| CE setting | key | Updated. A blank or `false` value is skipped, because `AppConfigProperty` requires a present value. |
+| CE setting | key | Updated. A key outside `hmis_ce/` is skipped, because the export never writes one. A blank or `false` value is skipped, because `AppConfigProperty` requires a present value. |
 | Referral status, decline reason | key | Updated. |
 | Workflow template | identifier and version | Left alone, because referrals point at the template's database id. Skipped when a soft-deleted local copy or another data source holds that version, or when it fails validation. |
 | Unit group | project and name | Updated, except template identifiers and unit type, which can't change once set. A differing local value is kept and logged. A soft-deleted match is restored. Skipped when it fails validation, along with its units. |
-| Unit | count of identical units | Units usually have no name, so for each distinct unit the import creates however many the project is missing. Extra local units are left alone. |
+| Unit | count of identical units | Units usually have no name, so for each distinct unit the import creates however many the project is missing. Extra local units are left alone. Skipped when they fail validation, for example when their unit type differs from the type the local unit group kept. |
 | Match rule | owner and name | Updated. Skipped when the rule type differs, which can't change, or when another local rule on the owner holds its `priority_rank`. |
 
 ## Projects whose HUD IDs are taken

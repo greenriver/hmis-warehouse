@@ -244,6 +244,20 @@ RSpec.describe HmisUtil::FormTransfer::Exporter do
       expect(export['service_types'].map { |t| [t['name'], t['category_name']] }).to eq([['Rent', 'Flex Funds']])
     end
 
+    it 'leaves out a rule whose service type is deleted, and warns' do
+      service_form = create(:hmis_form_definition, data_source: data_source, identifier: 'bulk_service', role: 'SERVICE')
+      live_type = Hmis::Hud::CustomServiceType.find_by!(name: 'Rent')
+      deleted_type = create(:hmis_custom_service_type, data_source: data_source, custom_service_category: category, name: 'Deposit')
+      create(:hmis_form_instance, data_source: data_source, definition: service_form, entity: nil, custom_service_type: live_type)
+      deleted_rule = create(:hmis_form_instance, data_source: data_source, definition: service_form, entity: nil, custom_service_type: deleted_type)
+      deleted_type.destroy!
+
+      payload = export(identifiers: ['bulk_service'])
+
+      expect(payload['form_rules'].map { |r| r.dig('service_type', 'name') }).to eq(['Rent'])
+      expect(payload['warnings']).to include("rule #{deleted_rule.id} for bulk_service points at a missing or deleted custom_service_type (#{deleted_type.id})")
+    end
+
     it 'exports file tags' do
       expect(export['file_tags'].map { |t| [t['name'], t['group']] }).to eq([['ROI', 'Consent']])
     end

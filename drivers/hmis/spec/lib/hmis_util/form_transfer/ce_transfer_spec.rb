@@ -239,6 +239,29 @@ RSpec.describe 'HmisUtil::FormTransfer Coordinated Entry configuration' do
     expect(output.string).to include('SKIP unit group New beds: Workflow template identifier must belong to the same data source')
   end
 
+  it "skips units whose type differs from the local unit group's kept type instead of aborting the import" do
+    payload = export
+    payload['ce']['unit_types'] << { 'description' => 'Double Bed', 'bed_type' => 13, 'unit_size' => 2 }
+    payload['ce']['unit_groups'].first['unit_type'] = 'Double Bed'
+    payload['ce']['units'].each { |unit| unit['unit_type'] = 'Double Bed' }
+
+    import(payload)
+
+    group = Hmis::UnitGroup.find_by!(project_id: receiver.id)
+    expect(Hmis::Unit.where(hmis_unit_group_id: group.id).pluck(:unit_type_id)).to eq([unit_type.id] * 3)
+    expect(output.string).to include('SKIP 2 unit(s) (unnamed) in Beds: Unit Validation failed: Unit type must be consistent')
+  end
+
+  it 'skips a setting outside hmis_ce/' do
+    payload = export
+    payload['ce']['settings'] << { 'key' => 'reports/archival_grace_period_days', 'value' => 99 }
+
+    import(payload)
+
+    expect(AppConfigProperty.find_by(key: 'reports/archival_grace_period_days')).to be_nil
+    expect(output.string).to include('SKIP setting reports/archival_grace_period_days: not a CE setting')
+  end
+
   it 'restores a soft-deleted local unit group with the same name' do
     payload = export
     group = Hmis::UnitGroup.find_by!(project_id: receiver.id)

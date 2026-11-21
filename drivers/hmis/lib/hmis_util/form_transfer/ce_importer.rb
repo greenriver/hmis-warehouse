@@ -82,6 +82,9 @@ module HmisUtil
       def import_settings
         @ce.fetch('settings', []).each do |attrs|
           label = "setting #{attrs['key']}"
+          # The export only writes hmis_ce/ keys; anything else would change unrelated global settings.
+          next log("SKIP #{label}: not a CE setting") unless attrs['key'].to_s.start_with?('hmis_ce/')
+
           value = attrs.key?('project_group_name') ? Hmis::ProjectGroup.find_by(data_source_id: @data_source_id, name: attrs['project_group_name'])&.id : attrs['value']
           # AppConfigProperty requires a present value, which also rules out false.
           next log("SKIP #{label}: no value to store") if value.blank?
@@ -221,11 +224,16 @@ module HmisUtil
           missing = copies.size - existing
           next log("unchanged #{label} for #{project.ProjectID}") unless missing.positive?
 
-          missing.times do
-            unit = Hmis::Unit.create!(**unit_attrs, user_id: user_id)
-            ranges.each { |range| unit.active_ranges.create!(**range.symbolize_keys, user_id: user_id.to_s) }
+          # A unit group keeps its local unit type, so units of the source's type can fail validation.
+          Hmis::Unit.transaction(requires_new: true) do
+            missing.times do
+              unit = Hmis::Unit.create!(**unit_attrs, user_id: user_id)
+              ranges.each { |range| unit.active_ranges.create!(**range.symbolize_keys, user_id: user_id.to_s) }
+            end
           end
           log("create #{missing} of #{label} for #{project.ProjectID}")
+        rescue ActiveRecord::RecordInvalid => e
+          log("SKIP #{label}: #{e.record.class.name.demodulize} #{e.message}")
         end
       end
 

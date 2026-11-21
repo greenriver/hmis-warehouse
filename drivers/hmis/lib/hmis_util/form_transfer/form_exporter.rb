@@ -86,7 +86,13 @@ module HmisUtil
         rules.select { |rule| rule.entity_type && !rule.entity }.each do |rule|
           @warnings << "rule #{rule.id} for #{rule.definition_identifier} points at a missing #{rule.entity_type} (#{rule.entity_id})"
         end
-        rules
+        # A rule left without its service type or category would fail validation on import.
+        rules.reject do |rule|
+          missing = [[:custom_service_type, rule.custom_service_type_id], [:custom_service_category, rule.custom_service_category_id]].
+            find { |association, id| id && !rule.public_send(association) }
+          @warnings << "rule #{rule.id} for #{rule.definition_identifier} points at a missing or deleted #{missing.first} (#{missing.last})" if missing
+          missing
+        end
       end
 
       # All custom service types, not just the ones rules use, so the ALL_SERVICE_TYPES pick list matches the source.
