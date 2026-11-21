@@ -21,7 +21,9 @@ module HopwaCaper::Tasks
 
     def run!
       GrdaWarehouse::WarehouseReports::ReportDefinition.maintain_report_definitions
-      if hopwa_caper_run?
+      # The role exists only after a committed grant, so a Delayed Job retry or a
+      # re-queued key skips the grant instead of duplicating its records.
+      if hopwa_caper_run? && !Role.with_deleted.exists?(name: ROLE_NAME)
         ApplicationRecord.transaction do
           # Two separate connections; nesting makes a failed grant roll back both.
           GrdaWarehouseBase.transaction { grant }

@@ -10,6 +10,7 @@ sources:
   - drivers/hopwa_caper/app/views/hopwa_caper/cells/_list.haml
   - drivers/hopwa_caper/app/models/hopwa_caper/hiv_drilldown_access.rb
   - drivers/hopwa_caper/app/models/hopwa_caper/tasks/grant_existing_access.rb
+  - drivers/hopwa_caper/config/initializers/hopwa_caper_feature.rb
   - drivers/hopwa_caper/app/controllers/hopwa_caper/cells_controller.rb
   - drivers/hopwa_caper/app/controllers/hopwa_caper/questions_controller.rb
   - drivers/hopwa_caper/app/views/hopwa_caper/questions/result.haml

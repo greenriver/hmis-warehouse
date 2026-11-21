@@ -183,6 +183,18 @@ RSpec.describe HopwaCaper::Tasks::GrantExistingAccess do
     expect(hopwa_viewable?(acl_user)).to be false
   end
 
+  it 'creates one role, collection, and access group when run twice' do
+    create_run(fy2026_title)
+
+    2.times { described_class.new.run! }
+
+    expect(Role.with_deleted.where(name: described_class::ROLE_NAME).count).to eq(1)
+    expect(Collection.where(name: described_class::NAME).count).to eq(1)
+    expect(AccessGroup.where(name: described_class::NAME).count).to eq(1)
+    expect(hopwa_viewable?(acl_user)).to be true
+    expect(hopwa_viewable?(legacy_user)).to be true
+  end
+
   it 'runs from the TaskQueue key' do
     task = TaskQueue.create!(task_key: :hopwa_caper_grant_existing_access, queued_at: Time.current)
     create_run(fy2026_title)
