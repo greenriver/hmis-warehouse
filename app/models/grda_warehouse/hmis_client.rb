@@ -16,6 +16,10 @@ class GrdaWarehouse::HmisClient < GrdaWarehouseBase
   pii_attr :outreach_counselor_name, as: :full_name
   # Callers JSON.parse this column, so it needs a placeholder rather than nil.
   pii_attr :response, as: :json_text, level: 1, required: true
+  pii_attr :processed_fields, as: :json, level: 1
+  pii_attr :case_manager_attributes, as: :json, level: 1
+  pii_attr :assigned_staff_attributes, as: :json, level: 1
+  pii_attr :counselor_attributes, as: :json, level: 1
 
   belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', optional: true
   has_one :destination_client, through: :client

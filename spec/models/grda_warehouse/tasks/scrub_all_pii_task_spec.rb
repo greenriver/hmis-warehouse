@@ -85,10 +85,32 @@ RSpec.describe GrdaWarehouse::Tasks::ScrubPii::ScrubAllPiiTask do
       data_source_id: hud_client.data_source_id,
       answers: { sections: [{ questions: [{ question: 'Phone', answer: '617-555-1234' }] }] },
       api_response: { 'FirstName' => real_first_name },
+      staff: 'Real Staff',
+      client_case_managers: 'Real Case Manager',
     )
   end
 
-  let(:eto_client) { GrdaWarehouse::HmisClient.create!(client_id: hud_client.id, response: { 'FirstName' => real_first_name }.to_json) }
+  let(:eto_client) do
+    GrdaWarehouse::HmisClient.create!(
+      client_id: hud_client.id,
+      response: { 'FirstName' => real_first_name }.to_json,
+      processed_fields: { 'email' => 'client@example.org', 'phone' => '617-555-1234' },
+      case_manager_attributes: { 'Email' => 'cm@example.org' },
+    )
+  end
+
+  # Partitioned table whose primary key is (id, importer_log_id)
+  let(:importer_client) do
+    HmisCsvTwentyTwentyTwo::Importer::Client.create!(
+      data_source_id: hud_client.data_source_id,
+      importer_log_id: 1,
+      pre_processed_at: Time.current,
+      source_id: 1,
+      source_type: 'GrdaWarehouse::Hud::Client',
+      PersonalID: 'P1',
+      FirstName: real_first_name,
+    )
+  end
 
   def reload_records
     [
@@ -105,6 +127,7 @@ RSpec.describe GrdaWarehouse::Tasks::ScrubPii::ScrubAllPiiTask do
       staff_user,
       eto_form,
       eto_client,
+      importer_client,
     ].each(&:reload)
   end
 
@@ -183,7 +206,15 @@ RSpec.describe GrdaWarehouse::Tasks::ScrubPii::ScrubAllPiiTask do
     it 'clears ETO form answers and API payloads, leaving client payloads parseable' do
       expect { perform_task }.to change { eto_form.answers }.to({}).
         and change { eto_form.api_response }.to({}).
-        and change { JSON.parse(eto_client.response) }.to({})
+        and change { eto_form.staff }.to(nil).
+        and change { eto_form.client_case_managers }.to(nil).
+        and change { JSON.parse(eto_client.response) }.to({}).
+        and change { eto_client.processed_fields }.to(nil).
+        and change { eto_client.case_manager_attributes }.to({})
+    end
+
+    it 'scrubs partitioned importer tables keyed on more than id' do
+      expect { perform_task }.to change { importer_client.FirstName }.to(nil)
     end
 
     it 'leaves staff login accounts alone' do

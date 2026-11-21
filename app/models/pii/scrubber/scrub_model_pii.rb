@@ -96,7 +96,9 @@ module Pii::Scrubber
     def import!(klass, values)
       return if values.blank?
 
-      result = klass.import(values, on_duplicate_key_update: { conflict_target: [:id], columns: values.first.keys }, validate: false)
+      # Partitioned tables key on more than id
+      conflict_target = klass.connection.primary_keys(klass.table_name)
+      result = klass.import(values, on_duplicate_key_update: { conflict_target: conflict_target, columns: values.first.keys }, validate: false)
       raise if result.failed_instances.any?
     end
 
