@@ -41,9 +41,14 @@ module HopwaCaper
     end
 
     private def enforce_question_completed
-      return if @report.completed_questions.include?(@question)
+      universe = @report.existing_universe(@question)
+      table = @report.valid_table_name(params[:table])
+      return if universe&.status == 'Completed' && Array(universe.metadata&.dig('tables')).include?(table)
 
-      redirect_to(path_for_question_result(@question, report: @report))
+      redirect_to(
+        path_for_question_result(@question, report: @report),
+        alert: 'This question is not complete yet.',
+      )
     end
 
     private def enforce_hiv_drilldown_access
