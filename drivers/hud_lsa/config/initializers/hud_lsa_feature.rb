@@ -12,6 +12,6 @@ Rails.application.config.hud_reports['HudLsa::Generators::Fy2027::Lsa'] = {
 }
 
 # Aliases map retired generators to a definition so old runs stay viewable; they don't make them runnable.
-%w[Fy2022 Fy2023 Fy2024 Fy2026].each do |year|
+['Fy2022', 'Fy2023', 'Fy2024', 'Fy2026'].each do |year|
   Rails.application.config.hud_report_definition_aliases["HudLsa::Generators::#{year}::Lsa"] = { helper: 'hud_reports_lsas_path' }
 end
