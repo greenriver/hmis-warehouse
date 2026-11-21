@@ -4,6 +4,8 @@ sources:
   - app/models/grda_warehouse/tasks/identify_duplicates_query_matcher.rb
   - app/models/grda_warehouse/client_match.rb
   - app/models/grda_warehouse/tasks/client_cleanup.rb
+  - app/models/grda_warehouse/dob_selector.rb
+  - app/jobs/client_cleanup_job.rb
   - app/models/grda_warehouse/warehouse_client.rb
   - app/jobs/importing/run_daily_imports_job.rb
   - drivers/hmis/app/models/hmis/hud/client.rb
@@ -49,7 +51,7 @@ Pitfalls when querying:
 
 - A `Hud::Client` id in a URL, cohort, or report is a destination id.
 - `Hud::Client.where(...)` with no `.source` or `.destination` scope returns both kinds of row. Go from a destination to HUD data through `source_clients`, and from a source to the person through `destination_client`.
-- `WarehouseClient` does not use `acts_as_paranoid`. Its `deleted_at` is set by `ClientCleanup`: each run clears it on every row, then sets it on the links of destinations that have no live source client left. External analytics tooling reads it, and `GrdaWarehouse::HiddenClients` and `GrdaWarehouse::ClientRetentionMark` treat rows with `deleted_at IS NULL` as live links.
+- `WarehouseClient` does not use `acts_as_paranoid`. Its `deleted_at` is set by `ClientCleanup`: a run that finds destinations with no live source client left clears it on every row, then sets it on those destinations' links. A run that finds none leaves `deleted_at` alone. External analytics tooling reads it, and `GrdaWarehouse::HiddenClients` and `GrdaWarehouse::ClientRetentionMark` treat rows with `deleted_at IS NULL` as live links.
 - The `reviewd_by` column is misspelled in the schema and holds a user id as a string.
 
 ## When deduplication runs
@@ -60,7 +62,8 @@ Pitfalls when querying:
 | End of each HMIS CSV import (`HmisCsvImporter::Importer::Importer#post_process`) | `run!` |
 | HMIS client created | `ensure_source_client_linked!` for that client, on the short-running queue |
 | HMIS client's `FirstName`, `LastName`, `DOB`, `SSN`, or `DateDeleted` updated | `match_existing!` on the long-running queue, unless one is already queued |
-| `Hmis::Hud::Client.warehouse_identify_duplicate_clients` (fake enrollment generation, MCI imports) and `Hmis::UndoMergeClientsJob` | a full `run!` |
+| `Hmis::Hud::Client.warehouse_identify_duplicate_clients` (fake enrollment generation, MCI imports) | `enqueue_full_run!`, which queues a full `run!` unless one is already queued |
+| `Hmis::UndoMergeClientsJob` | a full `run!`, inline |
 | `Importing::RunIdentifyDuplicatesJob`, rake tasks | `run!` |
 
 The HMIS create hook is an `after_commit`, not an `after_create`. The job queue is in a different database, so the client row has to be committed before the job can find it.
@@ -84,6 +87,11 @@ Two clients match when at least **2 of 3** normalized fields match exactly:
 | SSN | Must pass `HudHelper.util.valid_social?`. Blanks and known placeholder values are excluded. |
 | Name | First and last name, unaccented, lowercased, with non-alphanumeric characters stripped. Both parts must be present. |
 | DOB | Present, with a year after 1920. |
+
+What is compared differs between the two operations:
+
+- **Linking** (`_for_unprocessed` queries) compares the unprocessed source client with the destination client row's own columns.
+- **Merging** (`match_existing!`) compares the source clients of two destinations, and counts matching fields per destination pair. The fields can come from different source clients. If one of A's sources shares an SSN with one of B's sources, and another of A's sources shares a DOB with another of B's sources, A and B match, even though no two source records match on 2 of 3.
 
 All matching runs as SQL queries that return id pairs, so client records are never loaded into Ruby to be compared.
 
@@ -122,7 +130,7 @@ The `_for_unprocessed` methods always use the legacy SQL. The matcher's unproces
 3. Runs the `_for_unprocessed` match queries and pairs each unprocessed source with at most one destination. When several destinations qualify, the one with the highest id wins.
 4. In batches (`find_in_batches`), links each matched source to its destination. If the destination has no SSN, DOB, `FirstName`, or `LastName`, it takes the source's value. Each unmatched source is copied into a new destination. Destination updates, new destinations, and `WarehouseClient` rows are written with bulk imports.
 5. Marks the touched destinations dirty for Coordinated Entry (`Hmis::Ce::ChangeMarker`) and invalidates service history for matched destinations.
-6. Calls `ClientMatch.accept_exact_matches!`, then writes an `IdentifyDuplicatesLog` row.
+6. Calls `ClientMatch.accept_exact_matches!`, which ends by running `ServiceHistory::Add` inline, then writes an `IdentifyDuplicatesLog` row.
 
 Step 1 and `ClientCleanup` handle opposite failures in the same link. Step 1 restores destinations that are soft-deleted but still referenced. `ClientCleanup` soft-deletes destinations with no remaining source clients. A destination can meet only one of those conditions at a time.
 
@@ -143,9 +151,9 @@ Step 1 and `ClientCleanup` handle opposite failures in the same link. Step 1 res
 
 1. Returns if `enable_auto_deduplication` is off.
 2. Collects destination pairs that match on at least 2 of 3 fields, and drops any pair that has a `ClientSplitHistory` row.
-3. Groups the pairs into chains (`group_merge_chains`), each merged into a root destination. If A matches B and B matches C, all three end up in one chain, even though A and C were never paired directly.
+3. Groups the pairs into chains (`group_merge_chains`), each merged into a root destination. Chains are transitive, so A, B, and C can merge in one run even if A and C were never paired directly. Depending on id order, a member can be left out of the chain and merge on the next run instead.
 4. Splits each chain so no destination ends up with more than `MAX_SOURCE_CLIENTS` (50) source clients. Outside production, a merge that would exceed the limit starts a new chain rooted at that client. In production, `will_exceed_source_counts?` raises instead. This happens while candidates are being collected, before any merge, so the whole `match_existing!` run stops and stops again every night until someone intervenes.
-5. In slices of 500 chains, calls `merge_from` for each pair with `cleanup: false`. It skips a destination that a concurrent merge has left with no source clients. Before each merge, it marks any `processed_sources` or `candidate` `ClientMatch` row between the two clients as `accepted`, so the row survives `merge_from`'s cleanup as a record of the match. A merge that raises is reported to Sentry and skipped, so one bad pair does not stop the run.
+5. In slices of 500 chains, calls `merge_from` for each pair with `cleanup: false`. It skips a destination that a concurrent merge has left with no source clients. Before each merge, it marks any `processed_sources` or `candidate` `ClientMatch` row between the two destination ids as `accepted`. This rarely finds a row, because `ClientMatch` rows don't pair two different destinations (see [Statistical candidates](#statistical-candidates-clientmatch)). A merge that raises is reported to Sentry and skipped, so one bad pair does not stop the run.
 6. After each slice, queues `ClientCleanupJob` for the slice's clients and marks the root destinations dirty for Coordinated Entry.
 7. When `run_post_processing` is true (the default), runs `ServiceHistory::Add` inline at the end.
 
@@ -164,7 +172,7 @@ Use `merge_from` and `split` rather than editing links by hand.
 
 - A split is not an undo of a merge. It does not read `ClientMergeHistory`, does not restore the destroyed destination, and creates new destination ids.
 - Only one detached client can receive notes, files, VI-SPDATs, cohort memberships, CE assessments, custom data elements, and other dependent items. Everything else stays with the original.
-- Don't detach a source by deleting its `WarehouseClient`. Without a `ClientSplitHistory` row, the next `match_existing!` merges the pair again.
+- Don't detach a source by deleting its `WarehouseClient`. That makes the source unprocessed, and the next `run!` re-links it to a matching destination, usually the one it left. `run!` ignores `ClientSplitHistory`, so it re-links even when a split-history row exists.
 - `ClientSplitHistory` only blocks `match_existing!`. See [Linking new source clients](#linking-new-source-clients) for how a new source is matched against split destinations.
 - `splits_to` and `splits_from` on `Hud::Client` are named inversely to their foreign keys (`split_from` and `split_into`). Read the `foreign_key` before using either.
 
@@ -175,7 +183,7 @@ Destination demographics (name, SSN, DOB, race, gender, sex, veteran status) are
 `ClientCleanup#choose_attributes_from_sources` applies these rules:
 
 - **Name:** the best `NameDataQuality` tier (1, 2, 8, 9, 99), then the earliest or latest `DateCreated` per the `warehouse_client_name_order` config (default earliest).
-- **DOB:** the `dob_selection_method` config picks oldest or newest. If it isn't set, the legacy data-quality tier walk applies. A DOB change invalidates service history.
+- **DOB:** with `dob_selection_method` set, `GrdaWarehouse::DOBSelector` picks by `DOBDataQuality` first, then by the oldest or newest source record (`DateCreated`). It never picks by the earliest or latest birth date. If it isn't set, the legacy data-quality tier walk applies. A DOB change invalidates service history.
 - **Gender and race:** per column, newest source first by `DateUpdated`, and a 0 or 1 wins.
 
 `Hmis::MergeClientsJob` reuses `choose_attributes_from_sources`, so changing a `choose_best_*` rule changes HMIS merge results too. That job and `Hmis::UndoMergeClientsJob` change `WarehouseClient` rows directly:
@@ -192,14 +200,14 @@ Statistical candidate generation creates `ClientMatch` rows for reviewers. The r
 - `processed_sources` rows are bookkeeping that mark a destination as scanned. Both ids are the destination's id. Count `ClientMatch` with a status scope, or candidates are overstated.
 - Statistical scores are negative. A more negative score is a better match.
 - `ClientMatch#accept!` merges only the match's one source client into the other side's current destination, so a single `WarehouseClient` row moves.
-- `ClientMatch.accept_exact_matches!` accepts any `candidate` whose two clients match on 2 of 3 fields, and deletes candidates whose clients no longer exist.
+- `ClientMatch.accept_exact_matches!` accepts any `candidate` whose two clients match on 2 of 3 fields, and deletes candidates whose clients no longer exist. Its comparison is looser than the SQL matching: names are compared exactly as stored, without the normalization above, and DOB has no 1920 floor. It runs `ServiceHistory::Add` inline when it finishes.
 
 ## Concurrency
 
-- `run!` and `ensure_source_client_linked!` share the `identify_duplicates` advisory lock and wait up to `PER_CLIENT_LOCK_TIMEOUT_SECONDS` for it. If it is still held, they call `enqueue_full_run!`, which queues a full `run!` unless one is already queued. A run that overlaps another is deferred, not dropped.
+- `run!` and `ensure_source_client_linked!` share the `identify_duplicates` advisory lock and wait up to `PER_CLIENT_LOCK_TIMEOUT_SECONDS` for it. If it is still held, they call `enqueue_full_run!`, which queues a full `run!` unless one is already queued. A run that overlaps another is deferred, not dropped. The exception is `Hmis::MergeClientsJob`, which calls `ensure_source_client_linked!` inline for an unlinked retained client. While a full run holds the lock, the client stays unlinked, the merge raises and rolls back, and a retry after the full run succeeds.
 - `match_existing!` takes no lock. Because of that, it checks `destination?` before each merge.
 - A full run skips sources that a per-client run linked after the snapshot. Its `warehouse_clients` insert ignores duplicates.
-- `ClientCleanupJob` allows two concurrent instances and re-queues itself a minute out beyond that.
+- `ClientCleanupJob` re-queues itself a minute out when another `ClientCleanupJob` is running, so one runs at a time.
 
 ## Related
 
