@@ -5,8 +5,6 @@ sources:
   - app/models/grda_warehouse/service_history_enrollment.rb
   - app/models/concerns/service_history_service_concern.rb
   - drivers/hmis/app/models/hmis/hud/project.rb
-  - app/models/concerns/cas_client_data.rb
-  - app/models/grda_warehouse/warehouse_clients_processed.rb
 ---
 
 # Project Type Classification
@@ -26,8 +24,6 @@ The two hashes repeat the residential entries, and `permanent_housing_project_ty
 - `residential_project_type_ids` includes SO. See [Why Street Outreach is residential](#why-street-outreach-is-residential).
 - The PH group, which `permanent_housing_project_types` and `project_types_with_move_in_dates` both return, includes RRH.
 
-`project_types_without_inventory` is a separate literal list of the types HUD collects no bed inventory for. It works by project type only, so it misses RRH: Services Only, which also has no inventory (HMIS Data Standards 2.07).
-
 ## Scopes and predicates
 
 `GrdaWarehouse::Hud::Project` and `GrdaWarehouse::ServiceHistoryEnrollment` generate a scope and a `?` predicate for each key in `performance_reporting`, such as `Project.rrh`, `Project#psh?`, and `ServiceHistoryEnrollment.es_nbn`. `Hmis::Hud::Project` does the same from `residential_project_type_numbers_by_code`. These generated scopes match on project type only. `GrdaWarehouse::ServiceHistoryService` has no generated scopes.
@@ -41,7 +37,7 @@ Names that look alike mean different things:
 
 ## Why Street Outreach is residential
 
-HUD's residential project types are 0, 1, 2, 3, 8, 9, 10, and 13 with sub-type 2 (HMIS Data Standards 2.02). Street Outreach (4) is not on that list. The warehouse's residential groups include it, because an SO enrollment records where someone was staying: HUD requires a Current Living Situation at project start (HMIS Data Standards 4.12). Code that needs HUD's own definition has to remove SO. For example, `Hmis::Hud::Project#allows_same_day_exit?` treats SO as an exception to the residential rule.
+HUD's residential project types are 0, 1, 2, 3, 8, 9, 10, and 13 with sub-type 2 (HMIS Data Standards 2.02). Street Outreach (4) is not on that list. The warehouse's residential groups include it, because an SO enrollment records where someone was staying: HUD requires a Current Living Situation at project start (HMIS Data Standards 4.12). Code that needs HUD's own definition has to remove SO, even when it uses `hud_residential`: despite the name, that scope includes SO too. For example, `Hmis::Hud::Project#allows_same_day_exit?` treats SO as an exception to the residential rule.
 
 ## RRH sub-type
 
@@ -55,14 +51,7 @@ RRH is the one case where project type alone doesn't decide the group:
 
 To ask about the sub-type directly, use `Project#rrh_sso_only?` or `Hmis::Hud::Project#services_only_rrh?`, and `HudHelper.util.rrh_sub_type_sso_only` for the code. `Project#rrh_with_housing?` is true for a blank sub-type too.
 
-### Two answers to "is this client housed?"
-
-Logic that checks the enrollment's move-in date and logic that checks the project's `residential` scope disagree about RRH: Services Only:
-
-- **Move-in date logic** ignores the sub-type. A Services Only enrollment with a move-in date counts as housed from that date, and one without a move-in date never does. Examples include service history's `homeless: false` flag, CAS `enrolled_in_rrh`, `GrdaWarehouse::Hud::Client#moved_in_with_ph?`, and the housed check in the HMIS `Types::HmisSchema::Client#hud_chronic`.
-- **Project-scope logic** excludes Services Only even after move-in. The "Enrolled in PH" and "Ongoing RRH Enrollments" cohort columns (`WarehouseClientsProcessed#enrolled_permanent_housing` and `#last_rrh_visit`) work this way.
-
-Code that checks the sub-type itself picks one of these behaviors on purpose. For example, CAS `enrolled_in_rrh_pre_move_in` leaves out Services Only enrollments, so they are never treated as waiting to move in. Which kind of check a feature uses decides whether RRH: Services Only counts as housed.
+A Services Only enrollment can have a move-in date even though its project never matches the residential scopes, so check the sub-type explicitly wherever that difference matters.
 
 ## Related
 
