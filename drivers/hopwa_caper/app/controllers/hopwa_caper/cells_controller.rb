@@ -10,6 +10,7 @@ module HopwaCaper
   class CellsController < HopwaCaper::QuestionsController
     before_action :set_report
     before_action :set_question
+    before_action :enforce_question_completed, only: :show
     before_action :set_cell_records, only: :show
     before_action :enforce_hiv_drilldown_access, only: :show
 
@@ -39,12 +40,18 @@ module HopwaCaper
         merge(::HudReports::ReportCell.for_table(@table).for_cell(@cell))
     end
 
+    private def enforce_question_completed
+      return if @report.completed_questions.include?(@question)
+
+      redirect_to(path_for_question_result(@question, report: @report))
+    end
+
     private def enforce_hiv_drilldown_access
       access = HopwaCaper::HivDrilldownAccess.new(
         user: current_user,
         enrollments: @enrollments,
         services: @services,
-        mode: request.format.xlsx? ? :download : :browse,
+        mode: request.format.html? ? :browse : :download,
       )
       return if access.allowed?
 

@@ -25,6 +25,7 @@ RSpec.describe HopwaCaper::CellsController, type: :request do
   end
   let(:cell_path_args) { { hopwa_caper_id: report.id, question_id: question, id: cell.cell_name, table: cell.question } }
   let(:extra_rows) { nil }
+  let(:xlsx_with_json_accept) { 'application/json, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }
   let(:result_path) { result_hud_reports_hopwa_caper_question_path(hopwa_caper_id: report.id, id: question) }
 
   before do
@@ -84,6 +85,35 @@ RSpec.describe HopwaCaper::CellsController, type: :request do
       expect(response).to redirect_to(result_path)
       expect(response.headers['Content-Disposition']).to be_nil
       expect(flash[:alert]).to eq(denial)
+    end
+
+    it 'redirects without a file when the request accepts an xlsx media type alongside another type' do
+      get hud_reports_hopwa_caper_question_cell_path(cell_path_args), headers: { 'Accept' => xlsx_with_json_accept }
+
+      expect(response).to redirect_to(result_path)
+      expect(response.headers['Content-Disposition']).to be_nil
+      expect(flash[:alert]).to eq(denial)
+    end
+  end
+
+  context 'when the question is not complete' do
+    before do
+      grant_project_access(user, hiv_role, [project], mode: :acl)
+      report.universe(question).update!(status: 'Started')
+    end
+
+    it 'redirects to the result page without rendering rows' do
+      get hud_reports_hopwa_caper_question_cell_path(cell_path_args)
+
+      expect(response).to redirect_to(result_path)
+      expect(response.body).not_to include('Ann')
+    end
+
+    it 'redirects the xlsx drilldown without sending a file' do
+      get hud_reports_hopwa_caper_question_cell_path(cell_path_args.merge(format: :xlsx))
+
+      expect(response).to redirect_to(result_path)
+      expect(response.headers['Content-Disposition']).to be_nil
     end
   end
 
