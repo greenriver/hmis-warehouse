@@ -106,13 +106,43 @@ RSpec.describe HopwaCaper::CellsController, type: :request do
       get hud_reports_hopwa_caper_question_cell_path(cell_path_args)
 
       expect(response).to redirect_to(result_path)
-      expect(response.body).not_to include('Ann')
+      expect(flash[:alert]).to eq('This question is not complete yet.')
     end
 
     it 'redirects the xlsx drilldown without sending a file' do
       get hud_reports_hopwa_caper_question_cell_path(cell_path_args.merge(format: :xlsx))
 
       expect(response).to redirect_to(result_path)
+      expect(response.headers['Content-Disposition']).to be_nil
+    end
+  end
+
+  context 'when the table belongs to a different question than the requested one' do
+    let(:other_question) do
+      generator.questions.keys.find do |q|
+        q != question && report.existing_universe(q)&.status == 'Completed' &&
+          !Array(report.existing_universe(q).metadata['tables']).include?(cell.question)
+      end
+    end
+    let(:other_result_path) { result_hud_reports_hopwa_caper_question_path(hopwa_caper_id: report.id, id: other_question) }
+
+    before { grant_project_access(user, hiv_role, [project], mode: :acl) }
+
+    it 'redirects the HTML drilldown to the requested question result' do
+      expect(other_question).to be_present
+
+      get hud_reports_hopwa_caper_question_cell_path(cell_path_args.merge(question_id: other_question))
+
+      expect(response).to redirect_to(other_result_path)
+      expect(flash[:alert]).to eq('This question is not complete yet.')
+    end
+
+    it 'redirects the xlsx drilldown without sending a file' do
+      expect(other_question).to be_present
+
+      get hud_reports_hopwa_caper_question_cell_path(cell_path_args.merge(question_id: other_question, format: :xlsx))
+
+      expect(response).to redirect_to(other_result_path)
       expect(response.headers['Content-Disposition']).to be_nil
     end
   end
