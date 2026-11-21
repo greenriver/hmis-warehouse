@@ -7,10 +7,21 @@
 # frozen_string_literal: true
 
 class GrdaWarehouse::AuthPolicies::HudReportPolicy < GrdaWarehouse::AuthPolicies::BasePolicy
-  # For future use
-  # def can_view?
-  #   ?
-  # end
+  memoize def can_view_definition?
+    url = resource.report_definition_url
+    return false if url.nil?
+
+    GrdaWarehouse::WarehouseReports::ReportDefinition.url_viewable_by?(url, user)
+  end
+
+  memoize def run_visible?
+    HudReports::ReportInstance.viewable_by(user).where(id: resource.id).exists?
+  end
+
+  # The definition check implies can_view_any_reports, so that flag isn't checked separately.
+  memoize def can_view?
+    can_view_definition? && run_visible?
+  end
 
   # No appropriate collection or access group relationship exists; wrap the permission methods on
   # user for backwards compatibility
