@@ -37,8 +37,10 @@ RSpec.describe HmisDataQualityTool::ReportPolicy, type: :model do
 
     it 'follows can_view_all_reports, not can_view_all_hud_reports, for another user\'s run' do
       grant_hud_report(user, HmisDataQualityTool::Report.url, role: create(:role, can_view_assigned_reports: true, can_view_all_hud_reports: true))
+      own_run = dq_tool_report(user)
       other_run = dq_tool_report(create(:user))
 
+      expect(user.policy_for(own_run).can_view?).to be(true)
       expect(user.policy_for(other_run).can_view_definition?).to be(true)
       expect(user.policy_for(other_run).can_view?).to be(false)
     end

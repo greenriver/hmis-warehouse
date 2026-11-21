@@ -107,6 +107,21 @@ RSpec.describe GrdaWarehouse::AuthPolicies::HudReportPolicy, type: :model do
         expect(user.policy_for(other_run).can_view?).to be(true)
       end
 
+      it 'denies a run with no owner without can_view_all_hud_reports' do
+        grant_hud_report(user, 'hud_reports/aprs')
+        ownerless_run = create(:hud_reports_report_instance, user: nil, report_name: apr_title)
+
+        expect(user.policy_for(own_run).can_view?).to be(true)
+        expect(user.policy_for(ownerless_run).can_view?).to be(false)
+      end
+
+      it 'allows a run with no owner with can_view_all_hud_reports' do
+        grant_hud_report(user, 'hud_reports/aprs', role: all_runs_role)
+        ownerless_run = create(:hud_reports_report_instance, user: nil, report_name: apr_title)
+
+        expect(user.policy_for(ownerless_run).can_view?).to be(true)
+      end
+
       it 'denies the user\'s own run when only another report is granted' do
         grant_hud_report(user, 'hud_reports/spms', role: all_runs_role)
         spm_run = create(:hud_reports_report_instance, user: user, report_name: HudSpmReport::Generators::Fy2026::Generator.title)
