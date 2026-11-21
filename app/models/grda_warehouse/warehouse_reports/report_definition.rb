@@ -42,7 +42,12 @@ module GrdaWarehouse::WarehouseReports
       HUD_URLS.fetch(key)
     end
 
+    # Drilldown membership reveals HIV status, so these are granted explicitly
+    # instead of through the system All HUD Reports collection and group.
+    OPT_IN_HUD_URLS = [hud_url(:hopwa_capers)].freeze
+
     scope :hud, -> { where(report_group: HUD_REPORT_GROUP) }
+    scope :system_granted_hud, -> { hud.where.not(url: OPT_IN_HUD_URLS) }
 
     # Report-level gate for code that knows a report only by its index url
     # (HUD sub-pages, exports, cross-report links).

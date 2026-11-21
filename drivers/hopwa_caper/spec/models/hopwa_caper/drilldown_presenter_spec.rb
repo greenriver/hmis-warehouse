@@ -121,5 +121,35 @@ RSpec.describe HopwaCaper::DrilldownPresenter, type: :model do
         expect(val).to include('<li>HOPWA Financial Assistance: Rental assistance</li>')
       end
     end
+
+    context 'with a restricted client' do
+      let(:identifier_fields) { ['personal_id', 'hmis_enrollment_id', 'destination_client_id'] }
+
+      before do
+        grant_project_access(user, create(:role, can_view_hiv_status: true, can_view_client_name: true), [project], mode: :acl)
+      end
+
+      it 'redacts the client identifiers in HTML and Excel' do
+        enrollment_record
+        Hmis::Hud::Client.find(client.id).mark_as_restricted!(user: create(:hmis_user, data_source: data_source))
+
+        [:html, :excel].each do |fmt|
+          presenter = described_class.new([enrollment_record], report, user, format: fmt)
+          expect(presenter.client_restricted?(enrollment_record)).to be(true)
+          identifier_fields.each do |field|
+            expect(presenter.display_value(enrollment_record, field)).to eq(GrdaWarehouse::PiiProvider::REDACTED)
+          end
+        end
+      end
+
+      it 'shows the client identifiers for an unrestricted client' do
+        presenter = described_class.new([enrollment_record], report, user, format: :excel)
+
+        expect(presenter.client_restricted?(enrollment_record)).to be(false)
+        expect(presenter.display_value(enrollment_record, 'personal_id')).to eq(enrollment_record.personal_id)
+        expect(presenter.display_value(enrollment_record, 'hmis_enrollment_id')).to eq(enrollment_record.hmis_enrollment_id)
+        expect(presenter.display_value(enrollment_record, 'destination_client_id')).to eq(enrollment_record.destination_client_id)
+      end
+    end
   end
 end

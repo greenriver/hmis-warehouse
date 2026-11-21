@@ -29,6 +29,16 @@ module HopwaCaper
       redirect_to history_hud_reports_hopwa_capers_path
     end
 
+    helper_method :hiv_drilldowns_allowed?
+
+    private def hiv_drilldowns_allowed?
+      return false unless @report
+
+      return @hiv_drilldowns_allowed if defined?(@hiv_drilldowns_allowed)
+
+      @hiv_drilldowns_allowed = HopwaCaper::HivDrilldownAccess.for_report(user: current_user, report: @report).allowed?
+    end
+
     private def set_question
       @question = generator.valid_question_number(params[:question_id] || params[:id])
     end

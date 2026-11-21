@@ -5,6 +5,16 @@ sources:
   - drivers/hopwa_caper/app/models/hopwa_caper/extensions/hud_reports/report_instance_extension.rb
   - drivers/hopwa_caper/app/models/hopwa_caper/enrollment.rb
   - drivers/hopwa_caper/app/models/hopwa_caper/service.rb
+  - drivers/hopwa_caper/app/models/hopwa_caper/drilldown_presenter.rb
+  - drivers/hopwa_caper/app/models/hopwa_caper/service_drilldown_presenter.rb
+  - drivers/hopwa_caper/app/views/hopwa_caper/cells/_list.haml
+  - drivers/hopwa_caper/app/models/hopwa_caper/hiv_drilldown_access.rb
+  - drivers/hopwa_caper/app/models/hopwa_caper/tasks/grant_existing_access.rb
+  - drivers/hopwa_caper/config/initializers/hopwa_caper_feature.rb
+  - drivers/hopwa_caper/app/controllers/hopwa_caper/cells_controller.rb
+  - drivers/hopwa_caper/app/controllers/hopwa_caper/questions_controller.rb
+  - drivers/hopwa_caper/app/views/hopwa_caper/questions/result.haml
+  - app/models/grda_warehouse/warehouse_reports/report_definition.rb
 ---
 
 # HOPWA CAPER
@@ -21,7 +31,15 @@ The report lives under the HUD Reports, use `HopwaCaper::BaseController` as an e
 - **Uniform client attributes:** After importing enrollments, `ensure_uniform_client_attrs` normalizes age, HIV indicators, and viral load suppression across all enrollments for the same warehouse client. This prevents demographic aggregations from varying when a client has overlapping enrollments with inconsistent intake answers.
 - **Enrichment with Custom Assessment Data:** The pipeline includes a specialized step (`populate_atc_data`) that enriches enrollment records with "Access to Care" outcomes sourced from custom assessments. This process uses a lookback mechanism to find the most recent valid response (Yes/No), ignoring blank or null entries in newer assessments to preserve historical accuracy.
 - **Household eligibility tagging:** `update_hopwa_eligibility` assigns a single HOPWA-eligible member per household (preferring an HIV-positive head of household). This resolves cases where multiple members qualify.
-- **Universe links:** `HopwaCaper::Enrollment` inherits from `HudReports::ReportClientBase` and exposes `as_report_members` helpers that register records as `HudReports::UniverseMember`. This connects enrollments to HUD report drill-downs and client detail tables. Services are not registered as universe members but are presented as summaries within enrollment drill-downs.
+- **Universe links:** `HopwaCaper::Enrollment` inherits from `HudReports::ReportClientBase` and exposes `as_report_members` helpers that register records as `HudReports::UniverseMember`. This connects enrollments to HUD report drill-downs and client detail tables. `HopwaCaper::Service` also registers as universe members (see `service.rb`), so a cell's drilldown can list both enrollments and services.
+
+## Access and drilldowns
+Drilldown membership reveals which clients are HIV positive, so HOPWA CAPER access is stricter than for other HUD reports.
+
+- **Opt-in report access.** The HOPWA CAPER definition is not in the system "All HUD Reports" collection or access group (`ReportDefinition::OPT_IN_HUD_URLS`, `ReportDefinition.system_granted_hud`). Put it in a Collection bound to a Role with `can_view_assigned_reports`, or add it to a legacy access group, to give users the report.
+- **Drilldown links.** The question result page shows cell links only when `HopwaCaper::HivDrilldownAccess` allows the whole report: the user must have `can_view_hiv_status?` on the project of every enrollment and service row. Restricted clients do not block access. Their rows show redacted name and date of birth (from the restricted PII policy) and `Redacted` for HMIS Personal ID, HMIS Enrollment ID, Warehouse Client ID, and (on service rows) HMIS Service ID, with no client link or HMIS link (see [PII and restricted clients](pii-and-restricted-clients.md)).
+- **Each request is checked again.** `CellsController#show` repeats the check for the rows in the requested cell and redirects back to the question result page when it fails. Hiding the links is not the protection. Drilldowns open only for completed questions; otherwise the request redirects to the result page.
+- **No redaction.** Drilldowns do not blank HIV fields for users who lack project access. Access is all-or-nothing per request; on restricted clients' rows only the identifiers and name and date of birth are redacted. HIV and other non-identifying fields stay visible.
 
 ## Household Counting Methodology
 Household counts follow the HUD HMIS reporting glossary definition: "distinct count of personal IDs of all heads of households." When a household has multiple enrollments during the reporting period (e.g., enrolling at different projects), they are counted only once by deduplicating on the HoH.
