@@ -7,6 +7,17 @@
         "link_id": "az_education",
         "text": "Education",
         "data_collected_about": "HOH_AND_ADULTS",
+        "custom_rule": {
+          "operator": "ALL",
+          "_comment": "collect for all projects except Coordinated Entry. TODO #6395/#10030: scope to a CoC-specific project group.",
+          "parts": [
+            {
+              "variable": "projectType",
+              "operator": "NOT_EQUAL",
+              "value": 14
+            }
+          ]
+        },
         "item": [
           {
             "type": "CHOICE",
@@ -47,6 +58,17 @@
         "link_id": "az_education",
         "text": "Education",
         "data_collected_about": "HOH_AND_ADULTS",
+        "custom_rule": {
+          "operator": "ALL",
+          "_comment": "collect for all projects except Coordinated Entry. TODO #6395/#10030: scope to a CoC-specific project group.",
+          "parts": [
+            {
+              "variable": "projectType",
+              "operator": "NOT_EQUAL",
+              "value": 14
+            }
+          ]
+        },
         "item": [
           {
             "type": "CHOICE",

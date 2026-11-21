@@ -1,0 +1,350 @@
+[
+  {
+    "link_id": "q_3_917A",
+    "_comment": "Homelessness Primary Reason at the top and Zip Code of Last Permanent Address at the bottom of Prior Living Situation. Link IDs differ between the A and B versions because both are on the Intake; they save to the same custom fields.",
+    "prepend_items": [
+      {
+        "type": "CHOICE",
+        "link_id": "primaryreasonforhomle_a",
+        "text": "Homelessness Primary Reason",
+        "required": false,
+        "warn_if_empty": false,
+        "mapping": {
+          "record_type": "ENROLLMENT",
+          "custom_field_key": "mar_primaryreasonforhomle"
+        },
+        "pick_list_options": [
+          {
+            "code": "Aged Out of Foster Care"
+          },
+          {
+            "code": "Client NOT Homeless"
+          },
+          {
+            "code": "COVID-19/Coronavirus"
+          },
+          {
+            "code": "Exploitation/Human Trafficking"
+          },
+          {
+            "code": "Family Dispute/Overcrowding/Kicked-Out"
+          },
+          {
+            "code": "Loss of Employment"
+          },
+          {
+            "code": "Loss of Non-Employment Income or No Financial Resources"
+          },
+          {
+            "code": "Medical Problems"
+          },
+          {
+            "code": "Mental Health Concerns"
+          },
+          {
+            "code": "Moved to Seek Work"
+          },
+          {
+            "code": "Natural Disaster/Fire"
+          },
+          {
+            "code": "New to Area"
+          },
+          {
+            "code": "Release from Jail/Prison/Juvenile Hall"
+          },
+          {
+            "code": "Substance Use/Alcohol Dependency Concerns"
+          },
+          {
+            "code": "Transient/Choice"
+          },
+          {
+            "code": "Unable to Find Affordable Housing"
+          },
+          {
+            "code": "Unsafe Living Environment - Not Violence Related"
+          },
+          {
+            "code": "Unsafe Living Environment - Violence/Domestic Abuse"
+          },
+          {
+            "code": "Client Refused"
+          },
+          {
+            "code": "Other"
+          }
+        ]
+      }
+    ],
+    "append_items": [
+      {
+        "type": "STRING",
+        "link_id": "hud_zipcodelastpermaddr_a",
+        "text": "Zip Code of Last Permanent Address",
+        "required": false,
+        "warn_if_empty": false,
+        "mapping": {
+          "record_type": "ENROLLMENT",
+          "custom_field_key": "mar_hud_zipcodelastpermaddr"
+        }
+      }
+    ]
+  },
+  {
+    "link_id": "q_3_917A_1_subsidy_group",
+    "_comment": "Location of Prior Residence directly under the Prior Living Situation question. This untitled group immediately follows it.",
+    "prepend_items": [
+      {
+        "type": "CHOICE",
+        "link_id": "locationofpriorreside_a",
+        "text": "Location of Prior Residence",
+        "required": false,
+        "warn_if_empty": false,
+        "mapping": {
+          "record_type": "ENROLLMENT",
+          "custom_field_key": "mar_locationofpriorreside"
+        },
+        "pick_list_options": [
+          {
+            "code": "Avondale"
+          },
+          {
+            "code": "Buckeye"
+          },
+          {
+            "code": "Chandler"
+          },
+          {
+            "code": "Fountain Hills"
+          },
+          {
+            "code": "Gilbert"
+          },
+          {
+            "code": "Glendale"
+          },
+          {
+            "code": "Goodyear"
+          },
+          {
+            "code": "Mesa"
+          },
+          {
+            "code": "Peoria"
+          },
+          {
+            "code": "Phoenix"
+          },
+          {
+            "code": "Scottsdale"
+          },
+          {
+            "code": "Surprise"
+          },
+          {
+            "code": "Tempe"
+          },
+          {
+            "code": "Tolleson"
+          },
+          {
+            "code": "Tonopah"
+          },
+          {
+            "code": "Other city in Maricopa County"
+          },
+          {
+            "code": "Outside Maricopa County but inside Arizona"
+          },
+          {
+            "code": "Outside Arizona"
+          },
+          {
+            "code": "Client Doesn't Know"
+          },
+          {
+            "code": "Client Refused"
+          },
+          {
+            "code": "Data Not Collected"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "link_id": "q_3_917B",
+    "_comment": "Homelessness Primary Reason at the top and Zip Code of Last Permanent Address at the bottom of Prior Living Situation. Link IDs differ between the A and B versions because both are on the Intake; they save to the same custom fields.",
+    "prepend_items": [
+      {
+        "type": "CHOICE",
+        "link_id": "primaryreasonforhomle",
+        "text": "Homelessness Primary Reason",
+        "required": false,
+        "warn_if_empty": false,
+        "mapping": {
+          "record_type": "ENROLLMENT",
+          "custom_field_key": "mar_primaryreasonforhomle"
+        },
+        "pick_list_options": [
+          {
+            "code": "Aged Out of Foster Care"
+          },
+          {
+            "code": "Client NOT Homeless"
+          },
+          {
+            "code": "COVID-19/Coronavirus"
+          },
+          {
+            "code": "Exploitation/Human Trafficking"
+          },
+          {
+            "code": "Family Dispute/Overcrowding/Kicked-Out"
+          },
+          {
+            "code": "Loss of Employment"
+          },
+          {
+            "code": "Loss of Non-Employment Income or No Financial Resources"
+          },
+          {
+            "code": "Medical Problems"
+          },
+          {
+            "code": "Mental Health Concerns"
+          },
+          {
+            "code": "Moved to Seek Work"
+          },
+          {
+            "code": "Natural Disaster/Fire"
+          },
+          {
+            "code": "New to Area"
+          },
+          {
+            "code": "Release from Jail/Prison/Juvenile Hall"
+          },
+          {
+            "code": "Substance Use/Alcohol Dependency Concerns"
+          },
+          {
+            "code": "Transient/Choice"
+          },
+          {
+            "code": "Unable to Find Affordable Housing"
+          },
+          {
+            "code": "Unsafe Living Environment - Not Violence Related"
+          },
+          {
+            "code": "Unsafe Living Environment - Violence/Domestic Abuse"
+          },
+          {
+            "code": "Client Refused"
+          },
+          {
+            "code": "Other"
+          }
+        ]
+      }
+    ],
+    "append_items": [
+      {
+        "type": "STRING",
+        "link_id": "hud_zipcodelastpermaddr",
+        "text": "Zip Code of Last Permanent Address",
+        "required": false,
+        "warn_if_empty": false,
+        "mapping": {
+          "record_type": "ENROLLMENT",
+          "custom_field_key": "mar_hud_zipcodelastpermaddr"
+        }
+      }
+    ]
+  },
+  {
+    "link_id": "q_3_917B_1_subsidy_group",
+    "_comment": "Location of Prior Residence directly under the Prior Living Situation question. This untitled group immediately follows it.",
+    "prepend_items": [
+      {
+        "type": "CHOICE",
+        "link_id": "locationofpriorreside",
+        "text": "Location of Prior Residence",
+        "required": false,
+        "warn_if_empty": false,
+        "mapping": {
+          "record_type": "ENROLLMENT",
+          "custom_field_key": "mar_locationofpriorreside"
+        },
+        "pick_list_options": [
+          {
+            "code": "Avondale"
+          },
+          {
+            "code": "Buckeye"
+          },
+          {
+            "code": "Chandler"
+          },
+          {
+            "code": "Fountain Hills"
+          },
+          {
+            "code": "Gilbert"
+          },
+          {
+            "code": "Glendale"
+          },
+          {
+            "code": "Goodyear"
+          },
+          {
+            "code": "Mesa"
+          },
+          {
+            "code": "Peoria"
+          },
+          {
+            "code": "Phoenix"
+          },
+          {
+            "code": "Scottsdale"
+          },
+          {
+            "code": "Surprise"
+          },
+          {
+            "code": "Tempe"
+          },
+          {
+            "code": "Tolleson"
+          },
+          {
+            "code": "Tonopah"
+          },
+          {
+            "code": "Other city in Maricopa County"
+          },
+          {
+            "code": "Outside Maricopa County but inside Arizona"
+          },
+          {
+            "code": "Outside Arizona"
+          },
+          {
+            "code": "Client Doesn't Know"
+          },
+          {
+            "code": "Client Refused"
+          },
+          {
+            "code": "Data Not Collected"
+          }
+        ]
+      }
+    ]
+  }
+]
