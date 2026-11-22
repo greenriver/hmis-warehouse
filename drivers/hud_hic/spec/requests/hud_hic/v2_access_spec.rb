@@ -15,7 +15,6 @@ RSpec.describe 'HIC v2 access', type: :request do
     let(:index_path) { hud_reports_hics_path }
     let(:history_path) { history_hud_reports_hics_path }
     let(:report_path_for) { ->(run) { hud_reports_hic_path(run) } }
-
   end
 
   describe 'past run with a populated table' do
