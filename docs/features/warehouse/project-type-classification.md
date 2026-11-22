@@ -9,7 +9,7 @@ sources:
 
 # Project Type Classification
 
-HUD assigns every project one `ProjectType`. Warehouse logic seldom asks about a single type. It asks whether a project is residential, homeless, or permanent housing. This doc covers the groupings that answer those questions, defined in `HudHelper.util`, and the scopes and predicates built on them in `GrdaWarehouse::Hud::Project`, `GrdaWarehouse::ServiceHistoryEnrollment`, and `GrdaWarehouse::ServiceHistoryService`. The HUD code lists themselves, and how `HudHelper.util` picks a fiscal-year version, are in [HUD Utility Versions](hud-utility-versions.md).
+HUD assigns every project one `ProjectType`. Warehouse logic often asks about groups of types instead, such as whether a project is residential, homeless, or permanent housing. This doc covers the groupings that answer those questions, defined in `HudHelper.util`, and the scopes and predicates built on them in `GrdaWarehouse::Hud::Project`, `GrdaWarehouse::ServiceHistoryEnrollment`, and `GrdaWarehouse::ServiceHistoryService`. The HUD code lists themselves, and how `HudHelper.util` picks a fiscal-year version, are in [HUD Utility Versions](hud-utility-versions.md).
 
 ## The groupings
 

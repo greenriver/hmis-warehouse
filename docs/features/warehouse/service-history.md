@@ -26,7 +26,7 @@ This doc covers how service history is built, when it is rebuilt, and that cache
 
 - **`ServiceHistoryEnrollment`**: Each HUD enrollment produces one or more `ServiceHistoryEnrollment` rows that mark the lifecycle of the enrollment. We always create an `entry` record and we add an `exit` record when the enrollment closes. These markers allow downstream jobs to reason about the enrollment span independently of the daily service rows.
 - **`ServiceHistoryService`**: This model stores the daily activity generated for a `ServiceHistoryEnrollment`. It represents days for both source services and synthetic days representing CLS in Street Outreach programs. This is time-series data; it is extremely large and partitioned by year to keep it manageable.
-- **`ServiceHistoryServiceMaterialized`**: Rails model backed by a materialized view that flattens the sharded `service_history_services` partitions for per-client and ad-hoc analytic queries. The `WarehouseClientsProcessed` homeless-day counts read it instead of the live partitions.
+- **`ServiceHistoryServiceMaterialized`**: Rails model backed by a materialized view that flattens the `service_history_services` partitions into a single table. Both exist because they serve different query shapes: the partitioned table is fast for many clients over a short date range (a few years), and the view is indexed for one client's entire history. The `WarehouseClientsProcessed` homeless-day counts read the view. See [Storage & Performance Considerations](#storage--performance-considerations).
 
 ## Service History Generation
 
