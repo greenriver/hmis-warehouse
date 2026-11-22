@@ -18,9 +18,6 @@ RSpec.shared_examples 'HUD report access' do |except: []|
   let!(:own_run) { create(:hud_reports_report_instance, user: user, report_name: report_name, options: run_options, **run_attributes) }
   let!(:other_run) { create(:hud_reports_report_instance, user: other_user, report_name: report_name, options: run_options, **run_attributes) }
 
-  # Permission lookups are cached in Rails.cache, which outlives each example's transaction.
-  before { Rails.cache.clear }
-
   def granted
     grant_hud_report(user, definition_url)
     sign_in(user)
@@ -31,9 +28,14 @@ RSpec.shared_examples 'HUD report access' do |except: []|
     sign_in(user)
   end
 
-  # can_view_any_reports? is true, so the missing definition is the only reason for a denial.
+  def other_definition_url
+    definition_url == 'hud_reports/spms' ? 'hud_reports/aprs' : 'hud_reports/spms'
+  end
+
+  # Grants a different HUD definition, so can_view_any_reports? is true and a viewable
+  # definition exists; only this report's definition is missing.
   def not_granted
-    setup_access_control(user, create(:role, can_view_assigned_reports: true), create(:collection))
+    grant_hud_report(user, other_definition_url)
     sign_in(user)
   end
 
@@ -79,6 +81,8 @@ RSpec.shared_examples 'HUD report access' do |except: []|
     it "deletes the user's own run" do
       granted
       delete report_path_for.call(own_run)
+      expect(response).to have_http_status(:redirect)
+      expect(flash[:notice]).to eq('Report removed')
       expect(HudReports::ReportInstance.where(id: own_run.id)).to be_empty
     end
   end

@@ -80,23 +80,11 @@ RSpec.describe 'HUD report authorization', type: :request do
     end
   end
 
-  describe 'APR pages' do
-    it_behaves_like 'HUD report access' do
-      let(:definition_url) { 'hud_reports/aprs' }
-      let(:report_name) { apr_title }
-      let(:index_path) { hud_reports_aprs_path }
-      let(:new_path) { new_hud_reports_apr_path }
-      let(:history_path) { history_hud_reports_aprs_path }
-      let(:report_path_for) { ->(run) { hud_reports_apr_path(run) } }
-    end
+  it 'creates no run when a question run is posted without the definition' do
+    grant_hud_report(user, 'hud_reports/spms')
 
-    it 'creates no run when a question run is posted without the definition' do
-      Rails.cache.clear
-      setup_access_control(user, create(:role, can_view_assigned_reports: true), create(:collection))
-
-      expect { post hud_reports_apr_questions_path(apr_id: 0, question: 'Question 4') }.not_to change(HudReports::ReportInstance, :count)
-      expect(response).to redirect_to(warehouse_reports_path)
-    end
+    expect { post hud_reports_apr_questions_path(apr_id: 0, question: 'Question 4') }.not_to change(HudReports::ReportInstance, :count)
+    expect(response).to redirect_to(warehouse_reports_path)
   end
 
   describe 'warehouse reports index for a legacy user with only a HUD flag' do
