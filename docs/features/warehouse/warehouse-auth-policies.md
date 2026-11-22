@@ -8,6 +8,7 @@ sources:
   - app/models/hud_reports/report_instance.rb
   - app/models/grda_warehouse/auth_policies/hopwa_caper_report_policy.rb
   - app/models/grda_warehouse/auth_policies/hmis_data_quality_tool_report_policy.rb
+  - app/controllers/hud_reports/base_controller.rb
   - app/models/grda_warehouse/auth_policies/cohort_pii_policy.rb
   - app/models/grda_warehouse/pii_provider.rb
   - app/controllers/concerns/controller_authorization_v2.rb
@@ -76,6 +77,8 @@ Get policies from `user.policy_for` and `user.policy_context`, which are memoize
 ### Controller authorization gotchas
 
 `authorize_with` blocks run as `before_action`s in controller instance scope, so any instance variable they read must be set by an earlier `before_action` (for example `set_project`).
+
+When an action loads its record in the action body, or a subclass re-declares the loader `before_action` (Rails moves it to the end of the chain), the `authorize_with` block can't rely on the loader having run. Load the record in a memoized method that the block calls. `HudReports::BaseController#report_for_authorization` is the example. An `authorize_with` block must return `true` or `false`; coerce predicates that can return `nil`.
 
 ## Usage
 
