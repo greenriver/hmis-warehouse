@@ -1,9 +1,0 @@
-.hud-report-options
-  %h2 Required Options
-  .row
-    .col-sm-3
-      = f.input :on, as: :date_picker, label: 'Date', required: true
-      = f.input :report_version, as: :hidden, input_html: { value: default_report_version}
-    .col-sm-6
-      = f.input :coc_codes, collection: @filter.coc_code_options_for_select(user: current_user), as: :select_two, input_html: {multiple: true, placeholder: 'Please Choose', data: {'filter-projects-target' => 'cocCodes', 'action': 'change->filter-projects#update'}}, label: 'CoC Codes', hint: default_coc_code
-  = render 'hud_reports/project_filter', f: f, api_projects_parameters: { project_types: @filter.default_project_type_codes }
