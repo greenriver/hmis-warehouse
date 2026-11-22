@@ -91,6 +91,7 @@ RSpec.describe 'HUD report authorization', type: :request do
     end
 
     it 'creates no run when a question run is posted without the definition' do
+      Rails.cache.clear
       setup_access_control(user, create(:role, can_view_assigned_reports: true), create(:collection))
 
       expect { post hud_reports_apr_questions_path(apr_id: 0, question: 'Question 4') }.not_to change(HudReports::ReportInstance, :count)

@@ -21,6 +21,7 @@ RSpec.describe 'SPM v2 access', type: :request do
 
     it 'opens a legacy SPM report for a user granted the SPM definition' do
       granted
+      expect(HudReports::ReportInstance.where(id: legacy_report.id)).to be_empty
       get hud_reports_legacy_spm_path(legacy_report)
       expect(response).to have_http_status(:ok)
       expect(response.body).to include(legacy_report.name)
@@ -28,6 +29,7 @@ RSpec.describe 'SPM v2 access', type: :request do
 
     it 'redirects the legacy SPM report when the SPM definition is not granted' do
       not_granted
+      expect(HudReports::ReportInstance.where(id: legacy_report.id)).to be_empty
       get hud_reports_legacy_spm_path(legacy_report)
       expect(response).to redirect_to(warehouse_reports_path)
       expect(flash[:alert]).to eq('Sorry you are not authorized to do that.')
