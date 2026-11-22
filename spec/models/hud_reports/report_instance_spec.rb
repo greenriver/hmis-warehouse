@@ -53,6 +53,29 @@ RSpec.describe HudReports::ReportInstance, type: :model do
     end
   end
 
+  describe '.reset_report_definition_urls!' do
+    let(:alias_name) { 'HudLsa::Generators::Fy2024::Lsa' }
+    let(:aliases) { Rails.application.config.hud_report_definition_aliases }
+    let(:urls) { GrdaWarehouse::WarehouseReports::ReportDefinition::HUD_URLS }
+
+    it 'makes a changed alias registry visible to later lookups' do
+      original = aliases.fetch(alias_name)
+      title = alias_name.constantize.title
+      expect(described_class.report_definition_url_for(title)).to eq(urls[:lsas])
+
+      begin
+        aliases[alias_name] = { helper: 'hud_reports_dqs_path' }
+        expect(described_class.report_definition_url_for(title)).to eq(urls[:lsas])
+
+        described_class.reset_report_definition_urls!
+        expect(described_class.report_definition_url_for(title)).to eq(urls[:dqs])
+      ensure
+        aliases[alias_name] = original
+        described_class.reset_report_definition_urls!
+      end
+    end
+  end
+
   describe '.viewable_by' do
     let(:user) { create(:acl_user) }
     let!(:own_report) { described_class.create!(report_name: 'Test Report', user_id: user.id, question_names: ['test']) }

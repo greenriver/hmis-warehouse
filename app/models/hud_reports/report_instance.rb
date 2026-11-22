@@ -62,10 +62,14 @@ module HudReports
       GrdaWarehouse::AuthPolicies::HudReportPolicy
     end
 
-    # Built once from both registries; a spec that stubs or changes either registry must reset
-    # HudReports::ReportInstance.instance_variable_set(:@report_definition_urls, nil) before and after.
+    # Built once from both registries; a spec that stubs or changes either registry must call
+    # reset_report_definition_urls! afterwards.
     def self.report_definition_url_for(report_name)
       report_definition_urls[report_name]
+    end
+
+    def self.reset_report_definition_urls!
+      HudReports::ReportInstance.instance_variable_set(:@report_definition_urls, nil)
     end
 
     def self.report_definition_urls
