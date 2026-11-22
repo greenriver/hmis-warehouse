@@ -43,9 +43,7 @@ graph TD
     F --> H
 ```
 
-A source client with no `WarehouseClient` row is **unprocessed**. `identify_duplicates` links unprocessed sources to destinations. `match_existing!` merges destinations that are already linked.
-
-The second operation is needed because a destination can become a duplicate after it is linked. When a source client's name, SSN, or DOB is corrected, two destinations that did not match before can now match on 2 of 3 fields. Keeping the two operations separate means linking new clients never re-evaluates every existing pair. The costly scan for destinations to merge runs only in `match_existing!`.
+A source client with no `WarehouseClient` row is **unprocessed**. `identify_duplicates` links each unprocessed source client to a destination. `match_existing!` merges destinations that are already linked, which catches duplicates that appear after linking. For example, a record entered with no SSN and a mistyped DOB gets its own destination. Once the DOB is corrected, it [matches](#how-a-match-is-decided) the person's other destination, and `match_existing!` merges the two.
 
 Pitfalls when querying:
 
@@ -72,9 +70,7 @@ The HMIS callbacks fire only on saves through the model. `update_columns`, `upda
 
 `Hmis::Hud::Client` recomputes `source_hash` on every save. That hash is the change detector for the warehouse import (see [HMIS CSV Importer](hmis-csv-importer.md)), not a dedup trigger.
 
-### Order in the daily job
-
-`RunDailyImportsJob` runs consent updates, HMIS form updates, and the CAS sync, then Identify Duplicates, then `ClientCleanup`, then service history generation. `ClientCleanup` runs a second time in the "Finalize client history" task. Statistical candidate generation (`create_statistical_matches`) runs in the final "System maintenance" task.
+In `RunDailyImportsJob`, deduplication runs before `ClientCleanup` and service history generation, so a merge made tonight is reflected in tonight's service history. Statistical candidates are generated near the end of the job, after `ClientMatch.auto_process!` has run, so new candidates aren't auto-accepted or auto-rejected until the next night.
 
 ## How a match is decided
 
