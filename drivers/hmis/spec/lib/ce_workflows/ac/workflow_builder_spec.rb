@@ -78,7 +78,7 @@ RSpec.describe CeWorkflows::Ac::WorkflowBuilder do
       expect { obh_psh_template.validate! }.not_to raise_error
     end
 
-    it 'names the user tasks as listed in the issue' do
+    it 'uses the OBH PSH task names' do
       expect(tasks.map(&:name).uniq).to contain_exactly(
         'Initial Review',
         'Initial Referral Source Engagement',
