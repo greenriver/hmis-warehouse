@@ -142,6 +142,25 @@ RSpec.describe HopwaCaper::DrilldownPresenter, type: :model do
         end
       end
 
+      # Intentional exception to restriction redaction; the rationale is in
+      # docs/features/warehouse/hopwa-caper.md under "No HIV redaction".
+      it 'shows HIV fields on a restricted client row while redacting the name' do
+        enrollment_record
+        Hmis::Hud::Client.find(client.id).mark_as_restricted!(user: create(:hmis_user, data_source: data_source))
+        hiv_fields = ['hiv_positive', 'viral_load_suppression', 'ever_prescribed_anti_retroviral_therapy']
+        expect(hiv_fields.map { |field| enrollment_record.public_send(field) }).to eq([true, true, true])
+
+        html_presenter = described_class.new([enrollment_record], report, user, format: :html)
+        excel_presenter = described_class.new([enrollment_record], report, user, format: :excel)
+        expect(excel_presenter.client_restricted?(enrollment_record)).to be(true)
+        expect(excel_presenter.display_value(enrollment_record, 'first_name')).to eq(GrdaWarehouse::PiiProvider::REDACTED)
+
+        hiv_fields.each do |field|
+          expect(excel_presenter.display_value(enrollment_record, field)).to eq('Yes')
+          expect(html_presenter.display_value(enrollment_record, field)).to include('icon-checkmark')
+        end
+      end
+
       it 'shows the client identifiers for an unrestricted client' do
         presenter = described_class.new([enrollment_record], report, user, format: :excel)
 
