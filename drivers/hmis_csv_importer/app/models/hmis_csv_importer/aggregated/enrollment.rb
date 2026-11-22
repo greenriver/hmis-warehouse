@@ -9,6 +9,7 @@
 module HmisCsvImporter::Aggregated
   class Enrollment < GrdaWarehouse::Hud::Base
     include ::HmisStructure::Enrollment
+    include ::HmisStructure::EnrollmentAddressPii
     include HmisCsvImporter::Importer::ImportConcern
     include AggregatedImportConcern
 

@@ -8,6 +8,16 @@
 
 module EccoviaData
   class ClientContact < GrdaWarehouseBase
+    include HasPiiAttributes
+
+    pii_attr :email
+    pii_attr :phone
+    pii_attr :cell, as: :phone
+    pii_attr :city, as: :geo_locality
+    pii_attr :street, as: :geo_street
+    pii_attr :street2, as: :geo_street
+    pii_attr :zip, as: :geo_postal_code
+
     include Shared
     self.table_name = :eccovia_client_contacts
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', foreign_key: [:client_id, :data_source_id], primary_key: [:PersonalID, :data_source_id]

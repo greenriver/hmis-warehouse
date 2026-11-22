@@ -8,6 +8,11 @@
 
 module EccoviaData
   class Assessment < GrdaWarehouseBase
+    include HasPiiAttributes
+
+    pii_attr :assessor_email, as: :email
+    pii_attr :assessor_name, as: :full_name
+
     include Shared
     self.table_name = :eccovia_assessments
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', foreign_key: [:client_id, :data_source_id], primary_key: [:PersonalID, :data_source_id]

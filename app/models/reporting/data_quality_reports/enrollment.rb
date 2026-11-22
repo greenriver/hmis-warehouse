@@ -92,6 +92,9 @@ module Reporting::DataQualityReports
     pii_attr :dob
     pii_attr :age
     pii_attr :ssn
+    pii_attr :encrypted_first_name, as: :first_name
+    pii_attr :encrypted_last_name, as: :last_name
+    pii_attr :encrypted_ssn, as: :ssn
 
     COMPLETE = [1, 2].freeze
     REFUSED = [8, 9].freeze

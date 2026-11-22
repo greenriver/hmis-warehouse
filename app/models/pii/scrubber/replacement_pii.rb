@@ -23,6 +23,9 @@ module Pii::Scrubber
       phone: '2125550100',
       geo_street: 'Street%{id}',
       geo_postal_code: '00000',
+      free_text: 'Note%{id}',
+      json: {}.freeze,
+      json_text: '{}',
     }.freeze
 
     def self.static_type?(field)
@@ -34,7 +37,8 @@ module Pii::Scrubber
       raise "can't scrub required field '#{field.description}'" unless static_type?(field)
       return rounded_dob(field.real_value) if field.type == :dob
 
-      format(STATIC_TYPE_VALUES[field.type], id: id)
+      value = STATIC_TYPE_VALUES[field.type]
+      value.is_a?(String) ? format(value, id: id) : value
     end
 
     # January 1 of the nearest birth year divisible by 5, rounded down when that would be in the future
