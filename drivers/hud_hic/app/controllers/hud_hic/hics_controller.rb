@@ -51,7 +51,7 @@ module HudHic
       result_hud_reports_hic_question_path(hic_id: report&.id || 0, id: question)
     end
 
-    # HIC cells have no drilldown page; nil tells hud_reports/_table to leave the count unlinked.
+    # HIC cells have no drilldown page. hud_reports/_table builds a cell path even when links are off.
     private def path_for_cell(**)
       nil
     end
