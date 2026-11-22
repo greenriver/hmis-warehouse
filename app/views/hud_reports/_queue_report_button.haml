@@ -1,3 +1,5 @@
-= f.button :submit, value: 'Queue Report', disabled: !runnable_report_version?, data: { 'filter-projects-target' => 'submitButton' }
-- unless runnable_report_version?
-  %span.text-muted.ml-2 This report version can no longer be run.
+- if runnable_report_version?
+  = f.button :submit, value: 'Queue Report', data: { 'filter-projects-target' => 'submitButton' }
+- else
+  -# filter_projects_controller requires a submitButton target, so the message carries it in place of the button.
+  %span.text-muted{ data: { 'filter-projects-target' => 'submitButton' } } This report version can no longer be run.

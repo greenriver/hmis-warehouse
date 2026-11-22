@@ -125,19 +125,21 @@ RSpec.describe 'Queueing HUD report versions', type: :request, exclude_fixpoints
     before { grant_hud_report(user, 'hud_reports/aprs', role: role) }
 
     def queue_button
-      Nokogiri::HTML(response.body).at_css('input[type=submit][value="Queue Report"]')
+      Nokogiri::HTML(response.body).at_css('[data-filter-projects-target=submitButton]')
     end
 
-    it 'disables the queue button and explains why for an old version' do
+    it 'replaces the queue button with an explanation for an old version' do
       get new_hud_reports_apr_path, params: { filter: { report_version: 'fy2023' } }
 
-      expect(queue_button['disabled']).to eq('disabled')
-      expect(response.body).to include(refusal)
+      doc = Nokogiri::HTML(response.body)
+      expect(doc.css('input[type=submit], button[type=submit]')).to be_empty
+      expect(queue_button.text.strip).to eq(refusal)
     end
 
     it 'leaves the queue button enabled for the current version' do
       get new_hud_reports_apr_path, params: { filter: { report_version: active_slug(HudApr::AprsController).to_s } }
 
+      expect(queue_button['type']).to eq('submit')
       expect(queue_button['disabled']).to be_nil
       expect(response.body).not_to include(refusal)
     end
@@ -154,6 +156,20 @@ RSpec.describe 'Queueing HUD report versions', type: :request, exclude_fixpoints
       end
 
       expect(active_counts.select { |_, count| count > 1 }).to eq({})
+    end
+
+    it 'maps each active version to a generator' do
+      Rails.application.eager_load!
+      missing = HudReports::BaseController.descendants.flat_map do |controller|
+        instance = controller.new
+        next [] unless instance.respond_to?(:possible_generator_classes, true)
+
+        instance.available_report_versions.values.select { |version| version[:active] }.filter_map do |version|
+          "#{controller.name} #{version[:slug]}" if instance.send(:possible_generator_classes)[version[:slug]].blank?
+        end
+      end
+
+      expect(missing).to eq([])
     end
   end
 end
