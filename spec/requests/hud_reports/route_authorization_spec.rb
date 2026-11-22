@@ -1,0 +1,51 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+# frozen_string_literal: true
+
+require 'rails_helper'
+
+RSpec.describe 'HUD report route authorization', type: :request do
+  let(:user) { create(:acl_user) }
+
+  # Routes are enumerated when an example runs, after every driver has loaded its routes.
+  def hud_routes
+    Rails.application.routes.routes.select do |route|
+      controller_class = "#{route.defaults[:controller]}_controller".camelize.safe_constantize
+      next false unless controller_class.is_a?(Class) && controller_class <= HudReports::BaseController
+
+      controller_class.action_methods.include?(route.defaults[:action])
+    end
+  end
+
+  def path_for(route)
+    route.format(route.required_parts.index_with('1'))
+  end
+
+  before do
+    Rails.cache.clear
+    sign_in(user)
+    setup_access_control(user, create(:role, can_view_assigned_reports: true), create(:collection))
+  end
+
+  it 'covers every HUD report driver' do
+    expect(hud_routes.map { |r| r.defaults[:controller] }.uniq).to include(
+      'hud_apr/aprs', 'hud_apr/apr/cells', 'hud_apr/apr/cells/search_queries', 'hud_data_quality_report/dqs',
+      'hud_data_quality_report/questions', 'hud_hic/hics', 'hud_lsa/lsas', 'hud_lsa/lsa_hics', 'hud_path_report/paths',
+      'hud_pit/cells', 'hud_spm_report/spms', 'hud_spm_report/legacy_spms', 'hopwa_caper/reports', 'hopwa_caper/cells'
+    )
+    expect(hud_routes.size).to be >= 150
+  end
+
+  it 'redirects every routed HUD report action with the not-authorized alert when the definition is not granted' do
+    hud_routes.each do |route|
+      path = path_for(route)
+      public_send(route.verb.downcase, path)
+      expect(response).to redirect_to(warehouse_reports_path), "#{route.verb} #{path}"
+      expect(flash[:alert]).to eq('Sorry you are not authorized to do that.'), "#{route.verb} #{path}"
+    end
+  end
+end
