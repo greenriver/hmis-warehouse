@@ -51,7 +51,7 @@ Pitfalls when querying:
 
 - A `Hud::Client` id in a URL, cohort, or report is a destination id.
 - `Hud::Client.where(...)` with no `.source` or `.destination` scope returns both kinds of row. Go from a destination to HUD data through `source_clients`, and from a source to the person through `destination_client`.
-- `WarehouseClient` does not use `acts_as_paranoid`. Its `deleted_at` is set by `ClientCleanup`: a run that finds destinations with no live source client left clears it on every row, then sets it on those destinations' links. A run that finds none leaves `deleted_at` alone, so `deleted_at` is not a reliable sign that a link is live.
+- `WarehouseClient` does not use `acts_as_paranoid`. Its `deleted_at` is set by `ClientCleanup`: a run that finds destinations with no live source client left clears it on every row, then sets it on those destinations' links. A run that finds none leaves `deleted_at` alone, so `deleted_at` is not a reliable sign that a link is live. `ClientCleanup` maintains the column because OP Analytics tooling reads it.
 
 ## When deduplication runs
 
@@ -150,7 +150,7 @@ Step 1 and `ClientCleanup` handle opposite failures in the same link. Step 1 res
 1. Returns if `enable_auto_deduplication` is off.
 2. Collects destination pairs that match on at least 2 of 3 fields, and drops any pair that has a `ClientSplitHistory` row.
 3. Groups the pairs into chains (`group_merge_chains`), each merged into a root destination. Chains are transitive, so A, B, and C can merge in one run even if A and C were never paired directly. Depending on id order, a member can be left out of the chain and merge on the next run instead.
-4. Splits each chain so no destination ends up with more than `MAX_SOURCE_CLIENTS` source clients.
+4. Checks each chain against `MAX_SOURCE_CLIENTS`, which keeps any one destination from collecting too many source clients. Outside production, a chain over the limit is split.
 5. In slices of 500 chains, calls `merge_from` for each pair with `cleanup: false`. It skips a destination that a concurrent merge has left with no source clients. A merge that raises is reported to Sentry and skipped, so one bad pair does not stop the run.
 6. After each slice, queues `ClientCleanupJob` for the slice's clients and marks the root destinations dirty for Coordinated Entry.
 7. When `run_post_processing` is true (the default), runs `ServiceHistory::Add` inline at the end.
@@ -177,7 +177,7 @@ Use `merge_from` and `split` rather than editing links by hand.
 
 ## How destination attributes are chosen
 
-Destination demographics (name, SSN, DOB, race, gender, sex, veteran status) are set by `ClientCleanup` from the destination's source clients, not by imports.
+Destination demographics (name, SSN, DOB, race, gender, sex, veteran status) are set by `ClientCleanup` from the destination's source clients, not by imports. Views read the destination's columns rather than choosing a name or DOB from `source_clients`; `GrdaWarehouse::SourceClientNameSet` lists a client's source names as aliases.
 
 `ClientCleanup#choose_attributes_from_sources` applies these rules:
 
@@ -198,7 +198,7 @@ Because each field is chosen independently, a destination's demographics can com
 Statistical candidate generation creates `ClientMatch` rows for reviewers. The rows also interact with exact matching:
 
 - Both sides of a `candidate` row are source clients, despite the `source_client` and `destination_client` column names. Code that needs the person calls `.destination_client` on each side.
-- `processed_sources` rows are bookkeeping that mark a destination as scanned. Both ids are the destination's id.
+- `processed_sources` rows are bookkeeping that mark a destination as scanned. Both ids are the destination's id. A count of `ClientMatch` rows without a status scope such as `candidate` overstates the candidates.
 - `ClientMatch#accept!` merges only the match's one source client into the other side's current destination, so a single `WarehouseClient` row moves.
 - `ClientMatch.accept_exact_matches!` accepts any `candidate` whose two clients match on 2 of 3 fields, and deletes candidates whose clients no longer exist. Its comparison is looser than the SQL matching: names are compared exactly as stored, without the normalization above, and DOB has no 1920 floor. It runs `ServiceHistory::Add` inline when it finishes.
 
@@ -213,5 +213,6 @@ Statistical candidate generation creates `ClientMatch` rows for reviewers. The r
 - [HMIS Client Merges](../hmis/hmis-client-merges.md): merging and unmerging clients in the HMIS app, and how those jobs call into this one.
 - [HMIS CSV Importer](hmis-csv-importer.md): the import that runs `run!` in its post-processing and uses `source_hash` to detect changed clients.
 - [PII and Restricted Clients](pii-and-restricted-clients.md): the hidden and restricted clients that are filtered from lookups but still matched.
+- [Client ROI and Consent](client-roi-and-consent.md): how consent dates follow a source client to its new destination the night after a merge.
 - [App Config Property](app-config-property.md): the key-value store that holds the query-matcher flag.
 - [Warehouse building blocks](../../architecture/05-building-blocks/05-2-1-warehouse.md) and [Risks, R-2](../../architecture/11-risks.md): where deduplication sits in the warehouse, and the accuracy risk it carries.

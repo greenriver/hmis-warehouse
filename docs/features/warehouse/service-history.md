@@ -24,9 +24,9 @@ This doc covers how service history is built, when it is rebuilt, and that cache
 
 ## Key Models
 
--   **`ServiceHistoryEnrollment`**: Each HUD enrollment produces one or more `ServiceHistoryEnrollment` rows that mark the lifecycle of the enrollment. We always create an `entry` record and we add an `exit` record when the enrollment closes. These markers allow downstream jobs to reason about the enrollment span independently of the daily service rows.
--   **`ServiceHistoryService`**: This model stores the daily activity generated for a `ServiceHistoryEnrollment`. It represents days for both source services and synthetic days representing CLS in Street Outreach programs. This is time-series data; it is extremely large and partitioned by year to keep it manageable.
--   **`ServiceHistoryServiceMaterialized`**: Rails model backed by a materialized view that flattens the sharded `service_history_services` partitions for per-client and ad-hoc analytic queries. The `WarehouseClientsProcessed` homeless-day counts read it instead of the live partitions.
+- **`ServiceHistoryEnrollment`**: Each HUD enrollment produces one or more `ServiceHistoryEnrollment` rows that mark the lifecycle of the enrollment. We always create an `entry` record and we add an `exit` record when the enrollment closes. These markers allow downstream jobs to reason about the enrollment span independently of the daily service rows.
+- **`ServiceHistoryService`**: This model stores the daily activity generated for a `ServiceHistoryEnrollment`. It represents days for both source services and synthetic days representing CLS in Street Outreach programs. This is time-series data; it is extremely large and partitioned by year to keep it manageable.
+- **`ServiceHistoryServiceMaterialized`**: Rails model backed by a materialized view that flattens the sharded `service_history_services` partitions for per-client and ad-hoc analytic queries. The `WarehouseClientsProcessed` homeless-day counts read it instead of the live partitions.
 
 ## Service History Generation
 
@@ -36,14 +36,14 @@ The `ServiceHistoryEnrollment` and its associated `ServiceHistoryService` record
 
 The system uses two strategies to keep service history current:
 
--   **Full rebuild:** When source data has changed (detected via hash mismatch), the system deletes the enrollment's existing service history and regenerates it from scratch. This ensures correctness when enrollment fields, services, exits, or client data have been modified.
--   **Incremental patch:** When the source data hash still matches but an open enrollment has advanced past its last build date (e.g., a new calendar day), the system appends only the missing days without touching existing records. This keeps daily processing efficient for long-running open enrollments.
+- **Full rebuild:** When source data has changed (detected via hash mismatch), the system deletes the enrollment's existing service history and regenerates it from scratch. This ensures correctness when enrollment fields, services, exits, or client data have been modified.
+- **Incremental patch:** When the source data hash still matches but an open enrollment has advanced past its last build date (e.g., a new calendar day), the system appends only the missing days without touching existing records. This keeps daily processing efficient for long-running open enrollments.
 
 The generation logic differs based on the program type:
 
--   **Night-by-Night (NBN) Programs:** A `ServiceHistoryService` record is created for each bed night service in the source data. Other service types don't create days.
--   **Entry/Exit Programs:** For programs like Entry/Exit shelters, Transitional Housing, and Permanent Housing, the system builds `ServiceHistoryService` records for each day from the client's entry date through the day before their exit date. When the entry and exit dates are the same we include that day. For ongoing enrollments, we extend the services through the latest date covered by the source export (or today, if the enrollment is managed in the operational HMIS).
--   **Street Outreach & Contact Extrapolation:** A Street Outreach project with any Current Living Situation records is tracked night by night, and each contact date becomes a service day. An SO project without them is tracked entry/exit. When the `so_day_as_month` configuration flag is enabled—or when a project is configured to extrapolate contacts—we expand each recorded contact to fill its full calendar month (including days before the contact within that month, never past today). A single contact in a month counts as a full month of engagement for HUD reporting purposes, so this gives downstream reports and chronic-homelessness calculations a continuous timeline rather than isolated contact points.
+- **Night-by-Night (NBN) Programs:** A `ServiceHistoryService` record is created for each bed night service in the source data. Other service types don't create days.
+- **Entry/Exit Programs:** For programs like Entry/Exit shelters, Transitional Housing, and Permanent Housing, the system builds `ServiceHistoryService` records for each day from the client's entry date through the day before their exit date. When the entry and exit dates are the same we include that day. For ongoing enrollments, we extend the services through the latest date covered by the source export (or today, if the enrollment is managed in the operational HMIS).
+- **Street Outreach & Contact Extrapolation:** A Street Outreach project with any Current Living Situation records is tracked night by night, and each contact date becomes a service day. An SO project without them is tracked entry/exit. When the `so_day_as_month` configuration flag is enabled—or when a project is configured to extrapolate contacts—we expand each recorded contact to fill its full calendar month (including days before the contact within that month, never past today). These filled-in days are stored as `extrapolated` rows, separate from the `service` rows for actual contacts, so consumers can include or exclude them. A single contact in a month counts as a full month of engagement for HUD reporting purposes, so this gives downstream reports and chronic-homelessness calculations a continuous timeline rather than isolated contact points.
 
 ## Homelessness Classification
 
@@ -66,7 +66,9 @@ The `ProjectCleanup` daily task (see "Automatic Rebuild via Daily Project Cleanu
 
 `service_history_services` is among the largest tables in the warehouse, so it is range-partitioned by year, with one partition per year from 2000 to 2050 and an overflow table for dates outside that range. Queries use the parent table, and PostgreSQL prunes partitions by date, so a query without a `date` predicate scans every partition. The `service_between`, `on_date`, and `homeless_between` scopes add one. The range is fixed in both the schema and `ServiceHistoryService.table_years`, so adding a year needs a schema change and a `table_years` update.
 
-Per-client analytic queries, including the `WarehouseClientsProcessed` cache, read the `service_history_services_materialized` view (`GrdaWarehouse::ServiceHistoryServiceMaterialized`) instead of the partitions. The nightly job refreshes it after generation. The refresh is a plain `REFRESH MATERIALIZED VIEW`, which blocks readers while it runs.
+Per-client analytic queries, including the `WarehouseClientsProcessed` cache, read the `service_history_services_materialized` view (`GrdaWarehouse::ServiceHistoryServiceMaterialized`) instead of the partitions. A per-client query has no `date` predicate, so on the partitioned table it would scan every partition. The view is a single table indexed on `client_id`. The nightly job refreshes it after generation. The refresh is a plain `REFRESH MATERIALIZED VIEW`, which blocks readers while it runs.
+
+The view is defined as `select * from service_history_services`, and PostgreSQL fixes a view's column list when the view is created. A column added to `service_history_services` is missing from the view, and a refresh doesn't add it. `ServiceHistoryServiceMaterialized.rebuild!` drops and recreates the view with its indexes. The `service_history_services_materialized_rebuild_and_process` queued task in `TaskQueue` runs it and then updates the `WarehouseClientsProcessed` cache.
 
 There are some guard rails in place so we don't generate service back to the year 100 or far into the future. Enrollments with an entry date before the earliest allowed date are refused. Open enrollments are built only through today or the export's effective end date, and exit dates far in the future are capped at the end of next year.
 
@@ -129,10 +131,10 @@ Feature code doesn't write to `service_history_enrollments` or `service_history_
 
 A daily `ProjectCleanup` task automatically detects and fixes several types of project-related inconsistencies:
 
--   **ProjectType changes:** When a project's `ProjectType` changes or doesn't match service history, the task automatically invalidates all enrollments for that project to trigger a rebuild
--   **Project moves:** When a project is moved to a different organization, its service history enrollment rows are deleted and the enrollments invalidated, so they are missing from reports until the rebuild finishes
--   **Homeless status mismatches:** When the `homeless` or `literally_homeless` flags in service history don't match what they should be for the project's type (checked for the last 2 years), enrollments are invalidated
--   **Project name changes:** Project names in service history are automatically updated when they don't match the source
+- **ProjectType changes:** When a project's `ProjectType` changes or doesn't match service history, the task automatically invalidates all enrollments for that project to trigger a rebuild
+- **Project moves:** When a project is moved to a different organization, its service history enrollment rows are deleted and the enrollments invalidated, so they are missing from reports until the rebuild finishes
+- **Homeless status mismatches:** When the `homeless` or `literally_homeless` flags in service history don't match what they should be for the project's type (checked for the last 2 years), enrollments are invalidated
+- **Project name changes:** Project names in service history are automatically updated when they don't match the source
 
 The cleanup task runs on all projects daily and then processes the invalidated enrollments.
 
@@ -143,6 +145,7 @@ The operational HMIS also triggers rebuilds, alongside the CSV importer and the 
 Four models carry this behavior: `Hmis::Hud::Enrollment`, `Hmis::Hud::Exit`, `Hmis::Hud::Service`, and `Hmis::Hud::CurrentLivingSituation`. Each checks whether the fields relevant to a service history rebuild actually changed before doing anything — saves that touch unrelated fields are ignored. Exit, Service, and CLS records invalidate their **parent enrollment** rather than themselves, since service history is keyed by enrollment.
 
 `Hmis::Hud::Concerns::ServiceHistoryQueuer` skips queuing when a rebuild is already queued, so rapid edits don't pile up jobs.
+
 ### Invalidating enrollments
 
 Two methods clear an enrollment's processed state:
@@ -166,6 +169,7 @@ Callers handle this in one of two ways:
 
 - Call `invalidate_source_data!` on a `GrdaWarehouse::Tasks::ServiceHistory::Enrollment`, which clears the whole household.
 - Invalidate each member explicitly. The HMIS `SplitHousehold` mutation does this: it calls `invalidate_processing!` on the enrollments that remain in the donor household, because their composition changed.
+
 ### Nightly ordering
 
 `RunDailyImportsJob` generates service history after duplicate identification and project and client cleanup. Identifying duplicates first means a merge done tonight is reflected in tonight's service history, because the destination client id is part of the hash. Generation starts with `GrdaWarehouse::Tasks::ServiceHistory::PurgeForDeletedDataSources`, which deletes the service history rows of data sources soft-deleted at least 24 hours earlier. Client cleanup runs again after generation. [Background Jobs](background-jobs.md) has the full phase order.
@@ -210,10 +214,11 @@ enrollment.rebuild_service_history!
 Because `ServiceHistoryService` creates a daily record for Entry/Exit programs, it allows complex, time-based queries to be written in a simple and efficient way. For example, to determine if a client was active on a specific date, a query only needs to check for the existence of a `ServiceHistoryService` record for that client on that date.
 
 This flattened data structure is used for:
--   Calculating "last seen" dates.
--   Determining program occupancy on a given day.
--   Accurately calculating length of stay.
--   Reporting on client activity over time.
+
+- Calculating "last seen" dates.
+- Determining program occupancy on a given day.
+- Accurately calculating length of stay.
+- Reporting on client activity over time.
 
 ## Cached Service History Data (`WarehouseClientsProcessed`)
 
@@ -231,6 +236,8 @@ The `WarehouseClientsProcessed` table stores per-client aggregates. The ones der
 - **`literally_homeless_last_three_years`**: Days literally homeless within the last 3 years
 
 The homeless-day counts read the materialized view, not the live table, and exclude days that overlap a `homeless: false` PH day (and TH, for the literal variants). Extrapolated days are dropped from most-recent dates unless the `ineligible_uses_extrapolated_days` config is on.
+
+The nightly full update also fills cohort and CAS fields, such as ongoing-enrollment flags by project type, household members, and CAS match fields, but only for clients on an active cohort or active in CAS. Other clients in that run skip those fields.
 
 ### When the Cache Is Updated
 

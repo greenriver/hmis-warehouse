@@ -45,14 +45,12 @@ HUD FY2024 added `Project.RRHSubType`: 1 is RRH: Services Only, and 2 is RRH: Ho
 
 RRH is the one case where project type alone doesn't decide the group:
 
-- `Project.residential`, `hud_residential`, `residential_non_homeless`, and `hud_residential_non_homeless` count RRH only when `RRHSubType` is 2 or blank. Blank counts as residential because older data often lacks the sub-type. `non_residential` and `hud_non_residential` include sub-type 1.
-- The `ServiceHistoryEnrollment` residential scopes join the project and apply the same rule.
+- `Project.residential`, `hud_residential`, `residential_non_homeless`, and `hud_residential_non_homeless` count RRH only when `RRHSubType` is 2 or blank. Blank counts as residential because older data often lacks the sub-type. `non_residential` and `hud_non_residential` include sub-type 1.- The `ServiceHistoryEnrollment` residential scopes join the project and apply the same rule.
 - The generated `rrh` and `ph` scopes, `ServiceHistoryEnrollment.permanent_housing`, and `permanent_housing_project_types` include every sub-type.
 
 To ask about the sub-type directly, use `Project#rrh_sso_only?` or `Hmis::Hud::Project#services_only_rrh?`, and `HudHelper.util.rrh_sub_type_sso_only` for the code. `Project#rrh_with_housing?` is true for a blank sub-type too.
 
 A Services Only enrollment can have a move-in date even though its project never matches the residential scopes, so check the sub-type explicitly wherever that difference matters.
-
 ## Related
 
 - [HUD Utility Versions](hud-utility-versions.md): how `HudHelper.util` resolves a fiscal year, and the hand-written code a new version has to carry over.
