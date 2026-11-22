@@ -19,12 +19,12 @@ module HudPit
     end
 
     private def set_question
-      @question = generator.valid_question_number(params[:question] || params[:question_id])
+      @question = generator.valid_question_number(params[:question_id])
     end
 
     def show
       @cell = @report.valid_cell_name(params[:id])
-      @table = generator.valid_table_name(params[:table])
+      @table = @question
       @clients = HudPit::Fy2022::PitClient.
         joins(hud_reports_universe_members: { report_cell: :report_instance }).
         merge(::HudReports::ReportCell.for_table(@table).for_cell(@cell)).
