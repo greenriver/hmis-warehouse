@@ -480,6 +480,18 @@ RSpec.describe Cohorts::ClientsController, type: :request do
     end
   end
 
+  describe 'GET /cohorts/:cohort_id/cohort_clients/new with a HUD chronic search' do
+    before { sign_in user }
+
+    it 'builds the HUD chronic filter from the submitted hud_filter params' do
+      get new_cohort_cohort_client_path(cohort), params: { hud_filter: { on: '2026-01-01', min_age: '24' } }
+
+      expect(response).to have_http_status(:ok)
+      selected = Nokogiri::HTML(response.body).at_css('#hud_filter_min_age option[selected]')
+      expect(selected&.[]('value')).to eq('24')
+    end
+  end
+
   describe 'GET /cohorts/:cohort_id/cohort_clients (html)' do
     before do
       sign_in user
