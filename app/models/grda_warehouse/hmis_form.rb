@@ -7,6 +7,17 @@
 # frozen_string_literal: true
 
 class GrdaWarehouse::HmisForm < GrdaWarehouseBase
+  include HasPiiAttributes
+
+  pii_attr :client_phones, as: :phone
+  pii_attr :client_emails, as: :email
+  pii_attr :staff, as: :full_name
+  pii_attr :staff_email, as: :email
+  pii_attr :client_case_managers, as: :full_name
+  pii_attr :rrh_assessment_contact_info, as: :free_text
+  pii_attr :answers, as: :json, level: 1
+  pii_attr :api_response, as: :json, level: 1
+
   include ActionView::Helpers
   include Eto::PathwaysAnswers
   include Eto::CovidAnswers

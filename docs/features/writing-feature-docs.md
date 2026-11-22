@@ -21,15 +21,16 @@ A feature doc is worth reading only if it is right. An undocumented behavior cos
 
 ## What a doc is for
 
-By default, feature docs are for engineers who maintain the code. Some are also read by support staff.
+A feature doc gives an engineer or an AI agent enough understanding of a feature to work in its code effectively and safely. Some are also read by support staff.
 
-A doc's main job is to explain the feature as part of the system. These are the facts readers most need, and they are usually not in the code:
+A doc's main job is to explain the feature at a high level, as part of the system. These are the facts readers most need, and they are usually not in the code:
 
 - **Purpose.** What problem the feature solves, who uses it, and what it is not for. For example, a project group is a named list of projects that administrators reuse across report filters, cohorts, the CAS sync, and project access grants.
 - **How it works within the system.** Where it sits, what triggers it (a user action, a nightly job, an import, an API call), what data it reads and writes, and what happens afterward. For example, chronic-at-start results are cached per enrollment by `GrdaWarehouse::ChEnrollment.maintain!`, which runs during the nightly import in `Importing::RunDailyImportsJob`, after service history is generated.
+- **Major components.** The few models, jobs, and services that carry the feature, each with its role. This orients the reader; it is not an inventory of files. For example, in auto-exit `Hmis::AutoExitJob` decides who to exit and on what date, and `Hmis::EnrollmentExitCreator` creates the exit records.
 - **Integration points.** The other features, jobs, repos, and external systems it depends on or feeds, and what crosses each boundary. This includes the HMIS and warehouse sides of one feature, CAS, external HMISs, the identity provider, and the `hmis-frontend` repo. For example, the warehouse idle-session timeout depends on the IdP's idle timeout, passed through Dex and oauth2-proxy, and the HMIS frontend keeps its own countdown from the `X-app-session-remaining-secs` response header.
 
-Also keep these, which the code doesn't explain:
+Also keep these, which the code doesn't explain. Rationale and intent matter most, because a reader can't recover them from the code at all:
 
 - **Why.** The reason a rule exists, or why the obvious alternative was rejected. For example, when `Hmis::RestrictedRecord.mark!` restricts an HMIS record that was restricted before, it creates a new row instead of restoring the old one, because Paranoia's `restore` writes through `update_columns` and skips PaperTrail, so the audit trail would lose the change.
 
@@ -38,6 +39,12 @@ Also keep these, which the code doesn't explain:
 - **Ordering and interactions** that no single file shows, such as the order of steps in a nightly job or a form submission.
 - **Limits and footguns**, each with what goes wrong and why. For example, saving a `Hmis::Form::FormProcessor` does not save the enrollment, so every caller has to save it.
 - **Deprecated patterns still in the code**, and what replaced them. For example, the enrollment-based homeless-episode calculation in `ClientHistory::Calculator#new_episode?` is deprecated, and new work uses `GrdaWarehouse::ChEnrollment` where possible.
+
+Feature docs overlap with ADRs and the architecture docs, but each has its own job. An ADR in `docs/adr/` records one decision at the time it was made. `docs/architecture/` describes the system as a whole. A feature doc describes one feature as it works today. Where they overlap, state the fact in a sentence and link to the other.
+
+Leave out bugs. A limit is behavior that is intended or accepted, and it belongs in the doc. A bug is behavior someone would fix, and it belongs in an issue: a documented bug becomes something readers work around, and the doc is wrong the day the fix lands. When you find one, flag it for a human in the PR or your report.
+
+Leave out planned work. Describe the feature as it works today. Roadmap items, target states, and future possibilities belong in issues.
 
 Leave out what the code already says: key-file lists, method-by-method walkthroughs, every column or argument a class takes, and prose that restates one class's body. When a list lives in code, point to the constant or method that holds it instead of copying the list, so the doc can't drift from it.
 

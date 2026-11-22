@@ -9,6 +9,7 @@
 module HmisCsvTwentyTwentyTwo::Importer
   class Enrollment < GrdaWarehouse::Hud::Base
     include ::HmisStructure::Enrollment
+    include ::HmisStructure::EnrollmentAddressPii
     include ImportConcern
 
     # Because GrdaWarehouse::Hud::* defines the table name, we can't use table_name_prefix :(

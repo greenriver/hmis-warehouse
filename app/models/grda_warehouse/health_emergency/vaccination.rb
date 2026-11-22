@@ -8,6 +8,10 @@
 
 module GrdaWarehouse::HealthEmergency
   class Vaccination < GrdaWarehouseBase
+    include HasPiiAttributes
+
+    pii_attr :follow_up_cell_phone, as: :phone
+
     include ::HealthEmergency
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
     # Extensions from drivers — see docs/architecture/08-concepts/08-3-driver-module-pattern.md

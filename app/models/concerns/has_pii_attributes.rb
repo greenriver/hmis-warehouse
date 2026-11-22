@@ -65,6 +65,7 @@ module HasPiiAttributes
     url: { level: 4 }, # depends on content/context
     attached_file: { level: 4 },
     json: { level: 4 },
+    json_text: { level: 4 }, # JSON serialized into a text column
   }.freeze
 
   class_methods do

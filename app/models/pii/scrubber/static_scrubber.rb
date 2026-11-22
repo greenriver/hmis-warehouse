@@ -6,14 +6,15 @@
 
 # frozen_string_literal: true
 
-require 'faker'
-
 module Pii::Scrubber
-  # replace PII attributes with fake values
+  # Replace present PII values with per-record placeholders
   class StaticScrubber
     def perform(fields)
       fields.each do |field|
-        value = Pii::Scrubber::ReplacementPii.static_value(field)
+        next unless Pii::Scrubber::ReplacementPii.static_type?(field)
+        next if field.real_value.blank?
+
+        value = Pii::Scrubber::ReplacementPii.static_value(field, id: field.record_id)
         field.scrub(value) unless value.nil?
       end
     end

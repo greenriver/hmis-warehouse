@@ -8,6 +8,11 @@
 
 module CustomImportsBostonCommunityOfOrigin
   class Row < GrdaWarehouseBase
+    include HasPiiAttributes
+
+    pii_attr :zip_code, as: :geo_postal_code
+    pii_attr :city, as: :geo_locality
+
     self.table_name = :custom_imports_b_coo_rows
 
     belongs_to :import_file, optional: true

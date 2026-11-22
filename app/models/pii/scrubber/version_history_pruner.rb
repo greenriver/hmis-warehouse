@@ -12,20 +12,50 @@
 module Pii::Scrubber
   class VersionHistoryPruner
     def perform(owner:, ids: nil)
+      version_class = version_class(owner)
       # the model does not use paper trail
-      return unless owner.include?(::PaperTrail::Model::InstanceMethods)
+      return unless version_class
 
-      item_classes = ([owner] + model_aliases(owner)).uniq
-      item_types = item_classes.map(&:sti_name)
-
-      version_class = owner.version_class_name.constantize
-      to_delete = version_class.where(item_type: item_types)
-      to_delete = to_delete.where(item_id: ids) if ids
+      to_delete = version_class.where(item_type: item_types(owner))
+      if !sti_subclass?(owner)
+        to_delete = to_delete.where(item_id: ids) if ids
+      elsif ids
+        to_delete = to_delete.where(item_id: owner.unscoped.where(id: ids).select(:id))
+      else
+        # The base class's table holds sibling STI types that share the version item_type.
+        # Keep versions of live siblings; everything else is the owner's or an orphan
+        # left by really_destroy!.
+        base = owner.base_class
+        live_siblings = base.unscoped.
+          where.not(owner.inheritance_column => owner.sti_name).
+          where(base.arel_table[:id].eq(version_class.arel_table[:item_id]))
+        to_delete = to_delete.where.not(live_siblings.arel.exists)
+      end
 
       to_delete.delete_all
     end
 
+    # The class backing the owner's versions, nil when the model does not use paper trail
+    def version_class(owner)
+      return unless owner.include?(::PaperTrail::Model::InstanceMethods)
+
+      owner.version_class_name.constantize
+    end
+
     protected
+
+    # PaperTrail records STI models under the base class name
+    def item_types(owner)
+      return [owner.base_class.name] if sti_subclass?(owner)
+
+      model = owner.base_class
+      ([model] + model_aliases(model)).uniq.map(&:sti_name)
+    end
+
+    # Subclasses such as the WithDeleted variants share the base table without a type column
+    def sti_subclass?(owner)
+      owner.base_class != owner && owner.base_class.column_names.include?(owner.inheritance_column)
+    end
 
     # Finds model aliases across GrdaWarehouse/Hmis namespaces that share the same backing table
     def model_aliases(model)

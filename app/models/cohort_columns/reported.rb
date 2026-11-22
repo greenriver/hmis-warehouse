@@ -8,7 +8,7 @@
 
 module CohortColumns
   class Reported < CohortBoolean
-    attribute :column, Boolean, lazy: true, default: :reported
+    attribute :column, String, lazy: true, default: :reported
     attribute :translation_key, String, lazy: true, default: 'Reported'
     attribute :title, String, lazy: true, default: ->(model, _attr) { Translation.translate(model.translation_key) }
     attribute :description_translation_key, String, lazy: true, default: ->(model, _attr) { "#{model.translation_key} Description" }

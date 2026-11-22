@@ -8,6 +8,10 @@
 
 module GrdaWarehouse::CoordinatedEntryAssessment
   class Base < GrdaWarehouseBase
+    include HasPiiAttributes
+
+    pii_attr :client_email, as: :email
+
     self.table_name = :ce_assessments
 
     ####################

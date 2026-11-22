@@ -7,12 +7,17 @@ sources:
   - app/models/activity_log.rb
   - app/models/grda_warehouse/tasks/scrub_pii/scrub_all_pii_task.rb
   - app/models/pii/scrubber/scrub_model_pii.rb
+  - app/models/pii/scrubber/scrubbable_models.rb
+  - app/models/pii/scrubber/version_history_pruner.rb
+  - app/models/pii/scrubber/replacement_pii.rb
   - app/models/pii/scrubber/static_scrubber.rb
+  - app/models/pii/scrubber/replacement_pii.rb
+  - app/models/pii/scrubber/dob_scrubber.rb
 ---
 
 # PII Cataloging, Access Logging, and Scrubbing
 
-How the warehouse catalogs client PII, records who viewed which client, and scrubs PII for non-production copies. Who may see PII, how restriction hides a client, and search and export exclusion are in [Warehouse Auth Policies](warehouse-auth-policies.md#pii-redaction). Aging out inactive clients is in [Client Data Retention](client-data-retention.md).
+This document covers how the warehouse catalogs client PII, records who viewed which client, and scrubs PII for non-production copies. Who may see PII, how restriction hides a client, and search and export exclusion are in [Warehouse Auth Policies](warehouse-auth-policies.md#pii-redaction). Aging out inactive clients is in [Client Data Retention](client-data-retention.md).
 
 ## Restriction sources
 
@@ -30,7 +35,7 @@ A client is hidden in the warehouse when it is restricted in HMIS, restricted in
 
 - The catalog is used by the scrubbers only. Display decisions (`PiiProvider`, `PiiDisplay`) work from method names and column labels, so a column declared with `pii_attr` is protected in scrubs but not automatically redacted on screen.
 - Subclasses deep-copy the parent's config when defined, so a `pii_attr` added to a parent afterward is not seen by existing subclasses.
-- A new column holding name, SSN, DOB, contact, or address data needs a `pii_attr` declaration, or the scrub tasks will not see it.
+- A new column holding name, SSN, DOB, contact, or address data needs a `pii_attr` declaration, or the scrub tasks will not see it. `pii_catalog_spec` fails when a PII-named column on a modeled table, in the warehouse, reporting, or app database, has neither a `pii_attr` nor an entry in its allow-list. The health database and views are not checked.
 - `PiiDisplay#pii_value` dispatches on the lowercased column label, and any label ending in `name` is treated as a client name. A column such as `project_name` or `Organization Name` is redacted when the policy denies client names.
 
 ## Access logging
@@ -47,10 +52,11 @@ A client is hidden in the warehouse when it is restricted in HMIS, restricted in
 `ScrubClientPiiTask` and `ScrubAllPiiTask` overwrite cataloged PII and delete related free-text records. They are console-only: nothing schedules them or exposes them in the UI. `ScrubAllPiiTask` is the tool for turning a production copy into a staging database.
 
 - Level 1 and 2 fields are overwritten with nil, or a placeholder when the column is required. A DOB moves to a random date in the same five-year age bracket. Level 3 and 4 fields (free text, attached files, JSON, locality) are cataloged but not overwritten.
-- `ScrubClientPiiTask` also deletes custom data elements whose label looks like PII, files, custom names, addresses, contact points, and case notes for the client, and prunes version history. Deletion is `delete_all`, bypassing soft delete and callbacks.
+- `ScrubClientPiiTask` also deletes custom data elements whose label looks like PII, files, custom names, addresses, contact points, and case notes for the client, and prunes version history. Deletion is `delete_all`, bypassing soft delete and callbacks. It scrubs only the client row and deletes the records listed; it does not scrub other cataloged client-linked models (enrollment last-permanent address, form processor answers, assessments, report rows). Use `ScrubAllPiiTask` for a full scrub.
+- `ScrubAllPiiTask#perform` requires `confirm_databases:`, a list equal to the database names of every scrubbed model (warehouse, reporting, and app) and each model's version-table database, plus the warehouse database, and raises `ArgumentError` before locking or changing anything otherwise.
 - Both tasks take a zero-timeout advisory lock, so a concurrent run fails immediately.
 - Scrubbing acts on the live database only. Backups and S3 copies are untouched.
-- `ScrubAllPiiTask` uses a hand-maintained list of models, not the catalog. A new snapshot table with PII needs both a `pii_attr` declaration and an entry in that list. Several models that declare PII are currently missing from it, including newer SPM enrollment tables and the newest HMIS CSV loader and importer tables.
+- `ScrubAllPiiTask` scrubs every concrete model that declares `pii_attr`, except staff accounts (`User`, `Hmis::User`), whose emails are logins. STI subclasses with their base class's config, and models sharing a table and config, run once. Version history is pruned for all of them, before any row is scrubbed, so a failed scrub leaves no history. Tables without a model (for example leftover backup tables) and database views are not scrubbed; a view's data comes from its base tables. City columns are cataloged as locality (level 3), so they are not overwritten. Required free-text fields get a `Note<id>` placeholder and required JSON fields get `{}`.
 - The `:static` custom scrubber raises because it omits a required argument. Use `:fake` or no custom scrubber.
 
 ## Other gotchas

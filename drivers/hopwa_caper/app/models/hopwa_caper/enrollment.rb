@@ -8,6 +8,12 @@
 
 module HopwaCaper
   class Enrollment < ::HudReports::ReportClientBase
+    include HasPiiAttributes
+
+    pii_attr :first_name
+    pii_attr :last_name
+    pii_attr :dob
+
     self.table_name = 'hopwa_caper_enrollments'
 
     has_many :hud_reports_universe_members,
