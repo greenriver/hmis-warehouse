@@ -93,13 +93,14 @@ RSpec.describe 'HudPit::CellsController#show', type: :request do
       it 'lists clients only from the requested question\'s table in html' do
         get hud_reports_pit_question_cell_path(hiv_params.merge(question_id: 'Projects'))
 
+        expect(response).to have_http_status(:ok)
         expect(response.body).not_to include(hiv_client.FirstName)
       end
 
       it 'lists clients only from the requested question\'s table in xlsx' do
         get hud_reports_pit_question_cell_path(hiv_params.merge(question_id: 'Projects', format: :xlsx))
 
-        expect(workbook_cell_values.grep(/#{hiv_client.FirstName}/)).to be_empty
+        expect(workbook_cell_values.select { |v| v.include?(hiv_client.FirstName) }).to be_empty
       end
 
       it 'takes the question from the route, not from a question parameter' do
