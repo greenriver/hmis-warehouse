@@ -6,92 +6,13 @@
   "prefill": true,
   "item": [
     {
-      "type": "CHOICE",
-      "link_id": "R4",
-      "required": false,
-      "warn_if_empty": true,
-      "text": "Last Grade Completed",
-      "pick_list_reference": "LastGradeCompleted",
-      "mapping": {
-        "record_type": "EMPLOYMENT_EDUCATION",
-        "field_name": "lastGradeCompleted"
-      }
+      "fragment": "#r4_last_grade_completed"
     },
     {
-      "type": "CHOICE",
-      "link_id": "R5",
-      "required": false,
-      "warn_if_empty": true,
-      "text": "School Status",
-      "pick_list_reference": "SchoolStatus",
-      "mapping": {
-        "record_type": "EMPLOYMENT_EDUCATION",
-        "field_name": "schoolStatus"
-      }
+      "fragment": "#r5_school_status"
     },
     {
-      "type": "GROUP",
-      "link_id": "R6",
-      "item": [
-        {
-          "type": "CHOICE",
-          "link_id": "R6_2",
-          "required": false,
-          "warn_if_empty": true,
-          "text": "Employed",
-          "pick_list_reference": "NoYesReasonsForMissingData",
-          "mapping": {
-            "record_type": "EMPLOYMENT_EDUCATION",
-            "field_name": "employed"
-          }
-        },
-        {
-          "type": "GROUP",
-          "link_id": "R6_2_conditionals",
-          "item": [
-            {
-              "type": "CHOICE",
-              "link_id": "R6_A",
-              "required": false,
-              "warn_if_empty": true,
-              "text": "Type of Employment",
-              "pick_list_reference": "EmploymentType",
-              "mapping": {
-                "record_type": "EMPLOYMENT_EDUCATION",
-                "field_name": "employmentType"
-              },
-              "enable_behavior": "ALL",
-              "enable_when": [
-                {
-                  "question": "R6_2",
-                  "operator": "EQUAL",
-                  "answer_code": "YES"
-                }
-              ]
-            },
-            {
-              "type": "CHOICE",
-              "link_id": "R6_B",
-              "required": false,
-              "warn_if_empty": true,
-              "text": "Why Not Employed",
-              "pick_list_reference": "NotEmployedReason",
-              "mapping": {
-                "record_type": "EMPLOYMENT_EDUCATION",
-                "field_name": "notEmployedReason"
-              },
-              "enable_behavior": "ALL",
-              "enable_when": [
-                {
-                  "question": "R6_2",
-                  "operator": "EQUAL",
-                  "answer_code": "NO"
-                }
-              ]
-            }
-          ]
-        }
-      ]
+      "fragment": "#r6_employment_status"
     }
   ]
 }

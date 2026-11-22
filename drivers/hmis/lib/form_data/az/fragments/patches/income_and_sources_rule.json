@@ -3,8 +3,14 @@
     "link_id": "income_and_sources",
     "custom_rule": {
       "operator": "ALL",
-      "_comment": "collect 4.02 Income and Sources for all projects regardless of funder or type.",
-      "parts": []
+      "_comment": "collect 4.02 Income and Sources for all projects except Coordinated Entry. TODO #6395: scope the CE exclusion to a CoC-specific project group.",
+      "parts": [
+        {
+          "variable": "projectType",
+          "operator": "NOT_EQUAL",
+          "value": 14
+        }
+      ]
     }
   }
 ]

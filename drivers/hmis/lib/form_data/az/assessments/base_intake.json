@@ -1,0 +1,127 @@
+{
+  "item": [
+    {
+      "fragment": "#intake_project_entry"
+    },
+    {
+      "fragment": "#prior_living_situation_a"
+    },
+    {
+      "fragment": "#prior_living_situation_b"
+    },
+    {
+      "fragment": "#r3_sexual_orientation",
+      "text": "Sexual Orientation"
+    },
+    {
+      "fragment": "#c3_youth_education_status"
+    },
+    {
+      "fragment": "#income_and_sources"
+    },
+    {
+      "fragment": "#non_cash_benefits"
+    },
+    {
+      "fragment": "#health_insurance"
+    },
+    {
+      "fragment": "#w3_hopwa_insurance"
+    },
+    {
+      "fragment": "#disability"
+    },
+    {
+      "type": "GROUP",
+      "link_id": "health_and_dv",
+      "text": "Health and DV",
+      "_comment": "#9981: R7, R8, and R9 are moved out of this section. R7 is in az_rhy_va_intake, and R8 and R9 are in az_rhy_intake. R10 and 4.11 stay here.",
+      "data_collected_about": "HOH_AND_ADULTS",
+      "prefill": true,
+      "item": [
+        {
+          "_comment": "Collected at project Entry/Update",
+          "fragment": "#r10_pregnancy_status"
+        },
+        {
+          "_comment": "Collected at project Entry/Update",
+          "fragment": "#4_11_dv"
+        }
+      ]
+    },
+    {
+      "type": "GROUP",
+      "link_id": "az_rhy_intake",
+      "text": "RHY Questions",
+      "_comment": "#9981: RHY questions grouped into one section. R2 was its own section, R5 came from employment_education, R8 and R9 came from health_and_dv, and R11-R13 came from rhy_entry (Family). No data_collected_about on the group, because R2 is collected for all clients. R5, R8, and R9 set HOH_AND_ADULTS themselves, which they previously inherited from their old groups. Placed at the end of the assessment because the customer did not specify placement.",
+      "prefill": true,
+      "item": [
+        {
+          "fragment": "#r2_bcp_status"
+        },
+        {
+          "fragment": "#r5_school_status",
+          "data_collected_about": "HOH_AND_ADULTS"
+        },
+        {
+          "fragment": "#r8_dental_health",
+          "data_collected_about": "HOH_AND_ADULTS"
+        },
+        {
+          "fragment": "#r9_mental_health",
+          "data_collected_about": "HOH_AND_ADULTS"
+        },
+        {
+          "fragment": "#r11_ward_of_child_welfare"
+        },
+        {
+          "fragment": "#r12_ward_of_juvenile_justice"
+        },
+        {
+          "fragment": "#r13_family_critical_issues"
+        }
+      ]
+    },
+    {
+      "type": "GROUP",
+      "link_id": "az_rhy_va_intake",
+      "text": "RHY and VA Questions",
+      "_comment": "#9981: questions collected for both RHY and VA funders. R4 and R6 came from employment_education, and R7 came from health_and_dv.",
+      "data_collected_about": "HOH_AND_ADULTS",
+      "prefill": true,
+      "item": [
+        {
+          "fragment": "#r4_last_grade_completed"
+        },
+        {
+          "fragment": "#r6_employment_status"
+        },
+        {
+          "fragment": "#r7_general_health"
+        }
+      ]
+    },
+    {
+      "type": "GROUP",
+      "link_id": "az_va_intake",
+      "text": "VA Questions",
+      "_comment": "#9981: V4, V6, V7, and V10 were separate sections, grouped here. V9 is collected at Exit only and stays its own section there. V8 is collected as a Service, not on assessments.",
+      "data_collected_about": "HOH",
+      "prefill": true,
+      "item": [
+        {
+          "fragment": "#v4_percent_of_ami"
+        },
+        {
+          "fragment": "#v6_vamc_station_number"
+        },
+        {
+          "fragment": "#v7_hp_targeting_criteria"
+        },
+        {
+          "fragment": "#v10_mental_health_consultation"
+        }
+      ]
+    }
+  ]
+}

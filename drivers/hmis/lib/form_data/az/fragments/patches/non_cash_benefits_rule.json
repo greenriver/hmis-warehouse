@@ -3,8 +3,14 @@
     "link_id": "non_cash_benefits",
     "custom_rule": {
       "operator": "ALL",
-      "_comment": "collect 4.03 Non-Cash Benefits for all projects regardless of funder or type.",
-      "parts": []
+      "_comment": "collect 4.03 Non-Cash Benefits for all projects except Coordinated Entry. TODO #6395: scope the CE exclusion to a CoC-specific project group.",
+      "parts": [
+        {
+          "variable": "projectType",
+          "operator": "NOT_EQUAL",
+          "value": 14
+        }
+      ]
     }
   }
 ]
