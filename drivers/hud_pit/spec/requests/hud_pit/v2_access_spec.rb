@@ -21,7 +21,7 @@ RSpec.describe 'PIT v2 access', type: :request do
     let(:question) { 'Additional Homeless Populations' }
     let(:report) { own_run }
     let!(:report_cells) do
-      %w[B2 B4].map { |cell_name| report.report_cells.create!(question: question, cell_name: cell_name) }
+      ['B2', 'B4'].map { |cell_name| report.report_cells.create!(question: question, cell_name: cell_name) }
     end
 
     it 'opens a non-HIV cell and redirects the HIV/AIDS row for a user without HIV status' do
