@@ -47,20 +47,13 @@ module HudHic
       hud_reports_hics_path(options)
     end
 
-    private def path_for_question(question, report: nil, args: {})
-      hud_reports_hic_question_path({ hic_id: report&.id || 0, id: question }.merge(args))
-    end
-
-    private def path_for_questions(question)
-      hud_reports_hic_questions_path(hic_id: 0, question: question)
-    end
-
     private def path_for_question_result(question, report: nil)
       result_hud_reports_hic_question_path(hic_id: report&.id || 0, id: question)
     end
 
-    private def path_for_cell(report:, question:, cell_label:, table:)
-      hud_reports_hic_question_cell_path(hic_id: report&.id || 0, question_id: question, id: cell_label, table: table)
+    # HIC cells have no drilldown page; nil tells hud_reports/_table to leave the count unlinked.
+    private def path_for_cell(**)
+      nil
     end
 
     private def path_for_running_all_questions
@@ -80,11 +73,6 @@ module HudHic
       download_hud_reports_hic_path(report, args)
     end
     helper_method :path_for_report_download
-
-    private def path_for_new
-      new_hud_reports_hic_path
-    end
-    helper_method :path_for_new
 
     private def relevant_project_types
       generator.relevant_project_types

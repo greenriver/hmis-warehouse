@@ -35,6 +35,7 @@
             %td{class: cell_color}
               - begin
                 - row_show_link = show_link.respond_to?(:call) ? show_link.call(row_num) : show_link
-                = link_to_if((row_show_link && details[:any_members]), details[:value], path_for_cell(report: report, question: question, cell_label: cell, table: exporter.table))
+                - cell_path = path_for_cell(report: report, question: question, cell_label: cell, table: exporter.table)
+                = link_to_if((row_show_link && details[:any_members] && cell_path.present?), details[:value], cell_path)
               - rescue NoMethodError
                 = details[:value]
