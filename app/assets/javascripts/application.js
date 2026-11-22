@@ -47,7 +47,6 @@
 //= require polyfills
 //= require ajax_modal_rails
 //= require util
-//= require site_menu
 //= require vispdats
 //= require files
 //= require selectable_list

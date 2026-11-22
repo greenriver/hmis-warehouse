@@ -51,7 +51,15 @@
   }
 }
 
+// Actions bar on Project Data Quality and the Project Scorecards. Sticky
+// rather than fixed: it stays pinned to the bottom of the window while the
+// form scrolls, then takes up its own space at the end of the form so it never
+// covers the footer. Needs .l-main__content's overflow dropped; see
+// layouts/_main.scss. Stays under the side menu drawer ($page-z-index - 1).
 .pdq_actions {
+  position: sticky;
+  bottom: 0;
+  z-index: $zIndex-2;
   background-color: var(--white);
   padding: 2rem;
   border-top: 1px solid var(--bs-primary);
