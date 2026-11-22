@@ -100,7 +100,7 @@ RSpec.describe 'Past HUD Data Quality report pages', type: :request do
 
         expect(Reporting::Hud::RunReportJob).not_to have_been_enqueued
 
-        expect(response).to redirect_to(hud_reports_past_dqs_path)
+        expect(response).to redirect_to(history_hud_reports_past_dqs_path)
         expect(flash[:alert]).to eq('This report version can no longer be run.')
       end
 
@@ -111,7 +111,7 @@ RSpec.describe 'Past HUD Data Quality report pages', type: :request do
 
         expect(Reporting::Hud::RunReportJob).not_to have_been_enqueued
 
-        expect(response).to redirect_to(hud_reports_past_dqs_path)
+        expect(response).to redirect_to(history_hud_reports_past_dqs_path)
         expect(flash[:alert]).to eq('This report version can no longer be run.')
       end
 
@@ -120,7 +120,7 @@ RSpec.describe 'Past HUD Data Quality report pages', type: :request do
           post hud_reports_past_dqs_path, params: { filter: { report_version: 'fy1999', coc_codes: ['XX-500'] } }
         end.not_to change(HudReports::ReportInstance, :count)
 
-        expect(response).to redirect_to(hud_reports_past_dqs_path)
+        expect(response).to redirect_to(history_hud_reports_past_dqs_path)
         expect(flash[:alert]).to eq('This report version can no longer be run.')
       end
     end
