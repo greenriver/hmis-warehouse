@@ -133,7 +133,24 @@ RSpec.describe 'Queueing HUD report versions', type: :request, exclude_fixpoints
 
       doc = Nokogiri::HTML(response.body)
       expect(doc.css('input[type=submit], button[type=submit]')).to be_empty
-      expect(queue_button.text.strip).to eq(refusal)
+      expect(queue_button.text.strip).to start_with(refusal)
+    end
+
+    it 'links to a new report on the current version with the requested settings' do
+      get new_hud_reports_apr_path, params: { filter: filter_params(:fy2023) }
+
+      links = queue_button.css('a').map { |a| URI.parse(a['href']) }
+      expect(links.map(&:path)).to eq([new_hud_reports_apr_path])
+      filter = Rack::Utils.parse_nested_query(links.first.query).fetch('filter')
+      expect(filter).to include(
+        'report_version' => active_slug(HudApr::AprsController).to_s,
+        'coc_codes' => [coc_code],
+        'project_ids' => [project.id.to_s],
+      )
+      expect(filter.values_at('start', 'end').map { |date| Date.parse(date) }).to eq([Date.new(2025, 10, 1), Date.new(2026, 9, 30)])
+
+      get links.first.to_s
+      expect(queue_button['type']).to eq('submit')
     end
 
     it 'leaves the queue button enabled for the current version' do

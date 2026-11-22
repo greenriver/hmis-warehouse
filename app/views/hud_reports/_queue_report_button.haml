@@ -2,4 +2,9 @@
   = f.button :submit, value: 'Queue Report', data: { 'filter-projects-target' => 'submitButton' }
 - else
   -# filter_projects_controller requires a submitButton target, so the message carries it in place of the button.
-  %span.text-muted{ data: { 'filter-projects-target' => 'submitButton' } } This report version can no longer be run.
+  %span.text-muted{ data: { 'filter-projects-target' => 'submitButton' } }
+    This report version can no longer be run.
+    - if active_report_versions.any?
+      Start a new report with these settings:
+      - active_report_versions.each do |label, slug|
+        = link_to label, "#{path_for_new}?#{{ filter: @filter.to_h.merge(report_version: slug) }.to_query}", class: 'btn btn-sm btn-secondary ms-2'
