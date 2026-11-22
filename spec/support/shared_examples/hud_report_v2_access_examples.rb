@@ -9,7 +9,7 @@
 # The including spec defines: definition_url, report_name, index_path, new_path, history_path,
 # and report_path_for (a lambda from a run to its show path). It may override run_options and
 # run_attributes. `except:` skips examples a bare factory run can't render for that driver:
-# :show_run, :destroy_run, :history_links.
+# :show_run, :destroy_run, :history_links, :new_page.
 RSpec.shared_examples 'HUD report access' do |except: []|
   let(:user) { create(:acl_user) }
   let(:other_user) { create(:acl_user) }
@@ -39,7 +39,8 @@ RSpec.shared_examples 'HUD report access' do |except: []|
 
   it 'opens the index, new, and history pages when the definition is granted' do
     granted
-    [index_path, new_path, history_path].each do |path|
+    pages = except.include?(:new_page) ? [index_path, history_path] : [index_path, new_path, history_path]
+    pages.each do |path|
       get path
       expect(response).to have_http_status(:ok), path
     end
