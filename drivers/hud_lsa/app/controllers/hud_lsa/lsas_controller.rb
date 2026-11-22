@@ -17,8 +17,14 @@ module HudLsa
     def related_report
       GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: GrdaWarehouse::WarehouseReports::ReportDefinition.hud_url(:lsas))
     end
-    # Declared above set_report so the permission is checked before any record lookup.
-    before_action :require_can_download_lsa_source_data!, only: [:download_source_data]
+
+    # Checked before the run loads, so a user without the permission is redirected rather than shown a 404.
+    private def hud_report_action_permitted?
+      return true unless action_name == 'download_source_data'
+
+      current_user.can_download_lsa_source_data? == true
+    end
+
     before_action :set_report, only: [:show, :destroy, :running, :download, :download_intermediate, :download_source_data, :restore]
     before_action :set_reports, except: [:index, :running_all_questions]
 

@@ -8,6 +8,10 @@
 
 module HudSpmReport
   class LegacyResultsController < BaseController
+    # These pages serve legacy Report rows, and params[:id] isn't a ReportInstance id.
+    # Access stays definition-level; runs_visible_to scopes results in the action.
+    private def report_for_authorization = nil
+
     def show
       @report = Report.find(params[:legacy_spm_id].to_i)
       # Going through @report keeps a mismatched id pair from resolving.

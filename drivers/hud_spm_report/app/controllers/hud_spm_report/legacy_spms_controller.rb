@@ -12,6 +12,10 @@ module HudSpmReport
       GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: GrdaWarehouse::WarehouseReports::ReportDefinition.hud_url(:spms))
     end
 
+    # These pages serve legacy Report rows, and params[:id] isn't a ReportInstance id.
+    # Access stays definition-level; runs_visible_to scopes results in the action.
+    private def report_for_authorization = nil
+
     LEGACY_REPORT_TYPES = [
       'Reports::SystemPerformance::Fy2019::MeasureOne',
       'Reports::SystemPerformance::Fy2019::MeasureTwo',

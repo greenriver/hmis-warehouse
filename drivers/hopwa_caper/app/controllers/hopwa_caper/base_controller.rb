@@ -10,6 +10,8 @@ module HopwaCaper
   class BaseController < ::HudReports::BaseController
     before_action :filter
 
+    private def hud_report_policy_class = GrdaWarehouse::AuthPolicies::HopwaCaperReportPolicy
+
     def filter_params
       return {} unless params[:filter]
 

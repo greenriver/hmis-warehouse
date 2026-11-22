@@ -7,15 +7,18 @@
 # frozen_string_literal: true
 
 module HudReports
-  class BaseController < ApplicationController
-    include WarehouseReportAuthorization
+  class BaseController < ApplicationControllerV2
     include HudReports::ReportUrls
+
+    authorize_with { hud_report_request_allowed? }
 
     # Drilldown controllers (questions, cells) nest under the report and have no
     # index route of their own, so resolve the definition from the generator.
     def related_report
       GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: possible_generator_classes.values.first.report_definition_url)
     end
+    helper_method :related_report
+
     before_action :set_view_filter, only: [:history, :show, :running]
     before_action :require_runnable_report_version, only: :create
 
@@ -195,7 +198,7 @@ module HudReports
     end
 
     def apply_view_filters(reports)
-      if can_view_all_hud_reports?
+      if current_user.can_view_all_hud_reports?
         # Only apply a user filter if you have chosen one if you can see all reports
         reports = reports.where(user_id: @view_filter[:creator]) if @view_filter.try(:[], :creator).present? && @view_filter[:creator] != 'all'
       else
@@ -218,13 +221,46 @@ module HudReports
     end
 
     private def set_report
-      report_id = params[report_param_name].to_i
-      return if report_id.zero?
+      @report = report_for_authorization
+      return if @report.nil?
 
-      @report = report_scope.viewable_by(current_user).find(report_id)
       # Force a re-calculation of generator if we have a report so we get the appropriate year
       @generator = nil
       generator
+    end
+
+    # The scoped find is the run-visibility check (a 404), so only the run's definition is asked of the policy.
+    private def hud_report_request_allowed?
+      return false unless current_user.can_view_any_reports?
+      return false unless related_report.viewable_by(current_user).exists?
+      return false unless hud_report_action_permitted?
+
+      report = report_for_authorization
+      report.nil? || hud_report_policy(report).can_view_definition?
+    end
+
+    # Drilldown actions load the run in the action body, so authorization loads it here rather than relying on set_report.
+    private def report_for_authorization
+      return @report_for_authorization if defined?(@report_for_authorization)
+
+      report_id = params[report_param_name].to_i
+      @report_for_authorization = report_id.zero? ? nil : report_scope.viewable_by(current_user).find(report_id)
+    end
+
+    # Override for checks that must run before the run loads.
+    private def hud_report_action_permitted?
+      true
+    end
+
+    private def hud_report_policy_class
+      nil
+    end
+
+    private def hud_report_policy(report)
+      policy_class = hud_report_policy_class
+      return current_user.policy_for(report) if policy_class.nil?
+
+      current_user.policy_for(report, policy_class: policy_class)
     end
 
     private def report_source
