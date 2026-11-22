@@ -70,22 +70,27 @@ module GrdaWarehouse
       nil
     end
 
+    def self.self_hosted_nominatim?
+      ENV['NOMINATIM_HOST'].present?
+    end
+
     def self.nominatim_lookup(query, city, state, postalcode, country)
       return if Rails.cache.read(['Nominatim', 'API PAUSE'])
 
       address = [query, city, state, postalcode, country].compact.join(',')
       n = Geocoder.search(address)
 
-      # Limit calls to 1 per second (we are defaulting to using Nominatim, and this is their policy)
+      # Limit calls to 1 per second against the public API (their usage policy); a self-hosted server has no such limit
       @rate_limit ||= Time.new(0)
-      sleep 1 if (Time.current - @rate_limit) < 1
+      sleep 1 if !self_hosted_nominatim? && (Time.current - @rate_limit) < 1
       result = n.first
       @rate_limit = Time.current
 
       return result
-    rescue Faraday::ConnectionFailed
-      # we've probably been banned, let the API cool off
+    rescue SocketError, Errno::ECONNREFUSED, Geocoder::LookupTimeout, Geocoder::NetworkError
+      # Geocoder raises these only for the self-hosted server (always_raise in config/initializers/geocode_lite.rb)
       Rails.cache.write(['Nominatim', 'API PAUSE'], true, expires_in: 1.hours)
+      nil
     rescue StandardError => e
       # The API returns various errors which we don't want to prevent continuing with other attempts.
       # Just send it along to sentry and take a quick break
