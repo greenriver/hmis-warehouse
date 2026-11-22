@@ -11,12 +11,13 @@ sources:
   - app/models/pii/scrubber/version_history_pruner.rb
   - app/models/pii/scrubber/replacement_pii.rb
   - app/models/pii/scrubber/static_scrubber.rb
-  - spec/models/pii/scrubber/pii_catalog_spec.rb
+  - app/models/pii/scrubber/replacement_pii.rb
+  - app/models/pii/scrubber/dob_scrubber.rb
 ---
 
 # PII Cataloging, Access Logging, and Scrubbing
 
-How the warehouse catalogs client PII, records who viewed which client, and scrubs PII for non-production copies. Who may see PII, how restriction hides a client, and search and export exclusion are in [Warehouse Auth Policies](warehouse-auth-policies.md#pii-redaction). Aging out inactive clients is in [Client Data Retention](client-data-retention.md).
+This document covers how the warehouse catalogs client PII, records who viewed which client, and scrubs PII for non-production copies. Who may see PII, how restriction hides a client, and search and export exclusion are in [Warehouse Auth Policies](warehouse-auth-policies.md#pii-redaction). Aging out inactive clients is in [Client Data Retention](client-data-retention.md).
 
 ## Restriction sources
 
