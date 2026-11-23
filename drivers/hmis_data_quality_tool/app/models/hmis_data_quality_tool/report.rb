@@ -348,6 +348,7 @@ module HmisDataQualityTool
       @household[household_key(data_source_id, household_id)]
     end
 
+    # Latest HoH CLS date per data source and HouseholdID, limited to report_scope and capped at the report end.
     def hoh_last_cls_date(data_source_id, household_id)
       return unless household_id.present?
 
