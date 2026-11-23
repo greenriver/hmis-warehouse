@@ -16,6 +16,9 @@ module GrdaWarehouse
     # Must run after the importer code that stopped reading pending_date_deleted is deployed, since
     # the previous importer filters on it. TaskQueue tasks run after a deploy.
     #
+    # If the importer code is rolled back after this task ran, recreate the indexes (definitions in
+    # the `down` of DropImporterPendingDeletionIndexes) before running imports.
+    #
     # Development and test drop the same indexes in the Rails.env.local?-guarded migration
     # DropImporterPendingDeletionIndexes. Keep the definitions in sync.
     #

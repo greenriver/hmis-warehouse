@@ -122,6 +122,6 @@
               = @csv[key]
       - if key == :ExportID && @imported && @imported[:ExportID] != @item[:ExportID]
         %tr
-          %td.text-muted.small{colspan: 2 + (@imported ? 1 : 0) + (@csv ? 1 : 0)}
+          %td.text-muted.small{colspan: 3 + (@csv ? 1 : 0)}
             ExportID is from the import that last wrote this record.
             Imports skip records whose content hasn't changed, so this record may also be in a more recent import (Post-Processed column).

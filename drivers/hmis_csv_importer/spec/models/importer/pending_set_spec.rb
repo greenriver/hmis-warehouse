@@ -64,6 +64,18 @@ RSpec.describe HmisCsvImporter::Importer::PendingSet, type: :model do
     expect(set).to be_empty
   end
 
+  it 'keeps two sets for the same warehouse class in separate temp tables' do
+    other_set = described_class.new(klass)
+    set.add!(klass.where(id: kept.id))
+    other_set.add!(klass.where(id: removed.id))
+
+    expect(pending_temp_table_names.size).to eq(2)
+    expect(set.relation.pluck(:id)).to eq([kept.id])
+    expect(other_set.relation.pluck(:id)).to eq([removed.id])
+  ensure
+    other_set.drop!
+  end
+
   it 'leaves no temp table behind after drop!' do
     set.add!(klass.with_deleted.where(id: kept.id))
     set.drop!

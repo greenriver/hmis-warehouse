@@ -52,6 +52,8 @@ RSpec.describe 'HUD CSV import pending deletions', type: :model do
     end
   end
 
+  # Pins what main does today: children drop out of the live involved scope once the enrollment
+  # is soft-deleted, so the sweep never reaches them.
   describe 'children of an enrollment removed by the import' do
     before(:all) do
       reset_warehouse
@@ -63,11 +65,11 @@ RSpec.describe 'HUD CSV import pending deletions', type: :model do
       expect(GrdaWarehouse::Hud::Enrollment.only_deleted.pluck(:EnrollmentID)).to eq(['559123'])
     end
 
-    it 'leaves its Services row live, because it is no longer in the live involved scope' do
+    it 'currently leaves its Services row live (existing behavior, not a requirement)' do
       expect(GrdaWarehouse::Hud::Service.where(ServicesID: '90000001').count).to eq(1)
     end
 
-    it 'leaves its CurrentLivingSituation row live, because it is no longer in the live involved scope' do
+    it 'currently leaves its CurrentLivingSituation row live (existing behavior, not a requirement)' do
       expect(GrdaWarehouse::Hud::CurrentLivingSituation.where(CurrentLivingSitID: '90000002').count).to eq(1)
     end
   end
@@ -102,6 +104,41 @@ RSpec.describe 'HUD CSV import pending deletions', type: :model do
 
     it 'does not soft-delete the enrollment' do
       expect(GrdaWarehouse::Hud::Enrollment.where(EnrollmentID: '557331').count).to eq(1)
+    end
+  end
+
+  # With validations off, only a database error rejects a row. A batch upsert that fails is retried
+  # row by row; the rejected row must stay out of the written set so the sweep soft-deletes it.
+  # Runs in before(:all) so the first database error does not abort a surrounding transaction.
+  describe 'an in-scope row whose update fails to write' do
+    before(:all) do
+      reset_warehouse
+      run_import(full)
+      RSpec::Mocks.with_temporary_scope do
+        original = HmisCsvImporter::Importer::Importer.instance_method(:ingest!)
+        allow_any_instance_of(HmisCsvImporter::Importer::Importer).to receive(:ingest!) do |importer|
+          staging = HmisCsvTwentyTwentySix.importable_file_class('Enrollment').where(importer_log_id: importer.importer_log.id)
+          # UserID is varchar(100) in the warehouse and unbounded in staging
+          staging.where(EnrollmentID: '557890').update_all(UserID: 'x' * 101, source_hash: 'forced-change')
+          staging.where(EnrollmentID: '557331').update_all(UserID: 'changed', source_hash: 'forced-change-ok')
+          original.bind_call(importer)
+        end
+        @second_log = run_import(full).importer_log
+      end
+    end
+
+    it 'soft-deletes the row that failed to write' do
+      expect(GrdaWarehouse::Hud::Enrollment.only_deleted.pluck(:EnrollmentID)).to include('557890')
+    end
+
+    it 'still updates the sibling row in the same batch' do
+      enrollment = GrdaWarehouse::Hud::Enrollment.find_by(EnrollmentID: '557331')
+      expect(enrollment.UserID).to eq('changed')
+    end
+
+    it 'records exactly one import error, for the Enrollment table' do
+      errors = HmisCsvImporter::Importer::ImportError.where(importer_log_id: @second_log.id)
+      expect(errors.pluck(:source_type)).to eq(['GrdaWarehouse::Hud::Enrollment'])
     end
   end
 

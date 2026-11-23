@@ -17,6 +17,8 @@ RSpec.describe 'HUD CSV re-import writes only changed rows', type: :model do
   subset_new_export = "#{fixture_root}/enrollment_test_files_subset_new_export"
   xmins = ->(scope) { scope.pluck(:id, Arel.sql('xmin::text')).to_h }
   enrollments = -> { GrdaWarehouse::Hud::Enrollment.with_deleted }
+  warehouse_classes = HmisCsvImporter::Importer::Importer.soft_deletable_sources('2026')
+  all_rows = ->(klass) { klass.paranoid? ? klass.with_deleted : klass.all }
 
   def run_import(path)
     import_hmis_csv_fixture(path, version: 'AutoMigrate', run_jobs: false, stop_version: '2026')
@@ -35,12 +37,17 @@ RSpec.describe 'HUD CSV re-import writes only changed rows', type: :model do
       enrollment: xmins.call(enrollments.call),
       client: xmins.call(clients.call),
     }
+    rows_for = lambda do |klass|
+      klass == GrdaWarehouse::Hud::Client ? all_rows.call(klass).where(data_source_id: @data_source_id) : all_rows.call(klass)
+    end
+    @before_by_class = warehouse_classes.index_with { |klass| xmins.call(rows_for.call(klass)) }
     travel 1.day
     @loader = run_import(subset_new_export)
     @after = {
       enrollment: xmins.call(enrollments.call),
       client: xmins.call(clients.call),
     }
+    @after_by_class = warehouse_classes.index_with { |klass| xmins.call(rows_for.call(klass)) }
   end
 
   after(:all) do
@@ -75,6 +82,25 @@ RSpec.describe 'HUD CSV re-import writes only changed rows', type: :model do
   it 'does not write clients that did not change' do
     expect(@before[:client]).not_to be_empty
     expect(@after[:client]).to eq(@before[:client])
+  end
+
+  # The fixture's children of these tables reference EnrollmentIDs that are not in Enrollment.csv, so
+  # their rows are outside the involved scope. add_new_data treats them as new on every import and
+  # upserts them again, the same as before the pending set. Tracked separately.
+  rewritten_out_of_scope = ['CurrentLivingSituation', 'Assessment', 'AssessmentQuestions', 'AssessmentResults', 'Event']
+
+  warehouse_classes.each do |klass|
+    next if klass.table_name.in?(rewritten_out_of_scope)
+
+    it "does not write existing #{klass.table_name} rows" do
+      before = @before_by_class.fetch(klass)
+      expect(@after_by_class.fetch(klass).slice(*before.keys)).to eq(before)
+    end
+  end
+
+  it 'covers the tables the fixture populates' do
+    populated = @before_by_class.reject { |_klass, rows| rows.empty? }.keys.map(&:table_name)
+    expect(populated).to include('Enrollment', 'Client', 'Exit')
   end
 
   it 'still counts the unchanged enrollments' do

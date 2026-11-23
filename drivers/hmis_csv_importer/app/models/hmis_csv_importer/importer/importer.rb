@@ -704,7 +704,7 @@ module HmisCsvImporter::Importer
       # failure neither skips the other sets nor replaces the error that ended the import.
       @pending_sets&.each_value do |pending_set|
         pending_set.drop!
-      rescue ActiveRecord::StatementInvalid => e
+      rescue ActiveRecord::ActiveRecordError => e
         Rails.logger.error("Dropping pending set #{pending_set.warehouse_class.table_name} failed: #{e.message}")
       end
       @pending_sets = {}

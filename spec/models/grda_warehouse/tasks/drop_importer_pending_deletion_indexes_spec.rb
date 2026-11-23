@@ -10,8 +10,8 @@ require 'rails_helper'
 
 RSpec.describe GrdaWarehouse::Tasks::DropImporterPendingDeletionIndexes do
   # DROP INDEX CONCURRENTLY can't run inside the per-example transaction. This group recreates
-  # the indexes before each example (the local migration drops them) and leaves them in place
-  # afterwards, as structure.sql defines them.
+  # the indexes before each example and drops them afterwards, leaving the test database as
+  # structure.sql defines it (listed indexes absent, enrollment_export_id present).
   self.use_transactional_tests = false
 
   let(:connection) { GrdaWarehouseBase.connection }
@@ -30,7 +30,7 @@ RSpec.describe GrdaWarehouse::Tasks::DropImporterPendingDeletionIndexes do
   end
 
   before { create_indexes }
-  after { create_indexes }
+  after { described_class.run! }
 
   it 'drops every listed index' do
     expect(described_class::INDEXES.map { |index| index_exists?(index[:name]) }).to all(be(true))

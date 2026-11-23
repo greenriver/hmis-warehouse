@@ -212,7 +212,8 @@ RSpec.describe HmisCsvImporter, type: :model do
         fixture = 'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/client_processing'
         import_hmis_csv_fixture(fixture, version: 'AutoMigrate', run_jobs: false, stop_version: '2026')
         data_source_id = GrdaWarehouse::Hud::Client.source.first.data_source_id
-        # The Client sweep matches projects on Project.id, and Project.csv lists '1' and '2'
+        # The Client sweep in remove_pending_deletes compares Project.id with the HUD ProjectID values
+        # in Project.csv ('1' and '2'), so this project needs id 1. Tracked separately.
         create(:hud_project, id: 1, data_source_id: data_source_id, ProjectID: 'swept-project')
         # Each absent client has an enrollment in that project, open during the export range
         [['absent-hashed', 'abc'], ['absent-null', nil]].each do |personal_id, source_hash|
