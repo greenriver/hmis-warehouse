@@ -212,15 +212,19 @@ RSpec.describe HmisCsvImporter, type: :model do
         fixture = 'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/client_processing'
         import_hmis_csv_fixture(fixture, version: 'AutoMigrate', run_jobs: false, stop_version: '2026')
         data_source_id = GrdaWarehouse::Hud::Client.source.first.data_source_id
-        # The Client sweep in remove_pending_deletes compares Project.id with the HUD ProjectID values
-        # in Project.csv ('1' and '2'), so this project needs id 1. Tracked separately.
-        create(:hud_project, id: 1, data_source_id: data_source_id, ProjectID: 'swept-project')
-        # Each absent client has an enrollment in that project, open during the export range
-        [['absent-hashed', 'abc'], ['absent-null', nil]].each do |personal_id, source_hash|
+        # 'swept' clients are enrolled in project '1', which is in Project.csv. 'unswept' clients are enrolled
+        # in a project outside Project.csv whose warehouse id equals a ProjectID that is in Project.csv.
+        colliding_id = ['1', '2'].map(&:to_i).find { |id| GrdaWarehouse::Hud::Project.where(id: id).none? }
+        create(:hud_project, id: colliding_id, data_source_id: data_source_id, ProjectID: 'not-in-project-csv')
+        [
+          ['absent-hashed', 'abc', '1'],
+          ['absent-null', nil, '1'],
+          ['unswept-hashed', 'abc', 'not-in-project-csv'],
+        ].each do |personal_id, source_hash, project_id|
           create(:grda_warehouse_hud_client, data_source_id: data_source_id, PersonalID: personal_id, source_hash: source_hash)
-          create(:hud_enrollment, data_source_id: data_source_id, PersonalID: personal_id, ProjectID: 'swept-project', EnrollmentID: "enr-#{personal_id}", EntryDate: '2020-01-01')
+          create(:hud_enrollment, data_source_id: data_source_id, PersonalID: personal_id, ProjectID: project_id, EnrollmentID: "enr-#{personal_id}", EntryDate: '2020-01-01')
         end
-        absent = -> { GrdaWarehouse::Hud::Client.source.where(PersonalID: ['absent-hashed', 'absent-null']) }
+        absent = -> { GrdaWarehouse::Hud::Client.source.where(PersonalID: ['absent-hashed', 'absent-null', 'unswept-hashed']) }
         @before_xmin = absent.call.pluck(:PersonalID, Arel.sql('xmin::text')).to_h
         import_hmis_csv_fixture(fixture, version: 'AutoMigrate', run_jobs: false, stop_version: '2026')
         @after_xmin = absent.call.pluck(:PersonalID, Arel.sql('xmin::text')).to_h
@@ -235,8 +239,13 @@ RSpec.describe HmisCsvImporter, type: :model do
         expect(@after_xmin['absent-null']).to eq(@before_xmin['absent-null'])
       end
 
-      it 'does not soft-delete either absent client' do
-        expect(GrdaWarehouse::Hud::Client.source.where(PersonalID: ['absent-hashed', 'absent-null']).count).to eq(2)
+      it 'keeps the source_hash of an absent client enrolled in a project that is not in Project.csv' do
+        expect(GrdaWarehouse::Hud::Client.source.find_by(PersonalID: 'unswept-hashed').source_hash).to eq('abc')
+        expect(@after_xmin['unswept-hashed']).to eq(@before_xmin['unswept-hashed'])
+      end
+
+      it 'does not soft-delete any absent client' do
+        expect(GrdaWarehouse::Hud::Client.source.where(PersonalID: ['absent-hashed', 'absent-null', 'unswept-hashed']).count).to eq(3)
       end
     end
   end

@@ -1022,7 +1022,7 @@ module HmisCsvImporter::Importer
             GrdaWarehouseBase.disable_nestloop do
               existing.joins(enrollments: :project).
                 merge(GrdaWarehouse::Hud::Enrollment.open_during_range(date_range)).
-                merge(GrdaWarehouse::Hud::Project.where(id: involved_project_ids)).
+                merge(GrdaWarehouse::Hud::Project.where(data_source_id: data_source.id, ProjectID: involved_project_ids)).
                 where.not(source_hash: nil).
                 update_all(source_hash: nil)
             end
