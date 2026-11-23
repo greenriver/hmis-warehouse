@@ -52,7 +52,10 @@ module HmisCsvImporter::Benchmarking
       @connection = connection
     end
 
+    # pg_stat_force_next_flush makes this connection's own pending counters visible to the read below
+    # instead of waiting out the flush interval, which would hide the writes of a short run.
     def snapshot
+      @connection.execute('SELECT pg_stat_force_next_flush()')
       sql = "SELECT relname, #{COUNTERS.join(', ')} FROM pg_stat_user_tables WHERE schemaname = 'public'"
       @connection.select_all(sql).rows.each_with_object({}) do |row, snapshot|
         relname, *values = row

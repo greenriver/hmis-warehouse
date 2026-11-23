@@ -47,6 +47,23 @@ RSpec.describe HmisCsvImporter::Importer::PendingSet, type: :model do
     expect(klass.with_deleted.order(:id).pluck(Arel.sql('xmin::text'))).to eq(before_xmin)
   end
 
+  it 'filters a scope to the ids in the set, soft-deleted included, via id_in_set_sql' do
+    set.add!(klass.with_deleted.where(id: [kept.id, deleted.id]))
+    expect(klass.with_deleted.where(set.id_in_set_sql).pluck(:id)).to contain_exactly(kept.id, deleted.id)
+  end
+
+  it 'matches no rows from id_in_set_sql before anything is added' do
+    expect(klass.with_deleted.where(set.id_in_set_sql).pluck(:id)).to eq([])
+  end
+
+  it 'reports empty until an id is added and again once the last id is removed' do
+    expect(set).to be_empty
+    set.add!(klass.where(id: kept.id))
+    expect(set).not_to be_empty
+    set.remove_ids!([kept.id])
+    expect(set).to be_empty
+  end
+
   it 'leaves no temp table behind after drop!' do
     set.add!(klass.with_deleted.where(id: kept.id))
     set.drop!

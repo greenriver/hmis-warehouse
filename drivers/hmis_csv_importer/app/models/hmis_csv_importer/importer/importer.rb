@@ -914,6 +914,7 @@ module HmisCsvImporter::Importer
       errored_keys = errored.map { |row| columns.map { |column| row[column] } }.to_set
       written_keys = batch.map { |row| columns.map { |column| row[column] } }.uniq.reject { |key| errored_keys.include?(key) }
       return if written_keys.empty?
+      return if pending_set_for(klass).empty?
 
       connection = destination_class.connection
       key_columns = columns.map { |column| connection.quote_column_name(column) }.join(', ')
@@ -1002,6 +1003,9 @@ module HmisCsvImporter::Importer
         next if klass.hud_key == :ExportID
         # Augmented data should never delete records since it should only update existing records
         next if custom_augmentation?(klass)
+        next if pending_set_for(klass).empty?
+
+        pending_set_for(klass).analyze!
 
         # If the klass does not allow deletions through the import process, reset the source hash
         # of the rows this import did not account for so future imports re-evaluate them.
@@ -1088,7 +1092,7 @@ module HmisCsvImporter::Importer
     private def existing_destination_data_scope(klass)
       return klass.existing_destination_data(data_source_id: data_source.id, project_ids: involved_project_ids, date_range: date_range) if custom_augmentation?(klass)
 
-      pending_candidates(klass, involved_project_ids).where(id: pending_set_for(klass).relation.select(:id))
+      pending_candidates(klass, involved_project_ids).where(pending_set_for(klass).id_in_set_sql)
     end
 
     # At this point,
@@ -1120,23 +1124,29 @@ module HmisCsvImporter::Importer
         # The pagination re-evaluates the multi-join existing_destination_data
         # scope per batch; guard the planner from using a nested loop join on it. The inner
         # statements are single-table operations the guard doesn't affect.
-        GrdaWarehouseBase.disable_nestloop do
-          existing_destination_data_scope(klass).in_batches(of: SELECT_BATCH_SIZE) do |relation|
-            rows = relation.pluck(:id, klass.hud_key, *key_columns)
-            ids_by_key = rows.group_by { |_, _, *key| key }.transform_values { |group| group.map(&:first) }
-            klass.should_import.where(
-              importer_log_id: @importer_log.id,
-              klass.hud_key => rows.map { |row| row[1] }.uniq,
-            ).find_each(batch_size: SELECT_BATCH_SIZE) do |source|
-              incoming = prepare_destination_for_update(klass, source.as_destination_record)
-              batch << incoming
-              key = key_columns.map { |column| incoming[column] }
-              (batch_ids_by_key[key] ||= []).concat(ids_by_key.fetch(key, []))
-              next unless batch.count == INSERT_BATCH_SIZE
+        # The set was analyzed when filled; a refresh now that unchanged and older rows have left it
+        # keeps the planner from sizing the scope for the original set.
+        pending = pending_set_for(klass)
+        unless pending.empty?
+          pending.analyze!
+          GrdaWarehouseBase.disable_nestloop do
+            existing_destination_data_scope(klass).in_batches(of: SELECT_BATCH_SIZE) do |relation|
+              rows = relation.pluck(:id, klass.hud_key, *key_columns)
+              ids_by_key = rows.group_by { |_, _, *key| key }.transform_values { |group| group.map(&:first) }
+              klass.should_import.where(
+                importer_log_id: @importer_log.id,
+                klass.hud_key => rows.map { |row| row[1] }.uniq,
+              ).find_each(batch_size: SELECT_BATCH_SIZE) do |source|
+                incoming = prepare_destination_for_update(klass, source.as_destination_record)
+                batch << incoming
+                key = key_columns.map { |column| incoming[column] }
+                (batch_ids_by_key[key] ||= []).concat(ids_by_key.fetch(key, []))
+                next unless batch.count == INSERT_BATCH_SIZE
 
-              flush_update_batch(klass, destination_class, file_name, batch, batch_ids_by_key, upsert_columns)
-              batch = []
-              batch_ids_by_key = {}
+                flush_update_batch(klass, destination_class, file_name, batch, batch_ids_by_key, upsert_columns)
+                batch = []
+                batch_ids_by_key = {}
+              end
             end
           end
         end
@@ -1394,7 +1404,7 @@ module HmisCsvImporter::Importer
     # The warehouse rows are not written. Returns the number of rows cleared.
     private def batch_clear_pending_deletion(klass, matched_scope, file_name)
       set = pending_set_for(klass)
-      cleared = GrdaWarehouseBase.disable_nestloop { set.remove!(matched_scope) }
+      cleared = set.empty? ? 0 : GrdaWarehouseBase.disable_nestloop { set.remove!(matched_scope) }
       note_processed(file_name, cleared, 'unchanged')
       Rails.logger.info { "Cleared pending deletion for #{cleared} #{file_name} rows" }
       cleared

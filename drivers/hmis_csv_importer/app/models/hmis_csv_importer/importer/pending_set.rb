@@ -49,7 +49,23 @@ module HmisCsvImporter::Importer
       return warehouse_class.none unless @created
 
       base = warehouse_class.paranoid? ? warehouse_class.with_deleted : warehouse_class.all
-      base.where("#{warehouse_class.quoted_table_name}.id IN (SELECT id FROM #{quoted_table})")
+      base.where(id_in_set_sql)
+    end
+
+    # SQL predicate for filtering a scope on the warehouse table directly. Planned as one semi-join,
+    # unlike where(id: relation.select(:id)), which nests the warehouse table in a second one.
+    def id_in_set_sql
+      return '1 = 0' unless @created
+
+      "#{warehouse_class.quoted_table_name}.id IN (SELECT id FROM #{quoted_table})"
+    end
+
+    # An empty set means nothing is left to act on. The planner does not know that: the set is
+    # analyzed only when filled, so scopes joined to it are planned for its original size.
+    def empty?
+      return true unless @created
+
+      !connection.select_value("SELECT EXISTS (SELECT 1 FROM #{quoted_table})")
     end
 
     # Returns the number of ids removed.
