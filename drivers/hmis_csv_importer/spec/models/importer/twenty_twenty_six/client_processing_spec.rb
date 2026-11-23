@@ -216,6 +216,7 @@ RSpec.describe HmisCsvImporter, type: :model do
         # in a project outside Project.csv whose warehouse id equals a ProjectID that is in Project.csv.
         colliding_id = ['1', '2'].map(&:to_i).find { |id| GrdaWarehouse::Hud::Project.where(id: id).none? }
         raise 'Project ids 1 and 2 are both taken; the unswept case would not test the project filter' if colliding_id.nil?
+
         create(:hud_project, id: colliding_id, data_source_id: data_source_id, ProjectID: 'not-in-project-csv')
         [
           ['absent-hashed', 'abc', '1'],
