@@ -14,7 +14,8 @@ namespace :hmis_csv do
     #   - ExportID            — references each source's own Export record
     #   - SourceID            — identifies the originating upload/system; differs
     #                           when imports come from separate HMIS installations
-    #   - pending_date_deleted — no longer written by imports; may be non-NULL on rows from earlier imports
+    #   - pending_date_deleted — imports no longer use it to track pending rows and clear it on rows they write;
+    #                           may be non-NULL on rows from earlier imports
     #   - DateDeleted         — timestamp checked as NULL vs non-NULL, not exact value
     #   - source_hash         — set asynchronously by post-import jobs; NULL until
     #                           reprocessing completes, so timing affects its value

@@ -124,4 +124,4 @@
         %tr
           %td.text-muted.small{colspan: 3 + (@csv ? 1 : 0)}
             ExportID is from the import that last wrote this record.
-            Imports skip records whose content hasn't changed, so this record may also be in a more recent import (Post-Processed column).
+            Imports only write records they add or change, so this record may also be in a more recent import (Post-Processed column).

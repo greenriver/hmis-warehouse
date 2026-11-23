@@ -1124,11 +1124,8 @@ module HmisCsvImporter::Importer
         # The pagination re-evaluates the multi-join existing_destination_data
         # scope per batch; guard the planner from using a nested loop join on it. The inner
         # statements are single-table operations the guard doesn't affect.
-        # The set was analyzed when filled; a refresh now that unchanged and older rows have left it
-        # keeps the planner from sizing the scope for the original set.
         pending = pending_set_for(klass)
         unless pending.empty?
-          pending.analyze!
           GrdaWarehouseBase.disable_nestloop do
             existing_destination_data_scope(klass).in_batches(of: SELECT_BATCH_SIZE) do |relation|
               rows = relation.pluck(:id, klass.hud_key, *key_columns)

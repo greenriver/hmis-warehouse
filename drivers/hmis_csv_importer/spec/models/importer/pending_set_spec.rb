@@ -79,7 +79,6 @@ RSpec.describe HmisCsvImporter::Importer::PendingSet, type: :model do
   it 'leaves no temp table behind after drop!' do
     set.add!(klass.with_deleted.where(id: kept.id))
     set.drop!
-    count = klass.connection.select_value("SELECT count(*) FROM pg_class WHERE relpersistence = 't' AND relname LIKE 'tmp_pending_%'")
-    expect(count).to eq(0)
+    expect(pending_temp_table_names).to be_empty
   end
 end
