@@ -544,7 +544,7 @@ module HmisDataQualityTool
     end
 
     def self.adult?(item)
-      item.age.present? && item.age > 18
+      item.age.present? && item.age >= 18
     end
 
     def self.hoh_or_adult?(item)
