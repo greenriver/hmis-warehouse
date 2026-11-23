@@ -16,16 +16,22 @@ class Hmis::StaffAssignment < Hmis::HmisBase
 
   scope :viewable_by, ->(user) do
     # Special case this, rather than using EnrollmentRelated concern, because we have to join through Household
-    joins_household_lateral.merge(Hmis::Hud::Household.viewable_by(user))
+    joins_household_lateral.where(Hmis::Hud::Household.viewable_by_condition(user, lateral_household_t))
   end
 
   scope :open_on_date, ->(date = Date.current) do
-    joins_household_lateral.merge(Hmis::Hud::Household.open_on_date(date))
+    joins_household_lateral.where(Hmis::Hud::Household.open_on_date_condition(date, lateral_household_t))
   end
+
+  scope :order_by_household_most_recent, -> do
+    joins_household_lateral.order(*Hmis::Hud::Household.most_recent_order(lateral_household_t))
+  end
+
+  LATERAL_HOUSEHOLD_ALIAS = 'staff_assignment_households'
 
   # A plain join to the hmis_households view aggregates every enrollment before filtering. This LATERAL
   # aggregates only each assignment's household; OFFSET 0 keeps the planner from flattening it back.
-  # Don't combine with joins(:household): both alias hmis_households.
+  # Its own alias keeps it combinable with joins(:household).
   scope :joins_household_lateral, -> do
     joins(<<~SQL.squish)
       CROSS JOIN LATERAL (
@@ -33,7 +39,11 @@ class Hmis::StaffAssignment < Hmis::HmisBase
         WHERE hh."HouseholdID" = hmis_staff_assignments.household_id
           AND hh.data_source_id = hmis_staff_assignments.data_source_id
         OFFSET 0
-      ) hmis_households
+      ) #{LATERAL_HOUSEHOLD_ALIAS}
     SQL
+  end
+
+  def self.lateral_household_t
+    Hmis::Hud::Household.arel_table.alias(LATERAL_HOUSEHOLD_ALIAS)
   end
 end
