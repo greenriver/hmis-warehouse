@@ -38,7 +38,7 @@ module HmisCsvImporter::Importer
     def add!(scope)
       create_table!
       connection.execute(<<~SQL).cmd_tuples
-        INSERT INTO #{quoted_table} (id)
+        INSERT INTO #{quoted_table_name} (id)
         SELECT id FROM (#{scope.select(:id).to_sql}) sub
         ON CONFLICT DO NOTHING
       SQL
@@ -57,7 +57,7 @@ module HmisCsvImporter::Importer
     def id_in_set_sql
       return '1 = 0' unless @created
 
-      "#{warehouse_class.quoted_table_name}.id IN (SELECT id FROM #{quoted_table})"
+      "#{warehouse_class.quoted_table_name}.id IN (SELECT id FROM #{quoted_table_name})"
     end
 
     # An empty set means nothing is left to act on. The planner does not know that: the set is
@@ -65,7 +65,7 @@ module HmisCsvImporter::Importer
     def empty?
       return true unless @created
 
-      !connection.select_value("SELECT EXISTS (SELECT 1 FROM #{quoted_table})")
+      !connection.select_value("SELECT EXISTS (SELECT 1 FROM #{quoted_table_name})")
     end
 
     # Returns the number of ids removed.
@@ -73,7 +73,7 @@ module HmisCsvImporter::Importer
       return 0 unless @created
 
       connection.execute(<<~SQL).cmd_tuples
-        DELETE FROM #{quoted_table}
+        DELETE FROM #{quoted_table_name}
         WHERE id IN (SELECT id FROM (#{scope.select(:id).to_sql}) sub)
       SQL
     end
@@ -83,10 +83,13 @@ module HmisCsvImporter::Importer
       return 0 unless @created
       return 0 if ids.empty?
 
-      connection.execute(<<~SQL).cmd_tuples
-        DELETE FROM #{quoted_table}
-        WHERE id IN (#{ids.map { |id| Integer(id) }.join(',')})
-      SQL
+      sql = warehouse_class.sanitize_sql_array(
+        [
+          "DELETE FROM #{quoted_table_name} WHERE id IN (?)",
+          ids.map { |id| Integer(id) },
+        ],
+      )
+      connection.execute(sql).cmd_tuples
     end
 
     # Autovacuum never analyzes temp tables, so callers analyze after the set
@@ -94,22 +97,22 @@ module HmisCsvImporter::Importer
     def analyze!
       return unless @created
 
-      connection.execute("ANALYZE #{quoted_table}")
+      connection.execute("ANALYZE #{quoted_table_name}")
     end
 
     def drop!
-      connection.execute("DROP TABLE IF EXISTS #{quoted_table}")
+      connection.execute("DROP TABLE IF EXISTS #{quoted_table_name}")
       @created = false
     end
 
     private def create_table!
       return if @created
 
-      connection.execute("CREATE TEMP TABLE IF NOT EXISTS #{quoted_table} (id bigint PRIMARY KEY)")
+      connection.execute("CREATE TEMP TABLE IF NOT EXISTS #{quoted_table_name} (id bigint PRIMARY KEY)")
       @created = true
     end
 
-    private def quoted_table
+    private def quoted_table_name
       connection.quote_table_name(@table_name)
     end
 

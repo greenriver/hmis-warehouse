@@ -920,8 +920,9 @@ module HmisCsvImporter::Importer
 
       connection = destination_class.connection
       key_columns = columns.map { |column| connection.quote_column_name(column) }.join(', ')
-      key_tuples = written_keys.map { |key| "(#{key.map { |value| connection.quote(value) }.join(', ')})" }.join(', ')
-      written = destination_class.where(data_source_id: data_source.id).where("(#{key_columns}) IN (#{key_tuples})")
+      placeholders = written_keys.map { |key| "(#{Array.new(key.size, '?').join(', ')})" }.join(', ')
+      key_condition = destination_class.sanitize_sql_array(["(#{key_columns}) IN (#{placeholders})", *written_keys.flatten])
+      written = destination_class.where(data_source_id: data_source.id).where(key_condition)
       written = written.with_deleted if destination_class.paranoid?
       GrdaWarehouseBase.disable_nestloop do
         pending_set_for(klass).remove!(written)
