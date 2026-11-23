@@ -30,7 +30,7 @@ RSpec.describe 'LSA new page CoC default', type: :request do
   end
 
   it "uses the site's first CoC code when the user's last HIC run saved none" do
-    hic_options = options_without_coc.merge('lsa_scope' => HudLsa::Fy2026::Report.available_lsa_scopes['HIC'])
+    hic_options = options_without_coc.merge('lsa_scope' => HudLsa::Fy2027::Report.available_lsa_scopes['HIC'])
     create(:hud_reports_report_instance, type: lsa_generator.name, user: user, report_name: lsa_generator.title, options: hic_options)
 
     get new_hud_reports_lsa_hic_path
