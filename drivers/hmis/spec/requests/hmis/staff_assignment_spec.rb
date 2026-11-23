@@ -106,6 +106,29 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
     end
 
+    context 'when another data source has a household with the same HouseholdID' do
+      let!(:ds2) { create :hmis_data_source }
+      let!(:p2) { create :hmis_hud_project, data_source: ds2 }
+      let!(:e2) { create :hmis_hud_enrollment, data_source: ds2, project: p2, household_id: e1.household_id }
+      let!(:ds2_assignment) do
+        create :hmis_staff_assignment,
+               staff_assignment_relationship: ar,
+               data_source: ds2,
+               enrollment: e2,
+               user: hmis_user
+      end
+
+      it 'does not match the assignment to the other data source household' do
+        response, result = post_graphql(id: hmis_user.id) { query }
+        expect(response.status).to eq(200), result.inspect
+
+        staff_assignments = result.dig('data', 'userDashboard', 'staffAssignments')
+        node_ids = staff_assignments['nodes'].map { |n| n['id'] }
+        expect(node_ids).to contain_exactly(ds1_assignment.id.to_s)
+        expect(staff_assignments['nodesCount']).to eq(1)
+      end
+    end
+
     context 'with assignment in a project the user cannot view' do
       let!(:p_hidden) { create :hmis_hud_project, data_source: ds1 }
       let!(:e_hidden) { create :hmis_hud_enrollment, data_source: ds1, project: p_hidden }
