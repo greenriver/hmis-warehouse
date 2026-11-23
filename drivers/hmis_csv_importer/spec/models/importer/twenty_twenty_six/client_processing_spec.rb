@@ -202,5 +202,41 @@ RSpec.describe HmisCsvImporter, type: :model do
         expect(@loader.importer_log.summary['Client.csv']['unchanged']).to eq(1)
       end
     end
+
+    # Clients are never deleted by an import; ones the file omits get source_hash reset so a later
+    # import re-evaluates them. A client whose source_hash is already NULL needs no write.
+    describe 'when re-importing with clients that are absent from Client.csv' do
+      before(:all) do
+        HmisCsvImporter::Utility.clear!
+        GrdaWarehouse::Utility.clear!
+        fixture = 'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/client_processing'
+        import_hmis_csv_fixture(fixture, version: 'AutoMigrate', run_jobs: false, stop_version: '2026')
+        data_source_id = GrdaWarehouse::Hud::Client.source.first.data_source_id
+        # The Client sweep matches projects on Project.id, and Project.csv lists '1' and '2'
+        create(:hud_project, id: 1, data_source_id: data_source_id, ProjectID: 'swept-project')
+        # Each absent client has an enrollment in that project, open during the export range
+        [['absent-hashed', 'abc'], ['absent-null', nil]].each do |personal_id, source_hash|
+          create(:grda_warehouse_hud_client, data_source_id: data_source_id, PersonalID: personal_id, source_hash: source_hash)
+          create(:hud_enrollment, data_source_id: data_source_id, PersonalID: personal_id, ProjectID: 'swept-project', EnrollmentID: "enr-#{personal_id}", EntryDate: '2020-01-01')
+        end
+        absent = -> { GrdaWarehouse::Hud::Client.source.where(PersonalID: ['absent-hashed', 'absent-null']) }
+        @before_xmin = absent.call.pluck(:PersonalID, Arel.sql('xmin::text')).to_h
+        import_hmis_csv_fixture(fixture, version: 'AutoMigrate', run_jobs: false, stop_version: '2026')
+        @after_xmin = absent.call.pluck(:PersonalID, Arel.sql('xmin::text')).to_h
+      end
+
+      it 'resets source_hash on the absent client that had one' do
+        expect(GrdaWarehouse::Hud::Client.source.find_by(PersonalID: 'absent-hashed').source_hash).to be_nil
+        expect(@after_xmin['absent-hashed']).not_to eq(@before_xmin['absent-hashed'])
+      end
+
+      it 'does not write the absent client whose source_hash was already NULL' do
+        expect(@after_xmin['absent-null']).to eq(@before_xmin['absent-null'])
+      end
+
+      it 'does not soft-delete either absent client' do
+        expect(GrdaWarehouse::Hud::Client.source.where(PersonalID: ['absent-hashed', 'absent-null']).count).to eq(2)
+      end
+    end
   end
 end

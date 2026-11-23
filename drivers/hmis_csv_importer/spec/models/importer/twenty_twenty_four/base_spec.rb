@@ -426,10 +426,8 @@ RSpec.describe HmisCsvImporter, type: :model do
       expect(GrdaWarehouse::Hud::Export.order(id: :asc).last.effective_export_end_date).to eq('2017-09-19'.to_date)
     end
 
-    it 'will clean up the pending deletes' do
-      HmisCsvImporter::Importer::Importer.soft_deletable_sources('2024').each do |source|
-        expect(source.where.not(pending_date_deleted: nil).count).to eq 0
-      end
+    it 'leaves no pending-set temp tables on the connection' do
+      expect(pending_temp_table_names).to eq([])
     end
 
     describe 'each client\'s counts will match expected counts' do

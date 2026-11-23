@@ -81,6 +81,13 @@ module HmisCsvFixtures
     work_off_all_ready_jobs
   end
 
+  # Temp tables holding the importer's pending set that are still on the connection
+  def pending_temp_table_names
+    GrdaWarehouseBase.connection.select_values(
+      "SELECT relname FROM pg_class WHERE relpersistence = 't' AND relname LIKE 'tmp_pending_%'",
+    )
+  end
+
   def cleanup_hmis_csv_fixtures
     # currently a no-op
   end

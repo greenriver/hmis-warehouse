@@ -61,11 +61,8 @@ RSpec.describe 'HUD CSV soft-deletion on re-import', type: :model do
       expect(@loader.importer_log.summary['Enrollment.csv']['removed']).to eq(1)
     end
 
-    it 'leaves no rows with pending_date_deleted set after import completes' do
-      HmisCsvImporter::Importer::Importer.soft_deletable_sources('2026').each do |source|
-        count = source.where.not(pending_date_deleted: nil).count
-        expect(count).to eq(0), "#{source.name} has #{count} row(s) with pending_date_deleted set"
-      end
+    it 'leaves no pending-set temp tables on the connection after import completes' do
+      expect(pending_temp_table_names).to eq([])
     end
   end
 end
