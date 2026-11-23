@@ -42,14 +42,14 @@ RSpec.describe 'HOPWA CAPER run access', type: :request do
     hud_reports_hopwa_caper_question_cell_path(hopwa_caper_id: run.id, question_id: question, id: 'B2', table: 'Q1')
   end
 
-  shared_examples 'a HOPWA run page' do
+  shared_examples 'a HOPWA run page' do |own_run_behavior|
     context 'when the user has the HOPWA grant' do
       before do
         grant_hud_report(user, 'hud_reports/hopwa_capers')
         sign_in(user)
       end
 
-      it 'serves the user\'s own run' do
+      it own_run_behavior do
         get page_for.call(own_run)
 
         expect_own_run_response
@@ -90,7 +90,7 @@ RSpec.describe 'HOPWA CAPER run access', type: :request do
       expect(response).to have_http_status(:ok)
     end
 
-    include_examples 'a HOPWA run page'
+    include_examples 'a HOPWA run page', 'serves the user\'s own run'
   end
 
   describe 'cell page' do
@@ -101,6 +101,6 @@ RSpec.describe 'HOPWA CAPER run access', type: :request do
       expect(flash[:alert]).to eq('This drilldown is not available.')
     end
 
-    include_examples 'a HOPWA run page'
+    include_examples 'a HOPWA run page', 'redirects the user\'s own run to the result page when the question has not completed'
   end
 end
