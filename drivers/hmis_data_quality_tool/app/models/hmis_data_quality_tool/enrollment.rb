@@ -290,7 +290,7 @@ module HmisDataQualityTool
       report_item.target_screen_required = enrollment.TargetScreenReqd
       report_item.target_screen_completed = hp_targeting_criteria_complete(enrollment)
 
-      hh = report.household(enrollment.HouseholdID)
+      hh = report.household(enrollment.data_source_id, enrollment.HouseholdID)
       hoh = hh&.detect(&:head_of_household?) || enrollment.service_history_enrollment
       stayer = enrollment.exit&.ExitDate.blank? || enrollment.exit.ExitDate > report.filter.end
 

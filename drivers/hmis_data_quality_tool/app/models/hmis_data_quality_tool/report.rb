@@ -325,7 +325,7 @@ module HmisDataQualityTool
       CurrentLivingSituation.calculate(report_items: report_current_living_situations, report: self)
     end
 
-    def household(household_id)
+    def household(data_source_id, household_id)
       return unless household_id.present?
 
       @household ||= {}.tap do |households|
@@ -335,16 +335,21 @@ module HmisDataQualityTool
           where.not(HouseholdID: nil).
           find_each do |enrollment|
             report_age_date = [enrollment.EntryDate, filter.start].max
-            households[enrollment.HouseholdID] ||= []
+            key = household_key(enrollment.data_source_id, enrollment.HouseholdID)
+            households[key] ||= []
             she = enrollment.service_history_enrollment
             next unless enrollment.client.present?
 
             # Make sure the age reflects the reporting age
             she.age = enrollment.client&.age_on(report_age_date)
-            households[enrollment.HouseholdID] << she
+            households[key] << she
           end
       end
-      @household[household_id]
+      @household[household_key(data_source_id, household_id)]
+    end
+
+    private def household_key(data_source_id, household_id)
+      "#{data_source_id}*#{household_id}"
     end
 
     def known_keys
