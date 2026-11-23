@@ -103,6 +103,17 @@ RSpec.describe 'HudPit::CellsController#show', type: :request do
         expect(workbook_cell_values.select { |v| v.include?(hiv_client.FirstName) }).to be_empty
       end
 
+      it 'denies the HIV/AIDS row through authorize_with when the HIV redirect does not run' do
+        allow(HudPit::CellsController).to receive(:new).and_wrap_original do |original, *args|
+          original.call(*args).tap { |controller| allow(controller).to receive(:enforce_hiv_drilldown_access) }
+        end
+
+        get hud_reports_pit_question_cell_path(hiv_params)
+
+        expect(response).to redirect_to(warehouse_reports_path)
+        expect(flash[:alert]).to eq('Sorry you are not authorized to do that.')
+      end
+
       it 'takes the question from the route, not from a question parameter' do
         get hud_reports_pit_question_cell_path(hiv_params.merge(question: 'Projects'))
 

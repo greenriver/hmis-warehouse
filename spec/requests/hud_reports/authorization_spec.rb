@@ -78,6 +78,33 @@ RSpec.describe 'HUD report authorization', type: :request do
 
       expect(response).to have_http_status(:ok)
     end
+
+    # Every title a controller loads maps to the controller's own definition, so the
+    # run's title is pointed at another definition to separate the two checks.
+    context "when the run's title maps to a different definition than the controller's" do
+      before do
+        allow(HudReports::ReportInstance).to receive(:report_definition_url_for).and_call_original
+        allow(HudReports::ReportInstance).to receive(:report_definition_url_for).with(apr_title).and_return('hud_reports/spms')
+      end
+
+      it "redirects the user's own run when only the controller's definition is granted" do
+        grant_hud_report(user, 'hud_reports/aprs')
+
+        get hud_reports_apr_path(own_run)
+
+        expect(response).to redirect_to(warehouse_reports_path)
+        expect(flash[:alert]).to eq('Sorry you are not authorized to do that.')
+      end
+
+      it "opens the user's own run when the run's definition is also granted" do
+        grant_hud_report(user, 'hud_reports/aprs')
+        grant_hud_report(user, 'hud_reports/spms')
+
+        get hud_reports_apr_path(own_run)
+
+        expect(response).to have_http_status(:ok)
+      end
+    end
   end
 
   it 'creates no run when a question run is posted without the definition' do
