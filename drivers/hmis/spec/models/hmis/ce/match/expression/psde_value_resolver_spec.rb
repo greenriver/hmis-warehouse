@@ -812,4 +812,369 @@ RSpec.describe Hmis::Ce::Match::Expression::PsdeValueResolver, type: :model do
       expect(resolver.call(clients, field)).to eq({ destination_client.id => [true] })
     end
   end
+
+  describe 'disabling_condition resolution' do
+    let(:field) { Hmis::Ce::Match::Expression::PsdeFieldRegistry::DISABLING_CONDITION }
+
+    def create_disability(**attrs)
+      defaults = {
+        enrollment: enrollment,
+        client: client,
+        data_source: hmis_data_source,
+        data_collection_stage: 1,
+      }
+      create(:hmis_disability, :skip_validate, defaults.merge(attrs))
+    end
+
+    def create_enrollment(**attrs)
+      defaults = {
+        data_source: hmis_data_source,
+        client: client,
+        EntryDate: current_date - 1.month,
+      }
+      create(:hmis_hud_enrollment, defaults.merge(attrs))
+    end
+
+    def resolved_value
+      resolver.call(clients, field).fetch(destination_client.id)
+    end
+
+    def configure_project_group(projects)
+      project_group = create(:hmis_project_group, data_source: hmis_data_source, with_projects: projects)
+      AppConfigProperty.create!(key: 'hmis_ce/eligibility_project_group_id', value: project_group.id)
+    end
+
+    it 'returns nil when there is no meaningful data in scope' do
+      expect(resolver.call(clients, field)).to eq({ destination_client.id => nil })
+    end
+
+    describe 'rule A: enrollment DisablingCondition' do
+      it 'resolves the latest answered enrollment Yes to true' do
+        enrollment.update!(DisablingCondition: 1)
+
+        expect(resolved_value).to be(true)
+      end
+
+      it 'resolves the latest answered enrollment No to false' do
+        enrollment.update!(DisablingCondition: 0)
+
+        expect(resolved_value).to be(false)
+      end
+
+      it 'uses the enrollment with the latest EntryDate' do
+        enrollment.update!(DisablingCondition: 1)
+        create_enrollment(DisablingCondition: 0, EntryDate: current_date - 1.week)
+
+        expect(resolved_value).to be(false)
+      end
+
+      it 'skips later enrollments answered 8/9/99' do
+        enrollment.update!(DisablingCondition: 1)
+        [8, 9, 99].each_with_index do |response, i|
+          create_enrollment(DisablingCondition: response, EntryDate: current_date - (i + 1).days)
+        end
+
+        expect(resolved_value).to be(true)
+      end
+
+      it 'breaks EntryDate ties by DateUpdated' do
+        enrollment.update_columns(DisablingCondition: 0, DateUpdated: current_date.to_time)
+        later_entry = create_enrollment(DisablingCondition: 1, EntryDate: current_date - 1.week)
+        later_entry_tie = create_enrollment(DisablingCondition: 0, EntryDate: current_date - 1.week)
+        later_entry.update_columns(DateUpdated: current_date.to_time)
+        later_entry_tie.update_columns(DateUpdated: (current_date - 1.day).to_time)
+
+        expect(resolved_value).to be(true)
+      end
+
+      it 'breaks EntryDate and DateUpdated ties by id' do
+        shared_updated_at = current_date.to_time
+        older = create_enrollment(DisablingCondition: 0, EntryDate: current_date - 1.week)
+        newer = create_enrollment(DisablingCondition: 1, EntryDate: current_date - 1.week)
+        older.update_columns(DateUpdated: shared_updated_at)
+        newer.update_columns(DateUpdated: shared_updated_at)
+
+        expect(resolved_value).to be(true)
+      end
+
+      it 'does not let a null DateUpdated win the tiebreak' do
+        with_date = create_enrollment(DisablingCondition: 0, EntryDate: current_date - 1.week)
+        without_date = create_enrollment(DisablingCondition: 1, EntryDate: current_date - 1.week)
+        with_date.update_columns(DateUpdated: current_date.to_time)
+        without_date.update_columns(DateUpdated: nil)
+
+        expect(resolved_value).to be(false)
+      end
+    end
+
+    describe 'rule B: disability records' do
+      it 'resolves a Yes overridden by a later No of the same type to false' do
+        create_disability(disability_type: 9, disability_response: 1, information_date: current_date - 2.weeks)
+        create_disability(disability_type: 9, disability_response: 0, information_date: current_date - 1.week)
+
+        expect(resolved_value).to be(false)
+      end
+
+      it 'resolves a Yes followed by a later Yes of the same type to true' do
+        create_disability(disability_type: 9, disability_response: 1, information_date: current_date - 2.weeks)
+        create_disability(disability_type: 9, disability_response: 1, information_date: current_date - 1.week)
+
+        expect(resolved_value).to be(true)
+      end
+
+      it 'lets a Yes win a same-day tie with a No, regardless of which was updated last' do
+        create_disability(
+          disability_type: 9,
+          disability_response: 1,
+          information_date: current_date - 1.week,
+          date_updated: current_date - 1.week,
+        )
+        create_disability(
+          disability_type: 9,
+          disability_response: 0,
+          information_date: current_date - 1.week,
+          date_updated: current_date - 1.day,
+        )
+
+        expect(resolved_value).to be(true)
+      end
+
+      [2, 3].each do |response|
+        it "counts substance use response #{response} as Yes" do
+          create_disability(disability_type: 10, disability_response: response, information_date: current_date - 1.week)
+
+          expect(resolved_value).to be(true)
+        end
+      end
+
+      it 'treats disability types independently' do
+        create_disability(disability_type: 5, disability_response: 1, information_date: current_date - 2.weeks)
+        create_disability(disability_type: 9, disability_response: 0, information_date: current_date - 1.week)
+
+        expect(resolved_value).to be(true)
+      end
+
+      it 'ignores disability types outside 5-10' do
+        create_disability(disability_type: 4, disability_response: 1, information_date: current_date - 1.week)
+
+        expect(resolved_value).to be_nil
+      end
+
+      it 'ignores 8/9/99 responses' do
+        create_disability(disability_type: 9, disability_response: 1, information_date: current_date - 2.weeks)
+        create_disability(disability_type: 9, disability_response: 8, information_date: current_date - 1.week)
+
+        expect(resolved_value).to be(true)
+      end
+
+      it 'skips rows with a null InformationDate without raising' do
+        create_disability(disability_type: 9, disability_response: 1, information_date: nil)
+        create_disability(disability_type: 9, disability_response: 0, information_date: current_date - 1.week)
+
+        expect(resolved_value).to be(false)
+      end
+    end
+
+    describe 'combining rules' do
+      it 'resolves to true when A is No and B is Yes' do
+        enrollment.update!(DisablingCondition: 0)
+        create_disability(disability_type: 9, disability_response: 1, information_date: current_date - 1.week)
+
+        expect(resolved_value).to be(true)
+      end
+
+      it 'resolves to true when A is Yes and B is No' do
+        enrollment.update!(DisablingCondition: 1)
+        create_disability(disability_type: 9, disability_response: 0, information_date: current_date - 1.week)
+
+        expect(resolved_value).to be(true)
+      end
+
+      it 'resolves to false when A is unknown and B only has No responses' do
+        create_disability(disability_type: 9, disability_response: 0, information_date: current_date - 1.week)
+
+        expect(resolved_value).to be(false)
+      end
+
+      it 'resolves to false when A is No and B is unknown' do
+        enrollment.update!(DisablingCondition: 0)
+
+        expect(resolved_value).to be(false)
+      end
+    end
+
+    describe 'eligibility scope' do
+      it 'ignores data outside the lookback window' do
+        allow(configuration).to receive(:eligibility_lookback_months).and_return(3)
+        enrollment.destroy!
+        old_enrollment = create_enrollment(
+          DisablingCondition: 1,
+          EntryDate: current_date - 1.year,
+          exit_date: current_date - 6.months,
+        )
+        create_disability(
+          enrollment: old_enrollment,
+          disability_type: 9,
+          disability_response: 1,
+          information_date: current_date - 1.year,
+        )
+
+        expect(resolved_value).to be_nil
+      end
+
+      it 'includes data from exited enrollments inside the lookback window' do
+        allow(configuration).to receive(:eligibility_lookback_months).and_return(3)
+        create_enrollment(
+          DisablingCondition: 1,
+          EntryDate: current_date - 4.months,
+          exit_date: current_date - 2.months,
+        )
+
+        expect(resolved_value).to be(true)
+      end
+
+      it 'ignores data from projects outside the project group' do
+        in_group_project = create(:hmis_hud_project, data_source: hmis_data_source)
+        configure_project_group([in_group_project])
+        enrollment.update!(DisablingCondition: 1)
+        create_disability(disability_type: 9, disability_response: 1, information_date: current_date - 1.week)
+
+        expect(resolved_value).to be_nil
+      end
+
+      it 'does not let an out-of-scope later No override an in-scope Yes' do
+        in_group_project = create(:hmis_hud_project, data_source: hmis_data_source)
+        configure_project_group([in_group_project])
+        in_group_enrollment = create_enrollment(
+          project: in_group_project,
+          DisablingCondition: 1,
+          EntryDate: current_date - 2.months,
+        )
+        create_disability(
+          enrollment: in_group_enrollment,
+          disability_type: 9,
+          disability_response: 1,
+          information_date: current_date - 2.weeks,
+        )
+        # Out-of-group enrollment (the default `enrollment`) is later and says No on both rules
+        enrollment.update!(DisablingCondition: 0)
+        create_disability(disability_type: 9, disability_response: 0, information_date: current_date - 1.week)
+
+        expect(resolved_value).to be(true)
+      end
+
+      it 'includes WIP enrollments' do
+        enrollment.destroy!
+        create(
+          :hmis_hud_wip_enrollment,
+          data_source: hmis_data_source,
+          client: client,
+          DisablingCondition: 1,
+          EntryDate: current_date - 1.week,
+        )
+
+        expect(resolved_value).to be(true)
+      end
+
+      it 'includes disability records on WIP enrollments' do
+        enrollment.destroy!
+        wip_enrollment = create(
+          :hmis_hud_wip_enrollment,
+          data_source: hmis_data_source,
+          client: client,
+          DisablingCondition: 99,
+          EntryDate: current_date - 1.week,
+        )
+        create_disability(
+          enrollment: wip_enrollment,
+          disability_type: 9,
+          disability_response: 1,
+          information_date: current_date - 1.week,
+        )
+
+        expect(resolved_value).to be(true)
+      end
+    end
+
+    describe 'multiple source clients' do
+      let(:other_data_source) { create(:source_data_source) }
+      let(:other_source_client) { create(:hmis_hud_client, data_source: other_data_source) }
+      let(:other_enrollment) do
+        create(
+          :hmis_hud_enrollment,
+          data_source: other_data_source,
+          client: other_source_client,
+          EntryDate: current_date - 1.month,
+        )
+      end
+
+      before do
+        create(
+          :hmis_warehouse_client,
+          data_source: other_data_source,
+          source: other_source_client,
+          destination: destination_client,
+        )
+      end
+
+      def create_other_disability(**attrs)
+        create_disability(
+          enrollment: other_enrollment,
+          client: other_source_client,
+          data_source: other_data_source,
+          **attrs,
+        )
+      end
+
+      it 'lets a later No in another data source override a Yes of the same type' do
+        create_disability(disability_type: 9, disability_response: 1, information_date: current_date - 2.weeks)
+        create_other_disability(disability_type: 9, disability_response: 0, information_date: current_date - 1.week)
+
+        expect(resolved_value).to be(false)
+      end
+
+      it 'lets a later Yes in another data source override a No of the same type' do
+        create_disability(disability_type: 9, disability_response: 0, information_date: current_date - 2.weeks)
+        create_other_disability(disability_type: 9, disability_response: 1, information_date: current_date - 1.week)
+
+        expect(resolved_value).to be(true)
+      end
+
+      it 'uses the latest answered enrollment across source clients' do
+        enrollment.update!(DisablingCondition: 1)
+        other_enrollment.update!(DisablingCondition: 0, EntryDate: current_date - 1.week)
+
+        expect(resolved_value).to be(false)
+      end
+    end
+
+    describe 'batch resolution' do
+      def create_client_with_enrollment(disabling_condition:)
+        source_client = create(:hmis_hud_client_with_warehouse_client, data_source: hmis_data_source)
+        create(
+          :hmis_hud_enrollment,
+          data_source: hmis_data_source,
+          client: source_client,
+          DisablingCondition: disabling_condition,
+          EntryDate: current_date - 1.month,
+        )
+        source_client.destination_client
+      end
+
+      it 'resolves every requested client in one call' do
+        enrollment.update!(DisablingCondition: 1)
+        no_client = create_client_with_enrollment(disabling_condition: 0)
+        unknown_client = create_client_with_enrollment(disabling_condition: 99)
+        client_ids = [destination_client.id, no_client.id, unknown_client.id]
+
+        result = resolver.call(GrdaWarehouse::Hud::Client.where(id: client_ids), field)
+
+        expect(result).to eq(
+          destination_client.id => true,
+          no_client.id => false,
+          unknown_client.id => nil,
+        )
+      end
+    end
+  end
 end

@@ -120,6 +120,18 @@ module Hmis::Ce::Match::Expression
       hud_description: 'HUD Domestic Violence Survivor (HUD HealthAndDV)',
     )
 
+    DISABLING_CONDITION = PsdeField.new(
+      key: 'disabling_condition',
+      value_type: :logical,
+      multiple: false,
+      label: 'Disabling Condition',
+      description: 'Yes if the client has a disabling condition based on HMIS data within the eligibility scope: ' \
+                   'either (1) the most recent enrollment with a Yes/No Disabling Condition answer says Yes, or ' \
+                   '(2) any disability type (physical, developmental, chronic health, HIV/AIDS, mental health, substance use) ' \
+                   'has a Yes response not followed by a later Yes/No response of that type. ' \
+                   'No when responses exist but neither applies. Blank when no Yes/No responses were collected in scope.',
+    )
+
     ALL = [
       TOTAL_MONTHLY_INCOME,
       MENTAL_HEALTH_DISORDER,
@@ -136,6 +148,7 @@ module Hmis::Ce::Match::Expression
       HIV_AIDS_VALUES_IN_WINDOW,
       DOMESTIC_VIOLENCE_SURVIVOR,
       DOMESTIC_VIOLENCE_SURVIVOR_VALUES_IN_WINDOW,
+      DISABLING_CONDITION,
     ].freeze
 
     def self.[](key)

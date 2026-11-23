@@ -55,6 +55,13 @@ RSpec.describe Hmis::Ce::Match::Expression::PsdeFieldMap, type: :model do
         to eq({ destination_client.id => true })
     end
 
+    it 'resolves disabling condition' do
+      enrollment.update!(DisablingCondition: 1)
+
+      expect(field_map.client_query(clients, 'disabling_condition')).
+        to eq({ destination_client.id => true })
+    end
+
     it 'raises for unknown fields' do
       expect { field_map.client_query(clients, 'unknown_field') }.
         to raise_error(ArgumentError, /Unknown PSDE field/)
@@ -77,6 +84,10 @@ RSpec.describe Hmis::Ce::Match::Expression::PsdeFieldMap, type: :model do
         'domestic_violence_survivor',
       )
     end
+
+    it 'includes disabling condition' do
+      expect(field_map.fields.map(&:key)).to include('disabling_condition')
+    end
   end
 
   describe '#label_for' do
@@ -87,12 +98,22 @@ RSpec.describe Hmis::Ce::Match::Expression::PsdeFieldMap, type: :model do
     it 'returns the registry label for a disability field' do
       expect(field_map.label_for('mental_health_disorder')).to eq('Mental Health Disorder (most recent)')
     end
+
+    it 'returns the registry label for disabling condition' do
+      expect(field_map.label_for('disabling_condition')).to eq('Disabling Condition')
+    end
   end
 
   describe '#format_for_display' do
     it 'formats logical fields as Yes/No' do
       expect(field_map.format_for_display('mental_health_disorder', true)).to eq('Yes')
       expect(field_map.format_for_display('mental_health_disorder', false)).to eq('No')
+    end
+
+    it 'formats disabling condition as Yes/No' do
+      expect(field_map.format_for_display('disabling_condition', true)).to eq('Yes')
+      expect(field_map.format_for_display('disabling_condition', false)).to eq('No')
+      expect(field_map.format_for_display('disabling_condition', nil)).to be_nil
     end
 
     it 'formats all-enrollment logical fields as Yes/No arrays' do

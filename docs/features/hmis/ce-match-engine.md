@@ -6,6 +6,8 @@ sources:
   - drivers/hmis/app/models/hmis/ce/match/internal/client_pool_evaluator.rb
   - drivers/hmis/app/models/hmis/ce/match/expression/sql_expression_translator.rb
   - drivers/hmis/app/models/hmis/ce/match/expression/household_selector.rb
+  - drivers/hmis/app/models/hmis/ce/match/expression/psde_value_resolver.rb
+  - drivers/hmis/app/models/hmis/ce/match/expression/enrollment_eligibility_scope.rb
 ---
 
 # Coordinated Entry (CE) Match Engine
@@ -59,6 +61,27 @@ The classes within this module are organized into several subdirectories to grou
   - **HMIS record changes**: saving or deleting an Enrollment or Exit also marks the open members of the household(s) it affects, including the old household of a client who exited or moved.
   - **Destination client changes**: `ClientCleanup` and `IdentifyDuplicates` marks everyone who shares an open household with them, since a destination DOB feeds co-members' ages.
   - **Not immediately propagated**: The nightly full refresh picks up changes due to household member aging over time and changes due to client merges.
+
+## PSDE Fields (`psde.*`)
+
+PSDE fields read HUD data elements (Income and Benefits, Disabilities, Health and DV, Enrollment) from the enrollments selected by `EnrollmentEligibilityScope`: the global eligibility lookback window and project group, with WIP enrollments included. Field definitions live in `PsdeFieldRegistry`; values are resolved in batch by `PsdeValueResolver` and evaluated in Ruby only (no SQL prefilter).
+
+### `psde.disabling_condition`
+
+`psde.disabling_condition` uses the same inference the default CAS calculator sends to CAS (`GrdaWarehouse::Hud::Client.disabled_client_scope`), applied only to in-scope enrollments. The Boston calculator also counts `GrdaWarehouse::Hud::Client.chronically_disabled` clients (`GrdaWarehouse::CasProjectClientCalculator::Boston#disabling_condition?`); CE does not. The inference has two rules:
+
+1. **Enrollment flag**: the latest in-scope enrollment (by `EntryDate`) with a Yes/No `DisablingCondition` says Yes.
+2. **Disability records**: for any disability type, a row on that type's latest `InformationDate` has a Yes response. A same-day Yes wins over a same-day No, as in the warehouse.
+
+The value is `true` if either rule says Yes, `false` if either rule had a Yes/No answer, and `nil` if neither did. The algorithm is ported rather than calling the warehouse scopes, because those can't apply the lookback window or project group, and the enrollment-flag rule depends on service history, which lags new HMIS enrollments. `psde_disabling_condition_parity_spec.rb` checks that the two agree when every enrollment is in scope.
+
+Accepted differences from the warehouse value:
+
+| Difference | CE | Warehouse |
+|---|---|---|
+| Scope | Eligibility scope only, so an out-of-scope later No does not override an in-scope Yes | All of the client's data |
+| WIP enrollments | Included in both rules | Enrollment flag excluded (no service history); disability records included |
+| No answer collected | `nil` | `false` |
 
 ## Unit Group–Driven Maintenance
 
