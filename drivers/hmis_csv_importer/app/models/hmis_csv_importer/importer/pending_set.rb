@@ -29,7 +29,7 @@ module HmisCsvImporter::Importer
 
     def initialize(warehouse_class)
       @warehouse_class = warehouse_class
-      @table_name = self.class.tmp_table_name('pending', warehouse_class)
+      @table_name = self.class.tmp_table_name('pending_set', warehouse_class)
       @created = false
     end
 
