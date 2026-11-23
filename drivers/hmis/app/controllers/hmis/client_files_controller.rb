@@ -49,7 +49,7 @@ module Hmis
     end
 
     def load_authorized_client_file
-      client = Hmis::Hud::Client.viewable_by(current_hmis_user).find(params[:client_id])
+      client = Hmis::Hud::Client.viewable_by(current_hmis_user, client_ids: [params[:client_id]]).find(params[:client_id])
       Hmis::File.where(client: client).
         viewable_by(current_hmis_user, client_ids: [client.id]).find(params[:id])
     end

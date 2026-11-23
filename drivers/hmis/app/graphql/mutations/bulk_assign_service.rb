@@ -17,7 +17,7 @@ module Mutations
       access_denied! unless project
       access_denied! unless policy_for(project, policy_type: :hmis_project).can_edit_enrollments?
 
-      clients = Hmis::Hud::Client.viewable_by(current_user).where(id: input.client_ids)
+      clients = Hmis::Hud::Client.viewable_by(current_user, client_ids: input.client_ids)
       access_denied! unless clients.count == input.client_ids.uniq.length
 
       cst = Hmis::Hud::CustomServiceType.find(input.service_type_id)
