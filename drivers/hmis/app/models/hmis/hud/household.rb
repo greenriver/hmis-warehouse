@@ -23,12 +23,23 @@ class Hmis::Hud::Household < Hmis::Hud::Base
   alias_attribute :household_id, :HouseholdID
 
   replace_scope :viewable_by, ->(user) do
+    where(viewable_by_condition(user))
+  end
+
+  # The condition helpers take a table so Hmis::StaffAssignment can apply them to its own alias of this view.
+  def self.viewable_by_condition(user, table = arel_table)
     # correlated subquery
     p_t = Hmis::Hud::Project.arel_table
-    hh_t = Hmis::Hud::Household.arel_table
-    cond = p_t[:ProjectID].eq(hh_t[:ProjectID]).and(p_t[:data_source_id].eq(hh_t[:data_source_id]))
-    projects = Hmis::Hud::Project.with_access(user, :can_view_enrollment_details).where(cond)
-    where(projects.arel.exists)
+    cond = p_t[:ProjectID].eq(table[:ProjectID]).and(p_t[:data_source_id].eq(table[:data_source_id]))
+    Hmis::Hud::Project.with_access(user, :can_view_enrollment_details).where(cond).arel.exists
+  end
+
+  def self.open_on_date_condition(date, table = arel_table)
+    table[:earliest_entry].lteq(date).and(table[:latest_exit].eq(nil).or(table[:latest_exit].gteq(date)))
+  end
+
+  def self.most_recent_order(table = arel_table)
+    [table[:any_wip].eq(true).desc, table[:latest_exit].eq(nil).desc, table[:earliest_entry].desc, table[:id].desc]
   end
 
   scope :client_matches_search_term, ->(text_search) do
@@ -41,8 +52,7 @@ class Hmis::Hud::Household < Hmis::Hud::Base
   end
 
   scope :open_on_date, ->(date) do
-    where(hh_t[:earliest_entry].lteq(date)).
-      where(hh_t[:latest_exit].eq(nil).or(hh_t[:latest_exit].gteq(date)))
+    where(open_on_date_condition(date))
   end
 
   # Households where ANY enrollment is open
@@ -122,12 +132,7 @@ class Hmis::Hud::Household < Hmis::Hud::Base
 
     case option
     when :most_recent
-      order(
-        hh_t[:any_wip].eq(true).desc,
-        hh_t[:latest_exit].eq(nil).desc,
-        earliest_entry: :desc,
-        id: :desc,
-      )
+      order(*most_recent_order)
     when :hoh_last_name_a_to_z
       joins(enrollments: :client).
         merge(Hmis::Hud::Enrollment.heads_of_households).

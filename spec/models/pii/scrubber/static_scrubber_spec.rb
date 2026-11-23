@@ -88,7 +88,7 @@ RSpec.describe Pii::Scrubber::StaticScrubber do
   end
 
   it 'leaves a field without a static placeholder for the later scrubbers' do
-    unsupported_field = Pii::Scrubber::PiiAttribute.new(name: :FirstName, type: :free_text, required: false, level: 4, record: client1)
+    unsupported_field = Pii::Scrubber::PiiAttribute.new(name: :FirstName, type: :url, required: false, level: 4, record: client1)
 
     described_class.new.perform([unsupported_field])
 

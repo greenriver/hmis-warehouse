@@ -37,7 +37,7 @@ module Types
       object.staff_assignments.
         viewable_by(current_user). # Only resolve assignments where the user has access to view the household
         open_on_date. # This will include households that exited today
-        merge(Hmis::Hud::Household.sort_by_option(:most_recent))
+        order_by_household_most_recent
     end
 
     def ce_referral_steps

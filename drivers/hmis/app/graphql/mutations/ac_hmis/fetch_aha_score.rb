@@ -30,7 +30,7 @@ module Mutations
       errors.add :base, :server_error, full_message: 'AHA connection is not configured' unless HmisExternalApis::AcHmis::Aha.enabled?
       return { errors: errors } if errors.any?
 
-      client = Hmis::Hud::Client.viewable_by(current_user).find_by(id: client_id)
+      client = Hmis::Hud::Client.viewable_by(current_user, client_ids: [client_id]).find_by(id: client_id)
       access_denied! unless client.present?
       access_denied! unless policy_for(client, policy_type: :hmis_client).can_edit_some_enrollments?
 

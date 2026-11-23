@@ -14,7 +14,7 @@ module Mutations
     field :client, Types::HmisSchema::Client, null: true
 
     def resolve(client_id:, restricted:)
-      client = Hmis::Hud::Client.viewable_by(current_user).find_by(id: client_id)
+      client = Hmis::Hud::Client.viewable_by(current_user, client_ids: [client_id]).find_by(id: client_id)
       access_denied! unless client && policy_for(client, policy_type: :hmis_client).can_mark_restricted?
 
       if restricted
