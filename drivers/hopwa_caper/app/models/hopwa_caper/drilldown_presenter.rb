@@ -11,6 +11,7 @@ module HopwaCaper
     Field = Struct.new(:name, :label, :transform, :not_collected, keyword_init: true)
 
     CLIENT_IDENTIFIER_FIELDS = ['personal_id', 'hmis_enrollment_id', 'destination_client_id'].freeze
+    private_constant :CLIENT_IDENTIFIER_FIELDS
 
     def initialize(records, report, user, format: :html)
       @records = records
@@ -30,7 +31,7 @@ module HopwaCaper
     def display_value(record, field_name)
       field = @field_map[field_name.to_s]
       return record.send(field_name).humanize if field.nil? # Fallback for unexpected fields
-      return GrdaWarehouse::PiiProvider::REDACTED if CLIENT_IDENTIFIER_FIELDS.include?(field.name) && client_restricted?(record)
+      return GrdaWarehouse::PiiProvider::REDACTED if redacted_identifier?(record, field.name)
 
       value = if field.name == 'services_summary'
         services_summary(record)
@@ -60,6 +61,10 @@ module HopwaCaper
 
     def client_restricted?(record)
       @user.policy_context.client_restricted?(record.destination_client_id_for_pii)
+    end
+
+    def redacted_identifier?(record, field_name)
+      CLIENT_IDENTIFIER_FIELDS.include?(field_name.to_s) && client_restricted?(record)
     end
 
     private
