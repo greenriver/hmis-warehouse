@@ -19,7 +19,7 @@ module Mutations
     end
 
     def resolve(id:, client_lock_version: nil, confirmed: false)
-      client = Hmis::Hud::Client.viewable_by(current_user).find_by(id: id)
+      client = Hmis::Hud::Client.viewable_by(current_user, client_ids: [id]).find_by(id: id)
       access_denied! unless client && policy_for(client, policy_type: :hmis_client).can_delete?
 
       client.lock_version = client_lock_version if client_lock_version
