@@ -9,11 +9,11 @@ sources:
   - drivers/hopwa_caper/app/models/hopwa_caper/service_drilldown_presenter.rb
   - drivers/hopwa_caper/app/views/hopwa_caper/cells/_list.haml
   - drivers/hopwa_caper/app/models/hopwa_caper/hiv_drilldown_access.rb
-  - drivers/hopwa_caper/app/models/hopwa_caper/tasks/grant_existing_access.rb
   - drivers/hopwa_caper/config/initializers/hopwa_caper_feature.rb
   - drivers/hopwa_caper/app/controllers/hopwa_caper/cells_controller.rb
   - drivers/hopwa_caper/app/controllers/hopwa_caper/questions_controller.rb
   - drivers/hopwa_caper/app/views/hopwa_caper/questions/result.haml
+  - drivers/hopwa_caper/app/views/hopwa_caper/cells/show.haml
   - app/models/grda_warehouse/warehouse_reports/report_definition.rb
 ---
 
@@ -31,19 +31,19 @@ The report lives under the HUD Reports, use `HopwaCaper::BaseController` as an e
 - **Uniform client attributes:** After importing enrollments, `ensure_uniform_client_attrs` normalizes age, HIV indicators, and viral load suppression across all enrollments for the same warehouse client. This prevents demographic aggregations from varying when a client has overlapping enrollments with inconsistent intake answers.
 - **Enrichment with Custom Assessment Data:** The pipeline includes a specialized step (`populate_atc_data`) that enriches enrollment records with "Access to Care" outcomes sourced from custom assessments. This process uses a lookback mechanism to find the most recent valid response (Yes/No), ignoring blank or null entries in newer assessments to preserve historical accuracy.
 - **Household eligibility tagging:** `update_hopwa_eligibility` assigns a single HOPWA-eligible member per household (preferring an HIV-positive head of household). This resolves cases where multiple members qualify.
-- **Universe links:** `HopwaCaper::Enrollment` inherits from `HudReports::ReportClientBase` and exposes `as_report_members` helpers that register records as `HudReports::UniverseMember`. This connects enrollments to HUD report drill-downs and client detail tables. `HopwaCaper::Service` also registers as universe members (see `service.rb`), so a cell's drilldown can list both enrollments and services.
+- **Universe links:** `HopwaCaper::Enrollment` inherits from `HudReports::ReportClientBase` and exposes `as_report_members` helpers that register records as `HudReports::UniverseMember`. This connects enrollments to HUD report drill-downs and client detail tables. `HopwaCaper::Service.as_report_members` registers services the same way.
 
 ## Access and drilldowns
 Drilldown membership reveals which clients are HIV positive, so HOPWA CAPER access is stricter than for other HUD reports.
 
-- **Opt-in report access.** The HOPWA CAPER definition is not in the system "All HUD Reports" collection or access group (`ReportDefinition::OPT_IN_HUD_URLS`, `ReportDefinition.system_granted_hud`). Put it in a Collection bound to a Role with `can_view_assigned_reports`, or add it to a legacy access group, to give users the report.
-- **Drilldown links.** The question result page shows cell links only when `HopwaCaper::HivDrilldownAccess` allows the whole report: the user must have `can_view_hiv_status?` on the project of every enrollment and service row. Restricted clients do not block access. Their rows show redacted name and date of birth (from the restricted PII policy) and `Redacted` for HMIS Personal ID, HMIS Enrollment ID, Warehouse Client ID, and (on service rows) HMIS Service ID, with no client link or HMIS link (see [PII and restricted clients](pii-and-restricted-clients.md)).
-- **Each request is checked again.** `CellsController#show` repeats the check for the rows in the requested cell and redirects back to the question result page when it fails. Hiding the links is not the protection. Drilldowns open only for completed questions; otherwise the request redirects to the result page.
-- **No HIV redaction.** Drilldowns do not blank HIV fields. Access is all-or-nothing per request. On restricted clients' rows, only the identifiers, links, name, and date of birth are redacted. HIV positive, viral load suppression, anti-retroviral therapy, and the other client-level fields stay visible on purpose, as an exception to the rule that restriction blocks all PII (see [Client restriction](warehouse-auth-policies.md#client-restriction)):
+- **Opt-in report access.** The HOPWA CAPER is left out of the system "All HUD Reports" collection and access group (`ReportDefinition::OPT_IN_HUD_URLS`), so users get it only through a collection or access group that names it.
+- **Drilldown checks.** The question result page shows cell links only when `HopwaCaper::HivDrilldownAccess` finds `can_view_hiv_status?` on the project of every enrollment and service row in the report. `CellsController#show` repeats the check for the requested cell's rows and redirects when it fails, so hiding the links is not the protection. Drilldowns open only for completed questions. Restricted clients do not block access. Their rows show a redacted name, date of birth, and client identifiers, with no client or HMIS link (see [PII and restricted clients](pii-and-restricted-clients.md)).
+- **Excel downloads.** The Excel request is checked in `:download` mode, which follows `include_pii_in_detail_downloads`. When that setting is off, no user has HIV permission in download mode, so the page hides its Download Excel button and the request redirects.
+- **No HIV redaction.** Drilldowns do not blank HIV fields. On restricted clients' rows, only the identifiers, links, name, and date of birth are redacted. HIV positive, viral load suppression, anti-retroviral therapy, and the other client-level fields stay visible on purpose, as an exception to the rule that restriction blocks all PII (see [Client restriction](warehouse-auth-policies.md#client-restriction)):
   - The HOPWA CAPER is for HIV/AIDS service providers. The access check already requires `can_view_hiv_status?` on every row's project, so anyone who can open a drilldown may see HIV status for the clients in it.
   - Restriction keeps users from identifying the client or opening the client's record from the report. The client-level fields are what the report counts, and users need them to see where a count comes from.
-  - Age, race, sex, dates, and project also stay visible, so in a small project they may identify a restricted client to someone who knows the project's clients.
-  - `drilldown_presenter_spec.rb` asserts this behavior. Don't add HIV fields to the restricted-row redaction without revisiting this decision.
+  - Age, race, sex, dates, project type, and funders also stay visible, so in a small project they may identify a restricted client to someone who knows the project's clients.
+  - `drilldown_presenter_spec.rb` asserts that HIV fields stay visible on restricted rows, so adding them to the redaction fails that spec.
 
 ## Household Counting Methodology
 Household counts follow the HUD HMIS reporting glossary definition: "distinct count of personal IDs of all heads of households." When a household has multiple enrollments during the reporting period (e.g., enrolling at different projects), they are counted only once by deduplicating on the HoH.
