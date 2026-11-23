@@ -125,11 +125,9 @@ module Hmis::Ce::Match::Expression
       value_type: :logical,
       multiple: false,
       label: 'Disabling Condition',
-      description: 'Yes if the client has a disabling condition based on HMIS data within the eligibility scope: ' \
-                   'either (1) the most recent enrollment with a Yes/No Disabling Condition answer says Yes, or ' \
-                   '(2) any disability type (physical, developmental, chronic health, HIV/AIDS, mental health, substance use) ' \
-                   'has a Yes response not followed by a later Yes/No response of that type. ' \
-                   'No when responses exist but neither applies. Blank when no Yes/No responses were collected in scope.',
+      description: "Yes if the client's most recent Disabling Condition response, or most recent response for any " \
+                   'disability type, is Yes, within the eligibility scope. ' \
+                   'Refused, unknown, not collected (8/9/99) and blank answers are ignored.',
     )
 
     ALL = [
