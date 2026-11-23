@@ -420,8 +420,13 @@ module HmisDataQualityTool
         # most recent service, or start date if no service
         en_services.max_by(&:DateProvided)&.DateProvided || enrollment.EntryDate
       elsif enrollment.project.project_type_to_use.in?(HudHelper.util.project_type_number_from_code(:so))
-        # max CLS for SO, or start date if no CLS
-        en_cls.max_by(&:InformationDate)&.InformationDate || enrollment.EntryDate
+        # HUD 4.12 collects Current Living Situation only for heads of household and adults.
+        last_cls_date = en_cls.max_by(&:InformationDate)&.InformationDate
+        unless self.class.hoh_or_adult?(report_item)
+          hoh_date = report.hoh_last_cls_date(enrollment.data_source_id, enrollment.HouseholdID)
+          last_cls_date = [last_cls_date, [hoh_date, enrollment.EntryDate].max].compact.max if hoh_date
+        end
+        last_cls_date || enrollment.EntryDate
       else
         # min of exit date, report end, current date
         end_date
@@ -1199,7 +1204,7 @@ module HmisDataQualityTool
         },
         days_since_last_service_so_90_issues: {
           title: 'Possible Missed Exit - SO, Time in Enrollment 90 Days or More',
-          description: 'There is an expectation that clients will not stay indefinitely in street outreach, these clients have been in street outreach with no current living situation collected for 90 days or more',
+          description: 'There is an expectation that clients will not stay indefinitely in street outreach, these clients have been in street outreach with no current living situation collected for 90 days or more. For children who are not the head of household, the head of household\'s most recent current living situation also counts.',
           required_for: 'All in SO',
           detail_columns: default_detail_columns + [
             :project_type,
@@ -1217,7 +1222,7 @@ module HmisDataQualityTool
         },
         days_since_last_service_so_180_issues: {
           title: 'Possible Missed Exit - SO, Time in Enrollment 180 Days or More',
-          description: 'There is an expectation that clients will not stay indefinitely in street outreach, these clients have been in street outreach with no current living situation collected for 180 days or more',
+          description: 'There is an expectation that clients will not stay indefinitely in street outreach, these clients have been in street outreach with no current living situation collected for 180 days or more. For children who are not the head of household, the head of household\'s most recent current living situation also counts.',
           required_for: 'All in SO',
           detail_columns: default_detail_columns + [
             :project_type,
@@ -1235,7 +1240,7 @@ module HmisDataQualityTool
         },
         days_since_last_service_so_365_issues: {
           title: 'Possible Missed Exit - SO, Time in Enrollment 365 Days or More',
-          description: 'There is an expectation that clients will not stay indefinitely in street outreach, these clients have been in street outreach with no current living situation collected for 365 days or more',
+          description: 'There is an expectation that clients will not stay indefinitely in street outreach, these clients have been in street outreach with no current living situation collected for 365 days or more. For children who are not the head of household, the head of household\'s most recent current living situation also counts.',
           required_for: 'All in SO',
           detail_columns: default_detail_columns + [
             :project_type,

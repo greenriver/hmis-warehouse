@@ -348,6 +348,21 @@ module HmisDataQualityTool
       @household[household_key(data_source_id, household_id)]
     end
 
+    def hoh_last_cls_date(data_source_id, household_id)
+      return unless household_id.present?
+
+      @hoh_last_cls_date ||= GrdaWarehouse::Hud::Enrollment.
+        joins(:service_history_enrollment, :current_living_situations).
+        merge(report_scope).
+        heads_of_households.
+        where.not(HouseholdID: nil).
+        where(cls_t[:InformationDate].lteq([filter.end, Date.current].min)).
+        group(e_t[:data_source_id], e_t[:HouseholdID]).
+        maximum(cls_t[:InformationDate]).
+        transform_keys { |ds_id, hh_id| household_key(ds_id, hh_id) }
+      @hoh_last_cls_date[household_key(data_source_id, household_id)]
+    end
+
     private def household_key(data_source_id, household_id)
       "#{data_source_id}*#{household_id}"
     end
