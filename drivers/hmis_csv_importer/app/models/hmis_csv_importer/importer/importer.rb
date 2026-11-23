@@ -700,8 +700,13 @@ module HmisCsvImporter::Importer
       # Run any after_ingest hooks
       log_timing :after_ingest
     ensure
-      # Temp tables outlive the import on a pooled connection
-      @pending_sets&.each_value(&:drop!)
+      # Temp tables outlive the import on a pooled connection. Each drop is independent so one
+      # failure neither skips the other sets nor replaces the error that ended the import.
+      @pending_sets&.each_value do |pending_set|
+        pending_set.drop!
+      rescue ActiveRecord::StatementInvalid => e
+        Rails.logger.error("Dropping pending set #{pending_set.warehouse_class.table_name} failed: #{e.message}")
+      end
       @pending_sets = {}
     end
 

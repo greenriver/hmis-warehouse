@@ -72,6 +72,8 @@ RSpec.describe 'HUD CSV import pending deletions', type: :model do
     end
   end
 
+  # Pins the outcome only. The Services also leave the live involved scope when the exit
+  # lands, so they survive regardless of whether the upsert removes them from the pending set.
   describe 'a pending Service that the import treats as new' do
     before(:all) do
       reset_warehouse
@@ -100,6 +102,22 @@ RSpec.describe 'HUD CSV import pending deletions', type: :model do
 
     it 'does not soft-delete the enrollment' do
       expect(GrdaWarehouse::Hud::Enrollment.where(EnrollmentID: '557331').count).to eq(1)
+    end
+  end
+
+  describe 'an import that fails during ingest' do
+    before(:all) { reset_warehouse }
+
+    it 'drops the pending-set temp tables and propagates the error' do
+      tables_at_failure = nil
+      allow_any_instance_of(HmisCsvImporter::Importer::Importer).to receive(:remove_pending_deletes) do
+        tables_at_failure = pending_temp_table_names
+        raise 'ingest failed'
+      end
+
+      expect { run_import(full) }.to raise_error(RuntimeError, 'ingest failed')
+      expect(tables_at_failure).not_to be_empty
+      expect(pending_temp_table_names).to eq([])
     end
   end
 end
