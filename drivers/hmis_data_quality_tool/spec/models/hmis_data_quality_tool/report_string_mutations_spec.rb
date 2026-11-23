@@ -13,7 +13,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
 
   describe '#household method with << operations' do
     it 'uses << operation to build household arrays' do
-      # Test the << operation from line 283: households[enrollment.HouseholdID] << she
+      # Enrollments are appended to the household array keyed by data source and HouseholdID.
 
       household_id = 'HH001'
 
@@ -48,7 +48,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
       result = report.household(1, household_id)
 
       # Should return array containing the service history enrollment
-      expect(result).to be_an(Array)
+      expect(result).to eq([she])
     end
 
     it 'handles empty household ID' do
