@@ -27,6 +27,9 @@ RSpec.describe HopwaCaper::CellsController, type: :request do
   let(:extra_rows) { nil }
   let(:xlsx_with_json_accept) { 'application/json, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }
   let(:result_path) { result_hud_reports_hopwa_caper_question_path(hopwa_caper_id: report.id, id: question) }
+  let(:xlsx_link_texts) do
+    Nokogiri::HTML(response.body).css('a[href*=".xlsx"]').map { |a| a.text.strip }
+  end
 
   before do
     create_hiv_positive_enrollment(
@@ -52,6 +55,12 @@ RSpec.describe HopwaCaper::CellsController, type: :request do
       expect(response.body).to include('Ann')
     end
 
+    it 'shows the Download Excel link on the HTML drilldown' do
+      get hud_reports_hopwa_caper_question_cell_path(cell_path_args)
+
+      expect(xlsx_link_texts).to contain_exactly('Download Excel')
+    end
+
     it 'sends the xlsx drilldown as an attachment' do
       get hud_reports_hopwa_caper_question_cell_path(cell_path_args.merge(format: :xlsx))
 
@@ -73,10 +82,12 @@ RSpec.describe HopwaCaper::CellsController, type: :request do
       allow(GrdaWarehouse::Config).to receive(:get).with(:include_pii_in_detail_downloads).and_return(false)
     end
 
-    it 'still renders the HTML drilldown' do
+    it 'renders the HTML drilldown without the Download Excel link' do
       get hud_reports_hopwa_caper_question_cell_path(cell_path_args)
 
       expect(response).to have_http_status(:ok)
+      expect(response.body).to include('Ann')
+      expect(xlsx_link_texts).to be_empty
     end
 
     it 'redirects the xlsx drilldown with the denial alert' do
