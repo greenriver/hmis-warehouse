@@ -795,6 +795,8 @@ module HmisCsvImporter::Importer
         file_count += 1
         # Exports are never deleted
         next if klass.hud_key == :ExportID
+        # The augmented class fills the same pending set; pending_set_for keys on the warehouse table
+        next if custom_augmentation?(klass)
 
         Rails.logger.info "[#{file_count}/#{total_files}] Marking tree as dead for #{klass.name}..."
         with_sql_log(__method__, klass, name: 'involved_warehouse_scope') do
