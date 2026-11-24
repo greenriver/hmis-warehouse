@@ -7,12 +7,12 @@
 # frozen_string_literal: true
 
 module Cohorts
-  class CopyController < ApplicationController
+  class CopyController < ApplicationControllerV2
     include CohortAuthorization
     include CohortClients
 
-    before_action :require_can_add_cohort_clients!
     before_action :load_cohort
+    authorize_with { cohort_policy.can_add_clients? }
     before_action :load_new, only: [:new]
 
     def new
@@ -42,12 +42,12 @@ module Cohorts
         where.not(id: @cohort.id).
         pluck(:name, :id)
       @ordered_columns = @cohort.column_state.
-        select(&:editable?).
+        select(&:editable).
         map { |c| [c.title, c.column] }
     end
 
-    def load_cohort
-      @cohort = cohort_scope.find(params[:cohort_id].to_i)
+    def cohort_id
+      params[:cohort_id].to_i
     end
   end
 end

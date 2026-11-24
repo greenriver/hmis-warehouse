@@ -7,9 +7,10 @@
 # frozen_string_literal: true
 
 module Cohorts
-  class ReportsController < ApplicationController
-    before_action :require_can_view_cohort_client_changes_report!
-    before_action :set_cohort
+  class ReportsController < ApplicationControllerV2
+    include CohortAuthorization
+    before_action :load_cohort
+    authorize_with { cohort_policy.can_view_changes_report? }
 
     def show
       @excel_export = GrdaWarehouse::Cohorts::DocumentExports::CohortExcelExport.new
@@ -30,16 +31,8 @@ module Cohorts
       end
     end
 
-    def set_cohort
-      @cohort = cohort_source.find(params[:cohort_id].to_i)
-    end
-
-    helper_method def cohort_policy
-      current_user.policy_for(@cohort)
-    end
-
-    def cohort_source
-      GrdaWarehouse::Cohort
+    def cohort_id
+      params[:cohort_id].to_i
     end
 
     def cohort_client_change_scope

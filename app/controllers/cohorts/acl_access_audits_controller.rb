@@ -7,7 +7,7 @@
 # frozen_string_literal: true
 
 module Cohorts
-  class AclAccessAuditsController < ApplicationController
+  class AclAccessAuditsController < ApplicationControllerV2
     include CohortAccessAuditing
 
     private

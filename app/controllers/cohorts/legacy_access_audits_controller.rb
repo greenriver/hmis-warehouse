@@ -8,7 +8,7 @@
 
 module Cohorts
   # TODO: START_ACL remove this controller when the legacy permission model is removed.
-  class LegacyAccessAuditsController < ApplicationController
+  class LegacyAccessAuditsController < ApplicationControllerV2
     include CohortAccessAuditing
 
     private

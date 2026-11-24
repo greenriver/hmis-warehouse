@@ -7,10 +7,11 @@
 # frozen_string_literal: true
 
 module Cohorts
-  class ColumnsController < ApplicationController
+  class ColumnsController < ApplicationControllerV2
     include AjaxModalRails::Controller
-    before_action :require_can_edit_cohort_columns!
-    before_action :set_cohort
+    include CohortAuthorization
+    before_action :load_cohort
+    authorize_with { cohort_policy.can_edit_columns? }
 
     def edit
       @modal_size = :lg
@@ -48,12 +49,8 @@ module Cohorts
       )
     end
 
-    def set_cohort
-      @cohort = cohort_source.find(params[:cohort_id].to_i)
-    end
-
-    def cohort_source
-      GrdaWarehouse::Cohort
+    def cohort_id
+      params[:cohort_id].to_i
     end
 
     def flash_interpolation_options
