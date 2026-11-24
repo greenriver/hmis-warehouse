@@ -7,6 +7,9 @@ sources:
   - app/controllers/cohorts_controller.rb
   - app/models/grda_warehouse/cohort_client_change.rb
   - app/models/grda_warehouse/cohort_copier.rb
+  - app/controllers/cohorts/copy_controller.rb
+  - app/views/cohorts/_cohorts_js.haml
+  - db/warehouse/migrate/20261124140000_reset_invalid_cohort_sort_directions.rb
   - app/models/grda_warehouse/system_cohorts/base.rb
   - app/models/cohort_columns/base.rb
   - app/models/audit/cohort_access/base.rb
@@ -149,7 +152,19 @@ For a detailed explanation of how the Service History is generated and how it im
 ### Membership history
 - Every membership change writes a `CohortClientChange` (create, destroy, activate, deactivate), and the change report and `associated_exit` pair entries with exits from those rows. Use `add_clients` / `remove_clients` for automated paths. Do not change membership without a change row.
 - Cell edits are not written there. Column-value history lives in PaperTrail versions on `CohortClient`, and notes are separate rows.
-- Copying values between cohorts affects only clients already on the destination, writes versions but no change rows, and respects the user's visible cohorts. Notes are duplicated with their original timestamps.
+- Copying values between cohorts (see [Copying from another cohort](#copying-from-another-cohort)) writes PaperTrail versions, and writes a change row only when it flips a client's `active` flag.
+
+### Copying from another cohort
+`Cohorts::CopyController` and `GrdaWarehouse::CohortCopier` copy column values and notes from a source cohort into the destination cohort the user is viewing. The Import link in the cohort nav opens it.
+
+- **Who can copy.** The user needs `can_add_clients?` on the destination. System and auto-maintained cohorts redirect back to the cohort page, and the nav hides the link for them.
+- **Source.** The source is chosen from the cohorts the user can view, and the destination is excluded from the list. A source id the user cannot view raises `ActiveRecord::RecordNotFound` (404). Choosing the destination as its own source shows "Choose a different cohort to copy from."
+- **Which columns.** `CohortCopier.copyable_columns` returns the destination columns that are editable and visible, and that `display_as_editable?` allows for the user. A selected column is copied only if it is in that list and is a `cohort_clients` column or `notes`. `CohortCopier::NEVER_COPIED_COLUMNS` (the primary key, `cohort_id`, `client_id`, timestamps, `deleted_at`) is never copied. Other submitted names are dropped.
+- **Which rows.** Only clients already on the destination are updated. Rows are read from the source and written to the destination only through `Cohort#visible_cohort_clients(user)`, which covers the tabs the user can see and excludes tabs that show deleted clients. Soft-deleted clients are not copied.
+- **Notes.** Selecting `notes` copies the source's notes with their original author and timestamps. A note is skipped when the destination row already has one with the same text, author and `created_at`, so repeating a copy does not duplicate notes.
+- **`active`.** When a copy changes `active`, it writes a `CohortClientChange` (activate or deactivate) attributed to the copying user. Other column changes write no change rows.
+- **Atomicity.** All updates run in one transaction. A validation failure on any row raises and rolls back the whole copy.
+- **Messages.** With no copyable columns, the page shows "You can't edit any columns in this cohort." and the nav hides the Import link. With no source or no selected copyable column it shows "All fields are required."
 
 ### Inactivity
 - The `active` flag drives the Inactive tab; calculated inactivity (`days_of_inactivity` against `WarehouseClientsProcessed`) is separate. A client's active-cohort status for CAS requires both.
@@ -166,6 +181,10 @@ For a detailed explanation of how the Service History is generated and how it im
 - Analytics are built as the system user, so PII decisions inside a column are made as that user. A new column holding direct identifiers must be added to `Cohort.excluded_from_analytics`.
 - Column titles and descriptions go through translations, so installations can rename columns without code. Adding a column means adding its class, registering it in the known-columns list, adding the physical `cohort_clients` column if it is user-entered, and running `CohortColumn.maintain!`.
 - `column_state` is serialized YAML with a permitted-class list. A column object that has memoized its live column record cannot be re-serialized (`RepairColumnState` strips it), so do not call `cohort_column` on objects that will be saved back into `column_state`.
+
+### Grid page parameters
+- `Cohort#default_sort_direction` must be blank, `asc` or `desc` (`Cohort.sort_directions`). A data migration reset stored values outside that set to `desc`.
+- `_cohorts_js.haml` writes `sort_direction` and `population` into the page with `to_json`, so the values are JavaScript string literals. `cohorts.ts` URI-encodes `population` when it builds the grid data request.
 
 ### Access audit
 The cohort access audit rebuilds who could see a cohort, and when, from PaperTrail versions. It shows structural relationships only and cannot know:
