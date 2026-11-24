@@ -257,10 +257,7 @@ module HudReports
     end
 
     private def hud_report_policy(report)
-      policy_class = hud_report_policy_class
-      return current_user.policy_for(report) if policy_class.nil?
-
-      current_user.policy_for(report, policy_class: policy_class)
+      current_user.policy_for(report, policy_class: hud_report_policy_class)
     end
 
     private def report_source
