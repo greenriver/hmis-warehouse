@@ -203,6 +203,49 @@ RSpec.describe 'Cohort client, note and search query authorization', type: :requ
         patch cohort_cohort_client_path(cohort, row, format: :json), params: { cohort_client: attributes }
       end
 
+      # The grid sends edits as .js, so that format is exercised separately from .json.
+      def patch_row_js(cohort, row, attributes)
+        patch cohort_cohort_client_path(cohort, row, format: :js), params: { cohort_client: attributes }
+      end
+
+      it 'update over .js is not found without view-inactive and leaves the row unchanged' do
+        grant(user, [:can_view_cohorts, :can_participate_in_cohorts], cohort_a)
+
+        patch_row_js(cohort_a, cohort_client_a, rank: 7)
+
+        expect(response).to have_http_status(:not_found)
+        expect(cohort_client_a.reload.rank).not_to eq(7)
+      end
+
+      it 'update over .js changes an active row for a participant without view-inactive' do
+        cohort_client_a.update!(active: true)
+        grant(user, [:can_view_cohorts, :can_participate_in_cohorts], cohort_a)
+
+        patch_row_js(cohort_a, cohort_client_a, rank: 7)
+
+        expect(response).to have_http_status(:ok)
+        expect(JSON.parse(response.body)['cohort_client_id']).to eq(cohort_client_a.id)
+        expect(cohort_client_a.reload.rank).to eq(7)
+      end
+
+      it 'update is refused for view-inactive without participate, manage-data or manage-inactive' do
+        grant(user, [:can_view_cohorts, :can_view_inactive_cohort_clients], cohort_a)
+
+        patch_row(cohort_a, cohort_client_a, rank: 7)
+
+        expect(refused?).to be(true)
+        expect(cohort_client_a.reload.rank).not_to eq(7)
+      end
+
+      it 'update changes an inactive row for view-inactive with participate' do
+        grant(user, [:can_view_cohorts, :can_view_inactive_cohort_clients, :can_participate_in_cohorts], cohort_a)
+
+        patch_row(cohort_a, cohort_client_a, rank: 7)
+
+        expect(response).to have_http_status(:ok)
+        expect(cohort_client_a.reload.rank).to eq(7)
+      end
+
       it 'update is not found without view-inactive and leaves the row unchanged' do
         grant(user, [:can_view_cohorts, :can_participate_in_cohorts], cohort_a)
 

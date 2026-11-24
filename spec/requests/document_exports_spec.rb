@@ -133,9 +133,15 @@ RSpec.describe DocumentExportsController, type: :request do
       it 'is allowed for a cohort where download was granted' do
         grant(user, [:can_view_cohorts], other_cohort)
 
-        get download_document_export_path(completed_export(user, cohort.id))
+        export = completed_export(user, cohort.id)
+
+        expect { get download_document_export_path(export) }.
+          to change { ActivityLog.where(user_id: user.id, action_name: 'download').count }.from(0).to(1)
+
         expect(response).to have_http_status(:ok)
         expect(response.body).to eq('xlsx-bytes')
+        log = ActivityLog.where(user_id: user.id, action_name: 'download').last
+        expect([log.item_model, log.item_id, log.title]).to eq([export.class.name, export.id, export.type])
       end
 
       it 'is refused for a manager-only user' do
