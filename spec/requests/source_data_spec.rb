@@ -9,7 +9,7 @@
 require 'rails_helper'
 
 RSpec.describe 'Source data ExportID note', type: :request do
-  let(:note) { 'ExportID is from the import that last wrote this record' }
+  let(:note) { 'ExportID is from an earlier import' }
   let(:data_source) { create(:authoritative_data_source) }
   let(:user) { create(:acl_user) }
   let(:role) { create(:role, can_upload_hud_zips: true, can_edit_data_sources: true, can_view_projects: true, can_view_clients: true) }

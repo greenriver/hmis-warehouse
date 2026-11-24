@@ -848,14 +848,15 @@ module GrdaWarehouse::Tasks::ServiceHistory
         # If the data source is from an HMIS, we want to ignore any old export dates
         return Date.current if data_source.hmis?
 
-        # If there is no Export, the data is coming from the OP HMIS. Treat it as accurate up to the current date.
-        return Date.current unless export
+        # An unchanged enrollment keeps the ExportID of the import that last wrote it, so prefer the
+        # coverage of the newest export whose import included it.
+        coverage_end = import_coverage_end_date if respond_to?(:import_coverage_end_date)
+        coverage_end ||= [export.effective_export_end_date, export.ExportEndDate].compact.min if export
 
-        [
-          export.effective_export_end_date,
-          export.ExportEndDate,
-          Date.current,
-        ].compact.min.to_date
+        # If there is no Export, the data is coming from the OP HMIS. Treat it as accurate up to the current date.
+        return Date.current unless coverage_end
+
+        [coverage_end, Date.current].min.to_date
       end
     end
 

@@ -723,7 +723,7 @@ module HmisCsvImporter::Importer
 
     def set_effective_export_end_date
       export_klass = importable_file_class('Export').reflect_on_association(:destination_record).klass
-      export_klass.last.update(effective_export_end_date: (importable_files.except('Export.csv').map do |_, klass|
+      export_klass.find_by(data_source_id: data_source.id, ExportID: export_record.ExportID).update(effective_export_end_date: (importable_files.except('Export.csv').map do |_, klass|
         klass.where(importer_log_id: @importer_log.id).maximum(:DateUpdated)
       end.compact + ['1900-01-01'.to_date]).max)
     end

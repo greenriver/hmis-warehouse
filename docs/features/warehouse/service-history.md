@@ -14,6 +14,8 @@ sources:
   - app/models/grda_warehouse/tasks/service_history/purge_for_deleted_data_sources.rb
   - app/models/concerns/service_history/builder.rb
   - drivers/hmis/app/models/hmis/hud/concerns/service_history_queuer.rb
+  - drivers/hmis_csv_importer/app/models/hmis_csv_importer/extensions/grda_warehouse/hud/enrollment_extension.rb
+  - drivers/hmis_csv_twenty_twenty_six/app/models/hmis_csv_twenty_twenty_six/extensions/grda_warehouse/hud/enrollment_extension.rb
 ---
 
 # Service History
@@ -44,6 +46,16 @@ The generation logic differs based on the program type:
 - **Night-by-Night (NBN) Programs:** A `ServiceHistoryService` record is created for each bed night service in the source data. Other service types don't create days.
 - **Entry/Exit Programs:** For programs like Entry/Exit shelters, Transitional Housing, and Permanent Housing, the system builds `ServiceHistoryService` records for each day from the client's entry date through the day before their exit date. When the entry and exit dates are the same we include that day. For ongoing enrollments, we extend the services through the latest date covered by the source export (or today, if the enrollment is managed in the operational HMIS).
 - **Street Outreach & Contact Extrapolation:** A Street Outreach project with any Current Living Situation records is tracked night by night, and each contact date becomes a service day. An SO project without them is tracked entry/exit. When the `so_day_as_month` configuration flag is enabled—or when a project is configured to extrapolate contacts—we expand each recorded contact to fill its full calendar month (including days before the contact within that month, never past today). These filled-in days are stored as `extrapolated` rows, separate from the `service` rows for actual contacts, so consumers can include or exclude them. A single contact in a month counts as a full month of engagement for HUD reporting purposes, so this gives downstream reports and chronic-homelessness calculations a continuous timeline rather than isolated contact points.
+
+### How far an open enrollment is built
+
+`build_until` sets the last date built for an enrollment with no exit. It also limits which bed-night services and Current Living Situations are read.
+
+- **Operational HMIS data sources** (`data_source.hmis?`): today.
+- **CSV-imported data sources:** the latest `min(effective_export_end_date, ExportEndDate)` among the exports whose imports included the enrollment and finished, capped at today. An export without `effective_export_end_date` is skipped, because ingest writes that date last. `Enrollment#import_coverage_end_date` (added by the HMIS CSV importer driver) finds these exports from the importer staging rows for the enrollment, so exports imported out of order don't move the date backward.
+- **Fallback:** when no 2026 staging rows survive, the enrollment's own `export` (its `ExportID`) is used. With no export, today is used.
+
+The enrollment's `ExportID` can't be used directly. An import doesn't write unchanged rows, so an unchanged open enrollment keeps the `ExportID` of the import that last changed it (see [HMIS CSV Importer](hmis-csv-importer.md)).
 
 ## Homelessness Classification
 
