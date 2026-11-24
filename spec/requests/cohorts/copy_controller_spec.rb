@@ -79,6 +79,159 @@ RSpec.describe Cohorts::CopyController, type: :request do
     end
   end
 
+  shared_examples 'copy behavior' do
+    let!(:client) { create(:grda_warehouse_hud_client) }
+    let!(:source_row) { GrdaWarehouse::CohortClient.create!(cohort: cohort_b, client: client, user_string_1: 'from source', user_string_2: 'source two') }
+    let!(:destination_row) { GrdaWarehouse::CohortClient.create!(cohort: cohort_a, client: client, user_string_1: 'old', user_string_2: 'dest two') }
+    let(:editable_title) { CohortColumns::UserString1.new.title }
+    let(:locked_title) { CohortColumns::UserString2.new.title }
+
+    before do
+      [cohort_a, cohort_b].each { |cohort| GrdaWarehouse::CohortTab.default_rules.each { |rule| cohort.cohort_tabs.create!(**rule) } }
+      cohort_a.update!(column_state: [CohortColumns::UserString1.new, CohortColumns::UserString2.new(editable: false)])
+      cohort_b.update!(column_state: [CohortColumns::UserString1.new, CohortColumns::UserString2.new])
+    end
+
+    def grant_copy_access
+      grant(user, [:can_view_cohorts, :can_participate_in_cohorts, :can_add_cohort_clients], cohort_a)
+      grant(user, [:can_view_cohorts], cohort_b)
+    end
+
+    def destination_values
+      destination_row.reload.attributes.slice('user_string_1', 'user_string_2')
+    end
+
+    it 'copies the chosen column and redirects to the cohort' do
+      grant_copy_access
+
+      post cohort_copy_path(cohort_a), params: { copy: { cohort_id: cohort_b.id, columns: ['user_string_1'] } }
+
+      expect(response).to redirect_to(cohort_path(cohort_a))
+      expect(destination_values).to eq('user_string_1' => 'from source', 'user_string_2' => 'dest two')
+    end
+
+    it 'returns not found for a source the user cannot view and changes nothing' do
+      hidden = create(:cohort, name: 'Hidden Source')
+      grant_copy_access
+
+      post cohort_copy_path(cohort_a), params: { copy: { cohort_id: hidden.id, columns: ['user_string_1'] } }
+
+      expect(response).to have_http_status(:not_found)
+      expect(destination_values).to eq('user_string_1' => 'old', 'user_string_2' => 'dest two')
+    end
+
+    it 'lists the viewable cohorts except the destination' do
+      hidden = create(:cohort, name: 'Hidden Source')
+      grant_copy_access
+
+      get new_cohort_copy_path(cohort_a)
+
+      expect(response.body).to include(cohort_b.name)
+      expect(response.body).not_to include(hidden.name)
+    end
+
+    it 'lists only the columns the user can edit in the destination' do
+      grant_copy_access
+
+      get new_cohort_copy_path(cohort_a)
+
+      expect(response.body).to include(editable_title)
+      expect(response.body).not_to include(locked_title)
+    end
+
+    it 're-renders new with a message on self-copy and changes nothing' do
+      grant_copy_access
+
+      post cohort_copy_path(cohort_a), params: { copy: { cohort_id: cohort_a.id, columns: ['user_string_1'] } }
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('Choose a different cohort to copy from.')
+      expect(destination_values).to eq('user_string_1' => 'old', 'user_string_2' => 'dest two')
+    end
+
+    it 'requires a source and at least one allowed column' do
+      grant_copy_access
+
+      post cohort_copy_path(cohort_a), params: { copy: { cohort_id: cohort_b.id, columns: ['user_string_2'] } }
+      expect(response.body).to include('All fields are required.')
+
+      post cohort_copy_path(cohort_a), params: { copy: { cohort_id: '', columns: ['user_string_1'] } }
+      expect(response.body).to include('All fields are required.')
+      expect(destination_values).to eq('user_string_1' => 'old', 'user_string_2' => 'dest two')
+    end
+
+    it 're-renders new for a non-scalar cohort id' do
+      grant_copy_access
+
+      post cohort_copy_path(cohort_a), params: { copy: { cohort_id: [cohort_b.id], columns: ['user_string_1'] } }
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('All fields are required.')
+      expect(destination_values).to eq('user_string_1' => 'old', 'user_string_2' => 'dest two')
+    end
+
+    it 're-renders new when copy is a scalar' do
+      grant_copy_access
+
+      post cohort_copy_path(cohort_a), params: { copy: 'x' }
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('All fields are required.')
+    end
+
+    it 'redirects away from new and create on an auto-maintained cohort' do
+      grant_copy_access
+      cohort_a.update_columns(project_group_id: GrdaWarehouse::ProjectGroup.create!(name: 'Auto Group').id)
+
+      get new_cohort_copy_path(cohort_a)
+      expect(response).to redirect_to(cohort_path(cohort_a))
+
+      post cohort_copy_path(cohort_a), params: { copy: { cohort_id: cohort_b.id, columns: ['user_string_1'] } }
+      expect(response).to redirect_to(cohort_path(cohort_a))
+      expect(destination_values).to eq('user_string_1' => 'old', 'user_string_2' => 'dest two')
+    end
+
+    it 'redirects away from new and create on a system cohort' do
+      grant_copy_access
+      cohort_a.update_columns(system_cohort: true)
+
+      get new_cohort_copy_path(cohort_a)
+      expect(response).to redirect_to(cohort_path(cohort_a))
+
+      post cohort_copy_path(cohort_a), params: { copy: { cohort_id: cohort_b.id, columns: ['user_string_1'] } }
+      expect(response).to redirect_to(cohort_path(cohort_a))
+      expect(destination_values).to eq('user_string_1' => 'old', 'user_string_2' => 'dest two')
+    end
+
+    context 'when the user can add clients but edit no columns' do
+      before { grant(user, [:can_view_cohorts, :can_add_cohort_clients], cohort_a) }
+
+      it 'shows the no-columns message on new and create' do
+        get new_cohort_copy_path(cohort_a)
+        expect(response.body).to include("You can't edit any columns in this cohort.")
+
+        post cohort_copy_path(cohort_a), params: { copy: { cohort_id: cohort_b.id, columns: ['user_string_1'] } }
+        expect(response.body).to include("You can't edit any columns in this cohort.")
+        expect(destination_values).to eq('user_string_1' => 'old', 'user_string_2' => 'dest two')
+      end
+
+      it 'hides the Import link on the cohort page' do
+        get cohort_path(cohort_a)
+
+        expect(response).to have_http_status(:ok)
+        expect(response.body).not_to include(new_cohort_copy_path(cohort_a))
+      end
+    end
+
+    it 'shows the Import link on the cohort page to a user who can edit columns' do
+      grant_copy_access
+
+      get cohort_path(cohort_a)
+
+      expect(response.body).to include(new_cohort_copy_path(cohort_a))
+    end
+  end
+
   context 'with an ACL user' do
     let(:user) { create(:acl_user) }
 
@@ -87,6 +240,7 @@ RSpec.describe Cohorts::CopyController, type: :request do
     def grant_view_only(user, cohort) = grant_acl(user, [:can_view_cohorts], cohort)
 
     include_examples 'per-cohort copy authorization'
+    include_examples 'copy behavior'
 
     it 'limits new to the cohort in the collection that carries add-clients' do
       grant(user, [:can_view_cohorts, :can_add_cohort_clients], cohort_a)
@@ -108,5 +262,6 @@ RSpec.describe Cohorts::CopyController, type: :request do
     end
 
     include_examples 'per-cohort copy authorization'
+    include_examples 'copy behavior'
   end
 end
