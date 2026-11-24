@@ -8,7 +8,7 @@
 
 module CohortColumns
   class UserBoolean35 < CohortBoolean
-    attribute :column, Boolean, lazy: true, default: :user_boolean_35
+    attribute :column, String, lazy: true, default: :user_boolean_35
     attribute :translation_key, String, lazy: true, default: 'User Boolean 35'
     attribute :title, String, lazy: true, default: ->(model, _attr) { Translation.translate(model.translation_key) }
     attribute :description_translation_key, String, lazy: true, default: ->(model, _attr) { "#{model.translation_key} Description" }

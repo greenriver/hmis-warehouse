@@ -186,5 +186,11 @@ class TaskQueue < ApplicationRecord
     config.queued_tasks[:files_client_id_and_enrollment_household_id_indexes] = -> do
       GrdaWarehouse::Tasks::BuildFilesAndEnrollmentIndexes.run!
     end
+
+    # Index behind the HUD report head of household lookup. A separate key so databases that already
+    # ran the task above build it too. Remove with the class once rolled out.
+    config.queued_tasks[:service_history_enrollment_household_index] = -> do
+      GrdaWarehouse::Tasks::BuildFilesAndEnrollmentIndexes.run!
+    end
   end
 end

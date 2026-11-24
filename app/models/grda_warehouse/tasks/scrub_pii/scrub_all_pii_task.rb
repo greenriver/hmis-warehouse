@@ -10,89 +10,42 @@ module GrdaWarehouse::Tasks::ScrubPii
   # Best-effort to scrub personally identifiable information (PII) from all warehouse and reporting tables
   # * Suitable for sanitizing a production database for staging/development use
   # * Delete versions
+  # * Requires confirm_databases: naming every database the scrubbed models and their version tables live in
   class ScrubAllPiiTask
     def self.perform(...)
       new.perform(...)
     end
 
-    def perform(...)
+    def perform(confirm_databases:, **scrubber_opts)
+      expected = expected_databases
+      raise ArgumentError, "confirm_databases must equal #{expected.inspect}" unless Array(confirm_databases).sort == expected
+
       with_lock do
         total = 0
-        scrubber = Pii::Scrubber::ScrubModelPii.new(...)
+        scrubber = Pii::Scrubber::ScrubModelPii.new(**scrubber_opts)
         version_pruner = Pii::Scrubber::VersionHistoryPruner.new
-        models.each do |model|
-          total += scrubber.perform(model.unscoped)
+        # Versions go first so a scrub failure still leaves no history behind
+        Pii::Scrubber::ScrubbableModels.all.each do |model|
           version_pruner.perform(owner: model)
+        end
+        Pii::Scrubber::ScrubbableModels.to_scrub.each do |model|
+          total += scrubber.perform(model.unscoped)
         end
         total
       end
     end
 
-    protected
-
-    def models
-      [
-        # misc
-        TextMessage::TopicSubscriber,
-        GrdaWarehouse::HealthEmergency::UploadedTest,
-        GrdaWarehouse::Contact::Base,
-        GrdaWarehouse::Hmis::Staff,
-        GrdaWarehouse::HmisClient,
-        Hmis::File,
-        # warehouse.ClientUnencrypted, # no model?
-
-        # hud records
-        GrdaWarehouse::Hud::Client,
-        GrdaWarehouse::Hud::User,
-        Hmis::Hud::CustomClientAddress,
-        Hmis::Hud::CustomClientName,
-        Hmis::Hud::CustomClientContactPoint,
-        Hmis::Hud::CustomCaseNote,
-        Hmis::Hud::CustomDataElement,
-
-        # reports
-        HudApr::Fy2020::AprClient,
-        HomelessSummaryReport::Client,
-        HudDataQualityReport::Fy2020::DqClient,
-        HudPathReport::Fy2020::PathClient,
-        HudSpmReport::Fy2020::SpmClient,
-        IncomeBenefitsReport::Client,
-        MaYyaReport::Client,
-        HudSpmReport::Fy2023::SpmEnrollment,
-        HudSpmReport::Fy2024::SpmEnrollment,
-        GrdaWarehouse::AdHocClient,
-        CePerformance::Client,
-        GrdaWarehouse::ClientContact,
-        Financial::Client,
-        HmisDataQualityTool::Client,
-        HmisDataQualityTool::Enrollment,
-        HudPit::Fy2022::PitClient,
-        HudReports::UniverseMember,
-        MaReports::MonthlyPerformance::Enrollment,
-        PerformanceMetrics::Client,
-        ProjectPassFail::Client,
-        SimpleReports::UniverseMember,
-
-        # reporting db
-        Reporting::Housed,
-        Reporting::DataQualityReports::Enrollment,
-
-        HmisCsvTwentyTwenty::Importer::Client,
-        HmisCsvTwentyTwenty::Importer::User,
-        HmisCsvTwentyTwenty::Loader::Client,
-        HmisCsvTwentyTwenty::Loader::User,
-
-        HmisCsvTwentyTwentyTwo::Importer::Client,
-        HmisCsvTwentyTwentyTwo::Importer::User,
-        HmisCsvTwentyTwentyTwo::Loader::Client,
-        HmisCsvTwentyTwentyTwo::Loader::User,
-
-        HmisCsvTwentyTwentyFour::Importer::Client,
-        HmisCsvTwentyTwentyFour::Importer::User,
-        HmisCsvTwentyTwentyFour::Loader::Client,
-        HmisCsvTwentyTwentyFour::Loader::User,
-      ]
+    # The sorted database names an operator must pass as confirm_databases
+    def expected_databases
+      models = Pii::Scrubber::ScrubbableModels.all
+      databases = models.map { |model| model.connection.current_database }
+      # The pruner deletes from each paper-trail model's version table, which can live in another database
+      pruner = Pii::Scrubber::VersionHistoryPruner.new
+      databases += models.filter_map { |model| pruner.version_class(model)&.connection&.current_database }
+      (databases << GrdaWarehouseBase.connection.current_database).uniq.sort
     end
+
+    protected
 
     def with_lock(&block)
       lock_name = self.class.name.demodulize

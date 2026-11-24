@@ -1563,7 +1563,7 @@ module PerformanceMeasurement
         {
           name: 'application.css',
           content: -> {
-            css = Rails.application.assets['application.css'].to_s
+            css = AssetHelper.asset_content('application.css')
             # need to replace the paths to the font files
             [
               'icons.ttf',
@@ -1572,9 +1572,7 @@ module PerformanceMeasurement
               'icons.woff',
               'icons.woff2',
             ].each do |filename|
-              css.gsub!("url(/assets/#{Rails.application.assets[filename].digest_path}", "url(#{filename}")
-              # Also replace development version of assets url
-              css.gsub!("url(/dev-assets/#{Rails.application.assets[filename].digest_path}", "url(#{filename}")
+              css.gsub!("url(#{Rails.application.config.assets.prefix}/#{AssetHelper.digest_path(filename)}", "url(#{filename}")
             end
             css
           },
@@ -1582,27 +1580,27 @@ module PerformanceMeasurement
         },
         {
           name: 'icons.ttf',
-          content: -> { Rails.application.assets['icons.ttf'].to_s },
+          content: -> { AssetHelper.asset_content('icons.ttf') },
           type: 'text/css',
         },
         {
           name: 'icons.svg',
-          content: -> { Rails.application.assets['icons.svg'].to_s },
+          content: -> { AssetHelper.asset_content('icons.svg') },
           type: 'text/css',
         },
         {
           name: 'icons.eot',
-          content: -> { Rails.application.assets['icons.eot'].to_s },
+          content: -> { AssetHelper.asset_content('icons.eot') },
           type: 'text/css',
         },
         {
           name: 'icons.woff',
-          content: -> { Rails.application.assets['icons.woff'].to_s },
+          content: -> { AssetHelper.asset_content('icons.woff') },
           type: 'text/css',
         },
         {
           name: 'icons.woff2',
-          content: -> { Rails.application.assets['icons.woff'].to_s },
+          content: -> { AssetHelper.asset_content('icons.woff2') },
           type: 'text/css',
         },
       ]

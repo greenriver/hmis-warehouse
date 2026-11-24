@@ -9,6 +9,12 @@
 module HmisExternalApis::AcHmis
   # An advertisement of housing vacancy
   class ReferralRequest < ::HmisExternalApis::HmisExternalApisBase
+    include HasPiiAttributes
+
+    pii_attr :requestor_name, as: :full_name, required: true
+    pii_attr :requestor_phone, as: :phone, required: true
+    pii_attr :requestor_email, as: :email, required: true
+
     self.table_name = 'hmis_external_referral_requests'
     scope :viewable_by, ->(_user) { raise } # this scope is replaced by ::Hmis::Hud::Concerns::ProjectRelated
     include ::Hmis::Hud::Concerns::ProjectRelated

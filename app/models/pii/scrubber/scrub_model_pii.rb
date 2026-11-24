@@ -48,7 +48,7 @@ module Pii::Scrubber
           custom_scrubber&.perform(pii_fields)
 
           # handle dob and age fields
-          dob_scrubber.perform(pii_fields.reject(&:scrubbed?))
+          dob_scrubber.perform(pii_fields)
 
           # scrub remaining sensitive fields
           remaining_sensitive_fields = pii_fields.filter { |f| f.sensitive? && !f.scrubbed? }
@@ -63,7 +63,7 @@ module Pii::Scrubber
             [column, record.send(column)]
           end
 
-          pii_attrs.merge(required_attrs)
+          required_attrs.merge(pii_attrs)
         end
         import!(model, values)
         progress&.increment!(batch.size)
@@ -72,7 +72,7 @@ module Pii::Scrubber
 
     # special handling for dob/age
     def dob_scrubber
-      @dob_scrubber || Pii::Scrubber::DobScrubber.new
+      @dob_scrubber ||= Pii::Scrubber::DobScrubber.new
     end
 
     # catch-all scrubber
@@ -96,7 +96,9 @@ module Pii::Scrubber
     def import!(klass, values)
       return if values.blank?
 
-      result = klass.import(values, on_duplicate_key_update: { conflict_target: [:id], columns: values.first.keys }, validate: false)
+      # Partitioned tables key on more than id
+      conflict_target = klass.connection.primary_keys(klass.table_name)
+      result = klass.import(values, on_duplicate_key_update: { conflict_target: conflict_target, columns: values.first.keys }, validate: false)
       raise if result.failed_instances.any?
     end
 

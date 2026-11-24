@@ -8,6 +8,11 @@
 
 module GrdaWarehouse::Youth
   class HousingResolutionPlan < GrdaWarehouse::Youth::Base
+    include HasPiiAttributes
+
+    pii_attr :staff_name, as: :full_name
+    pii_attr :how_to_contact, as: :free_text
+
     include YouthExport
 
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', inverse_of: :housing_resolution_plans

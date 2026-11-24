@@ -8,6 +8,19 @@
 
 module GrdaWarehouse::Vispdat
   class Base < GrdaWarehouseBase
+    include HasPiiAttributes
+
+    pii_attr :phone
+    pii_attr :email
+    pii_attr :nickname, as: :first_name
+    pii_attr :parent2_first_name, as: :first_name
+    pii_attr :parent2_last_name, as: :last_name
+    pii_attr :parent2_nickname, as: :first_name
+    pii_attr :parent2_dob, as: :dob
+    pii_attr :parent2_ssn, as: :ssn
+    pii_attr :migrated_interviewer_email, as: :email
+    pii_attr :migrated_interviewer_name, as: :full_name
+
     self.table_name = :vispdats
 
     ####################

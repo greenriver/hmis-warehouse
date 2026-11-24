@@ -8,6 +8,11 @@
 
 module HapReport
   class Erap < GrdaWarehouseBase
+    include HasPiiAttributes
+
+    pii_attr :first_name
+    pii_attr :last_name
+
     belongs_to :hap_report, class_name: 'HapReport::Report'
 
     def self.parse(report, data)

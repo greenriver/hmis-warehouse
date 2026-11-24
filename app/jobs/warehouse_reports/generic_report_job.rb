@@ -83,6 +83,8 @@ module WarehouseReports
       reports['PerformanceMeasurement::Report'] = PerformanceMeasurement::Report
       reports['LongitudinalSpm::Report'] = LongitudinalSpm::Report
       reports['CePerformance::Report'] = CePerformance::Report
+      reports['ContinuumSemiAnnualPerformance::MidYearReport'] = ContinuumSemiAnnualPerformance::MidYearReport
+      reports['ContinuumSemiAnnualPerformance::EndOfYearReport'] = ContinuumSemiAnnualPerformance::EndOfYearReport
       reports['TxClientReports::ResearchExport'] = TxClientReports::ResearchExport
       reports['HmisDataQualityTool::Report'] = HmisDataQualityTool::Report
       reports['MaYyaReport::Report'] = MaYyaReport::Report

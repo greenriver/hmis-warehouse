@@ -14,7 +14,7 @@ module Mutations
     field :client, Types::HmisSchema::Client, null: true
 
     def resolve(client_id:, image_blob_id:)
-      client = Hmis::Hud::Client.visible_to(current_user).find_by(id: client_id)
+      client = Hmis::Hud::Client.visible_to(current_user, client_ids: [client_id]).find_by(id: client_id)
 
       access_denied! unless client
       access_denied! unless policy_for(client, policy_type: :hmis_client).can_edit?

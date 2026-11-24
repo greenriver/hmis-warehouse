@@ -241,16 +241,16 @@ module Filters
       when 'fixed'
         return
       when 'n_days'
-        @end_date = Date.current
-        @start_date = end_date - reporting_range_days.days
+        self.end_date = Date.current
+        self.start_date = end_date - reporting_range_days.days
       when 'month'
         last_month = Date.current.last_month
-        @end_date = last_month.end_of_month
-        @start_date = last_month.beginning_of_month
+        self.end_date = last_month.end_of_month
+        self.start_date = last_month.beginning_of_month
       when 'year'
         last_year = Date.current.last_year
-        @end_date = last_year.end_of_year
-        @start_date = last_year.beginning_of_year
+        self.end_date = last_year.end_of_year
+        self.start_date = last_year.beginning_of_year
       end
     end
 

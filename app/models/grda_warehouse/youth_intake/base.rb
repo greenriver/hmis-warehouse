@@ -8,6 +8,16 @@
 
 module GrdaWarehouse::YouthIntake
   class Base < GrdaWarehouseBase
+    include HasPiiAttributes
+
+    pii_attr :first_name
+    pii_attr :last_name
+    pii_attr :ssn
+    pii_attr :client_dob, as: :dob
+    pii_attr :stable_housing_zipcode, as: :geo_postal_code
+    pii_attr :staff_email, as: :email
+    pii_attr :staff_name, as: :full_name
+
     include ArelHelper
     include YouthExport
     self.table_name = :youth_intakes

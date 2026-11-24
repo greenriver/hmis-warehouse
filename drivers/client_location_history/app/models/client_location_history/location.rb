@@ -8,6 +8,11 @@
 
 module ClientLocationHistory
   class Location < GrdaWarehouseBase
+    include HasPiiAttributes
+
+    pii_attr :lat, as: :geo_street, level: 1
+    pii_attr :lon, as: :geo_street, level: 1
+
     include Rails.application.routes.url_helpers
     belongs_to :source, polymorphic: true, optional: true
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'

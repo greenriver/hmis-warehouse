@@ -140,7 +140,7 @@ class Hmis::Filter::EnrollmentFilter < Hmis::Filter::BaseFilter
   def with_assigned_staff(scope)
     with_filter(scope, :assigned_staff) do
       sa_t = Hmis::StaffAssignment.arel_table
-      scope.joins(household: :staff_assignments).where(sa_t[:user_id].eq(input.assigned_staff))
+      scope.joins(:staff_assignments).where(sa_t[:user_id].eq(input.assigned_staff))
     end
   end
 end

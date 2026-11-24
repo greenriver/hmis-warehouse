@@ -8,6 +8,13 @@
 
 module CustomImportsBostonContacts
   class Row < GrdaWarehouseBase
+    include HasPiiAttributes
+
+    pii_attr :contact_name, as: :full_name
+    pii_attr :phone
+    pii_attr :phone_alternate, as: :phone
+    pii_attr :email
+
     self.table_name = :custom_imports_b_contacts_rows
     belongs_to :import_file
 

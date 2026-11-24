@@ -51,7 +51,7 @@ module Chronic
     alias_method :set_sort, :set_chronic_sort
 
     def filter_params
-      params.permit(filter: Filters::Chronic.attribute_set.map(&:name))
+      params.permit(filter: Filters::Chronic.attribute_names.map(&:to_sym))
     end
 
     def potentially_chronic_source

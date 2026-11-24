@@ -42,3 +42,6 @@ application.register("table-filter", TableFilterController)
 
 import ClientTimelineChartController from "./client_timeline_chart_controller.js"
 application.register("client-timeline-chart", ClientTimelineChartController)
+
+import SiteMenuController from "./site_menu_controller.js"
+application.register("site-menu", SiteMenuController)

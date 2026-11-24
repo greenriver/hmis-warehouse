@@ -8,6 +8,12 @@
 
 module SystemPathways
   class Client < GrdaWarehouseBase
+    include HasPiiAttributes
+
+    pii_attr :first_name
+    pii_attr :last_name
+    pii_attr :dob
+
     self.table_name = :system_pathways_clients
     acts_as_paranoid
 
