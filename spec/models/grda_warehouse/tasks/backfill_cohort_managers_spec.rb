@@ -72,14 +72,14 @@ RSpec.describe GrdaWarehouse::Tasks::BackfillCohortManagers do
     expect(manager_user_ids(cohort)).to eq([participant.id])
   end
 
-  it 'skips a legacy participant' do
+  it 'skips a legacy participant even when they hold a configure role' do
     legacy = create(:user)
+    setup_access_control(legacy, configure_role, create(:collection))
     cohort.replace_access([participant, legacy], scope: :editor)
-    AccessControl.where(role: configure_role).destroy_all
 
     described_class.new.run!
 
-    expect(manager_user_ids(cohort)).to be_empty
+    expect(manager_user_ids(cohort)).to eq([participant.id])
   end
 
   it 'skips an inactive participant' do
@@ -137,7 +137,7 @@ RSpec.describe GrdaWarehouse::Tasks::BackfillCohortManagers do
     expect(described_class.new.run!).to eq(granted: 0, skipped_existing: 0)
   end
 
-  context 'when the grant fails for one cohort' do
+  context 'when the task is run on its own and the grant fails for one cohort' do
     let!(:second_cohort) { create(:cohort) }
 
     before do
@@ -149,7 +149,7 @@ RSpec.describe GrdaWarehouse::Tasks::BackfillCohortManagers do
       end
     end
 
-    it 'rolls back only the failing cohort' do
+    it 'rolls back only the failing cohort, keeping earlier grants' do
       expect { described_class.new.run! }.to raise_error(ActiveRecord::StatementInvalid)
 
       expect(UserGroup.system.where(source: second_cohort, context: :manager)).not_to exist

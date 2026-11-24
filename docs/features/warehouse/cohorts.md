@@ -57,7 +57,7 @@ The cohort controllers load the cohort without a user scope and then authorize w
 
 ### Backfill and release notes
 
-`GrdaWarehouse::Tasks::BackfillCohortManagers` runs once from the `BackfillCohortManagers` data migration, so it finishes before the new code serves requests. For each cohort that is not a system cohort and has no manager group, it makes every active Access Controls user who is a Participant and holds `can_configure_cohorts` through a non-system role a Manager. Cohorts with a manager group, even an empty one, are skipped, so a Manager an admin removed is not re-added. The grants are recorded as the system user, and each cohort is granted in its own transaction.
+`GrdaWarehouse::Tasks::BackfillCohortManagers` runs once from the `BackfillCohortManagers` data migration, so it finishes before the new code serves requests. For each cohort that is not a system cohort and has no manager group, it makes every active Access Controls user who is a Participant and holds `can_configure_cohorts` through a non-system role a Manager. Cohorts with a manager group, even an empty one, are skipped, so a Manager an admin removed is not re-added. The grants are recorded as the system user. The migration runs in one transaction, so a failure stops the deploy with nothing granted, and rerunning the migration retries. Run outside a migration, the task grants each cohort in its own transaction.
 
 Release notes:
 

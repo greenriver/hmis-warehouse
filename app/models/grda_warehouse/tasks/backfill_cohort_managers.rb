@@ -24,7 +24,8 @@ module GrdaWarehouse::Tasks
           managers = eligible_users(cohort)
           next if managers.empty?
 
-          # The manager group is the done marker, so it must roll back with a failed grant.
+          # Outside a migration each cohort rolls back on its own; inside one, the migration's
+          # transaction makes the whole run atomic. The manager group is the done marker either way.
           ApplicationRecord.transaction { cohort.replace_access(managers, scope: :manager) }
           counts[:granted] += 1
         end
