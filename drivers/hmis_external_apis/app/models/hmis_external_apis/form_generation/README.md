@@ -111,7 +111,7 @@ Optional: `question_order`.
 - Once any row in a form has a valid `question_order`, label-number auto-ordering is off for that form. A form whose values are all blank or invalid keeps auto-ordering.
 - Overlay `item_order` moves still apply after `question_order` and win over it.
 - If sorting makes a group's rows non-contiguous, the generator emits more than one group with that title and lists it under "Groups split by question_order" in the summary.
-- If an "If Other" or "If yes" follow-up has no single earlier choice question in its group to attach to, no `enable_when` is inferred and it is listed under "Follow-up questions with no earlier parent (question_order)". A row is listed only when the form has a matching Other or Yes choice question that it could not attach to.
+- If an "If Other" or "If yes" follow-up has no single earlier choice question (none, or more than one) in its group to attach to, no `enable_when` is inferred and it is listed under "Follow-up questions with no earlier parent (question_order)". A row is listed only when the form has a matching Other or Yes choice question that it could not attach to.
 
 Things to check when a form gains `question_order`:
 

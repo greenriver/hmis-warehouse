@@ -166,7 +166,7 @@ module HmisExternalApis
         title = rows.first['legacy_assessment_name']
         used_link_ids = Set.new(rows.map { |r| r['link_id'] })
         question_ordered = rows.any? { |row| row['question_order'] }
-        follow_up_parents = follow_up_parent_kinds(rows)
+        follow_up_parents = question_ordered ? follow_up_parent_kinds(rows) : {}
         runs = group_runs(sort_by_question_order(rows), title, form_overlay, identifier: identifier, question_ordered: question_ordered)
         form_generated = {
           'invented_group_names' => {},
@@ -509,7 +509,9 @@ module HmisExternalApis
           if question_ordered
             want_other = row['label'].match?(OTHER_LABEL)
             want_yes_only = !want_other && row['label'].match?(IF_YES_LABEL)
-            warn_parent_missing(identifier, row) if (want_other && follow_up_parents[:other]) || (want_yes_only && follow_up_parents[:yes])
+            other_parent = want_other && other_parent_exists?(follow_up_parents, :other, row)
+            yes_parent = want_yes_only && other_parent_exists?(follow_up_parents, :yes, row)
+            warn_parent_missing(identifier, row) if other_parent || yes_parent
           end
           return
         end
@@ -519,10 +521,22 @@ module HmisExternalApis
         record_enable_when_summary(identifier, row, inferred, prior_items)
       end
 
-      # Whether the form has any choice question an Other or Yes follow-up could attach to.
+      # link_ids of the choice questions an Other or Yes follow-up could attach to, by kind.
       def follow_up_parent_kinds(rows)
-        choice_options = rows.select { |row| row['form_item_type'] == 'CHOICE' || row['form_item_type'].blank? }.map { |row| parse_pick_list(row['pick_list_options']) }
-        { other: choice_options.any? { |codes| other_code(codes) }, yes: choice_options.any? { |codes| yes_code(codes) } }
+        choice_rows = rows.select { |row| choice_row?(row) }
+        {
+          other: choice_rows.select { |row| other_code(parse_pick_list(row['pick_list_options'])) }.map { |row| row['link_id'] },
+          yes: choice_rows.select { |row| yes_code(parse_pick_list(row['pick_list_options'])) }.map { |row| row['link_id'] },
+        }
+      end
+
+      def choice_row?(row)
+        row['form_item_type'] == 'CHOICE' || row['form_item_type'].blank?
+      end
+
+      # True when a choice question other than the follow-up itself offers the kind's option.
+      def other_parent_exists?(follow_up_parents, kind, row)
+        (follow_up_parents[kind] || []).any? { |link_id| link_id != row['link_id'] }
       end
 
       def warn_parent_missing(identifier, row)

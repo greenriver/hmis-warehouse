@@ -257,6 +257,25 @@ RSpec.describe HmisExternalApis::FormGeneration::CustomAssessmentFormGenerator, 
         expect(question_link_ids(document)).to eq(['q1', 'q2'])
         expect(result[:warnings].map(&:kind)).not_to include(:enable_when_parent_missing)
       end
+
+      it 'does not warn when the only Other choice question is the follow-up itself' do
+        result, document = generate(
+          [['q1', '1', 'Please specify type', nil, 'CHOICE', 'Other|Something']],
+        )
+
+        expect(question_link_ids(document)).to eq(['q1'])
+        expect(result[:warnings].map(&:kind)).not_to include(:enable_when_parent_missing)
+      end
+
+      it 'does not warn about an Other-style follow-up when the form only has a Yes/No choice question' do
+        result, document = generate(
+          [['q1', '1', 'Any income?', nil, 'CHOICE', 'Yes|No'], ['q2', '2', 'Please describe']],
+        )
+
+        follow_up = question_items(document).find { |item| item['link_id'] == 'q2' }
+        expect(follow_up).not_to have_key('enable_when')
+        expect(result[:warnings].map(&:kind)).not_to include(:enable_when_parent_missing)
+      end
     end
 
     context 'with zip: true' do
