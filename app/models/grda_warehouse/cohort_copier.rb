@@ -52,9 +52,8 @@ module GrdaWarehouse
     private
 
     def copy_notes_to(client)
-      source_row_ids = @to_copy_cohort.visible_cohort_clients(@user).where(client_id: client.client_id).select(:id)
       existing = client.cohort_client_notes.pluck(:note, :user_id, :created_at)
-      GrdaWarehouse::CohortClientNote.where(cohort_client_id: source_row_ids).each do |note|
+      Array.wrap(@source_notes[client.client_id]).each do |note|
         next if existing.include?([note.note, note.user_id, note.created_at])
 
         new_note = note.dup
@@ -79,11 +78,19 @@ module GrdaWarehouse
       @to_copy_cohort = @cohort_scope.find(@copy_cohort_id)
       raise ActiveRecord::RecordNotFound unless @user.policy_for(@to_copy_cohort).can_view?
 
-      @to_copy_clients = @to_copy_cohort.visible_cohort_clients(@user).
+      rows = @to_copy_cohort.visible_cohort_clients(@user).
         where(client_id: destination_client_ids).
-        select(select_columns).
-        group_by(&:client_id).
-        transform_values { |rows| rows.first.attributes.slice(*copied_column_names) }
+        select(select_columns + [GrdaWarehouse::CohortClient.arel_table[:id]]).
+        to_a
+      @to_copy_clients = rows.group_by(&:client_id).
+        transform_values { |client_rows| client_rows.first.attributes.slice(*copied_column_names) }
+      @source_notes = copy_notes? ? notes_by_client_id(rows) : {}
+    end
+
+    def notes_by_client_id(rows)
+      client_id_by_row_id = rows.to_h { |row| [row.id, row.client_id] }
+      GrdaWarehouse::CohortClientNote.where(cohort_client_id: client_id_by_row_id.keys).
+        group_by { |note| client_id_by_row_id[note.cohort_client_id] }
     end
 
     def load_destination!

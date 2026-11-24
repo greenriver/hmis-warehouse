@@ -234,7 +234,7 @@ RSpec.describe GrdaWarehouse::CohortCopier, type: :model do
 
     describe 'row visibility' do
       let!(:inactive_destination_row) { create_row(destination, client_b, user_string_1: 'inactive old', active: false) }
-      let!(:inactive_source_row) { create_row(source, client_b, user_string_1: 'inactive source', active: false) }
+      let!(:visible_source_row) { create_row(source, client_b, user_string_1: 'b source', active: true) }
 
       it 'leaves inactive destination rows alone for a user without view-inactive' do
         grant(user, participate, source, destination)
@@ -250,7 +250,7 @@ RSpec.describe GrdaWarehouse::CohortCopier, type: :model do
 
         build_copier(['user_string_1']).copy!
 
-        expect(inactive_destination_row.reload.user_string_1).to eq('inactive source')
+        expect(inactive_destination_row.reload.user_string_1).to eq('b source')
       end
     end
   end
@@ -280,6 +280,16 @@ RSpec.describe GrdaWarehouse::CohortCopier, type: :model do
         expect(destination_row.cohort_client_notes.count).to eq(0)
       end
 
+      it 'copies only the notes of visible rows when a client has visible and hidden source rows' do
+        visible_row = create_row(source, client_a, user_string_1: 'visible source', active: true)
+        GrdaWarehouse::CohortClientNote.create!(cohort_client: visible_row, note: 'visible note', user: user)
+        grant(user, [:can_view_cohorts], source)
+
+        build_copier(['notes']).copy!
+
+        expect(destination_row.cohort_client_notes.pluck(:note)).to eq(['visible note'])
+      end
+
       it 'copies them with view-inactive on the source' do
         grant(user, [:can_view_cohorts, :can_view_inactive_cohort_clients], source)
 
@@ -287,6 +297,39 @@ RSpec.describe GrdaWarehouse::CohortCopier, type: :model do
 
         expect(destination_row.reload.user_string_1).to eq('inactive source')
         expect(destination_row.cohort_client_notes.pluck(:note)).to eq(['inactive note'])
+      end
+    end
+
+    describe 'atomicity' do
+      let!(:source_row) { create_row(source, client_a, user_string_1: 'new', active: false) }
+      let!(:source_row_b) { create_row(source, client_b, user_string_1: 'new', active: false) }
+      let!(:destination_row) { create_row(destination, client_a, user_string_1: 'old', active: true) }
+      let!(:destination_row_b) { create_row(destination, client_b, user_string_1: 'old', active: true) }
+
+      before do
+        [source_row, source_row_b].each do |row|
+          GrdaWarehouse::CohortClientNote.create!(cohort_client: row, note: "note #{row.id}", user: user)
+        end
+        grant(user, participate + [:can_manage_inactive_cohort_clients, :can_view_inactive_cohort_clients], source, destination)
+      end
+
+      it 'rolls back every destination change when a later row fails to save' do
+        calls = 0
+        allow_any_instance_of(GrdaWarehouse::CohortClient).to receive(:save!).and_wrap_original do |original, *args|
+          calls += 1
+          raise ActiveRecord::RecordInvalid, original.receiver if calls == 2
+
+          original.call(*args)
+        end
+        copier = build_copier(['user_string_1', 'active', 'notes'])
+
+        expect { copier.copy! }.to raise_error(ActiveRecord::RecordInvalid).
+          and(not_change(GrdaWarehouse::CohortClientChange, :count))
+
+        destination_rows = [destination_row, destination_row_b].each(&:reload)
+        expect(destination_rows.map(&:user_string_1)).to eq(['old', 'old'])
+        expect(destination_rows.map(&:active)).to eq([true, true])
+        expect(destination_rows.map { |row| row.cohort_client_notes.count }).to eq([0, 0])
       end
     end
   end
