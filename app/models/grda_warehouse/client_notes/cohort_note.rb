@@ -13,11 +13,11 @@ module GrdaWarehouse::ClientNotes
     end
 
     def destroyable_by(user)
-      # Cohort notes may appear on multiple cohorts, so check the cohorts the client is on
-      # and check the column in the controller.
+      # Cohort notes may appear on multiple cohorts, so check every cohort the client is or
+      # was on, and check the column in the controller.
       return false unless client
 
-      client.cohort_clients.preload(:cohort).any? do |cohort_client|
+      GrdaWarehouse::CohortClient.with_deleted.where(client_id: client.id).preload(:cohort).any? do |cohort_client|
         cohort_client.cohort.present? && user.policy_for(cohort_client.cohort).can_edit_clients?
       end
     end

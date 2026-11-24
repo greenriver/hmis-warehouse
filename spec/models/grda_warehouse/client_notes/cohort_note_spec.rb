@@ -45,5 +45,42 @@ RSpec.describe GrdaWarehouse::ClientNotes::CohortNote, type: :model do
 
       expect(note.destroyable_by(user)).to be(false)
     end
+
+    it 'allows a user who can edit clients on a cohort the client was removed from' do
+      grant([:can_view_cohorts, :can_participate_in_cohorts], note_cohort)
+      GrdaWarehouse::CohortClient.find_by!(cohort: note_cohort, client: client).destroy
+
+      expect(note.destroyable_by(user)).to be(true)
+    end
+
+    it 'refuses a user who can edit clients only on an unrelated cohort when the client was removed' do
+      grant([:can_view_cohorts, :can_participate_in_cohorts], unrelated_cohort)
+      GrdaWarehouse::CohortClient.find_by!(cohort: note_cohort, client: client).destroy
+
+      expect(note.destroyable_by(user)).to be(false)
+    end
+
+    context 'with a legacy user' do
+      let(:user) { create(:user) }
+
+      def grant_legacy(permissions, *cohorts)
+        access_group = create(:access_group)
+        create(:role, **permissions.index_with { true }).add(user)
+        access_group.add(user)
+        cohorts.each { |cohort| access_group.add_viewable(cohort) }
+      end
+
+      it 'allows a participant with access to the client cohort' do
+        grant_legacy([:can_view_cohorts, :can_participate_in_cohorts], note_cohort)
+
+        expect(note.destroyable_by(user)).to be(true)
+      end
+
+      it 'refuses a participant whose access is to a cohort the client is not on' do
+        grant_legacy([:can_view_cohorts, :can_participate_in_cohorts], unrelated_cohort)
+
+        expect(note.destroyable_by(user)).to be(false)
+      end
+    end
   end
 end

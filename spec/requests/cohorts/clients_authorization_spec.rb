@@ -257,6 +257,42 @@ RSpec.describe 'Cohort client, note and search query authorization', type: :requ
         expect(JSON.parse(response.body)['id']).to eq(cohort_client_b.id)
       end
 
+      it 'refuses search, pre_destroy, pre_bulk_destroy, bulk_destroy, bulk_restore and re_rank on a cohort without the matching grant' do
+        grant(user, [:can_view_cohorts, :can_participate_in_cohorts, :can_add_cohort_clients, :can_view_clients], cohort_a)
+        grant(user, [:can_view_cohorts], cohort_b)
+        second_b = GrdaWarehouse::CohortClient.create!(cohort: cohort_b, client: create(:grda_warehouse_hud_client))
+        removed_b = GrdaWarehouse::CohortClient.create!(cohort: cohort_b, client: create(:grda_warehouse_hud_client), rank: 3)
+        removed_b.destroy
+        query = create(:grda_warehouse_client_search_query, created_by: user, params: { q: 'Alpha' })
+        ids = [cohort_client_b.id, second_b.id]
+        original_ranks = ids.map { |id| GrdaWarehouse::CohortClient.find(id).rank }
+
+        get cohort_cohort_client_search_query_path(cohort_id: cohort_b.id, id: query.id)
+        expect(refused?).to be(true)
+
+        get pre_destroy_cohort_cohort_client_path(cohort_b, cohort_client_b)
+        expect(refused?).to be(true)
+
+        get pre_destroy_cohort_cohort_client_path(cohort_b, removed_b)
+        expect(refused?).to be(true)
+        expect(GrdaWarehouse::CohortClient.only_deleted.exists?(removed_b.id)).to be(true)
+
+        post pre_bulk_destroy_cohort_cohort_clients_path(cohort_b), params: { cc: { cohort_client_ids: ids.join(',') } }
+        expect(refused?).to be(true)
+
+        delete bulk_destroy_cohort_cohort_clients_path(cohort_b), params: { cc: { cohort_client_ids: ids.join(',') } }
+        expect(refused?).to be(true)
+        expect(cohort_b.cohort_clients.where(id: ids).count).to eq(2)
+
+        post bulk_restore_cohort_cohort_clients_path(cohort_b), params: { cc: { cohort_client_ids: removed_b.id.to_s } }
+        expect(refused?).to be(true)
+        expect(GrdaWarehouse::CohortClient.only_deleted.exists?(removed_b.id)).to be(true)
+
+        patch re_rank_cohort_cohort_clients_path(cohort_b), params: { rank_order: ids.reverse.join(',') }
+        expect(refused?).to be(true)
+        expect(ids.map { |id| GrdaWarehouse::CohortClient.find(id).rank }).to eq(original_ranks)
+      end
+
       it 'limits note creation to cohorts where participate was granted' do
         grant(user, [:can_view_cohorts, :can_participate_in_cohorts], cohort_a)
         grant(user, [:can_view_cohorts], cohort_b)
