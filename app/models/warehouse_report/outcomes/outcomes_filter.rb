@@ -24,17 +24,24 @@ class WarehouseReport::Outcomes::OutcomesFilter < Filters::FilterBase
     self.veteran_status = veteran_statuses.first
   end
 
-  # The outcomes reports use their own sub-population keys (e.g. :veteran,
-  # :youth_at_search_start) rather than the registered AvailableSubPopulations,
-  # so the strict sub_population= writer must validate against those.
+  # The outcomes report forms offer their own sub-population keys (e.g. :veteran,
+  # :youth_at_search_start), which are not registered in AvailableSubPopulations.
+  # Other callers (e.g. PerformanceMetrics::Report) copy a FilterBase into this
+  # filter with registered keys (e.g. :veterans), so the strict sub_population=
+  # writer must accept both. Extend the registered list rather than replace it.
   def available_sub_populations
     report_classes = [
       WarehouseReport::Outcomes::Base,
       WarehouseReport::Outcomes::EsReport,
       WarehouseReport::Outcomes::ThReport,
     ]
-    sub_populations = report_classes.map(&:available_subpopulations).reduce(:merge)
-    sub_populations.merge(clients: 'All').invert
+    outcomes_sub_populations = report_classes.flat_map { |klass| klass.available_subpopulations.to_a }
+
+    outcomes_sub_populations.each_with_object(super.dup) do |(key, label), sub_populations|
+      next if sub_populations.value?(key)
+
+      sub_populations[label] = key
+    end
   end
 
   def all_project_scope

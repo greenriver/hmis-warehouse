@@ -26,6 +26,14 @@ RSpec.describe WarehouseReport::Outcomes::OutcomesFilter, type: :model do
     expect(filter.sub_population).to eq(:clients)
   end
 
+  # PerformanceMetrics::Report#run_rrh and #run_psh copy a FilterBase into this
+  # filter via update, carrying registered sub-population keys like :veterans.
+  it 'accepts a registered sub-population passed through update' do
+    filter.update(sub_population: :veterans)
+
+    expect(filter.sub_population).to eq(:veterans)
+  end
+
   it 'rejects an unknown sub-population' do
     expect do
       filter.set_from_params({ sub_population: 'not_a_population' })
