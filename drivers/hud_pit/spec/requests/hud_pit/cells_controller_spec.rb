@@ -114,6 +114,16 @@ RSpec.describe 'HudPit::CellsController#show', type: :request do
         expect(flash[:alert]).to eq('Sorry you are not authorized to do that.')
       end
 
+      it 'checks the HIV/AIDS row of the run\'s recorded version when the filter names another version' do
+        fy2023_hiv_row = HudPit::Generators::Pit::Fy2023::AdditionalHomelessPopulations::HIV_AIDS_ROW
+        expect(fy2023_hiv_row).not_to eq(HudPit::Generators::Pit::Fy2025::AdditionalHomelessPopulations::HIV_AIDS_ROW)
+
+        get hud_reports_pit_question_cell_path(hiv_params.merge(filter: { report_version: 'fy2023' }))
+
+        expect(response).to redirect_to(redirect_path)
+        expect(flash[:alert]).to eq(denial_alert)
+      end
+
       it 'takes the question from the route, not from a question parameter' do
         get hud_reports_pit_question_cell_path(hiv_params.merge(question: 'Projects'))
 
