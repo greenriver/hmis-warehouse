@@ -44,14 +44,6 @@ module HmisCsvImporter::Importer
       SQL
     end
 
-    # Warehouse rows (soft-deleted included) whose ids are in the set.
-    def relation
-      return warehouse_class.none unless @created
-
-      base = warehouse_class.paranoid? ? warehouse_class.with_deleted : warehouse_class.all
-      base.where(id_in_set_sql)
-    end
-
     # SQL predicate for filtering a scope on the warehouse table directly. Planned as one semi-join,
     # unlike where(id: relation.select(:id)), which nests the warehouse table in a second one.
     def id_in_set_sql

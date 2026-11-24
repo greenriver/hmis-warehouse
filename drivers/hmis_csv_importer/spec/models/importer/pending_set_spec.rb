@@ -18,26 +18,30 @@ RSpec.describe HmisCsvImporter::Importer::PendingSet, type: :model do
   subject(:set) { described_class.new(klass) }
   after { set.drop! }
 
+  def ids_in(pending_set)
+    klass.with_deleted.where(pending_set.id_in_set_sql).pluck(:id)
+  end
+
   it 'holds exactly the ids added, including soft-deleted rows, and ignores duplicates' do
     expect(set.add!(klass.with_deleted.where(id: [kept.id, removed.id, deleted.id]))).to eq(3)
     expect(set.add!(klass.with_deleted.where(id: [kept.id]))).to eq(0)
-    expect(set.relation.pluck(:id)).to contain_exactly(kept.id, removed.id, deleted.id)
+    expect(ids_in(set)).to contain_exactly(kept.id, removed.id, deleted.id)
   end
 
   it 'removes only the matched ids and returns the count' do
     set.add!(klass.with_deleted.where(id: [kept.id, removed.id, deleted.id]))
     expect(set.remove!(klass.where(id: [removed.id, other.id]))).to eq(1)
-    expect(set.relation.pluck(:id)).to contain_exactly(kept.id, deleted.id)
+    expect(ids_in(set)).to contain_exactly(kept.id, deleted.id)
   end
 
   it 'is empty before anything is added' do
-    expect(set.relation.to_a).to eq([])
+    expect(ids_in(set)).to eq([])
   end
 
   it 'removes ids given as an array' do
     set.add!(klass.with_deleted.where(id: [kept.id, removed.id]))
     expect(set.remove_ids!([removed.id, other.id])).to eq(1)
-    expect(set.relation.pluck(:id)).to contain_exactly(kept.id)
+    expect(ids_in(set)).to contain_exactly(kept.id)
   end
 
   it 'does not write the warehouse rows' do
@@ -70,8 +74,8 @@ RSpec.describe HmisCsvImporter::Importer::PendingSet, type: :model do
     other_set.add!(klass.where(id: removed.id))
 
     expect(pending_temp_table_names.size).to eq(2)
-    expect(set.relation.pluck(:id)).to eq([kept.id])
-    expect(other_set.relation.pluck(:id)).to eq([removed.id])
+    expect(ids_in(set)).to eq([kept.id])
+    expect(ids_in(other_set)).to eq([removed.id])
   ensure
     other_set.drop!
   end

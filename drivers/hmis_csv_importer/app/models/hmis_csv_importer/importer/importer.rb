@@ -803,9 +803,7 @@ module HmisCsvImporter::Importer
           # Set-based INSERT over the multi-join involved_warehouse_scope; the
           # planner picks a bad nested-loop plan for it, prevent it from doing so.
           GrdaWarehouseBase.disable_nestloop do
-            involved_project_ids.each_slice(250) do |project_ids_slice|
-              pending_set_for(klass).add!(pending_candidates(klass, project_ids_slice))
-            end
+            pending_set_for(klass).add!(pending_candidates(klass, involved_project_ids))
           end
         end
       end
@@ -924,9 +922,7 @@ module HmisCsvImporter::Importer
       key_condition = destination_class.sanitize_sql_array(["(#{key_columns}) IN (#{placeholders})", *written_keys.flatten])
       written = destination_class.where(data_source_id: data_source.id).where(key_condition)
       written = written.with_deleted if destination_class.paranoid?
-      GrdaWarehouseBase.disable_nestloop do
-        pending_set_for(klass).remove!(written)
-      end
+      pending_set_for(klass).remove!(written)
     end
 
     # Records benchmark timings for a completed ingest phase into the importer
