@@ -32,8 +32,9 @@ module Cohorts
       ],
     ) { cohort_policy.can_add_clients? }
     authorize_with(only: [:re_rank, :edit, :update]) { cohort_policy.can_update_data? }
-    before_action :set_client, only: [:destroy, :update, :pre_destroy, :field]
+    before_action :set_client, only: [:destroy, :update, :pre_destroy]
     before_action :set_visible_client, only: [:show]
+    before_action :set_visible_cohort_client, only: [:edit, :field]
     before_action :load_cohort_names, only: [:index, :edit, :field, :update]
     skip_after_action :log_activity, only: [:index, :show]
 
@@ -101,7 +102,6 @@ module Cohorts
     end
 
     def edit
-      @cohort_client = @cohort.cohort_clients.find(params[:id].to_i)
     end
 
     # Return the entire row of html layout false
@@ -528,7 +528,6 @@ module Cohorts
     def field
       column = GrdaWarehouse::Cohort.available_columns.map(&:class).map(&:name).select { |m| m == params.require(:field) }&.first
       if column.present?
-        @cohort_client = @cohort.cohort_clients.find(params[:id].to_i)
         @column = column.constantize.new
         @column.cohort = @cohort
         @column.cohort_names = @cohort_names
@@ -686,15 +685,12 @@ module Cohorts
       @client = @cohort.cohort_clients.with_deleted.find(params[:id].to_i)
     end
 
-    # Only rows that appear in a tab this user can see on this cohort
     def set_visible_client
-      id = params[:id].to_i
-      visible = @cohort.cohort_tabs.select { |tab| tab.show_for?(current_user) }.any? do |tab|
-        @cohort.clients_for_tab(current_user, tab.name, tab).where(id: id).exists?
-      end
-      raise ActiveRecord::RecordNotFound unless visible
+      @client = find_visible_cohort_client(params[:id], with_deleted: true)
+    end
 
-      set_client
+    def set_visible_cohort_client
+      @cohort_client = find_visible_cohort_client(params[:id])
     end
 
     def cohort_client_source

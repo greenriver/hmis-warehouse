@@ -153,6 +153,53 @@ RSpec.describe 'Cohort client, note and search query authorization', type: :requ
       expect(response).to have_http_status(:not_found)
     end
 
+    describe 'inactive rows' do
+      read_actions = [:show, :edit, :field, :notes, :client_notes]
+
+      def read_path(action, cohort, row)
+        case action
+        when :show then cohort_cohort_client_path(cohort, row, format: :json)
+        when :edit then edit_cohort_cohort_client_path(cohort, row)
+        when :field then field_cohort_cohort_client_path(cohort, row, field: 'CohortColumns::Rank')
+        when :notes then cohort_cohort_client_cohort_client_notes_path(cohort, row)
+        when :client_notes then cohort_cohort_client_client_notes_path(cohort, row)
+        end
+      end
+
+      before do
+        cohort_a.update!(column_state: [CohortColumns::FirstName.new, CohortColumns::Rank.new, CohortColumns::Notes.new])
+        cohort_client_a.update!(active: false)
+        sign_in user
+      end
+
+      read_actions.each do |action|
+        it "#{action} is not found without view-inactive" do
+          grant(user, [:can_view_cohorts, :can_participate_in_cohorts], cohort_a)
+
+          get read_path(action, cohort_a, cohort_client_a)
+
+          expect(response).to have_http_status(:not_found)
+        end
+
+        it "#{action} is served with view-inactive" do
+          grant(user, [:can_view_cohorts, :can_participate_in_cohorts, :can_view_inactive_cohort_clients], cohort_a)
+
+          get read_path(action, cohort_a, cohort_client_a)
+
+          expect(response).to have_http_status(:ok)
+        end
+
+        it "#{action} is served for an active row without view-inactive" do
+          cohort_client_a.update!(active: true)
+          grant(user, [:can_view_cohorts, :can_participate_in_cohorts], cohort_a)
+
+          get read_path(action, cohort_a, cohort_client_a)
+
+          expect(response).to have_http_status(:ok)
+        end
+      end
+    end
+
     it 'returns not found for a cohort that does not exist' do
       grant(user, [:can_view_cohorts], cohort_a)
 
@@ -251,6 +298,30 @@ RSpec.describe 'Cohort client, note and search query authorization', type: :requ
 
         expect(row_ids(cohort_a, population: 'Removed Clients')).to contain_exactly(cohort_client_a.id)
         expect(row_ids(cohort_b, population: 'Removed Clients')).to be_empty
+      end
+
+      it 'shows an inactive client only on cohorts where view-inactive was granted' do
+        cohort_client_a.update!(active: false)
+        cohort_client_b.update!(active: false)
+        grant(user, [:can_view_cohorts, :can_view_inactive_cohort_clients], cohort_a)
+        grant(user, [:can_view_cohorts], cohort_b)
+
+        expect(row_ids(cohort_a, population: 'Inactive')).to contain_exactly(cohort_client_a.id)
+        expect(row_ids(cohort_b, population: 'Inactive')).to be_empty
+      end
+
+      it 'returns an inactive row from show only where view-inactive was granted' do
+        cohort_client_a.update!(active: false)
+        cohort_client_b.update!(active: false)
+        grant(user, [:can_view_cohorts, :can_view_inactive_cohort_clients], cohort_a)
+        grant(user, [:can_view_cohorts], cohort_b)
+
+        get cohort_cohort_client_path(cohort_a, cohort_client_a, format: :json)
+        expect(response).to have_http_status(:ok)
+        expect(JSON.parse(response.body)['id']).to eq(cohort_client_a.id)
+
+        get cohort_cohort_client_path(cohort_b, cohort_client_b, format: :json)
+        expect(response).to have_http_status(:not_found)
       end
 
       it 'returns a removed row from show only where view-deleted was granted' do

@@ -59,7 +59,7 @@ module Cohorts
     end
 
     def set_cohort_client
-      @cohort_client = @cohort.cohort_clients.find(params[:cohort_client_id].to_i)
+      @cohort_client = find_visible_cohort_client(params[:cohort_client_id])
     end
 
     def note_params

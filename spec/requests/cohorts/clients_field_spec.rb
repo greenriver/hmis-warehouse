@@ -18,6 +18,7 @@ RSpec.describe 'Cohorts::ClientsController#field', type: :request do
 
   before do
     Collection.maintain_system_groups
+    GrdaWarehouse::CohortTab.default_rules.each { |rule| cohort.cohort_tabs.create!(**rule) }
     setup_access_control(user, cohort_role, all_cohorts_collection)
     sign_in user
   end
