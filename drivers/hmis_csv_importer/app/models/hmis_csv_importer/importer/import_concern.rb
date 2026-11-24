@@ -98,47 +98,6 @@ module HmisCsvImporter::Importer::ImportConcern
       new attrs_from(loaded, deidentified: deidentified)
     end
 
-    # Override as necessary
-    def self.mark_tree_as_dead(data_source_id:, project_ids:, date_range:, pending_date_deleted:, importer_log_id:) # rubocop:disable Lint/UnusedMethodArgument
-      involved_warehouse_scope(
-        data_source_id: data_source_id,
-        project_ids: project_ids,
-        date_range: date_range,
-      ).with_deleted.
-        update_all(pending_date_deleted: pending_date_deleted)
-    end
-
-    def self.existing_data(data_source_id:, project_ids:, date_range:)
-      existing_scope = involved_warehouse_scope(
-        data_source_id: data_source_id,
-        project_ids: project_ids,
-        date_range: date_range,
-      )
-      existing_scope = existing_scope.with_deleted if paranoid?
-      existing_scope
-    end
-
-    def self.incoming_data(importer_log_id:)
-      where(importer_log_id: importer_log_id).should_import
-    end
-
-    def self.existing_destination_data(data_source_id:, project_ids:, date_range:)
-      involved_warehouse_scope(
-        data_source_id: data_source_id,
-        project_ids: project_ids,
-        date_range: date_range,
-      ).with_deleted.
-        delete_pending
-    end
-
-    def self.pending_deletions(data_source_id:, project_ids:, date_range:)
-      involved_warehouse_scope(
-        data_source_id: data_source_id,
-        project_ids: project_ids,
-        date_range: date_range,
-      ).delete_pending
-    end
-
     def as_destination_record
       # For some odd reason calling build_destination_record sometimes does a find and update
       # using new seems safer
