@@ -174,6 +174,33 @@ RSpec.describe GrdaWarehouse::Tasks::ServiceHistory::Enrollment, type: :model do
     end
   end
 
+  describe '#build_until' do
+    context 'with an open enrollment that has no export and no importer staging rows' do
+      let(:project) { create :grda_warehouse_hud_project, data_source: data_source, organization: organization, project_type: 0 }
+      let(:client) { create :grda_warehouse_hud_client, data_source: data_source, DOB: '2000-01-01' }
+      let(:enrollment) do
+        en = create :grda_warehouse_hud_enrollment, data_source: data_source, project: project, client: client, entry_date: '2023-01-01'
+        GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find(en.id)
+      end
+
+      def queries_during
+        queries = []
+        counter = ->(*, payload) { queries << payload[:sql] unless payload[:name].in?(['SCHEMA', 'TRANSACTION']) || payload[:cached] }
+        ActiveSupport::Notifications.subscribed(counter, 'sql.active_record') { yield }
+        queries
+      end
+
+      it 'is today' do
+        expect(enrollment.build_until).to eq(Date.current)
+      end
+
+      it 'runs no queries after the first call' do
+        enrollment.build_until
+        expect(queries_during { enrollment.build_until }).to eq([])
+      end
+    end
+  end
+
   describe '#rebuild_service_history!' do
     let(:project) { create :grda_warehouse_hud_project, data_source: data_source, organization: organization, project_type: 0 } # ES-EE
     let!(:client) { create_client_with_warehouse_link(dob: '2000-01-01') }
