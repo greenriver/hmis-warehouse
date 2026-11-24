@@ -24,14 +24,14 @@ class GrdaWarehouse::AuthPolicies::CohortPolicy < GrdaWarehouse::AuthPolicies::B
     end
   end
 
-  # Does the user have any cohort access at all (used for menus and index pages)?
+  # Does the user hold any view, participate, manage-data or configure permission on this cohort?
   def can_list?
-    [
+    (resource_permissions & [
       :can_view_cohorts,
       :can_participate_in_cohorts,
       :can_manage_cohort_data,
       :can_configure_cohorts,
-    ].any? { |permission| context.user.public_send(:"#{permission}?") }
+    ]).any?
   end
 
   # Matches the defaults of Cohort.viewable_by

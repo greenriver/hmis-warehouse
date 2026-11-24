@@ -92,6 +92,27 @@ RSpec.describe GrdaWarehouse::AuthPolicies::CohortPolicy, type: :model do
       end
     end
 
+    it 'can_list? is true on a cohort the user can view, participate in, or configure' do
+      [:can_view_cohorts, :can_participate_in_cohorts, :can_manage_cohort_data, :can_configure_cohorts].each do |permission|
+        user = build_user
+        grant(user, [permission], cohort)
+        expect(policy_for(user).can_list?).to be(true), "#{permission} should allow listing"
+      end
+    end
+
+    it 'can_list? is false on a cohort with no grant even when the user can view another cohort' do
+      user = build_user
+      grant(user, [:can_view_cohorts], other_cohort)
+      expect(policy_for(user, other_cohort).can_list?).to be(true)
+      expect(policy_for(user, cohort).can_list?).to be(false)
+    end
+
+    it 'can_list? is false with only can_add_cohort_clients' do
+      user = build_user
+      grant(user, [:can_add_cohort_clients], cohort)
+      expect(policy_for(user).can_list?).to be(false)
+    end
+
     it 'permission? requires view access' do
       user = build_user
       grant(user, [:can_view_cohorts, :can_download_cohorts], cohort)
@@ -124,6 +145,7 @@ RSpec.describe GrdaWarehouse::AuthPolicies::CohortPolicy, type: :model do
       grant(user, [:can_configure_cohorts], cohort)
       policy = policy_for(user)
       expect(policy.can_configure?).to be(true)
+      expect(policy.can_list?).to be(true)
       expect(policy.can_view?).to be(false)
     end
   end
