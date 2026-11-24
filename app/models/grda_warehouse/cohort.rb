@@ -55,7 +55,7 @@ module GrdaWarehouse
     has_many :access_controls, through: :collections
     has_many :users, through: :access_controls
 
-    attr_accessor :client_ids, :participant_ids, :viewer_ids, :user_ids # TODO: START_ACL remove :user_ids after permission migration is complete
+    attr_accessor :client_ids, :participant_ids, :viewer_ids, :manager_ids, :user_ids # TODO: START_ACL remove :user_ids after permission migration is complete
 
     scope :active, -> do
       where(active_cohort: true)
@@ -119,6 +119,15 @@ module GrdaWarehouse
         none
       end
       # END_ACL
+    end
+
+    # Cohorts the user can list: any view, participate, manage-data or configure permission.
+    # Legacy users get their access-group cohorts only when their roles carry one of those flags.
+    scope :listable_by, ->(user) do
+      permissions = viewable_permissions + editable_permissions + [:can_configure_cohorts]
+      return none if user.present? && !user.using_acls? && permissions.none? { |perm| user.send("#{perm}?") }
+
+      viewable_by(user, permission: permissions)
     end
 
     scope :editable_by, ->(user) do
@@ -824,6 +833,54 @@ module GrdaWarehouse
 
     private def cohort_client_changes_source
       GrdaWarehouse::CohortClientChange
+    end
+
+    # Adds the +:manager+ scope, which grants can_configure_cohorts on this cohort only.
+    def replace_access(users, scope:)
+      return super unless scope == :manager
+
+      users = Array.wrap(users)
+      manager_access_control # Ensure access controls are present
+      user_group = system_manager_user_group
+      # reload: the memoized group may hold a stale association from an earlier call on this instance
+      to_remove = user_group.users.reload - users
+      user_group.remove(to_remove) if to_remove.present?
+      user_group.add(users) if users.present?
+    end
+
+    def manager_access_control
+      @manager_access_control ||= AccessControl.where(
+        collection: system_collection,
+        role: manager_role,
+        user_group: system_manager_user_group,
+      ).first_or_create!
+    end
+
+    def system_manager_user_group
+      @system_manager_user_group ||= begin
+        ug = UserGroup.system.where(source: self, context: :manager).first_or_initialize
+        ug.update!(name: manager_group_name)
+        ug
+      end
+    end
+
+    # Never creates the group
+    def rename_manager_group
+      UserGroup.system.find_by(source: self, context: :manager)&.update!(name: manager_group_name)
+    end
+
+    # @return [Array<Integer>] ids of users in this cohort's manager group, empty when there is none
+    def manager_user_ids
+      group = UserGroup.system.find_by(source: self, context: :manager)
+      group ? group.users.pluck(:id) : []
+    end
+
+    private def manager_group_name
+      "#{name} [manager]"
+    end
+
+    def manager_role
+      @manager_role ||= Role.system.where(name: 'System Role - Can Configure Cohorts', can_configure_cohorts: true).first_or_create!
     end
 
     private def editable_role_name
