@@ -1,9 +1,6 @@
 - key = :average_stay_length
 
 %h3= @report.support_title(key)
-- unless @report.housed_stays_available_for_sub_population?
-  .alert.alert-info
-    = "Rapid Rehousing and PSH stays can't be limited to the #{@report.filter.chosen_sub_population} sub-population, so they are not included."
 .row
   - @report.comparison_periods.each.with_index do |range, i|
     .col
