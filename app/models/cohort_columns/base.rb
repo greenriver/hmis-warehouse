@@ -76,7 +76,8 @@ module CohortColumns
     end
 
     def display_as_editable?(user, _cohort_client, on_cohort: cohort)
-      on_cohort.user_can_edit_cohort_clients(user) && (user.can_manage_cohort_data? || (editable && user.can_participate_in_cohorts?))
+      policy = user.policy_for(on_cohort)
+      policy.can_manage_data? || (editable == true && policy.can_participate?)
     end
 
     def column_editable?

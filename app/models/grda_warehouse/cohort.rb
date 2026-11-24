@@ -299,11 +299,6 @@ module GrdaWarehouse
       GrdaWarehouse::AuthPolicies::CohortPolicy
     end
 
-    def user_can_edit_cohort_clients user
-      self.class.editable_by(user).where(id: id).exists?
-    end
-    memoize :user_can_edit_cohort_clients
-
     # Used in cohort columns, cached here so we don't have to re-fetch
     def window_project_ids
       @window_project_ids ||= GrdaWarehouse::Hud::Project.joins(:data_source).

@@ -227,38 +227,6 @@ RSpec.describe GrdaWarehouse::Cohort, type: :model do
     end
   end
 
-  describe '#user_can_edit_cohort_clients for an ACL user' do
-    let!(:acl_user) { create :acl_user }
-    let!(:view_only_cohort) { create :cohort }
-    let!(:editable_cohort) { create :cohort }
-    let!(:view_collection) { create :collection, collection_type: 'Cohorts' }
-    let!(:edit_collection) { create :collection, collection_type: 'Cohorts' }
-
-    before do
-      view_collection.set_viewables({ cohorts: [view_only_cohort.id] })
-      setup_access_control(acl_user, create(:cohort_client_viewer), view_collection)
-      edit_collection.set_viewables({ cohorts: [editable_cohort.id] })
-      setup_access_control(acl_user, create(:cohort_client_editor), edit_collection)
-    end
-
-    it 'allows editing the cohort reached through the editing collection' do
-      expect(editable_cohort.user_can_edit_cohort_clients(acl_user)).to be true
-    end
-
-    it 'denies editing the cohort reached only through the viewing collection' do
-      expect(view_only_cohort.user_can_edit_cohort_clients(acl_user)).to be false
-    end
-
-    it 'denies editing when the granting role has only a feature permission such as can_add_cohort_clients' do
-      feature_only_cohort = create :cohort
-      feature_collection = create :collection, collection_type: 'Cohorts'
-      feature_collection.set_viewables({ cohorts: [feature_only_cohort.id] })
-      setup_access_control(acl_user, create(:cohort_client_viewer, can_add_cohort_clients: true), feature_collection)
-
-      expect(feature_only_cohort.user_can_edit_cohort_clients(acl_user)).to be false
-    end
-  end
-
   describe '.editable_by for an ACL user' do
     let!(:acl_user) { create :acl_user }
     let!(:target_cohort) { create :cohort }
