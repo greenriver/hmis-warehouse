@@ -1,8 +1,9 @@
 - title = "Edit #{@cohort.name}"
 - content_for :modal_title, title
-= content_for :crumbs do
-  = link_to cohort_path(@cohort) do
-    &laquo; Cohort
+- if cohort_policy.can_view?
+  = content_for :crumbs do
+    = link_to cohort_path(@cohort) do
+      &laquo; Cohort
 = simple_form_for @cohort, as: :cohort, url: cohort_path(@cohort) do |f|
   .row
     .col-sm-6
@@ -26,7 +27,7 @@
         - hint_text += ' This method of access is being deprecated, to be replaced with the fields below.' if User.anyone_using_acls?
         %div{ class: (User.all_using_acls? && 'd-none') }
           = f.input :user_ids, collection: @groups, as: :grouped_select_two, group_method: :last, selected: @group_ids, input_html: {multiple: :multiple, style: 'width: 100%;'}, label: 'Grant access to users and groups', hint: hint_text
-          - if can_configure_cohorts? && can_audit_users?
+          - if cohort_policy.can_configure? && current_user.can_audit_users?
             .mb-4= link_to 'Audit Access (Legacy)', cohort_legacy_access_audit_path(@cohort)
             %hr
         - if User.anyone_using_acls? && ! User.all_using_acls?
@@ -35,6 +36,7 @@
 
         -# if no one is using Access Controls, hide this section, but keep it in the form
         %div{ class: (!User.anyone_using_acls? && 'd-none') }
+          = f.input :manager_ids, collection: @users, as: :select_two, selected: @manager_ids, input_html: {multiple: :multiple, style: 'width: 100%;'}, label: 'Managers', hint: 'Managers can edit this cohort\'s settings and access, including adding themselves as Participants or Viewers. They need Participant or Viewer access to see its clients.'
           - users = @cohort.users_with_access(access_type: :edit)
           - if users.count > 0
             %p The following users already have access to participate in this cohort:
@@ -49,7 +51,7 @@
               - users.each do |u|
                 %li= u.name_with_email
           = f.input :viewer_ids, collection: @users, as: :select_two, selected: @viewer_ids, input_html: {multiple: :multiple, style: 'width: 100%;'}, label: 'Grant read-only-level access to users', hint: 'Specified user will have access to view, but not change clients on this cohort.'
-          - if can_configure_cohorts? && can_audit_users?
+          - if cohort_policy.can_configure? && current_user.can_audit_users?
             .mt-2= link_to 'Audit Access', cohort_acl_access_audit_path(@cohort)
 
       %h3 Automation
@@ -63,6 +65,8 @@
             = f.input :automation_sub_population, collection: @cohort.available_sub_populations, as: :select, include_blank: 'All clients', label: 'Limit to sub-population', input_html: { disabled: automation_disabled }
             = f.input :automation_hoh_only, as: :pretty_boolean, label: 'Only include Heads of Household', input_html: { disabled: automation_disabled }
             %p.form-text.text-muted Client membership is refreshed daily. Filters are applied together (e.g. project group AND sub-population).
+          - if @cohort.auto_maintained? && cohort_policy.can_configure?
+            = link_to 'Queue Refresh Now', maintain_cohort_path(@cohort), method: :post, class: 'btn btn-secondary btn-sm'
       %h3 Integrations
       .well
         = f.input :show_on_client_dashboard, as: :pretty_boolean, label: 'Show cohort in client dashboard?'

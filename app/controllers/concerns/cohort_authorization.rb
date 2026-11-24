@@ -10,6 +10,8 @@ module CohortAuthorization
   extend ActiveSupport::Concern
 
   included do
+    helper_method :cohort_policy, :cohort_policy_for
+
     def some_cohort_access!
       return true if cohort_source.has_some_cohort_access current_user
 
@@ -26,6 +28,19 @@ module CohortAuthorization
       return true if cohort_source.has_some_cohort_access(current_user) && current_user.can_edit_some_cohorts
 
       not_authorized!
+    end
+
+    # Loads unscoped so authorize_with decides; a nonexistent id raises RecordNotFound
+    def load_cohort
+      @cohort = cohort_source.find(cohort_id)
+    end
+
+    def cohort_policy
+      cohort_policy_for(@cohort)
+    end
+
+    def cohort_policy_for(cohort)
+      current_user.policy_for(cohort)
     end
 
     def cohort_scope
@@ -55,6 +70,7 @@ module CohortAuthorization
       @users = User.active.not_system
       @participant_ids = @cohort.editable_access_control.user_ids
       @viewer_ids = @cohort.viewable_access_control.user_ids
+      @manager_ids = @cohort.manager_user_ids
     end
 
     def cohort_source

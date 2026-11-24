@@ -34,6 +34,10 @@ module Cohorts
       @cohort = cohort_source.find(params[:cohort_id].to_i)
     end
 
+    helper_method def cohort_policy
+      current_user.policy_for(@cohort)
+    end
+
     def cohort_source
       GrdaWarehouse::Cohort
     end

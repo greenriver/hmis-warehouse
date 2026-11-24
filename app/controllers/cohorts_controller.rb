@@ -6,15 +6,16 @@
 
 # frozen_string_literal: true
 
-class CohortsController < ApplicationController
+class CohortsController < ApplicationControllerV2
   include AjaxModalRails::Controller
   include CohortAuthorization
   include CohortClients
   include Search
-  before_action :some_cohort_access!
-  before_action :require_can_configure_cohorts!, only: [:create, :destroy, :edit, :update, :new, :maintain]
-  before_action :require_can_access_cohort!, only: [:show]
-  before_action :set_cohort, only: [:edit, :update, :destroy, :show, :maintain]
+  before_action :load_cohort, only: [:show, :edit, :update, :destroy, :maintain]
+  authorize_with(only: :index) { current_user.can_access_some_cohorts }
+  authorize_with(only: [:new, :create]) { current_user.can_create_cohorts? }
+  authorize_with(only: :show) { cohort_policy.can_view? }
+  authorize_with(only: [:edit, :update, :destroy, :maintain]) { cohort_policy.can_configure? }
   before_action :set_users, only: [:edit, :update, :destroy, :show]
   before_action :set_groups, only: [:edit, :update, :destroy, :show] # TODO: START_ACL remove when ACL transition complete
   before_action :set_thresholds, only: [:show]
@@ -36,8 +37,14 @@ class CohortsController < ApplicationController
     @search = search_setup(columns: [:name], scope: :cohort_search)
     # Enforce visibility on searches
     @search = @search.where(id: scope.select(:id))
+    current_user.policy_context.preload_cohort_dependencies(scope.pluck(:id))
+    # A client id match reveals who is on a cohort, so it only searches cohorts the user can view
+    if @search_string.present? && @search_string.to_i.to_s == @search_string.to_s
+      viewable_ids = scope.select { |cohort| cohort_policy_for(cohort).can_view? }.map(&:id)
+      @search = @search.where(id: viewable_ids)
+    end
     @cohorts = @search.active_user.reorder(sort_string)
-    @inactive_cohorts = @search.inactive.reorder(sort_string)
+    @inactive_cohorts = @search.inactive.reorder(sort_string).select { |cohort| cohort_policy_for(cohort).can_configure? }
     @system_cohorts = if ::GrdaWarehouse::Config.get(:enable_system_cohorts)
       @search.system_cohorts.reorder(sort_string)
     else
@@ -46,7 +53,7 @@ class CohortsController < ApplicationController
   end
 
   private def cohort_scope
-    GrdaWarehouse::Cohort.viewable_by(current_user)
+    GrdaWarehouse::Cohort.listable_by(current_user)
   end
 
   private def search_scope
@@ -60,7 +67,6 @@ class CohortsController < ApplicationController
     @modal_size = :xl
     params[:population] ||= 'Active Clients'
     load_cohort_names
-    @cohort = cohort_scope.find(cohort_id)
     # Just fetch one client so the UI works, but we really are just using @cohort_clients in this context
     # to determine if there is anyone on the page we're looking at
     @cohort_clients = @cohort.search_clients(population: params[:population], user: current_user).limit(1)
@@ -78,7 +84,7 @@ class CohortsController < ApplicationController
         else
           CohortColumns::Delete.new
         end
-        @visible_columns << delete_column if can_add_cohort_clients? && ! @cohort.system_cohort && ! @cohort.auto_maintained?
+        @visible_columns << delete_column if cohort_policy.can_add_clients? && ! @cohort.system_cohort && ! @cohort.auto_maintained?
         @column_headers = @visible_columns.each_with_index.map do |col, index|
           col.cohort = @cohort # Needed for display_as_editable?
           description = if col.show_description? then col.description else '' end
@@ -127,6 +133,7 @@ class CohortsController < ApplicationController
 
   def new
     @cohort = cohort_source.new
+    @users = User.active.not_system
   end
 
   def edit
@@ -141,14 +148,12 @@ class CohortsController < ApplicationController
 
   def create
     GrdaWarehouse::Cohort.transaction do
-      @cohort = cohort_source.create!(cohort_params)
+      @cohort = cohort_source.create!(cohort_params.except(:user_ids, :participant_ids, :viewer_ids, :manager_ids))
       # TODO: START_ACL remove when ACL transition complete
       current_user.access_group.add_viewable(@cohort) unless AccessGroup.system_group(:cohorts).users.include?(current_user)
       # END_ACL
 
-      # If the user doesn't have All Cohorts access, grant them access to the cohort
-      @cohort.replace_access(current_user, scope: :editor)
-      @cohort.replace_access(current_user, scope: :viewer)
+      apply_submitted_access
       # Always add the cohort to the system group
       AccessGroup.maintain_system_groups(group: :cohorts)
       # Add default tabs
@@ -166,7 +171,7 @@ class CohortsController < ApplicationController
   def update
     # TODO: START_ACL replace when ACL transition complete
     # cohort_options = cohort_params.except(:participant_ids, :viewer_ids)
-    cohort_options = cohort_params.except(:user_ids, :participant_ids, :viewer_ids)
+    cohort_options = cohort_params.except(:user_ids, :participant_ids, :viewer_ids, :manager_ids)
     # END_ACL
     cohort_options = cohort_options.except(:name) if @cohort.system_cohort
 
@@ -175,21 +180,45 @@ class CohortsController < ApplicationController
     project_group_on_cohort_pre_save = @cohort.project_group_id == cohort_options[:project_group_id].to_i
     cohort_options = cohort_options.except(:project_group_id) unless user_can_view_new_project_group || project_group_on_cohort_pre_save
 
-    @cohort.update(cohort_options)
+    saved = GrdaWarehouse::Cohort.transaction do
+      next false unless @cohort.update(cohort_options)
 
-    # TODO: START_ACL remove when ACL transition complete
-    user_ids = cohort_params[:user_ids].select(&:present?).map(&:to_i)
-    @cohort.update_access(user_ids)
-    # END_ACL
+      # TODO: START_ACL remove when ACL transition complete
+      if cohort_params.key?(:user_ids)
+        user_ids = Array(cohort_params[:user_ids]).select(&:present?).map(&:to_i)
+        @cohort.update_access(user_ids)
+      end
+      # END_ACL
 
-    participant_ids = cohort_params[:participant_ids].reject(&:blank?).map(&:to_i)
-    @cohort.replace_access(User.find(participant_ids), scope: :editor)
+      apply_submitted_access
+      @cohort.rename_manager_group
+      true
+    end
 
-    viewer_ids = cohort_params[:viewer_ids].reject(&:blank?).map(&:to_i)
-    @cohort.replace_access(User.find(viewer_ids), scope: :viewer)
+    @cohort.delay.maintain if saved && @cohort.auto_maintained?
+    respond_with(@cohort, location: saved ? location_after_update : nil)
+  end
 
-    @cohort.delay.maintain if @cohort.auto_maintained?
-    respond_with(@cohort, location: cohort_path(@cohort))
+  # The policy memoized on current_user predates any access change made by this request
+  private def location_after_update
+    policy = User.find(current_user.id).policy_for(@cohort)
+    if policy.can_view?
+      cohort_path(@cohort)
+    elsif policy.can_configure?
+      edit_cohort_path(@cohort)
+    else
+      cohorts_path
+    end
+  end
+
+  # Applies each submitted picker list; a list whose key is absent is left alone and an empty list removes everyone
+  private def apply_submitted_access
+    { editor: :participant_ids, viewer: :viewer_ids, manager: :manager_ids }.each do |scope, key|
+      next unless cohort_params.key?(key)
+
+      ids = Array(cohort_params[key]).reject(&:blank?)
+      @cohort.replace_access(User.active.not_system.where(id: ids).to_a, scope: scope)
+    end
   end
 
   def maintain
@@ -200,7 +229,7 @@ class CohortsController < ApplicationController
       flash[:alert] = 'This cohort is manually maintained.'
     end
 
-    redirect_to cohort_path(@cohort)
+    redirect_to cohort_policy.can_view? ? cohort_path(@cohort) : edit_cohort_path(@cohort)
   end
 
   def cohort_params
@@ -228,6 +257,7 @@ class CohortsController < ApplicationController
       user_ids: [], # TODO: START_ACL remove when ACL transition complete
       participant_ids: [],
       viewer_ids: [],
+      manager_ids: [],
     ] + GrdaWarehouse::Cohort.threshold_keys
     params.require(:cohort).permit(opts)
   end
@@ -235,14 +265,14 @@ class CohortsController < ApplicationController
   def set_assessment_types
     @assessment_types ||= begin # rubocop:disable  Naming/MemoizedInstanceVariableName
       types = []
-      if can_view_vspdat?
+      if current_user.can_view_vspdat?
         types += [
           ['Youth VI-SPDAT', GrdaWarehouse::Vispdat::Youth],
           ['Individual VI-SPDAT', GrdaWarehouse::Vispdat::Individual],
           ['Family VI-SPDAT', GrdaWarehouse::Vispdat::Family],
         ]
       end
-      types << ['Individual CE Assessment', GrdaWarehouse::CoordinatedEntryAssessment::Individual] if can_view_ce_assessment?
+      types << ['Individual CE Assessment', GrdaWarehouse::CoordinatedEntryAssessment::Individual] if current_user.can_view_ce_assessment?
 
       types
     end

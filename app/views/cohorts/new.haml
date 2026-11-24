@@ -5,4 +5,8 @@
   = simple_form_for @cohort, as: :cohort, url: cohorts_path do |f|
     = f.input :name, label: 'Cohort Name', required: true
     = f.input :effective_date, as: :date_picker, label: 'Effective Date', hint: 'If set, this date will be used for various calculations on columns denoted with an *.  If empty, the current date will be used for those calculations'
+    - user_options = User.active.not_system
+    = f.input :manager_ids, collection: user_options, as: :select_two, selected: [current_user.id], input_html: {multiple: :multiple, style: 'width: 100%;'}, label: 'Managers', hint: 'Managers can edit this cohort\'s settings and access. They need Participant or Viewer access to see its clients.'
+    = f.input :participant_ids, collection: user_options, as: :select_two, selected: [current_user.id], input_html: {multiple: :multiple, style: 'width: 100%;'}, label: 'Participants', hint: 'Participants can view and change clients on this cohort.'
+    = f.input :viewer_ids, collection: user_options, as: :select_two, selected: [current_user.id], input_html: {multiple: :multiple, style: 'width: 100%;'}, label: 'Viewers', hint: 'Viewers can see, but not change, clients on this cohort.'
     = f.submit value: 'Create Cohort', class: 'btn btn-primary'

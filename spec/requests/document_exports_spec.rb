@@ -62,4 +62,60 @@ RSpec.describe DocumentExportsController, type: :request do
 
     expect(response).to have_http_status(:bad_request)
   end
+
+  describe 'cohort export authorization is per cohort' do
+    let(:other_cohort) { create(:cohort) }
+
+    def grant(role_user, permissions, record)
+      collection = create(:collection, collection_type: 'Cohorts')
+      collection.set_viewables({ cohorts: [record.id] })
+      setup_access_control(role_user, create(:role, **permissions.index_with { true }), collection)
+    end
+
+    def create_export_for(cohort_id)
+      post document_exports_path, params: { type: export_type, query_string: { id: cohort_id }.to_query }
+    end
+
+    it 'refuses a cohort the user can only view, even when they can download another' do
+      grant(user, [:can_view_cohorts], other_cohort)
+
+      create_export_for(other_cohort.id)
+
+      expect(response).to redirect_to(user.my_root_path)
+      expect(user.document_exports.where(type: export_type).count).to eq(0)
+    end
+
+    it 'allows the cohort the download permission was granted on' do
+      create_export_for(cohort.id)
+
+      expect(response).to have_http_status(:ok)
+      expect(user.document_exports.count).to eq(1)
+    end
+
+    it 'refuses a manager-only user' do
+      manager = create(:acl_user)
+      grant(manager, [:can_configure_cohorts, :can_download_cohorts], other_cohort)
+      sign_in manager
+
+      create_export_for(other_cohort.id)
+
+      expect(response).to redirect_to(manager.my_root_path)
+      expect(manager.document_exports.count).to eq(0)
+    end
+
+    it 'refuses a legacy user whose download permission does not reach the cohort' do
+      legacy = create(:user)
+      access_group = create(:access_group)
+      create(:role, can_view_cohorts: true, can_download_cohorts: true).add(legacy)
+      access_group.add(legacy)
+      access_group.add_viewable(cohort)
+      sign_in legacy
+
+      create_export_for(other_cohort.id)
+      expect(response).to redirect_to(legacy.my_root_path)
+
+      create_export_for(cohort.id)
+      expect(response).to have_http_status(:ok)
+    end
+  end
 end
