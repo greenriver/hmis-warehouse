@@ -153,6 +153,8 @@ Used by `GrdaWarehouse::ProjectGroup`, `GrdaWarehouse::Cohort`, and `GrdaWarehou
 - Corresponding **system Roles** with the appropriate permission flag
 - Two **AccessControls** binding the above together
 
+For cohorts there is a third system access control besides editor and viewer: the Managers group, bound to the system role "System Role - Can Configure Cohorts". It grants `can_configure_cohorts` on that one cohort. `can_create_cohorts` is the exception to per-entity scoping: it is global, because there is no cohort yet to scope it to. See [Cohorts](./cohorts.md#permissions--access).
+
 This means the permission tables grow in proportion to the number of Cohorts, ProjectGroups, and DataSources with per-entity access. Counting `Role` or `Collection` rows without the `system` / `user_managed` filters gives inflated numbers. These system-generated records are filtered out of admin views by the `system` / `user_managed` scopes — if you're querying these tables directly, filter accordingly.
 
 `replace_access(users, scope:)` swaps the membership of the viewer or editor UserGroup.

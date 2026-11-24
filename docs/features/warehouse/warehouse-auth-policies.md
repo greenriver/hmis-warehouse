@@ -6,6 +6,7 @@ sources:
   - app/models/grda_warehouse/auth_policies/organization_policy.rb
   - app/models/grda_warehouse/auth_policies/hud_report_policy.rb
   - app/models/grda_warehouse/auth_policies/cohort_pii_policy.rb
+  - app/models/grda_warehouse/auth_policies/cohort_policy.rb
   - app/models/grda_warehouse/pii_provider.rb
   - app/controllers/concerns/controller_authorization_v2.rb
 ---
@@ -110,6 +111,17 @@ For project-keyed report rows, where there's no client list, use `preload_projec
 Single-client pages such as the client dashboard need no preload; `DestinationClientPolicy` preloads its own client.
 
 When a context falls back to one-at-a-time lookups for more than a handful of distinct clients, it raises in development and test and sends a Sentry warning in staging and production. The fix is a preload where the list is loaded, not a higher threshold.
+
+## Cohort policy
+
+`CohortPolicy` answers per-cohort permission questions, from `context.cohort_role_permissions(cohort_id)`. Obtain it with `user.policy_for(cohort)`, or `cohort_policy` in a controller that includes `CohortAuthorization`.
+
+- `can_view?` matches the defaults of `Cohort.viewable_by`: any viewable or editable permission on the cohort.
+- `can_configure?` is `can_configure_cohorts` on the cohort. It does not imply `can_view?`.
+- `can_list?` is true for a view, participate, manage-data or configure permission.
+- Every other predicate (`can_add_clients?`, `can_download?`, `can_edit_columns?` and so on) requires `can_view?` as well as the permission. `can_update_data?` and `can_edit_clients?` combine manage-data, participate and manage-inactive as the controllers need.
+
+`can_create_cohorts` is not per cohort and is read from the user. See [Cohorts](./cohorts.md#permissions--access).
 
 ## Project Groups and Confidential Projects
 
