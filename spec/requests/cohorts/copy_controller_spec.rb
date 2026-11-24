@@ -53,12 +53,21 @@ RSpec.describe Cohorts::CopyController, type: :request do
       expect(refused?).to be(true)
     end
 
-    it 'allows new where add-clients was granted' do
-      grant(user, [:can_view_cohorts, :can_participate_in_cohorts, :can_add_cohort_clients], cohort_a)
+    it 'allows new where add-clients was granted without participate' do
+      grant(user, [:can_view_cohorts, :can_add_cohort_clients], cohort_a)
 
       get new_cohort_copy_path(cohort_a)
 
       expect(response).to have_http_status(:ok)
+      expect(response.body).to include(cohort_a.name)
+    end
+
+    it 'refuses new for a participant without add-clients' do
+      grant(user, [:can_view_cohorts, :can_participate_in_cohorts], cohort_a)
+
+      get new_cohort_copy_path(cohort_a)
+
+      expect(refused?).to be(true)
     end
 
     it 'returns not found for a cohort that does not exist' do

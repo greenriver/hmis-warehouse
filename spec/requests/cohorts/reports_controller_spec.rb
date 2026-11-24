@@ -145,7 +145,8 @@ RSpec.describe Cohorts::ReportsController, type: :request do
         get cohort_report_path(cohort)
 
         expect(response).to have_http_status(:ok)
-        expect(response.body).to include(open_destination_client.FirstName)
+        expect(response.body).to include("#{open_destination_client.FirstName} #{open_destination_client.LastName}")
+        expect(response.body).not_to include(client_b.LastName)
       end
 
       it 'returns not found for a cohort that does not exist' do

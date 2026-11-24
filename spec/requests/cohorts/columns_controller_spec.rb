@@ -64,6 +64,18 @@ RSpec.describe Cohorts::ColumnsController, type: :request do
       expect(cohort_a.reload.column_state.select(&:visible).map(&:column)).to eq(['rank'])
     end
 
+    it 'refuses a manager without the edit-columns permission and leaves the columns alone' do
+      grant(user, [:can_configure_cohorts], cohort_a)
+      state_before = cohort_a.reload.column_state.map { |c| [c.column, c.visible, c.editable] }
+
+      get edit_cohort_columns_path(cohort_a)
+      expect(refused?).to be(true)
+
+      patch cohort_columns_path(cohort_a), params: update_params
+      expect(refused?).to be(true)
+      expect(cohort_a.reload.column_state.map { |c| [c.column, c.visible, c.editable] }).to eq(state_before)
+    end
+
     it 'refuses a viewer without the edit-columns permission' do
       grant(user, [:can_view_cohorts], cohort_a)
 

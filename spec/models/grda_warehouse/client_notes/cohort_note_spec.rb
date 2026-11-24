@@ -19,6 +19,7 @@ RSpec.describe GrdaWarehouse::ClientNotes::CohortNote, type: :model do
     before do
       Collection.maintain_system_groups
       GrdaWarehouse::CohortClient.create!(cohort: note_cohort, client: client)
+      GrdaWarehouse::CohortClient.create!(cohort: unrelated_cohort, client: create(:grda_warehouse_hud_client))
     end
 
     def grant(permissions, cohort)

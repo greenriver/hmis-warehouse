@@ -73,6 +73,25 @@ RSpec.describe 'Cohort client, note and search query authorization', type: :requ
       end
     end
 
+    it 'refuses a viewer of another cohort on every read action and shows no client data' do
+      grant(user, [:can_view_cohorts, :can_view_clients], cohort_a)
+
+      [
+        cohort_cohort_clients_path(cohort_b, format: :json),
+        cohort_cohort_clients_path(cohort_b, format: :json, content: true, page: 1, per: 50),
+        cohort_cohort_client_path(cohort_b, cohort_client_b, format: :json),
+        field_cohort_cohort_client_path(cohort_b, cohort_client_b, field: 'CohortColumns::Rank'),
+        cohort_cohort_client_cohort_client_notes_path(cohort_b, cohort_client_b),
+        cohort_cohort_client_client_notes_path(cohort_b, cohort_client_b),
+      ].each do |path|
+        get path
+
+        expect(refused?).to be(true), "expected #{path} to be refused"
+        expect(response.body).not_to include(client_b.FirstName)
+        expect(response.body).not_to include(client_b.LastName)
+      end
+    end
+
     it 'refuses a manager-only user the search query create' do
       grant(user, [:can_configure_cohorts], cohort_a)
 

@@ -188,7 +188,7 @@ RSpec.describe CohortsController, type: :request do
         grant(user, [:can_configure_cohorts], cohort)
 
         get cohort_path(cohort)
-        expect(response).not_to have_http_status(:ok)
+        expect(response).to redirect_to(user.my_root_path)
         expect(response.body).not_to include(cohort.name)
 
         get edit_cohort_path(cohort)
@@ -220,18 +220,34 @@ RSpec.describe CohortsController, type: :request do
         original_name = cohort.name
 
         get edit_cohort_path(cohort)
-        expect(response).not_to have_http_status(:ok)
+        expect(response).to redirect_to(user.my_root_path)
 
         patch cohort_path(cohort), params: { cohort: { name: 'Hijacked' } }
         expect(cohort.reload.name).to eq(original_name)
       end
 
-      it 'refuses edit on a cohort the configure permission was not granted on' do
+      it 'refuses edit, maintain and destroy on a cohort the configure permission was not granted on' do
         grant(user, [:can_configure_cohorts], cohort)
 
         get edit_cohort_path(other_cohort)
+        expect(response).to redirect_to(user.my_root_path)
+        expect(response.body).not_to include(other_cohort.name)
 
-        expect(response).not_to have_http_status(:ok)
+        post maintain_cohort_path(other_cohort)
+        expect(response).to redirect_to(user.my_root_path)
+
+        delete cohort_path(other_cohort)
+        expect(response).to redirect_to(user.my_root_path)
+        expect(GrdaWarehouse::Cohort.exists?(other_cohort.id)).to be(true)
+      end
+
+      it 'refuses show on a cohort the view permission was not granted on' do
+        GrdaWarehouse::CohortTab.default_rules.each { |rule| other_cohort.cohort_tabs.create(**rule) }
+        grant(user, [:can_view_cohorts], cohort)
+
+        get cohort_path(other_cohort)
+
+        expect(response).to redirect_to(user.my_root_path)
         expect(response.body).not_to include(other_cohort.name)
       end
 
@@ -249,7 +265,7 @@ RSpec.describe CohortsController, type: :request do
         grant(user, [:can_configure_cohorts, :can_view_cohorts], cohort)
 
         get new_cohort_path
-        expect(response).not_to have_http_status(:ok)
+        expect(response).to redirect_to(user.my_root_path)
 
         expect do
           post cohorts_path, params: { cohort: { name: 'Sneaky cohort' } }

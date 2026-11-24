@@ -46,6 +46,17 @@ RSpec.describe GrdaWarehouse::AuthPolicies::CohortPolicy, type: :model do
       end
     end
 
+    it 'denies each gated predicate when only a different permission is held with view access' do
+      accepted = { can_view_inactive_clients?: [:can_view_inactive_cohort_clients, :can_manage_inactive_cohort_clients] }
+      gated_predicates.each do |predicate, permission|
+        (gated_predicates.values - accepted.fetch(predicate, [permission])).each do |other_permission|
+          user = build_user
+          grant(user, [:can_view_cohorts, other_permission], cohort)
+          expect(policy_for(user).public_send(predicate)).to be(false), "#{predicate} should be false with #{other_permission}"
+        end
+      end
+    end
+
     it 'denies each gated predicate when the permission is held on another cohort only' do
       gated_predicates.each do |predicate, permission|
         user = build_user
