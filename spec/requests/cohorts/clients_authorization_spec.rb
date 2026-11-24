@@ -198,6 +198,72 @@ RSpec.describe 'Cohort client, note and search query authorization', type: :requ
           expect(response).to have_http_status(:ok)
         end
       end
+
+      def patch_row(cohort, row, attributes)
+        patch cohort_cohort_client_path(cohort, row, format: :json), params: { cohort_client: attributes }
+      end
+
+      it 'update is not found without view-inactive and leaves the row unchanged' do
+        grant(user, [:can_view_cohorts, :can_participate_in_cohorts], cohort_a)
+
+        patch_row(cohort_a, cohort_client_a, rank: 7)
+
+        expect(response).to have_http_status(:not_found)
+        expect(cohort_client_a.reload.rank).not_to eq(7)
+      end
+
+      it 'update is not found without view-inactive for a manage-data user' do
+        grant(user, [:can_view_cohorts, :can_manage_cohort_data], cohort_a)
+
+        patch_row(cohort_a, cohort_client_a, rank: 7)
+
+        expect(response).to have_http_status(:not_found)
+        expect(cohort_client_a.reload.rank).not_to eq(7)
+      end
+
+      it 'update changes an inactive row with manage-inactive, including turning Active back on' do
+        grant(user, [:can_view_cohorts, :can_participate_in_cohorts, :can_manage_inactive_cohort_clients], cohort_a)
+
+        patch_row(cohort_a, cohort_client_a, rank: 7)
+        expect(response).to have_http_status(:ok)
+        expect(cohort_client_a.reload.rank).to eq(7)
+
+        patch_row(cohort_a, cohort_client_a, active: true)
+        expect(response).to have_http_status(:ok)
+        expect(cohort_client_a.reload.active).to be(true)
+      end
+
+      it 'update changes an active row for a participant without view-inactive' do
+        cohort_client_a.update!(active: true)
+        grant(user, [:can_view_cohorts, :can_participate_in_cohorts], cohort_a)
+
+        patch_row(cohort_a, cohort_client_a, rank: 7)
+
+        expect(response).to have_http_status(:ok)
+        expect(cohort_client_a.reload.rank).to eq(7)
+      end
+
+      it 'update is not found for a removed row without view-deleted' do
+        cohort_client_a.update!(active: true)
+        cohort_client_a.destroy
+        grant(user, [:can_view_cohorts, :can_participate_in_cohorts], cohort_a)
+
+        patch_row(cohort_a, cohort_client_a, rank: 7)
+
+        expect(response).to have_http_status(:not_found)
+        expect(GrdaWarehouse::CohortClient.with_deleted.find(cohort_client_a.id).rank).not_to eq(7)
+      end
+
+      it 'update changes a removed row for a participant with view-deleted' do
+        cohort_client_a.update!(active: true)
+        cohort_client_a.destroy
+        grant(user, [:can_view_cohorts, :can_participate_in_cohorts, :can_view_deleted_cohort_clients], cohort_a)
+
+        patch_row(cohort_a, cohort_client_a, rank: 7)
+
+        expect(response).to have_http_status(:ok)
+        expect(GrdaWarehouse::CohortClient.with_deleted.find(cohort_client_a.id).rank).to eq(7)
+      end
     end
 
     it 'returns not found for a cohort that does not exist' do

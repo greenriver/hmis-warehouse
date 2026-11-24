@@ -32,8 +32,8 @@ module Cohorts
       ],
     ) { cohort_policy.can_add_clients? }
     authorize_with(only: [:re_rank, :edit, :update]) { cohort_policy.can_update_data? }
-    before_action :set_client, only: [:destroy, :update, :pre_destroy]
-    before_action :set_visible_client, only: [:show]
+    before_action :set_client, only: [:destroy, :pre_destroy]
+    before_action :set_visible_client, only: [:show, :update]
     before_action :set_visible_cohort_client, only: [:edit, :field]
     before_action :load_cohort_names, only: [:index, :edit, :field, :update]
     skip_after_action :log_activity, only: [:index, :show]
