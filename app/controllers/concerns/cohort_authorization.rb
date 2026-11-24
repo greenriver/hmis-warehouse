@@ -53,15 +53,9 @@ module CohortAuthorization
 
     # Finds a cohort client only if it is in a tab the user can see on this cohort
     def find_visible_cohort_client(id, with_deleted: false)
-      id = id.to_i
-      visible = @cohort.cohort_tabs.select { |tab| tab.show_for?(current_user) }.any? do |tab|
-        @cohort.clients_for_tab(current_user, tab.name, tab).where(id: id).exists?
-      end
-      raise ActiveRecord::RecordNotFound unless visible
-
-      scope = @cohort.cohort_clients
+      scope = @cohort.visible_cohort_clients(current_user, include_deleted_tabs: with_deleted)
       scope = scope.with_deleted if with_deleted
-      scope.find(id)
+      scope.find(id.to_i)
     end
 
     def cohort_source
