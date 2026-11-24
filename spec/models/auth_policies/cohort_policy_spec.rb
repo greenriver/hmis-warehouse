@@ -240,6 +240,21 @@ RSpec.describe GrdaWarehouse::AuthPolicies::CohortPolicy, type: :model do
         end
       end
 
+      it 'matches the scope and does not raise when the role is soft-deleted' do
+        cohort
+        collection = create(:collection).tap { |c| c.set_viewables({ cohorts: [cohort.id] }) }
+        create(:access_control, role: role, collection: collection, user_group: user_group)
+        role.destroy!
+        fresh_user = User.find(user.id)
+        context = fresh_user.send(:policy_context)
+
+        permissions.each do |permission|
+          expect(GrdaWarehouse::Cohort.viewable_by(fresh_user, permission: permission).exists?(cohort.id)).to be(false)
+          expect(context.cohort_role_permissions(cohort.id).include?(permission)).to be(false)
+        end
+        expect(fresh_user.policy_for(cohort).can_view?).to be(false)
+      end
+
       it 'matches the scope when no grant exists' do
         cohort
         context = User.find(user.id).send(:policy_context)

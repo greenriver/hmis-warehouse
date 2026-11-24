@@ -61,7 +61,8 @@ class GrdaWarehouse::AuthPolicies::UserAclContext < GrdaWarehouse::AuthPolicies:
     all_collection_ids = collection_ids_by_cohort.values.flatten.uniq
     permissions_by_collection = {}
     if all_collection_ids.any?
-      user.access_controls.where(collection_id: all_collection_ids).includes(:role).each do |access_control|
+      # joins(:role) skips soft-deleted roles, as Cohort.viewable_by does
+      user.access_controls.where(collection_id: all_collection_ids).joins(:role).preload(:role).each do |access_control|
         (permissions_by_collection[access_control.collection_id] ||= Set.new).merge(access_control.role.granted_permissions)
       end
     end
