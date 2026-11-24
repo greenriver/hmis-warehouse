@@ -60,6 +60,7 @@
     - can_edit_roles
     - can_edit_collections
     - can_configure_cohorts
+    - can_create_cohorts
     - can_edit_cohort_columns
     - can_view_imports
     - can_import_project_groups
