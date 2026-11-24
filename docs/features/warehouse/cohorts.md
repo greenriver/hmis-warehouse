@@ -34,7 +34,7 @@ Cohort permissions are the `can_*cohort*` permissions on `Role`. For users on Ac
 
 - `can_create_cohorts` creates cohorts and edits the cohort-wide column names and options (`CohortColumnNamesController`, `CohortColumnOptionsController`). It is global: it applies to every cohort, even under Access Controls, because a new cohort has no collection to scope it to.
 - `can_configure_cohorts` edits, removes and refreshes (`maintain`) one cohort. Under Access Controls it applies only to cohorts the user can configure through a collection or as a Manager.
-- Creating a cohort grants the creator no access to it. The Participants, Viewers and Managers submitted with the create form are applied.
+- Creating a cohort grants an Access Controls creator no access to it. A creator still on legacy access groups gets the cohort added to their access group. The Participants, Viewers and Managers submitted with the create form are applied.
 
 ### Managers
 
@@ -49,7 +49,7 @@ A user who can configure a cohort but not view it sees the Edit page and nothing
 
 ### Listing
 
-The index lists cohorts through `User#can_access_some_cohorts` and `CohortPolicy#can_list?`, which is true for a view, participate, manage-data or configure permission on the cohort. A cohort the user can configure but not view links to Edit instead of the cohort page; the index decides this per cohort with `can_view?` and `can_configure?`. The set of cohorts behind the index is cached per user for five minutes, while the per-request checks are live, so a change to a user's access can take up to five minutes to show in the list.
+The index lists cohorts through `User#can_access_some_cohorts` and `GrdaWarehouse::Cohort.listable_by`. It includes a cohort when the user has a view, participate, manage-data or configure permission on it, the same condition as `CohortPolicy#can_list?`. A cohort the user can configure but not view links to Edit instead of the cohort page; the index decides this per cohort with `can_view?` and `can_configure?`. The set of cohorts behind the index is cached per user for five minutes, while the per-request checks are live, so a change to a user's access can take up to five minutes to show in the list.
 
 ### Per-cohort checks
 
