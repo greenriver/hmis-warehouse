@@ -9,8 +9,7 @@
 require 'rails_helper'
 
 RSpec.describe 'HIC v2 access', type: :request do
-  # The new page raises NameError: the form calls default_report_version, which is not a view helper.
-  it_behaves_like 'HUD report access', except: [:new_page] do
+  it_behaves_like 'HUD report access' do
     let(:definition_url) { 'hud_reports/hics' }
     let(:report_name) { HudHic::Generators::Hic::Fy2022::Generator.title }
     let(:index_path) { hud_reports_hics_path }

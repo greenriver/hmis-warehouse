@@ -109,7 +109,7 @@ RSpec.describe 'LSA source data download', type: :request do
     end
 
     # can_download_lsa_source_data is additive -- the LSA report definition still has
-    # to be viewable (WarehouseReportAuthorization) to reach the action.
+    # to be viewable (HudReports::BaseController's authorize_with) to reach the action.
     context 'holding can_download_lsa_source_data but no report access' do
       let(:permissions) { { can_download_lsa_source_data: true } }
 

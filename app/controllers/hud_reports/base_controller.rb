@@ -168,6 +168,7 @@ module HudReports
     def default_report_version
       "fy#{::HudHelper.hud_csv_version}".to_sym
     end
+    helper_method :default_report_version
 
     protected def filter_class
       ::Filters::HudFilterBase
