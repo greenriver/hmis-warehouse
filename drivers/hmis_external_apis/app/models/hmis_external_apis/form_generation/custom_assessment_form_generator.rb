@@ -150,7 +150,7 @@ module HmisExternalApis
           identifier: identifier,
           title: @form_titles[identifier],
           link_id: link_id,
-          label: nil,
+          label: link_id,
           detail: "question_order #{raw.inspect} is not a number; treated as blank",
         )
         nil
@@ -166,6 +166,7 @@ module HmisExternalApis
         title = rows.first['legacy_assessment_name']
         used_link_ids = Set.new(rows.map { |r| r['link_id'] })
         question_ordered = rows.any? { |row| row['question_order'] }
+        follow_up_parents = follow_up_parent_kinds(rows)
         runs = group_runs(sort_by_question_order(rows), title, form_overlay, identifier: identifier, question_ordered: question_ordered)
         form_generated = {
           'invented_group_names' => {},
@@ -198,7 +199,7 @@ module HmisExternalApis
           end
 
           ordered = order_rows(run[:rows], group_name: run[:text], form_overlay: form_overlay, auto_order: !question_ordered)
-          items = build_items(identifier, ordered, form_overlay, form_generated, question_ordered: question_ordered)
+          items = build_items(identifier, ordered, form_overlay, form_generated, question_ordered: question_ordered, follow_up_parents: follow_up_parents)
           {
             'type' => 'GROUP',
             'link_id' => unique_link_id(slug(run[:text]), used_link_ids),
@@ -375,12 +376,12 @@ module HmisExternalApis
         [match[1].to_i, match[2].to_s.downcase]
       end
 
-      def build_items(identifier, rows, form_overlay, form_generated, question_ordered: false)
+      def build_items(identifier, rows, form_overlay, form_generated, question_ordered: false, follow_up_parents: {})
         built = []
         rows.each do |row|
           item = question_item(identifier, row)
           apply_hidden!(item, row, form_overlay)
-          apply_enable_when!(identifier, item, row, built, form_overlay, form_generated, question_ordered: question_ordered)
+          apply_enable_when!(identifier, item, row, built, form_overlay, form_generated, question_ordered: question_ordered, follow_up_parents: follow_up_parents)
           built << item
         end
         built
@@ -494,7 +495,7 @@ module HmisExternalApis
         item['hidden'] = true
       end
 
-      def apply_enable_when!(identifier, item, row, prior_items, form_overlay, form_generated, question_ordered: false)
+      def apply_enable_when!(identifier, item, row, prior_items, form_overlay, form_generated, question_ordered: false, follow_up_parents: {})
         overlay_value = overlay_enable_when(form_overlay, row['link_id'])
         if overlay_value
           form_generated['enable_when'][row['link_id']] = overlay_value
@@ -505,13 +506,23 @@ module HmisExternalApis
 
         inferred = infer_enable_when(row, prior_items)
         unless inferred
-          warn_parent_missing(identifier, row) if question_ordered && row['label'].match?(Regexp.union(OTHER_LABEL, IF_YES_LABEL))
+          if question_ordered
+            want_other = row['label'].match?(OTHER_LABEL)
+            want_yes_only = !want_other && row['label'].match?(IF_YES_LABEL)
+            warn_parent_missing(identifier, row) if (want_other && follow_up_parents[:other]) || (want_yes_only && follow_up_parents[:yes])
+          end
           return
         end
 
         form_generated['enable_when'][row['link_id']] = inferred
         assign_enable_when(item, inferred)
         record_enable_when_summary(identifier, row, inferred, prior_items)
+      end
+
+      # Whether the form has any choice question an Other or Yes follow-up could attach to.
+      def follow_up_parent_kinds(rows)
+        choice_options = rows.select { |row| row['form_item_type'] == 'CHOICE' || row['form_item_type'].blank? }.map { |row| parse_pick_list(row['pick_list_options']) }
+        { other: choice_options.any? { |codes| other_code(codes) }, yes: choice_options.any? { |codes| yes_code(codes) } }
       end
 
       def warn_parent_missing(identifier, row)
@@ -719,7 +730,7 @@ module HmisExternalApis
         print_warning_section('Invented groups', :invented_group)
         print_warning_section('Flattened subassessments', :flattened_subassessment)
         print_warning_section('Item-order overlay misses', :item_order)
-        print_warning_section('Invalid question_order (treated as blank)', :invalid_question_order, use_detail_only: true)
+        print_warning_section('Invalid question_order (treated as blank)', :invalid_question_order)
         print_warning_section('Groups split by question_order', :split_group)
         print_warning_section('Follow-up questions with no earlier parent (question_order)', :enable_when_parent_missing)
 

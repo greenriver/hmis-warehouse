@@ -120,6 +120,27 @@ RSpec.describe HmisExternalApis::FormGeneration::CustomAssessmentFormGenerator, 
       end
     end
 
+    it 'adds no question_order warnings when the CSV has no question_order column' do
+      Dir.mktmpdir do |dir|
+        csv_path = File.join(dir, 'source.csv')
+        output_dir = File.join(dir, 'generated')
+        overlay_path = File.join(dir, 'overlay.yml')
+
+        File.write(csv_path, <<~CSV)
+          form_definition_identifier,legacy_assessment_name,form_group_name,link_id,label,key,form_item_type,pick_list_options
+          test_form,Test Assessment,Section A,q1,First Question,test_form_q1,STRING,
+          test_form,Test Assessment,,q2,"If yes, source",test_form_q2,STRING,
+          test_form,Test Assessment,Section A,q3,Any income?,test_form_q3,CHOICE,Yes|No
+        CSV
+
+        result = described_class.call(csv_path: csv_path, output_dir: output_dir, overlay_path: overlay_path)
+
+        expect(result[:warnings].map(&:kind)).not_to include(:split_group, :enable_when_parent_missing)
+        document = JSON.parse(File.read(File.join(output_dir, 'test_form.json')))
+        expect(document['item'].drop(1).map { |group| group['text'] }).to eq(['Section A', 'Additional Questions', 'Section A'])
+      end
+    end
+
     context 'with a question_order column' do
       let(:header) { 'form_definition_identifier,legacy_assessment_name,form_group_name,link_id,label,key,form_item_type,pick_list_options,question_order' }
 
@@ -157,9 +178,9 @@ RSpec.describe HmisExternalApis::FormGeneration::CustomAssessmentFormGenerator, 
       end
 
       it 'compares question_order as a number, including decimals' do
-        _result, document = generate([['q1', '10'], ['q2', '2'], ['q3', '2.5']])
+        _result, document = generate([['q1', '2.7'], ['q2', '2.3'], ['q3', '10'], ['q4', '2']])
 
-        expect(question_link_ids(document)).to eq(['q2', 'q3', 'q1'])
+        expect(question_link_ids(document)).to eq(['q4', 'q2', 'q1', 'q3'])
       end
 
       it 'keeps CSV row order for rows with the same question_order' do
@@ -175,11 +196,12 @@ RSpec.describe HmisExternalApis::FormGeneration::CustomAssessmentFormGenerator, 
       end
 
       it 'warns and treats a non-numeric question_order as blank' do
-        result, document = generate([['q1', 'n/a'], ['q2', '1']])
+        result, document = generate([['q1', 'n/a'], ['q2', '0x10'], ['q3', '1_0'], ['q4', 'Infinity'], ['q5', '1']])
 
-        expect(question_link_ids(document)).to eq(['q2', 'q1'])
+        expect(question_link_ids(document)).to eq(['q5', 'q1', 'q2', 'q3', 'q4'])
         invalid = result[:warnings].select { |warning| warning.kind == :invalid_question_order }
-        expect(invalid.map(&:link_id)).to eq(['q1'])
+        expect(invalid.map(&:link_id)).to eq(['q1', 'q2', 'q3', 'q4'])
+        expect(invalid.map(&:label)).to eq(['q1', 'q2', 'q3', 'q4'])
       end
 
       it 'falls back to label-number ordering when every question_order is blank' do
@@ -217,6 +239,23 @@ RSpec.describe HmisExternalApis::FormGeneration::CustomAssessmentFormGenerator, 
         expect(follow_up).not_to have_key('enable_when')
         missing = result[:warnings].select { |warning| warning.kind == :enable_when_parent_missing }
         expect(missing.map(&:link_id)).to eq(['q2'])
+      end
+
+      it 'infers enable_when for a follow-up ordered after its parent' do
+        result, document = generate(
+          [['q1', '1', 'Any income?', nil, 'CHOICE', 'Yes|No'], ['q2', '2', 'If yes, source']],
+        )
+
+        follow_up = question_items(document).find { |item| item['link_id'] == 'q2' }
+        expect(follow_up['enable_when']).to eq([{ 'question' => 'q1', 'operator' => 'EQUAL', 'answer_code' => 'Yes' }])
+        expect(result[:warnings].map(&:kind)).not_to include(:enable_when_parent_missing)
+      end
+
+      it 'does not warn about a follow-up-style label when the form has no matching choice question' do
+        result, document = generate([['q1', '1', 'Any notes?'], ['q2', '2', 'Please describe the notes']])
+
+        expect(question_link_ids(document)).to eq(['q1', 'q2'])
+        expect(result[:warnings].map(&:kind)).not_to include(:enable_when_parent_missing)
       end
     end
 
