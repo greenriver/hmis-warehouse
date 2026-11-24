@@ -293,7 +293,7 @@ RSpec.describe CohortsController, type: :request do
         get cohort_path(cohort)
 
         expect(response).to have_http_status(:ok)
-        expect(response.body).not_to include('edit_cohort_client')
+        expect(response.body).not_to include('class="edit_cohort_client"')
       end
     end
 

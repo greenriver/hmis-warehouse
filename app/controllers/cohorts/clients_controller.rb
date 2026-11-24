@@ -56,11 +56,6 @@ module Cohorts
             render json: @cohort.cohort_clients.pluck(:id, :updated_at).map { |k, v| [k, v.to_i] }.to_h
           end
         end
-        format.html do
-          set_cohort_clients
-          current_user.policy_context.preload_client_restrictions(@cohort_clients.map(&:client_id))
-          render layout: false
-        end
       end
     end
 
