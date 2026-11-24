@@ -177,6 +177,10 @@ RSpec.describe CohortsController, type: :request do
       records.each { |record| access_group.add_viewable(record) }
     end
 
+    def create_default_tabs(cohort)
+      GrdaWarehouse::CohortTab.default_rules.each { |rule| cohort.cohort_tabs.create!(**rule) }
+    end
+
     def refused?
       response.redirect? && !response.location.include?('/cohorts/')
     end
@@ -270,6 +274,26 @@ RSpec.describe CohortsController, type: :request do
         expect do
           post cohorts_path, params: { cohort: { name: 'Sneaky cohort' } }
         end.not_to change(GrdaWarehouse::Cohort, :count)
+      end
+
+      it 'renders the grid edit form for a user who can view and manage inactive clients' do
+        grant(user, [:can_view_cohorts, :can_manage_inactive_cohort_clients], cohort)
+        create_default_tabs(cohort)
+
+        get cohort_path(cohort)
+
+        expect(response).to have_http_status(:ok)
+        expect(response.body).to include('class="edit_cohort_client"')
+      end
+
+      it 'does not render the grid edit form for a view-only user' do
+        grant(user, [:can_view_cohorts], cohort)
+        create_default_tabs(cohort)
+
+        get cohort_path(cohort)
+
+        expect(response).to have_http_status(:ok)
+        expect(response.body).not_to include('edit_cohort_client')
       end
     end
 
