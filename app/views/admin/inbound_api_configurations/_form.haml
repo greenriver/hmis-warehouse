@@ -5,7 +5,7 @@
       = f.error_notification
       .form-inputs
         = f.input :external_system_name
-        - choices = HmisExternalApis::InternalSystem.active
+        - choices = HmisExternalApis::InternalSystem.active.where(name: HmisExternalApis::InternalSystem::NAMES)
         = f.input :internal_system_id, collection: choices, as: :select_two
 
       .form_actions

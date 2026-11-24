@@ -18,8 +18,6 @@ RSpec.describe HmisExternalApis::AcHmis::InvolvementsController, type: :request 
 
   def api_get(endpoint, params)
     case endpoint
-    when :program
-      get hmis_external_apis_program_involvements_path, params: params, headers: headers, as: :json
     when :client
       get hmis_external_apis_client_involvements_path, params: params, headers: headers, as: :json
     else
@@ -46,17 +44,6 @@ RSpec.describe HmisExternalApis::AcHmis::InvolvementsController, type: :request 
       expect(logged.url).to include(hmis_external_apis_client_involvements_path)
       expect(logged.request).to eq({ 'start_date' => '2000-01-01', 'end_date' => '2000-01-10', 'mci_ids' => [12345] }.to_json)
       expect(logged.request_headers.to_json).not_to include(api_key_conf.plain_text_api_key)
-    end
-  end
-
-  describe 'program involvement' do
-    it 'works minimally' do
-      api_get(:program, { start_date: '2000-01-01', end_date: '2000-01-10', program_ids: [project.project_id] })
-
-      expect(response.status).to eq 200
-      expect(JSON.parse(response.body)['involvements']).to eq []
-      expect(HmisExternalApis::ExternalRequestLog.count).to eq(1)
-      expect(HmisExternalApis::ExternalRequestLog.first.response).to match(/involvements/)
     end
   end
 end

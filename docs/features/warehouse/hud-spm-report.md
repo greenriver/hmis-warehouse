@@ -1,3 +1,11 @@
+---
+sources:
+  - drivers/hud_spm_report/app/models/hud_spm_report.rb
+  - drivers/hud_spm_report/app/models/hud_spm_report/generators/fy2026/generator.rb
+  - drivers/hud_spm_report/app/models/hud_spm_report/generators/fy2026/hdx_upload.rb
+  - drivers/hud_spm_report/app/models/hud_spm_report/extensions/hud_reports/report_instance_extension.rb
+---
+
 ## HUD System Performance Measures (SPM)
 
 ### Introduction

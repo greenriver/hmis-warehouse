@@ -68,8 +68,45 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     expect_access_denied post_graphql(identifier: fd2.identifier) { mutation }
   end
 
+  describe 'retired external forms' do
+    let!(:retired_form) { create :hmis_external_form_definition, status: Hmis::Form::Definition::RETIRED, external_form_object_key: 'pit', data_source: ds1 }
+
+    def new_draft_for(identifier)
+      response, result = post_graphql(identifier: identifier) { mutation }
+      expect(response.status).to eq(200), result.inspect
+      Hmis::Form::Definition.find(result.dig('data', 'createNextDraftFormDefinition', 'formIdentifier', 'draftVersion', 'id'))
+    end
+
+    it 'keeps the object key when no other form has reused it' do
+      expect(new_draft_for(retired_form.identifier).external_form_object_key).to eq('pit')
+    end
+
+    it 'leaves the object key off the new draft when another form has reused it' do
+      create :hmis_external_form_definition, status: Hmis::Form::Definition::PUBLISHED, external_form_object_key: 'pit', data_source: ds1
+      new_draft = new_draft_for(retired_form.identifier)
+      expect(new_draft.external_form_object_key).to be_nil
+      expect(retired_form.reload.external_form_object_key).to eq('pit')
+    end
+
+    it 'keeps the form that reused the key valid after the retired form gets a new draft' do
+      reusing_form = create :hmis_external_form_definition, status: Hmis::Form::Definition::PUBLISHED, external_form_object_key: 'pit', data_source: ds1
+      new_draft_for(retired_form.identifier)
+      expect(reusing_form.reload).to be_valid
+    end
+  end
+
   it 'should error if the form is managed in version control' do
     fd = create(:hmis_form_definition, managed_in_version_control: true, data_source: ds1)
     expect_access_denied post_graphql(identifier: fd.identifier) { mutation }
+  end
+
+  it 'keeps the external form object key on the new draft, so it stays locked across versions' do
+    external_form = create :hmis_external_form_definition, status: Hmis::Form::Definition::PUBLISHED, external_form_object_key: 'pit-2027', data_source: ds1
+    response, result = post_graphql(identifier: external_form.identifier) { mutation }
+    expect(response.status).to eq(200), result.inspect
+
+    new_draft = Hmis::Form::Definition.find(result.dig('data', 'createNextDraftFormDefinition', 'formIdentifier', 'draftVersion', 'id'))
+    expect(new_draft.version).to eq(external_form.version + 1)
+    expect(new_draft.external_form_object_key).to eq('pit-2027')
   end
 end

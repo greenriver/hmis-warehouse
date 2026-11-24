@@ -1,3 +1,11 @@
+---
+sources:
+  - app/models/translation.rb
+  - app/jobs/build_translation_cache_job.rb
+  - app/controllers/admin/translation_keys_controller.rb
+  - app/controllers/admin/translation_text_controller.rb
+---
+
 # Translation
 
 The translation system provides site-wide string customization backed by a database table and a Rails cache layer. It is not a locale/i18n system — it has no concept of language — but rather a way for each deployment to override display strings without code changes.
@@ -6,7 +14,7 @@ The translation system provides site-wide string customization backed by a datab
 
 `Translation` records have a `key` and a `text` column. The key is the default string shown to users; the text column holds the deployment-specific override. When `text` is blank the key itself is returned as-is.
 
-Lookups go through `Rails.cache` keyed by an MD5 digest of the key string. The cache is populated in bulk by `BuildTranslationCacheJob` and individual entries are invalidated on save via `after_commit` callbacks. Unknown keys are auto-created in the database on first lookup so they can be translated later.
+Lookups go through `Rails.cache` keyed by an MD5 digest of the key string. The cache is populated in bulk by `BuildTranslationCacheJob` and individual entries are invalidated explicitly by the admin controllers (there is no model callback). Unknown keys are auto-created in the database on first lookup so they can be translated later.
 
 ```
 Translation.translate(key)          # returns text or key
@@ -40,9 +48,14 @@ The bulk of the registered keys cover:
 ## Cache behavior
 
 - Cache entries use MD5 digests of the key as identifiers: `translations/<digest>`
-- Default expiration: 8 hours in production, 5 minutes in development
+- Entries expire after 8 hours in every environment
 - `BuildTranslationCacheJob` pre-warms the entire cache in batches of 500 using `write_multi`
-- Individual invalidation happens on record save; bulk invalidation via `invalidate_translations_cache` clears all `translations/*` entries
+- Individual invalidation happens when the admin controllers call `invalidate_cache`; bulk invalidation via `invalidate_translations_cache` clears all `translations/*` entries
+
+## Gotchas
+
+- Saving a `Translation` from a console or migration without calling `invalidate_cache` leaves the old text served for up to eight hours.
+- `translate` inserts an unknown key on first lookup. Passing dynamic strings (names, ids) through `_()` fills the table with junk rows. A new `_('Some Label')` should also be added to `known_translations`, the only inventory of translatable strings; run `Translation.maintain_keys` afterward.
 
 ## Schema history
 

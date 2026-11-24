@@ -27,6 +27,14 @@ module HmisExternalApis::ExternalForms
       raise 'Missing AppConfigProperty for presign url' if presign_url.blank?
     end
 
+    # Public URL of a form page published to the public S3 bucket, or nil if the bucket isn't configured
+    def self.public_form_url(object_key)
+      bucket = GrdaWarehouse::RemoteCredentials::S3.for_active_slug('public_bucket')&.bucket
+      return unless bucket.present? && object_key.present?
+
+      "https://#{bucket}.s3.amazonaws.com/#{object_key}"
+    end
+
     def js_config
       {
         recaptchaKey: recaptcha_key,

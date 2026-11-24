@@ -64,6 +64,8 @@ module Types
     field :update_form_definition, mutation: Mutations::UpdateFormDefinition
     field :delete_form_definition, mutation: Mutations::DeleteFormDefinition
     field :publish_form_definition, mutation: Mutations::PublishFormDefinition
+    field :publish_external_form, mutation: Mutations::PublishExternalForm
+    field :retire_form_definition, mutation: Mutations::RetireFormDefinition
     field :create_next_draft_form_definition, mutation: Mutations::CreateNextDraftFormDefinition
     field :create_duplicate_form_definition, mutation: Mutations::CreateDuplicateFormDefinition
 

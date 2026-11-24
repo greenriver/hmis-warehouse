@@ -1,13 +1,23 @@
+---
+sources:
+  - drivers/hopwa_caper/app/models/hopwa_caper/generators/fy2026/generator.rb
+  - drivers/hopwa_caper/app/models/hopwa_caper/generators/fy2024/generator.rb
+  - drivers/hopwa_caper/app/models/hopwa_caper/extensions/hud_reports/report_instance_extension.rb
+  - drivers/hopwa_caper/app/models/hopwa_caper/enrollment.rb
+  - drivers/hopwa_caper/app/models/hopwa_caper/service.rb
+---
+
 # HOPWA CAPER
 
 The HOPWA CAPER feature produces the HUD-required Consolidated Annual Performance and Evaluation Report for Housing Opportunities for Persons With AIDS (HOPWA) grantees. It packages HMIS warehouse data into the CAPER workbook format. Note, not all sheets in the HOPWA CAPER are implemented as some data can not be sourced from an HMIS.
 
-The report lives under the HUD Reports, use `HopwaCaper::BaseController` as an entry point.
+The report lives under the HUD Reports, use `HopwaCaper::BaseController` as an entry point. FY2026 is the only runnable year. The FY2024 generator is a stub that raises `NotImplementedError`, so it can't be queued or re-run.
 
 ## Data Preparation Pipeline
 - **Filtering via ServiceHistoryEnrollment:** The generator uses `ServiceHistoryEnrollment` to identify enrollments within the report scope. This denormalized table supports date-range and project filtering.
 - **Snapshotting from source records:** The generator retrieves canonical HUD enrollment records and their associations (services, income benefits, disabilities, funders).
-- **Filtered staging tables:** Each run populates two report-scoped staging tables: `HopwaCaper::Enrollment` and `HopwaCaper::Service`. Services include both HUD services and custom services, with denormalized category and type names.
+- **Filtered staging tables:** Each run populates three report-scoped staging tables: `HopwaCaper::Enrollment`, `HopwaCaper::Service`, and `HopwaCaper::Funder`. Services include both HUD services and custom services, with denormalized category and type names, and look back 15 years (TBRA has a 15-year lookback).
+- **Re-runs:** In development, `prepare_report` clears the staging rows first so a re-run rebuilds them. Elsewhere it appends and ignores duplicates.
 - **Uniform client attributes:** After importing enrollments, `ensure_uniform_client_attrs` normalizes age, HIV indicators, and viral load suppression across all enrollments for the same warehouse client. This prevents demographic aggregations from varying when a client has overlapping enrollments with inconsistent intake answers.
 - **Enrichment with Custom Assessment Data:** The pipeline includes a specialized step (`populate_atc_data`) that enriches enrollment records with "Access to Care" outcomes sourced from custom assessments. This process uses a lookback mechanism to find the most recent valid response (Yes/No), ignoring blank or null entries in newer assessments to preserve historical accuracy.
 - **Household eligibility tagging:** `update_hopwa_eligibility` assigns a single HOPWA-eligible member per household (preferring an HIV-positive head of household). This resolves cases where multiple members qualify.

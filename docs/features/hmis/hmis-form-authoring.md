@@ -1,3 +1,12 @@
+---
+sources:
+  - drivers/hmis/app/models/hmis/form/definition_validator.rb
+  - drivers/hmis/app/models/hmis/form/definition_item_filter.rb
+  - drivers/hmis/app/models/hmis/form/custom_data_element_generator.rb
+  - drivers/hmis/app/models/hmis/form/numeric_input_validator.rb
+  - drivers/hmis/app/models/hmis/form/definition.rb
+---
+
 # HMIS form authoring
 
 How to build the JSON structure of a form definition — the `definition` blob itself.

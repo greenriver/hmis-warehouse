@@ -57,6 +57,8 @@ if ENV['OKTA_DOMAIN'].present? && AuthMethod.devise?
         path_prefix: '/users/auth',
         request_path: '/users/auth/okta',
         callback_path: '/users/auth/okta/callback',
+        # Without full_host, OmniAuth builds the callback URL from the request's Host header.
+        full_host: "https://#{ENV.fetch('FQDN')}",
         client_options: client_options,
         on_failure: devise_failure_handler
       )

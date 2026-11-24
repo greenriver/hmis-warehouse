@@ -179,9 +179,10 @@ RSpec.shared_context 'SystemSpecHelper' do
     user = Hmis::User.find(user_id)
 
     # Make a POST request to start impersonation using JavaScript fetch
-    page.execute_script(<<~JS)
+    result = page.evaluate_async_script(<<~JS)
+      const done = arguments[arguments.length - 1];
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
-      return fetch('/hmis/impersonations', {
+      fetch('/hmis/impersonations', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -190,9 +191,10 @@ RSpec.shared_context 'SystemSpecHelper' do
         body: JSON.stringify({ user_id: #{user.id} })
       }).then(async (r) => {
         const body = await r.text();
-        return { ok: r.ok, status: r.status, body: body };
+        done({ ok: r.ok, status: r.status, body: body });
       });
     JS
+    raise "Failed to start impersonation: #{result['status']} #{result['body']}" unless result['ok']
 
     visit current_path # reload the page
     page.driver.wait_for_network_idle
@@ -202,18 +204,21 @@ RSpec.shared_context 'SystemSpecHelper' do
       yield
     ensure
       # Stop impersonating by making a DELETE request
-      page.execute_script(<<~JS)
+      stopped = page.evaluate_async_script(<<~JS)
+        const done = arguments[arguments.length - 1];
         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
-        return fetch('/hmis/impersonations', {
+        fetch('/hmis/impersonations', {
           method: 'DELETE',
           headers: {
             'Content-Type': 'application/json',
             'X-CSRF-Token': csrfToken,
           }
-        }).then(r => r.ok);
+        }).then(r => done(r.ok));
       JS
+      raise 'Failed to stop impersonation' unless stopped
 
       visit current_path # reload the page
+      page.driver.wait_for_network_idle
       expect(page).not_to have_content("Acting as #{user.full_name}")
     end
   end

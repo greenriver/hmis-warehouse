@@ -131,7 +131,7 @@ module GrdaWarehouse
     end
 
     # Overrides some methods, so must be included at the end
-    # Extensions from drivers — see ADR 0007
+    # Extensions from drivers — see docs/architecture/08-concepts/08-3-driver-module-pattern.md
     include HmisCsvImporter::GrdaWarehouse::UploadExtension
     include HmisCsvTwentyTwenty::GrdaWarehouse::UploadExtension
   end

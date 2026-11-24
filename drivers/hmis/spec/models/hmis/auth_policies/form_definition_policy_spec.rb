@@ -184,7 +184,7 @@ RSpec.describe Hmis::AuthPolicies::FormDefinitionPolicy, type: :model do
       end
 
       # Static admin forms are always present and enabled, so they take no form rules
-      ['FORM_RULE', 'PROJECT_CONFIG', 'CLIENT_ALERT', 'FORM_DEFINITION'].each do |role|
+      ['FORM_RULE', 'PROJECT_CONFIG', 'CLIENT_ALERT'].each do |role|
         context "when the form role is the static #{role} role" do
           let(:form_definition) { create(:hmis_form_definition, role: role, data_source: data_source) }
           let!(:access_control) { create_access_control(user, data_source, with_permission: [:can_configure_data_collection, :can_manage_forms, :can_administrate_config]) }

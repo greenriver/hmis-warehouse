@@ -1,3 +1,15 @@
+---
+sources:
+  - drivers/hmis_csv_importer/app/models/hmis_csv_importer/loader/loader.rb
+  - drivers/hmis_csv_importer/app/models/hmis_csv_importer/loader/current_living_sit_id_regenerator.rb
+  - drivers/hmis_csv_importer/app/models/hmis_csv_importer/importer/importer.rb
+  - drivers/hmis_csv_importer/app/models/hmis_csv_importer/hmis_csv_cleanup/base.rb
+  - drivers/hmis_csv_importer/app/models/hmis_csv_importer/aggregated/combine_enrollments.rb
+  - drivers/hmis_csv_importer/app/models/hmis_csv_importer/utility.rb
+  - app/models/grda_warehouse/data_source.rb
+  - docs/adr/0007-hmis-hud-import-cleanups-via-importer-extensions.md
+---
+
 # HMIS CSV Importer
 
 This feature imports, normalizes, and validates HMIS CSV data in the HUD standard format into the data warehouse.
@@ -21,6 +33,15 @@ The Loader (`HmisCsvImporter::Loader`) ingests raw CSV files from a directory. I
 - Version detection and auto-migration of older formats.
 - Normalization of CSV headers (case-insensitive mapping).
 - Bulk loading of raw string data via PostgreSQL `COPY`.
+
+### Pre-load filters
+
+Four optional filters rewrite the CSVs before they are loaded. They run in a fixed order, and the order matters:
+
+1. `UnlinkedRecordFilter` drops rows that reference no client or project and logs each discard, so it must see the original ids.
+2. `CurrentLivingSitIdRegenerator` replaces `CurrentLivingSitID` with an MD5 of `EnrollmentID`, `PersonalID`, `InformationDate`, `CurrentLivingSituation`, and `DateCreated`, for vendors whose ids are row positions. Rows sharing those five values collapse to the first, even if other columns differ, and the rest are logged as discarded. It must run before the remapper because it digests the original ids.
+3. `HudKeyRemapper` hashes `PersonalID` and `ProjectID` with `Export.SourceID`, when enabled on the data source.
+4. `ProjectFilter`, when `limit_projects` is set. It runs last so it sees the same ids already in the warehouse.
 
 ### Importer
 
@@ -94,6 +115,20 @@ Ingestion reconciles staged data with the warehouse in five passes:
 
 After `ingest!` finishes and the import is marked complete (`complete_import`), `import!` and `resume!` call `post_process`. This runs **once per data source** (not per file), **only on successful imports** (not dry runs or paused imports), and handles data-source-level follow-up work such as service history rebuild, duplicate detection, CH enrollment maintenance, and CSV monitors; as well as OP HMIS-specific post-import work, such as queueing `Hmis::MigrateAssessmentsJob`.
 
+### Pause thresholds
+
+`GrdaWarehouse::ImportThreshold` defines error-count and record-count thresholds. Each needs both a minimum count and a minimum percent to be met. Whether a met threshold pauses the import or only sends a notification is a separate per-data-source flag. Change counts (`added`, `removed`) are only estimated before ingest when thresholds are configured, so a source without them has no pre-ingest counts; they are recomputed from the actual batches during ingest. Every dry run pauses, and a paused import has not touched warehouse tables. A user with `can_view_imports` resumes it from the uploads page.
+
+## Cleanups and aggregators
+
+Cleanups are per-data-source fixes applied on every import, instead of console runs that are easy to skip and not project-scoped (see [ADR 0007](../../adr/0007-hmis-hud-import-cleanups-via-importer-extensions.md)). They default off and are enabled by class name in the data source's `import_cleanups` setting, keyed by staging model. Cleanups run in `run_order`, lowest first.
+
+- A pre-ingest cleanup works on the staging tables, scoped to the current `importer_log_id`, and must call `set_source_hash` after rewriting a row. Otherwise the warehouse row looks unchanged on the next import.
+- A post-ingest cleanup works on warehouse rows after ingest. A failing post-ingest cleanup is reported to Sentry and does not fail the import.
+- Don't write directly to `GrdaWarehouse::Hud` tables from a pre-ingest cleanup, and don't hard-code a CSV version's module. Resolve staging classes through `importable_file_class`.
+
+`CombineEnrollments` is the one aggregator. It merges back-to-back enrollments (next entry date equals previous exit date) from night-by-night shelter vendors into one enrollment per run. It only acts on projects flagged `enrollments_combined`; enabling it on the data source alone does nothing. Its side tables accumulate across imports. Assessments tied to a merged-away enrollment still import but are unreachable from the surviving enrollment in the UI. Because it emits an enrollment and an exit per run, the `added` count can exceed the file's row count.
+
 ## Manual Upload Source Check
 
 Manual uploads (`UploadsController#create`) are checked before any job is queued. Automated S3 imports (`Importing::HudZip::FetchAndImportJob`) never reach the controller and are unaffected.
@@ -160,3 +195,15 @@ Imports run asynchronously on the `long_running` Delayed Job queue.
 
 The importer does not wrap its run in a surrounding transaction. Import jobs acquire a
 per-data-source advisory lock so that only one import runs at a time for a given data source.
+
+## Gotchas
+
+- Set-based statements over the import scope run inside `GrdaWarehouseBase.disable_nestloop`, and the importer analyzes tables before heavy steps, because the planner otherwise picks a nested-loop join. Removing either can change run time by orders of magnitude on large sources.
+- `mark_tree_as_dead` is wrapped in `retry_on_deadlock`, because writers spanning data sources (such as a client's forced service history rebuild) can deadlock with it. A retry re-runs every slice, and it does not retry inside an open transaction.
+- `mark_incoming_older` is skipped when the incoming export is the newest for the data source. The newest export is trusted regardless of `DateUpdated`.
+- Clients are never deleted by an import and are updated one row at a time, so large client changes are the slow path.
+- `after_ingest!` hooks receive the HUD `ProjectID`s from `Project.csv`, not warehouse project ids, and run for every data source. Each hook decides whether to act.
+- For HMIS data sources, files the CSV version lists as HMIS-owned are silently ignored even if they are in the zip.
+- The Loader deletes the extracted directory when it finishes, including on failure.
+- `HmisCsvImporter::Utility.clear!` truncates every loader, importer, aggregated, and log table. It only refuses to run in production, so never run it against a development database.
+

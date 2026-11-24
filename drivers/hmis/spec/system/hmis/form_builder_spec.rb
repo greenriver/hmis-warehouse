@@ -42,7 +42,7 @@ RSpec.feature 'HMIS Form Builder', type: :system do
       fill_in 'Form Identifier', with: 'system_test'
 
       expect do
-        click_button 'Save'
+        click_button 'Create Form'
         assert_text 'SELECTED FORM System Test'
         assert_text 'Edit Draft'
       end.to change(Hmis::Form::Definition, :count).by(1)

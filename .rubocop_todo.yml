@@ -54,7 +54,6 @@ Layout/DotPosition:
     - "drivers/hmis_external_apis/app/models/concerns/hmis_external_apis/externally_identified_mixin.rb"
     - "drivers/hmis_external_apis/app/models/hmis_external_apis/ac_hmis/client_involvement.rb"
     - "drivers/hmis_external_apis/app/models/hmis_external_apis/ac_hmis/data_warehouse_api.rb"
-    - "drivers/hmis_external_apis/app/models/hmis_external_apis/ac_hmis/program_involvement.rb"
     - "spec/models/omniauth_user_provisioner_spec.rb"
 
 # Offense count: 23
@@ -506,7 +505,6 @@ Layout/SpaceInsideHashLiteralBraces:
     - "app/models/reporting/d3_charts.rb"
     - "app/models/reporting/monthly_reports/base.rb"
     - "app/models/similarity_metric/tasks/generate_candidates.rb"
-    - "drivers/hmis_external_apis/app/jobs/hmis_external_apis/ac_hmis/create_referral_job.rb"
     - "drivers/hopwa_caper/app/models/hopwa_caper/generators/fy2026/sheets/base_program_sheet.rb"
     - "spec/models/filters/filter_base_legacy_spec.rb"
     - "spec/models/logging_spec.rb"

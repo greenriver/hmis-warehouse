@@ -26,7 +26,13 @@ if ENV['OKTA_DOMAIN'].present?
         uri = URI.parse(response.location)
         expect(uri.hostname).to eq(ENV['OKTA_DOMAIN'])
         redir = CGI.parse(uri.query)['redirect_uri'][0]
-        expect(redir).to eq('http://www.example.com/users/auth/okta/callback')
+        expect(redir).to eq("https://#{ENV.fetch('FQDN')}/users/auth/okta/callback")
+      end
+
+      it 'builds redirect_uri from FQDN, not the Host header' do
+        post '/users/auth/okta', headers: { 'Host' => 'other.example.org', 'X-Forwarded-Host' => 'other.example.org' }
+        redir = CGI.parse(URI.parse(response.location).query)['redirect_uri'][0]
+        expect(redir).to eq("https://#{ENV.fetch('FQDN')}/users/auth/okta/callback")
       end
     end
 

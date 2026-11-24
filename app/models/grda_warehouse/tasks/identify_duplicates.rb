@@ -6,8 +6,6 @@
 
 # frozen_string_literal: true
 
-# frozen_string_literal: true
-
 require 'memery'
 
 # @see docs/features/warehouse/identify-duplicates.md
@@ -19,6 +17,9 @@ module GrdaWarehouse::Tasks
     MAX_SOURCE_CLIENTS = 50
     # How long run! and ensure_source_client_linked! wait for the advisory lock before enqueueing a full run
     PER_CLIENT_LOCK_TIMEOUT_SECONDS = 5
+    # AppConfigProperty key; JSON true sends the existing-match queries through IdentifyDuplicatesQueryMatcher.
+    # TODO: remove with the legacy existing-match methods
+    FEATURE_FLAG_QUERY_MATCHER_FOR_EXISTING = 'identify_duplicates/use_query_matcher_for_existing_matches'
 
     def initialize(run_post_processing: true)
       setup_notifier('IdentifyDuplicates')
@@ -85,6 +86,9 @@ module GrdaWarehouse::Tasks
       # If we do find a match:
       #   create the associated WarehouseClient
 
+      # Snapshot once: the count, the match queries and the batches must all see the same clients.
+      # A source client created after this is left for the next run instead of being batched with no match entry.
+      @unprocessed_ids = unprocessed_ids
       unprocessed_count = unprocessed.count
       Rails.logger.info "Matching #{unprocessed_count} unprocessed clients"
       matched = 0
@@ -115,6 +119,9 @@ module GrdaWarehouse::Tasks
         new_created: new_created,
       )
       Rails.logger.info 'Done'
+    ensure
+      # A later run on this instance must see clients created since this one.
+      @unprocessed_ids = nil
     end
 
     # look at all existing records for duplicates and merge destination clients
@@ -154,15 +161,25 @@ module GrdaWarehouse::Tasks
             source = client_lookups[source_id]
             next unless destination.present? && source.present?
 
+            # match_existing! holds no lock, so a concurrent merge can leave this destination with no
+            # source clients after the candidates were found; merge_from raises for such a client.
+            unless destination.destination?
+              Rails.logger.info "Skipping merge of #{source_id} into #{destination_id}: destination no longer has source clients"
+              next
+            end
+
             # If this pair was previously a candidate match, mark it as accepted
             check_and_mark_previous_candidate_matches(source_id, destination_id)
 
             begin
               Rails.logger.info "Attempting merge of #{source_id} into #{destination_id}"
               # merge_from must be called on a destination client, "source" can be a destination or array of source clients
-              # This will log an error if the destination does not have at least one source client
               destination.merge_from(source, reviewed_by: user, reviewed_at: DateTime.current, cleanup: false)
-            rescue Exception => e
+            # Deliberate exception to the no-StandardError rule: this runs inside the nightly
+            # RunDailyImportsJob, and the same pair is a candidate every night, so one failing pair
+            # would stop ClientCleanup and service history until someone intervened. merge_from's
+            # transaction rolls back; report to Sentry, skip the pair and let the next run retry it.
+            rescue StandardError => e
               Rails.logger.error "Merge failed: #{e.message}\n#{e.backtrace.join("\n")}"
               Sentry.capture_exception_with_info(
                 e,
@@ -365,7 +382,7 @@ module GrdaWarehouse::Tasks
     # where the SSN is valid and matches.
     #
     # @return [Array<Array<Integer>>] Array of [destination_one_id, destination_two_id] pairs
-    def exact_ssn_matches(legacy: true)
+    def exact_ssn_matches(legacy: legacy_existing_match?)
       return exact_ssn_matches_legacy if legacy
 
       IdentifyDuplicatesQueryMatcher.for_ssn_matches(match_type: :existing).execute
@@ -376,7 +393,7 @@ module GrdaWarehouse::Tasks
     # where the normalized (lowercased, stripped, unaccented) first and last names match.
     #
     # @return [Array<Array<Integer>>] Array of [destination_one_id, destination_two_id] pairs
-    def exact_name_matches(legacy: true)
+    def exact_name_matches(legacy: legacy_existing_match?)
       return exact_name_matches_legacy if legacy
 
       IdentifyDuplicatesQueryMatcher.for_name_matches(match_type: :existing).execute
@@ -387,7 +404,7 @@ module GrdaWarehouse::Tasks
     # where the DOB is present, after 1920, and matches.
     #
     # @return [Array<Array<Integer>>] Array of [destination_one_id, destination_two_id] pairs
-    def exact_dob_matches(legacy: true)
+    def exact_dob_matches(legacy: legacy_existing_match?)
       return exact_dob_matches_legacy if legacy
 
       IdentifyDuplicatesQueryMatcher.for_dob_matches(match_type: :existing).execute
@@ -714,6 +731,9 @@ module GrdaWarehouse::Tasks
         return {}
       end
 
+      matching_path = legacy_existing_match? ? 'legacy SQL' : 'IdentifyDuplicatesQueryMatcher'
+      Rails.logger.info "Matching existing destinations with #{matching_path}"
+
       # Find all potential matches
       matches = {}
       exact_ssn_matches.each do |id_pair|
@@ -746,6 +766,14 @@ module GrdaWarehouse::Tasks
 
       source_client_counts = GrdaWarehouse::WarehouseClient.group(:destination_id).count
       split_chains_on_max_source(candidates: candidates, counts: source_client_counts)
+    end
+
+    # Only the JSON boolean true enables the matcher; a missing row or any other value keeps legacy.
+    # Memoized so every existing-match query in one run uses the same path.
+    # TODO: remove with the legacy existing-match methods
+    memoize private def legacy_existing_match?
+      flag = AppConfigProperty.find_by(key: FEATURE_FLAG_QUERY_MATCHER_FOR_EXISTING)
+      flag&.value != true
     end
 
     # Find potential client merge candidates by looking for matches across multiple criteria
@@ -894,6 +922,7 @@ module GrdaWarehouse::Tasks
 
     private def unprocessed_ids
       return @restrict_to_source_ids if @restrict_to_source_ids.present?
+      return @unprocessed_ids unless @unprocessed_ids.nil?
 
       GrdaWarehouse::Hud::Client.source.pluck(:id) - GrdaWarehouse::WarehouseClient.pluck(:source_id)
     end

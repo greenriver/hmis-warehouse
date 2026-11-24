@@ -1,3 +1,9 @@
+---
+sources:
+  - app/models/grda_warehouse/import_csv_monitor.rb
+  - app/models/grda_warehouse/monitoring/tasks/csv_import_monitor_collector.rb
+---
+
 # Per-CSV Import Monitoring
 
 ## Overview
@@ -52,3 +58,8 @@ Detect significant changes at the individual CSV level during HUD CSV imports. C
 ## Related
 
 - [Metric Tracking](metric-tracking.md) — Shared MetricDefinition/MetricSnapshot framework; CSV monitoring uses import logs and post-import trigger
+
+## Gotchas
+
+- A monitor opens at most one crossing snapshot per day. A second import the same day that also crosses a threshold is not recorded.
+- The collector runs only after a completed, non-paused import, so a paused import isn't checked.

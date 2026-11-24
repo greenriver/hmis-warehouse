@@ -1,3 +1,12 @@
+---
+sources:
+  - drivers/hmis/app/models/hmis/form/instance.rb
+  - drivers/hmis/app/models/hmis/form/instance_project_match.rb
+  - drivers/hmis/app/models/hmis/form/instance_enrollment_match.rb
+  - drivers/hmis/app/models/hmis/form/definition_item_filter.rb
+  - drivers/hmis/app/graphql/types/forms/form_definition.rb
+---
+
 # HMIS form resolution
 
 Several published form definitions can share a role, so "which form does the user get?" is a real question with a non-obvious answer. Resolution happens in three separate layers, and conflating them is the most common source of confusion in this subsystem:

@@ -13,18 +13,8 @@ module HmisExternalApis::AcHmis
 
     protected
 
-    # post params to external api
-    def post_referral_request(url, params)
-      response = Faraday.post(url, params)
-      JSON.parse(response.body)
-    end
-
     def mci
       @mci ||= ::HmisExternalApis::AcHmis::Mci.new
-    end
-
-    def mper
-      @mper ||= ::HmisExternalApis::AcHmis::Mper.new
     end
 
     def link

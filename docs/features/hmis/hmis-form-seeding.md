@@ -1,3 +1,10 @@
+---
+sources:
+  - drivers/hmis/lib/hmis_util/json_forms.rb
+  - drivers/hmis/lib/hmis_util/hud_compliance_form_instance_maintainer.rb
+  - drivers/hmis/lib/tasks/setup.rake
+---
+
 # HMIS form seeding
 
 Pipeline that loads form definitions from version-controlled JSON into the database, and creates the system form instances (rules) required for the HMIS application to be HUD-compliant.
@@ -55,6 +62,12 @@ drivers/hmis/lib/form_data/
 │   └── ...                      # Can override any other dir
 └── test/
 ```
+
+## Gotchas
+
+- `<env>/custom_assessments/` is for test and QA data only; customer-specific custom assessments belong in the Form Builder. Seeding it is a no-op in production.
+- `generate_cdeds` is off by default in the test environment, so custom data element validation for `custom_field_key` mappings is skipped there.
+- `static/external_form_submission_review.json` has no matching static form role, so seeding never loads it.
 
 ## Related
 

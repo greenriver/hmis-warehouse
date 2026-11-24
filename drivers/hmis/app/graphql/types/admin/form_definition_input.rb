@@ -12,6 +12,7 @@ module Types
     argument :identifier, String, required: false
     argument :title, String, required: false
     argument :definition, String, required: false
+    argument :external_form_object_key, String, required: false
 
     def to_attributes
       to_h.except(:definition)

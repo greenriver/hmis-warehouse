@@ -274,6 +274,58 @@ RSpec.describe 'Users::SessionsController', :devise_only, type: :request do
     end
   end
 
+  # Stored emails are lowercase (Devise case_insensitive_keys); users may type them with capitals.
+  describe 'Login with a mixed-case email' do
+    context 'without 2FA' do
+      # Guards Devise's case_insensitive_keys. find_user only decides whether 2FA runs, so it is
+      # not on this path; the 2FA contexts below cover it.
+      it 'signs in the same as the lowercase email' do
+        expect(user.email.swapcase).not_to eq(user.email)
+
+        post user_session_path(user: { email: user.email.swapcase, password: user.password })
+
+        aggregate_failures 'checking response' do
+          expect(response).to have_http_status(:redirect)
+          expect(response).not_to redirect_to(new_user_session_path)
+          expect(user.reload.failed_attempts).to eq 0
+        end
+      end
+    end
+
+    context 'with 2FA enabled' do
+      before do
+        post user_session_path(user: { email: user_2fa.email.swapcase, password: user_2fa.password })
+      end
+
+      it 'prompts for 2FA the same as the lowercase email, without signing in' do
+        aggregate_failures 'checking response' do
+          expect(response).to render_template('devise/sessions/two_factor')
+          expect(user_2fa.reload.failed_attempts).to eq 0
+          # keepalive and root_path both return 200 when signed out, so check the Warden session directly
+          expect(session['warden.user.user.key']).to be_nil
+        end
+      end
+
+      it 'signs in when the correct 2FA code is entered' do
+        post user_session_path(user: { otp_attempt: user_2fa.current_otp })
+
+        aggregate_failures 'checking response' do
+          expect(response).to have_http_status(:redirect)
+          expect(response).not_to redirect_to(new_user_session_path)
+          expect(user_2fa.reload.failed_attempts).to eq 0
+        end
+      end
+    end
+
+    context 'with surrounding whitespace and 2FA enabled' do
+      it 'prompts for 2FA the same as the trimmed email' do
+        post user_session_path(user: { email: " #{user_2fa.email.swapcase} ", password: user_2fa.password })
+
+        expect(response).to render_template('devise/sessions/two_factor')
+      end
+    end
+  end
+
   describe 'Login from a remembered 2FA device' do
     # Builds the device row and encrypted cookie directly instead of running the remember flow.
     before do

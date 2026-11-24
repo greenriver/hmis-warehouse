@@ -193,11 +193,14 @@ module GrdaWarehouse
         SQL
       end
 
+      # Not used in production: the _for_unprocessed methods in IdentifyDuplicates call the legacy SQL.
+      # This array-based query aggregates the whole destination table, so it is expected to be slower
+      # than the legacy SQL. It will be replaced with a plain join built from the shared filters.
       def unprocessed_sql
-        destination_ids_sql = destination_data_source_ids&.join(', ')
+        destination_data_source_ids_sql = destination_data_source_ids&.join(', ')
         unprocessed_ids_sql = unprocessed_ids&.join(', ')
 
-        raise ArgumentError, 'destination_data_source_ids must be provided for unprocessed queries' if destination_ids_sql.blank?
+        raise ArgumentError, 'destination_data_source_ids must be provided for unprocessed queries' if destination_data_source_ids_sql.blank?
         raise ArgumentError, 'unprocessed_ids must be provided for unprocessed queries' if unprocessed_ids_sql.blank?
 
         <<-SQL
@@ -206,7 +209,7 @@ module GrdaWarehouse
               #{field_expression} AS #{field_alias},
               array_agg(DISTINCT clients.id ORDER BY clients.id) AS destination_ids
             #{unprocessed_from_clause}
-              AND clients.data_source_id IN (#{destination_ids_sql})
+              AND clients.data_source_id IN (#{destination_data_source_ids_sql})
               #{destination_restriction_sql}
             GROUP BY #{field_alias}
           ),

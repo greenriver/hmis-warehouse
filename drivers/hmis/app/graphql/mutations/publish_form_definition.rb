@@ -23,6 +23,12 @@ module Mutations
 
       raise 'only draft forms can be published' unless definition.draft?
 
+      if definition.role == 'EXTERNAL_FORM' && definition.external_form_object_key.blank?
+        errors = HmisErrors::Errors.new
+        errors.add(:external_form_object_key, :required, full_message: 'Set the External Form Key in Edit Form Details before publishing.')
+        return { errors: errors }
+      end
+
       previous_published_form = Hmis::Form::Definition.find_by(
         identifier: definition.identifier,
         status: Hmis::Form::Definition::PUBLISHED,

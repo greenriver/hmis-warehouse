@@ -1,3 +1,13 @@
+---
+sources:
+  - drivers/hmis/app/models/hmis/ce/match/rule.rb
+  - drivers/hmis/app/models/hmis/ce/match/match_applicability.rb
+  - drivers/hmis/app/models/hmis/ce/match/engine.rb
+  - drivers/hmis/app/models/hmis/ce/match/internal/client_pool_evaluator.rb
+  - drivers/hmis/app/models/hmis/ce/match/expression/sql_expression_translator.rb
+  - drivers/hmis/app/models/hmis/ce/match/expression/household_selector.rb
+---
+
 # Coordinated Entry (CE) Match Engine
 
 This directory contains the core logic for the Coordinated Entry (CE) Match Engine. The engine is responsible for evaluating a universe of clients against a set of eligibility and prioritization rules for a given candidate pool. It identifies which clients are eligible for the pool and calculates a priority score for each.
@@ -54,3 +64,11 @@ The classes within this module are organized into several subdirectories to grou
 
 - The `CandidatePoolBuilder` is the primary tool for maintaining pools. It can be invoked for all unit groups to ensure all waitlists are up-to-date, or it can be scoped to a specific set of `unit_group_ids` for more targeted updates. It only maintains pools for Unit Groups that belong to projects where Waitlist-based CE Referrals are enabled, as configured by `Hmis::ProjectCeConfig`, and that have a waitlist workflow template.
 - This process is triggered automatically by callbacks on `Hmis::Ce::Match::Rule`, `Hmis::UnitGroup`, and `Hmis::ProjectCeConfig` models, and as a full refresh by a daily Rake task. Unit group callbacks rebuild after creation and when the waitlist workflow template is assigned.
+
+## Gotchas
+
+- **Rule owners.** A `Rule` is owned by a unit group, project, organization, or data source, in that order of precedence. Rules also carry an `applicability_config` (project types, funders) that narrows where they apply. Priority schemes come only from the most specific owner level that has any, ordered by `priority_rank`.
+- **Applicability is implemented twice.** `Rule.unit_groups_for_owner` (SQL) and `MatchApplicability` (Ruby) apply the same logic. Change both.
+- **The SQL prefilter is a superset.** `SqlExpressionTranslator` turns functions and untranslatable fields into `1 = 1`. Correctness comes from the in-memory `ClientPoolEvaluator`.
+- **A nil priority score fails the client.** Use a coalescing priority expression, for example `IF(my_score = NULL, 0, my_score)`, to keep clients with missing values.
+- **Household size counts people.** Members who share a destination client count once; members with no warehouse link count one each.
