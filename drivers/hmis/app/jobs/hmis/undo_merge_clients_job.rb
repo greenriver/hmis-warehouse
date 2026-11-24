@@ -60,6 +60,7 @@ module Hmis
       Hmis::Hud::Client.transaction do
         restore_deleted_client
         restore_enrollments
+        restore_rekeyed_deleted_enrollments
         restore_associated_records
         destroy_merge_history
       end
@@ -131,6 +132,39 @@ module Hmis
       )
 
       updated_enrollment_scope.each(&:invalidate_processing!) unless dry_run
+    end
+
+    # Give back the original EnrollmentID to soft-deleted enrollments that the merge re-keyed to avoid
+    # colliding with this client's enrollments. Must run after restore_enrollments: until those enrollments
+    # move back to the restored client, the original key still collides on the retained client.
+    def restore_rekeyed_deleted_enrollments
+      mappings = merge_audit.mappings_for('rekeyed_deleted_enrollments')
+      return if mappings.empty?
+
+      restored_enrollment_ids = merge_audit.mappings_for('enrollments').
+        select { |_id, mapping_data| mapping_data['PersonalID'] == deleted_client.personal_id }.
+        keys
+      restored_keys = Hmis::Hud::Enrollment.with_deleted.where(id: restored_enrollment_ids).pluck(:EnrollmentID)
+
+      mappings.each do |enrollment_id, mapping_data|
+        original_enrollment_id = mapping_data['EnrollmentID']
+        next unless restored_keys.include?(original_enrollment_id)
+
+        enrollment = Hmis::Hud::Enrollment.with_deleted.find_by(id: enrollment_id)
+        next unless enrollment
+        next unless enrollment.personal_id == retained_client.personal_id
+        next if enrollment.EnrollmentID == original_enrollment_id
+
+        Rails.logger.info "Restoring original EnrollmentID on soft-deleted enrollment #{enrollment_id}"
+        next if dry_run
+
+        Hmis::MergeClientsJob.enrollment_child_models.each do |model|
+          model.with_deleted.
+            where(data_source_id: retained_client.data_source_id, PersonalID: retained_client.personal_id, EnrollmentID: enrollment.EnrollmentID).
+            update_all(EnrollmentID: original_enrollment_id)
+        end
+        enrollment.update_column(:EnrollmentID, original_enrollment_id)
+      end
     end
 
     # Restore all non-enrollment records tracked in pre_merge_mappings.

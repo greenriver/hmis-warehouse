@@ -73,6 +73,7 @@ class Hmis::ClientMergeAudit < Hmis::HmisBase
 
   PRE_MERGE_MAPPING_EXPECTED_FIELDS = {
     'enrollments' => 'PersonalID',
+    'rekeyed_deleted_enrollments' => 'EnrollmentID',
     'names' => 'PersonalID',
     'addresses' => 'PersonalID',
     'contact_points' => 'PersonalID',

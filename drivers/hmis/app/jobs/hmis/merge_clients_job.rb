@@ -10,6 +10,33 @@
 
 module Hmis
   class MergeClientsJob < BaseJob
+    PERSONAL_ID_FOREIGN_KEY_CANDIDATES = [
+      Hmis::Hud::Assessment,
+      Hmis::Hud::AssessmentQuestion,
+      Hmis::Hud::AssessmentResult,
+      Hmis::Hud::CurrentLivingSituation,
+      Hmis::Hud::CustomAssessment,
+      Hmis::Hud::CustomCaseNote,
+      Hmis::Hud::CustomClientAddress,
+      Hmis::Hud::CustomClientContactPoint,
+      # Hmis::Hud::CustomClientName,      # Handled in separate method
+      Hmis::Hud::CustomService,
+      Hmis::Hud::Disability,
+      Hmis::Hud::EmploymentEducation,
+      Hmis::Hud::Enrollment,
+      Hmis::Hud::Event,
+      Hmis::Hud::Exit,
+      Hmis::Hud::HealthAndDv,
+      Hmis::Hud::IncomeBenefit,
+      Hmis::Hud::Service,
+      Hmis::Hud::YouthEducationStatus,
+    ].freeze
+
+    # Models that belong to an enrollment through (EnrollmentID, PersonalID, data_source_id)
+    def self.enrollment_child_models
+      PERSONAL_ID_FOREIGN_KEY_CANDIDATES.select { |model| model != Hmis::Hud::Enrollment && model.column_names.include?('EnrollmentID') }
+    end
+
     attr_accessor :clients
     attr_accessor :client_to_retain
     attr_accessor :clients_needing_reference_updates
@@ -395,31 +422,13 @@ module Hmis
     end
 
     def update_personal_id_foreign_keys
-      candidates = [
-        Hmis::Hud::Assessment,
-        Hmis::Hud::AssessmentQuestion,
-        Hmis::Hud::AssessmentResult,
-        Hmis::Hud::CurrentLivingSituation,
-        Hmis::Hud::CustomAssessment,
-        Hmis::Hud::CustomCaseNote,
-        Hmis::Hud::CustomClientAddress,
-        Hmis::Hud::CustomClientContactPoint,
-        # Hmis::Hud::CustomClientName,      # Handled in separate method
-        Hmis::Hud::CustomService,
-        Hmis::Hud::Disability,
-        Hmis::Hud::EmploymentEducation,
-        Hmis::Hud::Enrollment,
-        Hmis::Hud::Event,
-        Hmis::Hud::Exit,
-        Hmis::Hud::HealthAndDv,
-        Hmis::Hud::IncomeBenefit,
-        Hmis::Hud::Service,
-        Hmis::Hud::YouthEducationStatus,
-      ]
+      candidates = PERSONAL_ID_FOREIGN_KEY_CANDIDATES
 
       Rails.logger.info "Updating #{candidates.length} tables with foreign keys to merged clients (PersonalID and data source)"
 
       personal_ids = clients_needing_reference_updates.map(&:personal_id)
+
+      rekey_colliding_deleted_enrollments(personal_ids)
 
       candidates.each do |candidate|
         t = candidate.arel_table
@@ -444,6 +453,37 @@ module Hmis
 
         candidate_scope.update_all(PersonalID: client_to_retain.personal_id)
       end
+    end
+
+    # The en_en_id_p_id_ds_id unique index includes soft-deleted enrollments, but the PersonalID update
+    # above only moves active ones. A soft-deleted enrollment on the retained client that shares an
+    # EnrollmentID with a moving enrollment would collide, so give it (and its children) a new EnrollmentID.
+    def rekey_colliding_deleted_enrollments(personal_ids)
+      moving_enrollment_ids = Hmis::Hud::Enrollment.
+        where(data_source_id: data_source_id, PersonalID: personal_ids).
+        pluck(:EnrollmentID)
+      colliding = Hmis::Hud::Enrollment.only_deleted.
+        where(data_source_id: data_source_id, PersonalID: client_to_retain.personal_id, EnrollmentID: moving_enrollment_ids).
+        to_a
+      return if colliding.empty?
+
+      Rails.logger.info "Re-keying #{colliding.size} soft-deleted enrollments that collide with merged enrollments"
+
+      mappings = {}
+      colliding.each do |enrollment|
+        original_enrollment_id = enrollment.EnrollmentID
+        new_enrollment_id = Hmis::Hud::Base.generate_uuid
+
+        self.class.enrollment_child_models.each do |model|
+          model.with_deleted.
+            where(data_source_id: data_source_id, PersonalID: client_to_retain.personal_id, EnrollmentID: original_enrollment_id).
+            update_all(EnrollmentID: new_enrollment_id)
+        end
+        enrollment.update_column(:EnrollmentID, new_enrollment_id)
+
+        mappings[enrollment.id] = { 'EnrollmentID' => original_enrollment_id }
+      end
+      update_merge_mappings('rekeyed_deleted_enrollments', mappings)
     end
 
     def destroy_merged_clients

@@ -128,6 +128,16 @@ because the merge job doesn't have a straightforward way to determine which one 
 If both merged clients have enrollments in the same project that overlap,
 post-merge this would be bad data that needs to be cleaned up manually by the user.
 
+### Soft-deleted enrollments that share an EnrollmentID
+
+The unique index `en_en_id_p_id_ds_id` on `Enrollment` covers (`EnrollmentID`, `PersonalID`, `data_source_id`) and includes soft-deleted rows. The merge moves only active enrollments. The retained client can hold a soft-deleted enrollment with the same `EnrollmentID` as an active enrollment on a merged-away client. This happens, for example, when an import receives an enrollment under a new `PersonalID`, inserts it, and soft-deletes the old row. Moving the active enrollment would then violate the index.
+
+Before moving enrollments, `MergeClientsJob` gives each such soft-deleted enrollment a new `EnrollmentID`. Its child records get the same new ID, deleted or not, so they stay attached to it instead of matching the moved enrollment. The child models are `MergeClientsJob.enrollment_child_models`. The original key is stored under `rekeyed_deleted_enrollments` in `pre_merge_mappings`. These updates skip PaperTrail, like the rest of the merge's foreign-key updates.
+
+`UndoMergeClientsJob` restores the original `EnrollmentID` on the enrollment and its children. It does this after the enrollments move back to the restored client, because until then the original key still collides.
+
+Two active enrollments with the same `EnrollmentID` are not handled: the merge fails on the unique index.
+
 ### Warehouse Clients and Client Merges
 
 The interaction between HMIS client merges and warehouse clients works as follows:

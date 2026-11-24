@@ -203,6 +203,46 @@ RSpec.describe Hmis::MergeClientsJob, type: :model do
             expect(p1.enrollments.count).to eq(1), 'it should not show dupes'
           end
         end
+
+        context 'when the retained client has a soft-deleted enrollment with the same EnrollmentID' do
+          let!(:active_enrollment) { create(:hmis_hud_enrollment, client: client2, data_source: data_source) }
+          let!(:deleted_enrollment) do
+            create(:hmis_hud_enrollment, client: client1, data_source: data_source, EnrollmentID: active_enrollment.EnrollmentID).tap do |enrollment|
+              enrollment.update_column(:DateDeleted, Time.current)
+            end
+          end
+
+          let!(:deleted_exit) do
+            create(:hmis_hud_exit, enrollment: deleted_enrollment, client: client1, data_source: data_source).tap do |exit|
+              exit.update_column(:DateDeleted, Time.current)
+            end
+          end
+
+          it 'moves the active enrollment to the retained client and keeps the soft-deleted one' do
+            Hmis::MergeClientsJob.perform_now(client_ids: client_ids, actor_id: actor.id)
+
+            expect(active_enrollment.reload).to have_attributes(PersonalID: client1.PersonalID, DateDeleted: nil)
+            expect(Hmis::Hud::Enrollment.only_deleted.find(deleted_enrollment.id)).to be_present
+          end
+
+          it 'gives the soft-deleted enrollment and its children a new EnrollmentID' do
+            original_enrollment_id = active_enrollment.EnrollmentID
+            Hmis::MergeClientsJob.perform_now(client_ids: client_ids, actor_id: actor.id)
+
+            rekeyed = Hmis::Hud::Enrollment.only_deleted.find(deleted_enrollment.id)
+            expect(rekeyed.EnrollmentID).not_to eq(original_enrollment_id)
+            expect(rekeyed.PersonalID).to eq(client1.PersonalID)
+            expect(Hmis::Hud::Exit.only_deleted.find(deleted_exit.id).EnrollmentID).to eq(rekeyed.EnrollmentID)
+          end
+
+          it 'records the original EnrollmentID in the merge audit' do
+            original_enrollment_id = active_enrollment.EnrollmentID
+            Hmis::MergeClientsJob.perform_now(client_ids: client_ids, actor_id: actor.id)
+
+            mappings = Hmis::ClientMergeAudit.sole.mappings_for('rekeyed_deleted_enrollments')
+            expect(mappings).to eq({ deleted_enrollment.id => { 'EnrollmentID' => original_enrollment_id } })
+          end
+        end
       end
 
       context 'with names' do

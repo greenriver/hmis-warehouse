@@ -204,6 +204,41 @@ RSpec.describe Hmis::UndoMergeClientsJob, type: :job do
     end
   end
 
+  describe '#perform after the merge re-keyed a soft-deleted enrollment' do
+    let!(:rekeyed_enrollment) do
+      create(:hmis_hud_enrollment, client: retained_client, project: project, data_source: data_source, EnrollmentID: deleted_client_enrollment.EnrollmentID).tap do |enrollment|
+        enrollment.update_column(:DateDeleted, Time.current)
+      end
+    end
+    let!(:rekeyed_exit) do
+      create(:hmis_hud_exit, client: retained_client, enrollment: rekeyed_enrollment, data_source: data_source).tap do |exit|
+        exit.update_column(:DateDeleted, Time.current)
+      end
+    end
+
+    before do
+      Hmis::MergeClientsJob.perform_now(
+        client_ids: [retained_client.id, deleted_client.id],
+        actor_id: actor.id,
+      )
+      deleted_client.reload
+    end
+
+    it 'restores the original EnrollmentID on the soft-deleted enrollment and its children' do
+      original_enrollment_id = deleted_client_enrollment.EnrollmentID
+      expect(Hmis::Hud::Enrollment.only_deleted.find(rekeyed_enrollment.id).EnrollmentID).not_to eq(original_enrollment_id), 'merge should have re-keyed the enrollment'
+
+      described_class.perform_now(
+        retained_client_id: retained_client.id,
+        deleted_client_id: deleted_client.id,
+      )
+
+      expect(deleted_client_enrollment.reload.personal_id).to eq(deleted_client.personal_id)
+      expect(Hmis::Hud::Enrollment.only_deleted.find(rekeyed_enrollment.id)).to have_attributes(EnrollmentID: original_enrollment_id, PersonalID: retained_client.personal_id)
+      expect(Hmis::Hud::Exit.only_deleted.find(rekeyed_exit.id).EnrollmentID).to eq(original_enrollment_id)
+    end
+  end
+
   describe '#perform with CE enabled' do
     let(:retained_client) { create(:hmis_hud_client_with_warehouse_client, date_created: Time.current - 1.week, data_source: data_source) }
     let(:deleted_client) { create(:hmis_hud_client_with_warehouse_client, date_created: Time.current - 5.days, data_source: data_source) }
