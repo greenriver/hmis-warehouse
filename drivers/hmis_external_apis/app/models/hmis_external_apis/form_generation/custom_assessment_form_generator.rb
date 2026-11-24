@@ -14,7 +14,8 @@ require 'yaml'
 # Builds Custom Assessment form-definition JSON from a CSV of custom
 # assessment field rows. Expected columns: form_definition_identifier,
 # legacy_assessment_name, form_group_name, form_item_link_id (or link_id),
-# label, key, form_item_type, pick_list_options.
+# label, key, form_item_type, pick_list_options. Optional: question_order
+# (see the README for the ordering rules).
 #
 # That is the form-builder export shape from the HMIS-migration custom
 # assessment fields dbt model. Invoke via
@@ -49,6 +50,7 @@ module HmisExternalApis
       MULTISELECT_LABEL = /all that apply|select all|check all/i
       DO_NOT_USE_LABEL = /\bdo not use\b|\bdisregard\b|\Aignore\b/i
       SUBASSESSMENT_NAME = /subassess/i
+      QUESTION_ORDER_FORMAT = /\A-?\d+(\.\d+)?\z/
 
       Warning = Struct.new(:kind, :identifier, :title, :link_id, :label, :detail, keyword_init: true)
 
@@ -101,6 +103,7 @@ module HmisExternalApis
 
       def read_csv
         grouped = {}
+        csv_indexes = Hash.new(0)
         CSV.foreach(@csv_path, headers: true, encoding: 'bom|utf-8') do |row|
           identifier = row['form_definition_identifier']&.strip
           if identifier.blank?
@@ -110,6 +113,7 @@ module HmisExternalApis
 
           grouped[identifier] ||= []
           @form_titles[identifier] ||= row['legacy_assessment_name'].to_s.strip
+          link_id = (row['link_id'].presence || row['form_item_link_id'].presence).to_s.strip
           grouped[identifier] << {
             # Form Definition identifier
             'identifier' => identifier,
@@ -118,7 +122,7 @@ module HmisExternalApis
             # Section title; blank rows are ungrouped
             'form_group_name' => row['form_group_name'].to_s.strip.presence,
             # Item link_id for the question
-            'link_id' => (row['link_id'].presence || row['form_item_link_id'].presence).to_s.strip,
+            'link_id' => link_id,
             # Question text
             'label' => row['label'].to_s,
             # CustomDataElementDefinition key (mapping.custom_field_key)
@@ -127,15 +131,42 @@ module HmisExternalApis
             'form_item_type' => row['form_item_type'].to_s.strip,
             # Pipe-delimited CHOICE codes (pick_list_options)
             'pick_list_options' => row['pick_list_options'].to_s,
+            # Optional sort position within the form; nil when blank or invalid
+            'question_order' => parse_question_order(row['question_order'], identifier: identifier, link_id: link_id),
+            # Position within the form's CSV rows, the tie-breaker for sorting
+            'csv_index' => (csv_indexes[identifier] += 1) - 1,
           }
         end
         grouped
       end
 
+      def parse_question_order(raw, identifier:, link_id:)
+        value = raw.to_s.strip
+        return if value.empty?
+        return Float(value) if value.match?(QUESTION_ORDER_FORMAT)
+
+        @warnings << Warning.new(
+          kind: :invalid_question_order,
+          identifier: identifier,
+          title: @form_titles[identifier],
+          link_id: link_id,
+          label: nil,
+          detail: "question_order #{raw.inspect} is not a number; treated as blank",
+        )
+        nil
+      end
+
+      def sort_by_question_order(rows)
+        return rows if rows.none? { |row| row['question_order'] }
+
+        rows.sort_by { |row| [row['question_order'].nil? ? 1 : 0, row['question_order'] || 0, row['csv_index']] }
+      end
+
       def build_form(identifier, rows, form_overlay)
         title = rows.first['legacy_assessment_name']
         used_link_ids = Set.new(rows.map { |r| r['link_id'] })
-        runs = group_runs(rows, title, form_overlay)
+        question_ordered = rows.any? { |row| row['question_order'] }
+        runs = group_runs(sort_by_question_order(rows), title, form_overlay, identifier: identifier, question_ordered: question_ordered)
         form_generated = {
           'invented_group_names' => {},
           'flattened_subassessments' => [],
@@ -166,8 +197,8 @@ module HmisExternalApis
             )
           end
 
-          ordered = order_rows(run[:rows], group_name: run[:text], form_overlay: form_overlay)
-          items = build_items(identifier, ordered, form_overlay, form_generated)
+          ordered = order_rows(run[:rows], group_name: run[:text], form_overlay: form_overlay, auto_order: !question_ordered)
+          items = build_items(identifier, ordered, form_overlay, form_generated, question_ordered: question_ordered)
           {
             'type' => 'GROUP',
             'link_id' => unique_link_id(slug(run[:text]), used_link_ids),
@@ -198,13 +229,23 @@ module HmisExternalApis
         [document, form_generated]
       end
 
-      def group_runs(rows, title, form_overlay)
+      def group_runs(rows, title, form_overlay, identifier:, question_ordered:)
         runs = []
         rows.each do |row|
           name = row['form_group_name']
           if runs.last && runs.last[:source_name] == name
             runs.last[:rows] << row
           else
+            if question_ordered && name && runs.any? { |run| run[:source_name] == name }
+              @warnings << Warning.new(
+                kind: :split_group,
+                identifier: identifier,
+                title: title,
+                link_id: row['link_id'],
+                label: name,
+                detail: 'group rows are not contiguous after question_order; emitted as more than one group',
+              )
+            end
             runs << { source_name: name, rows: [row] }
           end
         end
@@ -232,8 +273,8 @@ module HmisExternalApis
         runs
       end
 
-      def order_rows(rows, group_name:, form_overlay:)
-        apply_item_order_overlay(auto_order_rows(rows), group_name, form_overlay)
+      def order_rows(rows, group_name:, form_overlay:, auto_order: true)
+        apply_item_order_overlay(auto_order ? auto_order_rows(rows) : rows, group_name, form_overlay)
       end
 
       def auto_order_rows(rows)
@@ -334,12 +375,12 @@ module HmisExternalApis
         [match[1].to_i, match[2].to_s.downcase]
       end
 
-      def build_items(identifier, rows, form_overlay, form_generated)
+      def build_items(identifier, rows, form_overlay, form_generated, question_ordered: false)
         built = []
         rows.each do |row|
           item = question_item(identifier, row)
           apply_hidden!(item, row, form_overlay)
-          apply_enable_when!(identifier, item, row, built, form_overlay, form_generated)
+          apply_enable_when!(identifier, item, row, built, form_overlay, form_generated, question_ordered: question_ordered)
           built << item
         end
         built
@@ -453,7 +494,7 @@ module HmisExternalApis
         item['hidden'] = true
       end
 
-      def apply_enable_when!(identifier, item, row, prior_items, form_overlay, form_generated)
+      def apply_enable_when!(identifier, item, row, prior_items, form_overlay, form_generated, question_ordered: false)
         overlay_value = overlay_enable_when(form_overlay, row['link_id'])
         if overlay_value
           form_generated['enable_when'][row['link_id']] = overlay_value
@@ -463,11 +504,25 @@ module HmisExternalApis
         end
 
         inferred = infer_enable_when(row, prior_items)
-        return unless inferred
+        unless inferred
+          warn_parent_missing(identifier, row) if question_ordered && row['label'].match?(Regexp.union(OTHER_LABEL, IF_YES_LABEL))
+          return
+        end
 
         form_generated['enable_when'][row['link_id']] = inferred
         assign_enable_when(item, inferred)
         record_enable_when_summary(identifier, row, inferred, prior_items)
+      end
+
+      def warn_parent_missing(identifier, row)
+        @warnings << Warning.new(
+          kind: :enable_when_parent_missing,
+          identifier: identifier,
+          title: @form_titles[identifier],
+          link_id: row['link_id'],
+          label: row['label'],
+          detail: 'looks like a follow-up question, but no single earlier choice question in its group matches; no enable_when inferred',
+        )
       end
 
       def record_enable_when_summary(identifier, row, value, prior_items)
@@ -664,6 +719,9 @@ module HmisExternalApis
         print_warning_section('Invented groups', :invented_group)
         print_warning_section('Flattened subassessments', :flattened_subassessment)
         print_warning_section('Item-order overlay misses', :item_order)
+        print_warning_section('Invalid question_order (treated as blank)', :invalid_question_order, use_detail_only: true)
+        print_warning_section('Groups split by question_order', :split_group)
+        print_warning_section('Follow-up questions with no earlier parent (question_order)', :enable_when_parent_missing)
 
         puts
         if @validator_errors.any?
