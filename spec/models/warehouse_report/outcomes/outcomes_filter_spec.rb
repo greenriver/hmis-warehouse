@@ -20,6 +20,12 @@ RSpec.describe WarehouseReport::Outcomes::OutcomesFilter, type: :model do
     end
   end
 
+  it 'labels an outcomes report sub-population' do
+    filter.set_from_params({ sub_population: 'youth_at_search_start' })
+
+    expect(filter.chosen_sub_population).to eq('Youth (at search start)')
+  end
+
   it 'defaults a blank sub-population to all clients' do
     filter.set_from_params({ sub_population: '' })
 

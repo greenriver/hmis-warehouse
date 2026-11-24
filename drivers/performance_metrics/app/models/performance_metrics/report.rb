@@ -136,6 +136,12 @@ module PerformanceMetrics
       end
     end
 
+    # False when the RRH and PSH stays can't be limited to the chosen sub-population,
+    # in which case those stays are left out of the report.
+    def housed_stays_available_for_sub_population?
+      PerformanceMetrics::OutcomesSubPopulation.new(filter.sub_population).supported?
+    end
+
     def average_stay_length
       @average_stay_length ||= begin
         stay_lengths = []
@@ -701,7 +707,7 @@ module PerformanceMetrics
       options.delete(:comparison_pattern)
       rrh_filter.update(options)
       rrh_filter.project_type_numbers = [13]
-      WarehouseReport::Outcomes::RrhReport.new(rrh_filter)
+      PerformanceMetrics::Outcomes::RrhReport.new(rrh_filter)
     end
 
     private def run_psh
@@ -710,7 +716,7 @@ module PerformanceMetrics
       options.delete(:comparison_pattern)
       psh_filter.update(options)
       psh_filter.project_type_numbers = [3, 9, 10]
-      WarehouseReport::Outcomes::PshReport.new(psh_filter)
+      PerformanceMetrics::Outcomes::PshReport.new(psh_filter)
     end
 
     private def run_outflow

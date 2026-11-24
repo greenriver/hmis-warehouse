@@ -1351,7 +1351,7 @@ module Filters
     end
 
     def chosen_sub_population
-      AvailableSubPopulations.available_sub_populations.invert[sub_population]
+      available_sub_populations.invert[sub_population]
     end
 
     def chosen_age_ranges

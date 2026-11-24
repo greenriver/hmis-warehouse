@@ -545,6 +545,17 @@ RSpec.describe Filters::FilterBase, type: :model do
       expect(filter.sub_population).to eq(:youth_at_search_start)
     end
 
+    it 'labels a filter-specific sub-population from that filter' do
+      filter = Filters::OutflowReport.new(user_id: user.id)
+      filter.update(sub_population: 'youth_at_search_start')
+      expect(filter.chosen_sub_population).to eq('Youth at Search Start')
+    end
+
+    it 'labels a registered sub-population' do
+      filter = Filters::FilterBase.new(user_id: user.id, sub_population: :veterans)
+      expect(filter.chosen_sub_population).to eq('Veterans')
+    end
+
     it 'rejects the outflow-only youth sub-populations on the base filter' do
       expect { Filters::FilterBase.new(user_id: user.id, sub_population: :youth_at_search_start) }.
         to raise_error(AvailableSubPopulations::UnknownSubPopulation)
