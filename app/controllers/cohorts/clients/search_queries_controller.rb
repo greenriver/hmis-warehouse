@@ -8,10 +8,10 @@
 
 module Cohorts::Clients
   # This controller is responsible for securely storing cohort client search parameters
-  class SearchQueriesController < ApplicationController
+  class SearchQueriesController < ApplicationControllerV2
     include CohortAuthorization
-    before_action :require_can_access_cohort!
-    before_action :require_can_add_cohort_clients!
+    before_action :load_cohort
+    authorize_with { cohort_policy.can_add_clients? }
 
     def create
       safe_params = GrdaWarehouse::ClientSearchQuery.permit_params(params)

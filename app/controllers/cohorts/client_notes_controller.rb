@@ -7,13 +7,13 @@
 # frozen_string_literal: true
 
 module Cohorts
-  class ClientNotesController < ApplicationController
+  class ClientNotesController < ApplicationControllerV2
     include AjaxModalRails::Controller
     include CohortAuthorization
-    before_action :require_can_access_cohort!
-    before_action :require_can_update_some_cohort_data!, only: [:new, :create, :destroy]
-    before_action :set_cohort_and_client
-    before_action :require_notes_column_editable!, only: [:new, :create, :destroy]
+    before_action :load_cohort
+    authorize_with { cohort_policy.can_view? }
+    authorize_with(only: [:new, :create, :destroy]) { cohort_policy.can_update_data? && notes_column_editable? }
+    before_action :set_cohort_client
     before_action :set_note, only: [:destroy]
 
     def index
@@ -58,8 +58,7 @@ module Cohorts
       end
     end
 
-    def set_cohort_and_client
-      @cohort = GrdaWarehouse::Cohort.find(params[:cohort_id].to_i)
+    def set_cohort_client
       @cohort_client = @cohort.cohort_clients.find(params[:cohort_client_id].to_i)
     end
 
@@ -80,13 +79,7 @@ module Cohorts
       notes_column = @cohort.column_state.find { |c| c.is_a?(::CohortColumns::ClientNotes) }
       return false unless notes_column
 
-      notes_column.display_as_editable?(current_user, nil, on_cohort: @cohort)
-    end
-
-    private def require_notes_column_editable!
-      return if notes_column_editable?
-
-      not_authorized!
+      notes_column.display_as_editable?(current_user, nil, on_cohort: @cohort) == true
     end
 
     def set_note

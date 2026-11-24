@@ -13,9 +13,13 @@ module GrdaWarehouse::ClientNotes
     end
 
     def destroyable_by(user)
-      # Cohort notes may appear on multiple cohorts, so, only check the permissions here
+      # Cohort notes may appear on multiple cohorts, so check the cohorts the client is on
       # and check the column in the controller.
-      user.can_manage_cohort_data? || user.can_participate_in_cohorts?
+      return false unless client
+
+      client.cohort_clients.preload(:cohort).any? do |cohort_client|
+        cohort_client.cohort.present? && user.policy_for(cohort_client.cohort).can_edit_clients?
+      end
     end
   end
 end

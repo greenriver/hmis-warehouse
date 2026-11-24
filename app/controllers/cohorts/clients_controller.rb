@@ -8,7 +8,7 @@
 
 require 'json/ext'
 module Cohorts
-  class ClientsController < ApplicationController
+  class ClientsController < ApplicationControllerV2
     include AjaxModalRails::Controller
     include ArelHelper
     include Chronic
@@ -17,20 +17,23 @@ module Cohorts
     include ActionView::Helpers::TextHelper
     include Search
 
-    before_action :require_can_access_cohort!
-    before_action :require_can_add_cohort_clients!, only: [
-      :new,
-      :create,
-      :search,
-      :pre_destroy,
-      :destroy,
-      :pre_bulk_destroy,
-      :bulk_destroy,
-      :bulk_restore,
-    ]
-    before_action :require_can_update_some_cohort_data!, only: [:re_rank, :edit, :update]
-    before_action :set_cohort
-    before_action :set_client, only: [:destroy, :update, :show, :pre_destroy, :field]
+    before_action :load_cohort
+    authorize_with { cohort_policy.can_view? }
+    authorize_with(
+      only: [
+        :new,
+        :create,
+        :search,
+        :pre_destroy,
+        :destroy,
+        :pre_bulk_destroy,
+        :bulk_destroy,
+        :bulk_restore,
+      ],
+    ) { cohort_policy.can_add_clients? }
+    authorize_with(only: [:re_rank, :edit, :update]) { cohort_policy.can_update_data? }
+    before_action :set_client, only: [:destroy, :update, :pre_destroy, :field]
+    before_action :set_visible_client, only: [:show]
     before_action :load_cohort_names, only: [:index, :edit, :field, :update]
     skip_after_action :log_activity, only: [:index, :show]
 
@@ -71,7 +74,7 @@ module Cohorts
       else
         CohortColumns::Delete.new
       end
-      @visible_columns << delete_column if current_user.can_add_cohort_clients?
+      @visible_columns << delete_column if cohort_policy.can_add_clients?
 
       current_user.policy_context.preload_client_restrictions(@cohort_clients.map(&:client_id))
       @cohort_clients.each do |cohort_client|
@@ -686,6 +689,17 @@ module Cohorts
 
     def set_client
       @client = @cohort.cohort_clients.with_deleted.find(params[:id].to_i)
+    end
+
+    # Only rows that appear in a tab this user can see on this cohort
+    def set_visible_client
+      id = params[:id].to_i
+      visible = @cohort.cohort_tabs.select { |tab| tab.show_for?(current_user) }.any? do |tab|
+        @cohort.clients_for_tab(current_user, tab.name, tab).where(id: id).exists?
+      end
+      raise ActiveRecord::RecordNotFound unless visible
+
+      set_client
     end
 
     def cohort_client_source
