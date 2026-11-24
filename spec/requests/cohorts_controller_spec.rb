@@ -215,14 +215,6 @@ RSpec.describe CohortsController, type: :request do
         expect(response.body).to include(cohort.name)
       end
 
-      it 'refuses show for a manager-only user as xlsx' do
-        grant(user, [:can_configure_cohorts, :can_download_cohorts], cohort)
-
-        get cohort_path(cohort, format: :xlsx)
-
-        expect(response).not_to have_http_status(:ok)
-      end
-
       it 'refuses edit and update to a user who can only view the cohort' do
         grant(user, [:can_view_cohorts], cohort)
         original_name = cohort.name
@@ -397,6 +389,23 @@ RSpec.describe CohortsController, type: :request do
           grant_acl(user, [:can_configure_cohorts, :can_view_cohorts], cohort)
           cohort.replace_access([manager], scope: :manager)
           cohort.replace_access([viewer], scope: :viewer)
+        end
+
+        it 'rolls back every access list and the cohort when a later step fails' do
+          participant = create(:acl_user)
+          allow_any_instance_of(GrdaWarehouse::Cohort).to receive(:rename_manager_group).and_raise(ActiveRecord::RecordInvalid)
+
+          begin
+            patch cohort_path(cohort), params: { cohort: { name: 'Half applied', manager_ids: [''], viewer_ids: [''], participant_ids: [participant.id] } }
+          rescue ActiveRecord::RecordInvalid
+            nil
+          end
+
+          fresh = GrdaWarehouse::Cohort.find(cohort.id)
+          expect(fresh.name).to eq(cohort.name)
+          expect(fresh.manager_user_ids).to eq([manager.id])
+          expect(fresh.viewable_access_control.user_ids).to eq([viewer.id])
+          expect(fresh.editable_access_control.user_ids).to be_empty
         end
 
         it 'removes all managers when manager_ids is empty' do

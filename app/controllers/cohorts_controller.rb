@@ -148,17 +148,19 @@ class CohortsController < ApplicationControllerV2
 
   def create
     GrdaWarehouse::Cohort.transaction do
-      @cohort = cohort_source.create!(cohort_params.except(:user_ids, :participant_ids, :viewer_ids, :manager_ids))
-      # TODO: START_ACL remove when ACL transition complete
-      current_user.access_group.add_viewable(@cohort) unless AccessGroup.system_group(:cohorts).users.include?(current_user)
-      # END_ACL
+      ApplicationRecord.transaction do
+        @cohort = cohort_source.create!(cohort_params.except(:user_ids, :participant_ids, :viewer_ids, :manager_ids))
+        # TODO: START_ACL remove when ACL transition complete
+        current_user.access_group.add_viewable(@cohort) unless AccessGroup.system_group(:cohorts).users.include?(current_user)
+        # END_ACL
 
-      apply_submitted_access
-      # Always add the cohort to the system group
-      AccessGroup.maintain_system_groups(group: :cohorts)
-      # Add default tabs
-      GrdaWarehouse::CohortTab.default_rules.each do |rule|
-        @cohort.cohort_tabs.create(**rule)
+        apply_submitted_access
+        # Always add the cohort to the system group
+        AccessGroup.maintain_system_groups(group: :cohorts)
+        # Add default tabs
+        GrdaWarehouse::CohortTab.default_rules.each do |rule|
+          @cohort.cohort_tabs.create(**rule)
+        end
       end
     end
     # Search the list so you can see the newly created cohort
@@ -180,19 +182,22 @@ class CohortsController < ApplicationControllerV2
     project_group_on_cohort_pre_save = @cohort.project_group_id == cohort_options[:project_group_id].to_i
     cohort_options = cohort_options.except(:project_group_id) unless user_can_view_new_project_group || project_group_on_cohort_pre_save
 
+    # The cohort is a warehouse record, access groups are app records; both must roll back together
     saved = GrdaWarehouse::Cohort.transaction do
-      next false unless @cohort.update(cohort_options)
+      ApplicationRecord.transaction do
+        next false unless @cohort.update(cohort_options)
 
-      # TODO: START_ACL remove when ACL transition complete
-      if cohort_params.key?(:user_ids)
-        user_ids = Array(cohort_params[:user_ids]).select(&:present?).map(&:to_i)
-        @cohort.update_access(user_ids)
+        # TODO: START_ACL remove when ACL transition complete
+        if cohort_params.key?(:user_ids)
+          user_ids = Array(cohort_params[:user_ids]).select(&:present?).map(&:to_i)
+          @cohort.update_access(user_ids)
+        end
+        # END_ACL
+
+        apply_submitted_access
+        @cohort.rename_manager_group
+        true
       end
-      # END_ACL
-
-      apply_submitted_access
-      @cohort.rename_manager_group
-      true
     end
 
     @cohort.delay.maintain if saved && @cohort.auto_maintained?
