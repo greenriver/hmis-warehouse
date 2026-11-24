@@ -6,7 +6,6 @@ sources:
   - app/models/concerns/user_permission_cache.rb
   - app/models/concerns/user_concern.rb
   - app/models/grda_warehouse/hud/project.rb
-  - app/models/grda_warehouse/auth_policies/hud_report_policy.rb
   - app/controllers/application_controller.rb
 ---
 
@@ -117,9 +116,9 @@ See also: [Warehouse Auth Policies](warehouse-auth-policies.md)
 
 HUD reports are ordinary report definitions in the `HUD Reports` report group (`GrdaWarehouse::WarehouseReports::ReportDefinition.hud`). Access to run one is granted like any other report: put the definition in a Collection bound to a Role with `can_view_assigned_reports`. The system Collection "All HUD Reports" (and the legacy AccessGroup of the same name) holds every HUD definition except opt-in reports (`ReportDefinition::OPT_IN_HUD_URLS`, currently HOPWA CAPER), which must be granted separately. "All HMIS Reports" excludes all HUD definitions, so granting the latter does not carry HUD access. The system Role "HUD Report Viewer" holds only `can_view_assigned_reports` and was bound to that Collection for every user group that had a HUD flag when access moved to collections.
 
-HOPWA CAPER is opt-in because its drilldowns reveal HIV status; see [HOPWA CAPER](hopwa-caper.md).
+HOPWA CAPER is opt-in because its drilldowns reveal HIV status; see [HOPWA CAPER access and drilldowns](hopwa-caper.md#access-and-drilldowns).
 
-`can_view_all_hud_reports` only widens which report *runs* a user can see (everyone's instead of their own). `can_view_own_hud_reports` is deprecated; own-run visibility is the default. Project scoping inside a HUD report comes from `can_view_assigned_reports` collections, the same as other reports. `HudReportPolicy#can_view?` combines the definition grant and run ownership for one run.
+`can_view_all_hud_reports` only widens which report *runs* a user can see (everyone's instead of their own). `can_view_own_hud_reports` is deprecated; own-run visibility is the default. Project scoping inside a HUD report comes from `can_view_assigned_reports` collections, the same as other reports.
 
 Legacy users: a HUD flag on a legacy role counts as report access for HUD definitions only, so users who never had `can_view_assigned_reports` do not gain other reports that happen to be in their access groups.
 

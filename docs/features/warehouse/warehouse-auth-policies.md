@@ -6,8 +6,8 @@ sources:
   - app/models/grda_warehouse/auth_policies/organization_policy.rb
   - app/models/grda_warehouse/auth_policies/hud_report_policy.rb
   - app/models/hud_reports/report_instance.rb
-  - drivers/hopwa_caper/app/models/hopwa_caper/report_policy.rb
-  - drivers/hmis_data_quality_tool/app/models/hmis_data_quality_tool/report_policy.rb
+  - app/models/grda_warehouse/auth_policies/hopwa_caper_report_policy.rb
+  - app/models/grda_warehouse/auth_policies/hmis_data_quality_tool_report_policy.rb
   - app/models/grda_warehouse/auth_policies/cohort_pii_policy.rb
   - app/models/grda_warehouse/pii_provider.rb
   - app/controllers/concerns/controller_authorization_v2.rb
@@ -67,9 +67,9 @@ Both contexts expose the same methods, so policies don't branch on user type. Tw
 4. In the controller, use `authorize_with` (see [Controller authorization](warehouse-permissions.md#controller-authorization)).
 5. Spec with a user on each `permission_context`.
 
-A policy for a subset of a model's records (`HopwaCaper::ReportPolicy`) is obtained with `policy_for(record, policy_class:)`. The memo key includes `policy_class`, and `validate_resource!` rejects records outside the subset.
+A policy for a subset of a model's records (`HopwaCaperReportPolicy`) is obtained with `policy_for(record, policy_class:)`. The memo key includes `policy_class`, and `validate_resource!` rejects records outside the subset.
 
-`HudReportPolicy#can_view?` is `can_view_definition?` (the run's definition, from `ReportInstance#report_definition_url`, is viewable) and `run_visible?` (the run is in `ReportInstance.viewable_by(user)`). `HmisDataQualityTool::ReportPolicy` overrides both halves with the tool's own definition and `visible_to`.
+`HudReportPolicy#can_view?` is `can_view_definition?` (the run's definition, from `ReportInstance#report_definition_url`, is viewable) and `run_visible?` (the run is in `ReportInstance.viewable_by(user)`). `HmisDataQualityToolReportPolicy` overrides both halves with the tool's own definition and `visible_to`.
 
 Get policies from `user.policy_for` and `user.policy_context`, which are memoized for the request. Don't construct a context per check.
 

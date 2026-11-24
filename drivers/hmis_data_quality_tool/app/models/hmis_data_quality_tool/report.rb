@@ -162,7 +162,7 @@ module HmisDataQualityTool
     end
 
     def policy_class
-      HmisDataQualityTool::ReportPolicy
+      GrdaWarehouse::AuthPolicies::HmisDataQualityToolReportPolicy
     end
 
     def url
