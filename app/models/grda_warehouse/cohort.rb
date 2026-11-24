@@ -286,6 +286,10 @@ module GrdaWarehouse
       user.can_access_some_cohorts
     end
 
+    def policy_class
+      GrdaWarehouse::AuthPolicies::CohortPolicy
+    end
+
     def user_can_edit_cohort_clients user
       self.class.editable_by(user).where(id: id).exists?
     end

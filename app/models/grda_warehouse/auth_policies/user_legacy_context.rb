@@ -18,6 +18,7 @@ class GrdaWarehouse::AuthPolicies::UserLegacyContext < GrdaWarehouse::AuthPolici
     @access_group_ids_by_project = {}
     @access_group_ids_by_client = {}
     @enrolled_project_ids_by_client = {}
+    @cohort_permissions_by_cohort = {}
   end
 
   memoize def project_role_permissions(project_id)
@@ -38,6 +39,21 @@ class GrdaWarehouse::AuthPolicies::UserLegacyContext < GrdaWarehouse::AuthPolici
   memoize def direct_client_role_permissions(client_id)
     access_group_ids = direct_client_access_group_ids(client_id)
     permissions_for_access_group_ids(access_group_ids)
+  end
+
+  # All of the user's role permissions when the cohort is one of the user's cohorts
+  def cohort_role_permissions(cohort_id)
+    preload_cohort_dependencies([cohort_id]) unless @cohort_permissions_by_cohort.key?(cohort_id)
+    @cohort_permissions_by_cohort[cohort_id]
+  end
+
+  # Fixed number of queries regardless of how many cohorts are given
+  def preload_cohort_dependencies(cohort_ids)
+    cohort_ids = cohort_ids.uniq
+    accessible_ids = user.cohorts.where(id: cohort_ids).pluck(:id).to_set
+    cohort_ids.each do |cohort_id|
+      @cohort_permissions_by_cohort[cohort_id] = accessible_ids.include?(cohort_id) ? legacy_permissions : EMPTY_SET
+    end
   end
 
   # Returns the project ids this client is enrolled in. Called by
