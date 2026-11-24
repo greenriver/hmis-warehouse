@@ -24,6 +24,19 @@ class WarehouseReport::Outcomes::OutcomesFilter < Filters::FilterBase
     self.veteran_status = veteran_statuses.first
   end
 
+  # The outcomes reports use their own sub-population keys (e.g. :veteran,
+  # :youth_at_search_start) rather than the registered AvailableSubPopulations,
+  # so the strict sub_population= writer must validate against those.
+  def available_sub_populations
+    report_classes = [
+      WarehouseReport::Outcomes::Base,
+      WarehouseReport::Outcomes::EsReport,
+      WarehouseReport::Outcomes::ThReport,
+    ]
+    sub_populations = report_classes.map(&:available_subpopulations).reduce(:merge)
+    sub_populations.merge(clients: 'All').invert
+  end
+
   def all_project_scope
     scope = GrdaWarehouse::Hud::Project.viewable_by(user, permission: :can_view_assigned_reports)
     scope = scope.with_project_type(project_type_numbers) if project_type_numbers.present?
