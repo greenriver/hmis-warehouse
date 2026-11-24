@@ -360388,6 +360388,7 @@ ALTER TABLE ONLY public.continuum_semi_annual_performance_approvals
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261124140000'),
 ('20261117160000'),
 ('20261116150000'),
 ('20261104120200'),
