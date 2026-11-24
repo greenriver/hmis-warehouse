@@ -440,15 +440,14 @@ RSpec.describe CohortsController, type: :request do
       end
 
       describe 'user pickers' do
-        let(:active_user) { create(:acl_user) }
-        let(:inactive_user) { create(:acl_user, active: false) }
-        let(:expired_user) { create(:acl_user, expired_at: 1.day.ago) }
+        let!(:active_user) { create(:acl_user) }
+        let!(:inactive_user) { create(:acl_user, active: false) }
+        let!(:expired_user) { create(:acl_user, expired_at: 1.day.ago) }
         let(:picker_keys) { [:manager_ids, :participant_ids, :viewer_ids] }
 
         before do
           sign_in user
           grant_acl(user, [:can_create_cohorts, :can_configure_cohorts, :can_view_cohorts], cohort)
-          [active_user, inactive_user, expired_user]
         end
 
         def picker_values(key)
@@ -593,6 +592,33 @@ RSpec.describe CohortsController, type: :request do
       def grant(...) = grant_legacy(...)
 
       include_examples 'cohort access by mode'
+
+      describe 'POST /cohorts project group' do
+        before do
+          sign_in user
+          grant_legacy(user, [:can_create_cohorts, :can_view_cohorts], cohort)
+        end
+
+        it 'does not link a project group the creator cannot view' do
+          hidden = create(:project_group)
+
+          post cohorts_path, params: { cohort: { name: 'Hidden group', project_group_id: hidden.id } }
+
+          expect(GrdaWarehouse::Cohort.find_by!(name: 'Hidden group').project_group_id).to be_nil
+        end
+
+        it 'links a project group the creator can view' do
+          visible = create(:project_group)
+          create(:access_group).tap do |access_group|
+            access_group.add(user)
+            access_group.add_viewable(visible)
+          end
+
+          post cohorts_path, params: { cohort: { name: 'Visible group', project_group_id: visible.id } }
+
+          expect(GrdaWarehouse::Cohort.find_by!(name: 'Visible group').project_group_id).to eq(visible.id)
+        end
+      end
     end
   end
 end

@@ -104,10 +104,12 @@ RSpec.describe DocumentExportsController, type: :request do
     end
 
     describe 'downloading an existing export' do
-      def download_refused_for?(export_user, export)
+      def expect_download_refused(export_user, export)
         get download_document_export_path(export)
 
-        response.redirect? && response.location.end_with?(export_user.my_root_path) && !response.body.include?('xlsx-bytes')
+        expect(response).to be_redirect
+        expect(response.location).to end_with(export_user.my_root_path)
+        expect(response.body).not_to include('xlsx-bytes')
       end
 
       def completed_export(export_user, cohort_id)
@@ -121,15 +123,17 @@ RSpec.describe DocumentExportsController, type: :request do
         )
       end
 
-      it 'is refused for a cohort the user can only view, and allowed where download was granted' do
+      it 'is refused for a cohort the user can only view' do
         grant(user, [:can_view_cohorts], other_cohort)
-        refused = completed_export(user, other_cohort.id)
-        allowed = completed_export(user, cohort.id)
 
-        expect(download_refused_for?(user, refused)).to be(true)
+        expect_download_refused(user, completed_export(user, other_cohort.id))
         expect(ActivityLog.where(user_id: user.id, action_name: 'download').count).to eq(0)
+      end
 
-        get download_document_export_path(allowed)
+      it 'is allowed for a cohort where download was granted' do
+        grant(user, [:can_view_cohorts], other_cohort)
+
+        get download_document_export_path(completed_export(user, cohort.id))
         expect(response).to have_http_status(:ok)
         expect(response.body).to eq('xlsx-bytes')
       end
@@ -139,7 +143,7 @@ RSpec.describe DocumentExportsController, type: :request do
         grant(manager, [:can_configure_cohorts, :can_download_cohorts], other_cohort)
         sign_in manager
 
-        expect(download_refused_for?(manager, completed_export(manager, other_cohort.id))).to be(true)
+        expect_download_refused(manager, completed_export(manager, other_cohort.id))
       end
     end
 
