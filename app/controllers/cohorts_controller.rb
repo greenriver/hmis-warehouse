@@ -149,7 +149,8 @@ class CohortsController < ApplicationControllerV2
   def create
     GrdaWarehouse::Cohort.transaction do
       ApplicationRecord.transaction do
-        @cohort = cohort_source.create!(cohort_params.except(:user_ids, :participant_ids, :viewer_ids, :manager_ids))
+        cohort_options = cohort_params.except(:user_ids, :participant_ids, :viewer_ids, :manager_ids)
+        @cohort = cohort_source.create!(viewable_project_group_options(cohort_options))
         # TODO: START_ACL remove when ACL transition complete
         current_user.access_group.add_viewable(@cohort) unless AccessGroup.system_group(:cohorts).users.include?(current_user)
         # END_ACL
@@ -177,10 +178,7 @@ class CohortsController < ApplicationControllerV2
     # END_ACL
     cohort_options = cohort_options.except(:name) if @cohort.system_cohort
 
-    # checks to see if user can see the project group OR if the project group is on the cohort pre-save.
-    user_can_view_new_project_group = cohort_options[:project_group_id].blank? || GrdaWarehouse::ProjectGroup.viewable_by(current_user).exists?(cohort_options[:project_group_id])
-    project_group_on_cohort_pre_save = @cohort.project_group_id == cohort_options[:project_group_id].to_i
-    cohort_options = cohort_options.except(:project_group_id) unless user_can_view_new_project_group || project_group_on_cohort_pre_save
+    cohort_options = viewable_project_group_options(cohort_options, current_project_group_id: @cohort.project_group_id)
 
     # The cohort is a warehouse record, access groups are app records; both must roll back together
     saved = GrdaWarehouse::Cohort.transaction do
@@ -202,6 +200,16 @@ class CohortsController < ApplicationControllerV2
 
     @cohort.delay.maintain if saved && @cohort.auto_maintained?
     respond_with(@cohort, location: saved ? location_after_update : nil)
+  end
+
+  # A project group is kept only if the user can view it or it is already the cohort's group.
+  private def viewable_project_group_options(options, current_project_group_id: nil)
+    project_group_id = options[:project_group_id]
+    return options if project_group_id.blank?
+    return options if GrdaWarehouse::ProjectGroup.viewable_by(current_user).exists?(project_group_id)
+    return options if current_project_group_id == project_group_id.to_i
+
+    options.except(:project_group_id)
   end
 
   # The policy memoized on current_user predates any access change made by this request

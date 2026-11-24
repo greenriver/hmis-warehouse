@@ -411,12 +411,90 @@ RSpec.describe CohortsController, type: :request do
           expect(created.viewable_access_control.user_ids).to be_empty
         end
 
+        it 'does not link a project group the creator cannot view' do
+          hidden = create(:project_group)
+
+          post cohorts_path, params: { cohort: { name: 'Hidden group', project_group_id: hidden.id } }
+
+          expect(GrdaWarehouse::Cohort.find_by!(name: 'Hidden group').project_group_id).to be_nil
+        end
+
+        it 'links a project group the creator can view' do
+          visible = create(:project_group)
+          collection = create(:collection)
+          collection.set_viewables({ project_groups: [visible.id] })
+          setup_access_control(user, role_with(:can_view_assigned_reports), collection)
+
+          post cohorts_path, params: { cohort: { name: 'Visible group', project_group_id: visible.id } }
+
+          expect(GrdaWarehouse::Cohort.find_by!(name: 'Visible group').project_group_id).to eq(visible.id)
+        end
+
         it 'ignores ids that are not active users' do
           inactive = create(:acl_user, active: false)
 
           post cohorts_path, params: { cohort: { name: 'Ignoring ids', manager_ids: [inactive.id, 0] } }
 
           expect(GrdaWarehouse::Cohort.find_by!(name: 'Ignoring ids').manager_user_ids).to be_empty
+        end
+      end
+
+      describe 'user pickers' do
+        let(:active_user) { create(:acl_user) }
+        let(:inactive_user) { create(:acl_user, active: false) }
+        let(:expired_user) { create(:acl_user, expired_at: 1.day.ago) }
+        let(:picker_keys) { [:manager_ids, :participant_ids, :viewer_ids] }
+
+        before do
+          sign_in user
+          grant_acl(user, [:can_create_cohorts, :can_configure_cohorts, :can_view_cohorts], cohort)
+          [active_user, inactive_user, expired_user]
+        end
+
+        def picker_values(key)
+          Nokogiri::HTML(response.body).css("select[name$='[#{key}][]'] option").map { |option| option['value'] }.reject(&:blank?)
+        end
+
+        def group_members(key)
+          case key
+          when :manager_ids then cohort.reload.manager_user_ids
+          when :participant_ids then cohort.editable_access_control.user_ids
+          when :viewer_ids then cohort.viewable_access_control.user_ids
+          end
+        end
+
+        [:new, :edit].each do |page|
+          it "offers only active users in every picker on #{page}" do
+            get(page == :new ? new_cohort_path : edit_cohort_path(cohort))
+
+            expect(response).to have_http_status(:ok)
+            picker_keys.each do |key|
+              values = picker_values(key)
+              expect(values).to include(active_user.id.to_s), "#{key} offers the active user"
+              expect(values).not_to include(inactive_user.id.to_s, expired_user.id.to_s), "#{key} excludes inactive and expired users"
+            end
+          end
+        end
+
+        it 'does not add an inactive or expired user to any group on update' do
+          ids = [active_user.id, inactive_user.id, expired_user.id]
+
+          patch cohort_path(cohort), params: { cohort: picker_keys.index_with { ids } }
+
+          picker_keys.each do |key|
+            expect(group_members(key)).to eq([active_user.id]), "#{key} members"
+          end
+        end
+
+        it 'does not add an inactive or expired user to any group on create' do
+          ids = [active_user.id, inactive_user.id, expired_user.id]
+
+          post cohorts_path, params: { cohort: { name: 'Active only' }.merge(picker_keys.index_with { ids }) }
+
+          created = GrdaWarehouse::Cohort.find_by!(name: 'Active only')
+          expect(created.manager_user_ids).to eq([active_user.id])
+          expect(created.editable_access_control.user_ids).to eq([active_user.id])
+          expect(created.viewable_access_control.user_ids).to eq([active_user.id])
         end
       end
 
