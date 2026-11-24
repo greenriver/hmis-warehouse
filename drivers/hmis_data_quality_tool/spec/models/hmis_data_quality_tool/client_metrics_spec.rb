@@ -518,6 +518,20 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
       end
 
+      context 'with missing veteran status for a client who is exactly 18 at report end' do
+        before do
+          @project = create_project(project_type: 1) # ES
+          @client = create_client_with_warehouse_link(dob: default_filter.end - 18.years)
+          @client.update(VeteranStatus: 99) # Data not collected
+          create_enrollment(client: @client, project: @project)
+          @report = setup_report([@project.id])
+        end
+
+        it 'counts the 18-year-old as an adult in the denominator and flags them' do
+          expect_result(key: :veteran_issues, total: 1, invalid_count: 1)
+        end
+      end
+
       context 'with missing veteran status for child' do
         before do
           @project = create_project(project_type: 1) # ES

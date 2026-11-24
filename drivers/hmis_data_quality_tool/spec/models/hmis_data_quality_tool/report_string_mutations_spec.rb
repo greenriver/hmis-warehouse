@@ -13,7 +13,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
 
   describe '#household method with << operations' do
     it 'uses << operation to build household arrays' do
-      # Test the << operation from line 283: households[enrollment.HouseholdID] << she
+      # Enrollments are appended to the household array keyed by data source and HouseholdID.
 
       household_id = 'HH001'
 
@@ -23,6 +23,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
 
       enrollment = double(
         'enrollment',
+        data_source_id: 1,
         HouseholdID: household_id,
         EntryDate: Date.current,
         service_history_enrollment: she,
@@ -44,14 +45,14 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
       allow(report).to receive_message_chain(:filter, :start).and_return(Date.current)
 
       # Call the actual method that contains the << operation
-      result = report.household(household_id)
+      result = report.household(1, household_id)
 
       # Should return array containing the service history enrollment
-      expect(result).to be_an(Array)
+      expect(result).to eq([she])
     end
 
     it 'handles empty household ID' do
-      result = report.household(nil)
+      result = report.household(1, nil)
       expect(result).to be_nil
     end
   end
@@ -130,7 +131,7 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
       allow(report).to receive_message_chain(:filter, :start).and_return(Date.current)
 
       # Should call method with << operations without error
-      expect { report.household('test_id') }.not_to raise_error
+      expect { report.household(1, 'test_id') }.not_to raise_error
     end
 
     it 'exercises per_project_results method without errors' do

@@ -164,6 +164,21 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
       end
     end
 
+    describe 'Head of Household Issues across data sources' do
+      it 'does not count a HoH from another data source with the same HouseholdID' do
+        project = create_project(project_type: 4)
+        create_enrollment(client: create_client_with_warehouse_link, project: project, household_id: 'hh-shared')
+        other_project = nil
+        in_data_source(create(:source_data_source)) do
+          other_project = create_project(project_type: 4)
+          create_enrollment(client: create_client_with_warehouse_link, project: other_project, household_id: 'hh-shared')
+        end
+        @report = setup_report([project.id, other_project.id])
+
+        expect_result(key: :multiple_hoh_issues, total: 2, invalid_count: 0)
+      end
+    end
+
     describe 'Exit Date Issues' do
       context 'with exit date after entry date' do
         before do
