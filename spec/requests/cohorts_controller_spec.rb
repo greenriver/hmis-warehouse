@@ -621,4 +621,49 @@ RSpec.describe CohortsController, type: :request do
       end
     end
   end
+
+  describe 'GET /cohorts/:id script values' do
+    let(:user) { create(:acl_user) }
+    let(:cohort) { create(:cohort) }
+    let(:cohort_role) { create(:role, can_view_cohorts: true, can_view_clients: true) }
+    let(:all_cohorts_collection) { Collection.system_collection(:cohorts) }
+
+    before do
+      GrdaWarehouse::CohortTab.default_rules.each { |rule| cohort.cohort_tabs.create!(**rule) }
+      GrdaWarehouse::CohortClient.create!(cohort: cohort, client: create(:grda_warehouse_hud_client), active: true)
+      Collection.maintain_system_groups
+      setup_access_control(user, cohort_role, all_cohorts_collection)
+      sign_in user
+    end
+
+    it 'renders the default population as a JSON string' do
+      get cohort_path(cohort)
+
+      expect(response.body).to include('cohort_options')
+      expect(response.body).to include('population: "Active Clients"')
+    end
+
+    [
+      ['quotes', 'x";probe="'],
+      ['a closing script tag', '</script><script>x</script>'],
+    ].each do |label, payload|
+      it "emits a population param containing #{label} only as a JSON string" do
+        get cohort_path(cohort, population: payload)
+
+        expect(response.body).to include('cohort_options')
+        expect(response.body).to include("population: #{payload.to_json}")
+        expect(response.body).not_to include(payload)
+      end
+
+      it "emits a stored sort direction containing #{label} only as a JSON string" do
+        cohort.update_column(:default_sort_direction, payload)
+
+        get cohort_path(cohort)
+
+        expect(response.body).to include('cohort_options')
+        expect(response.body).to include("sort_direction: #{payload.to_json}")
+        expect(response.body).not_to include(payload)
+      end
+    end
+  end
 end

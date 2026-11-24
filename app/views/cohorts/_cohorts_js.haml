@@ -9,7 +9,7 @@
             batch_size: 100,
             // static_column_count: #{@cohort.static_column_count + 1},
             client_count: #{@cohort.client_search_scope.count},
-            sort_direction: '#{@cohort.default_sort_direction}',
+            sort_direction: #{@cohort.default_sort_direction.to_s.to_json},
             column_order: #{(@visible_columns.map(&:column)).to_json.html_safe},
             column_headers: #{@column_headers.to_json.html_safe},
             column_options: #{@column_options.to_json.html_safe},
@@ -25,7 +25,7 @@
             updated_ats: #{@cohort_client_updates.to_json.html_safe},
             search_selector: '#cohort-search',
             search_actions_selector: '.jSearchActions',
-            population: "#{@population}",
+            population: #{@population.to_json},
             thresholds: #{@thresholds.to_json.html_safe}
           }
           $('body').data('cohort', new App.Cohorts.Cohort(cohort_options));

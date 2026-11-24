@@ -387,7 +387,7 @@ window.App.Cohorts.Cohort = class Cohort {
       url += "&inactive=true";
     }
     if (this.population != null) {
-      url += `&population=${this.population}`;
+      url += `&population=${encodeURIComponent(this.population)}`;
     }
 
     if (this.current_page > (this.pages + 1)) {

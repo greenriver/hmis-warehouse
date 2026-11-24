@@ -405,6 +405,8 @@ module GrdaWarehouse
       attr_accessor accessor_name
     end
 
+    validates :default_sort_direction, inclusion: { in: ->(record) { record.class.sort_directions.keys } }, allow_blank: true
+
     def self.sort_directions
       {
         'desc' => 'Descending',
