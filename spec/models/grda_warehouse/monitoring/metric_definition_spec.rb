@@ -514,7 +514,7 @@ RSpec.describe GrdaWarehouse::Monitoring::MetricDefinition, type: :model do
     end
 
     it 'excludes a snapshot whose value equals the previous snapshot value' do
-      [[client1, 100], [client2, 150]].each do |client, new_value|
+      [[client1, 100, 130], [client2, 150, 100]].each do |client, initial_value, current_value|
         create(
           :grda_warehouse_monitoring_metric_snapshot,
           metric_definition: metric_with_alert,
@@ -530,8 +530,8 @@ RSpec.describe GrdaWarehouse::Monitoring::MetricDefinition, type: :model do
           entity: client,
           initial_observation_date: calculation_date,
           current_observation_date: calculation_date,
-          initial_value: new_value,
-          current_value: new_value,
+          initial_value: initial_value,
+          current_value: current_value,
         )
       end
 
