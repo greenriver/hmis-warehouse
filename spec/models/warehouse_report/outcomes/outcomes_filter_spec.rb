@@ -40,6 +40,16 @@ RSpec.describe WarehouseReport::Outcomes::OutcomesFilter, type: :model do
     expect(filter.sub_population).to eq(:veterans)
   end
 
+  it 'keeps a registered sub-population whose label matches an outcomes label' do
+    registered_sub_populations = AvailableSubPopulations.available_sub_populations.merge('Veteran' => :registered_veteran)
+    allow(AvailableSubPopulations).to receive(:available_sub_populations).and_return(registered_sub_populations)
+
+    sub_populations = filter.available_sub_populations
+
+    expect(sub_populations['Veteran']).to eq(:registered_veteran)
+    expect(sub_populations['Veteran (veteran)']).to eq(:veteran)
+  end
+
   it 'rejects an unknown sub-population' do
     expect do
       filter.set_from_params({ sub_population: 'not_a_population' })
