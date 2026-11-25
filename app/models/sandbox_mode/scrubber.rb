@@ -67,6 +67,8 @@ class SandboxMode::Scrubber
     scrub(result, 'hmis_supplemental_data_sets', HmisSupplemental::DataSet, sync_enabled: false)
     scrub(result, 'external_hmis_configurations', GrdaWarehouse::ExternalHmisConfiguration, base_url: nil)
     scrub(result, 'talentlms_configs', Talentlms::Config, secrets: [:api_key], subdomain: UNREACHABLE_HOST)
+    scrub(result, 'public_report_settings', PublicReports::Setting, secrets: [:s3_access_key_id, :s3_secret], s3_bucket: nil)
+    scrub(result, 'talentlms_logins', Talentlms::Login, secrets: [:password])
     scrub(result, 'text_message_topics', TextMessage::Topic, active_topic: false, arn: nil)
     scrub(result, 'lftp_s3_syncs', GrdaWarehouse::LftpS3Sync, secrets: [:ftp_pass], ftp_host: UNREACHABLE_HOST, ftp_user: SECRET)
     scrub(
@@ -98,7 +100,7 @@ class SandboxMode::Scrubber
   # Soft-deleted rows are included so a restored row cannot bring back working credentials.
   def scrub(result, table, model, secrets: [], **plain)
     rows = model.respond_to?(:with_deleted) ? model.with_deleted : model.unscoped
-    count = rows.update_all(plain)
+    count = plain.any? ? rows.update_all(plain) : rows.count
     scrub_secrets(rows, model, secrets) if secrets.any?
     result[table] = count
   end

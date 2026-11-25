@@ -126,6 +126,18 @@ RSpec.describe SandboxMode::Scrubber do
       expect(hmis.reload.base_url).to be_nil
     end
 
+    it 'replaces public report S3 credentials and bucket, and training logins, with decryptable placeholders' do
+      settings = PublicReports::Setting.create!(s3_bucket: 'live-bucket', s3_access_key_id: 'live-key', s3_secret: 'live-secret')
+      lms = Talentlms::Config.new(subdomain: 'partner', api_key: 'live').tap { |config| config.save!(validate: false) }
+      login = Talentlms::Login.create!(login: 'someone', password: 'live-password', user: create(:user), config: lms)
+
+      result
+
+      expect(settings.reload).to have_attributes(s3_bucket: nil, s3_access_key_id: 'sandbox-scrubbed', s3_secret: 'sandbox-scrubbed')
+      expect(login.reload).to have_attributes(login: 'someone', password: 'sandbox-scrubbed')
+      expect(result).to include('public_report_settings' => 1, 'talentlms_logins' => 1)
+    end
+
     it 'turns off remote configs, custom imports, supplemental syncs, and Eccovia fetches' do
       remote_config = GrdaWarehouse::RemoteConfig.create!(type: 'GrdaWarehouse::RemoteConfig', active: true, remote_credential: credential)
       custom = GrdaWarehouse::CustomImports::Config.create!(user: create(:user), active: true, s3_bucket: 'b', s3_access_key_id: 'live', s3_secret_access_key: 'live', data_source: create(:source_data_source))

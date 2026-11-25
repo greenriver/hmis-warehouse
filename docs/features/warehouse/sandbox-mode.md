@@ -62,7 +62,7 @@ CAS (database writes and `configs.cas_url`), Superset (Doorkeeper and the Supers
 
 `SandboxMode::Scrubber#run!` runs in separate transactions against the warehouse, app, and health databases and returns a hash of table name to rows changed. It logs the three database names and each count at `warn`, never row contents.
 
-- Credentials, hosts, and buckets in the warehouse integration tables are replaced with `sandbox-scrubbed`, `sandbox.invalid`, or `NULL`, and `active` is set false. `SandboxMode::Scrubber` is the authority on which tables and columns.
+- Credentials, hosts, and buckets in the warehouse integration tables are replaced with `sandbox-scrubbed`, `sandbox.invalid`, or `NULL`, and `active` is set false. That includes the public report S3 settings and TalentLMS logins. `SandboxMode::Scrubber` is the authority on which tables and columns.
 - Soft-deleted rows are scrubbed too, so restoring a deleted row cannot bring back working credentials.
 - Secrets are written through the `attr_encrypted` writer, so scrubbed values still decrypt and admin pages that render them do not raise.
 - Data sources get `import_paused`. `delayed_jobs` is emptied. External-form settings in `AppConfigProperty` are pointed at `sandbox.invalid` or removed. `GrdaWarehouse::Config.invalidate_cache` runs afterward.
@@ -120,8 +120,8 @@ Add its credential columns to `SandboxMode::Scrubber` so the clone does not carr
 ## Limits
 
 - Saving an MCI ID from the HMIS frontend in an install with MCI enabled raises in sandbox mode, because the MCI credential lookup finds no active credential.
-- The snapshot, any backup taken before the scrub, and the production `ENCRYPTION_KEY` (the clone uses the same key) all hold live secrets. The scrub protects the running sandbox, not those copies.
-- Inbound credentials (`oauth_applications`, `inbound_api_configurations`) are not rotated, so a clone accepts the same inbound credentials as production.
+- The scrub changes the running sandbox's database rows only. It does not cover the snapshot, any backup taken before the scrub, the `ENCRYPTION_KEY` the clone runs with, or inbound credentials. For each clone, operators decide whether to give it its own `ENCRYPTION_KEY`, whether to rotate or remove inbound credentials, and how to handle pre-scrub backups.
+- Inbound credentials (`oauth_applications`, `inbound_api_configurations`, and the bearer tokens in `report_tokens`) are not changed by the scrub.
 - `SANDBOX_MODE` and the email filter are separate switches. A sandbox with only one of them set can still send real mail or call partners.
 
 ## Related

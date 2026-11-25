@@ -69,7 +69,7 @@ RSpec.describe SandboxMode do
     it 'reports sandbox mode on' do
       ENV['SANDBOX_MODE'] = 'true'
       ENV['SANDBOX_EMAIL_ALLOWED_DOMAINS'] = nil
-      expect(described_class.config_warnings).to eq(['SANDBOX_MODE is on: external integrations are disabled'])
+      expect(described_class.config_warnings).to eq(['SANDBOX_MODE is on: external integrations are disabled and required training is skipped'])
     end
 
     ['1', 'TRUE', 'yes'].each do |value|

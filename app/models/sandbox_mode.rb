@@ -31,7 +31,7 @@ module SandboxMode
     warnings = []
     mode = ENV['SANDBOX_MODE']
     if enabled?
-      warnings << 'SANDBOX_MODE is on: external integrations are disabled'
+      warnings << 'SANDBOX_MODE is on: external integrations are disabled and required training is skipped'
     elsif mode.present?
       warnings << "SANDBOX_MODE is set to #{mode.inspect} and is ignored; only \"true\" enables sandbox mode"
     end
