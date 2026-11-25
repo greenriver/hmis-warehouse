@@ -81,6 +81,7 @@ Accepted differences from the CAS value (`disabled_client_scope`):
 |---|---|---|
 | Scope | Eligibility scope only, so an out-of-scope later No does not override an in-scope Yes | All of the client's data |
 | No answer collected | `nil` | `false` |
+| Yes with no `InformationDate`, then a later dated No of the same type | No (an undated row sorts before every dated row) | Yes (an undated Yes is never replaced) |
 
 ## Unit Group–Driven Maintenance
 

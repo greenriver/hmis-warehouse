@@ -118,32 +118,32 @@ module Hmis::Ce::Match::Expression
     # Rows with a response of 0-3 that pass +answered_condition+ are candidates for "latest". For each disability
     # type, the type is positive if any row on its latest InformationDate passes +qualifies_condition+ (so a same-day
     # qualifying row wins, as in the warehouse). A later answered row replaces an earlier qualifying row of the same
-    # type even if the later row does not qualify. Rows without an InformationDate are skipped.
+    # type even if the later row does not qualify. Rows without an InformationDate sort last, so they only count
+    # when the type has no dated answer. (Unlike the warehouse, a later dated answer replaces an undated Yes.)
     #
     # Reduces rows in SQL so the result is one row per client, however many disability rows a client has.
     #
     # @return [Hash{Integer => Boolean}] clients without any answered disability row are absent
     def disabled_because_disability_by_client(client_ids)
-      latest_date_for_type = nf('MAX', [d_t[:InformationDate]]).over(
-        Arel::Nodes::Window.new.partition([wc_t[:destination_id], d_t[:DisabilityType]]),
-      )
+      # DENSE_RANK so every row on the latest InformationDate (or every undated row) shares rank 1
+      latest_date_first = Arel::Nodes::Window.new.
+        partition([wc_t[:destination_id], d_t[:DisabilityType]]).
+        order(d_t[:InformationDate].desc.nulls_last)
       answered_rows = Hmis::Hud::Disability.
         joins(:enrollment).
         merge(@eligibility_scope.call(client_ids)).
         where(DisabilityType: DISABILITY_TYPE_CODES.values).
-        where.not(InformationDate: nil).
         where(answered_condition).
         select(
           wc_t[:destination_id].as('client_id'),
-          d_t[:InformationDate].as('information_date'),
-          latest_date_for_type.as('latest_information_date'),
+          nf('DENSE_RANK').over(latest_date_first).as('date_rank'),
           qualifies_condition.as('qualifies'),
         )
 
       answered = Arel::Table.new(:answered_disabilities, type_caster: Hmis::Hud::Disability.type_caster)
       rows = Hmis::Hud::Disability.unscoped.
         from(answered_rows, answered.name).
-        where(answered[:information_date].eq(answered[:latest_information_date])).
+        where(answered[:date_rank].eq(1)).
         group(answered[:client_id]).
         pluck(answered[:client_id], nf('BOOL_OR', [answered[:qualifies]]))
 

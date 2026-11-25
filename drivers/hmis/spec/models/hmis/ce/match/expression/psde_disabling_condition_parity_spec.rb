@@ -118,6 +118,13 @@ RSpec.describe Hmis::Ce::Match::Expression::PsdeValueResolver, type: :model do
         create_disability(enrollment, type: 7, response: 1, weeks_ago: 10)
         [source.destination_client, true]
       end,
+      'disability Yes without an InformationDate' => lambda do
+        source = create_source_client
+        enrollment = create_enrollment(source, entry_months_ago: 3)
+        disability = create_disability(enrollment, type: 9, response: 1, weeks_ago: 10)
+        disability.update_columns(InformationDate: nil)
+        [source.destination_client, true]
+      end,
       'substance use Both' => lambda do
         source = create_source_client
         enrollment = create_enrollment(source, entry_months_ago: 3)

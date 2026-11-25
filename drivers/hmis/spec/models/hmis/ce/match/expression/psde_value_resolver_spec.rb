@@ -328,9 +328,15 @@ RSpec.describe Hmis::Ce::Match::Expression::PsdeValueResolver, type: :model do
         expect(resolved_value).to be(true)
       end
 
-      it 'ignores rows without an InformationDate' do
+      it 'sorts rows without an InformationDate after dated rows' do
         create_mental_health(1, information_date: current_date - 1.week)
         create_mental_health(0, information_date: nil)
+
+        expect(resolved_value).to be(true)
+      end
+
+      it 'uses a row without an InformationDate when there is no dated row' do
+        create_mental_health(1, information_date: nil)
 
         expect(resolved_value).to be(true)
       end
@@ -375,6 +381,15 @@ RSpec.describe Hmis::Ce::Match::Expression::PsdeValueResolver, type: :model do
       it 'collects values in window across enrollments' do
         older_enrollment = create_enrollment(EntryDate: current_date - 2.months)
         create_mental_health(1, for_enrollment: older_enrollment, information_date: current_date - 3.weeks)
+        create_mental_health(0, information_date: current_date - 1.week)
+
+        values_by_client = resolver.call(clients, registry::MENTAL_HEALTH_DISORDER_VALUES_IN_WINDOW)
+
+        expect(values_by_client).to eq({ destination_client.id => [false, true] })
+      end
+
+      it 'includes values in window from rows without an InformationDate' do
+        create_mental_health(1, information_date: nil)
         create_mental_health(0, information_date: current_date - 1.week)
 
         values_by_client = resolver.call(clients, registry::MENTAL_HEALTH_DISORDER_VALUES_IN_WINDOW)
@@ -584,11 +599,18 @@ RSpec.describe Hmis::Ce::Match::Expression::PsdeValueResolver, type: :model do
         expect(resolved_value).to be(true)
       end
 
-      it 'skips rows with a null InformationDate without raising' do
+      it 'lets a later dated No replace a Yes without an InformationDate' do
         create_disability(disability_type: 9, disability_response: 1, information_date: nil)
         create_disability(disability_type: 9, disability_response: 0, information_date: current_date - 1.week)
 
         expect(resolved_value).to be(false)
+      end
+
+      it 'uses a Yes without an InformationDate when the type has no dated answer' do
+        create_disability(disability_type: 9, disability_response: 1, information_date: nil)
+        create_disability(disability_type: 5, disability_response: 0, information_date: current_date - 1.week)
+
+        expect(resolved_value).to be(true)
       end
     end
 
