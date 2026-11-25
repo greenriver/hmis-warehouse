@@ -31,12 +31,13 @@ This feature automates the delivery of HMIS CSV exports on a rolling schedule. I
   - `nil`: deliver the raw zip created by the export job.
   - `zip`: re-wrap the archive using `zipcloak` with the supplied `zip_password`.
   - `7z`: expands the zip and rebuilds it as a `.7z` archive protected by the password.
+- In [sandbox mode](sandbox-mode.md), `store` returns before any S3 call, so no export is uploaded.
 - Only the S3 copy is encrypted. The stored `GrdaWarehouse::HmisExport` keeps the unencrypted zip, and in-app downloads still work if the S3 step fails.
 - `zip` and `7z` need their binaries on the worker image. Without them the S3 upload fails or is empty.
 - `zipcloak` reads the password from a pseudo-terminal and will not take one over 80 characters or containing control characters. For the `zip` type the model rejects these at save time, so the user sees the error on the form rather than mid-export. The `7z` type has no such limit. A password and an encryption type must be given together.
 
 ## Background Processing
-- The rake task `grda_warehouse:process_recurring_hmis_exports` iterates all recurrence definitions and calls `run` for those that return `should_run?`.
+- The rake task `grda_warehouse:process_recurring_hmis_exports` iterates the `GrdaWarehouse::RecurringHmisExport.active` definitions and calls `run` for those that return `should_run?`. `active` is empty in [sandbox mode](sandbox-mode.md), so no scheduled run happens there.
 - The task is scheduled daily in `config/schedule.rb`. Without that entry, no follow-up runs occur.
 - Each `run` rebuilds the `Filters::HmisExport` object from the stored options, adjusts reporting periods, and queues the export job via `schedule_job`.
 - Leaving every project option blank exports all projects the user can see. If project options were chosen but none of them resolve to a project the user can see (after a permission change, or when a selected project group is empty or its projects were deleted), `run` skips the export and sends a warning to Sentry instead of delivering an empty file. No link is recorded, so the run is retried on each pass and resumes once the selection resolves to a visible project.
