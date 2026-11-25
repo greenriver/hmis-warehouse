@@ -181,8 +181,7 @@ module Hmis::Ce::Match::Expression
     end
 
     # Scoped, ordered relation for a HUD table restricted to eligible enrollments.
-    # Ordered so the first row is the most recent. Null InformationDate and DateUpdated sort last (as in
-    # DisablingConditionInference), so an undated row only wins when there is no dated row.
+    # Ordered newest first; undated rows sort last, so they only win when no dated row qualifies.
     # Callers pluck the specific columns they need.
     def scoped_rows(client_ids, scope)
       table = scope.arel_table

@@ -10,16 +10,15 @@ module Hmis::Ce::Match::Expression
   # Infers disabling condition for destination clients in batch, backing psde.disabling_condition and
   # psde.any_reported_disability.
   #
-  # Uses the same algorithm the warehouse uses for CAS (GrdaWarehouse::Hud::Client.disabled_client_scope), but only
+  # Adapts the algorithm the warehouse uses for CAS (GrdaWarehouse::Hud::Client.disabled_client_scope), but only
   # over enrollments in the CE eligibility scope. It ports the algorithm instead of calling the warehouse scopes because
   # those can't apply the lookback window or project group, and the warehouse's enrollment-flag rule depends on
   # service history, which lags new HMIS enrollments. A client is disabled if either rule says Yes:
   #   A) the latest in-scope enrollment with a Yes/No DisablingCondition says Yes, or
   #   B) any disability type has a qualifying row on its latest in-scope InformationDate.
   #
-  # The definition decides the two disability row tests, which are the only things that differ between fields:
-  # * +answered_condition+ decides whether a row is an answer that can be the latest for its type.
-  # * +qualifies_condition+ decides whether that row counts.
+  # The two definitions differ only in which disability rows count as answered and which qualify; see
+  # +answered_condition+ and +qualifies_condition+.
   #
   # Both rules reduce rows in SQL, so memory use doesn't grow with the number of enrollments or disability rows per
   # client (e.g. HMISs that create an enrollment per night-by-night shelter stay).
@@ -86,8 +85,6 @@ module Hmis::Ce::Match::Expression
     # Picks the latest in-scope enrollment with a Yes/No DisablingCondition per client. Unlike the warehouse,
     # ties on EntryDate are broken deterministically, and WIP enrollments are included.
     #
-    # Ranks enrollments in SQL so the result is one row per client, however many enrollments a client has.
-    #
     # @return [Hash{Integer => Boolean}] clients without a Yes/No answer are absent
     def disabling_condition_by_client(client_ids)
       latest_first = Arel::Nodes::Window.new.
@@ -115,13 +112,11 @@ module Hmis::Ce::Match::Expression
     end
 
     # Rule B. Warehouse counterpart: GrdaWarehouse::Hud::Client.disabled_client_because_disability_scope.
-    # Rows with a response of 0-3 that pass +answered_condition+ are candidates for "latest". For each disability
-    # type, the type is positive if any row on its latest InformationDate passes +qualifies_condition+ (so a same-day
-    # qualifying row wins, as in the warehouse). A later answered row replaces an earlier qualifying row of the same
-    # type even if the later row does not qualify. Rows without an InformationDate sort last, so they only count
-    # when the type has no dated answer. (Unlike the warehouse, a later dated answer replaces an undated Yes.)
-    #
-    # Reduces rows in SQL so the result is one row per client, however many disability rows a client has.
+    # Rows that pass +answered_condition+ are candidates for "latest". For each disability type, the type is positive
+    # if any row on its latest InformationDate passes +qualifies_condition+ (so a same-day qualifying row wins, as in
+    # the warehouse). A later answered row replaces an earlier qualifying row of the same type even if the later row
+    # does not qualify. Rows without an InformationDate sort last, so they only count when the type has no dated
+    # answer. (Unlike the warehouse, any dated answer replaces an undated Yes.)
     #
     # @return [Hash{Integer => Boolean}] clients without any answered disability row are absent
     def disabled_because_disability_by_client(client_ids)
@@ -171,7 +166,6 @@ module Hmis::Ce::Match::Expression
       d_t[:DisabilityResponse].in(DISABILITY_RESPONSE_CODES)
     end
 
-    # Any Yes response, whether or not it is long-term or impairing.
     def yes_response_condition
       d_t[:DisabilityResponse].in(DISABILITY_YES_RESPONSE_CODES)
     end
@@ -192,7 +186,6 @@ module Hmis::Ce::Match::Expression
       )
     end
 
-    # Reference: GrdaWarehouse::Hud::Disability#indefinite_and_impairs?
     def hud_qualifies_condition
       indefinite_and_impairs = d_t[:IndefiniteAndImpairs].eq(INDEFINITE_AND_IMPAIRS_YES)
 
