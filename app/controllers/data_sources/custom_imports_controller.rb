@@ -24,6 +24,8 @@ module DataSources
     end
 
     def download
+      SandboxMode.guard!('Custom import S3')
+
       object = @config.s3.list_objects(prefix: @config.s3_path).detect { |o| o.key == params[:key] }
       if object.nil?
         flash[:error] = 'File not found'
@@ -80,7 +82,9 @@ module DataSources
     end
 
     private def config_scope
-      config_source.for_data_source(@data_source).active
+      scope = config_source.for_data_source(@data_source)
+      # Scrubbed configs stay visible in sandbox mode so they can be re-enabled
+      SandboxMode.enabled? ? scope : scope.active
     end
 
     private def config_source

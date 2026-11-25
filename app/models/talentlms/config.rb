@@ -27,6 +27,8 @@ module Talentlms
     # @param args [Hash<String, String>] arguments to be added to the end of the URL
     # @return [JSON] results
     def get(action, args = nil)
+      SandboxMode.guard!('TalentLMS')
+
       key = Base64.strict_encode64("#{api_key}:")
       url = generate_url(action, args)
 
@@ -49,6 +51,8 @@ module Talentlms
     # @param args [Hash<String, String>] arguments to be added to the end of the URL
     # @return [JSON] results
     def post(action, data, args = nil)
+      SandboxMode.guard!('TalentLMS')
+
       key = Base64.strict_encode64("#{api_key}:")
       url = generate_url(action, args)
       result = Curl.post(url, data) do |curl|

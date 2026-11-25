@@ -71,6 +71,7 @@ module GrdaWarehouse
     end
 
     def self.nominatim_lookup(query, city, state, postalcode, country)
+      return if SandboxMode.enabled?
       return if Rails.cache.read(['Nominatim', 'API PAUSE'])
 
       address = [query, city, state, postalcode, country].compact.join(',')

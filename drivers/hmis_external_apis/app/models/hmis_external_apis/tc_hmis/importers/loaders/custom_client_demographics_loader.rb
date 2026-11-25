@@ -231,6 +231,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     end
 
     private def nominatim_lookup(query)
+      return if SandboxMode.enabled?
       return if Rails.cache.read(['Nominatim', 'API PAUSE'])
 
       address = [query, 'US'].compact.join(',')

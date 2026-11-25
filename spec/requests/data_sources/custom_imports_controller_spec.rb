@@ -102,4 +102,26 @@ RSpec.describe DataSources::CustomImportsController, type: :request do
       end
     end
   end
+
+  describe 'in sandbox mode' do
+    let!(:inactive_config) do
+      create_config(data_source).tap { |c| c.update_columns(active: false, description: 'Scrubbed Import') }
+    end
+
+    it 'still lists scrubbed configs so they can be re-enabled' do
+      with_sandbox_mode { get data_source_custom_imports_path(data_source) }
+
+      expect(response.body).to include('Scrubbed Import')
+    end
+
+    it 'refuses to download from the bucket' do
+      expect_any_instance_of(GrdaWarehouse::CustomImports::Config).not_to receive(:s3)
+
+      with_sandbox_mode do
+        expect do
+          get download_data_source_custom_import_path(data_source, inactive_config, key: 'prefix/test.csv')
+        end.to raise_error(SandboxMode::IntegrationDisabled, 'Custom import S3 is disabled in sandbox mode')
+      end
+    end
+  end
 end

@@ -208,6 +208,7 @@ class ApplicationController < ActionController::Base
   end
 
   def require_training!
+    return if SandboxMode.enabled?
     return unless current_user
     return unless current_user.training_required?
     return if allowed_setup_controllers

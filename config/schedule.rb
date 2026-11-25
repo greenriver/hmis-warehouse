@@ -218,12 +218,12 @@ tasks = [
     at: '11:15 pm',
     interruptable: false,
   },
-  # HMIS simulation — only runs on servers where ENABLE_HMIS_SIMULATION=true (for demo) or any staging environment
+  # HMIS simulation — only runs on servers where ENABLE_HMIS_SIMULATION=true (for demo) or a staging environment that is not in sandbox mode
   {
     task: 'driver:hmis_simulation:run_all',
     frequency: 1.day,
     at: '4:30 am',
-    trigger: ENV['ENABLE_HMIS_SIMULATION'] == 'true' || ENV['RAILS_ENV'] == 'staging',
+    trigger: ENV['ENABLE_HMIS_SIMULATION'] == 'true' || (ENV['RAILS_ENV'] == 'staging' && ENV['SANDBOX_MODE'] != 'true'),
     interruptable: false,
   },
 ]
