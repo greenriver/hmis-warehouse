@@ -65,40 +65,28 @@ The classes within this module are organized into several subdirectories to grou
 
 ## PSDE Fields (`psde.*`)
 
-PSDE fields read HUD data elements (Income and Benefits, Disabilities, Health and DV, Enrollment) from the enrollments selected by `EnrollmentEligibilityScope`: the global eligibility lookback window and project group, with WIP enrollments included. Field definitions live in `PsdeFieldRegistry`; values are resolved in batch by `PsdeValueResolver` and evaluated in Ruby only (no SQL prefilter).
+PSDE fields read HUD data elements from the enrollments selected by `EnrollmentEligibilityScope`: the global eligibility lookback window and project group, with WIP enrollments included. Field definitions live in `PsdeFieldRegistry`; values are resolved in batch by `PsdeValueResolver` and evaluated in Ruby only (no SQL prefilter).
 
 ### `psde.disabling_condition` and `psde.any_reported_disability`
 
-Two fields describe a client's disability status. They share one algorithm and differ only in which disability rows are answers and which count:
+Two fields describe a client's disability status:
 
 | Field | Label | A disability row counts when |
 |---|---|---|
 | `psde.disabling_condition` | HUD Disabling Condition | The response is Yes (1/2/3) **and** the type is Developmental or HIV/AIDS, or `IndefiniteAndImpairs` is Yes. This mirrors `GrdaWarehouse::Hud::Disability#indefinite_and_impairs?` and the HUD Reporting Glossary definition. |
 | `psde.any_reported_disability` | Any Reported Disability | The response is Yes (1/2/3), whether or not it is long-term or impairing. This is the value the default CAS calculator sends to CAS as "disabling condition" (`GrdaWarehouse::Hud::Client.disabled_client_scope`). |
 
-Responses 2 and 3 count as Yes for every type, as in the warehouse. The Boston calculator also counts `GrdaWarehouse::Hud::Client.chronically_disabled` clients (`GrdaWarehouse::CasProjectClientCalculator::Boston#disabling_condition?`); neither CE field does.
+The Boston calculator also counts `GrdaWarehouse::Hud::Client.chronically_disabled` clients (`GrdaWarehouse::CasProjectClientCalculator::Boston#disabling_condition?`); neither CE field does.
 
-The shared algorithm ports the CAS inference and applies it only to in-scope enrollments. It has two rules:
+Both fields port the CAS inference (`GrdaWarehouse::Hud::Client.disabled_client_scope`) rather than calling the warehouse scopes, because those can't apply the lookback window or project group, and the enrollment-flag rule depends on service history, which lags new HMIS enrollments.
 
-1. **Enrollment flag (3.08)**: the latest in-scope enrollment with a Yes/No `DisablingCondition`, by `EntryDate`, then `DateUpdated`, then `id`, says Yes.
-2. **Disability records**: for any disability type, a row on that type's latest `InformationDate` counts. Only answered rows can be the latest:
-   - **Any Reported Disability:** any row with a response of 0–3, as in the warehouse.
-   - **HUD Disabling Condition:** the same, except that a Yes on Physical, Chronic Health, Mental Health or Substance Use is only an answer when `IndefiniteAndImpairs` is No or Yes. A blank or 8/9/99 follow-up is missing data, so that row is skipped and does not replace an earlier row of the same type. A later Yes with `IndefiniteAndImpairs` No does replace an earlier qualifying Yes.
+`psde_disabling_condition_parity_spec.rb` checks that `any_reported_disability` agrees with the CAS value when every enrollment is in scope.
 
-   If a qualifying and a non-qualifying row share the latest date, the qualifying row wins, as in the warehouse.
-
-The rules are combined with OR. The value is `true` if either rule says Yes, `false` if either rule had an answer, and `nil` if neither did. The algorithm is ported rather than calling the warehouse scopes, because those can't apply the lookback window or project group, and the enrollment-flag rule depends on service history, which lags new HMIS enrollments.
-
-`psde_disabling_condition_parity_spec.rb` checks that `any_reported_disability` agrees with the CAS value when every enrollment is in scope. The HUD field has no CAS counterpart: the default calculator ignores `IndefiniteAndImpairs`, and Boston's `chronically_disabled` counts any qualifying row with no "latest answer" rule. So `psde_value_resolver_spec.rb` instead checks its row test against `Disability#indefinite_and_impairs?` for every type, response and `IndefiniteAndImpairs` combination.
-
-Accepted differences from the warehouse, for both fields:
+Accepted differences from the warehouse:
 
 | Difference | CE | Warehouse |
 |---|---|---|
 | Scope | Eligibility scope only, so an out-of-scope later No does not override an in-scope Yes | All of the client's data |
-| WIP enrollments | Included in both rules | Enrollment flag excluded (no service history); disability records included |
-| Enrollment flag tiebreak | Deterministic (`DateUpdated`, then `id`) | Arbitrary among enrollments with the same `EntryDate` |
-| Disability rows without an `InformationDate` | Skipped | A Yes is never overridden |
 | No answer collected | `nil` | `false` |
 
 ## Unit Group–Driven Maintenance
