@@ -35,4 +35,20 @@ RSpec.describe 'Required training in sandbox mode', type: :request do
     expect(request.path).not_to eq(user_training_path)
     expect(response).to have_http_status(:ok)
   end
+
+  it 'redirects /user_training away without consulting TalentLMS in sandbox mode' do
+    with_sandbox_mode do
+      get user_training_path
+    end
+
+    expect(response).to have_http_status(:redirect)
+    expect(response.location).not_to end_with(user_training_path)
+    expect(Talentlms::Facade).not_to have_received(:new)
+  end
+
+  it 'consults TalentLMS for /user_training outside sandbox mode' do
+    get user_training_path
+
+    expect(Talentlms::Facade).to have_received(:new).with(user)
+  end
 end
