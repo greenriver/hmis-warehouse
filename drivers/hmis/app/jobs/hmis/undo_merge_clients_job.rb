@@ -136,11 +136,9 @@ module Hmis
       updated_enrollment_scope.each(&:invalidate_processing!) unless dry_run
     end
 
-    # Give back the original EnrollmentID to soft-deleted enrollments that the merge re-keyed to avoid
-    # colliding with this client's enrollments. Must run after restore_enrollments: until those enrollments
-    # move back to the restored client, the original key still collides on the retained client.
-    # An enrollment that restore_enrollments skipped (e.g. soft-deleted after the merge) still holds the
-    # original key, so the re-keyed enrollment keeps its new key; the audit keeps the mapping.
+    # Restores the original EnrollmentID on soft-deleted enrollments the merge re-keyed. Must run after
+    # restore_enrollments, which frees the original key. If the key is still held on the retained client
+    # (e.g. the moved enrollment was soft-deleted after the merge), the new key stays; the audit keeps the original.
     def restore_rekeyed_deleted_enrollments
       mappings = merge_audit.mappings_for('rekeyed_deleted_enrollments')
       return if mappings.empty?
@@ -153,7 +151,7 @@ module Hmis
         next unless enrollment.personal_id == retained_client.personal_id
         next if enrollment.EnrollmentID == original_enrollment_id
 
-        # Exclude enrollments restore_enrollments moved back, which a dry run leaves in place
+        # A dry run leaves restored enrollments on the retained client; they don't count as holding the key
         original_key_taken = Hmis::Hud::Enrollment.with_deleted.
           where(data_source_id: retained_client.data_source_id, PersonalID: retained_client.personal_id, EnrollmentID: original_enrollment_id).
           where.not(id: restored_enrollment_ids).

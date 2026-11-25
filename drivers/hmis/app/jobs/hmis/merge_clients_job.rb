@@ -456,9 +456,9 @@ module Hmis
       end
     end
 
-    # The en_en_id_p_id_ds_id unique index includes soft-deleted enrollments, but the PersonalID update
-    # above only moves active ones. A soft-deleted enrollment on the retained client that shares an
-    # EnrollmentID with a moving enrollment would collide, so give it (and its children) a new EnrollmentID.
+    # The en_en_id_p_id_ds_id unique index includes soft-deleted rows, but update_personal_id_foreign_keys
+    # moves only active enrollments. A soft-deleted enrollment on the retained client that shares an
+    # EnrollmentID with a moving enrollment would collide, so it and its children get a new EnrollmentID.
     def rekey_colliding_deleted_enrollments(personal_ids)
       moving_enrollment_ids = Hmis::Hud::Enrollment.
         where(data_source_id: data_source_id, PersonalID: personal_ids).
