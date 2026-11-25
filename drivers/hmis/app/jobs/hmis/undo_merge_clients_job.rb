@@ -41,7 +41,7 @@ module Hmis
       [Hmis::Hud::CustomClientContactPoint, 'contact_points'],
     ].freeze
 
-    attr_accessor :retained_client, :deleted_client, :merge_audit, :merge_history, :dry_run
+    attr_accessor :retained_client, :deleted_client, :merge_audit, :merge_history, :dry_run, :restored_enrollment_ids
 
     def perform(retained_client_id:, deleted_client_id:, dry_run: false)
       self.dry_run = dry_run
@@ -103,6 +103,7 @@ module Hmis
 
     # Move enrollments and enrollment-related PersonalID references back to the restored client.
     def restore_enrollments
+      self.restored_enrollment_ids = []
       enrollment_mappings = merge_audit.mappings_for('enrollments')
       return if enrollment_mappings.empty?
 
@@ -120,6 +121,7 @@ module Hmis
         apply_or_log_update(record: enrollment, column: :PersonalID, value: deleted_client.personal_id, label: "enrollment #{enrollment_id}")
         updated_enrollment_ids << enrollment.id
       end
+      self.restored_enrollment_ids = updated_enrollment_ids
 
       return if updated_enrollment_ids.empty?
 
@@ -137,23 +139,29 @@ module Hmis
     # Give back the original EnrollmentID to soft-deleted enrollments that the merge re-keyed to avoid
     # colliding with this client's enrollments. Must run after restore_enrollments: until those enrollments
     # move back to the restored client, the original key still collides on the retained client.
+    # An enrollment that restore_enrollments skipped (e.g. soft-deleted after the merge) still holds the
+    # original key, so the re-keyed enrollment keeps its new key; the audit keeps the mapping.
     def restore_rekeyed_deleted_enrollments
       mappings = merge_audit.mappings_for('rekeyed_deleted_enrollments')
       return if mappings.empty?
 
-      restored_enrollment_ids = merge_audit.mappings_for('enrollments').
-        select { |_id, mapping_data| mapping_data['PersonalID'] == deleted_client.personal_id }.
-        keys
-      restored_keys = Hmis::Hud::Enrollment.with_deleted.where(id: restored_enrollment_ids).pluck(:EnrollmentID)
-
       mappings.each do |enrollment_id, mapping_data|
         original_enrollment_id = mapping_data['EnrollmentID']
-        next unless restored_keys.include?(original_enrollment_id)
 
         enrollment = Hmis::Hud::Enrollment.with_deleted.find_by(id: enrollment_id)
         next unless enrollment
         next unless enrollment.personal_id == retained_client.personal_id
         next if enrollment.EnrollmentID == original_enrollment_id
+
+        # Exclude enrollments restore_enrollments moved back, which a dry run leaves in place
+        original_key_taken = Hmis::Hud::Enrollment.with_deleted.
+          where(data_source_id: retained_client.data_source_id, PersonalID: retained_client.personal_id, EnrollmentID: original_enrollment_id).
+          where.not(id: restored_enrollment_ids).
+          exists?
+        if original_key_taken
+          Rails.logger.info "Keeping new EnrollmentID on soft-deleted enrollment #{enrollment_id}; the original is still held on client #{retained_client.id}"
+          next
+        end
 
         Rails.logger.info "Restoring original EnrollmentID on soft-deleted enrollment #{enrollment_id}"
         next if dry_run

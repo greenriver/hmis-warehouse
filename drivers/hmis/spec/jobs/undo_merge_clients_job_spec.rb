@@ -237,6 +237,22 @@ RSpec.describe Hmis::UndoMergeClientsJob, type: :job do
       expect(Hmis::Hud::Enrollment.only_deleted.find(rekeyed_enrollment.id)).to have_attributes(EnrollmentID: original_enrollment_id, PersonalID: retained_client.personal_id)
       expect(Hmis::Hud::Exit.only_deleted.find(rekeyed_exit.id).EnrollmentID).to eq(original_enrollment_id)
     end
+
+    context 'when the moved enrollment was soft-deleted after the merge' do
+      before { Hmis::Hud::Enrollment.where(id: deleted_client_enrollment.id).update_all(DateDeleted: Time.current) }
+
+      it 'leaves the re-keyed enrollment on its new EnrollmentID instead of colliding' do
+        new_enrollment_id = Hmis::Hud::Enrollment.only_deleted.find(rekeyed_enrollment.id).EnrollmentID
+        expect(Hmis::Hud::Enrollment.only_deleted.exists?(deleted_client_enrollment.id)).to be(true), 'setup should have soft-deleted the moved enrollment'
+
+        expect do
+          described_class.perform_now(retained_client_id: retained_client.id, deleted_client_id: deleted_client.id)
+        end.not_to raise_error
+
+        expect(Hmis::Hud::Enrollment.only_deleted.find(rekeyed_enrollment.id).EnrollmentID).to eq(new_enrollment_id)
+        expect(Hmis::Hud::Exit.only_deleted.find(rekeyed_exit.id).EnrollmentID).to eq(new_enrollment_id)
+      end
+    end
   end
 
   describe '#perform with CE enabled' do
