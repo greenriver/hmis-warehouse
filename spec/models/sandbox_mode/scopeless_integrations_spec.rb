@@ -49,6 +49,20 @@ RSpec.describe 'Sandbox mode for integrations without an active column', type: :
       end
     end
 
+    describe 'running the scheduled task' do
+      let(:task) { GrdaWarehouse::Tasks::ProcessRecurringHmisExports.new }
+
+      it 'enqueues an export job outside sandbox mode' do
+        expect { task.run! }.to have_enqueued_job
+      end
+
+      it 'enqueues no export job in sandbox mode' do
+        with_sandbox_mode do
+          expect { task.run! }.not_to have_enqueued_job
+        end
+      end
+    end
+
     describe '#store' do
       let(:aws_s3) { instance_double(AwsS3, store: nil) }
       let(:report) { instance_double(GrdaWarehouse::HmisExport, hmis_zip: double(download: 'zip-bytes'), export_id: 42) }

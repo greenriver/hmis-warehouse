@@ -89,13 +89,13 @@ RSpec.describe SandboxMode::Scrubber do
     end
 
     it 'deactivates HMIS import configs and pauses data sources' do
-      import_config = create(:grda_warehouse_hmis_import_config, active: true, s3_bucket_name: 'b', s3_role_arn: 'arn:aws:iam::1:role/x', s3_secret_access_key: 'live')
+      import_config = create(:grda_warehouse_hmis_import_config, active: true, s3_bucket_name: 'b', s3_role_arn: 'arn:aws:iam::1:role/x', s3_secret_access_key: 'live', zip_file_password: 'live-zip', s3_external_id: 'live-external-id')
       data_source = create(:source_data_source)
       data_source.update_columns(import_paused: false)
 
       result
 
-      expect(import_config.reload).to have_attributes(active: false, s3_bucket_name: nil, s3_role_arn: nil, s3_access_key_id: 'sandbox-scrubbed', s3_secret_access_key: 'sandbox-scrubbed')
+      expect(import_config.reload).to have_attributes(active: false, s3_bucket_name: nil, s3_role_arn: nil, s3_access_key_id: 'sandbox-scrubbed', s3_secret_access_key: 'sandbox-scrubbed', zip_file_password: 'sandbox-scrubbed', s3_external_id: nil)
       expect(GrdaWarehouse::DataSource.with_deleted.find(data_source.id).import_paused).to be(true)
     end
 
@@ -174,6 +174,22 @@ RSpec.describe SandboxMode::Scrubber do
       expect(Idp::ServiceConfig.with_deleted.find(deleted_idp.id).manage_users).to be(false)
     end
 
+    it 'leaves identity provider columns other than manage_users unchanged' do
+      idp = create(:idp_service_config, active: true, manage_users: true)
+      before_attributes = idp.reload.attributes.except('manage_users', 'updated_at')
+
+      result
+
+      expect(idp.reload.attributes.except('manage_users', 'updated_at')).to eq(before_attributes)
+      expect(idp.service_token).to eq('test-token-secret-key')
+    end
+
+    it 'leaves inbound API configurations alone' do
+      inbound = HmisExternalApis::InboundApiConfiguration.create!(external_system_name: 'partner', hashed_api_key: 'hashed', plain_text_reminder: 'abcd', internal_system: create(:internal_system))
+
+      expect { result }.not_to(change { inbound.reload.attributes })
+    end
+
     it 'leaves inbound OAuth applications alone' do
       app = Doorkeeper::Application.create!(name: 'inbound', redirect_uri: 'https://app.internal.example/cb')
 
@@ -196,6 +212,38 @@ RSpec.describe SandboxMode::Scrubber do
       before do
         unconfigured = instance_double(ActiveRecord::DatabaseConfigurations::HashConfig, database: nil)
         allow(HealthDbBase).to receive(:connection_db_config).and_return(unconfigured)
+      end
+
+      it 'reports the health tables as skipped and still scrubs the warehouse' do
+        expect(result).to include('import_configs' => 'skipped', 'soap_configs' => 'skipped')
+        expect(credential.reload.active).to be(false)
+      end
+    end
+
+    context 'when the health database does not exist' do
+      before { allow(HealthBase).to receive(:connection).and_raise(ActiveRecord::NoDatabaseError) }
+
+      it 'reports the health tables as skipped and still scrubs the warehouse' do
+        expect(result).to include('import_configs' => 'skipped', 'soap_configs' => 'skipped')
+        expect(credential.reload.active).to be(false)
+      end
+    end
+
+    context 'when the health connection is not established' do
+      before { allow(HealthBase).to receive(:connection).and_raise(ActiveRecord::ConnectionNotEstablished) }
+
+      it 'reports the health tables as skipped and still scrubs the warehouse' do
+        expect(result).to include('import_configs' => 'skipped', 'soap_configs' => 'skipped')
+        expect(credential.reload.active).to be(false)
+      end
+    end
+
+    context 'when the health database has no import_configs table' do
+      before do
+        connection = HealthBase.connection
+        allow(HealthBase).to receive(:connection).and_return(connection)
+        allow(connection).to receive(:table_exists?).and_call_original
+        allow(connection).to receive(:table_exists?).with('import_configs').and_return(false)
       end
 
       it 'reports the health tables as skipped and still scrubs the warehouse' do

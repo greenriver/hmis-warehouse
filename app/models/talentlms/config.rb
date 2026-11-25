@@ -69,6 +69,9 @@ module Talentlms
 
     # Validator to check this configuration is valid.
     def check_configuration_is_valid
+      # Validation fetches courses from TalentLMS, which sandbox mode refuses.
+      return if SandboxMode.enabled?
+
       error = configuration_error_message
       return unless error.present?
 

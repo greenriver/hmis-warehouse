@@ -52,7 +52,7 @@ RSpec.describe 'sandbox:scrub', type: :task do
     ENV['SANDBOX_SCRUB_CONFIRM'] = Rails.env
 
     with_sandbox_mode do
-      expect { run_task }.to output(/remote_credentials/).to_stdout
+      expect { run_task }.to output(/rerun it; the scrub is idempotent.*remote_credentials: 1/m).to_stdout
     end
     expect(credential.reload.active).to be(false)
   end
