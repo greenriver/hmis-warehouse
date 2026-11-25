@@ -1273,6 +1273,51 @@ RSpec.describe GrdaWarehouse::Monitoring::Tasks::MetricSnapshotCollector, type: 
         expect(snapshot.reload).to have_attributes(current_observation_date: calculation_date, current_value: 100)
       end
     end
+
+    context 'when a past-date full run covers a client whose snapshot ends before that date' do
+      let(:past_date) { calculation_date - 1.day }
+
+      let!(:client1_snapshot) do
+        create(
+          :grda_warehouse_monitoring_metric_snapshot,
+          entity: client1,
+          metric_definition: metric_definition,
+          initial_observation_date: calculation_date - 10.days,
+          current_observation_date: calculation_date,
+          initial_value: 100,
+          current_value: 100,
+        )
+      end
+
+      let!(:client2_snapshot) do
+        create(
+          :grda_warehouse_monitoring_metric_snapshot,
+          entity: client2,
+          metric_definition: metric_definition,
+          initial_observation_date: calculation_date - 10.days,
+          current_observation_date: calculation_date - 5.days,
+          initial_value: 50,
+          current_value: 50,
+        )
+      end
+
+      it 'extends that client and leaves the client with a later snapshot unchanged' do
+        processed1.update!(days_homeless_last_three_years: 200)
+
+        expect { collect(date: past_date) }.not_to change(GrdaWarehouse::Monitoring::MetricSnapshot, :count)
+
+        expect(client2_snapshot.reload).to have_attributes(
+          initial_observation_date: calculation_date - 10.days,
+          current_observation_date: past_date,
+          current_value: 50,
+        )
+        expect(client1_snapshot.reload).to have_attributes(
+          initial_observation_date: calculation_date - 10.days,
+          current_observation_date: calculation_date,
+          current_value: 100,
+        )
+      end
+    end
   end
 
   describe 'run with no matching metric' do
