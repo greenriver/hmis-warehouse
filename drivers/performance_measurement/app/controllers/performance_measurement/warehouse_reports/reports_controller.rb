@@ -79,6 +79,7 @@ module PerformanceMeasurement::WarehouseReports
         flash[:notice] = 'Report has been unpublished.'
         respond_with(@report, location: path_to_report)
       elsif publish_params[:published_url].present?
+        SandboxMode.guard!('Public report publishing')
         @report.delay.publish!(current_user.id)
         flash[:notice] = 'Report publishing queued, please check the public link in a few minutes.'
         respond_with(@report, location: path_to_report)

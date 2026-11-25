@@ -51,6 +51,22 @@ RSpec.describe 'PublicReports::WarehouseReports::StateDashboard sections', type:
     sign_in(user)
   end
 
+  it 'refuses to queue publishing in sandbox mode and enqueues no job' do
+    report.update_column(:completed_at, Time.zone.parse('2026-01-05'))
+    referer = public_reports_warehouse_reports_state_dashboard_path(report)
+
+    with_sandbox_mode do
+      expect do
+        patch public_reports_warehouse_reports_state_dashboard_path(report),
+              params: { public_report: { published_url: report.generate_publish_url } },
+              headers: { 'HTTP_REFERER' => referer }
+      end.not_to change(Delayed::Job, :count)
+    end
+
+    expect(response).to redirect_to(referer)
+    expect(flash[:alert]).to eq('Public report publishing is disabled in sandbox mode')
+  end
+
   sections_for_iteration = [:summary, :pit, :entering_exiting, :who, :race, :map, :raw]
   it 'renders the race bars on the race section with no breakdown rows' do
     get race_public_reports_warehouse_reports_state_dashboard_path(report)

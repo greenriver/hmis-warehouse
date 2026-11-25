@@ -87,10 +87,12 @@ RSpec.describe HmisImportConfigsController, type: :request do
       expect_any_instance_of(GrdaWarehouse::HmisImportConfig).not_to receive(:s3)
 
       with_sandbox_mode do
-        expect do
-          get download_data_source_hmis_import_config_path(editable_data_source, key: 'hmis/export.zip')
-        end.to raise_error(SandboxMode::IntegrationDisabled, 'HMIS import S3 is disabled in sandbox mode')
+        get download_data_source_hmis_import_config_path(editable_data_source, key: 'hmis/export.zip'),
+            headers: { 'HTTP_REFERER' => edit_data_source_hmis_import_config_path(editable_data_source) }
       end
+
+      expect(response).to redirect_to(edit_data_source_hmis_import_config_path(editable_data_source))
+      expect(flash[:alert]).to eq('HMIS import S3 is disabled in sandbox mode')
     end
 
     it 'does not list bucket objects on the edit page' do

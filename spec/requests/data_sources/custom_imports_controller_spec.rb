@@ -127,10 +127,12 @@ RSpec.describe DataSources::CustomImportsController, type: :request do
       expect_any_instance_of(GrdaWarehouse::CustomImports::Config).not_to receive(:s3)
 
       with_sandbox_mode do
-        expect do
-          get download_data_source_custom_import_path(data_source, inactive_config, key: 'prefix/test.csv')
-        end.to raise_error(SandboxMode::IntegrationDisabled, 'Custom import S3 is disabled in sandbox mode')
+        get download_data_source_custom_import_path(data_source, inactive_config, key: 'prefix/test.csv'),
+            headers: { 'HTTP_REFERER' => edit_data_source_custom_import_path(data_source, inactive_config) }
       end
+
+      expect(response).to redirect_to(edit_data_source_custom_import_path(data_source, inactive_config))
+      expect(flash[:alert]).to eq('Custom import S3 is disabled in sandbox mode')
     end
   end
   describe 'outside sandbox mode' do

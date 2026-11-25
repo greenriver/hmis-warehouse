@@ -48,6 +48,20 @@ RSpec.describe 'Publishing the state-level reports', type: :model do
     ).to eq([['PublicReports::StateLevelHomelessness', nil], 'https://example.test/index.html'])
   end
 
+  it 'refuses to publish in sandbox mode before unpublishing the existing report or calling S3' do
+    first = published(PublicReports::StateLevelHomelessness)
+    second = published(PublicReports::StateLevelHomelessness)
+    second.update_column(:state, 'pre-calculated')
+
+    with_sandbox_mode do
+      expect { second.publish! }.to raise_error(SandboxMode::IntegrationDisabled, 'Public report publishing is disabled in sandbox mode')
+    end
+
+    expect(
+      [first.reload.attributes.values_at('published_url', 'state'), second.reload.state, s3.api_requests.map { |r| r[:operation_name] }],
+    ).to eq([['https://example.test/index.html', 'published'], 'pre-calculated', []])
+  end
+
   it 'keeps a state-level report published in a different folder' do
     coc = published(PublicReports::StateLevelHomelessness)
     coc.update_column(:version_slug, 'coc-500')
