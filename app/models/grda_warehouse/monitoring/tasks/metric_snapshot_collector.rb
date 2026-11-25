@@ -66,7 +66,7 @@ module GrdaWarehouse::Monitoring::Tasks
             "already collected for #{@calculation_date}",
           )
         end
-        return [] if all_metrics.empty?
+        return [] if collected_metrics.any? && all_metrics.empty?
       end
 
       run_record = create_run_record

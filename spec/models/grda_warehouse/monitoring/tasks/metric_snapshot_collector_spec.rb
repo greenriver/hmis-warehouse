@@ -955,6 +955,13 @@ RSpec.describe GrdaWarehouse::Monitoring::Tasks::MetricSnapshotCollector, type: 
       end
     end
 
+    context 'when no active metric matches the requested names' do
+      it 'still records the calculation run for the date' do
+        expect { collect(metric_names: ['no_such_metric']) }.
+          to change { GrdaWarehouse::Monitoring::MetricCalculationRun.where(entity_type: entity_type, calculation_date: calculation_date).count }.from(0).to(1)
+      end
+    end
+
     context 'when the client has a superseded snapshot' do
       let!(:superseded_snapshot) do
         create(
@@ -988,6 +995,16 @@ RSpec.describe GrdaWarehouse::Monitoring::Tasks::MetricSnapshotCollector, type: 
           current_value: 60,
           current_observation_date: calculation_date - 11.days,
         )
+      end
+    end
+
+    context 'when the scheduled job path omits metric_names' do
+      it 'creates no snapshots and keeps the values from the first run' do
+        collect(metric_names: nil)
+        processed1.update!(days_homeless_last_three_years: 200)
+
+        expect { collect(metric_names: nil) }.not_to(change { snapshots_for(client1).count })
+        expect(snapshots_for(client1).pluck(:current_value)).to eq([100])
       end
     end
 
