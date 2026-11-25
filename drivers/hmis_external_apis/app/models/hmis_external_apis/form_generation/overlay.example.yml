@@ -6,7 +6,9 @@ forms:
     # Renames an "invented" (ungrouped) section. Keyed by section_<N>, the
     # index of that ungrouped run within the form (0-based, counting only
     # ungrouped rows). Only applies to sections with no form_group_name in
-    # the source CSV — named groups keep their CSV name as-is.
+    # the source CSV — named groups keep their CSV name as-is. Adding or
+    # changing question_order can shift which run gets which N, so recheck
+    # these keys then.
     invented_group_names:
       section_0: Client Background
       section_1: Additional Notes
@@ -32,7 +34,9 @@ forms:
     # Reorders questions within one group. Keyed by the group's text/name
     # (its form_group_name in the CSV, or the invented section title set
     # above). Each entry moves that link_id to right after another link_id
-    # within the same group.
+    # within the same group. Applied after question_order. If question_order
+    # splits a group in two, both halves share this key, so a move aimed at
+    # one half logs an item_order miss for the other.
     item_order:
       Client Background:
         question_5_link_id:
