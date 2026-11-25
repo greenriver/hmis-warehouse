@@ -26,11 +26,10 @@ class WarehouseReport::Outcomes::OutcomesFilter < Filters::FilterBase
 
   # The outcomes report forms offer their own sub-population keys (e.g. :veteran,
   # :youth_at_search_start), which are not registered in AvailableSubPopulations.
-  # Other callers (e.g. PerformanceMetrics::Report) copy a FilterBase into this
-  # filter with registered keys (e.g. :veterans), so the strict sub_population=
-  # writer must accept both. Extend the registered list rather than replace it,
-  # and never overwrite a registered entry whose label matches an outcomes label;
-  # the outcomes key gets a distinct label instead so both keys stay valid.
+  # The strict sub_population= writer must accept both these and the registered
+  # keys, so extend the registered list rather than replace it, and never
+  # overwrite a registered entry whose label matches an outcomes label; the
+  # outcomes key gets a distinct label instead so both keys stay valid.
   def available_sub_populations
     report_classes = [
       WarehouseReport::Outcomes::Base,
