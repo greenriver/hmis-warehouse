@@ -907,6 +907,137 @@ RSpec.describe GrdaWarehouse::Monitoring::Tasks::MetricSnapshotCollector, type: 
     end
   end
 
+  describe 'second run for the same calculation date' do
+    def collect(metric_names: ['test_metric'], entity_ids: nil)
+      described_class.run_daily_collection(
+        entity_type: entity_type,
+        calculation_date: calculation_date,
+        entity_ids: entity_ids,
+        metric_names: metric_names,
+      )
+    end
+
+    def snapshots_for(client, definition = metric_definition)
+      GrdaWarehouse::Monitoring::MetricSnapshot.where(entity: client, metric_definition: definition)
+    end
+
+    context 'when the client has a single snapshot' do
+      let!(:snapshot) do
+        create(
+          :grda_warehouse_monitoring_metric_snapshot,
+          entity: client1,
+          metric_definition: metric_definition,
+          initial_observation_date: calculation_date - 10.days,
+          current_observation_date: calculation_date - 1.day,
+          initial_value: 100,
+          current_value: 100,
+        )
+      end
+
+      before { collect }
+
+      it 'creates no snapshot and keeps the value from the first run' do
+        expect(snapshot.reload.current_observation_date).to eq(calculation_date)
+        processed1.update!(days_homeless_last_three_years: 200)
+
+        expect { collect }.not_to change(GrdaWarehouse::Monitoring::MetricSnapshot, :count)
+        expect(snapshots_for(client1).pluck(:current_value)).to eq([100])
+      end
+
+      it 'leaves the calculation run record from the first run unchanged' do
+        run = GrdaWarehouse::Monitoring::MetricCalculationRun.find_by!(entity_type: entity_type, calculation_date: calculation_date)
+
+        expect { collect }.not_to(change { run.reload.attributes.slice('completed_at', 'snapshots_created_count', 'snapshots_updated_count') })
+      end
+
+      it 'reports no metrics for retry' do
+        expect(collect).to eq([])
+      end
+    end
+
+    context 'when the client has a superseded snapshot' do
+      let!(:superseded_snapshot) do
+        create(
+          :grda_warehouse_monitoring_metric_snapshot,
+          entity: client1,
+          metric_definition: metric_definition,
+          initial_observation_date: calculation_date - 20.days,
+          current_observation_date: calculation_date - 11.days,
+          initial_value: 40,
+          current_value: 60,
+        )
+      end
+
+      let!(:current_snapshot) do
+        create(
+          :grda_warehouse_monitoring_metric_snapshot,
+          entity: client1,
+          metric_definition: metric_definition,
+          initial_observation_date: calculation_date - 10.days,
+          current_observation_date: calculation_date - 1.day,
+          initial_value: 100,
+          current_value: 100,
+        )
+      end
+
+      it 'leaves the superseded snapshot unchanged' do
+        collect
+        collect
+
+        expect(superseded_snapshot.reload).to have_attributes(
+          current_value: 60,
+          current_observation_date: calculation_date - 11.days,
+        )
+      end
+    end
+
+    context 'when the first run skipped an unstable metric' do
+      let!(:second_metric_definition) do
+        create(
+          :grda_warehouse_monitoring_metric_definition,
+          name: 'second_metric',
+          entity_type: entity_type,
+          calculator_class: 'GrdaWarehouse::Monitoring::MetricCalculators::MinHouseholdSizeCalculator',
+          count_change_threshold: 1,
+          active: true,
+        )
+      end
+      let(:both_metrics) { ['test_metric', 'second_metric'] }
+
+      before do
+        allow(GrdaWarehouse::Monitoring::MetricCalculators::MinHouseholdSizeCalculator).
+          to receive(:data_stable?).and_return(true)
+        allow(GrdaWarehouse::Monitoring::MetricCalculators::MinHouseholdSizeCalculator).
+          to receive(:calculate_batch).and_return({ client1.id => 2 })
+        allow(GrdaWarehouse::Monitoring::MetricCalculators::HomelessDaysLastThreeYearsCalculator).
+          to receive(:data_stable?).and_return(false)
+        collect(metric_names: both_metrics)
+        allow(GrdaWarehouse::Monitoring::MetricCalculators::HomelessDaysLastThreeYearsCalculator).
+          to receive(:data_stable?).and_return(true)
+        allow(GrdaWarehouse::Monitoring::MetricCalculators::MinHouseholdSizeCalculator).
+          to receive(:calculate_batch).and_return({ client1.id => 5 })
+      end
+
+      it 'collects only the skipped metric' do
+        expect(collect(metric_names: both_metrics)).to eq([])
+
+        expect(GrdaWarehouse::Monitoring::MetricSnapshot.where(metric_definition: metric_definition).pluck(:current_value)).to contain_exactly(100, 50)
+        expect(snapshots_for(client1, second_metric_definition).pluck(:initial_value, :current_value)).to eq([[2, 2]])
+      end
+    end
+
+    context 'when the second run is scoped to specific entities' do
+      it 'collects even though the metric was already collected' do
+        collect
+        processed1.update!(days_homeless_last_three_years: 200)
+
+        collect(entity_ids: [client1.id])
+
+        expect(snapshots_for(client1).pluck(:current_value)).to eq([200])
+      end
+    end
+  end
+
   describe 'cleanup old snapshots' do
     let!(:old_snapshot) do
       create(

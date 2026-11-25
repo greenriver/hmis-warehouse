@@ -49,8 +49,25 @@ module GrdaWarehouse::Monitoring::Tasks
       # of the time it takes to run the collector.
       NotifyMetricThresholdCrossingsJob.perform_later(@calculation_date - 1.days)
 
-      run_record = create_run_record
       all_metrics = load_metrics
+
+      # The snapshot lookup can't see snapshots written today, so collecting a metric a second
+      # time for the same date would treat clients as new or reopen superseded snapshots. A full
+      # run therefore skips metrics that already have a snapshot observed on the calculation
+      # date. Retries for unstable metrics still collect, since those have none. Runs scoped
+      # with entity_ids never skip, so they can't block the full run.
+      if @entity_ids.nil?
+        collected_metrics, all_metrics = all_metrics.partition { |metric| collected_on_calculation_date?(metric) }
+        if collected_metrics.any?
+          Rails.logger.info(
+            "MetricSnapshotCollector: skipping #{collected_metrics.map(&:name).join(', ')} — " \
+            "already collected for #{@calculation_date}",
+          )
+        end
+        return [] if all_metrics.empty?
+      end
+
+      run_record = create_run_record
       entities = load_entities
 
       # Check every metric's stability consecutively, then open the transaction
@@ -88,6 +105,12 @@ module GrdaWarehouse::Monitoring::Tasks
     end
 
     private
+
+    def collected_on_calculation_date?(metric)
+      GrdaWarehouse::Monitoring::MetricSnapshot.
+        where(metric_definition_id: metric.id, entity_type: @entity_type, current_observation_date: @calculation_date).
+        exists?
+    end
 
     def create_run_record
       GrdaWarehouse::Monitoring::MetricCalculationRun.find_or_create_by!(
@@ -180,11 +203,10 @@ module GrdaWarehouse::Monitoring::Tasks
       entity_ids = entities.map(&:id)
       metric_ids = metrics.map(&:id)
 
-      # Find the most recent snapshot updated on or before yesterday for each entity/metric.
-      # Upper bound (..yesterday) ensures we never pick up a snapshot already written by
-      # today's run (same-day re-run safety), while still finding stale baselines from
-      # weeks or months ago so they are compared against rather than treated as "first time"
-      # (which would create a spurious crossing notification against the old baseline).
+      # Takes the most recent snapshot observed before the calculation date, however old, so a
+      # client missed for weeks is compared against its old baseline rather than treated as new
+      # (which would create a spurious crossing). Relies on #run skipping metrics already
+      # collected for the calculation date.
       GrdaWarehouse::Monitoring::MetricSnapshot.
         where(entity_type: @entity_type, entity_id: entity_ids).
         where(metric_definition_id: metric_ids).
