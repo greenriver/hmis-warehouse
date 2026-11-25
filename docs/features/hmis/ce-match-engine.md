@@ -69,7 +69,7 @@ PSDE fields read HUD data elements (Income and Benefits, Disabilities, Health an
 
 ### `psde.disabling_condition` and `psde.any_reported_disability`
 
-Two fields describe a client's disability status. They share one algorithm and differ only in which disability rows count:
+Two fields describe a client's disability status. They share one algorithm and differ only in which disability rows are answers and which count:
 
 | Field | Label | A disability row counts when |
 |---|---|---|
@@ -81,11 +81,15 @@ Responses 2 and 3 count as Yes for every type, as in the warehouse. The Boston c
 The shared algorithm ports the CAS inference and applies it only to in-scope enrollments. It has two rules:
 
 1. **Enrollment flag (3.08)**: the latest in-scope enrollment with a Yes/No `DisablingCondition`, by `EntryDate`, then `DateUpdated`, then `id`, says Yes.
-2. **Disability records**: for any disability type, a row on that type's latest `InformationDate` counts. Any answered row (response 0–3) can be the latest, so for the HUD field a later Yes that doesn't qualify, for example with `IndefiniteAndImpairs` unanswered, replaces an earlier qualifying Yes. If a qualifying and a non-qualifying row share the latest date, the qualifying row wins, as in the warehouse.
+2. **Disability records**: for any disability type, a row on that type's latest `InformationDate` counts. Only answered rows can be the latest:
+   - **Any Reported Disability:** any row with a response of 0–3, as in the warehouse.
+   - **HUD Disabling Condition:** the same, except that a Yes on Physical, Chronic Health, Mental Health or Substance Use is only an answer when `IndefiniteAndImpairs` is No or Yes. A blank or 8/9/99 follow-up is missing data, so that row is skipped and does not replace an earlier row of the same type. A later Yes with `IndefiniteAndImpairs` No does replace an earlier qualifying Yes.
+
+   If a qualifying and a non-qualifying row share the latest date, the qualifying row wins, as in the warehouse.
 
 The rules are combined with OR. The value is `true` if either rule says Yes, `false` if either rule had an answer, and `nil` if neither did. The algorithm is ported rather than calling the warehouse scopes, because those can't apply the lookback window or project group, and the enrollment-flag rule depends on service history, which lags new HMIS enrollments.
 
-`psde_disabling_condition_parity_spec.rb` checks that `any_reported_disability` agrees with the CAS value when every enrollment is in scope. The HUD field has no warehouse counterpart with the same "latest answer" behavior, so `psde_value_resolver_spec.rb` instead checks its row test against `Disability#indefinite_and_impairs?` for every type, response and `IndefiniteAndImpairs` combination.
+`psde_disabling_condition_parity_spec.rb` checks that `any_reported_disability` agrees with the CAS value when every enrollment is in scope. The HUD field has no CAS counterpart: the default calculator ignores `IndefiniteAndImpairs`, and Boston's `chronically_disabled` counts any qualifying row with no "latest answer" rule. So `psde_value_resolver_spec.rb` instead checks its row test against `Disability#indefinite_and_impairs?` for every type, response and `IndefiniteAndImpairs` combination.
 
 Accepted differences from the warehouse, for both fields:
 

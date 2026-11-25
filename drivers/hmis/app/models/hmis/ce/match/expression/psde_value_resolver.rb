@@ -86,9 +86,17 @@ module Hmis::Ce::Match::Expression
       when PsdeFieldRegistry::DOMESTIC_VIOLENCE_SURVIVOR_VALUES_IN_WINDOW.key
         resolve_boolean_values_in_window(clients, **boolean_field_source(PsdeFieldRegistry::DOMESTIC_VIOLENCE_SURVIVOR.key))
       when PsdeFieldRegistry::DISABLING_CONDITION.key
-        resolve_disabling_condition(clients, disability_row_qualifies: method(:hud_disabling_condition_row?))
+        resolve_disabling_condition(
+          clients,
+          disability_row_answered: method(:hud_disabling_condition_row_answered?),
+          disability_row_qualifies: method(:hud_disabling_condition_row?),
+        )
       when PsdeFieldRegistry::ANY_REPORTED_DISABILITY.key
-        resolve_disabling_condition(clients, disability_row_qualifies: method(:disability_yes_row?))
+        resolve_disabling_condition(
+          clients,
+          disability_row_answered: method(:disability_response_answered?),
+          disability_row_qualifies: method(:disability_yes_row?),
+        )
       else
         raise ArgumentError, "Unknown PSDE field \"#{field.key}\""
       end
@@ -134,20 +142,24 @@ module Hmis::Ce::Match::Expression
     #   A) the latest in-scope enrollment with a Yes/No DisablingCondition says Yes, or
     #   B) any disability type has a qualifying row on its latest in-scope InformationDate.
     #
-    # +disability_row_qualifies+ is the only thing that differs between fields: it decides whether a single
-    # disability row counts (any Yes, or a Yes that meets HUD's Disabling Condition definition).
+    # The two row tests are the only things that differ between fields:
+    # * +disability_row_answered+ decides whether a row is an answer that can be the latest for its type.
+    # * +disability_row_qualifies+ decides whether that row counts (any Yes, or a Yes that meets HUD's
+    #   Disabling Condition definition).
     #
     # Returns true if A or B is Yes; false if either rule had a meaningful answer; nil if neither did.
     #
+    # @param disability_row_answered [#call] takes a DisabilityRow, returns Boolean
     # @param disability_row_qualifies [#call] takes a DisabilityRow, returns Boolean
     # @return [Hash{Integer => Boolean, nil}]
-    def resolve_disabling_condition(clients, disability_row_qualifies:)
+    def resolve_disabling_condition(clients, disability_row_answered:, disability_row_qualifies:)
       client_ids = extract_client_ids(clients)
       return {} if client_ids.empty?
 
       enrollment_flags = disabling_condition_by_client(client_ids)
       disability_flags = disabled_because_disability_by_client(
         client_ids,
+        disability_row_answered: disability_row_answered,
         disability_row_qualifies: disability_row_qualifies,
       )
 
@@ -184,13 +196,14 @@ module Hmis::Ce::Match::Expression
     end
 
     # Rule B. Warehouse counterpart: GrdaWarehouse::Hud::Client.disabled_client_because_disability_scope.
-    # Any answered row (0-3) is a candidate for "latest". For each disability type, the type is positive if any
-    # row on its latest InformationDate passes +disability_row_qualifies+ (so a same-day qualifying row wins,
-    # as in the warehouse). A later answered row replaces an earlier qualifying row of the same type even if the
-    # later row does not qualify. Rows without an InformationDate are skipped.
+    # Rows with a response of 0-3 that pass +disability_row_answered+ are candidates for "latest". For each
+    # disability type, the type is positive if any row on its latest InformationDate passes
+    # +disability_row_qualifies+ (so a same-day qualifying row wins, as in the warehouse). A later answered row
+    # replaces an earlier qualifying row of the same type even if the later row does not qualify. Rows without
+    # an InformationDate are skipped.
     #
-    # @return [Hash{Integer => Boolean}] clients without any meaningful disability row are absent
-    def disabled_because_disability_by_client(client_ids, disability_row_qualifies:)
+    # @return [Hash{Integer => Boolean}] clients without any answered disability row are absent
+    def disabled_because_disability_by_client(client_ids, disability_row_answered:, disability_row_qualifies:)
       disability_scope = Hmis::Hud::Disability.
         where(
           DisabilityType: DISABILITY_TYPE_CODES.values,
@@ -207,9 +220,10 @@ module Hmis::Ce::Match::Expression
         d_t[:IndefiniteAndImpairs],
         d_t[:InformationDate],
       )
-      rows = plucked_rows.map { |values| DisabilityRow.new(*values) }
+      all_rows = plucked_rows.map { |values| DisabilityRow.new(*values) }
+      answered_rows = all_rows.select { |row| disability_row_answered.call(row) }
 
-      rows_by_client = rows.group_by(&:client_id)
+      rows_by_client = answered_rows.group_by(&:client_id)
       rows_by_client.transform_values do |client_rows|
         rows_by_type = client_rows.group_by(&:type)
         rows_by_type.values.any? do |type_rows|
@@ -225,9 +239,25 @@ module Hmis::Ce::Match::Expression
       latest_rows.any? { |row| disability_row_qualifies.call(row) }
     end
 
+    # Answered test for psde.any_reported_disability: any No or Yes response, as in the warehouse.
+    def disability_response_answered?(row)
+      row.response.in?(DISABILITY_RESPONSE_CODES)
+    end
+
     # Row test for psde.any_reported_disability: any Yes response, whether or not it is long-term or impairing.
     def disability_yes_row?(row)
       row.response.in?(DISABILITY_YES_RESPONSE_CODES)
+    end
+
+    # Answered test for psde.disabling_condition (HUD definition). A Yes on a type that needs the
+    # IndefiniteAndImpairs follow-up is only an answer when that follow-up is No or Yes. Leaving the follow-up
+    # blank (or 8/9/99) is missing data, so it does not replace an earlier qualifying row of the same type.
+    def hud_disabling_condition_row_answered?(row)
+      return false unless disability_response_answered?(row)
+      return true unless disability_yes_row?(row)
+      return true if row.type.in?(ALWAYS_QUALIFYING_DISABILITY_TYPES)
+
+      row.indefinite_and_impairs.in?(NO_YES_RESPONSES)
     end
 
     # Row test for psde.disabling_condition (HUD definition).

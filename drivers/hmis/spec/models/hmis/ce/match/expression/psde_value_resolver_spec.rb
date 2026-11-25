@@ -1290,8 +1290,20 @@ RSpec.describe Hmis::Ce::Match::Expression::PsdeValueResolver, type: :model do
         expect(resolved_value).to be(true)
       end
 
-      [0, 8, 9, 99, nil].each do |indefinite_and_impairs|
-        it "resolves type #{type} Yes with IndefiniteAndImpairs #{indefinite_and_impairs.inspect} to false" do
+      it "resolves type #{type} Yes with IndefiniteAndImpairs No to false" do
+        create_disability(
+          disability_type: type,
+          disability_response: 1,
+          indefinite_and_impairs: 0,
+          information_date: current_date - 1.week,
+        )
+
+        expect(resolved_value).to be(false)
+      end
+
+      # An unanswered follow-up is missing data, so the row is not an answer
+      [8, 9, 99, nil].each do |indefinite_and_impairs|
+        it "resolves type #{type} Yes with IndefiniteAndImpairs #{indefinite_and_impairs.inspect} to nil" do
           create_disability(
             disability_type: type,
             disability_response: 1,
@@ -1299,7 +1311,7 @@ RSpec.describe Hmis::Ce::Match::Expression::PsdeValueResolver, type: :model do
             information_date: current_date - 1.week,
           )
 
-          expect(resolved_value).to be(false)
+          expect(resolved_value).to be_nil
         end
       end
     end
@@ -1333,8 +1345,26 @@ RSpec.describe Hmis::Ce::Match::Expression::PsdeValueResolver, type: :model do
     end
 
     describe 'replacement by later rows of the same type' do
-      [0, 8, 9, 99, nil].each do |later_indefinite_and_impairs|
-        it "lets a later Yes with IndefiniteAndImpairs #{later_indefinite_and_impairs.inspect} replace a qualifying Yes" do
+      it 'lets a later Yes with IndefiniteAndImpairs No replace a qualifying Yes' do
+        create_disability(
+          disability_type: 9,
+          disability_response: 1,
+          indefinite_and_impairs: 1,
+          information_date: current_date - 2.weeks,
+        )
+        create_disability(
+          disability_type: 9,
+          disability_response: 1,
+          indefinite_and_impairs: 0,
+          information_date: current_date - 1.week,
+        )
+
+        expect(resolved_value).to be(false)
+      end
+
+      [8, 9, 99, nil].each do |later_indefinite_and_impairs|
+        it "does not let a later Yes with IndefiniteAndImpairs #{later_indefinite_and_impairs.inspect} " \
+           'replace a qualifying Yes' do
           create_disability(
             disability_type: 9,
             disability_response: 1,
@@ -1348,8 +1378,47 @@ RSpec.describe Hmis::Ce::Match::Expression::PsdeValueResolver, type: :model do
             information_date: current_date - 1.week,
           )
 
+          expect(resolved_value).to be(true)
+        end
+
+        it "does not let a later Yes with IndefiniteAndImpairs #{later_indefinite_and_impairs.inspect} " \
+           'replace a No' do
+          create_disability(
+            disability_type: 9,
+            disability_response: 0,
+            information_date: current_date - 2.weeks,
+          )
+          create_disability(
+            disability_type: 9,
+            disability_response: 1,
+            indefinite_and_impairs: later_indefinite_and_impairs,
+            information_date: current_date - 1.week,
+          )
+
           expect(resolved_value).to be(false)
         end
+      end
+
+      it 'lets a later No replace a Yes with an unanswered IndefiniteAndImpairs' do
+        create_disability(
+          disability_type: 9,
+          disability_response: 1,
+          indefinite_and_impairs: 1,
+          information_date: current_date - 3.weeks,
+        )
+        create_disability(
+          disability_type: 9,
+          disability_response: 1,
+          indefinite_and_impairs: nil,
+          information_date: current_date - 2.weeks,
+        )
+        create_disability(
+          disability_type: 9,
+          disability_response: 0,
+          information_date: current_date - 1.week,
+        )
+
+        expect(resolved_value).to be(false)
       end
 
       it 'lets a later qualifying Yes replace a non-qualifying Yes' do
@@ -1461,7 +1530,12 @@ RSpec.describe Hmis::Ce::Match::Expression::PsdeValueResolver, type: :model do
       {
         name: 'mental health Yes with IndefiniteAndImpairs not collected',
         rows: [[9, 1, 99, 1]],
-        expected: { hud: false, broad: true },
+        expected: { hud: nil, broad: true },
+      },
+      {
+        name: 'qualifying Yes followed by a later Yes with IndefiniteAndImpairs not collected',
+        rows: [[9, 1, 1, 2], [9, 1, nil, 1]],
+        expected: { hud: true, broad: true },
       },
       {
         name: 'qualifying Yes replaced by a later non-qualifying Yes',
