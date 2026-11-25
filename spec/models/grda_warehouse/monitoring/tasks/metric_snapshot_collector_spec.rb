@@ -908,10 +908,10 @@ RSpec.describe GrdaWarehouse::Monitoring::Tasks::MetricSnapshotCollector, type: 
   end
 
   describe 'second run for the same calculation date' do
-    def collect(metric_names: ['test_metric'], entity_ids: nil)
+    def collect(metric_names: ['test_metric'], entity_ids: nil, date: calculation_date)
       described_class.run_daily_collection(
         entity_type: entity_type,
-        calculation_date: calculation_date,
+        calculation_date: date,
         entity_ids: entity_ids,
         metric_names: metric_names,
       )
@@ -1025,7 +1025,7 @@ RSpec.describe GrdaWarehouse::Monitoring::Tasks::MetricSnapshotCollector, type: 
         allow(GrdaWarehouse::Monitoring::MetricCalculators::HomelessDaysLastThreeYearsCalculator).
           to receive(:data_stable?).and_return(true)
         allow(GrdaWarehouse::Monitoring::MetricCalculators::MinHouseholdSizeCalculator).
-          to receive(:calculate_batch).and_return({ client1.id => 5 })
+          to receive(:calculate_batch) { |entities, *| entities.map(&:id).include?(client1.id) ? { client1.id => 5 } : {} }
       end
 
       it 'collects only the skipped metric' do
@@ -1036,22 +1036,149 @@ RSpec.describe GrdaWarehouse::Monitoring::Tasks::MetricSnapshotCollector, type: 
       end
     end
 
-    context 'when the second run is scoped to specific entities' do
-      it 'collects even though the metric was already collected' do
+    context 'when a scoped run follows the full run for the date' do
+      it 'skips the client already collected' do
         collect
         processed1.update!(days_homeless_last_three_years: 200)
 
-        collect(entity_ids: [client1.id])
-
-        expect(snapshots_for(client1).pluck(:current_value)).to eq([200])
+        expect { collect(entity_ids: [client1.id]) }.not_to change(GrdaWarehouse::Monitoring::MetricSnapshot, :count)
+        expect(snapshots_for(client1).pluck(:current_value)).to eq([100])
       end
+    end
 
-      it 'leaves other entities uncollected when a full run for the same date follows' do
+    context 'when a scoped run precedes the full run for the date' do
+      it 'collects the clients the scoped run did not cover and skips the one it did' do
         collect(entity_ids: [client1.id])
+        processed1.update!(days_homeless_last_three_years: 200)
         collect
 
-        expect(snapshots_for(client1).count).to eq(1)
-        expect(snapshots_for(client2).count).to eq(0)
+        expect(snapshots_for(client1).pluck(:current_value)).to eq([100])
+        expect(snapshots_for(client2).pluck(:current_value)).to eq([50])
+      end
+    end
+
+    context 'when only some clients already have a snapshot for the date' do
+      before do
+        create(
+          :grda_warehouse_monitoring_metric_snapshot,
+          entity: client1,
+          metric_definition: metric_definition,
+          initial_observation_date: calculation_date - 10.days,
+          current_observation_date: calculation_date,
+          initial_value: 100,
+          current_value: 100,
+        )
+        processed1.update!(days_homeless_last_three_years: 200)
+      end
+
+      it 'collects only the client without one' do
+        expect { collect }.to change { snapshots_for(client2).count }.from(0).to(1)
+
+        expect(snapshots_for(client1).pluck(:current_value)).to eq([100])
+        expect(snapshots_for(client2).pluck(:current_value)).to eq([50])
+      end
+
+      it 'replaces the run record counts with those of the partial run' do
+        collect
+
+        expect(GrdaWarehouse::Monitoring::MetricCalculationRun.find_by!(entity_type: entity_type, calculation_date: calculation_date)).
+          to have_attributes(entities_evaluated_count: 2, metrics_calculated_count: 1, snapshots_created_count: 1)
+      end
+    end
+
+    context 'when a scoped run follows the full run and the next date is then collected' do
+      let(:next_date) { calculation_date + 1.day }
+
+      def rows_for(client)
+        snapshots_for(client).order(:id).pluck(:initial_value, :current_value, :initial_observation_date, :current_observation_date)
+      end
+
+      let!(:superseded_snapshot) do
+        create(
+          :grda_warehouse_monitoring_metric_snapshot,
+          entity: client1,
+          metric_definition: metric_definition,
+          initial_observation_date: calculation_date - 20.days,
+          current_observation_date: calculation_date - 11.days,
+          initial_value: 40,
+          current_value: 60,
+        )
+      end
+
+      let!(:current_snapshot) do
+        create(
+          :grda_warehouse_monitoring_metric_snapshot,
+          entity: client1,
+          metric_definition: metric_definition,
+          initial_observation_date: calculation_date - 10.days,
+          current_observation_date: calculation_date - 1.day,
+          initial_value: 100,
+          current_value: 100,
+        )
+      end
+
+      let(:superseded_row) { [40, 60, calculation_date - 20.days, calculation_date - 11.days] }
+
+      before { collect }
+
+      context 'when the scoped value is far from the latest snapshot' do
+        before do
+          processed1.update!(days_homeless_last_three_years: 500)
+          collect(entity_ids: [client1.id])
+        end
+
+        it 'leaves the superseded and current snapshots unchanged' do
+          expect(rows_for(client1)).to eq(
+            [superseded_row, [100, 100, calculation_date - 10.days, calculation_date]],
+          )
+        end
+
+        it 'records the crossing on the next date against the latest snapshot value' do
+          collect(date: next_date)
+
+          expect(rows_for(client1)).to eq(
+            [
+              superseded_row,
+              [100, 100, calculation_date - 10.days, calculation_date],
+              [500, 500, next_date, next_date],
+            ],
+          )
+        end
+      end
+
+      context 'when the scoped value is within the threshold of the superseded snapshot' do
+        before do
+          processed1.update!(days_homeless_last_three_years: 70)
+          collect(entity_ids: [client1.id])
+        end
+
+        it 'leaves the superseded and current snapshots unchanged' do
+          expect(rows_for(client1)).to eq(
+            [superseded_row, [100, 100, calculation_date - 10.days, calculation_date]],
+          )
+        end
+
+        it 'extends the current snapshot on the next date when the value is back at its level' do
+          processed1.update!(days_homeless_last_three_years: 100)
+          collect(date: next_date)
+
+          expect(rows_for(client1)).to eq(
+            [superseded_row, [100, 100, calculation_date - 10.days, next_date]],
+          )
+        end
+
+        it 'records a crossing on the next date when the value moves past the threshold' do
+          processed1.update!(days_homeless_last_three_years: 200)
+          collect(date: next_date)
+
+          expect(rows_for(client1)).to eq(
+            [
+              superseded_row,
+              [100, 100, calculation_date - 10.days, calculation_date],
+              [200, 200, next_date, next_date],
+            ],
+          )
+        end
       end
     end
 
@@ -1092,7 +1219,19 @@ RSpec.describe GrdaWarehouse::Monitoring::Tasks::MetricSnapshotCollector, type: 
         )
       end
 
-      it 'skips the metric and leaves the snapshot unchanged' do
+      before do
+        create(
+          :grda_warehouse_monitoring_metric_snapshot,
+          entity: client2,
+          metric_definition: metric_definition,
+          initial_observation_date: calculation_date - 10.days,
+          current_observation_date: calculation_date,
+          initial_value: 50,
+          current_value: 50,
+        )
+      end
+
+      it 'skips the clients and leaves their snapshots unchanged' do
         processed1.update!(days_homeless_last_three_years: 200)
 
         expect do

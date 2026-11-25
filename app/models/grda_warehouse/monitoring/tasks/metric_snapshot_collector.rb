@@ -30,6 +30,7 @@ module GrdaWarehouse::Monitoring::Tasks
       @calculation_date = calculation_date
       @entity_ids = entity_ids
       @metric_names = metric_names
+      @skipped_counts = Hash.new(0)
       @run_stats = {
         entities_evaluated: 0,
         metrics_calculated: 0,
@@ -50,24 +51,6 @@ module GrdaWarehouse::Monitoring::Tasks
       NotifyMetricThresholdCrossingsJob.perform_later(@calculation_date - 1.days)
 
       all_metrics = load_metrics
-
-      # The snapshot lookup can't see snapshots written today, so collecting a metric a second
-      # time for the same date would treat clients as new or reopen superseded snapshots. A full
-      # run therefore skips metrics that already have a snapshot observed on or after the
-      # calculation date, so a past-date run after later dates were collected is also skipped.
-      # Retries for unstable metrics still collect, since those have none. Runs scoped with
-      # entity_ids never skip, but the snapshots they write make a later full run for the same
-      # date skip the metric for every entity.
-      if @entity_ids.nil?
-        collected_metrics, all_metrics = all_metrics.partition { |metric| collected_on_calculation_date?(metric) }
-        if collected_metrics.any?
-          Rails.logger.info(
-            "MetricSnapshotCollector: skipping #{collected_metrics.map(&:name).join(', ')} — " \
-            "already collected for #{@calculation_date}",
-          )
-        end
-        return [] if collected_metrics.any? && all_metrics.empty?
-      end
 
       run_record = create_run_record
       entities = load_entities
@@ -99,6 +82,12 @@ module GrdaWarehouse::Monitoring::Tasks
         end
       end
 
+      log_skipped_entities
+
+      # A re-run that found everything already collected leaves the existing run record as is.
+      nothing_to_collect = stable_metrics.any? && @run_stats[:metrics_calculated].zero? && @skipped_counts.any?
+      return skipped_metric_names if nothing_to_collect && !run_record.previously_new_record?
+
       cleanup_old_snapshots
       complete_run_record(run_record, 'completed')
 
@@ -108,10 +97,30 @@ module GrdaWarehouse::Monitoring::Tasks
 
     private
 
-    def collected_on_calculation_date?(metric)
-      GrdaWarehouse::Monitoring::MetricSnapshot.
-        where(metric_definition_id: metric.id, entity_type: @entity_type, current_observation_date: @calculation_date..).
-        exists?
+    def log_skipped_entities
+      @skipped_counts.each do |metric_name, count|
+        Rails.logger.info(
+          "MetricSnapshotCollector: skipped #{count} #{@entity_type} entities for #{metric_name} — " \
+          "already collected for #{@calculation_date}",
+        )
+      end
+    end
+
+    # The snapshot lookup can't see snapshots observed on or after the calculation date, so
+    # collecting an entity again would treat it as new or reopen a superseded snapshot. Entities
+    # holding such a snapshot for the metric are skipped in every run, which also covers past-date
+    # runs after later dates were collected. Unstable-metric retries still collect, since those
+    # have no snapshots. One query per batch and metric.
+    def entities_without_current_snapshot(entities, metric)
+      collected_ids = GrdaWarehouse::Monitoring::MetricSnapshot.
+        where(entity_type: @entity_type, entity_id: entities.map(&:id), metric_definition_id: metric.id).
+        where(current_observation_date: @calculation_date..).
+        distinct.
+        pluck(:entity_id)
+      return entities if collected_ids.empty?
+
+      @skipped_counts[metric.name] += collected_ids.size
+      entities.reject { |entity| collected_ids.include?(entity.id) }
     end
 
     def create_run_record
@@ -180,11 +189,14 @@ module GrdaWarehouse::Monitoring::Tasks
       snapshots_to_update = []
 
       metrics.each do |metric|
-        @run_stats[:metrics_calculated] += entities.count
+        metric_entities = entities_without_current_snapshot(entities, metric)
+        next if metric_entities.empty?
+
+        @run_stats[:metrics_calculated] += metric_entities.count
 
         begin
           process_metric_for_batch(
-            entities,
+            metric_entities,
             metric,
             current_snapshots,
             snapshots_to_create,
@@ -192,7 +204,7 @@ module GrdaWarehouse::Monitoring::Tasks
           )
         rescue StandardError => e
           Rails.logger.error "Failed to calculate #{metric.name} for batch: #{e.message}"
-          @run_stats[:errors] += entities.count
+          @run_stats[:errors] += metric_entities.count
         end
       end
 
@@ -207,8 +219,9 @@ module GrdaWarehouse::Monitoring::Tasks
 
       # Takes the most recent snapshot observed before the calculation date, however old, so a
       # client missed for weeks is compared against its old baseline rather than treated as new
-      # (which would create a spurious crossing). For full runs, relies on #run skipping metrics
-      # already collected on or after the calculation date. Scoped runs (entity_ids) don't skip.
+      # (which would create a spurious crossing). Entities with a snapshot on or after the
+      # calculation date are dropped per metric by #entities_without_current_snapshot, so this
+      # bound never hides the snapshot an entity being collected should compare against.
       GrdaWarehouse::Monitoring::MetricSnapshot.
         where(entity_type: @entity_type, entity_id: entity_ids).
         where(metric_definition_id: metric_ids).
