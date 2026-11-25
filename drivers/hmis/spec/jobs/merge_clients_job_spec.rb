@@ -247,6 +247,20 @@ RSpec.describe Hmis::MergeClientsJob, type: :model do
             end
           end
 
+          context 'when the soft-deleted enrollment has an active move-in address' do
+            let!(:move_in_address) { create(:hmis_move_in_address, enrollment: deleted_enrollment, client: client1, data_source: data_source) }
+
+            it 'keeps the move-in address on the moved enrollment' do
+              original_enrollment_id = active_enrollment.EnrollmentID
+              expect(active_enrollment.move_in_addresses).to contain_exactly(move_in_address)
+
+              Hmis::MergeClientsJob.perform_now(client_ids: client_ids, actor_id: actor.id)
+
+              expect(move_in_address.reload.EnrollmentID).to eq(original_enrollment_id)
+              expect(active_enrollment.reload.move_in_addresses).to contain_exactly(move_in_address)
+            end
+          end
+
           it 'records the original EnrollmentID in the merge audit' do
             original_enrollment_id = active_enrollment.EnrollmentID
             Hmis::MergeClientsJob.perform_now(client_ids: client_ids, actor_id: actor.id)

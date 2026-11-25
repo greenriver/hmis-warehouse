@@ -137,8 +137,9 @@ module Hmis
     end
 
     # Restores the original EnrollmentID on soft-deleted enrollments the merge re-keyed. Must run after
-    # restore_enrollments, which frees the original key. If the key is still held on the retained client
-    # (e.g. the moved enrollment was soft-deleted after the merge), the new key stays; the audit keeps the original.
+    # restore_enrollments, which frees the original key. If an enrollment or child record on the same client
+    # still holds the key (e.g. the moved enrollment, or one of its children, was soft-deleted after the merge
+    # and so was not moved back), the new key stays; the audit keeps the original.
     def restore_rekeyed_deleted_enrollments
       mappings = merge_audit.mappings_for('rekeyed_deleted_enrollments')
       return if mappings.empty?
@@ -148,25 +149,30 @@ module Hmis
 
         enrollment = Hmis::Hud::Enrollment.with_deleted.find_by(id: enrollment_id)
         next unless enrollment
-        next unless enrollment.personal_id == retained_client.personal_id
         next if enrollment.EnrollmentID == original_enrollment_id
+
+        # After a chain merge, the enrollment can still be on an intermediate client rather than the retained client
+        client_scope = { data_source_id: enrollment.data_source_id, PersonalID: enrollment.PersonalID }
 
         # A dry run leaves restored enrollments on the retained client; they don't count as holding the key
         original_key_taken = Hmis::Hud::Enrollment.with_deleted.
-          where(data_source_id: retained_client.data_source_id, PersonalID: retained_client.personal_id, EnrollmentID: original_enrollment_id).
+          where(**client_scope, EnrollmentID: original_enrollment_id).
           where.not(id: restored_enrollment_ids).
           exists?
+        original_key_taken ||= Hmis::Hud::Enrollment.hmis_enrollment_related_classes.any? do |model|
+          model.with_deleted.where(**client_scope, EnrollmentID: original_enrollment_id).exists?
+        end
         if original_key_taken
-          Rails.logger.info "Keeping new EnrollmentID on soft-deleted enrollment #{enrollment_id}; the original is still held on client #{retained_client.id}"
+          Rails.logger.info "Keeping new EnrollmentID on soft-deleted enrollment #{enrollment_id}; the original is still held on PersonalID #{enrollment.PersonalID}"
           next
         end
 
         Rails.logger.info "Restoring original EnrollmentID on soft-deleted enrollment #{enrollment_id}"
         next if dry_run
 
-        Hmis::MergeClientsJob.enrollment_child_models.each do |model|
+        Hmis::Hud::Enrollment.hmis_enrollment_related_classes.each do |model|
           model.with_deleted.
-            where(data_source_id: retained_client.data_source_id, PersonalID: retained_client.personal_id, EnrollmentID: enrollment.EnrollmentID).
+            where(**client_scope, EnrollmentID: enrollment.EnrollmentID).
             update_all(EnrollmentID: original_enrollment_id)
         end
         enrollment.update_column(:EnrollmentID, original_enrollment_id)
