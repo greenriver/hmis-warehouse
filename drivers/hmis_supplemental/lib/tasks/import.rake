@@ -7,7 +7,7 @@
 # rails driver:hmis_supplemental:import
 desc 'Import supplemental data for every sync-enabled data set'
 task import: [:environment, 'log:info_to_stdout'] do
-  HmisSupplemental::DataSet.where(sync_enabled: true).order(:id).each do |data_set|
+  HmisSupplemental::DataSet.syncable.order(:id).each do |data_set|
     HmisSupplemental::ImportJob.new.perform(data_set_id: data_set.id)
   end
 end

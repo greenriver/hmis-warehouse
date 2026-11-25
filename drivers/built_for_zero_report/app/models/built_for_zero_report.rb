@@ -56,7 +56,7 @@ module BuiltForZeroReport
 
   # Returns success or failure string
   def self.submit_via_api!(start_date, end_date, user:)
-    credential = BuiltForZeroReport::Credential.first
+    credential = BuiltForZeroReport::Credential.active.first!
     data = credential.section_ids.map do |m|
       section = section_classes.values.detect { |sc| m['subpopname'] == sc.sub_population_name }
       sub_population_id = m['id']

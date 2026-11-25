@@ -23,7 +23,7 @@ module MaReports::CsgEngage
     end
 
     def self.run_if_ready
-      cred = MaReports::CsgEngage::Credential.first
+      cred = MaReports::CsgEngage::Credential.active.first
       return unless cred.present?
       return unless DateTime.current.hour == cred.hour
       return if latest_report.present? && latest_report.started_at > DateTime.current - 20.hours

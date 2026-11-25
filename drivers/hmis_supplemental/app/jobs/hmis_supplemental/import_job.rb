@@ -22,6 +22,8 @@ class HmisSupplemental::ImportJob < BaseJob
     return unless @data_set
 
     csv_string ||= read_csv_from_s3
+    return unless csv_string
+
     did_run = false
     with_lock do
       values = read_csv_rows(csv_string).
@@ -51,7 +53,10 @@ class HmisSupplemental::ImportJob < BaseJob
   end
 
   def read_csv_from_s3
-    s3 = data_set.remote_credential.s3
+    credential = GrdaWarehouse::RemoteCredentials::S3.active.find_by(id: data_set.remote_credential_id)
+    return unless credential
+
+    s3 = credential.s3
     s3.get_as_io(key: object_key).read
   end
 

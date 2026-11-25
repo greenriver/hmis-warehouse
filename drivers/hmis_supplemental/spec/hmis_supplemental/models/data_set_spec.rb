@@ -30,4 +30,23 @@ RSpec.describe HmisSupplemental::DataSet, type: :model do
       a_string_matching(/\AField config expected object key,*/),
     )
   end
+
+  describe '.syncable' do
+    let!(:syncable) { create(:hmis_supplemental_data_set, sync_enabled: true) }
+
+    before do
+      create(:hmis_supplemental_data_set, sync_enabled: false)
+      create(:hmis_supplemental_data_set, sync_enabled: true, remote_credential: create(:grda_remote_s3, active: false))
+    end
+
+    it 'returns only sync-enabled sets with an active credential' do
+      expect(described_class.syncable).to contain_exactly(syncable)
+    end
+
+    it 'returns nothing in sandbox mode' do
+      with_sandbox_mode do
+        expect(described_class.syncable).to be_empty
+      end
+    end
+  end
 end

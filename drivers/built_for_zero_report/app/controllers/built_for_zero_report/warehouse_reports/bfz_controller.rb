@@ -13,7 +13,7 @@ module BuiltForZeroReport::WarehouseReports
     before_action :set_report
 
     def index
-      @show_api_button = BuiltForZeroReport::Credential.exists? && params[:report].present?
+      @show_api_button = BuiltForZeroReport::Credential.active.exists? && params[:report].present?
       return unless params[:commit] == 'Submit Report'
 
       BuiltForZeroReport.delay.submit_via_api!(@start_date, @end_date, user: current_user)

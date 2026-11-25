@@ -178,5 +178,50 @@ RSpec.describe HmisSupplemental::ImportJob, type: :model do
         end
       end
     end
+
+  describe 'credential gate' do
+    let(:client) { create(:hud_client, data_source: data_source) }
+    let(:field) { data_set.fields.detect { |f| f.type == 'string' && !f.multi_valued } }
+    let(:value_scope) { HmisSupplemental::FieldValue.where(data_set: data_set) }
+    let(:csv) { "personal_id,#{field.key}\n#{client.personal_id},abc\n" }
+
+    before { allow(s3_client_double).to receive(:get_as_io).and_return(StringIO.new(csv)) }
+
+    context 'with an inactive credential' do
+      before { data_set.remote_credential.update!(active: false) }
+
+      it 'imports nothing and makes no S3 call when reading from S3' do
+        allow_any_instance_of(GrdaWarehouse::RemoteCredentials::S3).to receive(:s3).and_return(s3_client_double)
+
+        expect { HmisSupplemental::ImportJob.new.perform(data_set_id: data_set.id) }.not_to change(value_scope, :count)
+        expect(s3_client_double).not_to have_received(:get_as_io)
+      end
+
+      it 'still imports a supplied CSV string' do
+        expect do
+          HmisSupplemental::ImportJob.new.perform(data_set_id: data_set.id, csv_string: csv)
+        end.to change(value_scope, :count).from(0).to(1)
+      end
+    end
+
+    context 'in sandbox mode with an active credential' do
+      it 'imports nothing and makes no S3 call when reading from S3' do
+        allow_any_instance_of(GrdaWarehouse::RemoteCredentials::S3).to receive(:s3).and_return(s3_client_double)
+
+        with_sandbox_mode do
+          expect { HmisSupplemental::ImportJob.new.perform(data_set_id: data_set.id) }.not_to change(value_scope, :count)
+        end
+        expect(s3_client_double).not_to have_received(:get_as_io)
+      end
+
+      it 'still imports a supplied CSV string' do
+        with_sandbox_mode do
+          expect do
+            HmisSupplemental::ImportJob.new.perform(data_set_id: data_set.id, csv_string: csv)
+          end.to change(value_scope, :count).from(0).to(1)
+        end
+      end
+    end
+  end
   end
 end

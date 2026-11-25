@@ -42,7 +42,7 @@ namespace :eto do
         )
       end
       # Eccovia too!
-      EccoviaData::Fetch.all.each(&:fetch_updated)
+      EccoviaData::Fetch.with_active_credentials.each(&:fetch_updated)
     end
   end
 end

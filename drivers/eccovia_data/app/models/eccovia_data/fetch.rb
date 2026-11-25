@@ -11,6 +11,14 @@ module EccoviaData
     self.table_name = :eccovia_fetches
     belongs_to :credentials, class_name: 'EccoviaData::Credential'
 
+    scope :with_active_credentials, -> do
+      SandboxMode.filter(
+        where(active: true, deleted_at: nil).
+          joins(:credentials).
+          merge(EccoviaData::Credential.active),
+      )
+    end
+
     def fetch_updated
       EccoviaData::Assessment.fetch_updated(data_source_id: data_source_id, credentials: credentials)
       EccoviaData::ClientContact.fetch_updated(data_source_id: data_source_id, credentials: credentials)
