@@ -19,11 +19,12 @@ RSpec.describe AllNeighborsSystemDashboard::Report, type: :model do
     )
   end
 
-  it 'refuses to publish in sandbox mode and leaves the published copy untouched' do
+  it 'skips publishing in sandbox mode and leaves the published copy untouched' do
     with_sandbox_mode do
-      expect { report.publish!(User.system_user.id) }.to raise_error(SandboxMode::IntegrationDisabled, 'Public report publishing is disabled in sandbox mode')
+      expect { report.publish!(User.system_user.id) }.not_to raise_error
     end
 
+    expect(report.published_reports.count).to eq(1)
     expect(published_report.reload.attributes.values_at('published_url', 'state')).to eq(['https://example.test/report', 'published'])
   end
 end

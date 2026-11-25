@@ -77,7 +77,7 @@ module WarehouseReports::Publish
     end
 
     def publish!(user_id)
-      SandboxMode.guard!('Public report publishing')
+      return if SandboxMode.enabled?
 
       # This should:
       # 1. Take the contents of html and push it up to S3
