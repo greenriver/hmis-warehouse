@@ -111,7 +111,7 @@ module GrdaWarehouse::Monitoring::Tasks
     # collecting an entity again would treat it as new or reopen a superseded snapshot. Entities
     # holding such a snapshot for the metric are skipped in every run, which also covers past-date
     # runs after later dates were collected. Unstable-metric retries still collect, since those
-    # have no snapshots. One query per batch and metric.
+    # have no snapshot for the calculation date. One query per batch and metric.
     def entities_without_current_snapshot(entities, metric)
       collected_ids = GrdaWarehouse::Monitoring::MetricSnapshot.
         where(entity_type: @entity_type, entity_id: entities.map(&:id), metric_definition_id: metric.id).
