@@ -37,7 +37,7 @@ RSpec.describe MaReports::CsgEngage::ReportComponents::Report, type: :model do
   let!(:credential) do
     MaReports::CsgEngage::Credential.create!(
       username: '',
-      active: true,
+      active: false,
       endpoint: 'https://www.example.com',
       additional_headers: { 'hour' => 4 },
       slug: 'csg_engage_endpoint',

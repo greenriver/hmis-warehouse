@@ -45,4 +45,35 @@ RSpec.describe 'BuiltForZeroReport::WarehouseReports::Bfz#details', type: :reque
     expect(response.body).to include(GrdaWarehouse::PiiProvider::NAME_REDACTED)
     expect(response.body).to include('Open')
   end
+
+  describe 'index API button' do
+    let(:index_path) { built_for_zero_report_warehouse_reports_bfz_index_path(report: { section: 'adults' }) }
+
+    before do
+      allow(GrdaWarehouse::Config).to receive(:get).and_call_original
+      allow(GrdaWarehouse::Config).to receive(:get).with(:enable_system_cohorts).and_return(true)
+      BuiltForZeroReport::Credential.create!(
+        active: false,
+        username: 'user',
+        password: 'secret',
+        endpoint: 'https://bfz.example.com',
+        path: 'api-key',
+        bucket: 'community-1',
+        slug: 'bfz',
+      )
+    end
+
+    it 'shows the submit button when a credential exists, even if inactive' do
+      get index_path
+
+      expect(response.body).to include('Submit Report')
+    end
+
+    it 'hides the submit button in sandbox mode' do
+      with_sandbox_mode { get index_path }
+
+      expect(response).to have_http_status(:success)
+      expect(response.body).not_to include('Submit Report')
+    end
+  end
 end

@@ -30,9 +30,7 @@ module HmisSupplemental
              dependent: :destroy
 
     scope :syncable, -> do
-      where(sync_enabled: true).
-        joins(:remote_credential).
-        merge(GrdaWarehouse::RemoteCredential.active)
+      SandboxMode.filter(where(sync_enabled: true))
     end
 
     scope :viewable_by, ->(user) do

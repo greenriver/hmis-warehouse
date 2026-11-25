@@ -9,7 +9,7 @@
 require 'rails_helper'
 
 RSpec.describe EccoviaData::Fetch, type: :model do
-  describe '.with_active_credentials' do
+  describe '.outbound_allowed' do
     let(:data_source) { create(:grda_warehouse_data_source) }
 
     def create_credential(active:)
@@ -26,22 +26,22 @@ RSpec.describe EccoviaData::Fetch, type: :model do
       described_class.create!(credentials: credentials, data_source_id: data_source.id, active: active)
     end
 
-    let!(:eligible) { create_fetch(credentials: create_credential(active: true), active: true) }
-
-    before do
-      create_fetch(credentials: create_credential(active: false), active: true)
-      create_fetch(credentials: create_credential(active: true), active: false)
-      deleted = create_fetch(credentials: create_credential(active: true), active: true)
-      deleted.update_columns(deleted_at: Time.current)
+    let!(:fetches) do
+      [
+        create_fetch(credentials: create_credential(active: true), active: true),
+        create_fetch(credentials: create_credential(active: false), active: true),
+        create_fetch(credentials: create_credential(active: true), active: false),
+        create_fetch(credentials: create_credential(active: true), active: true).tap { |f| f.update_columns(deleted_at: Time.current) },
+      ]
     end
 
-    it 'returns only active, undeleted fetches that have an active credential' do
-      expect(described_class.with_active_credentials).to contain_exactly(eligible)
+    it 'returns every fetch regardless of active flags or deletion' do
+      expect(described_class.outbound_allowed).to match_array(fetches)
     end
 
     it 'returns nothing in sandbox mode' do
       with_sandbox_mode do
-        expect(described_class.with_active_credentials).to be_empty
+        expect(described_class.outbound_allowed).to be_empty
       end
     end
   end

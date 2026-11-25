@@ -30,7 +30,7 @@ The switches are independent. `SANDBOX_MODE` does not turn on the email filter, 
 
 Two mechanisms, chosen by whether the outbound call has a config lookup to hang a scope on.
 
-- **`active` scopes.** Integration config models (`GrdaWarehouse::RemoteCredential`, `RemoteConfig`, `HmisImportConfig`, `EtoApiConfig`, `CustomImports::Config`, `Health::ImportConfig`, `TextMessage::Topic`, and the scopes added for `LftpS3Sync`, `RecurringHmisExport`, and `EccoviaData::Fetch`) wrap their `active` scope in `SandboxMode.filter`, which returns `none` when sandbox mode is on. A path gated this way fails the same way it fails when the config is missing, for example `RecordNotFound` or a silent no-op. The credential lookups for CSG Engage, Built for Zero, Eccovia, and HMIS supplemental go through `active` for this reason.
+- **`active` scopes.** Integration config models (`GrdaWarehouse::RemoteCredential`, `RemoteConfig`, `HmisImportConfig`, `EtoApiConfig`, `CustomImports::Config`, `Health::ImportConfig`, `TextMessage::Topic`, and the scopes added for `LftpS3Sync`, `RecurringHmisExport`, and `EccoviaData::Fetch`) wrap their `active` scope in `SandboxMode.filter`, which returns `none` when sandbox mode is on. A path gated this way fails the same way it fails when the config is missing, for example `RecordNotFound` or a silent no-op. CSG Engage, Built for Zero, Eccovia, and HMIS supplemental select the same rows they always did, wrapped in `SandboxMode.filter` (`RemoteCredential.outbound_allowed`, `EccoviaData::Fetch.outbound_allowed`, `HmisSupplemental::DataSet.syncable`), so outside sandbox mode an inactive credential is still used.
 - **Direct guards.** Where no config lookup exists, the method that makes the call uses `SandboxMode.guard!(name)`, which raises `SandboxMode::IntegrationDisabled`. Scheduled and background paths return early instead of raising.
 
 ## What goes dark in sandbox mode
@@ -47,7 +47,7 @@ Two mechanisms, chosen by whether the outbound call has a config lookup to hang 
 - **Identity providers stay on.** The scrub sets `idp_service_configs.manage_users` to false on every row and leaves `active` and the other columns alone. Logins keep working and the sandbox stops creating or changing users in the provider.
 - **Recurring HMIS exports.** `GrdaWarehouse::RecurringHmisExport.active` is empty in sandbox mode, so scheduled runs stop. `RecurringHmisExport#store` also returns before any S3 call, so an export run by hand never uploads.
 - **Scrub refusals.** `SandboxMode::Scrubber.authorize!` raises `Refused` when the environment is `production`, when `SANDBOX_MODE` is not on, or when `SANDBOX_SCRUB_CONFIRM` does not equal `Rails.env`. The rake task aborts with that message.
-- **Manual uploads still import.** `HmisSupplemental::ImportJob` returns without importing only when it would read from S3 and has no active credential. A CSV passed in directly still imports.
+- **Manual uploads still import.** `HmisSupplemental::ImportJob` skips only the S3 read in sandbox mode, and logs that it did. A CSV passed in directly still imports.
 
 ## Internal integrations that stay on
 
@@ -122,6 +122,6 @@ Add its credential columns to `SandboxMode::Scrubber` so the clone does not carr
 ## Related
 
 - [Recurring HMIS Exports](recurring-hmis-exports.md): the scheduled runs that stop in sandbox mode.
-- [HMIS Supplemental Data](hmis-supplemental.md): the S3 sync that depends on an active credential.
+- [HMIS Supplemental Data](hmis-supplemental.md): the S3 sync that stops in sandbox mode.
 - [Background Jobs](background-jobs.md): the schedule and queues the runbook order refers to.
 - [HMIS Simulation](hmis-simulation.md): the schedule entry sandbox mode suppresses.

@@ -16,6 +16,11 @@ module GrdaWarehouse
       SandboxMode.filter(where(active: true))
     end
 
+    # Credentials that may be used for an outbound call: every row, except in sandbox mode
+    scope :outbound_allowed, -> do
+      SandboxMode.filter(all)
+    end
+
     def self.for_active_slug(slug)
       active.where(slug: slug).first
     end

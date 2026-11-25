@@ -29,11 +29,14 @@ RSpec.describe BuiltForZeroReport, type: :model do
       stub_request(:any, /bfz\.example\.com/).to_return_json(body: { 'access_token' => 'token', 'expires_in' => 3600 })
     end
 
-    it 'raises and makes no request when the only credential is inactive' do
+    it 'contacts the API when the credential is inactive' do
       create_credential(active: false)
+      stub_request(:get, /bfz\.example\.com\/rest\/v1\/subpopulations/).to_return_json(body: [])
+      stub_request(:post, /bfz\.example\.com\/rest\/v1\/community_reported_population/).to_return(status: 201)
 
-      expect { described_class.submit_via_api!(*range, user: user) }.to raise_error(ActiveRecord::RecordNotFound)
-      expect(WebMock).not_to have_requested(:any, /bfz\.example\.com/)
+      described_class.submit_via_api!(*range, user: user)
+
+      expect(WebMock).to have_requested(:get, /bfz\.example\.com\/rest\/v1\/subpopulations/)
     end
 
     it 'raises and makes no request for an active credential in sandbox mode' do

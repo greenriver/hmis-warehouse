@@ -191,17 +191,10 @@ RSpec.describe HmisSupplemental::ImportJob, type: :model do
     context 'with an inactive credential' do
       before { data_set.remote_credential.update!(active: false) }
 
-      it 'imports nothing and makes no S3 call when reading from S3' do
+      it 'imports from S3 outside sandbox mode' do
         allow_any_instance_of(GrdaWarehouse::RemoteCredentials::S3).to receive(:s3).and_return(s3_client_double)
 
-        expect { HmisSupplemental::ImportJob.new.perform(data_set_id: data_set.id) }.not_to change(value_scope, :count)
-        expect(s3_client_double).not_to have_received(:get_as_io)
-      end
-
-      it 'still imports a supplied CSV string' do
-        expect do
-          HmisSupplemental::ImportJob.new.perform(data_set_id: data_set.id, csv_string: csv)
-        end.to change(value_scope, :count).from(0).to(1)
+        expect { HmisSupplemental::ImportJob.new.perform(data_set_id: data_set.id) }.to change(value_scope, :count).from(0).to(1)
       end
     end
 
@@ -213,6 +206,14 @@ RSpec.describe HmisSupplemental::ImportJob, type: :model do
           expect { HmisSupplemental::ImportJob.new.perform(data_set_id: data_set.id) }.not_to change(value_scope, :count)
         end
         expect(s3_client_double).not_to have_received(:get_as_io)
+      end
+
+      it 'logs the skip at info level' do
+        allow(Rails.logger).to receive(:info)
+
+        with_sandbox_mode { HmisSupplemental::ImportJob.new.perform(data_set_id: data_set.id) }
+
+        expect(Rails.logger).to have_received(:info).with(/Skipping S3 read in sandbox mode/)
       end
 
       it 'still imports a supplied CSV string' do

@@ -47,8 +47,9 @@ module DataSources
       @bucket_objects_list = []
       @error = false
       begin
+        SandboxMode.guard!('Custom import S3')
         @bucket_objects_list = @config.list_objects
-      rescue GrdaWarehouse::CustomImports::FetchError
+      rescue SandboxMode::IntegrationDisabled, GrdaWarehouse::CustomImports::FetchError
         @error = true
       end
     end
@@ -83,7 +84,7 @@ module DataSources
 
     private def config_scope
       scope = config_source.for_data_source(@data_source)
-      # Scrubbed configs stay visible in sandbox mode so they can be re-enabled
+      # Scrubbed configs stay visible in sandbox mode so admins can see and edit them
       SandboxMode.enabled? ? scope : scope.active
     end
 

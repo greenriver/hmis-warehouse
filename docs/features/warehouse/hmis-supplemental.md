@@ -24,7 +24,7 @@ The feature is implemented as a driver in `drivers/hmis_supplemental`.
 ## Data Import
 
 Data import is handled by `HmisSupplemental::ImportJob`.
-- Downloads CSV from S3 using the data set's remote credential. The job returns without importing when that credential is not active, which is always the case in [sandbox mode](sandbox-mode.md). A CSV passed to the job directly (manual upload) imports regardless.
+- Downloads CSV from S3 using the data set's remote credential. In [sandbox mode](sandbox-mode.md) the job skips the S3 read and imports nothing. A CSV passed to the job directly (manual upload) imports regardless.
 - Matches rows to clients or enrollments using `personal_id` or `enrollment_id` columns.
 - Supports multi-valued fields by joining rows with the same owner and field key.
 - Imports data into the `hmis_supplemental_field_values` table in the warehouse database.
@@ -72,6 +72,6 @@ To view a supplemental data set for a **Destination Client** (warehouse client),
 
 - **Full replace.** Each import replaces all values for the data set inside one transaction, under an advisory lock named after the data set. The S3 object must contain every row, not a delta. A CSV that maps to no values returns before the delete, so it does not wipe the data set.
 - **Errors are not raised.** CSV parse errors are logged and sent to Sentry rather than raised.
-- **Schedule.** A daily scheduled rake task imports every data set in `HmisSupplemental::DataSet.syncable`: `sync_enabled` with an active remote credential.
+- **Schedule.** A daily scheduled rake task imports every data set in `HmisSupplemental::DataSet.syncable`: those with `sync_enabled`, and none in sandbox mode.
 - **ROI condition.** The destination-client ROI condition is evaluated per source client: the source's data source must have `obey_consent` on, and the destination needs an authorization visible in the user's CoCs. A data source with `obey_consent` off never shows supplemental data through this path.
 - **Data source match.** Field values are looked up by owner only when the data set's data source equals the owner's data source, so the same `personal_id` in two data sources never shares values.

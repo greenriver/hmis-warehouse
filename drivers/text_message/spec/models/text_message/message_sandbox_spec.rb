@@ -37,6 +37,7 @@ RSpec.describe TextMessage::Message, type: :model do
       with_sandbox_mode { message.send! }
 
       expect(sns_client).not_to have_received(:publish)
+      expect(sns_client).not_to have_received(:check_if_phone_number_is_opted_out)
       expect(message.reload.sent_at).to be_nil
     end
   end
@@ -48,6 +49,7 @@ RSpec.describe TextMessage::Message, type: :model do
       end
 
       expect(sns_client).not_to have_received(:publish)
+      expect(sns_client).not_to have_received(:check_if_phone_number_is_opted_out)
     end
   end
 end

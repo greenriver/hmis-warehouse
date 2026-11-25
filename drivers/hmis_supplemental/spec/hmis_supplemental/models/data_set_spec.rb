@@ -33,14 +33,14 @@ RSpec.describe HmisSupplemental::DataSet, type: :model do
 
   describe '.syncable' do
     let!(:syncable) { create(:hmis_supplemental_data_set, sync_enabled: true) }
-
-    before do
-      create(:hmis_supplemental_data_set, sync_enabled: false)
+    let!(:inactive_credential_set) do
       create(:hmis_supplemental_data_set, sync_enabled: true, remote_credential: create(:grda_remote_s3, active: false))
     end
 
-    it 'returns only sync-enabled sets with an active credential' do
-      expect(described_class.syncable).to contain_exactly(syncable)
+    before { create(:hmis_supplemental_data_set, sync_enabled: false) }
+
+    it 'returns every sync-enabled set, whether or not its credential is active' do
+      expect(described_class.syncable).to contain_exactly(syncable, inactive_credential_set)
     end
 
     it 'returns nothing in sandbox mode' do

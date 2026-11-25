@@ -53,10 +53,12 @@ class HmisSupplemental::ImportJob < BaseJob
   end
 
   def read_csv_from_s3
-    credential = GrdaWarehouse::RemoteCredentials::S3.active.find_by(id: data_set.remote_credential_id)
-    return unless credential
+    if SandboxMode.enabled?
+      log('Skipping S3 read in sandbox mode', type: :info)
+      return
+    end
 
-    s3 = credential.s3
+    s3 = data_set.remote_credential.s3
     s3.get_as_io(key: object_key).read
   end
 
