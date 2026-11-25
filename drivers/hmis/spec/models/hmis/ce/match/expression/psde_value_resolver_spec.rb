@@ -813,9 +813,7 @@ RSpec.describe Hmis::Ce::Match::Expression::PsdeValueResolver, type: :model do
     end
   end
 
-  describe 'disabling_condition resolution' do
-    let(:field) { Hmis::Ce::Match::Expression::PsdeFieldRegistry::DISABLING_CONDITION }
-
+  shared_context 'with disabling condition helpers' do
     def create_disability(**attrs)
       defaults = {
         enrollment: enrollment,
@@ -843,6 +841,14 @@ RSpec.describe Hmis::Ce::Match::Expression::PsdeValueResolver, type: :model do
       project_group = create(:hmis_project_group, data_source: hmis_data_source, with_projects: projects)
       AppConfigProperty.create!(key: 'hmis_ce/eligibility_project_group_id', value: project_group.id)
     end
+  end
+
+  # Both disabling condition fields share one algorithm and differ only in the per-row qualify test. This block
+  # covers the shared algorithm through the broad field; the HUD block below covers the HUD row test.
+  describe 'any_reported_disability resolution' do
+    let(:field) { Hmis::Ce::Match::Expression::PsdeFieldRegistry::ANY_REPORTED_DISABILITY }
+
+    include_context 'with disabling condition helpers'
 
     it 'returns nil when there is no meaningful data in scope' do
       expect(resolver.call(clients, field)).to eq({ destination_client.id => nil })
@@ -942,6 +948,14 @@ RSpec.describe Hmis::Ce::Match::Expression::PsdeValueResolver, type: :model do
       [2, 3].each do |response|
         it "counts substance use response #{response} as Yes" do
           create_disability(disability_type: 10, disability_response: response, information_date: current_date - 1.week)
+
+          expect(resolved_value).to be(true)
+        end
+      end
+
+      [2, 3].each do |response|
+        it "counts response #{response} on a type other than substance use as Yes" do
+          create_disability(disability_type: 5, disability_response: response, information_date: current_date - 1.week)
 
           expect(resolved_value).to be(true)
         end
@@ -1174,6 +1188,358 @@ RSpec.describe Hmis::Ce::Match::Expression::PsdeValueResolver, type: :model do
           no_client.id => false,
           unknown_client.id => nil,
         )
+      end
+    end
+  end
+
+  # Rule A, the eligibility scope and the response codes are shared by both fields. The any_reported_disability
+  # block above covers them in full; these spot-checks confirm they apply to disabling_condition too. They use
+  # disability rows that qualify under either row test.
+  describe 'disabling_condition shared rules' do
+    let(:field) { Hmis::Ce::Match::Expression::PsdeFieldRegistry::DISABLING_CONDITION }
+
+    include_context 'with disabling condition helpers'
+
+    it 'resolves the latest answered enrollment DisablingCondition' do
+      enrollment.update!(DisablingCondition: 1)
+      create_enrollment(DisablingCondition: 0, EntryDate: current_date - 1.week)
+
+      expect(resolved_value).to be(false)
+    end
+
+    it 'skips enrollments answered 8/9/99' do
+      enrollment.update!(DisablingCondition: 1)
+      create_enrollment(DisablingCondition: 99, EntryDate: current_date - 1.week)
+
+      expect(resolved_value).to be(true)
+    end
+
+    it 'ignores data outside the lookback window' do
+      allow(configuration).to receive(:eligibility_lookback_months).and_return(3)
+      enrollment.destroy!
+      old_enrollment = create_enrollment(
+        DisablingCondition: 1,
+        EntryDate: current_date - 1.year,
+        exit_date: current_date - 6.months,
+      )
+      create_disability(
+        enrollment: old_enrollment,
+        disability_type: 6,
+        disability_response: 1,
+        information_date: current_date - 1.year,
+      )
+
+      expect(resolved_value).to be_nil
+    end
+
+    it 'ignores data from projects outside the project group' do
+      in_group_project = create(:hmis_hud_project, data_source: hmis_data_source)
+      configure_project_group([in_group_project])
+      enrollment.update!(DisablingCondition: 1)
+      create_disability(disability_type: 6, disability_response: 1, information_date: current_date - 1.week)
+
+      expect(resolved_value).to be_nil
+    end
+
+    it 'includes WIP enrollments' do
+      enrollment.destroy!
+      create(
+        :hmis_hud_wip_enrollment,
+        data_source: hmis_data_source,
+        client: client,
+        DisablingCondition: 1,
+        EntryDate: current_date - 1.week,
+      )
+
+      expect(resolved_value).to be(true)
+    end
+
+    [2, 3].each do |response|
+      it "counts response #{response} on a type other than substance use as Yes" do
+        create_disability(
+          disability_type: 5,
+          disability_response: response,
+          indefinite_and_impairs: 1,
+          information_date: current_date - 1.week,
+        )
+
+        expect(resolved_value).to be(true)
+      end
+    end
+  end
+
+  describe 'disabling_condition (HUD) resolution' do
+    include_context 'with disabling condition helpers'
+
+    let(:field) { Hmis::Ce::Match::Expression::PsdeFieldRegistry::DISABLING_CONDITION }
+
+    # Physical, Chronic Health, Mental Health, Substance Use
+    impairment_dependent_types = [5, 7, 9, 10]
+    # Developmental, HIV/AIDS
+    always_qualifying_types = [6, 8]
+
+    impairment_dependent_types.each do |type|
+      it "resolves type #{type} Yes with IndefiniteAndImpairs Yes to true" do
+        create_disability(
+          disability_type: type,
+          disability_response: 1,
+          indefinite_and_impairs: 1,
+          information_date: current_date - 1.week,
+        )
+
+        expect(resolved_value).to be(true)
+      end
+
+      [0, 8, 9, 99, nil].each do |indefinite_and_impairs|
+        it "resolves type #{type} Yes with IndefiniteAndImpairs #{indefinite_and_impairs.inspect} to false" do
+          create_disability(
+            disability_type: type,
+            disability_response: 1,
+            indefinite_and_impairs: indefinite_and_impairs,
+            information_date: current_date - 1.week,
+          )
+
+          expect(resolved_value).to be(false)
+        end
+      end
+    end
+
+    always_qualifying_types.each do |type|
+      [nil, 0].each do |indefinite_and_impairs|
+        it "resolves type #{type} Yes with IndefiniteAndImpairs #{indefinite_and_impairs.inspect} to true" do
+          create_disability(
+            disability_type: type,
+            disability_response: 1,
+            indefinite_and_impairs: indefinite_and_impairs,
+            information_date: current_date - 1.week,
+          )
+
+          expect(resolved_value).to be(true)
+        end
+      end
+    end
+
+    [2, 3].each do |response|
+      it "resolves substance use response #{response} with IndefiniteAndImpairs Yes to true" do
+        create_disability(
+          disability_type: 10,
+          disability_response: response,
+          indefinite_and_impairs: 1,
+          information_date: current_date - 1.week,
+        )
+
+        expect(resolved_value).to be(true)
+      end
+    end
+
+    describe 'replacement by later rows of the same type' do
+      [0, 8, 9, 99, nil].each do |later_indefinite_and_impairs|
+        it "lets a later Yes with IndefiniteAndImpairs #{later_indefinite_and_impairs.inspect} replace a qualifying Yes" do
+          create_disability(
+            disability_type: 9,
+            disability_response: 1,
+            indefinite_and_impairs: 1,
+            information_date: current_date - 2.weeks,
+          )
+          create_disability(
+            disability_type: 9,
+            disability_response: 1,
+            indefinite_and_impairs: later_indefinite_and_impairs,
+            information_date: current_date - 1.week,
+          )
+
+          expect(resolved_value).to be(false)
+        end
+      end
+
+      it 'lets a later qualifying Yes replace a non-qualifying Yes' do
+        create_disability(
+          disability_type: 9,
+          disability_response: 1,
+          indefinite_and_impairs: 0,
+          information_date: current_date - 2.weeks,
+        )
+        create_disability(
+          disability_type: 9,
+          disability_response: 1,
+          indefinite_and_impairs: 1,
+          information_date: current_date - 1.week,
+        )
+
+        expect(resolved_value).to be(true)
+      end
+
+      it 'lets a qualifying row win a same-day tie with a non-qualifying row' do
+        create_disability(
+          disability_type: 9,
+          disability_response: 1,
+          indefinite_and_impairs: 1,
+          information_date: current_date - 1.week,
+          date_updated: current_date - 1.week,
+        )
+        create_disability(
+          disability_type: 9,
+          disability_response: 1,
+          indefinite_and_impairs: 0,
+          information_date: current_date - 1.week,
+          date_updated: current_date - 1.day,
+        )
+
+        expect(resolved_value).to be(true)
+      end
+    end
+
+    describe 'combining with the enrollment flag' do
+      it 'resolves 3.08 No plus a qualifying disability to true' do
+        enrollment.update!(DisablingCondition: 0)
+        create_disability(
+          disability_type: 9,
+          disability_response: 1,
+          indefinite_and_impairs: 1,
+          information_date: current_date - 1.week,
+        )
+
+        expect(resolved_value).to be(true)
+      end
+
+      it 'resolves 3.08 No plus a non-qualifying Yes to false' do
+        enrollment.update!(DisablingCondition: 0)
+        create_disability(
+          disability_type: 9,
+          disability_response: 1,
+          indefinite_and_impairs: 0,
+          information_date: current_date - 1.week,
+        )
+
+        expect(resolved_value).to be(false)
+      end
+
+      it 'resolves 3.08 Yes with no disability rows to true' do
+        enrollment.update!(DisablingCondition: 1)
+
+        expect(resolved_value).to be(true)
+      end
+
+      it 'resolves only No disability rows and no 3.08 answer to false' do
+        create_disability(disability_type: 5, disability_response: 0, information_date: current_date - 1.week)
+        create_disability(disability_type: 6, disability_response: 0, information_date: current_date - 1.week)
+
+        expect(resolved_value).to be(false)
+      end
+
+      it 'resolves only 8/9/99 disability rows and no 3.08 answer to nil' do
+        [8, 9, 99].each do |response|
+          create_disability(disability_type: 6, disability_response: response, information_date: current_date - 1.week)
+        end
+
+        expect(resolved_value).to be_nil
+      end
+    end
+  end
+
+  describe 'disabling_condition vs any_reported_disability' do
+    include_context 'with disabling condition helpers'
+
+    let(:hud_field) { Hmis::Ce::Match::Expression::PsdeFieldRegistry::DISABLING_CONDITION }
+    let(:broad_field) { Hmis::Ce::Match::Expression::PsdeFieldRegistry::ANY_REPORTED_DISABILITY }
+
+    def resolved_values
+      {
+        hud: resolver.call(clients, hud_field).fetch(destination_client.id),
+        broad: resolver.call(clients, broad_field).fetch(destination_client.id),
+      }
+    end
+
+    # Each case lists the client's disability rows (type, response, IndefiniteAndImpairs, weeks ago),
+    # an optional 3.08 answer, and the expected value of each field.
+    [
+      {
+        name: 'short-term physical disability (broken leg)',
+        rows: [[5, 1, 0, 1]],
+        expected: { hud: false, broad: true },
+      },
+      {
+        name: 'mental health Yes with IndefiniteAndImpairs not collected',
+        rows: [[9, 1, 99, 1]],
+        expected: { hud: false, broad: true },
+      },
+      {
+        name: 'qualifying Yes replaced by a later non-qualifying Yes',
+        rows: [[7, 1, 1, 2], [7, 1, 0, 1]],
+        expected: { hud: false, broad: true },
+      },
+      {
+        name: 'long-term, impairing chronic health condition',
+        rows: [[7, 1, 1, 1]],
+        expected: { hud: true, broad: true },
+      },
+      {
+        name: 'HIV/AIDS Yes',
+        rows: [[8, 1, nil, 1]],
+        expected: { hud: true, broad: true },
+      },
+      {
+        name: 'Yes replaced by a later No',
+        rows: [[5, 1, 1, 2], [5, 0, nil, 1]],
+        expected: { hud: false, broad: false },
+      },
+      {
+        name: '3.08 Yes with a non-qualifying disability',
+        disabling_condition: 1,
+        rows: [[5, 1, 0, 1]],
+        expected: { hud: true, broad: true },
+      },
+      {
+        name: 'no meaningful data',
+        rows: [[5, 9, nil, 1]],
+        expected: { hud: nil, broad: nil },
+      },
+    ].each do |example|
+      it "resolves #{example[:name]} to #{example[:expected]}" do
+        enrollment.update!(DisablingCondition: example[:disabling_condition]) if example[:disabling_condition]
+        example[:rows].each do |(type, response, indefinite_and_impairs, weeks_ago)|
+          create_disability(
+            disability_type: type,
+            disability_response: response,
+            indefinite_and_impairs: indefinite_and_impairs,
+            information_date: current_date - weeks_ago.weeks,
+          )
+        end
+
+        expect(resolved_values).to eq(example[:expected])
+      end
+    end
+  end
+
+  describe 'HUD disabling condition row test' do
+    it 'agrees with GrdaWarehouse::Hud::Disability#indefinite_and_impairs? for every combination' do
+      types = 5..10
+      responses = [0, 1, 2, 3, 8, 9, 99, nil]
+      indefinite_and_impairs_values = [0, 1, 8, 9, 99, nil]
+      combinations = types.to_a.product(responses, indefinite_and_impairs_values)
+
+      aggregate_failures do
+        combinations.each do |(type, response, indefinite_and_impairs)|
+          row = described_class::DisabilityRow.new(
+            client_id: nil,
+            type: type,
+            response: response,
+            indefinite_and_impairs: indefinite_and_impairs,
+            information_date: nil,
+          )
+          warehouse_disability = GrdaWarehouse::Hud::Disability.new(
+            DisabilityType: type,
+            DisabilityResponse: response,
+            IndefiniteAndImpairs: indefinite_and_impairs,
+          )
+
+          ce_qualifies = resolver.send(:hud_disabling_condition_row?, row)
+          warehouse_qualifies = warehouse_disability.indefinite_and_impairs?
+
+          expect(ce_qualifies).to eq(warehouse_qualifies),
+                                  "type #{type}, response #{response.inspect}, " \
+                                  "IndefiniteAndImpairs #{indefinite_and_impairs.inspect}"
+        end
       end
     end
   end

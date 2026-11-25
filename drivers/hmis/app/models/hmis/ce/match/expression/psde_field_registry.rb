@@ -120,14 +120,26 @@ module Hmis::Ce::Match::Expression
       hud_description: 'HUD Domestic Violence Survivor (HUD HealthAndDV)',
     )
 
+    # HUD's definition (Reporting Glossary, Chronic Homelessness Status → Disabling Condition)
     DISABLING_CONDITION = PsdeField.new(
       key: 'disabling_condition',
       value_type: :logical,
       multiple: false,
-      label: 'Disabling Condition',
-      description: "Yes if the client's most recent Disabling Condition response, or most recent response for any " \
-                   'disability type, is Yes, within the eligibility scope. ' \
-                   'Refused, unknown, not collected (8/9/99) and blank answers are ignored.',
+      label: 'HUD Disabling Condition',
+      description: "Disabling condition per HUD's definition, from the client's latest Disabling Condition (3.08) " \
+                   'response and latest response for each disability type (4.05-4.10). Within the eligibility scope.',
+    )
+
+    # The broader value the warehouse sends to CAS as "disabling condition"
+    # (GrdaWarehouse::Hud::Client.disabled_client_scope)
+    ANY_REPORTED_DISABILITY = PsdeField.new(
+      key: 'any_reported_disability',
+      value_type: :logical,
+      multiple: false,
+      label: 'Any Reported Disability',
+      description: "Yes if the client's latest Disabling Condition (3.08) response is Yes, or their latest response " \
+                   'for any disability type (4.05-4.10) is Yes, even if not long-continuing or impairing. ' \
+                   'Broader than HUD Disabling Condition. Within the eligibility scope.',
     )
 
     ALL = [
@@ -147,6 +159,7 @@ module Hmis::Ce::Match::Expression
       DOMESTIC_VIOLENCE_SURVIVOR,
       DOMESTIC_VIOLENCE_SURVIVOR_VALUES_IN_WINDOW,
       DISABLING_CONDITION,
+      ANY_REPORTED_DISABILITY,
     ].freeze
 
     def self.[](key)

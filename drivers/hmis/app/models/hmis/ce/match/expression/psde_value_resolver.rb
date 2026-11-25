@@ -38,6 +38,15 @@ module Hmis::Ce::Match::Expression
     DISABILITY_NO_RESPONSE_CODE = 0
     DISABILITY_RESPONSE_CODES = [DISABILITY_NO_RESPONSE_CODE, *DISABILITY_YES_RESPONSE_CODES].freeze
 
+    # HUD Disabling Condition qualify test for a disability row, mirroring
+    # GrdaWarehouse::Hud::Disability#indefinite_and_impairs?: a Yes response qualifies when the type is
+    # Developmental or HIV/AIDS, or when Dependent Field A (IndefiniteAndImpairs) is Yes.
+    ALWAYS_QUALIFYING_DISABILITY_TYPES = DISABILITY_TYPE_CODES.values_at(:developmental, :hiv).freeze
+    INDEFINITE_AND_IMPAIRS_YES = 1
+
+    # A Disabilities row plucked for the disabling condition inference
+    DisabilityRow = Data.define(:client_id, :type, :response, :indefinite_and_impairs, :information_date)
+
     def initialize(current_date: Date.current, configuration: Hmis::Ce.configuration)
       @current_date = current_date.to_date
       @configuration = configuration
@@ -77,7 +86,9 @@ module Hmis::Ce::Match::Expression
       when PsdeFieldRegistry::DOMESTIC_VIOLENCE_SURVIVOR_VALUES_IN_WINDOW.key
         resolve_boolean_values_in_window(clients, **boolean_field_source(PsdeFieldRegistry::DOMESTIC_VIOLENCE_SURVIVOR.key))
       when PsdeFieldRegistry::DISABLING_CONDITION.key
-        resolve_disabling_condition(clients)
+        resolve_disabling_condition(clients, disability_row_qualifies: method(:hud_disabling_condition_row?))
+      when PsdeFieldRegistry::ANY_REPORTED_DISABILITY.key
+        resolve_disabling_condition(clients, disability_row_qualifies: method(:disability_yes_row?))
       else
         raise ArgumentError, "Unknown PSDE field \"#{field.key}\""
       end
@@ -121,17 +132,24 @@ module Hmis::Ce::Match::Expression
     # (GrdaWarehouse::Hud::Client.disabled_client_scope), but only over enrollments in the CE eligibility scope.
     # A client is disabled if either rule says Yes:
     #   A) the latest in-scope enrollment with a Yes/No DisablingCondition says Yes, or
-    #   B) any disability type has a Yes response on its latest in-scope InformationDate.
+    #   B) any disability type has a qualifying row on its latest in-scope InformationDate.
+    #
+    # +disability_row_qualifies+ is the only thing that differs between fields: it decides whether a single
+    # disability row counts (any Yes, or a Yes that meets HUD's Disabling Condition definition).
     #
     # Returns true if A or B is Yes; false if either rule had a meaningful answer; nil if neither did.
     #
+    # @param disability_row_qualifies [#call] takes a DisabilityRow, returns Boolean
     # @return [Hash{Integer => Boolean, nil}]
-    def resolve_disabling_condition(clients)
+    def resolve_disabling_condition(clients, disability_row_qualifies:)
       client_ids = extract_client_ids(clients)
       return {} if client_ids.empty?
 
       enrollment_flags = disabling_condition_by_client(client_ids)
-      disability_flags = disabled_because_disability_by_client(client_ids)
+      disability_flags = disabled_because_disability_by_client(
+        client_ids,
+        disability_row_qualifies: disability_row_qualifies,
+      )
 
       client_ids.index_with do |client_id|
         rule_a = enrollment_flags[client_id]
@@ -166,12 +184,13 @@ module Hmis::Ce::Match::Expression
     end
 
     # Rule B. Warehouse counterpart: GrdaWarehouse::Hud::Client.disabled_client_because_disability_scope.
-    # For each disability type, a type is disabled if any row on its latest InformationDate is a Yes
-    # (so a same-day Yes wins over a same-day No, as in the warehouse).
-    # Rows without an InformationDate are skipped.
+    # Any answered row (0-3) is a candidate for "latest". For each disability type, the type is positive if any
+    # row on its latest InformationDate passes +disability_row_qualifies+ (so a same-day qualifying row wins,
+    # as in the warehouse). A later answered row replaces an earlier qualifying row of the same type even if the
+    # later row does not qualify. Rows without an InformationDate are skipped.
     #
     # @return [Hash{Integer => Boolean}] clients without any meaningful disability row are absent
-    def disabled_because_disability_by_client(client_ids)
+    def disabled_because_disability_by_client(client_ids, disability_row_qualifies:)
       disability_scope = Hmis::Hud::Disability.
         where(
           DisabilityType: DISABILITY_TYPE_CODES.values,
@@ -179,30 +198,45 @@ module Hmis::Ce::Match::Expression
         ).
         where.not(InformationDate: nil)
 
-      rows = scoped_rows(client_ids, disability_scope).pluck(
+      # Ordering is unused here: rows are grouped and the latest date per type is picked below.
+      unordered_rows = scoped_rows(client_ids, disability_scope).reorder(nil)
+      plucked_rows = unordered_rows.pluck(
         wc_t[:destination_id],
         d_t[:DisabilityType],
         d_t[:DisabilityResponse],
+        d_t[:IndefiniteAndImpairs],
         d_t[:InformationDate],
       )
+      rows = plucked_rows.map { |values| DisabilityRow.new(*values) }
 
-      rows_by_client = rows.group_by(&:first)
+      rows_by_client = rows.group_by(&:client_id)
       rows_by_client.transform_values do |client_rows|
-        rows_by_type = client_rows.group_by { |(_client_id, type, _response, _information_date)| type }
-        rows_by_type.values.any? { |type_rows| latest_disability_response_yes?(type_rows) }
+        rows_by_type = client_rows.group_by(&:type)
+        rows_by_type.values.any? do |type_rows|
+          latest_disability_rows_qualify?(type_rows, disability_row_qualifies: disability_row_qualifies)
+        end
       end
     end
 
-    # True if any row on the latest InformationDate in +type_rows+ is a Yes response.
-    # Rows are [destination_id, type, response, information_date].
-    def latest_disability_response_yes?(type_rows)
-      latest_date = type_rows.map { |(_client_id, _type, _response, information_date)| information_date }.max
-      latest_rows = type_rows.select do |(_client_id, _type, _response, information_date)|
-        information_date == latest_date
-      end
-      latest_rows.any? do |(_client_id, _type, response, _information_date)|
-        response.in?(DISABILITY_YES_RESPONSE_CODES)
-      end
+    # True if any row on the latest InformationDate in +type_rows+ passes +disability_row_qualifies+.
+    def latest_disability_rows_qualify?(type_rows, disability_row_qualifies:)
+      latest_date = type_rows.map(&:information_date).max
+      latest_rows = type_rows.select { |row| row.information_date == latest_date }
+      latest_rows.any? { |row| disability_row_qualifies.call(row) }
+    end
+
+    # Row test for psde.any_reported_disability: any Yes response, whether or not it is long-term or impairing.
+    def disability_yes_row?(row)
+      row.response.in?(DISABILITY_YES_RESPONSE_CODES)
+    end
+
+    # Row test for psde.disabling_condition (HUD definition).
+    # Reference: GrdaWarehouse::Hud::Disability#indefinite_and_impairs?
+    def hud_disabling_condition_row?(row)
+      return false unless disability_yes_row?(row)
+      return true if row.type.in?(ALWAYS_QUALIFYING_DISABILITY_TYPES)
+
+      row.indefinite_and_impairs == INDEFINITE_AND_IMPAIRS_YES
     end
 
     # Describes where a boolean PSDE field's response lives in HUD data, keyed by its base

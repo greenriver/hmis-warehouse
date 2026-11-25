@@ -2,9 +2,14 @@
 
 require 'rails_helper'
 
-# Asserts that psde.disabling_condition agrees with the warehouse/CAS inference
-# (GrdaWarehouse::Hud::Client.disabled_client_scope) when every enrollment is in the CE eligibility scope.
-# CE is three-valued and the warehouse is two-valued, so a CE nil is compared as warehouse false.
+# Asserts that psde.any_reported_disability agrees with the value the warehouse sends to CAS as
+# "disabling condition" (GrdaWarehouse::Hud::Client.disabled_client_scope) when every enrollment is in the
+# CE eligibility scope. CE is three-valued and the warehouse is two-valued, so a CE nil is compared as
+# warehouse false.
+#
+# psde.disabling_condition (HUD definition) shares this algorithm but has no warehouse counterpart with the same
+# "latest answer" semantics, so its row test is checked against GrdaWarehouse::Hud::Disability#indefinite_and_impairs?
+# in psde_value_resolver_spec.rb instead.
 RSpec.describe Hmis::Ce::Match::Expression::PsdeValueResolver, type: :model do
   let!(:destination_data_source) { create(:destination_data_source) }
   let!(:hmis_data_source) { create(:hmis_data_source) }
@@ -12,7 +17,7 @@ RSpec.describe Hmis::Ce::Match::Expression::PsdeValueResolver, type: :model do
   let(:current_date) { Date.current }
   let(:configuration) { Hmis::Ce::Configuration.new }
   let(:resolver) { described_class.new(current_date: current_date, configuration: configuration) }
-  let(:field) { Hmis::Ce::Match::Expression::PsdeFieldRegistry::DISABLING_CONDITION }
+  let(:field) { Hmis::Ce::Match::Expression::PsdeFieldRegistry::ANY_REPORTED_DISABILITY }
 
   before do
     allow(configuration).to receive(:eligibility_lookback_months).and_return(12)
