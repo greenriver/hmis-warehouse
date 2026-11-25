@@ -4,16 +4,17 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-namespace :eto do
+# frozen_string_literal: true
 
+namespace :eto do
   namespace :import do
     desc 'Update client consent from HMIS Clients'
-    task maintain_client_consent: [:environment, "log:info_to_stdout"] do
+    task maintain_client_consent: [:environment, 'log:info_to_stdout'] do
       GrdaWarehouse::HmisClient.maintain_client_consent
     end
 
-    desc "Add eto_last_updated to any hmis_clients and hmis_forms where missing"
-    task maintain_eto_last_updated: [:environment, "log:info_to_stdout"] do
+    desc 'Add eto_last_updated to any hmis_clients and hmis_forms where missing'
+    task maintain_eto_last_updated: [:environment, 'log:info_to_stdout'] do
       GrdaWarehouse::HmisClient.where(eto_last_updated: nil).
         where.not(response: nil).select(:id, :response).
         find_each(batch_size: 250) do |client|
@@ -29,8 +30,8 @@ namespace :eto do
     end
 
     # bin/rake eto:import:demographics_and_touch_points[start_date='2019-06-06']
-    desc "Fetch ETO data via QaaWS and API"
-    task :demographics_and_touch_points, [:start_date] => [:environment, "log:info_to_stdout"] do |t, args|
+    desc 'Fetch ETO data via QaaWS and API'
+    task :demographics_and_touch_points, [:start_date] => [:environment, 'log:info_to_stdout'] do |_t, args|
       # start_date = args.start_date&.to_date || 6.months.ago
       start_date = args.start_date&.to_date || 2.years.ago.to_date
       # Fetch via QaaWS all the available

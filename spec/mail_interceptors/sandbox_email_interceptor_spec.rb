@@ -16,8 +16,8 @@ RSpec.describe SandboxEmailInterceptor do
     ENV['SANDBOX_EMAIL_ALLOWED_DOMAINS'] = original
   end
 
-  def build_mail(to: nil, cc: nil, bcc: nil)
-    Mail.new(from: 'sender@example.org', to: to, cc: cc, bcc: bcc, subject: 'Hello', body: 'Body')
+  def build_mail(to: nil, carbon: nil, bcc: nil)
+    Mail.new(from: 'sender@example.org', to: to, cc: carbon, bcc: bcc, subject: 'Hello', body: 'Body')
   end
 
   describe '.allowed_domains' do
@@ -55,7 +55,7 @@ RSpec.describe SandboxEmailInterceptor do
     before { ENV['SANDBOX_EMAIL_ALLOWED_DOMAINS'] = 'example.org, Partner.gov' }
 
     it 'keeps allowed recipients in each field and removes the rest' do
-      mail = build_mail(to: ['a@example.org', 'b@other.com'], cc: ['c@partner.gov'], bcc: ['d@evil.net'])
+      mail = build_mail(to: ['a@example.org', 'b@other.com'], carbon: ['c@partner.gov'], bcc: ['d@evil.net'])
 
       described_class.delivering_email(mail)
 
@@ -90,7 +90,7 @@ RSpec.describe SandboxEmailInterceptor do
     end
 
     it 'cancels delivery when every recipient is outside the allowed domains' do
-      mail = build_mail(to: ['a@other.com'], cc: ['b@evil.net'])
+      mail = build_mail(to: ['a@other.com'], carbon: ['b@evil.net'])
 
       described_class.delivering_email(mail)
 
@@ -110,7 +110,7 @@ RSpec.describe SandboxEmailInterceptor do
     it 'logs the number removed without logging addresses' do
       messages = []
       allow(Rails.logger).to receive(:info) { |message| messages << message.to_s }
-      mail = build_mail(to: ['a@example.org', 'b@other.com'], cc: ['c@evil.net'])
+      mail = build_mail(to: ['a@example.org', 'b@other.com'], carbon: ['c@evil.net'])
 
       described_class.delivering_email(mail)
 
@@ -133,7 +133,7 @@ RSpec.describe SandboxEmailInterceptor do
     it 'leaves recipients and bcc unchanged when neither switch is on' do
       ENV.delete('SANDBOX_EMAIL_ALLOWED_DOMAINS')
       allow(Rails.configuration).to receive(:sandbox_email_mode).and_return(false)
-      mail = build_mail(to: ['a@other.com'], cc: ['b@evil.net'], bcc: ['c@elsewhere.org'])
+      mail = build_mail(to: ['a@other.com'], carbon: ['b@evil.net'], bcc: ['c@elsewhere.org'])
 
       described_class.delivering_email(mail)
 

@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# frozen_string_literal: true
+
 # rails driver:hmis_supplemental:import
 desc 'Import supplemental data for every sync-enabled data set'
 task import: [:environment, 'log:info_to_stdout'] do
