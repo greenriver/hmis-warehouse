@@ -22,7 +22,7 @@ module GrdaWarehouse::Tasks
     end
 
     def recurring_exports_scope
-      GrdaWarehouse::RecurringHmisExport.all
+      GrdaWarehouse::RecurringHmisExport.active
     end
   end
 end

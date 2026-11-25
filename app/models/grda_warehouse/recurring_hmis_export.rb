@@ -17,6 +17,8 @@ module GrdaWarehouse
 
     acts_as_paranoid
 
+    scope :active, -> { SandboxMode.filter(all) }
+
     # Both limits belong to the pty zipcloak reads its password through; see ZipCloak.
     validates :zip_password,
               length: { maximum: ZipCloak::MAX_PASSWORD_LENGTH },
@@ -73,6 +75,8 @@ module GrdaWarehouse
     end
 
     def store(report)
+      return if SandboxMode.enabled?
+
       content = encrypt_zip(report.hmis_zip.download)
       aws_s3.store(content: content, name: object_name(report)) if s3_valid?
     end
