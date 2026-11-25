@@ -381,6 +381,8 @@ Metrics can drive alerts through change detection.  Alerts for system-level thre
 
 A new snapshot whose value equals the previous snapshot's is not reported as a crossing, including for metrics with a change threshold of 0. CSV import metrics are the exception: their addition/removal thresholds can fire on an unchanged row count.
 
+The admin metric chart, its tooltip, the drill-down list and the alert email total all count crossings with the same rule, per `initial_observation_date` (`MetricDefinition#threshold_crossing_data` and `#threshold_crossings_for_date` share one query). The previous snapshot is the entity's latest snapshot with an earlier or equal observation date and a lower id.
+
 ## Extensibility
 
 ### Adding a New Metric

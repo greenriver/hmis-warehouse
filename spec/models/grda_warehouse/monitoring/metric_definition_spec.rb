@@ -572,6 +572,125 @@ RSpec.describe GrdaWarehouse::Monitoring::MetricDefinition, type: :model do
     end
   end
 
+  describe '#threshold_crossing_data' do
+    let(:today) { Date.current }
+    let(:metric) do
+      create(
+        :grda_warehouse_monitoring_metric_definition,
+        name: 'days_homeless_last_three_years',
+        display_name: 'Days Homeless (Last 3 Years)',
+        calculator_class: 'GrdaWarehouse::Monitoring::MetricCalculators::HomelessDaysLastThreeYearsCalculator',
+      )
+    end
+    let(:real_crossing_client) { create(:grda_warehouse_hud_client) }
+    let(:unchanged_client) { create(:grda_warehouse_hud_client) }
+    let(:first_snapshot_client) { create(:grda_warehouse_hud_client) }
+    let(:late_created_client) { create(:grda_warehouse_hud_client) }
+    let(:unchanged_earlier_client) { create(:grda_warehouse_hud_client) }
+    # created_at is a different UTC date than the observation date.
+    let(:created_after_observation_date) { (today - 1.day).in_time_zone('UTC').end_of_day + 1.hour }
+
+    def create_snapshot(client:, observed_on:, value:, created_at: observed_on.in_time_zone('UTC').noon)
+      create(
+        :grda_warehouse_monitoring_metric_snapshot,
+        metric_definition: metric,
+        entity: client,
+        initial_observation_date: observed_on,
+        current_observation_date: observed_on,
+        initial_value: value,
+        current_value: value,
+        created_at: created_at,
+      )
+    end
+
+    before do
+      [real_crossing_client, unchanged_client, late_created_client].each do |client|
+        create_snapshot(client: client, observed_on: today - 3.days, value: 100)
+      end
+      create_snapshot(client: unchanged_earlier_client, observed_on: today - 4.days, value: 100)
+
+      create_snapshot(client: real_crossing_client, observed_on: today - 1.day, value: 130)
+      create_snapshot(client: unchanged_client, observed_on: today - 1.day, value: 100)
+      create_snapshot(client: late_created_client, observed_on: today - 1.day, value: 140, created_at: created_after_observation_date)
+      create_snapshot(client: unchanged_earlier_client, observed_on: today - 2.days, value: 100)
+
+      create_snapshot(client: first_snapshot_client, observed_on: today - 2.days, value: 150)
+      create_snapshot(client: first_snapshot_client, observed_on: today, value: 200)
+    end
+
+    def crossing_dates
+      (today - 4.days)..today
+    end
+
+    def list_count(date)
+      entity_ids = metric.metric_snapshots.where(initial_observation_date: date).distinct.pluck(:entity_id)
+      metric.threshold_crossings_for_date(date, entity_ids: entity_ids).size
+    end
+
+    def email_total(date)
+      described_class.threshold_crossings_for_alerts(date).dig('metric_days_homeless_threshold', metric.id, :total_count) || 0
+    end
+
+    it 'counts crossings per observation date, excluding unchanged values and first snapshots' do
+      data = metric.threshold_crossing_data(days_back: 5)
+
+      expect(data).to eq([[(today - 1.day).to_s, 2], [today.to_s, 1]])
+    end
+
+    it 'matches the drill-down list and the email total for every date' do
+      chart_counts = metric.threshold_crossing_data(days_back: 5).to_h
+
+      expect(crossing_dates.map { |date| [date.to_s, chart_counts.fetch(date.to_s, 0)] }).to eq(
+        crossing_dates.map { |date| [date.to_s, list_count(date)] },
+      )
+      expect(crossing_dates.map { |date| [date.to_s, chart_counts.fetch(date.to_s, 0)] }).to eq(
+        crossing_dates.map { |date| [date.to_s, email_total(date)] },
+      )
+    end
+
+    it 'omits dates older than days_back' do
+      data = metric.threshold_crossing_data(days_back: 1)
+
+      expect(data).to eq([[(today - 1.day).to_s, 2], [today.to_s, 1]])
+      expect(metric.threshold_crossing_data(days_back: 0)).to eq([[today.to_s, 1]])
+    end
+
+    it 'counts only the requested entity' do
+      expect(metric.threshold_crossing_data(days_back: 5, entity_id: real_crossing_client.id)).to eq([[(today - 1.day).to_s, 1]])
+      expect(metric.threshold_crossing_data(days_back: 5, entity_id: unchanged_client.id)).to eq([])
+    end
+
+    context 'with a CSV row count metric' do
+      let(:data_source) { create(:grda_warehouse_data_source) }
+      let(:csv_metric) do
+        described_class.maintain_csv_metrics!
+        described_class.find_by!(entity_type: 'GrdaWarehouse::DataSource', subtype: 'Client.csv')
+      end
+
+      before do
+        [today - 7.days, today - 1.day].each do |observed_on|
+          create(
+            :grda_warehouse_monitoring_metric_snapshot,
+            metric_definition: csv_metric,
+            entity_type: 'GrdaWarehouse::DataSource',
+            entity_id: data_source.id,
+            initial_observation_date: observed_on,
+            current_observation_date: observed_on,
+            initial_value: 1000,
+            current_value: 1000,
+          )
+        end
+      end
+
+      it 'counts an unchanged row count, as the crossings list does' do
+        list = csv_metric.threshold_crossings_for_date(today - 1.day, entity_ids: [data_source.id])
+
+        expect(list.size).to eq(1)
+        expect(csv_metric.threshold_crossing_data(days_back: 5)).to eq([[(today - 1.day).to_s, list.size]])
+      end
+    end
+  end
+
   describe 'calculator crossing semantics' do
     it 'declares for every calculator whether a crossing requires a changed value' do
       calculators = described_class.available_calculators + [GrdaWarehouse::Monitoring::MetricCalculators::CsvRowCountMetricCalculator]

@@ -100,32 +100,23 @@ module GrdaWarehouse::Monitoring
 
     # Get chart data showing threshold crossings over time
     # Returns array of [date_string, count] for days where entities crossed threshold
-    # Excludes initial observations (first snapshot for each entity/metric)
+    # Counts per initial_observation_date, using the same crossing rules as threshold_crossings_for_date
     # @param entity_id [Integer, nil] optional - when set (e.g. for csv_import), scope to this entity only
     def threshold_crossing_data(days_back:, entity_id: nil)
-      start_date = days_back.days.ago.to_date
-      end_date = Date.current
+      where_sql = 'current_snapshots.initial_observation_date BETWEEN ? AND ?'
+      binds = [days_back.days.ago.to_date, Date.current]
+      if entity_id.present?
+        where_sql += ' AND current_snapshots.entity_id = ?'
+        binds << entity_id
+      end
 
-      snapshot_table = GrdaWarehouse::Monitoring::MetricSnapshot.arel_table
-
-      scope = metric_snapshots
-      scope = scope.where(entity_id: entity_id) if entity_id.present?
-
-      # Find initial snapshot IDs (first snapshot for each entity/metric combination)
-      initial_snapshot_ids = scope.
-        select(snapshot_table[:id].minimum).
-        group(:entity_type, :entity_id, :metric_definition_id)
-
-      # Get non-initial snapshots created in the date range
-      # Group by creation date and count entities
-      crossings = scope.
-        where(created_at: start_date.beginning_of_day..end_date.end_of_day).
-        where.not(id: initial_snapshot_ids).
-        group(Arel.sql('DATE(created_at)')).
-        count
-
-      # Convert to array of [date_string, count] sorted by date
-      crossings.map { |date, count| [date.to_s, count] }.sort_by { |d| d[0] }
+      rows = select_crossing_rows(
+        'current_snapshots.initial_observation_date AS observed_on, COUNT(*) AS crossing_count',
+        where_sql,
+        binds,
+        'GROUP BY current_snapshots.initial_observation_date',
+      )
+      rows.map { |row| [row['observed_on'], row['crossing_count']] }.sort_by(&:first).map { |date, count| [date.to_date.to_s, count] }
     end
 
     # Get human-readable entity label for chart axis
@@ -195,56 +186,61 @@ module GrdaWarehouse::Monitoring
     # Get threshold crossings for this metric on a specific date
     # Returns array of hashes with entity_id, current_value, previous_value
     # Excludes initial observations (first snapshot for each entity/metric)
-    # Optimized to use window function to find previous snapshots - only loads 2 records per entity max
+    # Finds each snapshot's immediate previous snapshot with a lateral join, so only 2 records per entity are read
     def threshold_crossings_for_date(calculation_date, entity_ids:)
       return [] if entity_ids.empty?
 
-      # Use a single query that finds current snapshots and their immediate previous snapshots
-      # Uses lateral join to efficiently find only the previous snapshot per entity
-      # This ensures we only load 2 records per entity at most (current + previous)
       entity_ids_placeholder = entity_ids.map { '?' }.join(',')
+      rows = select_crossing_rows(
+        'current_snapshots.entity_id, current_snapshots.initial_value AS current_value, previous_snapshots.current_value AS previous_value',
+        "current_snapshots.entity_id IN (#{entity_ids_placeholder}) AND current_snapshots.initial_observation_date = ?",
+        [*entity_ids, calculation_date],
+      )
+
+      rows.map do |row|
+        {
+          entity_id: row['entity_id'],
+          current_value: row['current_value'],
+          previous_value: row['previous_value'],
+        }
+      end
+    end
+
+    private
+
+    # The single definition of a threshold crossing, shared by the chart and the crossings list:
+    # a snapshot that has a previous snapshot and, when the calculator requires it, a changed value.
+    # Callers supply the select list, extra conditions (with bound values) and an optional trailing clause.
+    def select_crossing_rows(select_sql, where_sql, where_binds, trailing_sql = '')
       value_change_condition = if calculator_class.constantize.crossing_requires_value_change?
         'AND current_snapshots.initial_value IS DISTINCT FROM previous_snapshots.current_value'
       else
         ''
       end
       sql = <<-SQL.squish
-        SELECT
-          current_snapshots.id,
-          current_snapshots.entity_id,
-          current_snapshots.initial_value AS current_value,
-          previous_snapshots.current_value AS previous_value
+        SELECT #{select_sql}
         FROM metric_snapshots AS current_snapshots
         LEFT JOIN LATERAL (
           SELECT current_value
           FROM metric_snapshots AS prev
-          WHERE prev.metric_definition_id = current_snapshots.metric_definition_id
+          WHERE prev.entity_type = current_snapshots.entity_type
+            AND prev.metric_definition_id = current_snapshots.metric_definition_id
             AND prev.entity_id = current_snapshots.entity_id
+            AND prev.initial_observation_date <= current_snapshots.initial_observation_date
             AND prev.id < current_snapshots.id
-          ORDER BY prev.id DESC
+          ORDER BY prev.initial_observation_date DESC, prev.id DESC
           LIMIT 1
         ) AS previous_snapshots ON true
         WHERE current_snapshots.metric_definition_id = ?
-          AND current_snapshots.entity_id IN (#{entity_ids_placeholder})
-          AND current_snapshots.initial_observation_date = ?
+          AND #{where_sql}
           AND previous_snapshots.current_value IS NOT NULL
           #{value_change_condition}
+        #{trailing_sql}
       SQL
 
-      results = self.class.connection.execute(
-        ActiveRecord::Base.sanitize_sql_array([sql, id, *entity_ids, calculation_date]),
-      )
-
-      crossings = []
-      results.each do |row|
-        crossings << {
-          entity_id: row['entity_id'],
-          current_value: row['current_value'],
-          previous_value: row['previous_value'],
-        }
-      end
-
-      crossings
+      self.class.connection.select_all(
+        ActiveRecord::Base.sanitize_sql_array([sql, id, *where_binds]),
+      ).to_a
     end
   end
 end
