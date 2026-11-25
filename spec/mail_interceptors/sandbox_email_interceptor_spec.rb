@@ -118,6 +118,25 @@ RSpec.describe SandboxEmailInterceptor do
       expect(messages.join).not_to match(/other\.com|evil\.net/)
     end
 
+    it 'clears a field that cannot be parsed and cancels delivery when nothing is left' do
+      mail = build_mail(to: 'a@example.org, @@@')
+
+      expect { described_class.delivering_email(mail) }.not_to raise_error
+
+      expect(mail[:to]).to be_nil
+      expect(mail.perform_deliveries).to be(false)
+    end
+
+    it 'clears an unparseable field but delivers to the other fields' do
+      mail = build_mail(to: 'a@example.org, @@@', carbon: ['b@example.org'])
+
+      described_class.delivering_email(mail)
+
+      expect(mail[:to]).to be_nil
+      expect(mail.cc).to eq(['b@example.org'])
+      expect(mail.perform_deliveries).to be(true)
+    end
+
     it 'leaves a mail alone when it is destined for database delivery' do
       mail = build_mail(to: ['a@other.com'])
       mail.delivery_method(Mail::DatabaseDelivery, {})
@@ -126,6 +145,47 @@ RSpec.describe SandboxEmailInterceptor do
 
       expect(mail.to).to eq(['a@other.com'])
       expect(mail.perform_deliveries).to be(true)
+    end
+  end
+
+  describe '.delivering_email with the domain filter and sandbox email mode' do
+    let(:sandbox_recipient) { 'monitor@sandbox-recipients.test' }
+
+    before do
+      ENV['SANDBOX_EMAIL_ALLOWED_DOMAINS'] = 'example.org'
+      allow(Rails.configuration).to receive(:sandbox_email_mode).and_return(true)
+      stub_const('SandboxEmailInterceptor::RECIPIENTS', [sandbox_recipient])
+    end
+
+    it 'strips disallowed recipients from to and cc and replaces bcc on a real transport' do
+      mail = build_mail(to: ['a@example.org', 'b@other.com'], carbon: ['c@evil.net'], bcc: ['d@example.org'])
+
+      described_class.delivering_email(mail)
+
+      expect(mail.to).to eq(['a@example.org'])
+      expect(mail.cc).to be_blank
+      expect(mail.bcc).to eq([sandbox_recipient])
+      expect(mail.perform_deliveries).to be(true)
+    end
+
+    it 'cancels delivery and leaves bcc unset when every recipient is disallowed' do
+      mail = build_mail(to: ['a@other.com'], carbon: ['b@evil.net'])
+
+      described_class.delivering_email(mail)
+
+      expect(mail.perform_deliveries).to be(false)
+      expect(mail.bcc).to be_blank
+    end
+
+    it 'skips the filter, replaces bcc, and prefixes the subject on database delivery' do
+      mail = build_mail(to: ['a@example.org', 'b@other.com'], bcc: ['d@example.org'])
+      mail.delivery_method(Mail::DatabaseDelivery, {})
+
+      described_class.delivering_email(mail)
+
+      expect(mail.to).to eq(['a@example.org', 'b@other.com'])
+      expect(mail.bcc).to eq([sandbox_recipient])
+      expect(mail.subject).to eq('[TRAINING] Hello')
     end
   end
 

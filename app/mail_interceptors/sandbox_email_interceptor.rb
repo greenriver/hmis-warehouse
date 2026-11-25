@@ -59,16 +59,13 @@ class SandboxEmailInterceptor
   def self.filter_recipients(mail, field)
     return 0 if mail[field].blank?
 
-    addresses = begin
-      mail[field].addrs
-    rescue Mail::Field::FieldError
-      nil
-    end
-    if addresses.nil?
+    # Mail stores a header it cannot parse as an unstructured field, which has no addresses.
+    unless mail[field].respond_to?(:addrs)
       mail[field] = nil
       return 1
     end
 
+    addresses = mail[field].addrs
     kept = addresses.select { |address| allowed_domains.include?(address.domain&.downcase) }
     mail[field] = kept.map(&:format)
     addresses.size - kept.size

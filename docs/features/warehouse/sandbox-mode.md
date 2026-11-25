@@ -57,7 +57,7 @@ CAS (database writes and `configs.cas_url`), Superset (Doorkeeper and the Supers
 
 `SandboxMode::Scrubber#run!` runs in separate transactions against the warehouse, app, and health databases and returns a hash of table name to rows changed. It logs the three database names and each count at `warn`, never row contents.
 
-- Credentials, hosts, and buckets in the warehouse integration tables are replaced with `sandbox-scrubbed`, `sandbox.invalid`, or `NULL`, and `active` is set false. The constant lists in the class are the authority on which tables and columns.
+- Credentials, hosts, and buckets in the warehouse integration tables are replaced with `sandbox-scrubbed`, `sandbox.invalid`, or `NULL`, and `active` is set false. `SandboxMode::Scrubber` is the authority on which tables and columns.
 - Soft-deleted rows are scrubbed too, so restoring a deleted row cannot bring back working credentials.
 - Secrets are written through the `attr_encrypted` writer, so scrubbed values still decrypt and admin pages that render them do not raise.
 - Data sources get `import_paused`. `delayed_jobs` is emptied. External-form settings in `AppConfigProperty` are pointed at `sandbox.invalid` or removed. `GrdaWarehouse::Config.invalidate_cache` runs afterward.
@@ -67,7 +67,7 @@ CAS (database writes and `configs.cas_url`), Superset (Doorkeeper and the Supers
 
 `SandboxEmailInterceptor` is registered from an initializer when `Rails.configuration.sandbox_email_mode` is on or the domain filter is on.
 
-- Addresses in `to`, `cc`, and `bcc` are kept only when the domain after `@` matches an allowed domain exactly, ignoring case. `example.org` does not allow `mail.example.org`. An address that fails to parse is dropped. Display names are preserved.
+- Addresses in `to`, `cc`, and `bcc` are kept only when the domain after `@` matches an allowed domain exactly, ignoring case. `example.org` does not allow `mail.example.org`. A field that fails to parse is cleared, including any valid addresses in it. Display names are preserved. When `sandbox_email_mode` is also on, `bcc` is then replaced with `SANDBOX_RECIPIENTS`. Those addresses skip the domain check and receive every mail that still has an allowed recipient, and any `bcc` address the filter kept is dropped.
 - When all three fields end up empty on a real transport, delivery is cancelled. Logs carry counts, not addresses.
 - The outer `Mail::DatabaseDelivery` pass is not filtered, so in-app `Message` rows are kept. Each recipient's real email goes through `ImmediateMailer`, which the interceptor filters.
 - Keycloak and CAS send their own email outside this interceptor.
