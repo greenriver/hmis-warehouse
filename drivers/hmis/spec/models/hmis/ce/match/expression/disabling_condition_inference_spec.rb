@@ -19,22 +19,28 @@ RSpec.describe Hmis::Ce::Match::Expression::DisablingConditionInference, type: :
       indefinite_and_impairs_values = [0, 1, 8, 9, 99, nil]
       combinations = types.to_a.product(responses, indefinite_and_impairs_values)
 
+      # Evaluate the SQL row test against every combination at once, using a VALUES list that stands in for the
+      # Disabilities table.
+      connection = Hmis::Hud::Disability.connection
+      values_sql = combinations.each_with_index.map do |values, index|
+        "(#{[index, *values].map { |value| connection.quote(value) }.join(', ')})"
+      end.join(', ')
+      qualifies_sql = inference.send(:qualifies_condition).to_sql
+      ce_qualifies_by_index = connection.select_rows(<<~SQL).to_h
+        SELECT combination_index, (#{qualifies_sql}) IS TRUE
+        FROM (VALUES #{values_sql})
+          AS "Disabilities"(combination_index, "DisabilityType", "DisabilityResponse", "IndefiniteAndImpairs")
+      SQL
+
       aggregate_failures do
-        combinations.each do |(type, response, indefinite_and_impairs)|
-          row = described_class::DisabilityRow.new(
-            client_id: nil,
-            type: type,
-            response: response,
-            indefinite_and_impairs: indefinite_and_impairs,
-            information_date: nil,
-          )
+        combinations.each_with_index do |(type, response, indefinite_and_impairs), index|
           warehouse_disability = GrdaWarehouse::Hud::Disability.new(
             DisabilityType: type,
             DisabilityResponse: response,
             IndefiniteAndImpairs: indefinite_and_impairs,
           )
 
-          ce_qualifies = inference.send(:qualifies?, row)
+          ce_qualifies = ce_qualifies_by_index.fetch(index)
           warehouse_qualifies = warehouse_disability.indefinite_and_impairs?
 
           expect(ce_qualifies).to eq(warehouse_qualifies),

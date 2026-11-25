@@ -18,8 +18,11 @@ module Hmis::Ce::Match::Expression
   #   B) any disability type has a qualifying row on its latest in-scope InformationDate.
   #
   # The definition decides the two disability row tests, which are the only things that differ between fields:
-  # * +answered?+ decides whether a row is an answer that can be the latest for its type.
-  # * +qualifies?+ decides whether that row counts.
+  # * +answered_condition+ decides whether a row is an answer that can be the latest for its type.
+  # * +qualifies_condition+ decides whether that row counts.
+  #
+  # Both rules reduce rows in SQL, so memory use doesn't grow with the number of enrollments or disability rows per
+  # client (e.g. HMISs that create an enrollment per night-by-night shelter stay).
   #
   # Definitions:
   # * :any_reported - any Yes response, whether or not it is long-term or impairing.
@@ -45,9 +48,6 @@ module Hmis::Ce::Match::Expression
     # Developmental or HIV/AIDS, or when Dependent Field A (IndefiniteAndImpairs) is Yes.
     ALWAYS_QUALIFYING_DISABILITY_TYPES = DISABILITY_TYPE_CODES.values_at(:developmental, :hiv).freeze
     INDEFINITE_AND_IMPAIRS_YES = 1
-
-    # A Disabilities row plucked for rule B
-    DisabilityRow = Data.define(:client_id, :type, :response, :indefinite_and_impairs, :information_date)
 
     # @param eligibility_scope [EnrollmentEligibilityScope]
     # @param definition [Symbol] one of DEFINITIONS
@@ -86,105 +86,119 @@ module Hmis::Ce::Match::Expression
     # Picks the latest in-scope enrollment with a Yes/No DisablingCondition per client. Unlike the warehouse,
     # ties on EntryDate are broken deterministically, and WIP enrollments are included.
     #
+    # Ranks enrollments in SQL so the result is one row per client, however many enrollments a client has.
+    #
     # @return [Hash{Integer => Boolean}] clients without a Yes/No answer are absent
     def disabling_condition_by_client(client_ids)
-      ordering = [
-        e_t[:EntryDate].desc.nulls_last,
-        e_t[:DateUpdated].desc.nulls_last,
-        e_t[:id].desc,
-      ]
-      rows = @eligibility_scope.call(client_ids).
+      latest_first = Arel::Nodes::Window.new.
+        partition(wc_t[:destination_id]).
+        order(
+          e_t[:EntryDate].desc.nulls_last,
+          e_t[:DateUpdated].desc.nulls_last,
+          e_t[:id].desc,
+        )
+      answered_enrollments = @eligibility_scope.call(client_ids).
         where(e_t[:DisablingCondition].in(NO_YES_RESPONSES)).
-        order(*ordering).
-        pluck(wc_t[:destination_id], e_t[:DisablingCondition])
+        select(
+          wc_t[:destination_id].as('client_id'),
+          e_t[:DisablingCondition].as('disabling_condition'),
+          nf('ROW_NUMBER').over(latest_first).as('recency_rank'),
+        )
 
-      latest_row_by_client = rows.group_by(&:first).transform_values(&:first)
-      latest_row_by_client.transform_values { |(_client_id, response)| response == 1 }
+      ranked = Arel::Table.new(:ranked_enrollments, type_caster: Hmis::Hud::Enrollment.type_caster)
+      rows = Hmis::Hud::Enrollment.unscoped.
+        from(answered_enrollments, ranked.name).
+        where(ranked[:recency_rank].eq(1)).
+        pluck(ranked[:client_id], ranked[:disabling_condition])
+
+      rows.to_h.transform_values { |response| response == 1 }
     end
 
     # Rule B. Warehouse counterpart: GrdaWarehouse::Hud::Client.disabled_client_because_disability_scope.
-    # Rows with a response of 0-3 that pass +answered?+ are candidates for "latest". For each disability type, the
-    # type is positive if any row on its latest InformationDate passes +qualifies?+ (so a same-day qualifying row
-    # wins, as in the warehouse). A later answered row replaces an earlier qualifying row of the same type even if
-    # the later row does not qualify. Rows without an InformationDate are skipped.
+    # Rows with a response of 0-3 that pass +answered_condition+ are candidates for "latest". For each disability
+    # type, the type is positive if any row on its latest InformationDate passes +qualifies_condition+ (so a same-day
+    # qualifying row wins, as in the warehouse). A later answered row replaces an earlier qualifying row of the same
+    # type even if the later row does not qualify. Rows without an InformationDate are skipped.
+    #
+    # Reduces rows in SQL so the result is one row per client, however many disability rows a client has.
     #
     # @return [Hash{Integer => Boolean}] clients without any answered disability row are absent
     def disabled_because_disability_by_client(client_ids)
-      disability_scope = Hmis::Hud::Disability.
-        where(
-          DisabilityType: DISABILITY_TYPE_CODES.values,
-          DisabilityResponse: DISABILITY_RESPONSE_CODES,
-        ).
-        where.not(InformationDate: nil)
-
-      in_scope_rows = disability_scope.
-        joins(:enrollment).
-        merge(@eligibility_scope.call(client_ids))
-      plucked_rows = in_scope_rows.pluck(
-        wc_t[:destination_id],
-        d_t[:DisabilityType],
-        d_t[:DisabilityResponse],
-        d_t[:IndefiniteAndImpairs],
-        d_t[:InformationDate],
+      latest_date_for_type = nf('MAX', [d_t[:InformationDate]]).over(
+        Arel::Nodes::Window.new.partition([wc_t[:destination_id], d_t[:DisabilityType]]),
       )
-      all_rows = plucked_rows.map { |values| DisabilityRow.new(*values) }
-      answered_rows = all_rows.select { |row| answered?(row) }
+      answered_rows = Hmis::Hud::Disability.
+        joins(:enrollment).
+        merge(@eligibility_scope.call(client_ids)).
+        where(DisabilityType: DISABILITY_TYPE_CODES.values).
+        where.not(InformationDate: nil).
+        where(answered_condition).
+        select(
+          wc_t[:destination_id].as('client_id'),
+          d_t[:InformationDate].as('information_date'),
+          latest_date_for_type.as('latest_information_date'),
+          qualifies_condition.as('qualifies'),
+        )
 
-      rows_by_client = answered_rows.group_by(&:client_id)
-      rows_by_client.transform_values do |client_rows|
-        rows_by_type = client_rows.group_by(&:type)
-        rows_by_type.values.any? { |type_rows| latest_rows_qualify?(type_rows) }
+      answered = Arel::Table.new(:answered_disabilities, type_caster: Hmis::Hud::Disability.type_caster)
+      rows = Hmis::Hud::Disability.unscoped.
+        from(answered_rows, answered.name).
+        where(answered[:information_date].eq(answered[:latest_information_date])).
+        group(answered[:client_id]).
+        pluck(answered[:client_id], nf('BOOL_OR', [answered[:qualifies]]))
+
+      rows.to_h.transform_values { |qualifies| qualifies == true }
+    end
+
+    # SQL test for whether a Disabilities row is an answer that can be the latest for its type.
+    def answered_condition
+      case @definition
+      when :hud then hud_answered_condition
+      when :any_reported then response_answered_condition
       end
     end
 
-    # True if any row on the latest InformationDate in +type_rows+ passes +qualifies?+.
-    def latest_rows_qualify?(type_rows)
-      latest_date = type_rows.map(&:information_date).max
-      latest_rows = type_rows.select { |row| row.information_date == latest_date }
-      latest_rows.any? { |row| qualifies?(row) }
-    end
-
-    def answered?(row)
+    # SQL test for whether a Disabilities row counts as disabled.
+    def qualifies_condition
       case @definition
-      when :hud then hud_row_answered?(row)
-      when :any_reported then response_answered?(row)
-      end
-    end
-
-    def qualifies?(row)
-      case @definition
-      when :hud then hud_row_qualifies?(row)
-      when :any_reported then yes_response?(row)
+      when :hud then hud_qualifies_condition
+      when :any_reported then yes_response_condition
       end
     end
 
     # Any No or Yes response, as in the warehouse.
-    def response_answered?(row)
-      row.response.in?(DISABILITY_RESPONSE_CODES)
+    def response_answered_condition
+      d_t[:DisabilityResponse].in(DISABILITY_RESPONSE_CODES)
     end
 
     # Any Yes response, whether or not it is long-term or impairing.
-    def yes_response?(row)
-      row.response.in?(DISABILITY_YES_RESPONSE_CODES)
+    def yes_response_condition
+      d_t[:DisabilityResponse].in(DISABILITY_YES_RESPONSE_CODES)
+    end
+
+    def always_qualifying_type_condition
+      d_t[:DisabilityType].in(ALWAYS_QUALIFYING_DISABILITY_TYPES)
     end
 
     # A Yes on a type that needs the IndefiniteAndImpairs follow-up is only an answer when that follow-up is No or
     # Yes. Leaving the follow-up blank (or 8/9/99) is missing data, so it does not replace an earlier qualifying row
     # of the same type.
-    def hud_row_answered?(row)
-      return false unless response_answered?(row)
-      return true unless yes_response?(row)
-      return true if row.type.in?(ALWAYS_QUALIFYING_DISABILITY_TYPES)
+    def hud_answered_condition
+      no_response = d_t[:DisabilityResponse].eq(DISABILITY_NO_RESPONSE_CODE)
+      follow_up_answered = d_t[:IndefiniteAndImpairs].in(NO_YES_RESPONSES)
 
-      row.indefinite_and_impairs.in?(NO_YES_RESPONSES)
+      response_answered_condition.and(
+        no_response.or(always_qualifying_type_condition).or(follow_up_answered),
+      )
     end
 
     # Reference: GrdaWarehouse::Hud::Disability#indefinite_and_impairs?
-    def hud_row_qualifies?(row)
-      return false unless yes_response?(row)
-      return true if row.type.in?(ALWAYS_QUALIFYING_DISABILITY_TYPES)
+    def hud_qualifies_condition
+      indefinite_and_impairs = d_t[:IndefiniteAndImpairs].eq(INDEFINITE_AND_IMPAIRS_YES)
 
-      row.indefinite_and_impairs == INDEFINITE_AND_IMPAIRS_YES
+      yes_response_condition.and(
+        always_qualifying_type_condition.or(indefinite_and_impairs),
+      )
     end
   end
 end
