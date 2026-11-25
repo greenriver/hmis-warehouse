@@ -590,7 +590,7 @@ module HmisDataQualityTool
             :sex,
             :veteran_status,
           ],
-          denominator: ->(item) { item.reporting_age.present? && item.reporting_age > 18 },
+          denominator: ->(item) { item.reporting_age.present? && item.reporting_age >= 18 },
           limiter: ->(item) {
             return false if item.reporting_age.blank? || item.reporting_age < 18
             return true if item.veteran_status == 99 || item.veteran_status.blank?
@@ -654,9 +654,9 @@ module HmisDataQualityTool
             :overlapping_pre_move_in,
             :overlapping_pre_move_in_details,
           ],
-          denominator: ->(item) { item.reporting_age.present? && item.reporting_age > 18 },
+          denominator: ->(item) { item.reporting_age.present? && item.reporting_age >= 18 },
           limiter: ->(item) {
-            return false unless item.reporting_age.present? && item.reporting_age > 18
+            return false unless item.reporting_age.present? && item.reporting_age >= 18
 
             item.overlapping_pre_move_in > 2
           },
@@ -676,9 +676,9 @@ module HmisDataQualityTool
             :overlapping_post_move_in,
             :overlapping_post_move_in_details,
           ],
-          denominator: ->(item) { item.reporting_age.present? && item.reporting_age > 18 },
+          denominator: ->(item) { item.reporting_age.present? && item.reporting_age >= 18 },
           limiter: ->(item) {
-            return false unless item.reporting_age.present? && item.reporting_age > 18
+            return false unless item.reporting_age.present? && item.reporting_age >= 18
 
             item.overlapping_post_move_in.positive?
           },

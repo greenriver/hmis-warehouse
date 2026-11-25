@@ -302,4 +302,46 @@ RSpec.describe 'Custom Augmentation File Imports', type: :model do
       expect(enrollments.only_deleted.count).to eq(0)
     end
   end
+
+  describe 'An enrollment present only in an augmentation file' do
+    before(:all) do
+      cleanup_import_state
+
+      baseline = HmisCsvFixtureFactory.new
+      baseline.export_start_date = Date.new(2024, 1, 1)
+      baseline.export_end_date = Date.new(2024, 3, 31)
+      (1..4).each do |n|
+        baseline.add_client(personal_id: "client-#{n}", first_name: 'Test', last_name: n.to_s)
+        baseline.add_enrollment(enrollment_id: "enroll-#{n}", personal_id: "client-#{n}", entry_date: Date.new(2024, 1, 15))
+      end
+      import_hmis_csv_fixture(baseline.create!, run_jobs: false)
+
+      # enroll-3 and enroll-4 are both missing from Enrollment.csv, only enroll-3 is in the augmentation file
+      @update_factory = HmisCsvFixtureFactory.new
+      @update_factory.export_id = baseline.export_id
+      @update_factory.export_start_date = Date.new(2024, 1, 1)
+      @update_factory.export_end_date = Date.new(2024, 3, 31)
+      (1..4).each { |n| @update_factory.add_client(personal_id: "client-#{n}", first_name: 'Test', last_name: n.to_s) }
+      (1..2).each { |n| @update_factory.add_enrollment(enrollment_id: "enroll-#{n}", personal_id: "client-#{n}", entry_date: Date.new(2024, 1, 15)) }
+      @update_factory.add_custom_enrollment_augmentation(enrollment_id: 'enroll-3', personal_id: 'client-3', sexual_orientation: 3)
+      import_hmis_csv_fixture(@update_factory.create!, run_jobs: false)
+      @baseline_factory = baseline
+    end
+
+    after(:all) do
+      @baseline_factory&.cleanup!
+      @update_factory&.cleanup!
+      cleanup_import_state
+    end
+
+    let(:enrollments) { GrdaWarehouse::Hud::Enrollment.where(data_source_id: @data_source.id) }
+
+    it 'keeps the enrollment the augmentation file updated' do
+      expect(enrollments.find_by(EnrollmentID: 'enroll-3').SexualOrientation).to eq(3)
+    end
+
+    it 'soft-deletes the enrollment that is in neither file' do
+      expect(enrollments.only_deleted.pluck(:EnrollmentID)).to eq(['enroll-4'])
+    end
+  end
 end

@@ -3,6 +3,7 @@ sources:
   - drivers/hmis_csv_importer/app/models/hmis_csv_importer/loader/loader.rb
   - drivers/hmis_csv_importer/app/models/hmis_csv_importer/loader/current_living_sit_id_regenerator.rb
   - drivers/hmis_csv_importer/app/models/hmis_csv_importer/importer/importer.rb
+  - drivers/hmis_csv_importer/app/models/hmis_csv_importer/importer/pending_set.rb
   - drivers/hmis_csv_importer/app/models/hmis_csv_importer/hmis_csv_cleanup/base.rb
   - drivers/hmis_csv_importer/app/models/hmis_csv_importer/aggregated/combine_enrollments.rb
   - drivers/hmis_csv_importer/app/models/hmis_csv_importer/utility.rb
@@ -70,9 +71,13 @@ These define which warehouse rows the import is "authoritative" for. The `involv
 
 Exits dated after `ExportEndDate` are outside the scope, because reporting-period exports don't send them.
 
-### `pending_date_deleted` — The Central State Machine
+### Pending set — The Central State Machine
 
-The ingestion algorithm uses a "guilty until proven innocent" approach via the `pending_date_deleted` column on warehouse tables. At the start of ingestion, every in-scope warehouse row is flagged as pending deletion. Each subsequent step either **clears** that flag (proving the row should survive) or leaves it set. At the end, anything still flagged is soft-deleted.
+The ingestion algorithm uses a "guilty until proven innocent" approach. At the start of ingestion, the ids of every in-scope warehouse row, soft-deleted rows included, go into a `PendingSet`, a session temp table per warehouse table. Each subsequent step either **removes** ids from the set (proving the row should survive) or leaves them. At the end, any row still in the set that is not already soft-deleted is soft-deleted.
+
+Nothing is written to the warehouse rows to track this. Only rows the import inserts or updates get the new `ExportID`. Rows it does not insert or update from the file keep their old one: unchanged rows, rows kept because the incoming copy is older, rows this import soft-deletes, and Clients, Projects, Organizations and Users missing from the file but kept. Service history doesn't read an open enrollment's `ExportID`. It takes the enrollment's coverage end from the staging rows instead (see [Service History](service-history.md#how-far-an-open-enrollment-is-built)). Rows that are already soft-deleted and still absent keep their original `DateDeleted`. Imports no longer use `pending_date_deleted` to track pending rows; rows they insert or update still have it cleared to NULL.
+
+Pending membership is always intersected with the live involved scope. A child row (such as a Service) whose enrollment was deleted or changed earlier in the same import drops out of the scope, so it is neither updated nor soft-deleted. The temp tables are dropped when `ingest!` ends, including on failure.
 
 ### `source_hash` — Change Detection
 
@@ -96,16 +101,16 @@ import!
 
 Ingestion reconciles staged data with the warehouse in five passes:
 
-**Pass 0 — Mark all as pending deletion.** Every in-scope warehouse row gets `pending_date_deleted = today`.
+**Pass 0 — Mark all as pending deletion.** Every in-scope warehouse row id, soft-deleted rows included, is added to the `PendingSet`. Export rows are skipped. The set is analyzed once filled.
 
 **Pass 1 — Add new records.** Staging rows whose `hud_key` has no warehouse counterpart (within scope) are inserted. Records are upserted to handle cases where the key exists outside the scoped projects/date range.
 
 **Pass 2 — Process existing records.** For rows present in both staging and warehouse, three checks run in sequence:
-- **Unchanged**: If `source_hash` matches, clear `pending_date_deleted`. The warehouse row is kept as-is.
-- **Incoming older**: If the staging `DateUpdated` is strictly older than the warehouse (day-level comparison), clear `pending_date_deleted`. The warehouse is trusted. Skipped when this is the most recent export for the data source.
-- **Apply updates**: Everything still pending at this point has newer or changed data. The warehouse row is overwritten from staging. Side effects: client demographics and enrollment service history are flagged for rebuild.
+- **Unchanged**: If `source_hash` matches, remove the row from the `PendingSet`. The warehouse row is not written.
+- **Incoming older**: If the staging `DateUpdated` is strictly older than the warehouse (day-level comparison), remove the row from the `PendingSet`. The warehouse is trusted. Skipped when this is the most recent export for the data source.
+- **Apply updates**: Everything still pending at this point has newer or changed data. The warehouse row is overwritten from staging and leaves the `PendingSet`. Side effects: client demographics and enrollment service history are flagged for rebuild. A row whose write fails stays pending.
 
-**Pass 3 — Remove pending deletes.** Anything still carrying `pending_date_deleted` existed in the warehouse within scope but was absent from the import — it's soft-deleted. Clients are a special case: they are never hard-deleted, only flagged for re-evaluation.
+**Pass 3 — Remove pending deletes.** Anything still in the `PendingSet` existed in the warehouse within scope but was absent from the import, so it's soft-deleted unless it already was. Clients are a special case: they are never hard-deleted, only flagged for re-evaluation (`source_hash` reset, only where it is not already NULL). A client is flagged when it has an enrollment open during the export range in a project of this data source whose `ProjectID` is in `Project.csv`.
 
 **Pass 4 — Remove exits before the export range.** Soft-deletes exits dated before `ExportStartDate` for enrollments in `Enrollment.csv` whose `ExitID` is not in `Exit.csv`. These exits are outside the involved scope, so passes 0-3 can't reach them. The affected enrollments are already flagged for service history rebuild by pass 1, which upserts every enrollment in `Enrollment.csv` that is outside the involved scope with `processed_as = nil`. Runs only when `ExportPeriodType` is Reporting period, the only type that guarantees every enrollment in `Enrollment.csv` is active in the range. `precalculate_change_counts` includes these exits in the `Exit.csv` removed count, so record-count thresholds see them.
 
@@ -198,8 +203,9 @@ per-data-source advisory lock so that only one import runs at a time for a given
 
 ## Gotchas
 
-- Set-based statements over the import scope run inside `GrdaWarehouseBase.disable_nestloop`, and the importer analyzes tables before heavy steps, because the planner otherwise picks a nested-loop join. Removing either can change run time by orders of magnitude on large sources.
-- `mark_tree_as_dead` is wrapped in `retry_on_deadlock`, because writers spanning data sources (such as a client's forced service history rebuild) can deadlock with it. A retry re-runs every slice, and it does not retry inside an open transaction.
+- Set-based statements over the import scope run inside `GrdaWarehouseBase.disable_nestloop`, and the importer analyzes each `PendingSet` after it is filled and after the unchanged and incoming-older passes, because the planner otherwise picks a nested-loop join and autovacuum never analyzes temp tables. Removing either can change run time by orders of magnitude on large sources.
+- `mark_tree_as_dead` only inserts ids into the `PendingSet` and does not write warehouse rows, so it needs no `retry_on_deadlock`.
+- The `PendingSet` lives on one connection. `ingest!` must stay on a single connection and drops the temp tables in an `ensure`.
 - `mark_incoming_older` is skipped when the incoming export is the newest for the data source. The newest export is trusted regardless of `DateUpdated`.
 - Clients are never deleted by an import and are updated one row at a time, so large client changes are the slow path.
 - `after_ingest!` hooks receive the HUD `ProjectID`s from `Project.csv`, not warehouse project ids, and run for every data source. Each hook decides whether to act.

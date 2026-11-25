@@ -190,6 +190,34 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
       end
     end
 
+    describe 'Overlapping Post Move-in PH Enrollments for an 18-year-old' do
+      before do
+        @ph_project = create_project(project_type: 3) # PSH
+        @client = create_client_with_warehouse_link(dob: default_filter.end - 18.years)
+        create_enrollment(
+          client: @client,
+          project: @ph_project,
+          entry_date: '2022-11-01'.to_date,
+          exit_date: '2023-01-15'.to_date,
+          relationship_to_ho_h: 1,
+          move_in_date: '2022-11-15'.to_date,
+        )
+        create_enrollment(
+          client: @client,
+          project: @ph_project,
+          entry_date: '2022-12-01'.to_date,
+          exit_date: '2023-02-15'.to_date,
+          relationship_to_ho_h: 1,
+          move_in_date: '2022-12-15'.to_date,
+        )
+        @report = setup_report([@ph_project.id])
+      end
+
+      it 'counts a client who is exactly 18 at report end as an adult and flags the overlap' do
+        expect_result(key: :overlapping_post_move_in_issues, invalid_count: 1)
+      end
+    end
+
     describe 'Overlapping Homeless Service After Move-in in PH' do
       context 'with homeless service overlapping PH move-in' do
         context 'for PSH project' do
@@ -284,6 +312,38 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
             expect_result(key: :overlapping_pre_move_in_issues, invalid_count: 1)
           end
         end
+      end
+    end
+
+    describe 'Overlapping Homeless Service After Move-in in PH for an 18-year-old' do
+      before do
+        @th_project = create_project(project_type: 2) # TH
+        @ph_project = create_project(project_type: 3) # PSH
+        @client = create_client_with_warehouse_link(dob: default_filter.end - 18.years)
+        th_enrollments = ['2022-11-01', '2022-11-02', '2022-11-03'].map do |entry_date|
+          create_enrollment(
+            client: @client,
+            project: @th_project,
+            entry_date: entry_date.to_date,
+            exit_date: '2022-12-15'.to_date,
+          )
+        end
+        create_enrollment(
+          client: @client,
+          project: @ph_project,
+          entry_date: '2022-11-15'.to_date,
+          exit_date: '2023-01-15'.to_date,
+          relationship_to_ho_h: 1,
+          move_in_date: '2022-12-01'.to_date,
+        )
+        ['2022-12-02', '2022-12-03', '2022-12-04'].zip(th_enrollments).each do |date, enrollment|
+          create_bed_night_service(enrollment: enrollment, date: date.to_date)
+        end
+        @report = setup_report([@th_project.id, @ph_project.id])
+      end
+
+      it 'counts a client who is exactly 18 at report end as an adult and flags the overlap' do
+        expect_result(key: :overlapping_pre_move_in_issues, invalid_count: 1)
       end
     end
 

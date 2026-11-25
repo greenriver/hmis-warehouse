@@ -202,5 +202,53 @@ RSpec.describe HmisCsvImporter, type: :model do
         expect(@loader.importer_log.summary['Client.csv']['unchanged']).to eq(1)
       end
     end
+
+    # Clients are never deleted by an import; ones the file omits get source_hash reset so a later
+    # import re-evaluates them. A client whose source_hash is already NULL needs no write.
+    describe 'when re-importing with clients that are absent from Client.csv' do
+      before(:all) do
+        HmisCsvImporter::Utility.clear!
+        GrdaWarehouse::Utility.clear!
+        fixture = 'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/client_processing'
+        import_hmis_csv_fixture(fixture, version: 'AutoMigrate', run_jobs: false, stop_version: '2026')
+        data_source_id = GrdaWarehouse::Hud::Client.source.first.data_source_id
+        # 'swept' clients are enrolled in project '1', which is in Project.csv. 'unswept' clients are enrolled
+        # in a project outside Project.csv whose warehouse id equals a ProjectID that is in Project.csv.
+        colliding_id = ['1', '2'].map(&:to_i).find { |id| GrdaWarehouse::Hud::Project.where(id: id).none? }
+        raise 'Project ids 1 and 2 are both taken; the unswept case would not test the project filter' if colliding_id.nil?
+
+        create(:hud_project, id: colliding_id, data_source_id: data_source_id, ProjectID: 'not-in-project-csv')
+        [
+          ['absent-hashed', 'abc', '1'],
+          ['absent-null', nil, '1'],
+          ['unswept-hashed', 'abc', 'not-in-project-csv'],
+        ].each do |personal_id, source_hash, project_id|
+          create(:grda_warehouse_hud_client, data_source_id: data_source_id, PersonalID: personal_id, source_hash: source_hash)
+          create(:hud_enrollment, data_source_id: data_source_id, PersonalID: personal_id, ProjectID: project_id, EnrollmentID: "enr-#{personal_id}", EntryDate: '2020-01-01')
+        end
+        absent = -> { GrdaWarehouse::Hud::Client.source.where(PersonalID: ['absent-hashed', 'absent-null', 'unswept-hashed']) }
+        @before_xmin = absent.call.pluck(:PersonalID, Arel.sql('xmin::text')).to_h
+        import_hmis_csv_fixture(fixture, version: 'AutoMigrate', run_jobs: false, stop_version: '2026')
+        @after_xmin = absent.call.pluck(:PersonalID, Arel.sql('xmin::text')).to_h
+      end
+
+      it 'resets source_hash on the absent client that had one' do
+        expect(GrdaWarehouse::Hud::Client.source.find_by(PersonalID: 'absent-hashed').source_hash).to be_nil
+        expect(@after_xmin['absent-hashed']).not_to eq(@before_xmin['absent-hashed'])
+      end
+
+      it 'does not write the absent client whose source_hash was already NULL' do
+        expect(@after_xmin['absent-null']).to eq(@before_xmin['absent-null'])
+      end
+
+      it 'keeps the source_hash of an absent client enrolled in a project that is not in Project.csv' do
+        expect(GrdaWarehouse::Hud::Client.source.find_by(PersonalID: 'unswept-hashed').source_hash).to eq('abc')
+        expect(@after_xmin['unswept-hashed']).to eq(@before_xmin['unswept-hashed'])
+      end
+
+      it 'does not soft-delete any absent client' do
+        expect(GrdaWarehouse::Hud::Client.source.where(PersonalID: ['absent-hashed', 'absent-null', 'unswept-hashed']).count).to eq(3)
+      end
+    end
   end
 end

@@ -325,7 +325,7 @@ module HmisDataQualityTool
       CurrentLivingSituation.calculate(report_items: report_current_living_situations, report: self)
     end
 
-    def household(household_id)
+    def household(data_source_id, household_id)
       return unless household_id.present?
 
       @household ||= {}.tap do |households|
@@ -335,16 +335,37 @@ module HmisDataQualityTool
           where.not(HouseholdID: nil).
           find_each do |enrollment|
             report_age_date = [enrollment.EntryDate, filter.start].max
-            households[enrollment.HouseholdID] ||= []
+            key = household_key(enrollment.data_source_id, enrollment.HouseholdID)
+            households[key] ||= []
             she = enrollment.service_history_enrollment
             next unless enrollment.client.present?
 
             # Make sure the age reflects the reporting age
             she.age = enrollment.client&.age_on(report_age_date)
-            households[enrollment.HouseholdID] << she
+            households[key] << she
           end
       end
-      @household[household_id]
+      @household[household_key(data_source_id, household_id)]
+    end
+
+    # Latest HoH CLS date per data source and HouseholdID, limited to report_scope and capped at the report end.
+    def hoh_last_cls_date(data_source_id, household_id)
+      return unless household_id.present?
+
+      @hoh_last_cls_date ||= GrdaWarehouse::Hud::Enrollment.
+        joins(:service_history_enrollment, :current_living_situations).
+        merge(report_scope).
+        heads_of_households.
+        where.not(HouseholdID: nil).
+        where(cls_t[:InformationDate].lteq([filter.end, Date.current].min)).
+        group(e_t[:data_source_id], e_t[:HouseholdID]).
+        maximum(cls_t[:InformationDate]).
+        transform_keys { |ds_id, hh_id| household_key(ds_id, hh_id) }
+      @hoh_last_cls_date[household_key(data_source_id, household_id)]
+    end
+
+    private def household_key(data_source_id, household_id)
+      "#{data_source_id}*#{household_id}"
     end
 
     def known_keys

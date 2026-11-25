@@ -124,18 +124,6 @@ module HmisCsvTwentyTwentySix::Importer::ImportConcern
       new attrs_from(loaded, deidentified: deidentified)
     end
 
-    # Override as necessary
-    def self.mark_tree_as_dead(data_source_id:, project_ids:, date_range:, pending_date_deleted:, importer_log_id:) # rubocop:disable Lint/UnusedMethodArgument
-      project_ids.each_slice(250) do |project_ids_slice|
-        involved_warehouse_scope(
-          data_source_id: data_source_id,
-          project_ids: project_ids_slice,
-          date_range: date_range,
-        ).with_deleted.
-          update_all(pending_date_deleted: pending_date_deleted)
-      end
-    end
-
     def self.existing_data(data_source_id:, project_ids:, date_range:)
       existing_scope = involved_warehouse_scope(
         data_source_id: data_source_id,
@@ -150,29 +138,11 @@ module HmisCsvTwentyTwentySix::Importer::ImportConcern
       where(importer_log_id: importer_log_id).should_import
     end
 
-    def self.existing_destination_data(data_source_id:, project_ids:, date_range:)
-      involved_warehouse_scope(
-        data_source_id: data_source_id,
-        project_ids: project_ids,
-        date_range: date_range,
-      ).with_deleted.
-        delete_pending
-    end
-
     # Override as necessary
-    # The import process is relying on flagging records with pending_date_deleted to identify
-    # record changes in the import process. This flag allows for marking the records for deletion
-    # without actually delete them.
+    # When true, the import resets source_hash on rows it did not account for instead of
+    # soft-deleting them.
     def self.prevent_import_deletions?
       false
-    end
-
-    def self.pending_deletions(data_source_id:, project_ids:, date_range:)
-      involved_warehouse_scope(
-        data_source_id: data_source_id,
-        project_ids: project_ids,
-        date_range: date_range,
-      ).delete_pending
     end
 
     def as_destination_record

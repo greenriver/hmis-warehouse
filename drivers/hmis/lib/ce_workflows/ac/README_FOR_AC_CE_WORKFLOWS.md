@@ -6,6 +6,7 @@ This directory contains utilities and workflow definitions specific to the AC im
 ### Workflow Templates
 - **Housing Workflow**: Handles referrals for housing opportunities, including multiple stages of client engagement, provider outcomes, and denial reviews.
 - **Admin Assign Workflow**: Supports direct referrals to non-housing programs. This template shares common steps with the housing workflow (provider outcome and denial review process).
+- **OBH PSH Workflow**: A waitlist workflow with the same graph and forms as the housing workflow, but different task and swimlane names. See [OBH PSH Workflow](#obh-psh-workflow).
 
 ### Usage
 These workflows are generated using the `AcWorkflowBuilder` utility class.
@@ -96,3 +97,19 @@ classDef yellow_node fill:#ffffcc,stroke:#ffeb99,stroke-width:2px;
 classDef blue_node fill:#e6f7ff,stroke:#99d6ff,stroke-width:2px;
 
 ```
+
+### OBH PSH Workflow
+`build_obh_psh_workflow` builds `obh_psh_workflow` (`OBH PSH Workflow`). It has the same graph, forms and statuses as the housing workflow (see the diagram above); only the task and swimlane names differ. See `OBH_PSH_WORKFLOW_NAMES` and `HOUSING_WORKFLOW_NAMES` in `workflow_builder.rb`.
+
+#### Production setup (one time)
+Don't use the rake task in production. Build the template once from the Rails console (see [ce-workflow-builders.md](../../../../../docs/features/hmis/ce-workflow-builders.md) for how `unsafe_run_in_production` works):
+
+```ruby
+data_source = GrdaWarehouse::DataSource.hmis.sole
+Hmis::Hud::Base.transaction do
+  builder = CeWorkflows::Ac::WorkflowBuilder.new(data_source, unsafe_run_in_production: true)
+  builder.build_obh_psh_workflow
+end
+```
+
+Afterwards, assign `obh_psh_workflow` to unit groups in the Unit Group UI and set default contacts for its swimlanes.

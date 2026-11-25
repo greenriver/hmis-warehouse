@@ -317,5 +317,198 @@ RSpec.describe HmisDataQualityTool::Report, type: :model do
         end
       end
     end
+
+    describe 'SO Missed Exit with households' do
+      let(:report_end) { default_filter.end }
+      let(:so_project) { create_project(project_type: 4) }
+      let(:adult_dob) { report_end - 35.years }
+      let(:child_dob) { report_end - 8.years }
+
+      def create_cls(enrollment:, date:)
+        create(
+          :hud_current_living_situation,
+          EnrollmentID: enrollment.EnrollmentID,
+          PersonalID: enrollment.PersonalID,
+          data_source_id: enrollment.data_source_id,
+          InformationDate: date,
+        )
+      end
+
+      def so_member(dob:, relationship:, household_id:, project: so_project, entry_date: report_end - 120.days, exit_date: nil)
+        create_enrollment(
+          client: create_client_with_warehouse_link(dob: dob),
+          project: project,
+          entry_date: entry_date,
+          exit_date: exit_date,
+          relationship_to_ho_h: relationship,
+          household_id: household_id,
+        )
+      end
+
+      it "does not flag a child without CLS when the HoH's last CLS is within 90 days" do
+        hoh = so_member(dob: adult_dob, relationship: 1, household_id: 'hh-a')
+        create_cls(enrollment: hoh, date: report_end - 30.days)
+        so_member(dob: child_dob, relationship: 2, household_id: 'hh-a')
+        @report = setup_report([so_project.id])
+
+        expect_result(key: :days_since_last_service_so_90_issues, total: 2, invalid_count: 0)
+      end
+
+      it "does not flag a child whose exited HoH's last CLS is within 90 days" do
+        hoh = so_member(dob: adult_dob, relationship: 1, household_id: 'hh-a', exit_date: report_end - 20.days)
+        create_cls(enrollment: hoh, date: report_end - 30.days)
+        so_member(dob: child_dob, relationship: 2, household_id: 'hh-a')
+        @report = setup_report([so_project.id])
+
+        expect_result(key: :days_since_last_service_so_90_issues, total: 2, invalid_count: 0)
+      end
+
+      it "does not flag a non-HoH member with unknown age when the HoH's CLS is recent" do
+        hoh = so_member(dob: adult_dob, relationship: 1, household_id: 'hh-a')
+        create_cls(enrollment: hoh, date: report_end - 30.days)
+        so_member(dob: nil, relationship: 2, household_id: 'hh-a')
+        @report = setup_report([so_project.id])
+
+        expect_result(key: :days_since_last_service_so_90_issues, total: 2, invalid_count: 0)
+      end
+
+      it "credits a child only with the HoH's CLS, not another adult member's" do
+        hoh = so_member(dob: adult_dob, relationship: 1, household_id: 'hh-a')
+        create_cls(enrollment: hoh, date: report_end - 100.days)
+        adult = so_member(dob: report_end - 30.years, relationship: 3, household_id: 'hh-a')
+        create_cls(enrollment: adult, date: report_end - 30.days)
+        so_member(dob: child_dob, relationship: 2, household_id: 'hh-a')
+        @report = setup_report([so_project.id])
+
+        # The HoH and the child are flagged; the adult's own CLS is recent.
+        expect_result(key: :days_since_last_service_so_90_issues, total: 3, invalid_count: 2)
+      end
+
+      it 'ignores a HoH CLS dated after the report end when crediting a child' do
+        hoh = so_member(dob: adult_dob, relationship: 1, household_id: 'hh-a')
+        create_cls(enrollment: hoh, date: report_end - 100.days)
+        create_cls(enrollment: hoh, date: report_end + 10.days)
+        so_member(dob: child_dob, relationship: 2, household_id: 'hh-a')
+        @report = setup_report([so_project.id])
+
+        expect_result(key: :days_since_last_service_so_90_issues, total: 2, invalid_count: 2)
+      end
+
+      it "credits a child with the HoH's most recent CLS, not the oldest" do
+        hoh = so_member(dob: adult_dob, relationship: 1, household_id: 'hh-a')
+        create_cls(enrollment: hoh, date: report_end - 100.days)
+        create_cls(enrollment: hoh, date: report_end - 30.days)
+        so_member(dob: child_dob, relationship: 2, household_id: 'hh-a')
+        @report = setup_report([so_project.id])
+
+        expect_result(key: :days_since_last_service_so_90_issues, total: 2, invalid_count: 0)
+      end
+
+      it 'flags a child whose HoH exited and whose own enrollment is still open' do
+        hoh = so_member(dob: adult_dob, relationship: 1, household_id: 'hh-a', exit_date: report_end - 100.days)
+        create_cls(enrollment: hoh, date: report_end - 110.days)
+        so_member(dob: child_dob, relationship: 2, household_id: 'hh-a')
+        @report = setup_report([so_project.id])
+
+        # The limiter skips enrollments with an exit date, so only the child can be flagged.
+        expect_result(key: :days_since_last_service_so_90_issues, total: 2, invalid_count: 1)
+      end
+
+      it 'flags an unaccompanied minor HoH with no CLS for 90+ days' do
+        so_member(dob: report_end - 16.years, relationship: 1, household_id: 'hh-a')
+        @report = setup_report([so_project.id])
+
+        expect_result(key: :days_since_last_service_so_90_issues, total: 1, invalid_count: 1)
+      end
+
+      it "flags a non-HoH adult with no CLS even when the HoH's CLS is recent" do
+        hoh = so_member(dob: adult_dob, relationship: 1, household_id: 'hh-a')
+        create_cls(enrollment: hoh, date: report_end - 30.days)
+        so_member(dob: report_end - 30.years, relationship: 3, household_id: 'hh-a')
+        @report = setup_report([so_project.id])
+
+        expect_result(key: :days_since_last_service_so_90_issues, total: 2, invalid_count: 1)
+      end
+
+      it 'flags an 18-year-old non-HoH with no CLS' do
+        entry_date = report_end - 120.days
+        hoh = so_member(dob: adult_dob, relationship: 1, household_id: 'hh-a', entry_date: entry_date)
+        create_cls(enrollment: hoh, date: report_end - 30.days)
+        so_member(dob: entry_date - 18.years, relationship: 2, household_id: 'hh-a', entry_date: entry_date)
+        @report = setup_report([so_project.id])
+
+        expect_result(key: :days_since_last_service_so_90_issues, total: 2, invalid_count: 1)
+      end
+
+      it "does not flag a child whose own last CLS is 90+ days old when the HoH's CLS is recent" do
+        hoh = so_member(dob: adult_dob, relationship: 1, household_id: 'hh-a')
+        create_cls(enrollment: hoh, date: report_end - 30.days)
+        child = so_member(dob: child_dob, relationship: 2, household_id: 'hh-a')
+        create_cls(enrollment: child, date: report_end - 100.days)
+        @report = setup_report([so_project.id])
+
+        expect_result(key: :days_since_last_service_so_90_issues, total: 2, invalid_count: 0)
+      end
+
+      it "uses the child's own CLS when it is newer than the HoH's" do
+        hoh = so_member(dob: adult_dob, relationship: 1, household_id: 'hh-a')
+        create_cls(enrollment: hoh, date: report_end - 100.days)
+        child = so_member(dob: child_dob, relationship: 2, household_id: 'hh-a')
+        create_cls(enrollment: child, date: report_end - 30.days)
+        @report = setup_report([so_project.id])
+
+        # Only the HoH (last CLS 100 days ago) is flagged.
+        expect_result(key: :days_since_last_service_so_90_issues, total: 2, invalid_count: 1)
+      end
+
+      it "counts from the child's entry when the HoH's last CLS predates it" do
+        hoh = so_member(dob: adult_dob, relationship: 1, household_id: 'hh-a', entry_date: report_end - 200.days)
+        create_cls(enrollment: hoh, date: report_end - 100.days)
+        so_member(dob: child_dob, relationship: 2, household_id: 'hh-a', entry_date: report_end - 20.days)
+        @report = setup_report([so_project.id])
+
+        # Only the HoH (last CLS 100 days ago) is flagged; the child entered 20 days ago.
+        expect_result(key: :days_since_last_service_so_90_issues, total: 2, invalid_count: 1)
+      end
+
+      it "does not use another household's HoH CLS" do
+        other_hoh = so_member(dob: adult_dob, relationship: 1, household_id: 'hh-b')
+        create_cls(enrollment: other_hoh, date: report_end - 30.days)
+        hoh = so_member(dob: adult_dob, relationship: 1, household_id: 'hh-a')
+        create_cls(enrollment: hoh, date: report_end - 100.days)
+        so_member(dob: child_dob, relationship: 2, household_id: 'hh-a')
+        @report = setup_report([so_project.id])
+
+        # hh-a's HoH and child are both 100+ days out; hh-b's HoH is not.
+        expect_result(key: :days_since_last_service_so_90_issues, total: 3, invalid_count: 2)
+      end
+
+      it 'does not use a HoH CLS from another data source with the same HouseholdID' do
+        other_project = nil
+        in_data_source(create(:source_data_source)) do
+          other_project = create_project(project_type: 4)
+          other_hoh = so_member(dob: adult_dob, relationship: 1, household_id: 'hh-a', project: other_project)
+          create_cls(enrollment: other_hoh, date: report_end - 30.days)
+        end
+        hoh = so_member(dob: adult_dob, relationship: 1, household_id: 'hh-a')
+        create_cls(enrollment: hoh, date: report_end - 100.days)
+        so_member(dob: child_dob, relationship: 2, household_id: 'hh-a')
+        @report = setup_report([so_project.id, other_project.id])
+
+        # This data source's HoH and child are both 100+ days out; the other data source's HoH is not.
+        expect_result(key: :days_since_last_service_so_90_issues, total: 3, invalid_count: 2)
+      end
+
+      it 'does not use a HoH CLS from a project outside the report' do
+        other_project = create_project(project_type: 4)
+        hoh = so_member(dob: adult_dob, relationship: 1, household_id: 'hh-a', project: other_project)
+        create_cls(enrollment: hoh, date: report_end - 30.days)
+        so_member(dob: child_dob, relationship: 2, household_id: 'hh-a')
+        @report = setup_report([so_project.id])
+
+        # The HoH's project isn't in the report, so the child (no CLS, entered 120 days ago) is flagged.
+        expect_result(key: :days_since_last_service_so_90_issues, total: 1, invalid_count: 1)
+      end
+    end
   end
 end

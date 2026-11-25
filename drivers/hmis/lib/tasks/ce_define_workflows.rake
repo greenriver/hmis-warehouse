@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # This task is for developing and iterating on CE workflow definitions.
 # It will be run in staging/training environments until the workflows are ready, at which point we will run it in production.
 # CAUTION: It deletes existing referrals and opportunities, so that we don't have to worry about definitions shifting underfoot.
@@ -25,6 +27,7 @@ task ce_define_workflows: [:environment] do
     ac_builder = CeWorkflows::Ac::WorkflowBuilder.new(data_source)
     templates << ac_builder.build_housing_workflow
     templates << ac_builder.build_admin_assign_workflow
+    templates << ac_builder.build_obh_psh_workflow
   end
 
   # Write each diagram to a file in generated_diagrams/ to track changes in version control

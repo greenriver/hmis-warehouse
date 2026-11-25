@@ -33,14 +33,6 @@ module HmisCsvImporter::Aggregated
         where(d_2_end.gt(d_1_start).or(d_2_end.eq(nil)).and(d_2_start.lt(d_1_end)))
     end
 
-    def self.involved_warehouse_scope(data_source_id:, project_ids:, date_range:)
-      return none unless project_ids.present?
-
-      warehouse_class.joins(:project).
-        merge(GrdaWarehouse::Hud::Project.where(data_source_id: data_source_id, ProjectID: project_ids)).
-        open_during_range(date_range.range)
-    end
-
     def self.warehouse_class
       GrdaWarehouse::Hud::Enrollment
     end

@@ -81,6 +81,13 @@ module HmisCsvFixtures
     work_off_all_ready_jobs
   end
 
+  # Pending-set temp tables still on this session. Other sessions' temp tables live in their own schemas.
+  def pending_temp_table_names
+    GrdaWarehouseBase.connection.select_values(
+      "SELECT relname FROM pg_class WHERE relkind = 'r' AND relpersistence = 't' AND relnamespace = pg_my_temp_schema() AND relname LIKE 'tmp_pending_set_%'",
+    )
+  end
+
   def cleanup_hmis_csv_fixtures
     # currently a no-op
   end
