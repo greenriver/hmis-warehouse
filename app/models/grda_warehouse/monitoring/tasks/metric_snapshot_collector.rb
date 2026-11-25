@@ -381,7 +381,6 @@ module GrdaWarehouse::Monitoring::Tasks
       # We use the natural key (entity_type, entity_id, metric_definition_id, initial_observation_date)
       # along with the OLD current_observation_date to match existing records
       conn = GrdaWarehouseBase.connection
-      updated_at = Time.current.strftime('%Y-%m-%d %H:%M:%S')
 
       # Create VALUES rows for bulk update using natural key
       # Note: We use the original current_observation_date to match the existing row
@@ -409,7 +408,7 @@ module GrdaWarehouse::Monitoring::Tasks
         SET
           current_value = v.new_current_value::integer,
           current_observation_date = v.new_current_observation_date::date,
-          updated_at = #{conn.quote(updated_at)}
+          updated_at = #{conn.quote(Time.current)}
         FROM (VALUES #{values_list}) AS v(
           entity_type, entity_id, metric_definition_id, initial_observation_date,
           old_current_observation_date, new_current_value, new_current_observation_date

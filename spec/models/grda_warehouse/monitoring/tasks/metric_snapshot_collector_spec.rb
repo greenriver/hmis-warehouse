@@ -1038,6 +1038,38 @@ RSpec.describe GrdaWarehouse::Monitoring::Tasks::MetricSnapshotCollector, type: 
     end
   end
 
+  describe 'snapshot updated in place' do
+    let!(:snapshot) do
+      create(
+        :grda_warehouse_monitoring_metric_snapshot,
+        entity: client1,
+        metric_definition: metric_definition,
+        initial_observation_date: Date.new(2026, 1, 10),
+        current_observation_date: Date.new(2026, 1, 14),
+        initial_value: 100,
+        current_value: 100,
+        updated_at: Time.utc(2026, 1, 14, 7, 0, 0),
+      )
+    end
+
+    it 'records the update time in UTC' do
+      Time.use_zone('America/New_York') do
+        travel_to Time.zone.local(2026, 1, 15, 2, 20, 0) do
+          described_class.run_daily_collection(
+            entity_type: entity_type,
+            calculation_date: Date.new(2026, 1, 15),
+            entity_ids: [client1.id],
+            metric_names: ['test_metric'],
+          )
+
+          snapshot.reload
+          expect(snapshot.current_observation_date).to eq(Date.new(2026, 1, 15))
+          expect(snapshot.updated_at).to eq(Time.utc(2026, 1, 15, 7, 20, 0))
+        end
+      end
+    end
+  end
+
   describe 'cleanup old snapshots' do
     let!(:old_snapshot) do
       create(
