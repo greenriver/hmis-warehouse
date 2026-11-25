@@ -55,7 +55,8 @@ module GrdaWarehouse::Monitoring::Tasks
       # time for the same date would treat clients as new or reopen superseded snapshots. A full
       # run therefore skips metrics that already have a snapshot observed on the calculation
       # date. Retries for unstable metrics still collect, since those have none. Runs scoped
-      # with entity_ids never skip, so they can't block the full run.
+      # with entity_ids never skip, but the snapshots they write make a later full run for the
+      # same date skip the metric for every entity.
       if @entity_ids.nil?
         collected_metrics, all_metrics = all_metrics.partition { |metric| collected_on_calculation_date?(metric) }
         if collected_metrics.any?
