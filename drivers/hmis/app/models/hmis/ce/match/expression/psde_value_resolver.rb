@@ -181,13 +181,22 @@ module Hmis::Ce::Match::Expression
     end
 
     # Scoped, ordered relation for a HUD table restricted to eligible enrollments.
-    # Ordered so the first row is the most recent.
+    # Ordered so the first row is the most recent. Rows without an InformationDate can't be placed in time, so they
+    # are skipped (as in DisablingConditionInference). A null DateUpdated sorts last so it never wins a tie.
     # Callers pluck the specific columns they need.
     def scoped_rows(client_ids, scope)
+      table = scope.arel_table
+      ordering = [
+        table[:InformationDate].desc,
+        table[:DateUpdated].desc.nulls_last,
+        table[:id].desc,
+      ]
+
       scope.
+        where.not(InformationDate: nil).
         joins(:enrollment).
         merge(eligibility_scope.call(client_ids)).
-        order(information_date: :desc, date_updated: :desc, id: :desc)
+        order(*ordering)
     end
 
     # HUD NoYes code -> boolean.
