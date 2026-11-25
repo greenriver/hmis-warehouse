@@ -2,5 +2,7 @@
   - report_version_urls.each do |(category, slug)|
     - classes = []
     - classes << 'active' if slug == report_version
+    - tab_args = { filter: { report_version: slug } }
+    - tab_path = @question.present? ? path_for_question(@question, args: tab_args) : tab_args
     %li.nav-item{role: :presentation, class: classes}
-      = link_to category, {filter: {report_version: slug}}, role: :tab, aria: {controls: category}, class: 'nav-link'
+      = link_to category, tab_path, role: :tab, aria: {controls: category}, class: 'nav-link'
