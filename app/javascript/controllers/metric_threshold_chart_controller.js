@@ -118,11 +118,17 @@ export default class extends Controller {
     return null;
   }
 
+  // billboard parses the x values as local midnight, so read the local date parts.
+  // toISOString() would shift the day for browsers east of UTC.
+  localDateString(date) {
+    const pad = (n) => String(n).padStart(2, '0');
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+  }
+
   async handleBarClick(d) {
     if (!d || !d.x) return;
 
-    const date = new Date(d.x);
-    const dateString = date.toISOString().split('T')[0];
+    const dateString = this.localDateString(new Date(d.x));
 
     // Show loading state
     if (this.hasDetailsContainerTarget) {

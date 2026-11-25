@@ -907,6 +907,469 @@ RSpec.describe GrdaWarehouse::Monitoring::Tasks::MetricSnapshotCollector, type: 
     end
   end
 
+  describe 'second run for the same calculation date' do
+    def collect(metric_names: ['test_metric'], entity_ids: nil, date: calculation_date)
+      described_class.run_daily_collection(
+        entity_type: entity_type,
+        calculation_date: date,
+        entity_ids: entity_ids,
+        metric_names: metric_names,
+      )
+    end
+
+    def snapshots_for(client, definition = metric_definition)
+      GrdaWarehouse::Monitoring::MetricSnapshot.where(entity: client, metric_definition: definition)
+    end
+
+    context 'when the client has a single snapshot' do
+      let!(:snapshot) do
+        create(
+          :grda_warehouse_monitoring_metric_snapshot,
+          entity: client1,
+          metric_definition: metric_definition,
+          initial_observation_date: calculation_date - 10.days,
+          current_observation_date: calculation_date - 1.day,
+          initial_value: 100,
+          current_value: 100,
+        )
+      end
+
+      before { collect }
+
+      it 'creates no snapshot and keeps the value from the first run' do
+        expect(snapshot.reload.current_observation_date).to eq(calculation_date)
+        processed1.update!(days_homeless_last_three_years: 200)
+
+        expect { collect }.not_to change(GrdaWarehouse::Monitoring::MetricSnapshot, :count)
+        expect(snapshots_for(client1).pluck(:current_value)).to eq([100])
+      end
+
+      it 'leaves the calculation run record from the first run unchanged' do
+        run = GrdaWarehouse::Monitoring::MetricCalculationRun.find_by!(entity_type: entity_type, calculation_date: calculation_date)
+
+        expect { collect }.not_to(change { run.reload.attributes.slice('completed_at', 'snapshots_created_count', 'snapshots_updated_count') })
+      end
+
+      it 'completes a run record the first run left unfinished' do
+        run = GrdaWarehouse::Monitoring::MetricCalculationRun.find_by!(entity_type: entity_type, calculation_date: calculation_date)
+        run.update!(status: 'running', completed_at: nil)
+
+        collect
+
+        expect(run.reload).to have_attributes(status: 'completed', completed_at: be_within(1.minute).of(Time.current))
+      end
+
+      it 'reports no metrics for retry' do
+        expect(collect).to eq([])
+      end
+    end
+
+    context 'when the client has a superseded snapshot' do
+      let!(:superseded_snapshot) do
+        create(
+          :grda_warehouse_monitoring_metric_snapshot,
+          entity: client1,
+          metric_definition: metric_definition,
+          initial_observation_date: calculation_date - 20.days,
+          current_observation_date: calculation_date - 11.days,
+          initial_value: 40,
+          current_value: 60,
+        )
+      end
+
+      let!(:current_snapshot) do
+        create(
+          :grda_warehouse_monitoring_metric_snapshot,
+          entity: client1,
+          metric_definition: metric_definition,
+          initial_observation_date: calculation_date - 10.days,
+          current_observation_date: calculation_date - 1.day,
+          initial_value: 100,
+          current_value: 100,
+        )
+      end
+
+      it 'leaves the superseded snapshot unchanged' do
+        collect
+        collect
+
+        expect(superseded_snapshot.reload).to have_attributes(
+          current_value: 60,
+          current_observation_date: calculation_date - 11.days,
+        )
+      end
+    end
+
+    context 'when the scheduled job path omits metric_names' do
+      it 'creates no snapshots and keeps the values from the first run' do
+        collect(metric_names: nil)
+        processed1.update!(days_homeless_last_three_years: 200)
+
+        expect { collect(metric_names: nil) }.not_to(change { snapshots_for(client1).count })
+        expect(snapshots_for(client1).pluck(:current_value)).to eq([100])
+      end
+    end
+
+    context 'when the first run skipped an unstable metric' do
+      let!(:second_metric_definition) do
+        create(
+          :grda_warehouse_monitoring_metric_definition,
+          name: 'second_metric',
+          entity_type: entity_type,
+          calculator_class: 'GrdaWarehouse::Monitoring::MetricCalculators::MinHouseholdSizeCalculator',
+          count_change_threshold: 1,
+          active: true,
+        )
+      end
+      let(:both_metrics) { ['test_metric', 'second_metric'] }
+
+      before do
+        allow(GrdaWarehouse::Monitoring::MetricCalculators::MinHouseholdSizeCalculator).
+          to receive(:data_stable?).and_return(true)
+        allow(GrdaWarehouse::Monitoring::MetricCalculators::MinHouseholdSizeCalculator).
+          to receive(:calculate_batch).and_return({ client1.id => 2 })
+        allow(GrdaWarehouse::Monitoring::MetricCalculators::HomelessDaysLastThreeYearsCalculator).
+          to receive(:data_stable?).and_return(false)
+        collect(metric_names: both_metrics, entity_ids: [client1.id])
+        allow(GrdaWarehouse::Monitoring::MetricCalculators::HomelessDaysLastThreeYearsCalculator).
+          to receive(:data_stable?).and_return(true)
+        allow(GrdaWarehouse::Monitoring::MetricCalculators::MinHouseholdSizeCalculator).
+          to receive(:calculate_batch) { |entities, *| entities.map(&:id).include?(client1.id) ? { client1.id => 5 } : {} }
+      end
+
+      it 'collects only the skipped metric' do
+        expect(collect(metric_names: both_metrics)).to eq([])
+
+        expect(GrdaWarehouse::Monitoring::MetricSnapshot.where(metric_definition: metric_definition).pluck(:current_value)).to contain_exactly(100, 50)
+        expect(snapshots_for(client1, second_metric_definition).pluck(:initial_value, :current_value)).to eq([[2, 2]])
+      end
+
+      context 'when the skipped metric is still unstable on the retry' do
+        before do
+          allow(GrdaWarehouse::Monitoring::MetricCalculators::HomelessDaysLastThreeYearsCalculator).
+            to receive(:data_stable?).and_return(false)
+        end
+
+        it 'reports the unstable metric for retry' do
+          expect(collect(metric_names: both_metrics, entity_ids: [client1.id])).to eq(['test_metric'])
+        end
+
+        it 'leaves the run record from the first run unchanged' do
+          run = GrdaWarehouse::Monitoring::MetricCalculationRun.find_by!(entity_type: entity_type, calculation_date: calculation_date)
+
+          expect { collect(metric_names: both_metrics, entity_ids: [client1.id]) }.not_to(
+            change { run.reload.attributes.slice('completed_at', 'snapshots_created_count', 'snapshots_updated_count', 'metrics_calculated_count') },
+          )
+        end
+      end
+    end
+
+    context 'when a scoped run follows the full run for the date' do
+      it 'skips the client already collected' do
+        collect
+        processed1.update!(days_homeless_last_three_years: 200)
+
+        expect { collect(entity_ids: [client1.id]) }.not_to change(GrdaWarehouse::Monitoring::MetricSnapshot, :count)
+        expect(snapshots_for(client1).pluck(:current_value)).to eq([100])
+      end
+    end
+
+    context 'when a scoped run precedes the full run for the date' do
+      it 'collects the clients the scoped run did not cover and skips the one it did' do
+        collect(entity_ids: [client1.id])
+        processed1.update!(days_homeless_last_three_years: 200)
+        collect
+
+        expect(snapshots_for(client1).pluck(:current_value)).to eq([100])
+        expect(snapshots_for(client2).pluck(:current_value)).to eq([50])
+      end
+    end
+
+    context 'when only some clients already have a snapshot for the date' do
+      before do
+        create(
+          :grda_warehouse_monitoring_metric_snapshot,
+          entity: client1,
+          metric_definition: metric_definition,
+          initial_observation_date: calculation_date - 10.days,
+          current_observation_date: calculation_date,
+          initial_value: 100,
+          current_value: 100,
+        )
+        processed1.update!(days_homeless_last_three_years: 200)
+      end
+
+      it 'collects only the client without one' do
+        expect { collect }.to change { snapshots_for(client2).count }.from(0).to(1)
+
+        expect(snapshots_for(client1).pluck(:current_value)).to eq([100])
+        expect(snapshots_for(client2).pluck(:current_value)).to eq([50])
+      end
+
+      it 'replaces the run record counts with those of the partial run' do
+        collect
+
+        expect(GrdaWarehouse::Monitoring::MetricCalculationRun.find_by!(entity_type: entity_type, calculation_date: calculation_date)).
+          to have_attributes(entities_evaluated_count: 2, metrics_calculated_count: 1, snapshots_created_count: 1)
+      end
+    end
+
+    context 'when a scoped run follows the full run and the next date is then collected' do
+      let(:next_date) { calculation_date + 1.day }
+
+      def rows_for(client)
+        snapshots_for(client).order(:id).pluck(:initial_value, :current_value, :initial_observation_date, :current_observation_date)
+      end
+
+      let!(:superseded_snapshot) do
+        create(
+          :grda_warehouse_monitoring_metric_snapshot,
+          entity: client1,
+          metric_definition: metric_definition,
+          initial_observation_date: calculation_date - 20.days,
+          current_observation_date: calculation_date - 11.days,
+          initial_value: 40,
+          current_value: 60,
+        )
+      end
+
+      let!(:current_snapshot) do
+        create(
+          :grda_warehouse_monitoring_metric_snapshot,
+          entity: client1,
+          metric_definition: metric_definition,
+          initial_observation_date: calculation_date - 10.days,
+          current_observation_date: calculation_date - 1.day,
+          initial_value: 100,
+          current_value: 100,
+        )
+      end
+
+      let(:superseded_row) { [40, 60, calculation_date - 20.days, calculation_date - 11.days] }
+
+      before { collect }
+
+      context 'when the scoped value is far from the latest snapshot' do
+        before do
+          processed1.update!(days_homeless_last_three_years: 500)
+          collect(entity_ids: [client1.id])
+        end
+
+        it 'leaves the superseded and current snapshots unchanged' do
+          expect(rows_for(client1)).to eq(
+            [superseded_row, [100, 100, calculation_date - 10.days, calculation_date]],
+          )
+        end
+
+        it 'records the crossing on the next date against the latest snapshot value' do
+          collect(date: next_date)
+
+          expect(rows_for(client1)).to eq(
+            [
+              superseded_row,
+              [100, 100, calculation_date - 10.days, calculation_date],
+              [500, 500, next_date, next_date],
+            ],
+          )
+        end
+      end
+
+      context 'when the scoped value is within the threshold of the superseded snapshot' do
+        before do
+          processed1.update!(days_homeless_last_three_years: 70)
+          collect(entity_ids: [client1.id])
+        end
+
+        it 'leaves the superseded and current snapshots unchanged' do
+          expect(rows_for(client1)).to eq(
+            [superseded_row, [100, 100, calculation_date - 10.days, calculation_date]],
+          )
+        end
+
+        it 'extends the current snapshot on the next date when the value is back at its level' do
+          processed1.update!(days_homeless_last_three_years: 100)
+          collect(date: next_date)
+
+          expect(rows_for(client1)).to eq(
+            [superseded_row, [100, 100, calculation_date - 10.days, next_date]],
+          )
+        end
+
+        it 'records a crossing on the next date when the value moves past the threshold' do
+          processed1.update!(days_homeless_last_three_years: 200)
+          collect(date: next_date)
+
+          expect(rows_for(client1)).to eq(
+            [
+              superseded_row,
+              [100, 100, calculation_date - 10.days, calculation_date],
+              [200, 200, next_date, next_date],
+            ],
+          )
+        end
+      end
+    end
+
+    context 'when every client already has a snapshot to extend' do
+      before do
+        [[client1, 100], [client2, 50]].each do |client, value|
+          create(
+            :grda_warehouse_monitoring_metric_snapshot,
+            entity: client,
+            metric_definition: metric_definition,
+            initial_observation_date: calculation_date - 10.days,
+            current_observation_date: calculation_date - 1.day,
+            initial_value: value,
+            current_value: value,
+          )
+        end
+        collect
+      end
+
+      it 'skips the repeat full run even though no snapshot was created' do
+        processed1.update!(days_homeless_last_three_years: 200)
+
+        expect { collect }.not_to change(GrdaWarehouse::Monitoring::MetricSnapshot, :count)
+        expect(snapshots_for(client1).pluck(:current_value)).to eq([100])
+      end
+    end
+
+    context 'when a full run is for a date before the latest collected date' do
+      let!(:snapshot) do
+        create(
+          :grda_warehouse_monitoring_metric_snapshot,
+          entity: client1,
+          metric_definition: metric_definition,
+          initial_observation_date: calculation_date - 10.days,
+          current_observation_date: calculation_date,
+          initial_value: 100,
+          current_value: 100,
+        )
+      end
+
+      before do
+        create(
+          :grda_warehouse_monitoring_metric_snapshot,
+          entity: client2,
+          metric_definition: metric_definition,
+          initial_observation_date: calculation_date - 10.days,
+          current_observation_date: calculation_date,
+          initial_value: 50,
+          current_value: 50,
+        )
+      end
+
+      it 'skips the clients and leaves their snapshots unchanged' do
+        processed1.update!(days_homeless_last_three_years: 200)
+
+        expect do
+          described_class.run_daily_collection(
+            entity_type: entity_type,
+            calculation_date: calculation_date - 1.day,
+            metric_names: ['test_metric'],
+          )
+        end.not_to change(GrdaWarehouse::Monitoring::MetricSnapshot, :count)
+
+        expect(snapshot.reload).to have_attributes(current_observation_date: calculation_date, current_value: 100)
+      end
+    end
+
+    context 'when a past-date full run covers a client whose snapshot ends before that date' do
+      let(:past_date) { calculation_date - 1.day }
+
+      let!(:client1_snapshot) do
+        create(
+          :grda_warehouse_monitoring_metric_snapshot,
+          entity: client1,
+          metric_definition: metric_definition,
+          initial_observation_date: calculation_date - 10.days,
+          current_observation_date: calculation_date,
+          initial_value: 100,
+          current_value: 100,
+        )
+      end
+
+      let!(:client2_snapshot) do
+        create(
+          :grda_warehouse_monitoring_metric_snapshot,
+          entity: client2,
+          metric_definition: metric_definition,
+          initial_observation_date: calculation_date - 10.days,
+          current_observation_date: calculation_date - 5.days,
+          initial_value: 50,
+          current_value: 50,
+        )
+      end
+
+      it 'extends that client and leaves the client with a later snapshot unchanged' do
+        processed1.update!(days_homeless_last_three_years: 200)
+
+        expect { collect(date: past_date) }.not_to change(GrdaWarehouse::Monitoring::MetricSnapshot, :count)
+
+        expect(client2_snapshot.reload).to have_attributes(
+          initial_observation_date: calculation_date - 10.days,
+          current_observation_date: past_date,
+          current_value: 50,
+        )
+        expect(client1_snapshot.reload).to have_attributes(
+          initial_observation_date: calculation_date - 10.days,
+          current_observation_date: calculation_date,
+          current_value: 100,
+        )
+      end
+    end
+  end
+
+  describe 'run with no matching metric' do
+    def collect(metric_names:)
+      described_class.run_daily_collection(
+        entity_type: entity_type,
+        calculation_date: calculation_date,
+        entity_ids: nil,
+        metric_names: metric_names,
+      )
+    end
+
+    context 'when no active metric matches the requested names' do
+      it 'still records the calculation run for the date' do
+        expect { collect(metric_names: ['no_such_metric']) }.
+          to change { GrdaWarehouse::Monitoring::MetricCalculationRun.where(entity_type: entity_type, calculation_date: calculation_date).count }.from(0).to(1)
+      end
+    end
+  end
+
+  describe 'snapshot updated in place' do
+    let!(:snapshot) do
+      create(
+        :grda_warehouse_monitoring_metric_snapshot,
+        entity: client1,
+        metric_definition: metric_definition,
+        initial_observation_date: Date.new(2026, 1, 10),
+        current_observation_date: Date.new(2026, 1, 14),
+        initial_value: 100,
+        current_value: 100,
+        updated_at: Time.utc(2026, 1, 14, 7, 0, 0),
+      )
+    end
+
+    it 'records the update time in UTC' do
+      Time.use_zone('America/New_York') do
+        travel_to Time.zone.local(2026, 1, 15, 2, 20, 0) do
+          described_class.run_daily_collection(
+            entity_type: entity_type,
+            calculation_date: Date.new(2026, 1, 15),
+            entity_ids: [client1.id],
+            metric_names: ['test_metric'],
+          )
+
+          snapshot.reload
+          expect(snapshot.current_observation_date).to eq(Date.new(2026, 1, 15))
+          expect(snapshot.updated_at).to eq(Time.utc(2026, 1, 15, 7, 20, 0))
+        end
+      end
+    end
+  end
+
   describe 'cleanup old snapshots' do
     let!(:old_snapshot) do
       create(

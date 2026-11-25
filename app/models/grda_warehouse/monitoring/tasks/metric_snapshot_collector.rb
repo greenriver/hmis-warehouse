@@ -30,6 +30,7 @@ module GrdaWarehouse::Monitoring::Tasks
       @calculation_date = calculation_date
       @entity_ids = entity_ids
       @metric_names = metric_names
+      @skipped_counts = Hash.new(0)
       @run_stats = {
         entities_evaluated: 0,
         metrics_calculated: 0,
@@ -49,8 +50,9 @@ module GrdaWarehouse::Monitoring::Tasks
       # of the time it takes to run the collector.
       NotifyMetricThresholdCrossingsJob.perform_later(@calculation_date - 1.days)
 
-      run_record = create_run_record
       all_metrics = load_metrics
+
+      run_record = create_run_record
       entities = load_entities
 
       # Check every metric's stability consecutively, then open the transaction
@@ -80,6 +82,13 @@ module GrdaWarehouse::Monitoring::Tasks
         end
       end
 
+      log_skipped_entities
+
+      # A re-run that found everything already collected leaves a completed run record as is;
+      # an unfinished one is completed.
+      nothing_to_collect = stable_metrics.any? && @run_stats[:metrics_calculated].zero? && @skipped_counts.any?
+      return skipped_metric_names if nothing_to_collect && run_record.status == 'completed'
+
       cleanup_old_snapshots
       complete_run_record(run_record, 'completed')
 
@@ -88,6 +97,33 @@ module GrdaWarehouse::Monitoring::Tasks
     end
 
     private
+
+    def log_skipped_entities
+      @skipped_counts.each do |metric_name, count|
+        Rails.logger.info(
+          "MetricSnapshotCollector: skipped #{count} #{@entity_type} entities for #{metric_name} — " \
+          "already collected for #{@calculation_date}",
+        )
+      end
+    end
+
+    # The snapshot lookup can't see snapshots observed on or after the calculation date, so
+    # collecting an entity again would treat it as new or reopen a superseded snapshot. Entities
+    # holding such a snapshot for the metric are skipped in every run, which also covers past-date
+    # runs after later dates were collected. Unstable-metric retries still collect, since those
+    # have no snapshot for the calculation date. One query per batch and metric.
+    def entities_without_current_snapshot(entities, metric)
+      collected_ids = GrdaWarehouse::Monitoring::MetricSnapshot.
+        where(entity_type: @entity_type, entity_id: entities.map(&:id), metric_definition_id: metric.id).
+        where(current_observation_date: @calculation_date..).
+        distinct.
+        pluck(:entity_id).
+        to_set
+      return entities if collected_ids.empty?
+
+      @skipped_counts[metric.name] += collected_ids.size
+      entities.reject { |entity| collected_ids.include?(entity.id) }
+    end
 
     def create_run_record
       GrdaWarehouse::Monitoring::MetricCalculationRun.find_or_create_by!(
@@ -155,11 +191,14 @@ module GrdaWarehouse::Monitoring::Tasks
       snapshots_to_update = []
 
       metrics.each do |metric|
-        @run_stats[:metrics_calculated] += entities.count
+        metric_entities = entities_without_current_snapshot(entities, metric)
+        next if metric_entities.empty?
+
+        @run_stats[:metrics_calculated] += metric_entities.count
 
         begin
           process_metric_for_batch(
-            entities,
+            metric_entities,
             metric,
             current_snapshots,
             snapshots_to_create,
@@ -167,7 +206,7 @@ module GrdaWarehouse::Monitoring::Tasks
           )
         rescue StandardError => e
           Rails.logger.error "Failed to calculate #{metric.name} for batch: #{e.message}"
-          @run_stats[:errors] += entities.count
+          @run_stats[:errors] += metric_entities.count
         end
       end
 
@@ -180,11 +219,11 @@ module GrdaWarehouse::Monitoring::Tasks
       entity_ids = entities.map(&:id)
       metric_ids = metrics.map(&:id)
 
-      # Find the most recent snapshot updated on or before yesterday for each entity/metric.
-      # Upper bound (..yesterday) ensures we never pick up a snapshot already written by
-      # today's run (same-day re-run safety), while still finding stale baselines from
-      # weeks or months ago so they are compared against rather than treated as "first time"
-      # (which would create a spurious crossing notification against the old baseline).
+      # Takes the most recent snapshot observed before the calculation date, however old, so a
+      # client missed for weeks is compared against its old baseline rather than treated as new
+      # (which would create a spurious crossing). Entities with a snapshot on or after the
+      # calculation date are dropped per metric by #entities_without_current_snapshot, so this
+      # bound never hides the snapshot an entity being collected should compare against.
       GrdaWarehouse::Monitoring::MetricSnapshot.
         where(entity_type: @entity_type, entity_id: entity_ids).
         where(metric_definition_id: metric_ids).
@@ -359,7 +398,6 @@ module GrdaWarehouse::Monitoring::Tasks
       # We use the natural key (entity_type, entity_id, metric_definition_id, initial_observation_date)
       # along with the OLD current_observation_date to match existing records
       conn = GrdaWarehouseBase.connection
-      updated_at = Time.current.strftime('%Y-%m-%d %H:%M:%S')
 
       # Create VALUES rows for bulk update using natural key
       # Note: We use the original current_observation_date to match the existing row
@@ -387,7 +425,7 @@ module GrdaWarehouse::Monitoring::Tasks
         SET
           current_value = v.new_current_value::integer,
           current_observation_date = v.new_current_observation_date::date,
-          updated_at = #{conn.quote(updated_at)}
+          updated_at = #{conn.quote(Time.current)}
         FROM (VALUES #{values_list}) AS v(
           entity_type, entity_id, metric_definition_id, initial_observation_date,
           old_current_observation_date, new_current_value, new_current_observation_date

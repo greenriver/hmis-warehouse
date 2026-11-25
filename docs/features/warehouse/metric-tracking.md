@@ -229,6 +229,8 @@ Only calculate metrics for entities with recent activity:
 
 Collection runs once per day; `config/schedule.rb` is the authority on when: it schedules the `grda_warehouse:collect_client_metrics` rake task (`lib/tasks/grda_warehouse.rake`), which runs `CollectClientMetricsJob` inline.
 
+Every run, full or scoped to specific entities, skips each entity that already has a snapshot for the metric observed on or after the calculation date, so a CronJob catch-up, a manual run, or a past-date run after later dates were collected leaves those snapshots alone. Other entities are still collected, so a scoped run before a full run doesn't block the full run, and a re-run after a partially failed batch collects the entities that failed. Retries for unstable metrics still collect, because those metrics have no snapshot for the calculation date. A re-run that finds every entity already collected leaves a completed calculation run record as is; an unfinished one is completed.
+
 The collector calls `MetricDefinition.maintain!` at the start of every run, which seeds a definition per calculator (under an advisory lock, so admin-edited thresholds survive) plus one `csv_row_count_*` definition per allowed HMIS CSV file. Definitions are not seeded through `TaskQueue`.
 
 If a calculator's data is not yet stable (`data_stable?` is false), it is skipped and the job re-enqueues itself for the skipped metrics every five minutes until 10 AM (`RETRY_DEADLINE_HOUR`), then gives up for the day.
@@ -376,6 +378,10 @@ Total                              ~24s
 ### Alert System Integration
 
 Metrics can drive alerts through change detection.  Alerts for system-level thresholds can be enabled on the user edit screen.  Alerts for project or organization level thresholds can be applied on the contact pages for projects and organizations.  At this time there are no project or organization level thresholds.
+
+A new snapshot whose value equals the previous snapshot's is not reported as a crossing, including for metrics with a change threshold of 0. CSV import metrics are the exception: their addition/removal thresholds can fire on an unchanged row count.
+
+The admin metric chart, its tooltip, the drill-down list and the alert email total all count crossings with the same rule, per `initial_observation_date` (`MetricDefinition#threshold_crossing_data` and `#threshold_crossings_for_date` share one query). The previous snapshot is the entity's latest snapshot with an earlier or equal `initial_observation_date` and a lower id.
 
 ## Extensibility
 
