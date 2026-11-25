@@ -9,6 +9,7 @@ sources:
   - drivers/hmis/app/models/hmis/ce/match/expression/psde_value_resolver.rb
   - drivers/hmis/app/models/hmis/ce/match/expression/psde_field_registry.rb
   - drivers/hmis/app/models/hmis/ce/match/expression/enrollment_eligibility_scope.rb
+  - drivers/hmis/app/models/hmis/ce/match/expression/disabling_condition_inference.rb
 ---
 
 # Coordinated Entry (CE) Match Engine
@@ -65,26 +66,18 @@ The classes within this module are organized into several subdirectories to grou
 
 ## PSDE Fields (`psde.*`)
 
-PSDE fields read HUD data elements from the enrollments selected by `EnrollmentEligibilityScope`: the global eligibility lookback window and project group, with WIP enrollments included. Field definitions live in `PsdeFieldRegistry`; values are resolved in batch by `PsdeValueResolver` and evaluated in Ruby only (no SQL prefilter).
+PSDE fields read HUD data elements from the enrollments selected by `EnrollmentEligibilityScope` (the global eligibility lookback window and project group, with WIP enrollments included) and are evaluated in Ruby only (no SQL prefilter).
 
 ### `psde.disabling_condition` and `psde.any_reported_disability`
 
-Two fields describe a client's disability status:
+| Field | A disability row counts when |
+|---|---|
+| `psde.disabling_condition` | The response is Yes (1/2/3) **and** the type is Developmental or HIV/AIDS, or `IndefiniteAndImpairs` is Yes. This is the HUD Reporting Glossary definition. |
+| `psde.any_reported_disability` | The response is Yes (1/2/3), whether or not it is long-term or impairing. This is the value the default CAS calculator sends to CAS as "disabling condition" (`GrdaWarehouse::Hud::Client.disabled_client_scope`). |
 
-| Field | Label | A disability row counts when |
-|---|---|---|
-| `psde.disabling_condition` | HUD Disabling Condition | The response is Yes (1/2/3) **and** the type is Developmental or HIV/AIDS, or `IndefiniteAndImpairs` is Yes. This mirrors `GrdaWarehouse::Hud::Disability#indefinite_and_impairs?` and the HUD Reporting Glossary definition. |
-| `psde.any_reported_disability` | Any Reported Disability | The response is Yes (1/2/3), whether or not it is long-term or impairing. This is the value the default CAS calculator sends to CAS as "disabling condition" (`GrdaWarehouse::Hud::Client.disabled_client_scope`). |
+Accepted differences from the CAS value (`disabled_client_scope`):
 
-The Boston calculator also counts `GrdaWarehouse::Hud::Client.chronically_disabled` clients (`GrdaWarehouse::CasProjectClientCalculator::Boston#disabling_condition?`); neither CE field does.
-
-Both fields port the CAS inference (`GrdaWarehouse::Hud::Client.disabled_client_scope`) rather than calling the warehouse scopes, because those can't apply the lookback window or project group, and the enrollment-flag rule depends on service history, which lags new HMIS enrollments.
-
-`psde_disabling_condition_parity_spec.rb` checks that `any_reported_disability` agrees with the CAS value when every enrollment is in scope.
-
-Accepted differences from the warehouse:
-
-| Difference | CE | Warehouse |
+| Difference | CE | CAS value |
 |---|---|---|
 | Scope | Eligibility scope only, so an out-of-scope later No does not override an in-scope Yes | All of the client's data |
 | No answer collected | `nil` | `false` |

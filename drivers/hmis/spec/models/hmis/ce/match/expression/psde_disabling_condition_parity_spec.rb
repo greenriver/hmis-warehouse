@@ -9,7 +9,7 @@ require 'rails_helper'
 #
 # psde.disabling_condition (HUD definition) shares this algorithm but has no warehouse counterpart with the same
 # "latest answer" semantics, so its row test is checked against GrdaWarehouse::Hud::Disability#indefinite_and_impairs?
-# in psde_value_resolver_spec.rb instead.
+# in disabling_condition_inference_spec.rb instead.
 RSpec.describe Hmis::Ce::Match::Expression::PsdeValueResolver, type: :model do
   let!(:destination_data_source) { create(:destination_data_source) }
   let!(:hmis_data_source) { create(:hmis_data_source) }
