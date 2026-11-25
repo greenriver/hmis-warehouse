@@ -10,6 +10,11 @@ sources:
   - app/controllers/application_controller.rb
   - app/models/grda_warehouse/remote_credential.rb
   - app/models/grda_warehouse/recurring_hmis_export.rb
+  - app/controllers/user_training_controller.rb
+  - app/models/talentlms/config.rb
+  - app/models/talentlms/course.rb
+  - drivers/eccovia_data/app/models/eccovia_data/fetch.rb
+  - drivers/hmis_supplemental/app/models/hmis_supplemental/data_set.rb
 ---
 
 # Sandbox Mode
