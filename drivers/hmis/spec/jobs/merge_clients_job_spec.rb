@@ -235,6 +235,18 @@ RSpec.describe Hmis::MergeClientsJob, type: :model do
             expect(Hmis::Hud::Exit.only_deleted.find(deleted_exit.id).EnrollmentID).to eq(rekeyed.EnrollmentID)
           end
 
+          context 'when the moving enrollment has children' do
+            let!(:active_exit) { create(:hmis_hud_exit, enrollment: active_enrollment, client: client2, data_source: data_source) }
+
+            it 'keeps the original EnrollmentID on the moving enrollment children' do
+              original_enrollment_id = active_enrollment.EnrollmentID
+              Hmis::MergeClientsJob.perform_now(client_ids: client_ids, actor_id: actor.id)
+
+              expect(active_exit.reload).to have_attributes(EnrollmentID: original_enrollment_id, PersonalID: client1.PersonalID)
+              expect(active_enrollment.reload.exit).to eq(active_exit)
+            end
+          end
+
           it 'records the original EnrollmentID in the merge audit' do
             original_enrollment_id = active_enrollment.EnrollmentID
             Hmis::MergeClientsJob.perform_now(client_ids: client_ids, actor_id: actor.id)

@@ -98,6 +98,7 @@ module Hmis
     # record ids to the values of the foreign key field that they pointed to before the merge.
     # {
     #   enrollments: {}, # [id => { 'PersonalID' => value }]
+    #   rekeyed_deleted_enrollments: {}, # [id => { 'EnrollmentID' => value }]
     #   names: {}, # [id => { 'PersonalID' => value }]
     #   addresses: {}, # [id => { 'PersonalID' => value }]
     #   contact_points: {}, # [id => { 'PersonalID' => value }]
