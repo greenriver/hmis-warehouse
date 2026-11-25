@@ -132,7 +132,7 @@ module HmisExternalApis
             # Pipe-delimited CHOICE codes (pick_list_options)
             'pick_list_options' => row['pick_list_options'].to_s,
             # Optional sort position within the form; nil when blank or invalid
-            'question_order' => parse_question_order(row['question_order'], identifier: identifier, link_id: link_id),
+            'question_order' => parse_question_order(row['question_order'], identifier: identifier, link_id: link_id, label: row['label'].to_s),
             # Position within the form's CSV rows, the tie-breaker for sorting
             'csv_index' => (csv_indexes[identifier] += 1) - 1,
           }
@@ -140,7 +140,7 @@ module HmisExternalApis
         grouped
       end
 
-      def parse_question_order(raw, identifier:, link_id:)
+      def parse_question_order(raw, identifier:, link_id:, label:)
         value = raw.to_s.strip
         return if value.empty?
         return Float(value) if value.match?(QUESTION_ORDER_FORMAT)
@@ -150,7 +150,7 @@ module HmisExternalApis
           identifier: identifier,
           title: @form_titles[identifier],
           link_id: link_id,
-          label: link_id,
+          label: label,
           detail: "question_order #{raw.inspect} is not a number; treated as blank",
         )
         nil
@@ -167,6 +167,7 @@ module HmisExternalApis
         used_link_ids = Set.new(rows.map { |r| r['link_id'] })
         question_ordered = rows.any? { |row| row['question_order'] }
         follow_up_parents = question_ordered ? follow_up_parent_kinds(rows) : {}
+        emitted_link_ids = Set.new
         runs = group_runs(sort_by_question_order(rows), title, form_overlay, identifier: identifier, question_ordered: question_ordered)
         form_generated = {
           'invented_group_names' => {},
@@ -199,7 +200,15 @@ module HmisExternalApis
           end
 
           ordered = order_rows(run[:rows], group_name: run[:text], form_overlay: form_overlay, auto_order: !question_ordered)
-          items = build_items(identifier, ordered, form_overlay, form_generated, question_ordered: question_ordered, follow_up_parents: follow_up_parents)
+          items = build_items(
+            identifier,
+            ordered,
+            form_overlay,
+            form_generated,
+            question_ordered: question_ordered,
+            follow_up_parents: follow_up_parents,
+            emitted_link_ids: emitted_link_ids,
+          )
           {
             'type' => 'GROUP',
             'link_id' => unique_link_id(slug(run[:text]), used_link_ids),
@@ -376,13 +385,24 @@ module HmisExternalApis
         [match[1].to_i, match[2].to_s.downcase]
       end
 
-      def build_items(identifier, rows, form_overlay, form_generated, question_ordered: false, follow_up_parents: {})
+      def build_items(identifier, rows, form_overlay, form_generated, question_ordered: false, follow_up_parents: {}, emitted_link_ids: Set.new)
         built = []
         rows.each do |row|
           item = question_item(identifier, row)
           apply_hidden!(item, row, form_overlay)
-          apply_enable_when!(identifier, item, row, built, form_overlay, form_generated, question_ordered: question_ordered, follow_up_parents: follow_up_parents)
+          apply_enable_when!(
+            identifier,
+            item,
+            row,
+            built,
+            form_overlay,
+            form_generated,
+            question_ordered: question_ordered,
+            follow_up_parents: follow_up_parents,
+            emitted_link_ids: emitted_link_ids,
+          )
           built << item
+          emitted_link_ids << item['link_id']
         end
         built
       end
@@ -495,12 +515,13 @@ module HmisExternalApis
         item['hidden'] = true
       end
 
-      def apply_enable_when!(identifier, item, row, prior_items, form_overlay, form_generated, question_ordered: false, follow_up_parents: {})
+      def apply_enable_when!(identifier, item, row, prior_items, form_overlay, form_generated, question_ordered: false, follow_up_parents: {}, emitted_link_ids: Set.new)
         overlay_value = overlay_enable_when(form_overlay, row['link_id'])
         if overlay_value
           form_generated['enable_when'][row['link_id']] = overlay_value
           assign_enable_when(item, overlay_value)
           record_enable_when_summary(identifier, row, overlay_value, prior_items)
+          warn_overlay_parent_later(identifier, row, overlay_value, emitted_link_ids) if question_ordered
           return
         end
 
@@ -548,6 +569,23 @@ module HmisExternalApis
           label: row['label'],
           detail: 'looks like a follow-up question, but no single earlier choice question in its group matches; no enable_when inferred',
         )
+      end
+
+      # The overlay keeps conditions inferred on earlier runs, so a new question_order
+      # can leave one pointing at a question that now comes after the follow-up.
+      def warn_overlay_parent_later(identifier, row, overlay_value, emitted_link_ids)
+        conditions = overlay_value.is_a?(Hash) ? Array(overlay_value['enable_when']) : []
+        referenced = conditions.flat_map { |condition| condition.is_a?(Hash) ? condition.values_at('question', 'compare_question') : [] }.compact
+        referenced.reject { |link_id| emitted_link_ids.include?(link_id) }.uniq.each do |link_id|
+          @warnings << Warning.new(
+            kind: :enable_when_parent_missing,
+            identifier: identifier,
+            title: @form_titles[identifier],
+            link_id: row['link_id'],
+            label: row['label'],
+            detail: "overlay enable_when refers to #{link_id}, which is not an earlier question",
+          )
+        end
       end
 
       def record_enable_when_summary(identifier, row, value, prior_items)

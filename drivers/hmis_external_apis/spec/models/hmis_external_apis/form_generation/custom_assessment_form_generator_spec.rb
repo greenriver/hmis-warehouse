@@ -201,7 +201,7 @@ RSpec.describe HmisExternalApis::FormGeneration::CustomAssessmentFormGenerator, 
         expect(question_link_ids(document)).to eq(['q5', 'q1', 'q2', 'q3', 'q4'])
         invalid = result[:warnings].select { |warning| warning.kind == :invalid_question_order }
         expect(invalid.map(&:link_id)).to eq(['q1', 'q2', 'q3', 'q4'])
-        expect(invalid.map(&:label)).to eq(['q1', 'q2', 'q3', 'q4'])
+        expect(invalid.map(&:label)).to eq(['Question q1', 'Question q2', 'Question q3', 'Question q4'])
       end
 
       it 'falls back to label-number ordering when every question_order is blank' do
@@ -239,6 +239,38 @@ RSpec.describe HmisExternalApis::FormGeneration::CustomAssessmentFormGenerator, 
         expect(follow_up).not_to have_key('enable_when')
         missing = result[:warnings].select { |warning| warning.kind == :enable_when_parent_missing }
         expect(missing.map(&:link_id)).to eq(['q2'])
+      end
+
+      context 'with an overlay enable_when from an earlier run' do
+        let(:condition) { [{ 'question' => 'q1', 'operator' => 'EQUAL', 'answer_code' => 'Yes' }] }
+        let(:overlay) do
+          { 'forms' => { 'test_form' => { 'enable_when' => { 'q2' => { 'enable_behavior' => 'ALL', 'enable_when' => condition } } } } }.to_yaml
+        end
+
+        it 'keeps the overlay condition and warns when question_order puts its question later' do
+          result, document = generate(
+            [['q1', '2', 'Any income?', nil, 'CHOICE', 'Yes|No'], ['q2', '1', 'If yes, source']],
+            overlay_yaml: overlay,
+          )
+
+          expect(question_link_ids(document)).to eq(['q2', 'q1'])
+          follow_up = question_items(document).find { |item| item['link_id'] == 'q2' }
+          expect(follow_up['enable_when']).to eq(condition)
+          missing = result[:warnings].select { |warning| warning.kind == :enable_when_parent_missing }
+          expect(missing.map(&:link_id)).to eq(['q2'])
+          expect(missing.map(&:detail)).to eq(['overlay enable_when refers to q1, which is not an earlier question'])
+        end
+
+        it 'does not warn when the overlay condition refers to a question in an earlier group' do
+          result, document = generate(
+            [['q1', '1', 'Any income?', 'Section A', 'CHOICE', 'Yes|No'], ['q2', '2', 'If yes, source', 'Section B']],
+            overlay_yaml: overlay,
+          )
+
+          follow_up = question_items(document).find { |item| item['link_id'] == 'q2' }
+          expect(follow_up['enable_when']).to eq(condition)
+          expect(result[:warnings].map(&:kind)).not_to include(:enable_when_parent_missing)
+        end
       end
 
       it 'infers enable_when for a follow-up ordered after its parent' do

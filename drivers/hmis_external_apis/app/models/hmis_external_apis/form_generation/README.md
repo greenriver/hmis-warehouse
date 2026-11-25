@@ -112,11 +112,12 @@ Optional: `question_order`.
 - Overlay `item_order` moves still apply after `question_order` and win over it.
 - If sorting makes a group's rows non-contiguous, the generator emits more than one group with that title and lists it under "Groups split by question_order" in the summary.
 - If an "If Other" or "If yes" follow-up has no single earlier choice question (none, or more than one) in its group to attach to, no `enable_when` is inferred and it is listed under "Follow-up questions with no earlier parent (question_order)". A row is listed only when the form has a matching Other or Yes choice question that it could not attach to.
+- An overlay `enable_when` still applies when the question it refers to is not earlier in the form, and the follow-up is listed in that same summary section. This catches conditions inferred on an earlier run and written back to the overlay.
 
 Things to check when a form gains `question_order`:
 
 - Recheck the overlay's `invented_group_names`. `section_N` is the position of an ungrouped run, and that position can shift when the order changes.
-- The source data should put "If Other" and "If yes" follow-ups after their parent question in the same group, or the follow-up warning fires and no condition is inferred.
+- The source data should put "If Other" and "If yes" follow-ups after their parent question in the same group, or the follow-up warning fires and no condition is inferred. If the overlay already holds a condition for that follow-up, the condition is kept and the warning still fires; fix the order or edit the overlay entry.
 - A group split in two shares one `item_order` key, so a move aimed at one half logs an `item_order` miss for the other half.
 
 ## Overlay
