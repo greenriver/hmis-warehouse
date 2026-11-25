@@ -178,6 +178,7 @@ RSpec.describe HmisSupplemental::ImportJob, type: :model do
         end
       end
     end
+  end
 
   describe 'credential gate' do
     let(:client) { create(:hud_client, data_source: data_source) }
@@ -222,6 +223,5 @@ RSpec.describe HmisSupplemental::ImportJob, type: :model do
         end
       end
     end
-  end
   end
 end
