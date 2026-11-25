@@ -950,6 +950,15 @@ RSpec.describe GrdaWarehouse::Monitoring::Tasks::MetricSnapshotCollector, type: 
         expect { collect }.not_to(change { run.reload.attributes.slice('completed_at', 'snapshots_created_count', 'snapshots_updated_count') })
       end
 
+      it 'completes a run record the first run left unfinished' do
+        run = GrdaWarehouse::Monitoring::MetricCalculationRun.find_by!(entity_type: entity_type, calculation_date: calculation_date)
+        run.update!(status: 'running', completed_at: nil)
+
+        collect
+
+        expect(run.reload).to have_attributes(status: 'completed', completed_at: be_within(1.minute).of(Time.current))
+      end
+
       it 'reports no metrics for retry' do
         expect(collect).to eq([])
       end
@@ -1021,7 +1030,7 @@ RSpec.describe GrdaWarehouse::Monitoring::Tasks::MetricSnapshotCollector, type: 
           to receive(:calculate_batch).and_return({ client1.id => 2 })
         allow(GrdaWarehouse::Monitoring::MetricCalculators::HomelessDaysLastThreeYearsCalculator).
           to receive(:data_stable?).and_return(false)
-        collect(metric_names: both_metrics)
+        collect(metric_names: both_metrics, entity_ids: [client1.id])
         allow(GrdaWarehouse::Monitoring::MetricCalculators::HomelessDaysLastThreeYearsCalculator).
           to receive(:data_stable?).and_return(true)
         allow(GrdaWarehouse::Monitoring::MetricCalculators::MinHouseholdSizeCalculator).
@@ -1033,6 +1042,25 @@ RSpec.describe GrdaWarehouse::Monitoring::Tasks::MetricSnapshotCollector, type: 
 
         expect(GrdaWarehouse::Monitoring::MetricSnapshot.where(metric_definition: metric_definition).pluck(:current_value)).to contain_exactly(100, 50)
         expect(snapshots_for(client1, second_metric_definition).pluck(:initial_value, :current_value)).to eq([[2, 2]])
+      end
+
+      context 'when the skipped metric is still unstable on the retry' do
+        before do
+          allow(GrdaWarehouse::Monitoring::MetricCalculators::HomelessDaysLastThreeYearsCalculator).
+            to receive(:data_stable?).and_return(false)
+        end
+
+        it 'reports the unstable metric for retry' do
+          expect(collect(metric_names: both_metrics, entity_ids: [client1.id])).to eq(['test_metric'])
+        end
+
+        it 'leaves the run record from the first run unchanged' do
+          run = GrdaWarehouse::Monitoring::MetricCalculationRun.find_by!(entity_type: entity_type, calculation_date: calculation_date)
+
+          expect { collect(metric_names: both_metrics, entity_ids: [client1.id]) }.not_to(
+            change { run.reload.attributes.slice('completed_at', 'snapshots_created_count', 'snapshots_updated_count', 'metrics_calculated_count') },
+          )
+        end
       end
     end
 

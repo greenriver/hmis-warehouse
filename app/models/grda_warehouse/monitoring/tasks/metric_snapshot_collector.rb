@@ -84,9 +84,10 @@ module GrdaWarehouse::Monitoring::Tasks
 
       log_skipped_entities
 
-      # A re-run that found everything already collected leaves the existing run record as is.
+      # A re-run that found everything already collected leaves a completed run record as is;
+      # an unfinished one is completed.
       nothing_to_collect = stable_metrics.any? && @run_stats[:metrics_calculated].zero? && @skipped_counts.any?
-      return skipped_metric_names if nothing_to_collect && !run_record.previously_new_record?
+      return skipped_metric_names if nothing_to_collect && run_record.status == 'completed'
 
       cleanup_old_snapshots
       complete_run_record(run_record, 'completed')
@@ -116,7 +117,8 @@ module GrdaWarehouse::Monitoring::Tasks
         where(entity_type: @entity_type, entity_id: entities.map(&:id), metric_definition_id: metric.id).
         where(current_observation_date: @calculation_date..).
         distinct.
-        pluck(:entity_id)
+        pluck(:entity_id).
+        to_set
       return entities if collected_ids.empty?
 
       @skipped_counts[metric.name] += collected_ids.size

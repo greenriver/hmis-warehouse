@@ -114,9 +114,9 @@ module GrdaWarehouse::Monitoring
         'current_snapshots.initial_observation_date AS observed_on, COUNT(*) AS crossing_count',
         where_sql,
         binds,
-        'GROUP BY current_snapshots.initial_observation_date',
+        'GROUP BY current_snapshots.initial_observation_date ORDER BY current_snapshots.initial_observation_date',
       )
-      rows.map { |row| [row['observed_on'], row['crossing_count']] }.sort_by(&:first).map { |date, count| [date.to_date.to_s, count] }
+      rows.map { |row| [row['observed_on'].to_date.to_s, row['crossing_count']] }
     end
 
     # Get human-readable entity label for chart axis
