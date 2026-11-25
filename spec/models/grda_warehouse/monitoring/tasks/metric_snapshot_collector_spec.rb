@@ -1035,6 +1035,66 @@ RSpec.describe GrdaWarehouse::Monitoring::Tasks::MetricSnapshotCollector, type: 
 
         expect(snapshots_for(client1).pluck(:current_value)).to eq([200])
       end
+
+      it 'leaves other entities uncollected when a full run for the same date follows' do
+        collect(entity_ids: [client1.id])
+        collect
+
+        expect(snapshots_for(client1).count).to eq(1)
+        expect(snapshots_for(client2).count).to eq(0)
+      end
+    end
+
+    context 'when every client already has a snapshot to extend' do
+      before do
+        [[client1, 100], [client2, 50]].each do |client, value|
+          create(
+            :grda_warehouse_monitoring_metric_snapshot,
+            entity: client,
+            metric_definition: metric_definition,
+            initial_observation_date: calculation_date - 10.days,
+            current_observation_date: calculation_date - 1.day,
+            initial_value: value,
+            current_value: value,
+          )
+        end
+        collect
+      end
+
+      it 'skips the repeat full run even though no snapshot was created' do
+        processed1.update!(days_homeless_last_three_years: 200)
+
+        expect { collect }.not_to change(GrdaWarehouse::Monitoring::MetricSnapshot, :count)
+        expect(snapshots_for(client1).pluck(:current_value)).to eq([100])
+      end
+    end
+
+    context 'when a full run is for a date before the latest collected date' do
+      let!(:snapshot) do
+        create(
+          :grda_warehouse_monitoring_metric_snapshot,
+          entity: client1,
+          metric_definition: metric_definition,
+          initial_observation_date: calculation_date - 10.days,
+          current_observation_date: calculation_date,
+          initial_value: 100,
+          current_value: 100,
+        )
+      end
+
+      it 'skips the metric and leaves the snapshot unchanged' do
+        processed1.update!(days_homeless_last_three_years: 200)
+
+        expect do
+          described_class.run_daily_collection(
+            entity_type: entity_type,
+            calculation_date: calculation_date - 1.day,
+            metric_names: ['test_metric'],
+          )
+        end.not_to change(GrdaWarehouse::Monitoring::MetricSnapshot, :count)
+
+        expect(snapshot.reload).to have_attributes(current_observation_date: calculation_date, current_value: 100)
+      end
     end
   end
 

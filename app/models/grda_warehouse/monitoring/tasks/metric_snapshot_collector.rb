@@ -53,10 +53,11 @@ module GrdaWarehouse::Monitoring::Tasks
 
       # The snapshot lookup can't see snapshots written today, so collecting a metric a second
       # time for the same date would treat clients as new or reopen superseded snapshots. A full
-      # run therefore skips metrics that already have a snapshot observed on the calculation
-      # date. Retries for unstable metrics still collect, since those have none. Runs scoped
-      # with entity_ids never skip, but the snapshots they write make a later full run for the
-      # same date skip the metric for every entity.
+      # run therefore skips metrics that already have a snapshot observed on or after the
+      # calculation date, so a past-date run after later dates were collected is also skipped.
+      # Retries for unstable metrics still collect, since those have none. Runs scoped with
+      # entity_ids never skip, but the snapshots they write make a later full run for the same
+      # date skip the metric for every entity.
       if @entity_ids.nil?
         collected_metrics, all_metrics = all_metrics.partition { |metric| collected_on_calculation_date?(metric) }
         if collected_metrics.any?
@@ -109,7 +110,7 @@ module GrdaWarehouse::Monitoring::Tasks
 
     def collected_on_calculation_date?(metric)
       GrdaWarehouse::Monitoring::MetricSnapshot.
-        where(metric_definition_id: metric.id, entity_type: @entity_type, current_observation_date: @calculation_date).
+        where(metric_definition_id: metric.id, entity_type: @entity_type, current_observation_date: @calculation_date..).
         exists?
     end
 
@@ -207,7 +208,7 @@ module GrdaWarehouse::Monitoring::Tasks
       # Takes the most recent snapshot observed before the calculation date, however old, so a
       # client missed for weeks is compared against its old baseline rather than treated as new
       # (which would create a spurious crossing). Relies on #run skipping metrics already
-      # collected for the calculation date.
+      # collected on or after the calculation date.
       GrdaWarehouse::Monitoring::MetricSnapshot.
         where(entity_type: @entity_type, entity_id: entity_ids).
         where(metric_definition_id: metric_ids).

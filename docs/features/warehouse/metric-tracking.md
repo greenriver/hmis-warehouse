@@ -229,7 +229,7 @@ Only calculate metrics for entities with recent activity:
 
 Collection runs once per day; `config/schedule.rb` is the authority on when: it schedules the `grda_warehouse:collect_client_metrics` rake task (`lib/tasks/grda_warehouse.rake`), which runs `CollectClientMetricsJob` inline.
 
-A full run for a calculation date that has already been collected, such as a CronJob catch-up or a manual run, skips every metric that already has a snapshot observed on that date. Retries for unstable metrics still collect, because those metrics have none. Runs scoped to specific entities never skip, but they count as collected: a full run for the same date afterwards skips that metric for every entity.
+A full run for a calculation date that has already been collected, such as a CronJob catch-up or a manual run, skips every metric that already has a snapshot observed on or after that date. Retries for unstable metrics still collect, because those metrics have none. Runs scoped to specific entities never skip, but they count as collected: a full run for the same date afterwards skips that metric for every entity.
 
 The collector calls `MetricDefinition.maintain!` at the start of every run, which seeds a definition per calculator (under an advisory lock, so admin-edited thresholds survive) plus one `csv_row_count_*` definition per allowed HMIS CSV file. Definitions are not seeded through `TaskQueue`.
 
