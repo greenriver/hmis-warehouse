@@ -54,6 +54,15 @@ RSpec.describe HmisCsvImporter::Importer::Importer, type: :model do
     before(:all) do
       HmisCsvImporter::Utility.clear!
       GrdaWarehouse::Utility.clear!
+      fixture = 'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/client_processing'
+      import_hmis_csv_fixture(fixture, version: 'AutoMigrate', run_jobs: false, stop_version: '2026')
+
+      # Statements only run when rows are left pending, so add a client and an enrollment the
+      # re-import does not mention, in a project that Project.csv does contain.
+      data_source_id = GrdaWarehouse::Hud::Client.source.first.data_source_id
+      create(:grda_warehouse_hud_client, data_source_id: data_source_id, PersonalID: 'absent-client', source_hash: 'abc')
+      create(:hud_enrollment, data_source_id: data_source_id, PersonalID: 'absent-client', ProjectID: '1', EnrollmentID: 'absent-enrollment', EntryDate: '2020-01-01')
+
       @settings = {}
       probe = lambda do |event|
         conn = event.payload[:connection]
@@ -68,12 +77,7 @@ RSpec.describe HmisCsvImporter::Importer::Importer, type: :model do
       end
 
       ActiveSupport::Notifications.subscribed(probe, 'sql.active_record') do
-        import_hmis_csv_fixture(
-          'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_six/incoming_older_processing',
-          data_source: GrdaWarehouse::DataSource.create!(name: 'Green River', short_name: 'GR', source_type: :sftp),
-          version: 'AutoMigrate',
-          run_jobs: false,
-        )
+        import_hmis_csv_fixture(fixture, version: 'AutoMigrate', run_jobs: false, stop_version: '2026')
       end
     end
 
@@ -83,14 +87,17 @@ RSpec.describe HmisCsvImporter::Importer::Importer, type: :model do
     end
 
     it 'guards the PersonalID multi-join source_hash update' do
+      expect(@settings).to have_key(:client_source_hash_update)
       expect(@settings.fetch(:client_source_hash_update)).to eq('off')
     end
 
     it 'guards the pending-deletes temp table materialization' do
+      expect(@settings).to have_key(:pending_deletes_materialization)
       expect(@settings.fetch(:pending_deletes_materialization)).to eq('off')
     end
 
     it 'leaves the batched pending-deletes UPDATE unguarded' do
+      expect(@settings).to have_key(:pending_deletes_batch_update)
       expect(@settings.fetch(:pending_deletes_batch_update)).to eq('on')
     end
   end

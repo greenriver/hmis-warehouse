@@ -192,5 +192,11 @@ class TaskQueue < ApplicationRecord
     config.queued_tasks[:service_history_enrollment_household_index] = -> do
       GrdaWarehouse::Tasks::BuildFilesAndEnrollmentIndexes.run!
     end
+
+    # Drops the pending_date_deleted indexes the importer no longer reads, plus a duplicate
+    # Enrollment ExportID index. Remove with the class once rolled out.
+    config.queued_tasks[:drop_importer_pending_deletion_indexes] = -> do
+      GrdaWarehouse::Tasks::DropImporterPendingDeletionIndexes.run!
+    end
   end
 end

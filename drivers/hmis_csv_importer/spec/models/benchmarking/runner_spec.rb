@@ -30,11 +30,11 @@ RSpec.describe HmisCsvImporter::Benchmarking::Runner, type: :model do
           data_source_id: data_source.id,
           results_dir: results_dir,
         )
-        expect { runner.run! }.to raise_error(/production/)
+        expect { runner.run! }.to raise_error(/production/).
+          and(not_change { HmisCsvImporter::Loader::LoaderLog.count }).
+          and(not_change { HmisCsvImporter::Importer::ImporterLog.count })
         expect(Dir.children(results_dir)).to be_empty
       end
-      expect(HmisCsvImporter::Loader::LoaderLog.count).to eq(0)
-      expect(HmisCsvImporter::Importer::ImporterLog.count).to eq(0)
     end
   end
 
@@ -63,11 +63,11 @@ RSpec.describe HmisCsvImporter::Benchmarking::Runner, type: :model do
           data_source_id: data_source.id,
           results_dir: results_dir,
         )
-        expect { runner.run! }.to raise_error(/HMIS_BENCHMARK_GIT_SHA/)
+        expect { runner.run! }.to raise_error(/HMIS_BENCHMARK_GIT_SHA/).
+          and(not_change { HmisCsvImporter::Loader::LoaderLog.count }).
+          and(not_change { HmisCsvImporter::Importer::ImporterLog.count })
         expect(Dir.children(results_dir)).to be_empty
       end
-      expect(HmisCsvImporter::Loader::LoaderLog.count).to eq(0)
-      expect(HmisCsvImporter::Importer::ImporterLog.count).to eq(0)
     end
   end
 

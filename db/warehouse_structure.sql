@@ -197637,13 +197637,6 @@ CREATE INDEX "ClientUnencrypted_data_source_id_idx" ON public."ClientUnencrypted
 
 
 --
--- Name: ClientUnencrypted_pending_date_deleted_idx; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "ClientUnencrypted_pending_date_deleted_idx" ON public."ClientUnencrypted" USING btree (pending_date_deleted);
-
-
---
 -- Name: Disabilities_DateDeleted_data_source_id_idx; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -197718,13 +197711,6 @@ CREATE INDEX "Enrollment_5328" ON public."Enrollment" USING btree ("HouseholdID"
 --
 
 CREATE INDEX "Enrollment_603f" ON public."Enrollment" USING btree ("PersonalID");
-
-
---
--- Name: Enrollment_634d; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "Enrollment_634d" ON public."Enrollment" USING btree ("ExportID");
 
 
 --
@@ -214514,38 +214500,10 @@ CREATE INDEX "index_Affiliation_on_data_source_id" ON public."Affiliation" USING
 
 
 --
--- Name: index_Affiliation_on_pending_date_deleted; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "index_Affiliation_on_pending_date_deleted" ON public."Affiliation" USING btree (pending_date_deleted);
-
-
---
--- Name: index_AssessmentQuestions_on_pending_date_deleted; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "index_AssessmentQuestions_on_pending_date_deleted" ON public."AssessmentQuestions" USING btree (pending_date_deleted);
-
-
---
--- Name: index_AssessmentResults_on_pending_date_deleted; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "index_AssessmentResults_on_pending_date_deleted" ON public."AssessmentResults" USING btree (pending_date_deleted);
-
-
---
 -- Name: index_Assessment_on_AssessmentID_and_data_source_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE UNIQUE INDEX "index_Assessment_on_AssessmentID_and_data_source_id" ON public."Assessment" USING btree ("AssessmentID", data_source_id);
-
-
---
--- Name: index_Assessment_on_pending_date_deleted; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "index_Assessment_on_pending_date_deleted" ON public."Assessment" USING btree (pending_date_deleted);
 
 
 --
@@ -214679,20 +214637,6 @@ CREATE INDEX "index_Client_on_data_source_id" ON public."Client" USING btree (da
 --
 
 CREATE INDEX "index_Client_on_health_housing_navigator_id" ON public."Client" USING btree (health_housing_navigator_id);
-
-
---
--- Name: index_Client_on_pending_date_deleted; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "index_Client_on_pending_date_deleted" ON public."Client" USING btree (pending_date_deleted);
-
-
---
--- Name: index_CurrentLivingSituation_on_pending_date_deleted; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "index_CurrentLivingSituation_on_pending_date_deleted" ON public."CurrentLivingSituation" USING btree (pending_date_deleted);
 
 
 --
@@ -214871,13 +214815,6 @@ CREATE INDEX "index_Disabilities_on_data_source_id_and_PersonalID" ON public."Di
 
 
 --
--- Name: index_Disabilities_on_pending_date_deleted; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "index_Disabilities_on_pending_date_deleted" ON public."Disabilities" USING btree (pending_date_deleted);
-
-
---
 -- Name: index_EmploymentEducation_on_DateDeleted_and_data_source_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -214913,13 +214850,6 @@ CREATE INDEX "index_EmploymentEducation_on_data_source_id_and_PersonalID" ON pub
 
 
 --
--- Name: index_EmploymentEducation_on_pending_date_deleted; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "index_EmploymentEducation_on_pending_date_deleted" ON public."EmploymentEducation" USING btree (pending_date_deleted);
-
-
---
 -- Name: index_EnrollmentCoC_on_DateDeleted_and_data_source_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -214952,13 +214882,6 @@ CREATE INDEX "index_EnrollmentCoC_on_data_source_id" ON public."EnrollmentCoC" U
 --
 
 CREATE INDEX "index_EnrollmentCoC_on_data_source_id_and_PersonalID" ON public."EnrollmentCoC" USING btree (data_source_id, "PersonalID");
-
-
---
--- Name: index_EnrollmentCoC_on_pending_date_deleted; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "index_EnrollmentCoC_on_pending_date_deleted" ON public."EnrollmentCoC" USING btree (pending_date_deleted);
 
 
 --
@@ -215032,13 +214955,6 @@ CREATE INDEX "index_Enrollment_on_data_source_id_and_PersonalID" ON public."Enro
 
 
 --
--- Name: index_Enrollment_on_pending_date_deleted; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "index_Enrollment_on_pending_date_deleted" ON public."Enrollment" USING btree (pending_date_deleted);
-
-
---
 -- Name: index_Enrollment_on_project_pk; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -215057,13 +214973,6 @@ CREATE INDEX "index_Enrollment_on_service_history_processing_job_id" ON public."
 --
 
 CREATE INDEX "index_Event_on_ce_referral_id" ON public."Event" USING btree (ce_referral_id);
-
-
---
--- Name: index_Event_on_pending_date_deleted; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "index_Event_on_pending_date_deleted" ON public."Event" USING btree (pending_date_deleted);
 
 
 --
@@ -215092,13 +215001,6 @@ CREATE INDEX "index_Exit_on_ExitDate" ON public."Exit" USING btree ("ExitDate");
 --
 
 CREATE UNIQUE INDEX "index_Exit_on_ExitID_and_data_source_id" ON public."Exit" USING btree ("ExitID", data_source_id);
-
-
---
--- Name: index_Exit_on_pending_date_deleted; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "index_Exit_on_pending_date_deleted" ON public."Exit" USING btree (pending_date_deleted);
 
 
 --
@@ -215144,13 +215046,6 @@ CREATE INDEX "index_Funder_on_data_source_id" ON public."Funder" USING btree (da
 
 
 --
--- Name: index_Funder_on_pending_date_deleted; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "index_Funder_on_pending_date_deleted" ON public."Funder" USING btree (pending_date_deleted);
-
-
---
 -- Name: index_Geography_on_DateDeleted_and_data_source_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -215162,13 +215057,6 @@ CREATE INDEX "index_Geography_on_DateDeleted_and_data_source_id" ON public."Geog
 --
 
 CREATE INDEX "index_Geography_on_data_source_id" ON public."Geography" USING btree (data_source_id);
-
-
---
--- Name: index_Geography_on_pending_date_deleted; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "index_Geography_on_pending_date_deleted" ON public."Geography" USING btree (pending_date_deleted);
 
 
 --
@@ -215228,13 +215116,6 @@ CREATE INDEX "index_HealthAndDV_on_data_source_id_and_PersonalID" ON public."Hea
 
 
 --
--- Name: index_HealthAndDV_on_pending_date_deleted; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "index_HealthAndDV_on_pending_date_deleted" ON public."HealthAndDV" USING btree (pending_date_deleted);
-
-
---
 -- Name: index_IncomeBenefits_on_DateDeleted_and_data_source_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -215284,13 +215165,6 @@ CREATE INDEX "index_IncomeBenefits_on_data_source_id_and_PersonalID" ON public."
 
 
 --
--- Name: index_IncomeBenefits_on_pending_date_deleted; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "index_IncomeBenefits_on_pending_date_deleted" ON public."IncomeBenefits" USING btree (pending_date_deleted);
-
-
---
 -- Name: index_Inventory_on_DateDeleted_and_data_source_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -215319,13 +215193,6 @@ CREATE INDEX "index_Inventory_on_data_source_id" ON public."Inventory" USING btr
 
 
 --
--- Name: index_Inventory_on_pending_date_deleted; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "index_Inventory_on_pending_date_deleted" ON public."Inventory" USING btree (pending_date_deleted);
-
-
---
 -- Name: index_Organization_on_DateDeleted_and_data_source_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -215337,13 +215204,6 @@ CREATE INDEX "index_Organization_on_DateDeleted_and_data_source_id" ON public."O
 --
 
 CREATE INDEX "index_Organization_on_data_source_id" ON public."Organization" USING btree (data_source_id);
-
-
---
--- Name: index_Organization_on_pending_date_deleted; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "index_Organization_on_pending_date_deleted" ON public."Organization" USING btree (pending_date_deleted);
 
 
 --
@@ -215375,13 +215235,6 @@ CREATE INDEX "index_ProjectCoC_on_data_source_id_and_ProjectID_and_CoCCode" ON p
 
 
 --
--- Name: index_ProjectCoC_on_pending_date_deleted; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "index_ProjectCoC_on_pending_date_deleted" ON public."ProjectCoC" USING btree (pending_date_deleted);
-
-
---
 -- Name: index_Project_on_DateDeleted_and_data_source_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -215407,13 +215260,6 @@ CREATE INDEX "index_Project_on_computed_project_type" ON public."Project" USING 
 --
 
 CREATE INDEX "index_Project_on_data_source_id" ON public."Project" USING btree (data_source_id);
-
-
---
--- Name: index_Project_on_pending_date_deleted; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "index_Project_on_pending_date_deleted" ON public."Project" USING btree (pending_date_deleted);
 
 
 --
@@ -215459,24 +215305,10 @@ CREATE INDEX "index_Services_on_data_source_id" ON public."Services" USING btree
 
 
 --
--- Name: index_Services_on_pending_date_deleted; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "index_Services_on_pending_date_deleted" ON public."Services" USING btree (pending_date_deleted);
-
-
---
 -- Name: index_User_on_UserID_and_data_source_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE UNIQUE INDEX "index_User_on_UserID_and_data_source_id" ON public."User" USING btree ("UserID", data_source_id);
-
-
---
--- Name: index_User_on_pending_date_deleted; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "index_User_on_pending_date_deleted" ON public."User" USING btree (pending_date_deleted);
 
 
 --
@@ -360388,6 +360220,7 @@ ALTER TABLE ONLY public.continuum_semi_annual_performance_approvals
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261123120000'),
 ('20261117160000'),
 ('20261116150000'),
 ('20261104120200'),

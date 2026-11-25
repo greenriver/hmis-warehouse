@@ -2532,7 +2532,7 @@ module GrdaWarehouse::Hud
     def force_full_service_history_rebuild
       # If we're already forcing a rebuild, we don't need to clear things again
       self.class.with_advisory_lock([__method__, self.class.name, id].join('_'), timeout_seconds: 0) do
-        # source_enrollments spans data sources, so this can deadlock with an import's mark_tree_as_dead
+        # source_enrollments spans data sources, so this can deadlock with an import updating or soft-deleting Enrollment rows
         GrdaWarehouseBase.retry_on_deadlock("force_full_service_history_rebuild client #{id}") do
           service_history_enrollments.where(record_type: [:entry, :exit, :service, :extrapolated]).delete_all
           source_enrollments.update_all(processed_as: nil)

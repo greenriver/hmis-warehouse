@@ -91,8 +91,8 @@ RSpec.describe 'HMIS CSV import of exits outside the export range', type: :model
       expect(HmisCsvImporter::Importer::ImporterLog.last.summary['Exit.csv']['removed']).to eq(5)
     end
 
-    it 'leaves no exits pending deletion' do
-      expect(GrdaWarehouse::Hud::Exit.with_deleted.where.not(pending_date_deleted: nil).count).to eq(0)
+    it 'leaves no pending-set temp tables on the connection' do
+      expect(pending_temp_table_names).to eq([])
     end
   end
 

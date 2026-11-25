@@ -845,18 +845,23 @@ module GrdaWarehouse::Tasks::ServiceHistory
           (Date.current + 1.year).end_of_year,
         ].min
       else
-        # If the data source is from an HMIS, we want to ignore any old export dates
-        return Date.current if data_source.hmis?
-
-        # If there is no Export, the data is coming from the OP HMIS. Treat it as accurate up to the current date.
-        return Date.current unless export
-
-        [
-          export.effective_export_end_date,
-          export.ExportEndDate,
-          Date.current,
-        ].compact.min.to_date
+        open_enrollment_build_until
       end
+    end
+
+    private def open_enrollment_build_until
+      # If the data source is from an HMIS, we want to ignore any old export dates
+      return Date.current if data_source.hmis?
+
+      # An unchanged enrollment keeps the ExportID of the import that last wrote it, so prefer the
+      # coverage of the newest export whose import included it.
+      coverage_end = import_coverage_end_date if respond_to?(:import_coverage_end_date)
+      coverage_end ||= [export.effective_export_end_date, export.ExportEndDate].compact.min if export
+
+      # If there is no Export, the data is coming from the OP HMIS. Treat it as accurate up to the current date.
+      return Date.current unless coverage_end
+
+      [coverage_end, Date.current].min.to_date
     end
 
     # FIXME: We can't use this because out-of order exports only have access to part of their

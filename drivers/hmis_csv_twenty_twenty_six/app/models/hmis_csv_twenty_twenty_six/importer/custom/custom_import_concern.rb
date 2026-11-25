@@ -69,17 +69,6 @@ module HmisCsvTwentyTwentySix::Importer::Custom::CustomImportConcern
       where(importer_log_id: importer_log_id).should_import
     end
 
-    # Augmented data should never delete records since it should only update existing records
-    def pending_deletions(data_source_id:, project_ids:, date_range:)
-      return none if augments?
-
-      involved_warehouse_scope(
-        data_source_id: data_source_id,
-        project_ids: project_ids,
-        date_range: date_range,
-      ).delete_pending
-    end
-
     def custom_import_class
       warehouse_class
     end
@@ -127,17 +116,13 @@ module HmisCsvTwentyTwentySix::Importer::Custom::CustomImportConcern
       existing_scope
     end
 
-    # Delegate to the class we are augmenting
+    # Augmentation only: the rows of the class we are augmenting
     def existing_destination_data(data_source_id:, project_ids:, date_range:)
-      if augments?
-        import_klass.involved_warehouse_scope(
-          data_source_id: data_source_id,
-          project_ids: project_ids,
-          date_range: date_range,
-        ).with_deleted
-      else
-        super
-      end
+      import_klass.involved_warehouse_scope(
+        data_source_id: data_source_id,
+        project_ids: project_ids,
+        date_range: date_range,
+      ).with_deleted
     end
 
     def custom_file?
