@@ -207,8 +207,8 @@ module GrdaWarehouse::Monitoring::Tasks
 
       # Takes the most recent snapshot observed before the calculation date, however old, so a
       # client missed for weeks is compared against its old baseline rather than treated as new
-      # (which would create a spurious crossing). Relies on #run skipping metrics already
-      # collected on or after the calculation date.
+      # (which would create a spurious crossing). For full runs, relies on #run skipping metrics
+      # already collected on or after the calculation date. Scoped runs (entity_ids) don't skip.
       GrdaWarehouse::Monitoring::MetricSnapshot.
         where(entity_type: @entity_type, entity_id: entity_ids).
         where(metric_definition_id: metric_ids).
