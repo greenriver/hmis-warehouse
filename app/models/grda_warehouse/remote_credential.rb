@@ -13,7 +13,7 @@ module GrdaWarehouse
     attr_encrypted :password, key: ENV['ENCRYPTION_KEY'][0..31]
 
     scope :active, -> do
-      where(active: true)
+      SandboxMode.filter(where(active: true))
     end
 
     def self.for_active_slug(slug)

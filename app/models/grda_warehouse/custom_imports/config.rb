@@ -22,7 +22,7 @@ module GrdaWarehouse::CustomImports
     end
 
     scope :active, -> do
-      where(active: true)
+      SandboxMode.filter(where(active: true))
     end
 
     def self.available_import_types

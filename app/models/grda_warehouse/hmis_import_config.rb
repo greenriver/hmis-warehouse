@@ -26,7 +26,7 @@ class GrdaWarehouse::HmisImportConfig < GrdaWarehouseBase
   after_initialize :set_default_region, if: :new_record?
 
   scope :active, -> do
-    where(active: true)
+    SandboxMode.filter(where(active: true))
   end
 
   def s3

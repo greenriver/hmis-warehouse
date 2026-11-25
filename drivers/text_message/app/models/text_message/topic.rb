@@ -13,7 +13,7 @@ module TextMessage
     has_many :topic_subscribers
 
     scope :active, -> do
-      where(active_topic: true)
+      SandboxMode.filter(where(active_topic: true))
     end
 
     scope :send_during, ->(hour) do
