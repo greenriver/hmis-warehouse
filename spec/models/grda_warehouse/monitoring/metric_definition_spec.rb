@@ -512,5 +512,78 @@ RSpec.describe GrdaWarehouse::Monitoring::MetricDefinition, type: :model do
       expect(crossings.first[:current_value]).to eq(200)
       expect(crossings.first[:previous_value]).to eq(150)
     end
+
+    it 'excludes a snapshot whose value equals the previous snapshot value' do
+      [[client1, 100], [client2, 150]].each do |client, new_value|
+        create(
+          :grda_warehouse_monitoring_metric_snapshot,
+          metric_definition: metric_with_alert,
+          entity: client,
+          initial_observation_date: calculation_date - 5.days,
+          current_observation_date: calculation_date - 1.day,
+          initial_value: 90,
+          current_value: 100,
+        )
+        create(
+          :grda_warehouse_monitoring_metric_snapshot,
+          metric_definition: metric_with_alert,
+          entity: client,
+          initial_observation_date: calculation_date,
+          current_observation_date: calculation_date,
+          initial_value: new_value,
+          current_value: new_value,
+        )
+      end
+
+      result = described_class.threshold_crossings_for_alerts(calculation_date)
+      crossings = result['metric_days_homeless_threshold'][metric_with_alert.id][:data]
+
+      expect(crossings.map { |c| c[:entity_id] }).to contain_exactly(client2.id)
+    end
+
+    it 'includes a CSV import crossing whose row count is unchanged' do
+      described_class.maintain_csv_metrics!
+      csv_metric = described_class.find_by!(entity_type: 'GrdaWarehouse::DataSource', subtype: 'Client.csv')
+      data_source = create(:grda_warehouse_data_source)
+      create(
+        :grda_warehouse_monitoring_metric_snapshot,
+        metric_definition: csv_metric,
+        entity_type: 'GrdaWarehouse::DataSource',
+        entity_id: data_source.id,
+        initial_observation_date: calculation_date - 7.days,
+        current_observation_date: calculation_date - 1.day,
+        initial_value: 1000,
+        current_value: 1000,
+      )
+      create(
+        :grda_warehouse_monitoring_metric_snapshot,
+        metric_definition: csv_metric,
+        entity_type: 'GrdaWarehouse::DataSource',
+        entity_id: data_source.id,
+        initial_observation_date: calculation_date,
+        current_observation_date: calculation_date,
+        initial_value: 1000,
+        current_value: 1000,
+      )
+
+      crossings = csv_metric.threshold_crossings_for_date(calculation_date, entity_ids: [data_source.id])
+
+      expect(crossings).to contain_exactly({ entity_id: data_source.id, current_value: 1000, previous_value: 1000 })
+    end
+  end
+
+  describe 'calculator crossing semantics' do
+    it 'declares for every calculator whether a crossing requires a changed value' do
+      calculators = described_class.available_calculators + [GrdaWarehouse::Monitoring::MetricCalculators::CsvRowCountMetricCalculator]
+
+      expect(calculators.to_h { |calculator| [calculator.name.demodulize, calculator.crossing_requires_value_change?] }).to eq(
+        {
+          'HomelessDaysLastThreeYearsCalculator' => true,
+          'MinHouseholdSizeCalculator' => true,
+          'MaxHouseholdSizeCalculator' => true,
+          'CsvRowCountMetricCalculator' => false,
+        },
+      )
+    end
   end
 end

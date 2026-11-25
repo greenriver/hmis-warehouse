@@ -52,6 +52,13 @@ module GrdaWarehouse::Monitoring::MetricCalculators
       }
     end
 
+    # Whether a threshold crossing is only reported when its value differs from the previous
+    # snapshot's. Return false when a calculator can record a crossing whose value equals the
+    # previous value.
+    def self.crossing_requires_value_change?
+      true
+    end
+
     # Returns true if the calculator's data source is currently stable enough to snapshot.
     # Subclasses override this when their source table has a known concurrent writer.
     # Called by MetricSnapshotCollector before opening the REPEATABLE READ transaction.

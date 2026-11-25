@@ -11,6 +11,11 @@
 # @see docs/features/warehouse/import-csv-monitoring.md
 module GrdaWarehouse::Monitoring::MetricCalculators
   class CsvRowCountMetricCalculator < BaseCalculator
+    # Addition/removal thresholds can fire on an unchanged row count.
+    def self.crossing_requires_value_change?
+      false
+    end
+
     # Batch calculation for DataSource entities.
     # Requires metric with subtype (e.g., Client.csv). Pass via metric: for multi-metric class.
     # Returns hash of { data_source_id => pre_processed count }

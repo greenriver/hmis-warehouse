@@ -203,6 +203,11 @@ module GrdaWarehouse::Monitoring
       # Uses lateral join to efficiently find only the previous snapshot per entity
       # This ensures we only load 2 records per entity at most (current + previous)
       entity_ids_placeholder = entity_ids.map { '?' }.join(',')
+      value_change_condition = if calculator_class.constantize.crossing_requires_value_change?
+        'AND current_snapshots.initial_value IS DISTINCT FROM previous_snapshots.current_value'
+      else
+        ''
+      end
       sql = <<-SQL.squish
         SELECT
           current_snapshots.id,
@@ -223,6 +228,7 @@ module GrdaWarehouse::Monitoring
           AND current_snapshots.entity_id IN (#{entity_ids_placeholder})
           AND current_snapshots.initial_observation_date = ?
           AND previous_snapshots.current_value IS NOT NULL
+          #{value_change_condition}
       SQL
 
       results = self.class.connection.execute(
