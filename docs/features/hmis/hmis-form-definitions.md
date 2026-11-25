@@ -3,6 +3,7 @@ sources:
   - drivers/hmis/app/models/hmis/form/definition.rb
   - drivers/hmis/app/graphql/mutations/create_next_draft_form_definition.rb
   - drivers/hmis/app/graphql/mutations/publish_form_definition.rb
+  - drivers/hmis/app/models/hmis/auth_policies/form_definition_policy.rb
   - drivers/hmis/lib/hmis_util/json_forms.rb
 ---
 
@@ -58,6 +59,8 @@ The system record and data collection feature roles are "record forms," submitte
 
 Multiple published definitions can share a role. Which one applies to a given project is not determined by the role alone — see [Form resolution](hmis-form-resolution.md).
 
+Users with `can_manage_forms` can create, edit, duplicate, and publish forms only for the roles in `Hmis::Form::Definition::NON_ADMIN_FORM_ROLES`. Other roles need the super-admin permission `can_administrate_config`. `Hmis::AuthPolicies::FormDefinitionPolicy` enforces this.
+
 ## Lifecycle
 
 | Status | Offered for new data entry | Can submit | Can delete |
@@ -80,7 +83,7 @@ Definitions loaded from JSON (`managed_in_version_control: true`) do not partici
 
 Two things follow:
 
-- Local edits to a seeded form through the Form Builder are lost on the next deploy or `rails driver:hmis:seed_definitions`. The Form Builder shows an alert on these forms and offers "Duplicate" instead.
+- Seeded forms can't be edited in the Form Builder (`FormDefinitionPolicy#can_manage_form?` refuses them), so it shows an alert and offers "Duplicate" instead. Any other change to the row, such as a console edit, is lost on the next deploy or `rails driver:hmis:seed_definitions`.
 - Adding a JSON file for an identifier that is deliberately retired will publish it. Avoid version control for any form whose value depends on staying retired.
 
 ## Version control or Form Builder?

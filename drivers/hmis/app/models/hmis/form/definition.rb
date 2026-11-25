@@ -224,6 +224,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   NON_ADMIN_FORM_ROLES = [
     'SERVICE',
     'CUSTOM_ASSESSMENT',
+    'CASE_NOTE',
   ].freeze
 
   # Forms that are not currently managed by the Forms admin tool, so they should not be

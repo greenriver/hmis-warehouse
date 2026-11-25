@@ -68,6 +68,23 @@ RSpec.describe Hmis::AuthPolicies::FormDefinitionPolicy, type: :model do
           include_examples 'returns false'
         end
 
+        context 'when the form is a Case Note form' do
+          let(:form_definition) { create(:hmis_form_definition, role: 'CASE_NOTE', status: 'draft', data_source: data_source) }
+          include_examples 'returns true'
+
+          context 'when the form is managed in version control' do
+            let(:form_definition) { create(:hmis_form_definition, role: 'CASE_NOTE', status: 'draft', managed_in_version_control: true, data_source: data_source) }
+            include_examples 'returns false'
+          end
+        end
+
+        ['OCCURRENCE_POINT', 'CURRENT_LIVING_SITUATION'].each do |role|
+          context "when the form is the super-admin-only #{role} role" do
+            let(:form_definition) { create(:hmis_form_definition, role: role, status: 'draft', data_source: data_source) }
+            include_examples 'returns false'
+          end
+        end
+
         context 'when the form is a super-admin-only form role' do
           let(:form_definition) { create(:hmis_form_definition, role: 'INTAKE', status: 'draft', data_source: data_source) }
           include_examples 'returns false'
@@ -110,6 +127,20 @@ RSpec.describe Hmis::AuthPolicies::FormDefinitionPolicy, type: :model do
           let(:form_definition) { create(:hmis_form_definition, role: 'SERVICE', status: 'draft', admin_editable_only: true, data_source: data_source) }
           it 'returns true' do
             expect(policy.can_duplicate?).to be true
+          end
+        end
+
+        context 'when the form is a Case Note form' do
+          let(:form_definition) { create(:hmis_form_definition, role: 'CASE_NOTE', data_source: data_source) }
+          it 'returns true' do
+            expect(policy.can_duplicate?).to be true
+          end
+
+          context 'when the form is managed in version control' do
+            let(:form_definition) { create(:hmis_form_definition, role: 'CASE_NOTE', managed_in_version_control: true, data_source: data_source) }
+            it 'returns true' do
+              expect(policy.can_duplicate?).to be true
+            end
           end
         end
 
@@ -204,11 +235,15 @@ RSpec.describe Hmis::AuthPolicies::FormDefinitionPolicy, type: :model do
         it 'returns true for non-super-admin form roles' do
           expect(policy.can_create?(role: 'SERVICE')).to be true
           expect(policy.can_create?(role: 'CUSTOM_ASSESSMENT')).to be true
+          expect(policy.can_create?(role: 'CASE_NOTE')).to be true
+          expect(policy.can_create?(role: :CASE_NOTE)).to be true
         end
 
         it 'returns false for super-admin form roles' do
           expect(policy.can_create?(role: 'CE_REFERRAL_STEP')).to be false
           expect(policy.can_create?(role: 'CURRENT_LIVING_SITUATION')).to be false
+          expect(policy.can_create?(role: 'INTAKE')).to be false
+          expect(policy.can_create?(role: 'OCCURRENCE_POINT')).to be false
         end
 
         it 'returns false when role is nil' do
@@ -226,6 +261,7 @@ RSpec.describe Hmis::AuthPolicies::FormDefinitionPolicy, type: :model do
           expect(policy.can_create?(role: 'SERVICE')).to be true
           expect(policy.can_create?(role: 'CUSTOM_ASSESSMENT')).to be true
           expect(policy.can_create?(role: 'CURRENT_LIVING_SITUATION')).to be true
+          expect(policy.can_create?(role: 'CASE_NOTE')).to be true
         end
 
         it 'returns false for roles that cannot be listed or opened in Admin → Forms' do

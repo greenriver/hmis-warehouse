@@ -61,9 +61,20 @@ module Mutations
         [service_date_provided_item]
       when :CUSTOM_ASSESSMENT
         [section_group(items: [assessment_date_item], num: 1)]
+      when :CASE_NOTE
+        default_case_note_items
       else
         [{ link_id: 'name', type: 'STRING', text: 'Question Item' }]
       end
+    end
+
+    # Case Note forms start from the system default case note form, which includes the Information Date
+    # and Note Content items. Nothing on the server requires these items; the Form Builder's system-field
+    # lock is the only thing that stops non-super-admins from removing them.
+    def default_case_note_items
+      file_path = Rails.root.join(HmisUtil::JsonForms::DATA_DIR, 'default/records/case_note.json')
+      case_note_form = JSON.parse(File.read(file_path))
+      case_note_form.fetch('item')
     end
 
     def section_group(items: [], num: 1)

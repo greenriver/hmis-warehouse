@@ -99,6 +99,44 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     expect_access_denied post_graphql(id: fd1.id, input: input) { mutation }
   end
 
+  describe 'case note forms' do
+    let!(:case_note_form) { create :hmis_form_definition, role: :CASE_NOTE, status: Hmis::Form::Definition::DRAFT, data_source: ds1 }
+    let(:information_date_item) do
+      {
+        'type' => 'DATE',
+        'link_id' => 'information_date',
+        'text' => 'Information Date',
+        'mapping' => { 'field_name' => 'informationDate' },
+      }
+    end
+    let(:content_item) do
+      {
+        'type' => 'TEXT',
+        'link_id' => 'content',
+        'text' => 'Note',
+        'required' => true,
+        'mapping' => { 'field_name' => 'content' },
+      }
+    end
+
+    # Case Note forms are editable by community admins (without can_administrate_config)
+    before { remove_permissions(access_control, :can_administrate_config) }
+
+    def update_case_note_items(items)
+      input = { definition: { 'item' => items }.to_json }
+      post_graphql(id: case_note_form.id, input: input) { mutation }
+    end
+
+    it 'saves a draft' do
+      response, result = update_case_note_items([information_date_item, content_item])
+      expect(response.status).to eq(200), result.inspect
+      expect(result.dig('data', 'updateFormDefinition', 'errors')).to be_empty
+
+      saved_link_ids = case_note_form.reload.link_id_item_hash.keys
+      expect(saved_link_ids).to contain_exactly('information_date', 'content')
+    end
+  end
+
   describe 'external form object key' do
     let!(:external_form) { create :hmis_external_form_definition, status: Hmis::Form::Definition::DRAFT, external_form_object_key: nil, data_source: ds1 }
 
