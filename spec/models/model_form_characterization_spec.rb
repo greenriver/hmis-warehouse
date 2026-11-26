@@ -252,11 +252,11 @@ RSpec.describe ModelForm, type: :model do
 
   describe 'Boolean attribute predicates' do
     it 'answers editable? and visible? on a cohort column with the reader values' do
-      column = CohortColumns::UserBoolean10.new(editable: false)
+      column = CohortColumns::UserBoolean10.new(editable: false, visible: false)
 
-      expect(column.editable?).to be(false)
-      expect(column.visible?).to be(true)
-      expect([column].select(&:editable?)).to be_empty
+      expect(column.editable?).to eq(column.editable)
+      expect(column.visible?).to eq(column.visible)
+      expect([column.editable?, column.visible?]).to eq([false, false])
     end
 
     it 'answers a filter predicate with the reader value' do

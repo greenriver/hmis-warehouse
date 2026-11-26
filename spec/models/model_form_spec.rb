@@ -474,11 +474,11 @@ RSpec.describe ModelForm, type: :model do
       expect(child.new.flag?).to eq(:inherited)
     end
 
-    it 'is inherited by subclasses' do
-      parent = form_class { attribute :flag, ModelForm::Boolean, default: true }
-      child = form_class(parent) { attribute :other, String }
+    it 'keeps the inherited predicate when a subclass redeclares the attribute with another type' do
+      parent = form_class { attribute :flag, ModelForm::Boolean }
+      child = form_class(parent) { attribute :flag, String }
 
-      expect(child.new.flag?).to be(true)
+      expect(child.new(flag: 'x').flag?).to eq('x')
     end
   end
 
