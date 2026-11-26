@@ -7,6 +7,7 @@
 # frozen_string_literal: true
 
 require 'rails_helper'
+require_relative '../../../shared_contexts/hud_enrollment_builders'
 
 RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
   let(:user) { create :user }
@@ -441,6 +442,70 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
 
         expect(client.potential_matches[:by_name].to_a).to eq([open_destination])
       end
+    end
+  end
+
+  # 9014 item 6. A merge moves client B's source clients to client A. Client A's own enrollments
+  # keep the same destination client, so reports must keep seeing their service history while the
+  # rebuild that follows the merge is still pending.
+  #
+  # Transactional: the merge and the reads are sequential in one session.
+  describe 'when merging client B into client A (9014)' do
+    include_context 'HUD enrollment builders'
+    include ActiveJob::TestHelper
+
+    let(:es_entry_exit) { HudHelper.util.project_type_number_from_code(:es_entry_exit).first }
+    let!(:project) { create_project(project_type: es_entry_exit) }
+    let!(:source_a) { create_client_with_warehouse_link }
+    let!(:source_b) { create_client_with_warehouse_link }
+    let!(:enrollment_a) do
+      create_enrollment(client: source_a, project: project, entry_date: 60.days.ago.to_date, exit_date: 30.days.ago.to_date)
+    end
+    let!(:enrollment_b) do
+      create_enrollment(client: source_b, project: project, entry_date: 20.days.ago.to_date, exit_date: 10.days.ago.to_date)
+    end
+    let(:client_a) { source_a.destination_client }
+    let(:client_b) { source_b.destination_client }
+
+    before do
+      GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find_each(&:rebuild_service_history!)
+    end
+
+    def record_types_for(enrollment, client:)
+      GrdaWarehouse::ServiceHistoryEnrollment.
+        where(
+          client_id: client.id,
+          data_source_id: enrollment.data_source_id,
+          enrollment_group_id: enrollment.EnrollmentID,
+          project_id: enrollment.ProjectID,
+        ).
+        order(:record_type).
+        pluck(:record_type)
+    end
+
+    # merge_from queues ClientCleanupJob, which queues the rebuilds; neither runs here
+    def merge_b_into_a
+      client_a.merge_from(client_b, reviewed_by: user, reviewed_at: Time.current)
+    end
+
+    it "keeps client A's pre-merge entry and exit rows until the rebuild runs" do
+      pending("9014 item 6: merge_from deletes the surviving client's service history")
+      expect(record_types_for(enrollment_a, client: client_a)).to eq(['entry', 'exit'])
+
+      merge_b_into_a
+
+      expect(record_types_for(enrollment_a, client: client_a)).to eq(['entry', 'exit'])
+    end
+
+    it "files both clients' enrollments under client A once the post-merge cleanup and rebuild have run" do
+      client_b_id = client_b.id
+      merge_b_into_a
+      perform_enqueued_jobs(only: ClientCleanupJob)
+      work_off_all_ready_jobs
+
+      expect(record_types_for(enrollment_a, client: client_a)).to eq(['entry', 'exit'])
+      expect(record_types_for(enrollment_b, client: client_a)).to eq(['entry', 'exit'])
+      expect(GrdaWarehouse::ServiceHistoryEnrollment.where(client_id: client_b_id)).not_to exist
     end
   end
 end

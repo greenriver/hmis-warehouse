@@ -1490,4 +1490,105 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
       end
     end
   end
+
+  # 9014 item 3. The sanity check and the DOB/age fixes invalidate a client and run
+  # ServiceHistory::Add, which queues the client's rebuild. Until that rebuild runs, reports must
+  # still see the client's valid service history.
+  #
+  # Add is run as ClientCleanup runs it (no force_sequential_processing). The sanity check passes
+  # force_sequential_processing: true, but its wait doesn't wait in production (see 9014 issue.md,
+  # thread B); in test it works off jobs in-process, which would hide the gap this spec is about.
+  #
+  # Transactional: the writer and the reads are sequential in one session.
+  describe 'when a client is invalidated and its service history rebuild is queued (9014)' do
+    include_context 'HUD enrollment builders'
+
+    let(:es_entry_exit) { HudHelper.util.project_type_number_from_code(:es_entry_exit).first }
+    let!(:project) { create_project(project_type: es_entry_exit) }
+    let!(:client) { create_client_with_warehouse_link }
+    let!(:valid_enrollment) do
+      create_enrollment(
+        client: client,
+        project: project,
+        entry_date: 60.days.ago.to_date,
+        exit_date: 30.days.ago.to_date,
+      )
+    end
+    let(:destination_client) { client.destination_client }
+
+    before do
+      GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find_each(&:rebuild_service_history!)
+      # Leave every client looking processed, as nightly processing does, so Add only picks up the
+      # client the example invalidates
+      destination_ids = GrdaWarehouse::Hud::Client.destination.pluck(:id)
+      GrdaWarehouse::WarehouseClientsProcessed.update_cached_counts(client_ids: destination_ids)
+    end
+
+    def service_history_for(enrollment)
+      GrdaWarehouse::ServiceHistoryEnrollment.where(
+        client_id: destination_client.id,
+        data_source_id: enrollment.data_source_id,
+        enrollment_group_id: enrollment.EnrollmentID,
+        project_id: enrollment.ProjectID,
+      )
+    end
+
+    def record_types_for(enrollment)
+      service_history_for(enrollment).order(:record_type).pluck(:record_type)
+    end
+
+    def invalidate_and_add
+      destination_client.invalidate_service_history
+      GrdaWarehouse::Tasks::ServiceHistory::Add.new.run!
+    end
+
+    context 'with a client whose service history is correct' do
+      it "keeps the client's entry and exit rows until the queued rebuild runs" do
+        pending('9014 item 3: Add deletes all of the client\'s service history before queueing the rebuild')
+        expect(record_types_for(valid_enrollment)).to eq(['entry', 'exit'])
+
+        invalidate_and_add
+
+        expect(record_types_for(valid_enrollment)).to eq(['entry', 'exit'])
+      end
+
+      it "has the client's entry and exit rows once the queued rebuild has run" do
+        invalidate_and_add
+        work_off_all_ready_jobs
+
+        expect(record_types_for(valid_enrollment)).to eq(['entry', 'exit'])
+      end
+    end
+
+    context 'with an extra service history row whose source enrollment no longer exists' do
+      let!(:removed_enrollment) do
+        create_enrollment(client: client, project: project, entry_date: 20.days.ago.to_date)
+      end
+
+      # Build the enrollment's rows, then remove it from source data so its rows are extra
+      before do
+        GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find(removed_enrollment.id).rebuild_service_history!
+        removed_enrollment.destroy!
+      end
+
+      it 'removes the extra row and keeps the valid rows until the queued rebuild runs' do
+        pending('9014 item 3: Add deletes all of the client\'s service history before queueing the rebuild')
+        expect(service_history_for(removed_enrollment)).to exist
+        expect(record_types_for(valid_enrollment)).to eq(['entry', 'exit'])
+
+        invalidate_and_add
+
+        expect(service_history_for(removed_enrollment)).not_to exist
+        expect(record_types_for(valid_enrollment)).to eq(['entry', 'exit'])
+      end
+
+      it 'has only the valid rows once the queued rebuild has run' do
+        invalidate_and_add
+        work_off_all_ready_jobs
+
+        expect(service_history_for(removed_enrollment)).not_to exist
+        expect(record_types_for(valid_enrollment)).to eq(['entry', 'exit'])
+      end
+    end
+  end
 end
