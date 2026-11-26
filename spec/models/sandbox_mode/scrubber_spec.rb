@@ -202,7 +202,7 @@ RSpec.describe SandboxMode::Scrubber do
       expect { result }.not_to(change { inbound.reload.attributes })
     end
 
-    it 'leaves inbound OAuth applications alone' do
+    it 'leaves inbound OAuth applications alone', :devise_only do
       app = Doorkeeper::Application.create!(name: 'inbound', redirect_uri: 'https://app.internal.example/cb')
 
       expect { result }.not_to(change { app.reload.attributes })
