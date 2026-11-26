@@ -29,6 +29,10 @@ module HmisSupplemental
              as: :entity,
              dependent: :destroy
 
+    scope :syncable, -> do
+      SandboxMode.filter(where(sync_enabled: true))
+    end
+
     scope :viewable_by, ->(user) do
       # not supporting legacy role base permissions
       return none unless user.using_acls?

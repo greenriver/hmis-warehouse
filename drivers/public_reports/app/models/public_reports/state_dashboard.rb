@@ -62,6 +62,8 @@ module PublicReports
     end
 
     def publish!
+      return if SandboxMode.enabled?
+
       # Upload every section to a private staging folder first, so a failed upload leaves the
       # public pages alone. Then copy each one into place. A failed copy can still leave a mix
       # of old and new pages; publishing again fixes it.

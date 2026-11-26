@@ -21,8 +21,10 @@ class HmisImportConfigsController < ApplicationController
     @bucket_objects_list = []
     @error = false
     begin
+      SandboxMode.guard!('HMIS import S3')
       @bucket_objects_list = @config.relevant_object_list(25)
-    rescue Aws::S3::Errors::InvalidAccessKeyId,
+    rescue SandboxMode::IntegrationDisabled,
+           Aws::S3::Errors::InvalidAccessKeyId,
            Aws::S3::Errors::AccessDenied,
            Aws::S3::Errors::SignatureDoesNotMatch,
            Aws::S3::Errors::NoSuchBucket,
@@ -34,6 +36,8 @@ class HmisImportConfigsController < ApplicationController
   end
 
   def download
+    SandboxMode.guard!('HMIS import S3')
+
     object = @config.s3.list_objects(prefix: @config.s3_path).detect { |o| o.key == params[:key] }
 
     if object.nil?

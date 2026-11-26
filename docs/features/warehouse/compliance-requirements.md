@@ -36,7 +36,7 @@ Content pages can exist without requiring agreement (help pages, about pages). R
 
 ### Enforcement
 
-`ApplicationController#require_compliance_agreement!` runs after authentication and training checks. Redirects users with pending requirements to the agreement page. Skipped for setup controllers (sessions, accounts, training, compliance_agreements, content_pages).
+`ApplicationController#require_compliance_agreement!` runs after authentication and training checks. The training check is skipped in [sandbox mode](sandbox-mode.md). Redirects users with pending requirements to the agreement page. Skipped for setup controllers (sessions, accounts, training, compliance_agreements, content_pages).
 
 ```ruby
 # app/controllers/application_controller.rb

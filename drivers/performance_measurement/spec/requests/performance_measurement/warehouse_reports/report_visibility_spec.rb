@@ -42,4 +42,30 @@ RSpec.describe 'PerformanceMeasurement::WarehouseReports::Reports visibility', t
       expect(response).to have_http_status(:not_found)
     end
   end
+
+  describe 'publishing in sandbox mode' do
+    include_context 'report visibility users'
+
+    let(:report_attributes) { { goal_configuration: create(:performance_measurement_goal) } }
+
+    let(:owner) { user_with_role(can_view_assigned_reports: true, can_publish_reports: true) }
+    let(:report) { report_class.create!(user_id: owner.id, **report_attributes) }
+    let(:referer) { report_path.call(report) }
+    let(:alert) { 'Public report publishing is disabled in sandbox mode' }
+
+    before { sign_in(owner) }
+
+    it 'refuses to queue publishing and enqueues no job' do
+      with_sandbox_mode do
+        expect do
+          patch report_path.call(report),
+                params: { public_report: { published_url: report.generate_publish_url } },
+                headers: { 'HTTP_REFERER' => referer }
+        end.not_to change(Delayed::Job, :count)
+      end
+
+      expect(response).to redirect_to(referer)
+      expect(flash[:alert]).to eq(alert)
+    end
+  end
 end

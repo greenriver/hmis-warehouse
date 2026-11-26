@@ -16,6 +16,8 @@ class UserTrainingController < ApplicationController
   attr_reader :configs
 
   def index
+    redirect_to safe_training_redirect_path and return if SandboxMode.enabled?
+
     lms = Talentlms::Facade.new(current_user)
     set_lms_info
 

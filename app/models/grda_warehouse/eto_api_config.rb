@@ -14,7 +14,7 @@ module GrdaWarehouse
     belongs_to :data_source
 
     scope :active, -> do
-      where(active: true)
+      SandboxMode.filter(where(active: true))
     end
 
     def touchpoint_fields_for_input

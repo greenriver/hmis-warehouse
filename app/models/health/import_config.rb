@@ -17,7 +17,7 @@ module Health
     attr_encrypted :passphrase, key: ENV['ENCRYPTION_KEY'][0..31]
     attr_encrypted :secret_key, key: ENV['ENCRYPTION_KEY'][0..31]
 
-    scope :active, -> { where(active: true) }
+    scope :active, -> { SandboxMode.filter(where(active: true)) }
 
     scope :epic_data, -> do
       active.where(kind: :epic_data)

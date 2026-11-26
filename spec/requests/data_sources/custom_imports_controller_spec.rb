@@ -102,4 +102,48 @@ RSpec.describe DataSources::CustomImportsController, type: :request do
       end
     end
   end
+
+  describe 'in sandbox mode' do
+    let!(:inactive_config) do
+      create_config(data_source).tap { |c| c.update_columns(active: false, description: 'Scrubbed Import') }
+    end
+
+    it 'still lists scrubbed configs so they can be re-enabled' do
+      with_sandbox_mode { get data_source_custom_imports_path(data_source) }
+
+      expect(response.body).to include('Scrubbed Import')
+    end
+
+    it 'does not list bucket objects on the edit page' do
+      expect_any_instance_of(GrdaWarehouse::CustomImports::Config).not_to receive(:list_objects)
+
+      with_sandbox_mode { get edit_data_source_custom_import_path(data_source, inactive_config) }
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('Unable to connect to S3')
+    end
+
+    it 'refuses to download from the bucket' do
+      expect_any_instance_of(GrdaWarehouse::CustomImports::Config).not_to receive(:s3)
+
+      with_sandbox_mode do
+        get download_data_source_custom_import_path(data_source, inactive_config, key: 'prefix/test.csv'),
+            headers: { 'HTTP_REFERER' => edit_data_source_custom_import_path(data_source, inactive_config) }
+      end
+
+      expect(response).to redirect_to(edit_data_source_custom_import_path(data_source, inactive_config))
+      expect(flash[:alert]).to eq('Custom import S3 is disabled in sandbox mode')
+    end
+  end
+  describe 'outside sandbox mode' do
+    let!(:inactive_config) do
+      create_config(data_source).tap { |c| c.update_columns(active: false) }
+    end
+
+    it 'hides inactive configs' do
+      get edit_data_source_custom_import_path(data_source, inactive_config)
+
+      expect(response).to have_http_status(:not_found)
+    end
+  end
 end

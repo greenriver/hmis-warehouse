@@ -27,6 +27,8 @@ module Talentlms
     # @param args [Hash<String, String>] arguments to be added to the end of the URL
     # @return [JSON] results
     def get(action, args = nil)
+      SandboxMode.guard!('TalentLMS')
+
       key = Base64.strict_encode64("#{api_key}:")
       url = generate_url(action, args)
 
@@ -49,6 +51,8 @@ module Talentlms
     # @param args [Hash<String, String>] arguments to be added to the end of the URL
     # @return [JSON] results
     def post(action, data, args = nil)
+      SandboxMode.guard!('TalentLMS')
+
       key = Base64.strict_encode64("#{api_key}:")
       url = generate_url(action, args)
       result = Curl.post(url, data) do |curl|
@@ -65,6 +69,9 @@ module Talentlms
 
     # Validator to check this configuration is valid.
     def check_configuration_is_valid
+      # Validation fetches courses from TalentLMS, which sandbox mode refuses.
+      return if SandboxMode.enabled?
+
       error = configuration_error_message
       return unless error.present?
 

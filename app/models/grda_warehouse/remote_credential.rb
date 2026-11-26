@@ -13,7 +13,12 @@ module GrdaWarehouse
     attr_encrypted :password, key: ENV['ENCRYPTION_KEY'][0..31]
 
     scope :active, -> do
-      where(active: true)
+      SandboxMode.filter(where(active: true))
+    end
+
+    # Credentials that may be used for an outbound call: every row, except in sandbox mode
+    scope :outbound_allowed, -> do
+      SandboxMode.filter(all)
     end
 
     def self.for_active_slug(slug)

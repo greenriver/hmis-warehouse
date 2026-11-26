@@ -34,6 +34,8 @@ module TextMessage
     end
 
     def send!
+      return if SandboxMode.enabled?
+
       # NOTE: setup of long codes is done in Amazon Pinpoint
       # Long codes have a 1/second send limit
       # Responses: https://docs.aws.amazon.com/pinpoint/latest/userguide/channels-sms-two-way.html
@@ -62,6 +64,8 @@ module TextMessage
 
     # bundle exec rails runner 'TextMessage::Message.new.test!("1231231234")'
     def test!(phone_number)
+      SandboxMode.guard!('SMS')
+
       @formatted_phone_number = "1#{phone_number}"
       if opted_out?
         puts 'opted out!'

@@ -26,6 +26,8 @@ module Health::Soap
     end
 
     def configured?
+      return false if SandboxMode.enabled?
+
       @config.user.present? && @config.pass.present? && @config.sender.present? && @config.receiver.present? && @url.present?
     end
 

@@ -11,6 +11,8 @@ module WarehouseReports::S3Toolset
   # Setup the S3 configuration if not setup if possible
   # Returns true if we're good to publish things, false if not
   def ready_public_s3_bucket!
+    return false if SandboxMode.enabled?
+
     # SeaweedFS (the local dev S3) has no bucket website API
     return bucket_exists? || create_bucket! if AwsS3.local_endpoint?
 
@@ -68,6 +70,8 @@ module WarehouseReports::S3Toolset
   end
 
   private def s3_client
+    SandboxMode.guard!('Public report publishing')
+
     @s3_client ||= AwsS3.new(
       bucket_name: s3_bucket,
       access_key_id: ENV['S3_PUBLIC_ACCESS_KEY_ID'],

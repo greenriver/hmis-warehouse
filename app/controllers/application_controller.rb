@@ -84,6 +84,11 @@ class ApplicationController < ActionController::Base
     redirect_to(location, alert: error.message)
   end
 
+  rescue_from 'SandboxMode::IntegrationDisabled', with: :handle_sandbox_disabled
+  protected def handle_sandbox_disabled(error)
+    redirect_back(fallback_location: current_user&.my_root_path || root_path, alert: error.message)
+  end
+
   private def resource_name
     :user
   end
@@ -208,6 +213,7 @@ class ApplicationController < ActionController::Base
   end
 
   def require_training!
+    return if SandboxMode.enabled?
     return unless current_user
     return unless current_user.training_required?
     return if allowed_setup_controllers

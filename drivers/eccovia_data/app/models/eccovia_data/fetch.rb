@@ -11,6 +11,10 @@ module EccoviaData
     self.table_name = :eccovia_fetches
     belongs_to :credentials, class_name: 'EccoviaData::Credential'
 
+    scope :outbound_allowed, -> do
+      SandboxMode.filter(all)
+    end
+
     def fetch_updated
       EccoviaData::Assessment.fetch_updated(data_source_id: data_source_id, credentials: credentials)
       EccoviaData::ClientContact.fetch_updated(data_source_id: data_source_id, credentials: credentials)

@@ -40,7 +40,7 @@ module MaReports::CsgEngage
 
       data = MaReports::CsgEngage::ReportComponents::Report.new(program).serialize
       cleanup_last_report
-      result = MaReports::CsgEngage::Credential.first.post(data)
+      result = MaReports::CsgEngage::Credential.outbound_allowed.first!.post(data)
       update(
         completed_at: Time.zone.now,
         raw_result: result,
@@ -61,7 +61,7 @@ module MaReports::CsgEngage
     end
 
     def delete_from_csg
-      MaReports::CsgEngage::Credential.first.delete(
+      MaReports::CsgEngage::Credential.outbound_allowed.first!.delete(
         agency_id: program.agency.csg_engage_agency_id,
         program_name: imported_program_name,
         import_keyword: imported_import_keyword,

@@ -12,7 +12,7 @@ module GrdaWarehouse
 
     belongs_to :remote_credential
     scope :active, -> do
-      where(active: true)
+      SandboxMode.filter(where(active: true))
     end
   end
 end
