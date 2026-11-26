@@ -3,6 +3,7 @@ sources:
   - drivers/hmis/lib/hmis_util/json_forms.rb
   - drivers/hmis/lib/hmis_util/hud_compliance_form_instance_maintainer.rb
   - drivers/hmis/lib/tasks/setup.rake
+  - drivers/hmis/app/graphql/mutations/create_form_definition.rb
 ---
 
 # HMIS form seeding
@@ -68,6 +69,7 @@ drivers/hmis/lib/form_data/
 - `<env>/custom_assessments/` is for test and QA data only; customer-specific custom assessments belong in the Form Builder. Seeding it is a no-op in production.
 - `generate_cdeds` is off by default in the test environment, so custom data element validation for `custom_field_key` mappings is skipped there.
 - `static/external_form_submission_review.json` has no matching static form role, so seeding never loads it.
+- `default/records/case_note.json` is also read outside seeding: a new `CASE_NOTE` form created in the Form Builder starts with its items (`Mutations::CreateFormDefinition#default_case_note_items`), so a change to that file also changes what new Case Note forms start with.
 
 ## Related
 

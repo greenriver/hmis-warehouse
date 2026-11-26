@@ -55,7 +55,7 @@ class Hmis::AuthPolicies::FormDefinitionPolicy < Hmis::AuthPolicies::ResourcePol
     end
 
     # Determines if the current user can manage forms for a given role.
-    # can_manage_forms permission grants access to edit certain form roles (SERVICE, CUSTOM_ASSESSMENT),
+    # can_manage_forms permission grants access to edit certain form roles (Hmis::Form::Definition::NON_ADMIN_FORM_ROLES),
     # while "super-admin" permission can_administrate_config grants access to edit all form roles.
     def can_manage_form_by_role?
       in_data_source? && global_permissions.include?(:can_manage_forms) && manageable_form_role?

@@ -174,6 +174,57 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     expect(fd1.reload.link_id_item_hash['linkid_num'].mapping&.custom_field_key).to eq(new_cded.key)
   end
 
+  describe 'case note forms' do
+    let(:mutation_with_errors) do
+      <<~GRAPHQL
+        mutation PublishFormDefinition($id: ID!) {
+          publishFormDefinition(id: $id) {
+            formIdentifier {
+              identifier
+            }
+            #{error_fields}
+          }
+        }
+      GRAPHQL
+    end
+    let(:case_note_items) do
+      [
+        {
+          'type' => 'DATE',
+          'link_id' => 'information_date',
+          'text' => 'Information Date',
+          'mapping' => { 'field_name' => 'informationDate' },
+        },
+        {
+          'type' => 'TEXT',
+          'link_id' => 'content',
+          'text' => 'Note',
+          'required' => true,
+          'mapping' => { 'field_name' => 'content' },
+        },
+      ]
+    end
+    let!(:case_note_form) do
+      create(
+        :hmis_form_definition,
+        role: :CASE_NOTE,
+        status: Hmis::Form::Definition::DRAFT,
+        definition: { 'item' => case_note_items },
+        data_source: ds1,
+      )
+    end
+
+    # Case Note forms are publishable by community admins (without can_administrate_config)
+    before { remove_permissions(access_control, :can_administrate_config) }
+
+    it 'publishes the form' do
+      response, result = post_graphql(id: case_note_form.id) { mutation_with_errors }
+      expect(response.status).to eq(200), result.inspect
+      expect(result.dig('data', 'publishFormDefinition', 'errors')).to be_empty
+      expect(case_note_form.reload.status).to eq(Hmis::Form::Definition::PUBLISHED)
+    end
+  end
+
   describe 'external forms' do
     let(:mutation_with_errors) do
       <<~GRAPHQL

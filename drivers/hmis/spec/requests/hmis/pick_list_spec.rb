@@ -754,7 +754,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       before { remove_permissions(access_control, :can_administrate_config) }
 
       it 'includes only forms creatable by non-super-admins' do
-        expect(form_type_codes).to contain_exactly('SERVICE', 'CUSTOM_ASSESSMENT')
+        expect(form_type_codes).to contain_exactly('SERVICE', 'CUSTOM_ASSESSMENT', 'CASE_NOTE')
       end
     end
   end
