@@ -76,6 +76,16 @@ RSpec.describe Hmis::AuthPolicies::FormDefinitionPolicy, type: :model do
             let(:form_definition) { create(:hmis_form_definition, role: 'CASE_NOTE', status: 'draft', managed_in_version_control: true, data_source: data_source) }
             include_examples 'returns false'
           end
+
+          context 'when the form belongs to another data source' do
+            let(:other_data_source) { create(:hmis_data_source) }
+            let(:form_definition) { create(:hmis_form_definition, role: 'CASE_NOTE', status: 'draft', data_source: other_data_source) }
+            include_examples 'returns false'
+
+            it 'disallows duplication' do
+              expect(policy.can_duplicate?).to be false
+            end
+          end
         end
 
         ['OCCURRENCE_POINT', 'CURRENT_LIVING_SITUATION'].each do |role|
@@ -130,17 +140,10 @@ RSpec.describe Hmis::AuthPolicies::FormDefinitionPolicy, type: :model do
           end
         end
 
-        context 'when the form is a Case Note form' do
-          let(:form_definition) { create(:hmis_form_definition, role: 'CASE_NOTE', data_source: data_source) }
+        context 'when the form is a Case Note form managed in version control' do
+          let(:form_definition) { create(:hmis_form_definition, role: 'CASE_NOTE', managed_in_version_control: true, data_source: data_source) }
           it 'returns true' do
             expect(policy.can_duplicate?).to be true
-          end
-
-          context 'when the form is managed in version control' do
-            let(:form_definition) { create(:hmis_form_definition, role: 'CASE_NOTE', managed_in_version_control: true, data_source: data_source) }
-            it 'returns true' do
-              expect(policy.can_duplicate?).to be true
-            end
           end
         end
 

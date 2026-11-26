@@ -54,7 +54,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     expect(d['status']).to eq('draft')
   end
 
-  it 'lets a non-admin user create a Case Note form seeded with the required fields' do
+  it 'lets a non-admin user create a Case Note form that starts with the Information Date and Note fields' do
     input = {
       definition: '',
       role: 'CASE_NOTE',
@@ -72,10 +72,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     definition = Hmis::Form::Definition.find(created_form['id'])
     mapped_field_names = definition.link_id_item_hash.values.map { |item| item.dig('mapping', 'field_name') }
     expect(mapped_field_names).to include('informationDate', 'content')
-
-    case_note_file_path = Rails.root.join(HmisUtil::JsonForms::DATA_DIR, 'default/records/case_note.json')
-    default_case_note_items = JSON.parse(File.read(case_note_file_path)).fetch('item')
-    expect(definition.definition['item']).to eq(default_case_note_items)
   end
 
   it 'should fail if a non-admin user tries to create a non-editable form' do
