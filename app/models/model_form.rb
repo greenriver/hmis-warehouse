@@ -37,11 +37,14 @@ class ModelForm
   end
 
   # Virtus defined `name?` for Boolean attributes. It lives in the generated attribute module, so
-  # a predicate in the class body overrides it and can call super. Redeclaring an attribute with
+  # a predicate in the class body, written before or after the declaration, overrides it and can
+  # call super. A predicate already reachable below that module (a superclass, or a module
+  # included before the first declaration) is left alone, so redeclaring an attribute with
   # another type keeps the inherited predicate.
   def self.define_boolean_predicate(name)
     predicate = :"#{name}?"
-    return if method_defined?(predicate) || private_method_defined?(predicate)
+    below = ancestors.drop_while { |mod| mod != generated_attribute_methods }.drop(1)
+    return if below.any? { |mod| mod.method_defined?(predicate, false) || mod.private_method_defined?(predicate, false) }
 
     generated_attribute_methods.define_method(predicate) { public_send(name) }
   end

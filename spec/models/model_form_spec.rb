@@ -467,11 +467,32 @@ RSpec.describe ModelForm, type: :model do
       expect(klass.new.flag?).to eq(:wrapped)
     end
 
+    it 'lets a predicate written before the declaration call super for the generated one' do
+      klass = form_class do
+        def flag? = super && :wrapped
+
+        attribute :flag, ModelForm::Boolean, default: true
+      end
+
+      expect(klass.new.flag?).to eq(:wrapped)
+    end
+
     it 'does not shadow a predicate defined on an ancestor' do
       parent = form_class { def flag? = :inherited }
       child = form_class(parent) { attribute :flag, ModelForm::Boolean, default: true }
 
       expect(child.new.flag?).to eq(:inherited)
+    end
+
+    it 'does not shadow a predicate from a module included before the declaration' do
+      concern = Module.new { def flag? = :from_module }
+      klass = form_class do
+        include concern
+
+        attribute :flag, ModelForm::Boolean, default: true
+      end
+
+      expect(klass.new.flag?).to eq(:from_module)
     end
 
     it 'keeps the inherited predicate when a subclass redeclares the attribute with another type' do
