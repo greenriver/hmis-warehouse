@@ -250,6 +250,21 @@ RSpec.describe ModelForm, type: :model do
     end
   end
 
+  describe 'Boolean attribute predicates' do
+    it 'answers editable? and visible? on a cohort column with the reader values' do
+      column = CohortColumns::UserBoolean10.new(editable: false)
+
+      expect(column.editable?).to be(false)
+      expect(column.visible?).to be(true)
+      expect([column].select(&:editable?)).to be_empty
+    end
+
+    it 'answers a filter predicate with the reader value' do
+      expect(Filters::FilterBase.new.hoh_only?).to be(false)
+      expect(Filters::FilterBase.new(hoh_only: true).hoh_only?).to be(true)
+    end
+  end
+
   describe 'cohort column_state serialization' do
     let(:fixture) { Rails.root.join('spec/fixtures/files/cohort_column_state_virtus.yml').read }
     let(:cohort) { create(:cohort) }
