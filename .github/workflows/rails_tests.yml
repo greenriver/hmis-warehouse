@@ -488,7 +488,7 @@ jobs:
           if [ -n "$FOCUS_PATH" ]; then
             bundle exec rspec "$FOCUS_PATH" -fd --fail-fast=$MAX_FAILURES --color
           else
-            bundle exec rspec spec/system/rails drivers/boston_reports/spec/system --tag type:rails_system -fd --fail-fast=$MAX_FAILURES --color
+            bundle exec rspec spec/system/rails drivers/*/spec/system/rails --tag type:rails_system -fd --fail-fast=$MAX_FAILURES --color
           fi
 
       - name: Archive artifacts
