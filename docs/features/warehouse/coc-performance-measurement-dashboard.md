@@ -107,6 +107,8 @@ The report supports two primary types of metrics:
 
 Reports can be published as static HTML, including a “summary-only” HTML variant. Some report views also support exports (for example, client drill-downs and provider comparisons as `.xlsx`).
 
+PDF exports leave out the project-level charts when a report has more than 200 projects; the all-projects comparison chart stays.
+
 ## Implementation Details
 
 ### SPM Report Generation
