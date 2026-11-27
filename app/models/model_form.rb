@@ -30,9 +30,25 @@ class ModelForm
 
   def self.attribute(name, type = nil, default: nil, lazy: false)
     name = name.to_s
-    super(name, AttributeTypes.lookup(type))
+    attribute_type = AttributeTypes.lookup(type)
+    super(name, attribute_type)
+    define_boolean_predicate(name) if attribute_type.is_a?(AttributeTypes::Boolean)
     self.model_form_defaults = model_form_defaults.merge(name => AttributeDefault.new(default, lazy)).freeze
   end
+
+  # Virtus defined `name?` for Boolean attributes. It lives in the generated attribute module, so
+  # a predicate in the class body, written before or after the declaration, overrides it and can
+  # call super. A predicate already reachable below that module (a superclass, or a module
+  # included before the first declaration) is left alone, so redeclaring an attribute with
+  # another type keeps the inherited predicate.
+  def self.define_boolean_predicate(name)
+    predicate = :"#{name}?"
+    below = ancestors.drop_while { |mod| mod != generated_attribute_methods }.drop(1)
+    return if below.any? { |mod| mod.method_defined?(predicate, false) || mod.private_method_defined?(predicate, false) }
+
+    generated_attribute_methods.define_method(predicate) { public_send(name) }
+  end
+  private_class_method :define_boolean_predicate
 
   def initialize(...)
     super
