@@ -37,8 +37,8 @@ RSpec.describe 'performance_measurement/warehouse_reports/reports/_projects', ty
     ) { |_, locals| "ROW:#{locals[:class_name]}" }
   end
 
-  def render_partial(pdf:)
-    render partial: 'performance_measurement/warehouse_reports/reports/projects', locals: { key: :key, category: 'Cat', pdf: pdf }
+  def render_partial(pdf:, key: :key)
+    render partial: 'performance_measurement/warehouse_reports/reports/projects', locals: { key: key, category: 'Cat', pdf: pdf }
     Nokogiri::HTML(rendered)
   end
 
@@ -53,6 +53,14 @@ RSpec.describe 'performance_measurement/warehouse_reports/reports/_projects', ty
       expect(doc.css('#jAppProjectChart_key').size).to eq(1)
       expect(report).not_to have_received(:my_projects)
       expect(report).not_to have_received(:other_projects)
+    end
+
+    it 'escapes the chart id inside the script' do
+      render_partial(pdf: true, key: :'a</script>"x')
+
+      script = view.content_for(:page_js)
+      expect(script).to include('getElementById("jAppProjectChart_a\u003c/script\u003e\"x")')
+      expect(script).not_to include('</script>"x')
     end
   end
 
