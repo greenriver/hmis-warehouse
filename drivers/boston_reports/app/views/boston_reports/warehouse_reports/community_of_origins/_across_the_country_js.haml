@@ -54,7 +54,8 @@
           if (map_el.hasClass('leaflet-container')) return
 
           var acrossTheCountryData = map_el.data('map')
-          var map = new L.Map(map_id).setView([37.8, -96], 4)
+          var map = new L.Map(map_id)
+          map.fitBounds([[24.4, -124.8], [49.4, -66.9]])
           var tiles = L.tileLayer(
             'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
             {
