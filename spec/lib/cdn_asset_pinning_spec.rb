@@ -31,7 +31,7 @@ RSpec.describe 'CDN assets with integrity hashes' do
   end
 
   it 'allows every pinned CDN script in the CSP script-src' do
-    allowed = Rails.application.config.content_security_policy.script_src
+    allowed = Rails.application.config.content_security_policy.directives['script-src']
     offenders = integrity_urls.select { |entry| entry[:url].end_with?('.js') }.
       reject { |entry| allowed.any? { |source| entry[:url].start_with?(source.to_s) } }.
       map { |entry| "#{entry[:location]} #{entry[:url]}" }
