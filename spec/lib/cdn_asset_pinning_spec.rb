@@ -39,6 +39,13 @@ RSpec.describe 'CDN assets with integrity hashes' do
     expect(offenders).to eq([])
   end
 
+  it 'keeps an integrity hash on every CDN d3 script' do
+    offenders = view_lines.select { |line| line[:text].include?('cdn.jsdelivr.net/npm/d3@') && !line[:text].include?('integrity') }.
+      map { |line| line[:location] }
+
+    expect(offenders).to eq([])
+  end
+
   it 'loads no scripts from the d3js.org moving aliases' do
     offenders = view_lines.select { |line| line[:text].include?('d3js.org/d3.v') }.map { |line| line[:location] }
 
