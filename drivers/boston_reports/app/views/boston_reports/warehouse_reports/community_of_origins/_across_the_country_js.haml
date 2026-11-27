@@ -50,7 +50,7 @@
 
         function drawAcrossTheCountryMap() {
           var map_el = $('#' + map_id);
-          // The PDF page renders this script twice; Leaflet throws on a second init.
+          // Skip a container Leaflet has already initialized; a second init throws.
           if (map_el.hasClass('leaflet-container')) return
 
           var acrossTheCountryData = map_el.data('map')
