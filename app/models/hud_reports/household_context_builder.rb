@@ -58,7 +58,7 @@ module HudReports
 
     def build_contexts_from_scratch
       contexts = []
-      universe_ids, hh_pairs = snapshot_universe!
+      universe_enrollment_ids, hh_pairs = snapshot_universe!
       hh_pairs.each_slice(batch_size) do |batch|
         # batch is array of [hh_id, data_source_id]
         all_service_history_enrollments = load_unfiltered_service_history_enrollments(batch)
@@ -69,7 +69,7 @@ module HudReports
             hh_id: hh_id,
             data_source_id: data_source_id,
             service_history_enrollments: service_history_enrollments,
-            universe_ids: universe_ids,
+            universe_enrollment_ids: universe_enrollment_ids,
           )
           contexts.concat(household_contexts)
 
@@ -85,6 +85,8 @@ module HudReports
     end
 
     # REPEATABLE READ snapshot so concurrent SHE rebuilds can't skew the universe.
+    # The snapshot holds HUD Enrollment ids, not SHE ids: a rebuild replaces the SHE row (new id),
+    # and the Enrollment id still recognizes the rebuilt row when households are loaded later.
     # Skips isolation when already in a transaction (e.g. test suite).
     def snapshot_universe!
       if GrdaWarehouseBase.connection.open_transactions > 0
@@ -96,12 +98,16 @@ module HudReports
 
     def read_universe_snapshot
       she_table = GrdaWarehouse::ServiceHistoryEnrollment.arel_table
-      [
-        enrollment_scope.pluck(:id).to_set,
-        enrollment_scope.distinct.
-          order(hh_id_expr, she_table[:data_source_id]).
-          pluck(hh_id_expr, she_table[:data_source_id]),
-      ]
+      enrollment_id_col = GrdaWarehouse::Hud::Enrollment.arel_table[:id]
+      universe_enrollment_ids = enrollment_scope.
+        joins(:enrollment).
+        pluck(enrollment_id_col).
+        to_set
+      hh_pairs = enrollment_scope.distinct.
+        order(hh_id_expr, she_table[:data_source_id]).
+        pluck(hh_id_expr, she_table[:data_source_id])
+
+      [universe_enrollment_ids, hh_pairs]
     end
 
     def batch_size
@@ -182,7 +188,7 @@ module HudReports
       service_history_enrollments
     end
 
-    def build_contexts_for_household(hh_id:, data_source_id:, service_history_enrollments:, universe_ids:)
+    def build_contexts_for_household(hh_id:, data_source_id:, service_history_enrollments:, universe_enrollment_ids:)
       hh_member_hashes = precalculate_member_data(service_history_enrollments)
 
       # For household composition and veteran stats, only consider SHEs active during the report period.
@@ -195,10 +201,12 @@ module HudReports
 
       hh_stats = calculate_hh_stats(active_hh_she_hashes)
 
-      # Lookback SHEs (outside universe_ids) are needed for HoH detection and inherited values above,
+      # Lookback SHEs (outside universe_enrollment_ids) are needed for HoH detection and inherited values above,
       # but we only persist contexts for SHEs that are part of the report universe.
+      # Removing the id on match keeps it to one context per enrollment, even if a rebuild during the run
+      # moves the enrollment into a household that is processed later.
       service_history_enrollments.filter_map do |m|
-        next unless universe_ids.include?(m.id)
+        next unless universe_enrollment_ids.delete?(m.enrollment.id)
 
         member_hash = hh_member_hashes.detect { |mh| mh[:she_id] == m.id }
         build_context_for_member(m, member_hash, hoh_data,
