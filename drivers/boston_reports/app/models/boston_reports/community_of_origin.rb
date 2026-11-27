@@ -116,18 +116,33 @@ module BostonReports
         all_project_types: all_project_types,
         include_date_range: include_date_range,
       )
-      # Limit to the earliest started enrollment overlapping the universe per client
-      scope = scope.one_for_column(
-        :entry_date,
-        source_arel_table: she_t,
-        group_on: :client_id,
-        direction: :asc,
-        scope: GrdaWarehouse::ServiceHistoryEnrollment.entry.open_between(
-          start_date: filter.start_date,
-          end_date: filter.end_date,
-        ).select(:id),
+      self.class.earliest_enrollment_per_client(
+        scope,
+        start_date: filter.start_date,
+        end_date: filter.end_date,
       )
-      scope
+    end
+
+    # Limits scope to each client's earliest entry open in the range. Earlier entries are looked
+    # up among all open entries, not just scope, so a client whose first enrollment falls outside
+    # scope is excluded. Same-day ties go to the lower id.
+    def self.earliest_enrollment_per_client(scope, start_date:, end_date:)
+      she = GrdaWarehouse::ServiceHistoryEnrollment
+      current = she.arel_table
+      earlier = she.arel_table.alias('earlier_enrollments')
+      earlier_starts_first = earlier[:first_date_in_program].lt(current[:first_date_in_program]).
+        or(
+          earlier[:first_date_in_program].eq(current[:first_date_in_program]).
+            and(earlier[:id].lt(current[:id])),
+        )
+      earlier_enrollments = she.unscoped.from(earlier).
+        where(earlier[:record_type].eq('entry')).
+        where(earlier[:client_id].eq(current[:client_id])).
+        where(earlier[:first_date_in_program].lteq(end_date)).
+        where(earlier[:last_date_in_program].gteq(start_date).or(earlier[:last_date_in_program].eq(nil))).
+        where(earlier_starts_first).
+        select(1)
+      scope.where(earlier_enrollments.arel.exists.not)
     end
 
     def report_scope_source
