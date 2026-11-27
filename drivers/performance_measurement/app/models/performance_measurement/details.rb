@@ -10,6 +10,8 @@
 module PerformanceMeasurement::Details
   extend ActiveSupport::Concern
 
+  PDF_PROJECT_CHART_LIMIT = 200
+
   included do
     def summary_table
       @summary_table ||= {}.tap do |st|
@@ -185,6 +187,11 @@ module PerformanceMeasurement::Details
         index_by(&:project_id)
     end
     memoize :project_details
+
+    def project_charts_in_pdf?
+      projects.count <= PDF_PROJECT_CHART_LIMIT
+    end
+    memoize :project_charts_in_pdf?
 
     def clients_for_question(key, period, project_id: nil)
       field = detail_for(key).try(:[], :calculation_column)
