@@ -26,8 +26,13 @@ RSpec.describe BostonReports::CommunityOfOrigin, '.earliest_enrollment_per_clien
     )
   end
 
-  def result_ids(scope = entries)
-    described_class.earliest_enrollment_per_client(scope, start_date: start_date, end_date: end_date).pluck(:id)
+  def result_ids(scope = entries, preferred_project_types: nil)
+    described_class.earliest_enrollment_per_client(
+      scope,
+      start_date: start_date,
+      end_date: end_date,
+      preferred_project_types: preferred_project_types,
+    ).pluck(:id)
   end
 
   it 'keeps the earliest open entry for each client' do
@@ -56,12 +61,53 @@ RSpec.describe BostonReports::CommunityOfOrigin, '.earliest_enrollment_per_clien
     expect(result_ids).to contain_exactly(entry.id)
   end
 
-  it 'breaks a same-day tie by the lower id' do
-    client = create(:grda_warehouse_hud_client, data_source: data_source)
-    first_row = build_row(client: client, first: Date.new(2025, 7, 1))
-    build_row(client: client, first: Date.new(2025, 7, 1))
+  describe 'same-day entries' do
+    let(:client) { create(:grda_warehouse_hud_client, data_source: data_source) }
+    let(:day) { Date.new(2025, 7, 1) }
 
-    expect(result_ids).to contain_exactly(first_row.id)
+    it 'keeps the entry with no exit date' do
+      build_row(client: client, first: day, last: Date.new(2025, 9, 1))
+      open = build_row(client: client, first: day, last: nil)
+
+      expect(result_ids).to contain_exactly(open.id)
+    end
+
+    it 'keeps the later exit date' do
+      build_row(client: client, first: day, last: Date.new(2025, 8, 1))
+      later = build_row(client: client, first: day, last: Date.new(2025, 10, 1))
+
+      expect(result_ids).to contain_exactly(later.id)
+    end
+
+    it 'keeps the lower id when exit dates match' do
+      exit_date = Date.new(2025, 9, 1)
+      first_row = build_row(client: client, first: day, last: exit_date)
+      build_row(client: client, first: day, last: exit_date)
+
+      expect(result_ids).to contain_exactly(first_row.id)
+    end
+
+    it 'keeps the entry in a preferred project type over one that exits later' do
+      in_report = build_row(client: client, first: day, last: Date.new(2025, 8, 1), project_type: 1)
+      build_row(client: client, first: day, last: nil, project_type: 6)
+
+      expect(result_ids(entries.where(project_type: 1), preferred_project_types: [1])).to contain_exactly(in_report.id)
+    end
+
+    it 'ranks entries within the preferred project types by exit date' do
+      build_row(client: client, first: day, last: Date.new(2025, 8, 1), project_type: 1)
+      later = build_row(client: client, first: day, last: Date.new(2025, 10, 1), project_type: 4)
+      build_row(client: client, first: day, last: nil, project_type: 6)
+
+      expect(result_ids(preferred_project_types: [1, 4])).to contain_exactly(later.id)
+    end
+
+    it 'keeps the lower id when neither has an exit date' do
+      first_row = build_row(client: client, first: day)
+      build_row(client: client, first: day)
+
+      expect(result_ids).to contain_exactly(first_row.id)
+    end
   end
 
   it 'drops scope rows that are not open in the range' do
@@ -76,6 +122,6 @@ RSpec.describe BostonReports::CommunityOfOrigin, '.earliest_enrollment_per_clien
     build_row(client: client, first: Date.new(2025, 2, 1), project_type: 6)
     build_row(client: client, first: Date.new(2025, 3, 1), project_type: 1)
 
-    expect(result_ids(entries.where(project_type: 1))).to be_empty
+    expect(result_ids(entries.where(project_type: 1), preferred_project_types: [1])).to be_empty
   end
 end
