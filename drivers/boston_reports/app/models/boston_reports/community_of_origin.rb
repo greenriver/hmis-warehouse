@@ -125,7 +125,8 @@ module BostonReports
 
     # Limits scope to each client's earliest entry open in the range. Earlier entries are looked
     # up among all open entries, not just scope, so a client whose first enrollment falls outside
-    # scope is excluded. Same-day ties go to the lower id.
+    # scope is excluded. Same-day ties go to the lower id. Rows in scope that are not entries
+    # open in the range are dropped.
     def self.earliest_enrollment_per_client(scope, start_date:, end_date:)
       she = GrdaWarehouse::ServiceHistoryEnrollment
       current = she.arel_table
@@ -136,14 +137,21 @@ module BostonReports
             and(earlier[:id].lt(current[:id])),
         )
       earlier_enrollments = she.unscoped.from(earlier).
-        where(earlier[:record_type].eq('entry')).
+        where(open_entry_condition(earlier, start_date: start_date, end_date: end_date)).
         where(earlier[:client_id].eq(current[:client_id])).
-        where(earlier[:first_date_in_program].lteq(end_date)).
-        where(earlier[:last_date_in_program].gteq(start_date).or(earlier[:last_date_in_program].eq(nil))).
         where(earlier_starts_first).
         select(1)
-      scope.where(earlier_enrollments.arel.exists.not)
+      scope.
+        where(open_entry_condition(current, start_date: start_date, end_date: end_date)).
+        where(earlier_enrollments.arel.exists.not)
     end
+
+    def self.open_entry_condition(table, start_date:, end_date:)
+      table[:record_type].eq('entry').
+        and(table[:first_date_in_program].lteq(end_date)).
+        and(table[:last_date_in_program].gteq(start_date).or(table[:last_date_in_program].eq(nil)))
+    end
+    private_class_method :open_entry_condition
 
     def report_scope_source
       GrdaWarehouse::ServiceHistoryEnrollment.entry
