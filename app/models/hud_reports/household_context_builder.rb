@@ -205,7 +205,10 @@ module HudReports
       # but we only persist contexts for SHEs that are part of the report universe.
       # Removing the id on match keeps it to one context per enrollment, even if a rebuild during the run
       # moves the enrollment into a household that is processed later.
-      service_history_enrollments.filter_map do |m|
+      # Newest row first: a rebuild after a client merge can leave the old entry row behind under the
+      # previous client_id, and the row the rebuild inserted is always the newer one.
+      newest_first = service_history_enrollments.sort_by { |m| -m.id }
+      newest_first.filter_map do |m|
         next unless universe_enrollment_ids.delete?(m.enrollment.id)
 
         member_hash = hh_member_hashes.detect { |mh| mh[:she_id] == m.id }

@@ -855,6 +855,32 @@ RSpec.describe HudReports::HouseholdContextBuilder, type: :model do
           expect(child_contexts.first.household_id).to eq('HH123')
         end
       end
+
+      context 'when a stale entry row from a client merge is left behind' do
+        let(:previous_destination_client) { create(:hud_client, data_source: data_source) }
+
+        # The rebuild only deletes rows under the enrollment's current destination client, so a row
+        # filed under the pre-merge client survives next to the newly inserted one.
+        def leave_stale_child_row
+          enrollment_child.update!(client_id: previous_destination_client.id)
+          rebuild_child_service_history
+        end
+
+        it 'builds the context from the newest entry row' do
+          stale_row_id = enrollment_child.id
+          leave_stale_child_row
+
+          builder.call
+
+          child_entry_row_ids = GrdaWarehouse::ServiceHistoryEnrollment.entry.
+            where(enrollment_group_id: hud_enrollment_child.EnrollmentID).
+            pluck(:id)
+          # Guard: both the stale row and the rebuilt row exist
+          expect(child_entry_row_ids.size).to eq(2)
+          expect(child_contexts.count).to eq(1)
+          expect(child_contexts.first.service_history_enrollment_id).to eq((child_entry_row_ids - [stale_row_id]).first)
+        end
+      end
     end
   end
 end
