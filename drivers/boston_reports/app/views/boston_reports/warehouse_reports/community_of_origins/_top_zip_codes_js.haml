@@ -6,6 +6,8 @@
 
         function drawTopZipCodesMap() {
           var map = $('#' + map_id);
+          // Skip a container Leaflet has already initialized; a second init throws.
+          if (map.hasClass('leaflet-container')) return
 
           var topZipData = map.data('map')
           //console.log('topZipData', topZipData)
