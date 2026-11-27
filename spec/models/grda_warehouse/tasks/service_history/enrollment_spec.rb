@@ -474,4 +474,120 @@ RSpec.describe GrdaWarehouse::Tasks::ServiceHistory::Enrollment, type: :model do
       end
     end
   end
+
+  # 9014 item 7. A rebuild replaces an enrollment's entry, exit and day rows. If inserting the day
+  # rows fails, readers must still see the enrollment's previous history, not an entry row with
+  # missing days.
+  #
+  # Transactional on purpose. The per-example transaction is not joinable, so the rebuild's own
+  # `transaction` block runs as a real savepoint: an error inside it rolls its writes back, and
+  # writes after it stay, just as a commit would leave them. Running outside the wrapper would also
+  # commit the system collections, access controls and jobs that creating a data source fans out to.
+  describe 'when inserting service days fails partway through a rebuild (9014)' do
+    let!(:failure_data_source) { create :source_data_source }
+    let!(:failure_destination_data_source) { create :destination_data_source }
+    let!(:failure_organization) { create :hud_organization, data_source: failure_data_source }
+    let!(:failure_project) do
+      create :grda_warehouse_hud_project,
+             data_source: failure_data_source,
+             organization: failure_organization,
+             project_type: 0 # ES entry/exit: one day row per night between entry and exit
+    end
+    let!(:failure_client) do
+      source_client = create(:grda_warehouse_hud_client, data_source: failure_data_source, DOB: '2000-01-01')
+      destination_client = source_client.dup
+      destination_client.data_source = failure_destination_data_source
+      destination_client.save!
+      create(:warehouse_client, destination_id: destination_client.id, source_id: source_client.id)
+      source_client
+    end
+    let!(:failure_enrollment) do
+      create :grda_warehouse_hud_enrollment,
+             data_source: failure_data_source,
+             project: failure_project,
+             client: failure_client,
+             entry_date: '2023-01-01'
+    end
+    let!(:failure_exit) do
+      create :hud_exit,
+             data_source_id: failure_data_source.id,
+             EnrollmentID: failure_enrollment.EnrollmentID,
+             PersonalID: failure_client.PersonalID,
+             ExitDate: '2023-01-05'
+    end
+
+    def rebuilder
+      GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find(failure_enrollment.id)
+    end
+
+    def entry_rows
+      GrdaWarehouse::ServiceHistoryEnrollment.entry.where(
+        data_source_id: failure_data_source.id,
+        enrollment_group_id: failure_enrollment.EnrollmentID,
+      )
+    end
+
+    def exit_rows
+      GrdaWarehouse::ServiceHistoryEnrollment.exit.where(
+        data_source_id: failure_data_source.id,
+        enrollment_group_id: failure_enrollment.EnrollmentID,
+      )
+    end
+
+    def day_dates_for(entry_row_id)
+      GrdaWarehouse::ServiceHistoryService.
+        where(service_history_enrollment_id: entry_row_id).
+        order(:date).
+        pluck(:date)
+    end
+
+    # Changes the source data so the next run rebuilds the enrollment (new exit date, two more nights)
+    def extend_the_stay
+      failure_exit.update!(ExitDate: '2023-01-07')
+    end
+
+    # Seam: the bulk insert of day rows writes its first rows and then fails, as a deadlock or
+    # statement timeout on a later batch would.
+    def make_service_day_insert_fail_partway
+      stub_const('SimulatedServiceDayInsertFailure', Class.new(ActiveRecord::StatementInvalid))
+      allow(GrdaWarehouse::ServiceHistoryService).to receive(:import).and_wrap_original do |original, columns, rows, **options|
+        original.call(columns, rows.first(2), **options)
+        raise SimulatedServiceDayInsertFailure, 'simulated failure inserting service days'
+      end
+    end
+
+    it "keeps the enrollment's previous entry, exit and day rows when the day insert fails" do
+      pending('9014 item 7: the old rows are deleted and committed before the day rows are inserted')
+      rebuilder.rebuild_service_history!
+      entry_id_before = entry_rows.sole.id
+      exit_id_before = exit_rows.sole.id
+      days_before = day_dates_for(entry_id_before)
+      expect(days_before).to eq((Date.new(2023, 1, 1)..Date.new(2023, 1, 4)).to_a)
+
+      extend_the_stay
+      make_service_day_insert_fail_partway
+      begin
+        rebuilder.rebuild_service_history!
+      rescue SimulatedServiceDayInsertFailure
+        # The rebuild may report the failure; what matters is what it leaves behind
+      end
+
+      expect(entry_rows.pluck(:id)).to eq([entry_id_before])
+      expect(exit_rows.pluck(:id)).to eq([exit_id_before])
+      expect(day_dates_for(entry_id_before)).to eq(days_before)
+    end
+
+    it 'replaces the entry, exit and day rows when the rebuild succeeds' do
+      rebuilder.rebuild_service_history!
+      entry_id_before = entry_rows.sole.id
+
+      extend_the_stay
+      rebuilder.rebuild_service_history!
+
+      entry_after = entry_rows.sole
+      expect(entry_after.id).not_to eq(entry_id_before)
+      expect(exit_rows.sole.date).to eq(Date.new(2023, 1, 7))
+      expect(day_dates_for(entry_after.id)).to eq((Date.new(2023, 1, 1)..Date.new(2023, 1, 6)).to_a)
+    end
+  end
 end

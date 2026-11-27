@@ -7,6 +7,7 @@
 # frozen_string_literal: true
 
 require 'rails_helper'
+require_relative '../../../shared_contexts/hud_enrollment_builders'
 
 RSpec.describe GrdaWarehouse::Tasks::ProjectCleanup, type: :model do
   let!(:data_source) { create(:source_data_source) }
@@ -361,6 +362,112 @@ RSpec.describe GrdaWarehouse::Tasks::ProjectCleanup, type: :model do
         cleaner.remove_unneeded_hmis_participations(project)
         expect(project.hmis_participations.reload).to contain_exactly(user_participation)
       end
+    end
+  end
+
+  # 9014 item 4. Cleanup runs after every import. When a project has moved to another organization,
+  # its enrollments must stay visible in reports (service history rows present and joined to the
+  # project) while their rebuild is still queued.
+  #
+  # Transactional: the cleanup and the reads are sequential in one session, so nothing here depends
+  # on commit visibility.
+  describe 'when a project has moved to another organization (9014)' do
+    include_context 'HUD enrollment builders'
+
+    let(:es_entry_exit) { HudHelper.util.project_type_number_from_code(:es_entry_exit).first }
+    let!(:moving_project) { create_project(project_type: es_entry_exit) }
+    let!(:moving_client) { create_client_with_warehouse_link }
+    let!(:moving_enrollment) do
+      create_enrollment(client: moving_client, project: moving_project, entry_date: 30.days.ago.to_date)
+    end
+    let(:new_organization) { create(:hud_organization, data_source: data_source) }
+
+    # A second data source whose project has the same HUD ids and did not move
+    let(:other_data_source) { create(:source_data_source) }
+    let!(:unmoved_project) do
+      in_data_source(other_data_source) do
+        create(
+          :hud_project,
+          data_source: other_data_source,
+          ProjectID: moving_project.ProjectID,
+          OrganizationID: moving_project.OrganizationID,
+          project_type: es_entry_exit,
+        )
+      end
+    end
+    let!(:unmoved_enrollment) do
+      in_data_source(other_data_source) do
+        client = create_client_with_warehouse_link
+        create_enrollment(client: client, project: unmoved_project, entry_date: 30.days.ago.to_date)
+      end
+    end
+
+    before do
+      GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find_each(&:rebuild_service_history!)
+    end
+
+    def move_project_to_new_organization
+      moving_project.update!(OrganizationID: new_organization.OrganizationID)
+    end
+
+    # The cleanup waits for the rebuilds it queues. In test that wait works off two jobs in-process
+    # (ServiceHistory::Builder.wait_for_processing); in production the readers see the state
+    # before workers pick the jobs up. Stub only that wait to look at the state in between.
+    def hold_queued_rebuilds
+      allow(GrdaWarehouse::Tasks::ServiceHistory::Enrollment).to receive(:wait_for_processing)
+    end
+
+    def run_cleanup
+      described_class.new(project_ids: [moving_project.id]).run!
+    end
+
+    def service_history_for(enrollment)
+      GrdaWarehouse::ServiceHistoryEnrollment.where(
+        data_source_id: enrollment.data_source_id,
+        enrollment_group_id: enrollment.EnrollmentID,
+      )
+    end
+
+    def entry_rows_joined_to(project)
+      GrdaWarehouse::ServiceHistoryEnrollment.entry.
+        joins(:project).
+        merge(GrdaWarehouse::Hud::Project.where(id: project.id))
+    end
+
+    it "keeps the moved project's service history, joined to the project, until the rebuild runs" do
+      pending('9014 item 4: rows of a moved project are deleted and only rebuilt by a queued job')
+      expect(service_history_for(moving_enrollment).entry).to exist
+      move_project_to_new_organization
+      hold_queued_rebuilds
+
+      run_cleanup
+
+      expect(service_history_for(moving_enrollment).entry).to exist
+      expect(entry_rows_joined_to(moving_project).where(enrollment_group_id: moving_enrollment.EnrollmentID)).to exist
+    end
+
+    it "leaves the moved project's service history joined to the project once the rebuild has run" do
+      move_project_to_new_organization
+
+      run_cleanup
+      work_off_all_ready_jobs
+
+      expect(entry_rows_joined_to(moving_project).where(enrollment_group_id: moving_enrollment.EnrollmentID)).to exist
+    end
+
+    # Regression guard for the fix, green today: a fix must not touch another data source's rows
+    # that share the moved project's HUD ids.
+    it "leaves another data source's service history untouched when a project with the same ids moves" do
+      rows_before = service_history_for(unmoved_enrollment).order(:id).pluck(:id, :organization_id, :project_name)
+      expect(rows_before).not_to be_empty
+      move_project_to_new_organization
+      hold_queued_rebuilds
+
+      run_cleanup
+
+      rows_after = service_history_for(unmoved_enrollment).order(:id).pluck(:id, :organization_id, :project_name)
+      expect(rows_after).to eq(rows_before)
+      expect(entry_rows_joined_to(unmoved_project).where(enrollment_group_id: unmoved_enrollment.EnrollmentID)).to exist
     end
   end
 end

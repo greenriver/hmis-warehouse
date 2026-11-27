@@ -756,5 +756,58 @@ RSpec.describe HudReports::HouseholdContextBuilder, type: :model do
         expect(contexts.pluck(:household_type).uniq).to eq(['children_only'])
       end
     end
+
+    # 9014 item 1. Nightly processing can rebuild an enrollment's service history while the SPM runs.
+    # A rebuild replaces the entry row with a new one (new id), so the household context build must
+    # still recognize the enrollment after the universe snapshot was taken.
+    #
+    # Transactional: the race is about which rows the builder recognizes, not about isolation. The
+    # snapshot read finishes before the rebuild in both modes; outside a transaction the snapshot
+    # would run under REPEATABLE READ, which doesn't change what is read afterwards.
+    context 'when an enrollment is rebuilt after the universe snapshot (9014)' do
+      let(:child_contexts) do
+        HudReports::HouseholdContext.where(
+          report_instance_id: report.id,
+          source_enrollment_id: hud_enrollment_child.id,
+        )
+      end
+
+      def rebuild_child_service_history
+        rebuilder = GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find(hud_enrollment_child.id)
+        rebuilder.create_service_history!(true)
+      end
+
+      # Seam: run the rebuild at the point where a concurrent rebuild would land, right after the
+      # universe is read and before households are loaded.
+      def rebuild_child_after_universe_snapshot
+        allow(builder).to receive(:snapshot_universe!).and_wrap_original do |original|
+          snapshot = original.call
+          rebuild_child_service_history
+          snapshot
+        end
+      end
+
+      it 'keeps a household context for an enrollment rebuilt after the universe snapshot' do
+        pending('9014 item 1: universe is matched by service history id, which a rebuild replaces')
+        entry_id_before_rebuild = enrollment_child.id
+        rebuild_child_after_universe_snapshot
+
+        builder.call
+
+        entry_id_after_rebuild = GrdaWarehouse::ServiceHistoryEnrollment.entry.
+          find_by(enrollment_group_id: hud_enrollment_child.EnrollmentID).
+          id
+        # Guard: the scenario really replaced the entry row
+        expect(entry_id_after_rebuild).not_to eq(entry_id_before_rebuild)
+        expect(child_contexts.count).to eq(1)
+      end
+
+      it 'builds one context per enrollment when nothing is rebuilt during the run' do
+        builder.call
+
+        expect(child_contexts.count).to eq(1)
+        expect(report.household_contexts.count).to eq(2)
+      end
+    end
   end
 end
