@@ -17,7 +17,9 @@ module GrdaWarehouse::ClientNotes
       # was on, and check the column in the controller.
       return false unless client
 
-      GrdaWarehouse::CohortClient.with_deleted.where(client_id: client.id).preload(:cohort).any? do |cohort_client|
+      # Loads onto the client, so the other notes rendered for the same client reuse it.
+      ActiveRecord::Associations::Preloader.new(records: [client], associations: { cohort_clients_with_deleted: :cohort }).call
+      client.cohort_clients_with_deleted.any? do |cohort_client|
         cohort_client.cohort.present? && user.policy_for(cohort_client.cohort).can_edit_clients?
       end
     end
