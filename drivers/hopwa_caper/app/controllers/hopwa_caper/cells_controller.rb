@@ -13,6 +13,8 @@ module HopwaCaper
     before_action :enforce_question_completed, only: :show
     before_action :set_cell_records, only: :show
     before_action :enforce_hiv_drilldown_access, only: :show
+    # The redirect above gives the HIV message; this denies if the redirect is removed or reordered.
+    authorize_with(only: :show) { cell_access_allowed? }
 
     def show
       @name = "#{generator.file_prefix} #{@question} #{@cell}"
@@ -51,16 +53,22 @@ module HopwaCaper
     end
 
     private def enforce_hiv_drilldown_access
-      return if hopwa_report_policy.can_view_cell?(
-        enrollments: @enrollments,
-        services: @services,
-        mode: request.format.html? ? :browse : :download,
-      )
+      return if cell_access_allowed?
 
       redirect_to(
         path_for_question_result(@question, report: @report),
         alert: 'You do not have permission to view HIV/AIDS drilldown data.',
       )
+    end
+
+    private def cell_access_allowed?
+      return @cell_access_allowed if defined?(@cell_access_allowed)
+
+      @cell_access_allowed = hopwa_report_policy.can_view_cell?(
+        enrollments: @enrollments,
+        services: @services,
+        mode: request.format.html? ? :browse : :download,
+      ) == true
     end
 
     def formatted_cell(cell)

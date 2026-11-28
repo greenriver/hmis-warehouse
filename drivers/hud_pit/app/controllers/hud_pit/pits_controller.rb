@@ -17,6 +17,5 @@ module HudPit
     def default_report_version
       :fy2025
     end
-    helper_method :default_report_version
   end
 end

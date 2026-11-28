@@ -38,7 +38,7 @@ module HopwaCaper
     end
 
     private def hopwa_report_policy
-      current_user.policy_for(@report, policy_class: GrdaWarehouse::AuthPolicies::HopwaCaperReportPolicy)
+      hud_report_policy(@report)
     end
 
     private def set_question

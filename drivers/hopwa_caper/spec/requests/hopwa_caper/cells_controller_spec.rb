@@ -366,6 +366,17 @@ RSpec.describe HopwaCaper::CellsController, type: :request do
       expect(flash[:alert]).to eq(denial)
     end
 
+    it 'denies the drilldown through authorize_with when the HIV redirect does not run' do
+      allow(HopwaCaper::CellsController).to receive(:new).and_wrap_original do |original, *args|
+        original.call(*args).tap { |controller| allow(controller).to receive(:enforce_hiv_drilldown_access) }
+      end
+
+      get hud_reports_hopwa_caper_question_cell_path(cell_path_args)
+
+      expect(response).to redirect_to(warehouse_reports_path)
+      expect(flash[:alert]).to eq('Sorry you are not authorized to do that.')
+    end
+
     it 'omits drilldown links from the result page' do
       get result_path
 

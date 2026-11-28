@@ -12,18 +12,19 @@ module HudPit
     before_action :set_report
     before_action :set_question
     before_action :enforce_hiv_drilldown_access
+    authorize_with(only: :show) { hiv_cell_allowed? }
 
     def report_param_name
       :pit_id
     end
 
     private def set_question
-      @question = generator.valid_question_number(params[:question] || params[:question_id])
+      @question = generator.valid_question_number(params[:question_id])
     end
 
     def show
       @cell = @report.valid_cell_name(params[:id])
-      @table = generator.valid_table_name(params[:table])
+      @table = @question
       @clients = HudPit::Fy2022::PitClient.
         joins(hud_reports_universe_members: { report_cell: :report_instance }).
         merge(::HudReports::ReportCell.for_table(@table).for_cell(@cell)).
@@ -38,22 +39,24 @@ module HudPit
       end
     end
 
-    # No-op when the user may view HIV drilldowns, or when this cell is not the
-    # HIV/AIDS row for a question that defines HIV_AIDS_ROW. Otherwise redirects
-    # with an alert (before_action halts the request).
     private def enforce_hiv_drilldown_access
-      return if current_user.can_view_hiv_status?
-
-      question_class = generator.questions[@question]
-      return unless question_class&.const_defined?(:HIV_AIDS_ROW)
-
-      row_number = row_number_from_cell_label(params[:id])
-      return unless row_number == question_class::HIV_AIDS_ROW
+      return if hiv_cell_allowed?
 
       redirect_to(
         result_hud_reports_pit_question_path(pit_id: @report.id, id: @question),
         alert: 'You do not have permission to view HIV/AIDS drilldown data.',
       )
+    end
+
+    # True when the user may view HIV drilldowns, or when this cell is not the
+    # HIV/AIDS row for a question that defines HIV_AIDS_ROW.
+    private def hiv_cell_allowed?
+      return true if current_user.can_view_hiv_status? == true
+
+      question_class = generator.questions[@question]
+      return true unless question_class&.const_defined?(:HIV_AIDS_ROW)
+
+      row_number_from_cell_label(params[:id]) != question_class::HIV_AIDS_ROW
     end
 
     # Cell drilldown `params[:id]` matches HUD report table links from
