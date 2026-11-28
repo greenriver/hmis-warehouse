@@ -45,13 +45,14 @@ RSpec.describe HudPathReport::Generators::Fy2026::QuestionEightToSixteen, type: 
 
   # An enrollment that is active in PATH through one contact (a Current Living Situation and a PATH
   # service on the same day). Its contact dates are the PATH status date and that contact date.
-  def create_path_enrollment(client:, entry_date:, contact_date:)
+  def create_path_enrollment(client:, entry_date:, contact_date:, **enrollment_options)
     enrollment = create_enrollment(
       client: client,
       project: path_project,
       entry_date: entry_date,
       ClientEnrolledInPATH: 1,
       DateOfPATHStatus: entry_date,
+      **enrollment_options,
     )
     create(
       :hud_current_living_situation,
@@ -166,6 +167,47 @@ RSpec.describe HudPathReport::Generators::Fy2026::QuestionEightToSixteen, type: 
     end
   end
 
+  # The report is filtered to MA-500. Per the FY2026 PATH spec, only PATH-funded stays count, and
+  # its one geographic filter is the PATH enrollment's own Enrollment CoC (3.16).
+  describe 'Enrollment CoC filter' do
+    let(:client) { create_client_with_warehouse_link }
+    let(:report) { new_report }
+
+    def client_row
+      path_clients(report).find_by(destination_client_id: client.destination_client.id)
+    end
+
+    it 'does not report a PATH enrollment in another CoC, even when the client has a later one' do
+      create_path_enrollment(client: client, entry_date: Date.new(2025, 11, 1), contact_date: Date.new(2025, 12, 1))
+      create_path_enrollment(
+        client: client,
+        entry_date: Date.new(2026, 3, 1),
+        contact_date: Date.new(2026, 3, 15),
+        enrollment_coc: 'MA-502',
+      )
+      build_service_history
+
+      question_for(report).run_question!
+
+      expect(client_row.first_date_in_program).to eq(Date.new(2025, 11, 1))
+    end
+
+    it 'does not report a client whose only PATH enrollment is in another CoC' do
+      create_enrollment(client: client, project: other_project, entry_date: Date.new(2025, 11, 1))
+      create_path_enrollment(
+        client: client,
+        entry_date: Date.new(2025, 11, 1),
+        contact_date: Date.new(2025, 12, 1),
+        enrollment_coc: 'MA-502',
+      )
+      build_service_history
+
+      question_for(report).run_question!
+
+      expect(client_row).to be_nil
+    end
+  end
+
   # Seam: the report looks up the client's latest active PATH enrollment more than once. These
   # examples change the client's enrollments right after the first lookup, as an import running
   # alongside the report would.
@@ -210,11 +252,10 @@ RSpec.describe HudPathReport::Generators::Fy2026::QuestionEightToSixteen, type: 
       expect { question.run_question! }.not_to raise_error
 
       expect(state[:changed]).to be(true)
-      # If the client is reported, the row describes the one enrollment that was read
-      if client_row
-        expect(client_row.first_date_in_program).to eq(first_enrollment.EntryDate)
-        expect(client_row.contacts).to match_array(expected_contacts)
-      end
+      # The enrollment was read before the delete, so the row describes that one enrollment
+      expect(client_row).to be_present
+      expect(client_row.first_date_in_program).to eq(first_enrollment.EntryDate)
+      expect(client_row.contacts).to match_array(expected_contacts)
     end
 
     it 'describes one enrollment when a later enrollment appears mid-run' do

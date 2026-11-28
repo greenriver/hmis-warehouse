@@ -279,7 +279,10 @@ module HudPathReport::Generators::Fy2026
         order(EntryDate: :desc, DateUpdated: :desc)
       scope = scope.with_project_type(@filter.project_type_ids) if @filter.project_type_ids.present?
       scope = scope.in_project(@report.project_ids) if @report.project_ids.present? # for consistency with client_scope
-      scope
+      # Same Enrollment CoC rule client_scope applies, so the reported enrollment is one that put
+      # the client in the report. The PATH spec's only geographic filter is the enrollment's 3.16.
+      enrollment_cocs = Filters::Criteria::FilterForEnrollmentCocs.new(input: @filter)
+      scope.merge(enrollment_cocs.enrollment_scope)
     end
 
     # Per HUD: Per discussions with SAMSHA and as discussed in the last vendor call, we're asking vendors to filter down to only the active enrollments first and then to keep only the most recent enrollment. This is intended to include clients in situations where, for instance, they were active for the first six months before being exited and then returned the day before the report end date and have no services yet.
