@@ -265,6 +265,7 @@ RSpec.describe 'Cohort client, note and search query authorization', type: :requ
       end
 
       it 'update changes an inactive row with manage-inactive, including turning Active back on' do
+        cohort_a.update!(column_state: [CohortColumns::FirstName.new, CohortColumns::Rank.new, CohortColumns::Active.new])
         grant(user, [:can_view_cohorts, :can_participate_in_cohorts, :can_manage_inactive_cohort_clients], cohort_a)
 
         patch_row(cohort_a, cohort_client_a, rank: 7)
@@ -306,6 +307,96 @@ RSpec.describe 'Cohort client, note and search query authorization', type: :requ
 
         expect(response).to have_http_status(:ok)
         expect(GrdaWarehouse::CohortClient.with_deleted.find(cohort_client_a.id).rank).to eq(7)
+      end
+
+      describe 'removing and ranking rows' do
+        let!(:active_row) { GrdaWarehouse::CohortClient.create!(cohort: cohort_a, client: create(:grda_warehouse_hud_client), rank: 5) }
+        let(:remover_permissions) { [:can_view_cohorts, :can_participate_in_cohorts, :can_add_cohort_clients] }
+
+        it 'pre_destroy is not found for an inactive row without view-inactive' do
+          grant(user, remover_permissions, cohort_a)
+
+          get pre_destroy_cohort_cohort_client_path(cohort_a, cohort_client_a)
+
+          expect(response).to have_http_status(:not_found)
+        end
+
+        it 'destroy is not found for an inactive row without view-inactive and leaves it in place' do
+          grant(user, remover_permissions, cohort_a)
+
+          delete cohort_cohort_client_path(cohort_a, cohort_client_a)
+
+          expect(response).to have_http_status(:not_found)
+          expect(GrdaWarehouse::CohortClient.exists?(cohort_client_a.id)).to be(true)
+        end
+
+        it 'destroy removes an inactive row with view-inactive' do
+          grant(user, remover_permissions + [:can_view_inactive_cohort_clients], cohort_a)
+
+          delete cohort_cohort_client_path(cohort_a, cohort_client_a)
+
+          expect(response).to redirect_to(cohort_path(cohort_a))
+          expect(GrdaWarehouse::CohortClient.exists?(cohort_client_a.id)).to be(false)
+        end
+
+        it 'bulk_destroy removes only the rows in tabs the user can see' do
+          grant(user, remover_permissions, cohort_a)
+
+          delete bulk_destroy_cohort_cohort_clients_path(cohort_a), params: { cc: { cohort_client_ids: [cohort_client_a.id, active_row.id].join(',') } }
+
+          expect(GrdaWarehouse::CohortClient.exists?(active_row.id)).to be(false)
+          expect(GrdaWarehouse::CohortClient.exists?(cohort_client_a.id)).to be(true)
+        end
+
+        it 're_rank ranks the visible rows and leaves a row in a hidden tab unchanged' do
+          cohort_client_a.update!(rank: 9)
+          grant(user, [:can_view_cohorts, :can_participate_in_cohorts], cohort_a)
+
+          patch re_rank_cohort_cohort_clients_path(cohort_a), params: { rank_order: [cohort_client_a.id, active_row.id].join(',') }
+
+          expect(active_row.reload.rank).to eq(1)
+          expect(cohort_client_a.reload.rank).to eq(9)
+        end
+      end
+    end
+
+    describe 'column editability on update' do
+      before do
+        cohort_a.update!(
+          column_state: [
+            CohortColumns::FirstName.new,
+            CohortColumns::Rank.new(editable: false),
+            CohortColumns::HousingSearchAgency.new,
+          ],
+        )
+        sign_in user
+      end
+
+      def patch_row(attributes)
+        patch cohort_cohort_client_path(cohort_a, cohort_client_a, format: :json), params: { cohort_client: attributes }
+      end
+
+      it 'saves only the visible columns this cohort marks editable for a participant' do
+        grant(user, [:can_view_cohorts, :can_participate_in_cohorts], cohort_a)
+
+        patch_row(housing_search_agency: 'Agency A', rank: 7, location: 'Hidden column')
+
+        expect(response).to have_http_status(:ok)
+        cohort_client_a.reload
+        expect(cohort_client_a.housing_search_agency).to eq('Agency A')
+        expect(cohort_client_a.rank).not_to eq(7)
+        expect(cohort_client_a.location).not_to eq('Hidden column')
+      end
+
+      it 'saves a visible column marked non-editable for a manage-data user, but not a hidden column' do
+        grant(user, [:can_view_cohorts, :can_manage_cohort_data], cohort_a)
+
+        patch_row(rank: 7, location: 'Hidden column')
+
+        expect(response).to have_http_status(:ok)
+        cohort_client_a.reload
+        expect(cohort_client_a.rank).to eq(7)
+        expect(cohort_client_a.location).not_to eq('Hidden column')
       end
     end
 

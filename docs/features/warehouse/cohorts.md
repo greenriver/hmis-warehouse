@@ -50,13 +50,15 @@ A user who can configure a cohort but not view it sees the Edit page and nothing
 
 ### Listing
 
-The index lists cohorts through `User#can_access_some_cohorts` and `GrdaWarehouse::Cohort.listable_by`. It includes a cohort when the user has a view, participate, manage-data or configure permission on it, the same condition as `CohortPolicy#can_list?`. A cohort the user can configure but not view links to Edit instead of the cohort page; the index decides this per cohort with `can_view?` and `can_configure?`. The set of cohorts behind the index is cached per user for five minutes, while the per-request checks are live, so a change to a user's access can take up to five minutes to show in the list.
+The index lists cohorts through `User#can_access_some_cohorts` and `GrdaWarehouse::Cohort.listable_by`. It includes a cohort when the user has a view, participate, manage-data or configure permission on it. A cohort the user can configure but not view links to Edit instead of the cohort page; the index decides this per cohort with `can_view?` and `can_configure?`. The set of cohorts behind the index is cached per user for five minutes, while the per-request checks are live, so a change to a user's access can take up to five minutes to show in the list.
 
 ### Per-cohort checks
 
 The cohort controllers load the cohort without a user scope and then authorize with `authorize_with` and `cohort_policy` (`CohortAuthorization`). A refused request redirects; an id that doesn't exist returns 404. Every other cohort permission (add clients, manage data, participate, manage inactive, view deleted, download, edit columns, changes report) is true only when the user can also view the cohort and holds the permission through it. `can_edit_cohort_columns` gates the columns page per cohort; `can_create_cohorts` gates the column names and options pages.
 
-Reading or changing one cohort client row (`Cohorts::ClientsController` show, edit, field and update, and the notes indexes in `Cohorts::ClientNotesController` and `Cohorts::NotesController`) goes through `find_visible_cohort_client`. The row must be in a tab the user can see on that cohort, or the request returns 404. `Cohorts::ClientsController#index` answers JSON only; an HTML request returns 406.
+Reading, changing or removing one cohort client row (`Cohorts::ClientsController` show, edit, field, update, pre_destroy and destroy, and the notes indexes in `Cohorts::ClientNotesController` and `Cohorts::NotesController`) goes through `find_visible_cohort_client`. The row must be in a tab the user can see on that cohort, or the request returns 404. Bulk remove, bulk restore and re-rank act only on the submitted rows that are in a visible tab (`visible_cohort_client_ids`) and skip the rest. `Cohorts::ClientsController#index` answers JSON only; an HTML request returns 406.
+
+An update saves only the columns shown on that cohort's grid (`Cohort#active_columns`) that are editable for the user: every editable column for manage-data, and columns the cohort marks editable for participate. Columns hidden on the cohort are not saved.
 
 Deleting a cohort note (`GrdaWarehouse::ClientNotes::CohortNote#destroyable_by`) checks every cohort the client is on or was removed from, and requires `can_edit_clients?` on at least one.
 
@@ -67,6 +69,7 @@ Deleting a cohort note (`GrdaWarehouse::ClientNotes::CohortNote#destroyable_by`)
 Release notes:
 
 - ACL users who could configure any visible cohort now configure only the cohorts where they are Managers or hold configure through a collection. The backfill covers existing Participants who held a non-system configure role. Others need to be added as Managers.
+- ACL users now hold every other cohort permission only through a role on a collection that contains the cohort: add clients, manage data, manage inactive clients, view inactive clients, view deleted clients, download, edit columns and the changes report. A role on a data source, project or other collection no longer grants them on any cohort. The Participant and Viewer lists grant only participate and view, so admins must add each affected cohort to a collection and grant a role carrying these permissions to the users who need them. The backfill does not grant them.
 - Roles that gave `can_configure_cohorts` now also need `can_create_cohorts` to create cohorts. The `AddCanCreateCohortsPermission` migration sets it on non-system roles that held configure.
 - Legacy (role-based) users: a per-cohort permission other than configure now also needs a view, participate or manage-data permission on the cohort. Roles with only add-clients, download, changes-report, edit-columns or manage-inactive lose access to the cohort.
 - Managers can add themselves as Participant or Viewer.
