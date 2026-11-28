@@ -236,4 +236,43 @@ RSpec.describe Hmis::UndoMergeClientsJob, type: :job do
       expect(dirty_trackables).to include(deleted_client.destination_client.as_warehouse)
     end
   end
+
+  describe "#perform with the retained client's service history built" do
+    let(:retained_client) { create(:hmis_hud_client_with_warehouse_client, date_created: Time.current - 1.week, data_source: data_source) }
+    let(:deleted_client) { create(:hmis_hud_client_with_warehouse_client, date_created: Time.current - 5.days, data_source: data_source) }
+    let!(:retained_client_enrollment) { create(:hmis_hud_enrollment, client: retained_client, project: project, data_source: data_source) }
+    let(:retained_destination_id) { retained_client.destination_client.id }
+
+    def service_history_for(enrollment)
+      GrdaWarehouse::ServiceHistoryEnrollment.where(
+        client_id: retained_destination_id,
+        data_source_id: enrollment.data_source_id,
+        enrollment_group_id: enrollment.EnrollmentID,
+        project_id: enrollment.ProjectID,
+      )
+    end
+
+    before do
+      Hmis::MergeClientsJob.perform_now(
+        client_ids: [retained_client.id, deleted_client.id],
+        actor_id: actor.id,
+      )
+      deleted_client.reload
+      GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find_each(&:rebuild_service_history!)
+      GrdaWarehouse::WarehouseClientsProcessed.update_cached_counts(client_ids: [retained_destination_id])
+    end
+
+    it "removes the restored enrollment's rows from the retained client and keeps the retained enrollment's rows" do
+      expect(service_history_for(deleted_client_enrollment).entry).to exist
+      expect(service_history_for(retained_client_enrollment).entry).to exist
+
+      described_class.perform_now(
+        retained_client_id: retained_client.id,
+        deleted_client_id: deleted_client.id,
+      )
+
+      expect(service_history_for(deleted_client_enrollment)).not_to exist
+      expect(service_history_for(retained_client_enrollment).entry).to exist
+    end
+  end
 end

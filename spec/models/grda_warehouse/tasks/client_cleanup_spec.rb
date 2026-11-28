@@ -1544,7 +1544,6 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
 
     context 'with a client whose service history is correct' do
       it "keeps the client's entry and exit rows until the queued rebuild runs" do
-        pending('9014 item 3: Add deletes all of the client\'s service history before queueing the rebuild')
         expect(record_types_for(valid_enrollment)).to eq(['entry', 'exit'])
 
         invalidate_and_add
@@ -1572,7 +1571,6 @@ RSpec.describe GrdaWarehouse::Tasks::ClientCleanup, type: :model do
       end
 
       it 'removes the extra row and keeps the valid rows until the queued rebuild runs' do
-        pending('9014 item 3: Add deletes all of the client\'s service history before queueing the rebuild')
         expect(service_history_for(removed_enrollment)).to exist
         expect(record_types_for(valid_enrollment)).to eq(['entry', 'exit'])
 

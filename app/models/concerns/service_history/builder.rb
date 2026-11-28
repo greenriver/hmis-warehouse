@@ -76,10 +76,13 @@ module ServiceHistory::Builder
       client_ids = Array.wrap(client_ids)
 
       GrdaWarehouse::Hud::Enrollment.with_advisory_lock(ADVISORY_LOCK_NAME) do
-        # Force rebuilds for any clients with invalidated service histories
-
+        # Force rebuilds for any clients with invalidated service histories. Their valid rows stay
+        # in place until each enrollment's rebuild replaces them; rows no rebuild will replace are
+        # removed now.
         GrdaWarehouse::Hud::Client.destination.where(id: client_ids).find_each do |client|
-          client.force_full_service_history_rebuild if client.service_history_invalidated?
+          next unless client.service_history_invalidated?
+
+          GrdaWarehouse::Tasks::ServiceHistory::InvalidateClientInPlace.new(client).run!
         end
 
         enrollment_ids = builder_client_enrollment_ids(client_ids)
