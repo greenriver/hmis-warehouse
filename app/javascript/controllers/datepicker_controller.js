@@ -1,6 +1,24 @@
 import { Controller } from "@hotwired/stimulus"
 import { TempusDominus, DateTime } from '@eonasdan/tempus-dominus';
 
+// Stop a form from submitting while one of its dates is flagged invalid. The browser already does
+// this for forms that validate, but simple_form renders novalidate, so without this the flagged
+// text reaches Rails, which reads "2/30/2024" as nil and "13/01/2024" as Jan 13. This listens in
+// the capture phase on document so it runs before the jquery_ujs, AjaxModal, and Turbo submit
+// handlers; stopping propagation keeps jquery_ujs from disabling the submit button. Submits that
+// fire no submit event (form.submit(), jQuery .trigger('submit')) aren't covered.
+const blockSubmitWithInvalidDate = (event) => {
+  if (event.submitter?.formNoValidate) return;
+
+  const invalidInput = event.target.querySelector?.('input[data-datepicker-invalid]');
+  if (!invalidInput) return;
+
+  event.preventDefault();
+  event.stopImmediatePropagation();
+  invalidInput.reportValidity();
+};
+document.addEventListener('submit', blockSubmitWithInvalidDate, true);
+
 // Connects to data-controller="datepicker"
 export default class extends Controller {
   static targets = ["container"]
@@ -98,6 +116,14 @@ export default class extends Controller {
 
     this.labelToggleButton();
 
+    // Tempus Dominus doesn't call parseInput for an empty value (Dates.setFromInput returns early),
+    // so a flagged field that the user empties is cleared here.
+    this.input = this.element.tagName === 'INPUT' ? this.element : this.element.querySelector('input');
+    this.clearValidityWhenEmpty = () => {
+      if (this.input.value.trim() === '') this.markInputValidity(this.input, true);
+    };
+    this.input?.addEventListener('change', this.clearValidityWhenEmpty);
+
     // Listen for when the picker is shown to add text labels
     this.element.addEventListener('show.td', (_event) => {
       this.toggleButton?.setAttribute('aria-expanded', 'true');
@@ -113,7 +139,11 @@ export default class extends Controller {
     });
 
     // Listen for date changes and dispatch a standard change event for submit-on-change functionality
-    this.element.addEventListener('change.td', (_event) => {
+    this.element.addEventListener('change.td', (event) => {
+      // The Clear button fires this with no date before it empties the input, so the empty-value
+      // listener above would still see the old text
+      if (!event.detail?.date) this.markInputValidity(this.input, true);
+
       // Find the input field within the datepicker wrapper
       const inputField = this.element.querySelector('input');
       if (inputField) {
@@ -125,6 +155,7 @@ export default class extends Controller {
   }
 
   disconnect() {
+    this.input?.removeEventListener('change', this.clearValidityWhenEmpty);
     if (this.datepicker && typeof this.datepicker.dispose === 'function') {
       this.datepicker.dispose();
       this.datepicker = null;
@@ -182,6 +213,8 @@ export default class extends Controller {
       for (const format of formats) {
         const parsed = parseStrict(candidate, format);
         if (parsed) {
+          const twoDigitYear = format.includes('yy') && !format.includes('yyyy');
+          if (twoDigitYear) this.applyTwoDigitYearPivot(parsed);
           this.markInputValidity(input, true);
           return parsed;
         }
@@ -192,6 +225,16 @@ export default class extends Controller {
     // undefined tells Tempus Dominus not to change the selected date.
     this.markInputValidity(input, false);
     return undefined;
+  }
+
+  // Tempus Dominus reads a two-digit year as 1969-2068, so a birth date typed as "1/2/50" came back
+  // as 2050. Use the latest matching year no more than 10 years from now instead: in 2026, "50" is
+  // 1950 and "36" is 2036.
+  applyTwoDigitYearPivot(dt) {
+    const maxYear = new Date().getFullYear() + 10;
+    let year = Math.floor(maxYear / 100) * 100 + (dt.getFullYear() % 100);
+    if (year > maxYear) year -= 100;
+    dt.setFullYear(year);
   }
 
   // Compare formatted and typed dates ignoring case, commas, extra spaces, and leading zeros, so
@@ -205,6 +248,9 @@ export default class extends Controller {
     if (!input) return;
 
     input.classList.toggle('is-invalid', !valid);
+    // A marker of our own for the submit guard; aria-invalid is also set by simple_form on fields
+    // with server errors
+    input.toggleAttribute('data-datepicker-invalid', !valid);
     input.setCustomValidity(valid ? '' : 'Enter a date like Jan 31, 2025 or 1/31/2025');
 
     // Screen readers get the error through aria-invalid and aria-describedby; any description the

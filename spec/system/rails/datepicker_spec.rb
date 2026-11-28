@@ -89,6 +89,55 @@ RSpec.feature 'JavaScript Functionality Test', type: :rails_system do
       expect(picker[:class]).not_to include('is-invalid')
       expect(picker['aria-invalid']).to be_nil
       expect(picker['aria-describedby']).to be_nil
+
+      # A two-digit year more than 10 years ahead belongs to the last century. Tempus Dominus alone
+      # reads anything up to 68 as 20xx, so a birth date typed as "1/2/50" landed in 2050.
+      far_year = Date.current.year + 20
+      fill_in picker[:id], with: "1/2/#{far_year.to_s.last(2)}"
+      picker.trigger(:blur)
+      expect(picker.value).to eq("Jan 2, #{far_year - 100}")
+    end
+
+    it 'clears the error when a flagged date is emptied' do
+      visit datepicker_style_guide_path
+      picker = find('input.datepicker')
+
+      # Emptied by typing, with no date picked before
+      fill_in picker[:id], with: '2/30/2024'
+      picker.trigger(:blur)
+      expect(picker[:class]).to include('is-invalid')
+      fill_in picker[:id], with: ''
+      picker.trigger(:blur)
+      expect(picker[:class]).not_to include('is-invalid')
+      expect(picker['aria-invalid']).to be_nil
+
+      # Emptied with the popup's Clear button, after a date was picked
+      fill_in picker[:id], with: '5/7/2024'
+      picker.trigger(:blur)
+      fill_in picker[:id], with: '2/30/2024'
+      picker.trigger(:blur)
+      expect(picker[:class]).to include('is-invalid')
+      find('button.icon-calendar').click
+      find('.tempus-dominus-widget [data-action="clear"]').click
+      expect(picker.value).to eq('')
+      expect(picker[:class]).not_to include('is-invalid')
+      expect(picker['aria-invalid']).to be_nil
+    end
+
+    it 'blocks submitting a form with a flagged date' do
+      visit datepicker_style_guide_path
+      picker = find('input.datepicker')
+
+      # The style guide form is simple_form (novalidate) and posts to a path that only accepts GET,
+      # so a submit that got through would leave this page
+      fill_in picker[:id], with: '2/30/2024'
+      picker.trigger(:blur)
+      click_button 'Create'
+      # Focus moving back to the field shows the guard ran (reportValidity)
+      expect(page).to have_css("##{picker[:id]}:focus")
+      expect(page).to have_current_path(datepicker_style_guide_path)
+      expect(picker.value).to eq('2/30/2024')
+      expect(page).to have_button('Create', disabled: false)
     end
   end
 end
