@@ -26,13 +26,8 @@ RSpec.describe BostonReports::CommunityOfOrigin, '.earliest_enrollment_per_clien
     )
   end
 
-  def result_ids(scope = entries, preferred_project_types: nil)
-    described_class.earliest_enrollment_per_client(
-      scope,
-      start_date: start_date,
-      end_date: end_date,
-      preferred_project_types: preferred_project_types,
-    ).pluck(:id)
+  def result_ids(scope = entries)
+    described_class.earliest_enrollment_per_client(scope, start_date: start_date, end_date: end_date).pluck(:id)
   end
 
   it 'keeps the earliest open entry for each client' do
@@ -87,19 +82,19 @@ RSpec.describe BostonReports::CommunityOfOrigin, '.earliest_enrollment_per_clien
       expect(result_ids).to contain_exactly(first_row.id)
     end
 
-    it 'keeps the entry in a preferred project type over one that exits later' do
-      in_report = build_row(client: client, first: day, last: Date.new(2025, 8, 1), project_type: 1)
+    it 'ignores a same-day entry outside the scope even when it has no exit date' do
+      in_scope = build_row(client: client, first: day, last: Date.new(2025, 8, 1), project_type: 1)
       build_row(client: client, first: day, last: nil, project_type: 6)
 
-      expect(result_ids(entries.where(project_type: 1), preferred_project_types: [1])).to contain_exactly(in_report.id)
+      expect(result_ids(entries.where(project_type: 1))).to contain_exactly(in_scope.id)
     end
 
-    it 'ranks entries within the preferred project types by exit date' do
+    it 'ranks the in-scope entries by exit date' do
       build_row(client: client, first: day, last: Date.new(2025, 8, 1), project_type: 1)
       later = build_row(client: client, first: day, last: Date.new(2025, 10, 1), project_type: 4)
       build_row(client: client, first: day, last: nil, project_type: 6)
 
-      expect(result_ids(preferred_project_types: [1, 4])).to contain_exactly(later.id)
+      expect(result_ids(entries.where(project_type: [1, 4]))).to contain_exactly(later.id)
     end
 
     it 'keeps the lower id when neither has an exit date' do
@@ -117,11 +112,11 @@ RSpec.describe BostonReports::CommunityOfOrigin, '.earliest_enrollment_per_clien
     expect(result_ids).to be_empty
   end
 
-  it 'picks the first enrollment before applying the report filter' do
+  it 'ignores an earlier entry outside the scope' do
     client = create(:grda_warehouse_hud_client, data_source: data_source)
     build_row(client: client, first: Date.new(2025, 2, 1), project_type: 6)
-    build_row(client: client, first: Date.new(2025, 3, 1), project_type: 1)
+    march = build_row(client: client, first: Date.new(2025, 3, 1), project_type: 1)
 
-    expect(result_ids(entries.where(project_type: 1), preferred_project_types: [1])).to be_empty
+    expect(result_ids(entries.where(project_type: 1))).to contain_exactly(march.id)
   end
 end

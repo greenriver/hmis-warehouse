@@ -120,65 +120,42 @@ module BostonReports
         scope,
         start_date: filter.start_date,
         end_date: filter.end_date,
-        preferred_project_types: (report_project_types unless all_project_types),
       )
     end
 
-    # Matches the project types Filters::Criteria::FilterForProjectType applies to the report.
-    private def report_project_types
-      types = filter.project_type_ids
-      types += HudHelper.util.performance_reporting[:ce] if filter.coordinated_assessment_living_situation_homeless || filter.ce_cls_as_homeless
-      types
-    end
-
-    # Limits scope to each client's earliest entry open in the range. Earlier entries are looked
-    # up among all open entries, not just scope, so a client whose first enrollment falls outside
-    # scope is excluded. Same-day ties keep, in order: an entry in preferred_project_types, the
-    # entry with no exit date, the later exit date, then the lower id. Rows in scope that are not
-    # entries open in the range are dropped.
-    def self.earliest_enrollment_per_client(scope, start_date:, end_date:, preferred_project_types: nil)
+    # Limits scope to each client's earliest entry open in the range. Only rows in scope compete,
+    # so an entry outside the report's filters never removes a client. Same-day ties keep the
+    # entry with no exit date, then the later exit date, then the lower id.
+    def self.earliest_enrollment_per_client(scope, start_date:, end_date:)
       she = GrdaWarehouse::ServiceHistoryEnrollment
       current = she.arel_table
       earlier = she.arel_table.alias('earlier_enrollments')
+      scope = scope.where(open_entry_condition(current, start_date: start_date, end_date: end_date))
       earlier_enrollments = she.unscoped.from(earlier).
-        where(open_entry_condition(earlier, start_date: start_date, end_date: end_date)).
+        where(earlier[:id].in(scope.select(:id).arel)).
         where(earlier[:client_id].eq(current[:client_id])).
-        where(ranks_before(earlier, current, preferred_project_types)).
+        where(ranks_before(earlier, current)).
         select(1)
-      scope.
-        where(open_entry_condition(current, start_date: start_date, end_date: end_date)).
-        where(earlier_enrollments.arel.exists.not)
+      scope.where(earlier_enrollments.arel.exists.not)
     end
 
-    def self.ranks_before(earlier, current, preferred_project_types)
+    def self.ranks_before(earlier, current)
       earlier[:first_date_in_program].lt(current[:first_date_in_program]).
         or(
           earlier[:first_date_in_program].eq(current[:first_date_in_program]).
-            and(same_day_ranks_before(earlier, current, preferred_project_types)),
+            and(same_day_ranks_before(earlier, current)),
         )
     end
     private_class_method :ranks_before
 
-    def self.same_day_ranks_before(earlier, current, preferred_project_types)
+    def self.same_day_ranks_before(earlier, current)
       earlier_exit = earlier[:last_date_in_program]
       current_exit = current[:last_date_in_program]
-      exit_ranks_first = earlier_exit.eq(nil).and(current_exit.not_eq(nil)).
+      earlier_exit.eq(nil).and(current_exit.not_eq(nil)).
         or(earlier_exit.gt(current_exit)).
         or(Arel::Nodes::IsNotDistinctFrom.new(earlier_exit, current_exit).and(earlier[:id].lt(current[:id])))
-      return exit_ranks_first if preferred_project_types.blank?
-
-      earlier_preferred = preferred_project_type(earlier, preferred_project_types)
-      current_preferred = preferred_project_type(current, preferred_project_types)
-      earlier_preferred.and(current_preferred.not).
-        or(Arel::Nodes::Equality.new(earlier_preferred, current_preferred).and(exit_ranks_first))
     end
     private_class_method :same_day_ranks_before
-
-    # COALESCE keeps a NULL project_type from making the comparison unknown.
-    def self.preferred_project_type(table, project_types)
-      Arel::Nodes::NamedFunction.new('COALESCE', [table[:project_type].in(project_types), Arel::Nodes::False.new])
-    end
-    private_class_method :preferred_project_type
 
     def self.open_entry_condition(table, start_date:, end_date:)
       table[:record_type].eq('entry').
