@@ -103,12 +103,18 @@ module HmisUtil
       def import_definitions
         @payload.fetch('definitions', []).group_by { |d| d['identifier'] }.each do |identifier, versions|
           local = Hmis::Form::Definition.where(data_source_id: @data_source_id, identifier: identifier)
-          make_room(local, versions.to_h { |d| [d['version'], d['status']] })
+          definitions = versions.map do |attrs|
+            local.find_or_initialize_by(version: attrs['version']).tap do |definition|
+              definition.assign_attributes(attrs.slice(*FormExporter::DEFINITION_COLUMNS).except('identifier', 'version'))
+            end
+          end
+          # Checked before make_room, which would otherwise retire local versions for an import that then gets skipped.
+          errors = definitions.reject(&:valid?).flat_map { |definition| definition.errors.full_messages }.uniq
+          next log("SKIP definition #{identifier}: #{errors.join(', ')}") if errors.any?
 
-          versions.each do |attrs|
-            definition = local.find_or_initialize_by(version: attrs['version'])
-            definition.assign_attributes(attrs.slice(*FormExporter::DEFINITION_COLUMNS).except('identifier', 'version'))
-            log_save(definition, "definition #{identifier} v#{attrs['version']} (#{attrs['status']})")
+          make_room(local, versions.to_h { |d| [d['version'], d['status']] })
+          definitions.each do |definition|
+            log_save(definition, "definition #{identifier} v#{definition.version} (#{definition.status})")
           end
         end
       end

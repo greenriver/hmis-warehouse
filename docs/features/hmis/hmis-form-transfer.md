@@ -63,7 +63,7 @@ A record that would fail validation, or that conflicts with local data in a way 
 
 | Record | Matched by | When it already exists |
 |---|---|---|
-| Form definition | identifier and version | Overwritten. A different local version holding the published or draft slot is retired or soft-deleted, since only one of each is allowed per identifier. |
+| Form definition | identifier and version | Overwritten. A different local version holding the published or draft slot is retired or soft-deleted, since only one of each is allowed per identifier. Skipped, with all its versions, when any version fails validation, such as an External Form key held by a different local form. |
 | CDED | owner type and key | Updated. A key held by another data source is skipped, because the key is unique across data sources. A `reporting_key` used by a different local CDED is replaced with a new one, and later imports keep that replacement. |
 | Organization, project, funder, ProjectCoC, inventory | HUD ID | Updated if it is the same record; otherwise the copy gets a new HUD ID (see below). |
 | Form rule | all of its attributes | Left alone. |

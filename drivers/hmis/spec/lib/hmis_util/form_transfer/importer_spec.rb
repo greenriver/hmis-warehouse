@@ -146,6 +146,26 @@ RSpec.describe HmisUtil::FormTransfer::Importer do
     end
   end
 
+  describe 'a definition that fails validation locally' do
+    let(:payload) do
+      create(:hmis_external_form_definition, data_source: data_source, identifier: 'intake', version: 2, status: 'published', external_form_object_key: 'shared/intake')
+      create(:hmis_form_definition, data_source: data_source, identifier: 'pets', role: 'CUSTOM_ASSESSMENT', version: 5, status: 'published')
+      export(identifiers: ['intake', 'pets'], include_projects: false).tap { wipe(data_source) }
+    end
+
+    it 'skips that identifier without retiring its local versions and imports the rest' do
+      payload
+      create(:hmis_external_form_definition, data_source: data_source, identifier: 'other_intake', status: 'published', external_form_object_key: 'shared/intake')
+      local_intake = create(:hmis_external_form_definition, data_source: data_source, identifier: 'intake', version: 1, status: 'published')
+
+      import(payload)
+
+      expect(Hmis::Form::Definition.where(data_source_id: data_source.id, identifier: 'intake').pluck(:id, :status)).to eq([[local_intake.id, 'published']])
+      expect(Hmis::Form::Definition.where(data_source_id: data_source.id, identifier: 'pets').pluck(:version, :status)).to eq([[5, 'published']])
+      expect(output.string).to include('SKIP definition intake: External form object key is already used by a different form')
+    end
+  end
+
   describe 'CDEDs' do
     let(:payload) do
       create(:hmis_form_definition, data_source: data_source, identifier: 'pets', role: 'CUSTOM_ASSESSMENT')
