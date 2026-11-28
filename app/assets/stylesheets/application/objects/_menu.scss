@@ -1,17 +1,72 @@
 @import '../helpers';
 
+// Shared by the drawer and the full-width column so the menu is the same width
+// in both. The nav, not .o-menu, is the scroll container, and it always
+// reserves its scrollbar's space so the width doesn't change as sections
+// expand and a scrollbar comes and goes.
+@mixin o-menu-scrolling-nav {
+  // --o-menu-scrollbar-width is set by site_menu_controller.js to the width of
+  // the nav's scrollbar gutter: 0 for overlay scrollbars, otherwise the classic
+  // scrollbar's width. Widening by exactly that keeps the labels as wide as
+  // they'd be with no scrollbar, so they don't wrap.
+  --o-menu-width: calc(#{$nav-side-width} + var(--o-menu-scrollbar-width, 0px));
+  // The nav's scrollbar sits at the nav's right edge. Move the menu's right
+  // padding inside the nav so the gap falls between the labels and the
+  // scrollbar, with the scrollbar at the menu's edge, instead of the scrollbar
+  // butting up against the labels.
+  padding-right: 0;
+
+  .o-menu__to-top {
+    width: var(--o-menu-width);
+    right: calc(var(--o-menu-width) / 2);
+  }
+
+  > nav {
+    overflow-y: auto;
+    scrollbar-gutter: stable;
+    padding-right: space(4);
+    padding-bottom: $nav-side-to-top-clearance;
+  }
+}
+
 @mixin o-menu-drawer {
-  width: 45vw;
+  @include o-menu-scrolling-nav;
+  width: var(--o-menu-width);
+  max-width: none;
+  // The nav scrolls inside the drawer, not the drawer itself.
+  overflow: visible;
   position: fixed;
   right: 0;
-  top: 0;
+  // --o-menu-drawer-top is set by site_menu_controller.js to the header's bottom
+  // edge, which moves when warning bars render above the header. Page scroll
+  // is locked while the drawer is open, so the header stays put.
+  top: var(--o-menu-drawer-top, #{$header-height});
   bottom: 0;
-  padding-top: calc(#{$header-height} + #{space(6)});
-  min-height: 100vh;
+  min-height: 0;
+  padding-top: space(6);
   transition: .35s transform ease-in-out;
+  // Under the horizontal header, over page content. Set on the drawer itself,
+  // not .on-canvas, so it stays on top while sliding out after .off-canvas
+  // replaces .on-canvas (e.g. over the sticky .pdq_actions bar).
+  z-index: $page-z-index - 1;
 
+  > nav {
+    max-height: 100%;
+  }
+
+  // Hide the closed drawer from Tab and screen readers. Delay visibility until
+  // the slide-out finishes; opening switches it back immediately.
   &.off-canvas {
-    transform: translateX(45vw);
+    transform: translateX(100%);
+    visibility: hidden;
+    transition: .35s transform ease-in-out, visibility 0s linear .35s;
+
+    // .o-menu__to-top.active sets visibility: visible, which would override
+    // the hidden drawer and leave Back to Top focusable off-screen.
+    .o-menu__to-top {
+      visibility: hidden;
+      transition: .5s opacity, visibility 0s linear .35s;
+    }
   }
 }
 
@@ -30,12 +85,21 @@
   padding-bottom: 0.5rem;
 }
 
+// Center the chevron on the label's first line: 1lh is one line of the
+// label's text, so it tracks font size and stays on the first line when a
+// long label wraps.
 .nav-link[data-bs-toggle] [class*='toggle-icon-'] {
-  padding-top: 0.25rem;
+  height: 1lh;
+  align-items: center;
+  // Long labels otherwise squeeze the chevron against the text. Padding, not
+  // margin: ml-auto pushes the chevron right with margin-left: auto, which a
+  // margin here would override. Matches the leading icon's gap (.icon-wrapper).
+  flex-shrink: 0;
+  padding-left: 0.5rem;
 }
 
 .nav-link[data-bs-toggle].collapsed .toggle-icon-down {
-  display: block;
+  display: flex;
 }
 
 .nav-link[data-bs-toggle].collapsed .toggle-icon-up {
@@ -43,7 +107,7 @@
 }
 
 .nav-link[data-bs-toggle]:not(.collapsed) .toggle-icon-up {
-  display: block;
+  display: flex;
 }
 
 .nav-link[data-bs-toggle]:not(.collapsed) .toggle-icon-down {
@@ -92,20 +156,6 @@
   padding-top: 0.25rem;
 }
 
-// Below the on-canvas breakpoint the menu is a drawer. See
-// $nav-side-on-canvas-* in _settings/_variables.scss before changing these.
-.l-content-width-md .site-menu {
-  @include media-breakpoint-down($nav-side-on-canvas-md) {
-    @include o-menu-drawer;
-  }
-}
-
-.l-content-width-lg .site-menu {
-  @include media-breakpoint-down($nav-side-on-canvas-lg) {
-    @include o-menu-drawer;
-  }
-}
-
 /* End Site Menu */
 
 .o-menu {
@@ -120,14 +170,9 @@
   border-top: 2px solid var(--theme-background-d);
   border-bottom: 2px solid var(--theme-background-d);
   ;
-
-  &.on-canvas {
-    // minus 1 because it should be under the horizontal header
-    z-index: $page-z-index - 1;
-  }
 }
 
-.o-menu .js-back-to-top {
+.o-menu .o-menu__to-top {
   background: var(--theme-background-d);
   padding: 2em;
   width: $nav-side-width;
@@ -135,6 +180,8 @@
   bottom: 0;
 }
 
+// Below the on-canvas breakpoint the menu is a drawer. See
+// $nav-side-on-canvas-* in _settings/_variables.scss before changing these.
 .l-content-width-md .o-menu {
   @include media-breakpoint-down($nav-side-on-canvas-md) {
     @include o-menu-drawer;
@@ -144,6 +191,49 @@
 .l-content-width-lg .o-menu {
   @include media-breakpoint-down($nav-side-on-canvas-lg) {
     @include o-menu-drawer;
+  }
+}
+
+// At full width, keep the menu in view and let it scroll on its own instead
+// of stretching the page. .o-menu stays stretched as the dark background
+// column; only the nav sticks. .o-menu's overflow has to be visible here, or
+// the nav would stick to .o-menu (which never scrolls) instead of the window.
+@mixin o-menu-sticky {
+  @include o-menu-scrolling-nav;
+  flex-basis: var(--o-menu-width);
+  max-width: var(--o-menu-width);
+  overflow: visible;
+
+  > nav {
+    position: sticky;
+    top: 0;
+    max-height: 100vh;
+  }
+}
+
+.l-content-width-md .o-menu {
+  @include media-breakpoint-up($nav-side-on-canvas-md) {
+    @include o-menu-sticky;
+  }
+}
+
+.l-content-width-lg .o-menu {
+  @include media-breakpoint-up($nav-side-on-canvas-lg) {
+    @include o-menu-sticky;
+  }
+}
+
+// Lock page scroll while the drawer is open so the header and its close
+// button can't scroll away. The drawer's nav scrolls on its own.
+body.l-content-width-md.menu-open {
+  @include media-breakpoint-down($nav-side-on-canvas-md) {
+    overflow: hidden;
+  }
+}
+
+body.l-content-width-lg.menu-open {
+  @include media-breakpoint-down($nav-side-on-canvas-lg) {
+    overflow: hidden;
   }
 }
 

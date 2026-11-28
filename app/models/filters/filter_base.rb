@@ -685,13 +685,13 @@ module Filters
     end
 
     def project_ids
-      @project_ids.reject(&:blank?)
+      super.reject(&:blank?)
     end
 
     # Memoized because the All Neighbors report calls this once per enrollment
     def secondary_project_ids
-      @visible_secondary_project_ids ||= begin # rubocop:disable Naming/MemoizedInstanceVariableName -- @secondary_project_ids holds the raw param
-        submitted_ids = @secondary_project_ids.reject(&:blank?).map(&:to_i)
+      @visible_secondary_project_ids ||= begin # rubocop:disable Naming/MemoizedInstanceVariableName -- the unfiltered param is the superclass reader
+        submitted_ids = super.reject(&:blank?).map(&:to_i)
         submitted_ids.empty? ? [] : all_project_scope.where(id: submitted_ids).pluck(:id)
       end
     end
@@ -702,39 +702,39 @@ module Filters
     end
 
     def coc_codes
-      @coc_codes.reject(&:blank?)
+      super.reject(&:blank?)
     end
 
     def project_group_ids
-      @project_group_ids.reject(&:blank?)
+      super.reject(&:blank?)
     end
 
     def secondary_project_group_ids
-      @secondary_project_group_ids.reject(&:blank?)
+      super.reject(&:blank?)
     end
 
     def organization_ids
-      @organization_ids.reject(&:blank?)
+      super.reject(&:blank?)
     end
 
     def data_source_ids
-      @data_source_ids.reject(&:blank?)
+      super.reject(&:blank?)
     end
 
     def funder_ids
-      @funder_ids.reject(&:blank?)
+      super.reject(&:blank?)
     end
 
     def funder_others
-      @funder_others.reject(&:blank?)
+      super.reject(&:blank?)
     end
 
     def cohort_ids
-      @cohort_ids.reject(&:blank?)
+      super.reject(&:blank?)
     end
 
     def secondary_cohort_ids
-      @secondary_cohort_ids.reject(&:blank?)
+      super.reject(&:blank?)
     end
 
     def effective_project_ids_from_projects

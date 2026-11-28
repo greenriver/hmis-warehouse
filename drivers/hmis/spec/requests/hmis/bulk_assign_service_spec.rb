@@ -161,6 +161,16 @@ RSpec.describe 'BulkAssignService', type: :request do
       expect_access_denied perform_mutation(client_ids: [c1.id, '23423'])
     end
 
+    context 'with a client enrolled only in a project the user cannot view' do
+      let!(:p_hidden) { create :hmis_hud_project, data_source: ds1, organization: o1 }
+      let!(:hidden_client) { create :hmis_hud_client, data_source: ds1 }
+      let!(:hidden_enrollment) { create :hmis_hud_enrollment, data_source: ds1, client: hidden_client, project: p_hidden }
+
+      it 'fails if a client is not viewable by the user' do
+        expect_access_denied perform_mutation(client_ids: [c1.id, hidden_client.id])
+      end
+    end
+
     it 'fails if project has units and they are all occupied' do
       unit = create(:hmis_unit, project: p1)
       create(:hmis_unit_occupancy, enrollment: c2_e1, unit: unit)

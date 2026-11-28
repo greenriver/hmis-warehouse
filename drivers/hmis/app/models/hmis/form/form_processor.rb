@@ -16,8 +16,15 @@
 # @see docs/features/hmis/hmis-form-processing.md For the submission path and how values become records
 # @see docs/features/hmis/hmis-form-resolution.md For which definition is used when editing an existing record
 class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
+  include HasPiiAttributes
+
   self.table_name = :hmis_form_processors
   has_paper_trail
+
+  # Submitted answers hold client-entered PII
+  pii_attr :values, as: :json, level: 1
+  pii_attr :hud_values, as: :json, level: 1
+  pii_attr :backup_values, as: :json, level: 1
 
   # The 'owner' is the primary record that is being processed. Could be a CustomAssessment, Client, Project, etc.
   # TODO: change to optional: false

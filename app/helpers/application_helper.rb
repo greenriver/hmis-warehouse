@@ -418,13 +418,14 @@ module ApplicationHelper
   end
 
   # Added here to replace wicked_pdf_stylesheet_link_tag when we removed WickedPdf
-  def inline_stylesheet_link_tag(*sources)
+  # Tag options don't apply to an inlined <style> or <script>, and are dropped.
+  def inline_stylesheet_link_tag(*sources, **)
     AssetHelper.wicked_pdf_stylesheet_link_tag(*sources)
   end
 
   # Added here to replace wicked_pdf_javascript_src_tag when we removed WickedPdf
-  def inline_javascript_include_tag(js_file, options = {})
-    AssetHelper.wicked_pdf_javascript_include_tag(js_file, options)
+  def inline_javascript_include_tag(*sources, **)
+    AssetHelper.wicked_pdf_javascript_include_tag(*sources)
   end
 
   # Added here to replace wicked_pdf_asset_base64 when we removed WickedPdf

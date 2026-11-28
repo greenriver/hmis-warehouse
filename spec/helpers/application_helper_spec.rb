@@ -380,4 +380,22 @@ RSpec.describe ApplicationHelper, type: :helper do
       expect(query_for(helper.pagy_url_for(pagy, 1))).not_to have_key('page')
     end
   end
+
+  describe '#inline_javascript_include_tag' do
+    it 'inlines only the named scripts when given tag options' do
+      pdf_js = Rails.application.assets.find_asset('pdf.js', base_path: Rails.root.to_s).to_s
+
+      expect(helper.inline_javascript_include_tag('pdf', defer: true)).
+        to eq("<script type='text/javascript'>#{pdf_js}</script>")
+    end
+  end
+
+  describe '#inline_stylesheet_link_tag' do
+    it 'inlines only the named stylesheet when given media' do
+      inlined = helper.inline_stylesheet_link_tag('print', media: 'print')
+
+      expect(inlined.scan('<style').size).to eq(1)
+      expect(inlined).to eq(helper.inline_stylesheet_link_tag('print'))
+    end
+  end
 end

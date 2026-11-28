@@ -47,7 +47,7 @@
 
   .col-6
     %div
-      .ml-auto.c-chart--vertical-bar{ class: class_name, data: { chart: data.to_json }}
+      .ml-auto.c-chart--vertical-bar{ class: class_name, id: class_name, data: { chart: data.to_json }}
     - if denominator_label.present? && show_label_detail
       .card.p-3.mt-4
         .mb-0.d-flex
@@ -71,7 +71,8 @@
   %script{ nonce: content_security_policy_nonce }
     :plain
       $(document).ready(function() {
-        const data = $('.#{class_name}').data('chart');
+        const chartElement = document.getElementById(#{class_name.to_json.html_safe});
+        const data = $(chartElement).data('chart');
         const max = Math.max(...data.columns[1].slice(1));
         const includePercent = #{result.percentage?};
         const max_100 = #{result.max_100?};
@@ -159,12 +160,12 @@
               lines: { front: false },
               y: { lines: [{ value: goal }] } }
           }),
-          bindto: '.#{class_name}'
+          bindto: chartElement
         };
         if(max_100) {
           options.axis.y.padding = { top: 0, bottom: 0}
         }
         const chart = bb.generate(options);
-        d3.select('.#{class_name} .bb-ygrid-line line').style('stroke-width', 2)
-        d3.select('.#{class_name} .bb-ygrid-line line').style('stroke-dasharray', 2)
+        d3.select(chartElement).select('.bb-ygrid-line line').style('stroke-width', 2)
+        d3.select(chartElement).select('.bb-ygrid-line line').style('stroke-dasharray', 2)
       });

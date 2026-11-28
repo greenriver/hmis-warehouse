@@ -21,7 +21,7 @@ This doc covers the shared machinery and the places it is easy to get wrong. Ind
 Each report has a `GrdaWarehouse::WarehouseReports::ReportDefinition` row keyed by URL, granted to users through collections or access groups.
 
 - Adding a report means adding an entry to `report_list` and running `maintain_report_definitions`. It runs only from the seed script, from `GrdaWarehouse::Tasks::GrantAllHudReports`, and from specs. A new entry does nothing on an existing installation until someone runs it. It also soft-deletes a fixed list of retired URLs.
-- Every report controller includes `WarehouseReportAuthorization`. It finds the definition by matching the controller's index path against the definition's `url` as a string. A route that matches no `report_list` entry is `not_authorized!` for everyone, admins included; override `related_report` when they differ.
+- Most report controllers include `WarehouseReportAuthorization`; `ApplicationControllerV2` report controllers use `authorize_with` with `ReportDefinition.url_viewable_by?` instead, because the concern calls `require_can_*!` methods V2 controllers don't have. `WarehouseReportAuthorization` finds the definition by matching the controller's index path against the definition's `url` as a string. A route that matches no `report_list` entry is `not_authorized!` for everyone, admins included; override `related_report` when they differ.
 - `limitable: false` marks reports that cannot be limited to a subset of projects.
 - `viewable_by` treats `can_view_all_reports?` and `can_view_assigned_reports?` alike in the legacy-role branch. Seeing other users' runs is decided by each report model (for example `SimpleReports::ReportInstance.viewable_by`), not by the definition.
 - The `Public` group is listed only when the public S3 bucket exists.
@@ -68,5 +68,7 @@ Exports built as PDF or Excel files run through the `DocumentExport` pipeline; s
 - A new `SimpleReports::ReportInstance` subclass needs `include ReportArchival` and an `archival_csv_config`; `PerformanceMeasurement::Report` is the model.
 - `archived?` is false while any expected file is missing, and the task will not purge an incompletely archived report.
 - Restore keeps the CSVs and clears only `purged_at`.
+- `ReportArchival` registers only the class that includes it, and the archive task selects rows by exact `type`. In an STI family, each concrete subclass calls `ReportArchival.register_report_type(self)`. Where eager loading is off, a base-class query (`Base.where(...)`) includes only subclass types already loaded, so load the subclasses at boot (a driver initializer with `to_prepare`).
+- A purged report's page renders the shared `warehouse_reports/_reload_archived_report` partial with a `reload_url` to a `reload_from_csv` member action, which calls `Reports::ReloadReportFromCsvService`. `WarehouseReportAuthorization` provides that action; V2 controllers define it themselves. Exports and other actions that read the purged rows should refuse while `purged?`.
 
 User and migration guides: [CSV archival user guide](report-archival/report-csv-archival-user-guide.md), [migration guide](report-archival/report-csv-archival-migration-guide.md).

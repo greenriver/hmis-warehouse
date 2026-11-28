@@ -8,7 +8,7 @@
 
 module CohortColumns
   class SifEligible < CohortBoolean
-    attribute :column, Boolean, lazy: true, default: :sif_eligible
+    attribute :column, String, lazy: true, default: :sif_eligible
     attribute :translation_key, String, lazy: true, default: 'SIF/PACE Eligible'
     attribute :title, String, lazy: true, default: ->(model, _attr) { Translation.translate(model.translation_key) }
     attribute :description_translation_key, String, lazy: true, default: ->(model, _attr) { "#{model.translation_key} Description" }

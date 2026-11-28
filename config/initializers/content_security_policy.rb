@@ -92,8 +92,9 @@ Rails.application.config.content_security_policy do |policy|
     'https://unpkg.com/ag-grid-community@27.3.0/', # Data grid component for large datasets
 
     # Data Visualization & Analytics
-    'https://d3js.org', # D3.js library for health outcomes visualization, client timeline charts, geographic service area maps, initiative reporting dashboards, and interactive data analytics
     'https://cdn.jsdelivr.net/npm/billboard.js@3.18.0/dist/billboard.min.js', # Billboard.js library (patched version)
+    'https://cdn.jsdelivr.net/npm/d3@7.9.2/dist/d3.min.js', # D3.js pinned for SRI - performance measurement external layout
+    'https://cdn.jsdelivr.net/npm/d3@6.7.0/dist/d3.min.js', # D3.js pinned for SRI - all neighbors and public report layouts
     'https://cdnjs.cloudflare.com/ajax/libs/billboard.js/', # deprecated
     'https://unpkg.com/leaflet@1.7.1/dist/', # Leaflet mapping library for client location tracking, service area visualization, geolocation capture, and geographic reporting
     'https://unpkg.com/leaflet@1.9.4/dist/', # Leaflet mapping library - newer version used in external forms

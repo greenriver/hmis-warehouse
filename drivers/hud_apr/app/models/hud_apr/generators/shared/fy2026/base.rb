@@ -537,7 +537,8 @@ module HudApr::Generators::Shared::Fy2026
       @report.report_cells.joins(universe_members: :apr_client).exists?
     end
 
-    private def clients_with_enrollments(batch, scope: enrollment_scope, **)
+    private def clients_with_enrollments(batch, scope: enrollment_scope, preloads: nil)
+      scope = scope.preload(preloads) if preloads.present?
       scope.
         where(client_id: batch.map(&:id)).
         order(first_date_in_program: :asc).
@@ -604,6 +605,7 @@ module HudApr::Generators::Shared::Fy2026
           :youth_education_statuses,
           project: [
             :funders,
+            :project_cocs,
           ],
           client: [
             assessments: [
@@ -615,6 +617,7 @@ module HudApr::Generators::Shared::Fy2026
           ],
         ],
         client: [:source_events, :source_assessments],
+        project: [],
       }
       enrollment_scope_without_preloads.preload(preloads)
     end
@@ -633,22 +636,13 @@ module HudApr::Generators::Shared::Fy2026
       scope
     end
 
-    # The earliest head of household enrollment for each household, whose entry date the Annual Assessment
-    # section of the HMIS Reporting Glossary uses as the anniversary date, per: in the event a household has
-    # more than one head of household active in the report range, (i.e., if the first HoH exited and another
-    # household member became the HoH), the later HoH's [project start date] will be back-dated to the first
-    # HoH's [project start date].
-    # Deliberately ignores the report date range so that a household whose head of household exited before
-    # the report period, and where no other member was recorded as the head of household, still has an
-    # anniversary.  Datalab does the same, calculating annual_assessment_dates from the unfiltered
-    # Enrollment table rather than from the enrollments included in the report.
+    # Keyed by household_key, like hoh_enrollments. HouseholdHohEnrollments skips enrollments without a
+    # HouseholdID, so the enrollment group fallback in household_key is never needed.
     private def household_hoh_enrollments
-      @household_hoh_enrollments ||= begin
-        household_ids = enrollment_scope_without_preloads.where.not(household_id: nil).select(:household_id)
-        scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.heads_of_households.where(household_id: household_ids)
-        scope = scope.in_project(@report.project_ids) if @report.project_ids.present?
-        scope.group_by(&:household_id).transform_values { |enrollments| enrollments.min_by(&:first_date_in_program) }
-      end
+      @household_hoh_enrollments ||= HouseholdHohEnrollments.new(
+        enrollment_scope: enrollment_scope_without_preloads,
+        project_ids: @report.project_ids,
+      ).to_h.transform_keys { |data_source_id, household_id| household_key(data_source_id, household_id, nil) }
     end
 
     private def pit_dates
@@ -663,10 +657,10 @@ module HudApr::Generators::Shared::Fy2026
           joins(:service_history_services).
           merge(GrdaWarehouse::ServiceHistoryService.bed_night.where(date: pit_date)).
           distinct.
-          pluck(:id, :household_id, :enrollment_group_id)
+          pluck(:id, :data_source_id, :household_id, :enrollment_group_id)
         {
-          enrollment_ids: rows.map(&:shift).to_set,
-          household_ids: rows.map { |household_id, enrollment_group_id| household_id || "#{enrollment_group_id || ''}*HH" }.to_set,
+          enrollment_ids: rows.map(&:first).to_set,
+          household_ids: rows.map { |_, data_source_id, household_id, enrollment_group_id| household_key(data_source_id, household_id, enrollment_group_id) }.to_set,
         }
       end
     end
@@ -688,7 +682,7 @@ module HudApr::Generators::Shared::Fy2026
 
       present = if enrollment.project_type.in?([3, 13]) || enrollment.enrollment.project.pay_for_success?
         # PSH/RRH OR project type 7 (other) with Funder 35 (Pay for Success)
-        move_in_date = calculate_hh_move_in_date(enrollment.household_id, enrollment)
+        move_in_date = calculate_hh_move_in_date(get_hh_id(enrollment), enrollment)
         (enrollment.last_date_in_program.nil? || enrollment.last_date_in_program > pit_date) && # Exclude exit date
           move_in_date.present? && # Check that move in date is present and is before the PIT data and on or after the entry date
           move_in_date <= pit_date &&
@@ -712,7 +706,7 @@ module HudApr::Generators::Shared::Fy2026
             last_date_in_program: enrollment.last_date_in_program,
             project_type: enrollment.project_type,
             project_tracking_method: enrollment.project_tracking_method,
-            move_in_date: calculate_hh_move_in_date(enrollment.household_id, enrollment),
+            move_in_date: calculate_hh_move_in_date(get_hh_id(enrollment), enrollment),
             relationship_to_hoh: enrollment.enrollment.relationship_to_hoh,
             household_presence_only: presence == :household,
           }

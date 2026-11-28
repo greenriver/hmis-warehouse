@@ -27,6 +27,11 @@ module HudApr::Fy2020
     # Optional for backward compatibility; in practice, accessed via joins in scoped queries
     belongs_to :report_instance, class_name: 'HudReports::ReportInstance', optional: true
 
+    # household_id holds the generator's household key, which starts with the data source id
+    def display_household_id
+      household_id&.delete_prefix("#{data_source_id}*")
+    end
+
     # Hide ID, move destination_client_id, and name to the front
     def self.detail_headers
       special = ['destination_client_id', 'personal_id', 'first_name', 'last_name']

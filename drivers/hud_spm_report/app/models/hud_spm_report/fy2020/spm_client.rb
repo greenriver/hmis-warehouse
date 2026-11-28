@@ -15,7 +15,6 @@ module HudSpmReport::Fy2020
     pii_attr :first_name
     pii_attr :last_name
     pii_attr :dob
-    pii_attr :age
     pii_attr :m1_reporting_age, as: :age
     pii_attr :m2_reporting_age, as: :age
     pii_attr :m3_reporting_age, as: :age

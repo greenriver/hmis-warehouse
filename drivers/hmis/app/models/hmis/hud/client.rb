@@ -13,6 +13,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
 
   extend OrderAsSpecified
   include ::HmisStructure::Client
+  include ::WarehouseClientPii
   include ::Hmis::Hud::Concerns::Shared
   include ::Hmis::Hud::Concerns::FormSubmittable
   include ::Hmis::Concerns::Restrictable

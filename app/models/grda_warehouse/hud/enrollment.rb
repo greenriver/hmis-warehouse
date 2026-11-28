@@ -14,6 +14,10 @@ module GrdaWarehouse::Hud
     include NotifierConfig
     include ::HudConcerns::Enrollment
     include ::HmisStructure::Enrollment
+    include ::HmisStructure::EnrollmentAddressPii
+
+    pii_attr :last_zipcode, as: :geo_postal_code
+
     include ::HmisStructure::Shared
 
     attr_accessor :source_id

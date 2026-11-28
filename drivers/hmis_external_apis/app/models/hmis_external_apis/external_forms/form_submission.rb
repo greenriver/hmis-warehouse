@@ -22,7 +22,7 @@ module HmisExternalApis::ExternalForms
     has_one :clh_location, through: :form_processor
 
     include HasPiiAttributes
-    pii_attr :raw_data, as: :json, level: 1
+    pii_attr :raw_data, as: :json, level: 1, required: true
     pii_attr :notes, as: :free_text
 
     validate :validate_status_change

@@ -12,7 +12,8 @@
         - if item.children?
           - options[:class] = collapsed
           - options[:data] ||= {}
-          - options[:data].merge!('bs-toggle' => :collapse, target: href)
+          - options[:data].merge!('bs-toggle' => :collapse, 'bs-target' => href)
+          - options[:aria] = { expanded: (collapsed != :collapsed).to_s, controls: submenu_id }
         %a.nav-link.d-flex{ **options }
           .icon-wrapper
             - if item.icon?
@@ -27,7 +28,7 @@
             .ml-auto.toggle-icon-down
               %i.icon-angle-down
         - if item.children?
-          .collapse{ id: submenu_id, class: collapsed, aria: { expanded: (collapsed != :collapsed).to_s }}
+          .collapse{ id: submenu_id, class: collapsed }
             %ul.flex-column.pl-1.nav
               - item.children.each do |child|
                 %li.nav-item

@@ -25,6 +25,10 @@ module HudReports
   # - Idempotent: Cleared and rebuilt if a report is retried.
   # - Scoped: Always tied to a specific `ReportInstance`
   class HouseholdContext < GrdaWarehouseBase
+    include HasPiiAttributes
+
+    pii_attr :dob
+
     self.table_name = 'hud_report_household_contexts'
 
     belongs_to :report_instance, class_name: 'HudReports::ReportInstance'
