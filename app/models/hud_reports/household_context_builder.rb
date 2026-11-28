@@ -58,18 +58,20 @@ module HudReports
 
     def build_contexts_from_scratch
       contexts = []
-      universe_enrollment_ids, hh_pairs = snapshot_universe!
+      unclaimed_enrollment_ids, hh_pairs = snapshot_universe!
       hh_pairs.each_slice(batch_size) do |batch|
         # batch is array of [hh_id, data_source_id]
         all_service_history_enrollments = load_unfiltered_service_history_enrollments(batch)
         all_she_by_hh = all_service_history_enrollments.group_by { |she| [get_hh_id(she), she.data_source_id] }
 
         all_she_by_hh.each do |(hh_id, data_source_id), service_history_enrollments|
+          # Removes the enrollment ids it builds contexts for from unclaimed_enrollment_ids,
+          # so each enrollment gets at most one context per run.
           household_contexts = build_contexts_for_household(
             hh_id: hh_id,
             data_source_id: data_source_id,
             service_history_enrollments: service_history_enrollments,
-            universe_enrollment_ids: universe_enrollment_ids,
+            unclaimed_enrollment_ids: unclaimed_enrollment_ids,
           )
           contexts.concat(household_contexts)
 
@@ -188,7 +190,7 @@ module HudReports
       service_history_enrollments
     end
 
-    def build_contexts_for_household(hh_id:, data_source_id:, service_history_enrollments:, universe_enrollment_ids:)
+    def build_contexts_for_household(hh_id:, data_source_id:, service_history_enrollments:, unclaimed_enrollment_ids:)
       hh_member_hashes = precalculate_member_data(service_history_enrollments)
 
       # For household composition and veteran stats, only consider SHEs active during the report period.
@@ -201,7 +203,7 @@ module HudReports
 
       hh_stats = calculate_hh_stats(active_hh_she_hashes)
 
-      # Lookback SHEs (outside universe_enrollment_ids) are needed for HoH detection and inherited values above,
+      # Lookback SHEs (outside the report universe) are needed for HoH detection and inherited values above,
       # but we only persist contexts for SHEs that are part of the report universe.
       # Removing the id on match keeps it to one context per enrollment, even if a rebuild during the run
       # moves the enrollment into a household that is processed later.
@@ -209,7 +211,7 @@ module HudReports
       # previous client_id, and the row the rebuild inserted is always the newer one.
       newest_first = service_history_enrollments.sort_by { |m| -m.id }
       newest_first.filter_map do |m|
-        next unless universe_enrollment_ids.delete?(m.enrollment.id)
+        next unless unclaimed_enrollment_ids.delete?(m.enrollment.id)
 
         member_hash = hh_member_hashes.detect { |mh| mh[:she_id] == m.id }
         build_context_for_member(m, member_hash, hoh_data,
