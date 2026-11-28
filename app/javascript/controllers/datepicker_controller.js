@@ -81,6 +81,13 @@ export default class extends Controller {
       this.element.dataset.tdTargetToggle = 'button';
     }
 
+    // Name the calendar button after its field ("Choose Start Date"). Tempus Dominus renames the
+    // button to "<toggleAriaLabel>, <picked date>" on every change, so the name goes through that
+    // option rather than only onto the button.
+    const fieldLabel = this.fieldLabel();
+    this.toggleName = fieldLabel ? `Choose ${fieldLabel}` : 'Choose date';
+    finalOptions.localization = { ...finalOptions.localization, toggleAriaLabel: this.toggleName };
+
     this.datepicker = new TempusDominus(this.element, finalOptions);
 
     // Override the parseInput function to handle multiple date formats using DateTime.fromString
@@ -89,12 +96,20 @@ export default class extends Controller {
       return this.parseFlexibleDateInput(value, originalParseInput);
     };
 
+    this.labelToggleButton();
+
     // Listen for when the picker is shown to add text labels
     this.element.addEventListener('show.td', (_event) => {
+      this.toggleButton?.setAttribute('aria-expanded', 'true');
       // Use a small delay to ensure the DOM is fully rendered
       setTimeout(() => {
         this.addButtonLabels();
+        this.labelPopup();
       }, 100);
+    });
+
+    this.element.addEventListener('hide.td', (_event) => {
+      this.toggleButton?.setAttribute('aria-expanded', 'false');
     });
 
     // Listen for date changes and dispatch a standard change event for submit-on-change functionality
@@ -192,15 +207,66 @@ export default class extends Controller {
     input.classList.toggle('is-invalid', !valid);
     input.setCustomValidity(valid ? '' : 'Enter a date like Jan 31, 2025 or 1/31/2025');
 
+    // Screen readers get the error through aria-invalid and aria-describedby; any description the
+    // input already had is kept.
     let feedback = this.element.querySelector('.datepicker-invalid-feedback');
+    const describedBy = (input.getAttribute('aria-describedby') || '').split(' ').filter((id) => id && id !== feedback?.id);
     if (valid) {
       feedback?.remove();
-    } else if (!feedback) {
-      feedback = document.createElement('div');
-      feedback.className = 'invalid-feedback datepicker-invalid-feedback';
-      feedback.textContent = input.validationMessage;
-      this.element.appendChild(feedback);
+      input.removeAttribute('aria-invalid');
+    } else {
+      if (!feedback) {
+        feedback = document.createElement('div');
+        feedback.className = 'invalid-feedback datepicker-invalid-feedback';
+        feedback.id = `${input.id || 'datepicker'}-error-${Math.random().toString(36).slice(2, 8)}`;
+        feedback.textContent = input.validationMessage;
+        this.element.appendChild(feedback);
+      }
+      input.setAttribute('aria-invalid', 'true');
+      describedBy.push(feedback.id);
     }
+    if (describedBy.length) {
+      input.setAttribute('aria-describedby', describedBy.join(' '));
+    } else {
+      input.removeAttribute('aria-describedby');
+    }
+  }
+
+  // The field's label without the required-field asterisk, e.g. "Start Date"
+  fieldLabel() {
+    const input = this.element.tagName === 'INPUT' ? this.element : this.element.querySelector('input');
+    const text = input?.labels?.[0]?.textContent || input?.getAttribute('aria-label') || '';
+    return text.replace(/\*/g, '').replace(/\s+/g, ' ').trim();
+  }
+
+  // Name the calendar button after its field ("Choose Start Date") so Start and End don't both read
+  // "Open Date Picker", and so hand-built buttons with only an icon get a name at all.
+  labelToggleButton() {
+    const toggle = this.datepicker.optionsStore?.toggle;
+    if (!toggle || toggle === this.element || toggle.tagName !== 'BUTTON') return;
+
+    this.toggleButton = toggle;
+    toggle.setAttribute('aria-label', this.toggleName);
+    toggle.setAttribute('aria-haspopup', 'dialog');
+    toggle.setAttribute('aria-expanded', 'false');
+  }
+
+  // Tempus Dominus gives the popup role="widget", which isn't an ARIA role, and no name. Its
+  // previous/next and footer controls are divs, so they also need a button role.
+  labelPopup() {
+    const picker = this.datepicker?.display?.widget;
+    if (!picker) return;
+
+    picker.setAttribute('role', 'dialog');
+    picker.setAttribute('aria-label', this.toggleName);
+    picker.querySelectorAll('[data-action="previous"], [data-action="next"], [data-action="changeCalendarView"], [data-action="today"], [data-action="clear"], [data-action="close"]').forEach((control) => {
+      control.setAttribute('role', 'button');
+      // The month/year switch keeps its visible text ("January 2025") as its name
+      if (control.dataset.action === 'changeCalendarView') return;
+      if (!control.getAttribute('aria-label') && control.getAttribute('title')) {
+        control.setAttribute('aria-label', control.getAttribute('title'));
+      }
+    });
   }
 
   normalizeMonthAliases(value, locale) {

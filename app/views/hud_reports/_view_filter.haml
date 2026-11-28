@@ -16,11 +16,11 @@
           %label Date Range
           .o-filtration__option-row
             .input-group.date{ data: { provide: :datepicker, controller: 'datepicker' }}
-              %input.form-control{ name: :start, type: :text, value: @view_filter[:start] }
+              %input.form-control{ name: :start, type: :text, value: @view_filter[:start], aria: { label: 'Start date' } }
               %button.icon-calendar.btn.btn-secondary{ type: 'button' }
             .o-filtration__separator to
             .input-group.date{ data: {provide: :datepicker, controller: 'datepicker' }}
-              %input.form-control{ name: :end, type: :text, value: @view_filter[:end] }
+              %input.form-control{ name: :end, type: :text, value: @view_filter[:end], aria: { label: 'End date' } }
               %button.icon-calendar.btn.btn-secondary{ type: 'button' }
 
       .o-filtration__option.row

@@ -79,12 +79,16 @@ RSpec.feature 'JavaScript Functionality Test', type: :rails_system do
         picker.trigger(:blur)
         expect(picker.value).to eq(date)
         expect(picker[:class]).to include('is-invalid')
+        expect(picker['aria-invalid']).to eq('true')
+        expect(find(id: picker['aria-describedby'])).to have_text('Enter a date like')
       end
 
       fill_in picker[:id], with: '5/7/2024'
       picker.trigger(:blur)
       expect(picker.value).to eq(expected_date)
       expect(picker[:class]).not_to include('is-invalid')
+      expect(picker['aria-invalid']).to be_nil
+      expect(picker['aria-describedby']).to be_nil
     end
   end
 end
