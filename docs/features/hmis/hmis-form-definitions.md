@@ -99,6 +99,7 @@ Forms can either be managed in version control (JSON files under `drivers/hmis/l
 - [Form authoring](hmis-form-authoring.md) — writing the definition JSON
 - [Form processing](hmis-form-processing.md) — what happens on submit, and where the data lands
 - [Form seeding](hmis-form-seeding.md) — loading definitions from JSON and maintaining HUD compliance rules
+- [Form transfer](hmis-form-transfer.md) — copying definitions and their configuration from another installation
 - [HMIS assessments](hmis-assessments.md) — what the assessment roles collect, and the record types behind them
 - [Multi-HMIS support](multi-hmis-support.md) — why definitions carry `data_source_id`, and which config tables are not yet fully scoped
 - [CE workflow builders](ce-workflow-builders.md) — `WorkflowDefinition::Template` uses a parallel draft/publish/retire lifecycle
