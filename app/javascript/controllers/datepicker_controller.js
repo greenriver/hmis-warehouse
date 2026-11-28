@@ -8,6 +8,9 @@ import { TempusDominus, DateTime } from '@eonasdan/tempus-dominus';
 // handlers; stopping propagation keeps jquery_ujs from disabling the submit button. Submits that
 // fire no submit event (form.submit(), jQuery .trigger('submit')) aren't covered; the forms
 // controller's submit-on-change checks for flagged dates itself.
+//
+// A submit button that doesn't save, like a submit-type Cancel, needs formnovalidate to get past
+// this, the same as it would on a form the browser validates.
 const blockSubmitWithInvalidDate = (event) => {
   if (event.submitter?.formNoValidate) return;
 
@@ -16,7 +19,23 @@ const blockSubmitWithInvalidDate = (event) => {
 
   event.preventDefault();
   event.stopImmediatePropagation();
-  invalidInput.reportValidity();
+
+  // The browser can't point at a field that isn't shown (a collapsed panel, another tab), and
+  // without a message the submit would just do nothing
+  const hidden = invalidInput.getClientRects().length === 0;
+  if (hidden) {
+    const label = fieldLabelText(invalidInput);
+    window.alert(label ? `${label}: ${invalidInput.validationMessage}` : invalidInput.validationMessage);
+  } else {
+    invalidInput.reportValidity();
+  }
+};
+document.addEventListener('submit', blockSubmitWithInvalidDate, true);
+
+// The field's label without the required-field asterisk, e.g. "Start Date"
+const fieldLabelText = (input) => {
+  const text = input?.labels?.[0]?.textContent || input?.getAttribute('aria-label') || '';
+  return text.replace(/\*/g, '').replace(/\s+/g, ' ').trim();
 };
 document.addEventListener('submit', blockSubmitWithInvalidDate, true);
 
@@ -93,6 +112,8 @@ export default class extends Controller {
       },
     };
 
+    this.input = this.element.tagName === 'INPUT' ? this.element : this.element.querySelector('input');
+
     // Only the calendar button opens the popup. Tempus Dominus defaults the toggle to the whole
     // wrapper and moves focus into the calendar grid on open, so clicking the text box to type a
     // date sent the keystrokes to the grid instead.
@@ -103,23 +124,19 @@ export default class extends Controller {
     // Name the calendar button after its field ("Choose Start Date"). Tempus Dominus renames the
     // button to "<toggleAriaLabel>, <picked date>" on every change, so the name goes through that
     // option rather than only onto the button.
-    const fieldLabel = this.fieldLabel();
+    const fieldLabel = fieldLabelText(this.input);
     this.toggleName = fieldLabel ? `Choose ${fieldLabel}` : 'Choose date';
     finalOptions.localization = { ...finalOptions.localization, toggleAriaLabel: this.toggleName };
 
     this.datepicker = new TempusDominus(this.element, finalOptions);
 
     // Override the parseInput function to handle multiple date formats using DateTime.fromString
-    const originalParseInput = this.datepicker.dates.parseInput.bind(this.datepicker.dates);
-    this.datepicker.dates.parseInput = (value) => {
-      return this.parseFlexibleDateInput(value, originalParseInput);
-    };
+    this.datepicker.dates.parseInput = (value) => this.parseFlexibleDateInput(value);
 
     this.labelToggleButton();
 
     // Tempus Dominus doesn't call parseInput for an empty value (Dates.setFromInput returns early),
     // so a flagged field that the user empties is cleared here.
-    this.input = this.element.tagName === 'INPUT' ? this.element : this.element.querySelector('input');
     this.clearValidityWhenEmpty = () => {
       if (this.input.value.trim() === '') this.markInputValidity(this.input, true);
     };
@@ -145,13 +162,9 @@ export default class extends Controller {
       // listener above would still see the old text
       if (!event.detail?.date) this.markInputValidity(this.input, true);
 
-      // Find the input field within the datepicker wrapper
-      const inputField = this.element.querySelector('input');
-      if (inputField) {
-        // Dispatch a standard change event on the input field for submit-on-change functionality
-        const changeEvent = new Event('change', { bubbles: true, cancelable: true });
-        inputField.dispatchEvent(changeEvent);
-      }
+      // Dispatch a standard change event on the input field for submit-on-change functionality
+      const changeEvent = new Event('change', { bubbles: true, cancelable: true });
+      this.input?.dispatchEvent(changeEvent);
     });
   }
 
@@ -163,16 +176,12 @@ export default class extends Controller {
     }
   }
 
-  parseFlexibleDateInput(value, originalParseInput) {
-    const input = this.element.tagName === 'INPUT' ? this.element : this.element.querySelector('input');
-
-    // If value is null, undefined, or empty, use original parsing
-    if (!value || value.toString().trim() === '') {
-      this.markInputValidity(input, true);
-      return originalParseInput(value);
-    }
-
+  parseFlexibleDateInput(value) {
     const rawValue = value.toString().trim();
+    // Tempus Dominus only calls this with non-empty text, so this is whitespace; leave the selected
+    // date alone. clearValidityWhenEmpty clears any error.
+    if (rawValue === '') return undefined;
+
     const localization = this.datepicker.optionsStore?.options?.localization || {};
     const locale = localization.locale || 'en-US';
     const normalizedValue = this.normalizeMonthAliases(rawValue, locale);
@@ -216,7 +225,7 @@ export default class extends Controller {
         if (parsed) {
           const twoDigitYear = format.includes('yy') && !format.includes('yyyy');
           if (twoDigitYear) this.applyTwoDigitYearPivot(parsed);
-          this.markInputValidity(input, true);
+          this.markInputValidity(this.input, true);
           return parsed;
         }
       }
@@ -224,7 +233,7 @@ export default class extends Controller {
 
     // Leave the typed text in place and flag it, rather than guessing at a date. Returning
     // undefined tells Tempus Dominus not to change the selected date.
-    this.markInputValidity(input, false);
+    this.markInputValidity(this.input, false);
     return undefined;
   }
 
@@ -277,13 +286,6 @@ export default class extends Controller {
     } else {
       input.removeAttribute('aria-describedby');
     }
-  }
-
-  // The field's label without the required-field asterisk, e.g. "Start Date"
-  fieldLabel() {
-    const input = this.element.tagName === 'INPUT' ? this.element : this.element.querySelector('input');
-    const text = input?.labels?.[0]?.textContent || input?.getAttribute('aria-label') || '';
-    return text.replace(/\*/g, '').replace(/\s+/g, ' ').trim();
   }
 
   // Name the calendar button after its field ("Choose Start Date") so Start and End don't both read

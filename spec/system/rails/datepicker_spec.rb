@@ -139,5 +139,31 @@ RSpec.feature 'JavaScript Functionality Test', type: :rails_system do
       expect(picker.value).to eq('2/30/2024')
       expect(page).to have_button('Create', disabled: false)
     end
+
+    it 'explains a blocked submit when the flagged date is hidden' do
+      visit datepicker_style_guide_path
+      picker = find('input.datepicker')
+
+      fill_in picker[:id], with: '2/30/2024'
+      picker.trigger(:blur)
+      # Stands in for a collapsed panel or inactive tab
+      page.execute_script("document.querySelector('input.datepicker').closest('.input-group').style.display = 'none'")
+
+      message = accept_alert { click_button 'Create' }
+      expect(message).to include('Enter a date like')
+      expect(page).to have_current_path(datepicker_style_guide_path)
+    end
+
+    it 'lets a formnovalidate button submit with a flagged date' do
+      visit datepicker_style_guide_path
+      picker = find('input.datepicker')
+
+      fill_in picker[:id], with: '2/30/2024'
+      picker.trigger(:blur)
+      # Point the form at a GET-only page so the submit that gets through lands somewhere
+      page.execute_script("document.querySelector('input.datepicker').form.setAttribute('method', 'get')")
+      click_button 'Cancel'
+      expect(page).to have_current_path(/mock_2/, url: true)
+    end
   end
 end
