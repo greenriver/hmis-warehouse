@@ -204,6 +204,93 @@ RSpec.describe Hmis::UndoMergeClientsJob, type: :job do
     end
   end
 
+  describe '#perform after the merge re-keyed a soft-deleted enrollment' do
+    let!(:rekeyed_enrollment) do
+      create(:hmis_hud_enrollment, client: retained_client, project: project, data_source: data_source, EnrollmentID: deleted_client_enrollment.EnrollmentID).tap do |enrollment|
+        enrollment.update_column(:DateDeleted, Time.current)
+      end
+    end
+    let!(:rekeyed_exit) do
+      create(:hmis_hud_exit, client: retained_client, enrollment: rekeyed_enrollment, data_source: data_source).tap do |exit|
+        exit.update_column(:DateDeleted, Time.current)
+      end
+    end
+
+    before do
+      Hmis::MergeClientsJob.perform_now(
+        client_ids: [retained_client.id, deleted_client.id],
+        actor_id: actor.id,
+      )
+      deleted_client.reload
+    end
+
+    it 'restores the original EnrollmentID on the soft-deleted enrollment and its children' do
+      original_enrollment_id = deleted_client_enrollment.EnrollmentID
+      expect(Hmis::Hud::Enrollment.only_deleted.find(rekeyed_enrollment.id).EnrollmentID).not_to eq(original_enrollment_id), 'merge should have re-keyed the enrollment'
+
+      described_class.perform_now(
+        retained_client_id: retained_client.id,
+        deleted_client_id: deleted_client.id,
+      )
+
+      expect(deleted_client_enrollment.reload.personal_id).to eq(deleted_client.personal_id)
+      expect(Hmis::Hud::Enrollment.only_deleted.find(rekeyed_enrollment.id)).to have_attributes(EnrollmentID: original_enrollment_id, PersonalID: retained_client.personal_id)
+      expect(Hmis::Hud::Exit.only_deleted.find(rekeyed_exit.id).EnrollmentID).to eq(original_enrollment_id)
+    end
+
+    context 'when the moved enrollment was soft-deleted after the merge' do
+      before { Hmis::Hud::Enrollment.where(id: deleted_client_enrollment.id).update_all(DateDeleted: Time.current) }
+
+      it 'leaves the re-keyed enrollment on its new EnrollmentID instead of colliding' do
+        new_enrollment_id = Hmis::Hud::Enrollment.only_deleted.find(rekeyed_enrollment.id).EnrollmentID
+        expect(Hmis::Hud::Enrollment.only_deleted.exists?(deleted_client_enrollment.id)).to be(true), 'setup should have soft-deleted the moved enrollment'
+
+        expect do
+          described_class.perform_now(retained_client_id: retained_client.id, deleted_client_id: deleted_client.id)
+        end.not_to raise_error
+
+        expect(Hmis::Hud::Enrollment.only_deleted.find(rekeyed_enrollment.id).EnrollmentID).to eq(new_enrollment_id)
+        expect(Hmis::Hud::Exit.only_deleted.find(rekeyed_exit.id).EnrollmentID).to eq(new_enrollment_id)
+      end
+    end
+
+    context 'when a child of the moved enrollment was soft-deleted after the merge' do
+      let!(:stray_exit) do
+        create(:hmis_hud_exit, client: retained_client, enrollment: deleted_client_enrollment.reload, data_source: data_source).tap do |exit|
+          exit.update_column(:DateDeleted, Time.current)
+        end
+      end
+
+      it 'leaves the re-keyed enrollment on its new EnrollmentID so the stray child does not attach to it' do
+        new_enrollment_id = Hmis::Hud::Enrollment.only_deleted.find(rekeyed_enrollment.id).EnrollmentID
+
+        described_class.perform_now(retained_client_id: retained_client.id, deleted_client_id: deleted_client.id)
+
+        expect(Hmis::Hud::Enrollment.only_deleted.find(rekeyed_enrollment.id).EnrollmentID).to eq(new_enrollment_id)
+        expect(Hmis::Hud::Exit.only_deleted.find(rekeyed_exit.id).EnrollmentID).to eq(new_enrollment_id)
+        expect(Hmis::Hud::Exit.only_deleted.find(stray_exit.id).EnrollmentID).to eq(deleted_client_enrollment.EnrollmentID)
+      end
+    end
+
+    context 'when the retained client was later merged into an older client' do
+      let(:oldest_client) { create(:hmis_hud_client_complete, date_created: Time.current - 2.weeks, data_source: data_source) }
+
+      before do
+        Hmis::MergeClientsJob.perform_now(client_ids: [oldest_client.id, retained_client.id], actor_id: actor.id)
+      end
+
+      it 'restores the original EnrollmentID on the re-keyed enrollment left on the intermediate client' do
+        original_enrollment_id = deleted_client_enrollment.EnrollmentID
+
+        described_class.perform_now(retained_client_id: oldest_client.id, deleted_client_id: deleted_client.id)
+
+        expect(deleted_client_enrollment.reload.personal_id).to eq(deleted_client.personal_id)
+        expect(Hmis::Hud::Enrollment.only_deleted.find(rekeyed_enrollment.id)).to have_attributes(EnrollmentID: original_enrollment_id, PersonalID: retained_client.personal_id)
+        expect(Hmis::Hud::Exit.only_deleted.find(rekeyed_exit.id).EnrollmentID).to eq(original_enrollment_id)
+      end
+    end
+  end
+
   describe '#perform with CE enabled' do
     let(:retained_client) { create(:hmis_hud_client_with_warehouse_client, date_created: Time.current - 1.week, data_source: data_source) }
     let(:deleted_client) { create(:hmis_hud_client_with_warehouse_client, date_created: Time.current - 5.days, data_source: data_source) }

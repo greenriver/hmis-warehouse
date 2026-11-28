@@ -41,7 +41,7 @@ module Hmis
       [Hmis::Hud::CustomClientContactPoint, 'contact_points'],
     ].freeze
 
-    attr_accessor :retained_client, :deleted_client, :merge_audit, :merge_history, :dry_run
+    attr_accessor :retained_client, :deleted_client, :merge_audit, :merge_history, :dry_run, :restored_enrollment_ids
 
     def perform(retained_client_id:, deleted_client_id:, dry_run: false)
       self.dry_run = dry_run
@@ -60,6 +60,7 @@ module Hmis
       Hmis::Hud::Client.transaction do
         restore_deleted_client
         restore_enrollments
+        restore_rekeyed_deleted_enrollments
         restore_associated_records
         destroy_merge_history
       end
@@ -102,6 +103,7 @@ module Hmis
 
     # Move enrollments and enrollment-related PersonalID references back to the restored client.
     def restore_enrollments
+      self.restored_enrollment_ids = []
       enrollment_mappings = merge_audit.mappings_for('enrollments')
       return if enrollment_mappings.empty?
 
@@ -119,6 +121,7 @@ module Hmis
         apply_or_log_update(record: enrollment, column: :PersonalID, value: deleted_client.personal_id, label: "enrollment #{enrollment_id}")
         updated_enrollment_ids << enrollment.id
       end
+      self.restored_enrollment_ids = updated_enrollment_ids
 
       return if updated_enrollment_ids.empty?
 
@@ -131,6 +134,49 @@ module Hmis
       )
 
       updated_enrollment_scope.each(&:invalidate_processing!) unless dry_run
+    end
+
+    # Restores the original EnrollmentID on soft-deleted enrollments the merge re-keyed. Must run after
+    # restore_enrollments, which frees the original key. If an enrollment or child record on the same client
+    # still holds the key (e.g. the moved enrollment, or one of its children, was soft-deleted after the merge
+    # and so was not moved back), the new key stays; the audit keeps the original.
+    def restore_rekeyed_deleted_enrollments
+      mappings = merge_audit.mappings_for('rekeyed_deleted_enrollments')
+      return if mappings.empty?
+
+      mappings.each do |enrollment_id, mapping_data|
+        original_enrollment_id = mapping_data['EnrollmentID']
+
+        enrollment = Hmis::Hud::Enrollment.with_deleted.find_by(id: enrollment_id)
+        next unless enrollment
+        next if enrollment.EnrollmentID == original_enrollment_id
+
+        # After a chain merge, the enrollment can still be on an intermediate client rather than the retained client
+        client_scope = { data_source_id: enrollment.data_source_id, PersonalID: enrollment.PersonalID }
+
+        # A dry run leaves restored enrollments on the retained client; they don't count as holding the key
+        original_key_taken = Hmis::Hud::Enrollment.with_deleted.
+          where(**client_scope, EnrollmentID: original_enrollment_id).
+          where.not(id: restored_enrollment_ids).
+          exists?
+        original_key_taken ||= Hmis::Hud::Enrollment.hmis_enrollment_related_classes.any? do |model|
+          model.with_deleted.where(**client_scope, EnrollmentID: original_enrollment_id).exists?
+        end
+        if original_key_taken
+          Rails.logger.info "Keeping new EnrollmentID on soft-deleted enrollment #{enrollment_id}; the original is still held on PersonalID #{enrollment.PersonalID}"
+          next
+        end
+
+        Rails.logger.info "Restoring original EnrollmentID on soft-deleted enrollment #{enrollment_id}"
+        next if dry_run
+
+        Hmis::Hud::Enrollment.hmis_enrollment_related_classes.each do |model|
+          model.with_deleted.
+            where(**client_scope, EnrollmentID: enrollment.EnrollmentID).
+            update_all(EnrollmentID: original_enrollment_id)
+        end
+        enrollment.update_column(:EnrollmentID, original_enrollment_id)
+      end
     end
 
     # Restore all non-enrollment records tracked in pre_merge_mappings.

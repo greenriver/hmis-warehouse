@@ -71,6 +71,7 @@ module Hmis
     # record ids to the values of the foreign key field that they pointed to before the merge.
     # {
     #   enrollments: {}, # [id => { 'PersonalID' => value }]
+    #   rekeyed_deleted_enrollments: {}, # [id => { 'EnrollmentID' => value }]
     #   names: {}, # [id => { 'PersonalID' => value }]
     #   addresses: {}, # [id => { 'PersonalID' => value }]
     #   contact_points: {}, # [id => { 'PersonalID' => value }]
@@ -421,6 +422,8 @@ module Hmis
 
       personal_ids = clients_needing_reference_updates.map(&:personal_id)
 
+      rekey_colliding_deleted_enrollments(personal_ids)
+
       candidates.each do |candidate|
         t = candidate.arel_table
 
@@ -444,6 +447,37 @@ module Hmis
 
         candidate_scope.update_all(PersonalID: client_to_retain.personal_id)
       end
+    end
+
+    # The en_en_id_p_id_ds_id unique index includes soft-deleted rows, but update_personal_id_foreign_keys
+    # moves only active enrollments. A soft-deleted enrollment on the retained client that shares an
+    # EnrollmentID with a moving enrollment would collide, so it and its children get a new EnrollmentID.
+    def rekey_colliding_deleted_enrollments(personal_ids)
+      moving_enrollment_ids = Hmis::Hud::Enrollment.
+        where(data_source_id: data_source_id, PersonalID: personal_ids).
+        pluck(:EnrollmentID)
+      colliding = Hmis::Hud::Enrollment.only_deleted.
+        where(data_source_id: data_source_id, PersonalID: client_to_retain.personal_id, EnrollmentID: moving_enrollment_ids).
+        to_a
+      return if colliding.empty?
+
+      Rails.logger.info "Re-keying #{colliding.size} soft-deleted enrollments that collide with merged enrollments"
+
+      mappings = {}
+      colliding.each do |enrollment|
+        original_enrollment_id = enrollment.EnrollmentID
+        new_enrollment_id = Hmis::Hud::Base.generate_uuid
+
+        Hmis::Hud::Enrollment.hmis_enrollment_related_classes.each do |model|
+          model.with_deleted.
+            where(data_source_id: data_source_id, PersonalID: client_to_retain.personal_id, EnrollmentID: original_enrollment_id).
+            update_all(EnrollmentID: new_enrollment_id)
+        end
+        enrollment.update_column(:EnrollmentID, new_enrollment_id)
+
+        mappings[enrollment.id] = { 'EnrollmentID' => original_enrollment_id }
+      end
+      update_merge_mappings('rekeyed_deleted_enrollments', mappings)
     end
 
     def destroy_merged_clients
