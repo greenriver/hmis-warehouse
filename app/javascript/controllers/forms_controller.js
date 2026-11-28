@@ -36,9 +36,14 @@ export default class extends Controller {
 
       // Set a new timeout to debounce the submission
       const timeoutId = setTimeout(() => {
+        this.submissionTimeouts?.delete(formElement);
+        // Don't save a date the datepicker flagged invalid; it saves once the date is fixed. The
+        // datepicker's submit guard can't catch this: jQuery's trigger('submit') fires no native
+        // submit event.
+        if (formElement.querySelector('input[data-datepicker-invalid]')) return;
+
         // Trigger Rails UJS form submission to respect remote: true
         form.trigger('submit');
-        this.submissionTimeouts.delete(formElement);
       }, 300); // 300ms debounce
 
       this.submissionTimeouts.set(formElement, timeoutId);

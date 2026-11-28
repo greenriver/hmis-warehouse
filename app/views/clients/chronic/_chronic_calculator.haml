@@ -4,7 +4,7 @@
   .d-flex
     .o-filtration
       .input-group.date{data: {provide: :datepicker, controller: 'datepicker' }}
-        %input.form-control{name: :date, type: :text, value: @date}
+        %input.form-control{name: :date, type: :text, value: @date, aria: { label: 'Chronic details date' }}
         %button.icon-calendar.btn.btn-secondary{type: 'button'}
     .o-filtration.ml-auto
       %button.btn.btn-secondary{type: :submit} Re-calculate

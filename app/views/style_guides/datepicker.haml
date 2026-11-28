@@ -71,7 +71,8 @@
               %section
                 %h4 Submit
                 = f.submit value: 'Create', class: 'btn btn-primary'
-                = f.submit value: 'Cancel', class: 'btn btn-secondary'
+                -# formnovalidate lets Cancel through while a date is flagged invalid
+                = f.submit value: 'Cancel', class: 'btn btn-secondary', formnovalidate: true
 
 
   .col-sm-2= render 'pages'
