@@ -8,16 +8,14 @@
 
 OpenPath::Application.routes.draw do
   scope module: :hud_hic, path: :hud_reports, as: :hud_reports do
-    resources :hics do
+    resources :hics, only: [:index, :show, :destroy] do
       get :running, on: :collection
       get :running_all_questions, on: :collection
       get :history, on: :collection
       get :download, on: :member
       post :restore, on: :member
-      resources :questions, only: [:show, :create] do
+      resources :questions, only: [] do
         get :result, on: :member
-        get :running, on: :member
-        resources :cells, only: :show
       end
     end
   end

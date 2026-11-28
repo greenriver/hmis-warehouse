@@ -9,12 +9,14 @@
 # The including spec defines: definition_url, report_name, index_path, new_path, history_path,
 # and report_path_for (a lambda from a run to its show path). It may override run_options and
 # run_attributes. `except:` skips examples a bare factory run can't render for that driver:
-# :show_run, :destroy_run, :history_links, :new_page.
+# :show_run, :destroy_run, :history_links. `except: [:new_page]` is for a driver with no new
+# route; it needs no new_path.
 RSpec.shared_examples 'HUD report access' do |except: []|
   let(:user) { create(:acl_user) }
   let(:other_user) { create(:acl_user) }
   let(:run_options) { { 'start' => '2025-10-01', 'end' => '2026-09-30', 'project_ids' => [] } }
   let(:run_attributes) { {} }
+  let(:pages_for_driver) { except.include?(:new_page) ? [index_path, history_path] : [index_path, new_path, history_path] }
   let!(:own_run) { create(:hud_reports_report_instance, user: user, report_name: report_name, options: run_options, **run_attributes) }
   let!(:other_run) { create(:hud_reports_report_instance, user: other_user, report_name: report_name, options: run_options, **run_attributes) }
 
@@ -41,8 +43,7 @@ RSpec.shared_examples 'HUD report access' do |except: []|
 
   it 'opens the index, new, and history pages when the definition is granted' do
     granted
-    pages = except.include?(:new_page) ? [index_path, history_path] : [index_path, new_path, history_path]
-    pages.each do |path|
+    pages_for_driver.each do |path|
       get path
       expect(response).to have_http_status(:ok), path
     end
@@ -54,7 +55,7 @@ RSpec.shared_examples 'HUD report access' do |except: []|
 
   it 'redirects every page with the not-authorized alert when the definition is not granted' do
     not_granted
-    [index_path, new_path, history_path, report_path_for.call(own_run)].each do |path|
+    [*pages_for_driver, report_path_for.call(own_run)].each do |path|
       get path
       expect(response).to redirect_to(warehouse_reports_path), path
       expect(flash[:alert]).to eq('Sorry you are not authorized to do that.')

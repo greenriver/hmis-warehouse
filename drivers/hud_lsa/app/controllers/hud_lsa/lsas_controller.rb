@@ -145,6 +145,10 @@ module HudLsa
       filter.effective_project_ids_during_range(report.export_date_range)
     end
 
+    private def site_coc_codes
+      GrdaWarehouse::Config.default_site_coc_codes
+    end
+
     private def default_year
       if Date.current.month >= 10
         Date.current.year
