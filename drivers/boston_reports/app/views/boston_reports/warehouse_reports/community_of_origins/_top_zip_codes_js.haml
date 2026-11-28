@@ -23,15 +23,17 @@
                 var data = topZipData.find(function(d){
                   return d.zip_code === feature.properties.name
                 })
+                // data.percent is a whole-number percentage; color ranges are fractions.
+                var fraction = data.percent / 100
                 var color = colors.find(function (d, i) {
                   if(i === 0) {
-                    return data.percent < d.range[0]
+                    return fraction < d.range[0]
                   } else if(i === colors.length -1) {
-                    return data.percent > d.range[0]
+                    return fraction > d.range[0]
                   } else if(i === colors.length -2) {
-                    return data.percent >= d.range[0] && data.percent <= d.range[1]
+                    return fraction >= d.range[0] && fraction <= d.range[1]
                   } else {
-                    return data.percent >= d.range[0] && data.percent < d.range[1]
+                    return fraction >= d.range[0] && fraction < d.range[1]
                   }
                 })
                 return {color: color.color, fillOpacity: 0.6}
