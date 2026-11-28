@@ -116,19 +116,53 @@ module BostonReports
         all_project_types: all_project_types,
         include_date_range: include_date_range,
       )
-      # Limit to the earliest started enrollment overlapping the universe per client
-      scope = scope.one_for_column(
-        :entry_date,
-        source_arel_table: she_t,
-        group_on: :client_id,
-        direction: :asc,
-        scope: GrdaWarehouse::ServiceHistoryEnrollment.entry.open_between(
-          start_date: filter.start_date,
-          end_date: filter.end_date,
-        ).select(:id),
+      self.class.earliest_enrollment_per_client(
+        scope,
+        start_date: filter.start_date,
+        end_date: filter.end_date,
       )
-      scope
     end
+
+    # Limits scope to each client's earliest entry open in the range. Only rows in scope compete,
+    # so an entry outside the report's filters never removes a client. Same-day ties keep the
+    # entry with no exit date, then the later exit date, then the lower id.
+    def self.earliest_enrollment_per_client(scope, start_date:, end_date:)
+      she = GrdaWarehouse::ServiceHistoryEnrollment
+      current = she.arel_table
+      earlier = she.arel_table.alias('earlier_enrollments')
+      scope = scope.where(open_entry_condition(current, start_date: start_date, end_date: end_date))
+      earlier_enrollments = she.unscoped.from(earlier).
+        where(earlier[:id].in(scope.select(:id).arel)).
+        where(earlier[:client_id].eq(current[:client_id])).
+        where(ranks_before(earlier, current)).
+        select(1)
+      scope.where(earlier_enrollments.arel.exists.not)
+    end
+
+    def self.ranks_before(earlier, current)
+      earlier[:first_date_in_program].lt(current[:first_date_in_program]).
+        or(
+          earlier[:first_date_in_program].eq(current[:first_date_in_program]).
+            and(same_day_ranks_before(earlier, current)),
+        )
+    end
+    private_class_method :ranks_before
+
+    def self.same_day_ranks_before(earlier, current)
+      earlier_exit = earlier[:last_date_in_program]
+      current_exit = current[:last_date_in_program]
+      earlier_exit.eq(nil).and(current_exit.not_eq(nil)).
+        or(earlier_exit.gt(current_exit)).
+        or(Arel::Nodes::IsNotDistinctFrom.new(earlier_exit, current_exit).and(earlier[:id].lt(current[:id])))
+    end
+    private_class_method :same_day_ranks_before
+
+    def self.open_entry_condition(table, start_date:, end_date:)
+      table[:record_type].eq('entry').
+        and(table[:first_date_in_program].lteq(end_date)).
+        and(table[:last_date_in_program].gteq(start_date).or(table[:last_date_in_program].eq(nil)))
+    end
+    private_class_method :open_entry_condition
 
     def report_scope_source
       GrdaWarehouse::ServiceHistoryEnrollment.entry

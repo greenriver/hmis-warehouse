@@ -4,39 +4,44 @@
   %h2 Project Level
 .card.squared.mb-6.p-6.page-break-avoid
   %h4 Project Comparison #{@report.filter.date_range_words}
-  .c-chart--vertical-bar.mb-6{ class: all_projects_class_name, data: { chart: result.data_for_projects_bar(current_user).to_json, include_percent: result.primary_unit.starts_with?('%').to_s }}
+  .c-chart--vertical-bar.mb-6{ class: all_projects_class_name, id: all_projects_class_name, data: { chart: result.data_for_projects_bar(current_user).to_json, include_percent: result.primary_unit.starts_with?('%').to_s }}
 = render 'performance_measurement/warehouse_reports/reports/static_spm_warning'
-- my_projects = @report.my_projects(current_user, key)
-- if my_projects.present?
-  .well.no-break
-    %h3 My Projects
-    %hr
-    - my_projects.each do |project_id, result|
-      - next unless result.hud_project
+- if !pdf || @report.project_charts_in_pdf?
+  - my_projects = @report.my_projects(current_user, key)
+  - if my_projects.present?
+    .well.no-break
+      %h3 My Projects
+      %hr
+      - my_projects.each do |project_id, result|
+        - next unless result.hud_project
 
-      .page-break-avoid
-        %h3.mb-4= result.hud_project.name(current_user, include_project_type: true)
-        = render 'performance_measurement/warehouse_reports/reports/details_row', key: key, result: result, class_name: "jProjectLevelPerformance_#{key}_#{project_id}", show_label_detail: result.percentage?, project_id: project_id
-- other_projects = @report.other_projects(current_user, key)
-- if other_projects.present?
-  .well.no-break
-    %h3 Other Projects
-    %hr
-    - other_projects.each do |project_id, result|
-      - next unless result.hud_project
+        .page-break-avoid
+          %h3.mb-4= result.hud_project.name(current_user, include_project_type: true)
+          = render 'performance_measurement/warehouse_reports/reports/details_row', key: key, result: result, class_name: "jProjectLevelPerformance_#{key}_#{project_id}", show_label_detail: result.percentage?, project_id: project_id
+  - other_projects = @report.other_projects(current_user, key)
+  - if other_projects.present?
+    .well.no-break
+      %h3 Other Projects
+      %hr
+      - other_projects.each do |project_id, result|
+        - next unless result.hud_project
 
-      .page-break-avoid
-        %h3.mb-4= result.hud_project.name(current_user, include_project_type: true)
-        = render 'performance_measurement/warehouse_reports/reports/details_row', key: key, result: result, class_name: "jProjectLevelPerformance_#{key}_#{project_id}", show_label_detail: result.percentage?
+        .page-break-avoid
+          %h3.mb-4= result.hud_project.name(current_user, include_project_type: true)
+          = render 'performance_measurement/warehouse_reports/reports/details_row', key: key, result: result, class_name: "jProjectLevelPerformance_#{key}_#{project_id}", show_label_detail: result.percentage?
+- else
+  .alert.alert-info
+    Project-level charts are left out of PDFs for reports with more than #{PerformanceMeasurement::Details::PDF_PROJECT_CHART_LIMIT} projects. View the report online, or run it for fewer projects, to see them.
 
 = content_for :page_js do
   %script{ nonce: content_security_policy_nonce }
     :plain
       $(document).ready(function(){
-        let all_project_data = $('.#{all_projects_class_name}').data('chart');
+        const chartElement = document.getElementById(#{all_projects_class_name.to_json.html_safe});
+        let all_project_data = $(chartElement).data('chart');
         let all_project_height = 35 * all_project_data.columns[0].length * (all_project_data.columns.length - 1);
         let max = Math.max(...all_project_data.columns[1].slice(1));
-        let include_percent = $('.#{all_projects_class_name}').data('includePercent');
+        let include_percent = $(chartElement).data('includePercent');
         all_project_data.labels['format'] = function (v, id, i, texts) {
           if(v < max * 0.15) {
             return '';
@@ -51,7 +56,7 @@
           data: all_project_data,
           size: { height: all_project_height },
           legend: { show: false },
-          bindto: '.#{all_projects_class_name}',
+          bindto: chartElement,
           legend: {
             show: false,
           },
