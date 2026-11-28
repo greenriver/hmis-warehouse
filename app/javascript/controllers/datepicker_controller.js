@@ -37,7 +37,6 @@ const fieldLabelText = (input) => {
   const text = input?.labels?.[0]?.textContent || input?.getAttribute('aria-label') || '';
   return text.replace(/\*/g, '').replace(/\s+/g, ' ').trim();
 };
-document.addEventListener('submit', blockSubmitWithInvalidDate, true);
 
 // Connects to data-controller="datepicker"
 export default class extends Controller {

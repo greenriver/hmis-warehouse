@@ -98,6 +98,37 @@ RSpec.feature 'JavaScript Functionality Test', type: :rails_system do
       expect(picker.value).to eq("Jan 2, #{far_year - 100}")
     end
 
+    it 'names the calendar button and popup after the field' do
+      visit datepicker_style_guide_path
+      picker = find('input.datepicker')
+      toggle = find('button.icon-calendar')
+
+      expect(toggle['aria-label']).to eq('Choose Date')
+      expect(toggle['aria-haspopup']).to eq('dialog')
+      expect(toggle['aria-expanded']).to eq('false')
+
+      toggle.click
+      expect(page).to have_css('button.icon-calendar[aria-expanded="true"]')
+      # The popup is labelled after a short delay once it opens; have_css waits for it
+      expect(page).to have_css('.tempus-dominus-widget.show[role="dialog"][aria-label="Choose Date"]')
+      within('.tempus-dominus-widget.show') do
+        ['previous', 'next', 'today', 'clear', 'close'].each do |action|
+          control = find("[data-action=\"#{action}\"]", visible: :all)
+          expect(control[:role]).to eq('button')
+          expect(control['aria-label']).to be_present
+        end
+        expect(find('[data-action="changeCalendarView"]')[:role]).to eq('button')
+      end
+
+      toggle.click
+      expect(page).to have_css('button.icon-calendar[aria-expanded="false"]')
+
+      # Tempus Dominus renames the button on every change; it keeps the field's name
+      fill_in picker[:id], with: '12/31/2024'
+      picker.trigger(:blur)
+      expect(page).to have_css('button.icon-calendar[aria-label="Choose Date, Dec 31, 2024"]')
+    end
+
     it 'clears the error when a flagged date is emptied' do
       visit datepicker_style_guide_path
       picker = find('input.datepicker')
