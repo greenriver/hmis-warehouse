@@ -442,7 +442,6 @@ RSpec.describe CohortsController, type: :request do
       describe 'user pickers' do
         let!(:active_user) { create(:acl_user) }
         let!(:inactive_user) { create(:acl_user, active: false) }
-        let!(:expired_user) { create(:acl_user, expired_at: 1.day.ago) }
         let(:picker_keys) { [:manager_ids, :participant_ids, :viewer_ids] }
 
         before do
@@ -470,13 +469,13 @@ RSpec.describe CohortsController, type: :request do
             picker_keys.each do |key|
               values = picker_values(key)
               expect(values).to include(active_user.id.to_s), "#{key} offers the active user"
-              expect(values).not_to include(inactive_user.id.to_s, expired_user.id.to_s), "#{key} excludes inactive and expired users"
+              expect(values).not_to include(inactive_user.id.to_s), "#{key} excludes the inactive user"
             end
           end
         end
 
-        it 'does not add an inactive or expired user to any group on update' do
-          ids = [active_user.id, inactive_user.id, expired_user.id]
+        it 'does not add an inactive user to any group on update' do
+          ids = [active_user.id, inactive_user.id]
 
           patch cohort_path(cohort), params: { cohort: picker_keys.index_with { ids } }
 
@@ -485,8 +484,8 @@ RSpec.describe CohortsController, type: :request do
           end
         end
 
-        it 'does not add an inactive or expired user to any group on create' do
-          ids = [active_user.id, inactive_user.id, expired_user.id]
+        it 'does not add an inactive user to any group on create' do
+          ids = [active_user.id, inactive_user.id]
 
           post cohorts_path, params: { cohort: { name: 'Active only' }.merge(picker_keys.index_with { ids }) }
 
@@ -494,6 +493,30 @@ RSpec.describe CohortsController, type: :request do
           expect(created.manager_user_ids).to eq([active_user.id])
           expect(created.editable_access_control.user_ids).to eq([active_user.id])
           expect(created.viewable_access_control.user_ids).to eq([active_user.id])
+        end
+
+        # Under AUTH_METHOD=jwt the identity provider owns account expiry, so User.active ignores expired_at.
+        context 'with an expired account', :devise_only do
+          let!(:expired_user) { create(:acl_user, expired_at: 1.day.ago) }
+
+          it 'offers the expired user in no picker on edit' do
+            get edit_cohort_path(cohort)
+
+            expect(response).to have_http_status(:ok)
+            picker_keys.each do |key|
+              values = picker_values(key)
+              expect(values).to include(active_user.id.to_s), "#{key} offers the active user"
+              expect(values).not_to include(expired_user.id.to_s), "#{key} excludes the expired user"
+            end
+          end
+
+          it 'does not add the expired user to any group on update' do
+            patch cohort_path(cohort), params: { cohort: picker_keys.index_with { [active_user.id, expired_user.id] } }
+
+            picker_keys.each do |key|
+              expect(group_members(key)).to eq([active_user.id]), "#{key} members"
+            end
+          end
         end
       end
 

@@ -32,8 +32,7 @@ module Cohorts
       ],
     ) { cohort_policy.can_add_clients? }
     authorize_with(only: [:re_rank, :edit, :update]) { cohort_policy.can_update_data? }
-    before_action :set_client, only: [:destroy, :pre_destroy]
-    before_action :set_visible_client, only: [:show, :update]
+    before_action :set_visible_client, only: [:show, :update, :destroy, :pre_destroy]
     before_action :set_visible_cohort_client, only: [:edit, :field]
     before_action :load_cohort_names, only: [:index, :edit, :field, :update]
     skip_after_action :log_activity, only: [:index, :show]
@@ -493,7 +492,7 @@ module Cohorts
     def bulk_destroy
       unless @cohort.system_cohort || @cohort.auto_maintained?
         @cohort_client_ids = params.require(:cc).permit(:cohort_client_ids)[:cohort_client_ids].split(',').map(&:to_i)
-        @cohort_clients = @cohort.cohort_clients.where(id: @cohort_client_ids)
+        @cohort_clients = @cohort.cohort_clients.where(id: visible_cohort_client_ids(@cohort_client_ids))
         removed = 0
         @cohort_clients.each do |client|
           log_removal(client.cohort_id, client.id, params.dig(:cc, :reason))
@@ -507,7 +506,7 @@ module Cohorts
     def bulk_restore
       unless @cohort.system_cohort || @cohort.auto_maintained?
         @cohort_client_ids = params.require(:cc).permit(:cohort_client_ids)[:cohort_client_ids].split(',').map(&:to_i)
-        @cohort_clients = @cohort.cohort_clients.only_deleted.where(id: @cohort_client_ids)
+        @cohort_clients = @cohort.cohort_clients.only_deleted.where(id: visible_cohort_client_ids(@cohort_client_ids))
         @cohort_clients.each(&:restore)
       end
 
@@ -518,7 +517,8 @@ module Cohorts
 
     def re_rank
       new_order = params.require(:rank_order)&.split(',')&.map(&:to_i)
-      new_order.each_with_index do |cohort_client_id, index|
+      visible_ids = visible_cohort_client_ids(new_order)
+      new_order.select { |id| visible_ids.include?(id) }.each_with_index do |cohort_client_id, index|
         rank = index + 1
         @cohort.cohort_clients.find(cohort_client_id).update(rank: rank)
       end
@@ -609,8 +609,8 @@ module Cohorts
     end
 
     def cohort_update_params
-      editable_columns = cohort_source.available_columns.
-        select { |column| column.display_as_editable?(current_user, @client, on_cohort: @cohort) }.
+      editable_columns = @cohort.active_columns.
+        select { |column| column.display_as_editable?(current_user, @client, on_cohort: @cohort) && column.column_editable? }.
         map(&:column)
       params.require(:cohort_client).permit(*editable_columns)
     end
@@ -679,10 +679,6 @@ module Cohorts
 
     def client_source
       GrdaWarehouse::Hud::Client
-    end
-
-    def set_client
-      @client = @cohort.cohort_clients.with_deleted.find(params[:id].to_i)
     end
 
     def set_visible_client

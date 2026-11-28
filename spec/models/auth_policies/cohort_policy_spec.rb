@@ -19,8 +19,6 @@ RSpec.describe GrdaWarehouse::AuthPolicies::CohortPolicy, type: :model do
       can_manage_data?: :can_manage_cohort_data,
       can_participate?: :can_participate_in_cohorts,
       can_manage_inactive_clients?: :can_manage_inactive_cohort_clients,
-      can_view_inactive_clients?: :can_view_inactive_cohort_clients,
-      can_view_deleted_clients?: :can_view_deleted_cohort_clients,
       can_download?: :can_download_cohorts,
       can_edit_columns?: :can_edit_cohort_columns,
       can_view_changes_report?: :can_view_cohort_client_changes_report,
@@ -47,9 +45,8 @@ RSpec.describe GrdaWarehouse::AuthPolicies::CohortPolicy, type: :model do
     end
 
     it 'denies each gated predicate when only a different permission is held with view access' do
-      accepted = { can_view_inactive_clients?: [:can_view_inactive_cohort_clients, :can_manage_inactive_cohort_clients] }
       gated_predicates.each do |predicate, permission|
-        (gated_predicates.values - accepted.fetch(predicate, [permission])).each do |other_permission|
+        (gated_predicates.values - [permission]).each do |other_permission|
           user = build_user
           grant(user, [:can_view_cohorts, other_permission], cohort)
           expect(policy_for(user).public_send(predicate)).to be(false), "#{predicate} should be false with #{other_permission}"
@@ -103,27 +100,6 @@ RSpec.describe GrdaWarehouse::AuthPolicies::CohortPolicy, type: :model do
       end
     end
 
-    it 'can_list? is true on a cohort the user can view, participate in, or configure' do
-      [:can_view_cohorts, :can_participate_in_cohorts, :can_manage_cohort_data, :can_configure_cohorts].each do |permission|
-        user = build_user
-        grant(user, [permission], cohort)
-        expect(policy_for(user).can_list?).to be(true), "#{permission} should allow listing"
-      end
-    end
-
-    it 'can_list? is false on a cohort with no grant even when the user can view another cohort' do
-      user = build_user
-      grant(user, [:can_view_cohorts], other_cohort)
-      expect(policy_for(user, other_cohort).can_list?).to be(true)
-      expect(policy_for(user, cohort).can_list?).to be(false)
-    end
-
-    it 'can_list? is false with only can_add_cohort_clients' do
-      user = build_user
-      grant(user, [:can_add_cohort_clients], cohort)
-      expect(policy_for(user).can_list?).to be(false)
-    end
-
     it 'permission? requires view access' do
       user = build_user
       grant(user, [:can_view_cohorts, :can_download_cohorts], cohort)
@@ -151,12 +127,11 @@ RSpec.describe GrdaWarehouse::AuthPolicies::CohortPolicy, type: :model do
 
     include_examples 'cohort policy predicates'
 
-    it 'lets a configure-only role configure without view or listing via other permissions' do
+    it 'lets a configure-only role configure without view' do
       user = build_user
       grant(user, [:can_configure_cohorts], cohort)
       policy = policy_for(user)
       expect(policy.can_configure?).to be(true)
-      expect(policy.can_list?).to be(true)
       expect(policy.can_view?).to be(false)
     end
   end
@@ -176,20 +151,13 @@ RSpec.describe GrdaWarehouse::AuthPolicies::CohortPolicy, type: :model do
 
     include_examples 'cohort policy predicates'
 
-    it 'lets a manager-only user configure and list but not view' do
+    it 'lets a manager-only user configure but not view' do
       user = build_user
       grant(user, [:can_configure_cohorts], cohort)
       policy = policy_for(user)
       expect(policy.can_configure?).to be(true)
-      expect(policy.can_list?).to be(true)
       expect(policy.can_view?).to be(false)
       expect(policy.can_manage_data?).to be(false)
-    end
-
-    it 'can_list? is false with only an unrelated permission' do
-      user = build_user
-      grant(user, [:can_download_cohorts], cohort)
-      expect(policy_for(user).can_list?).to be(false)
     end
 
     it 'ignores collections that have been deleted' do

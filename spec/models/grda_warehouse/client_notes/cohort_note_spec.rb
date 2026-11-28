@@ -61,6 +61,17 @@ RSpec.describe GrdaWarehouse::ClientNotes::CohortNote, type: :model do
       expect(note.destroyable_by(user)).to be(false)
     end
 
+    it 'runs no queries for the second note when the notes are loaded through one client' do
+      grant([:can_view_cohorts, :can_participate_in_cohorts], note_cohort)
+      2.times { described_class.create!(client: client, user: create(:user), note: 'A note') }
+      first_note, second_note = GrdaWarehouse::Hud::Client.find(client.id).cohort_notes.to_a
+
+      expect(first_note.destroyable_by(user)).to be(true)
+      second_result = nil
+      expect(count_database_queries { second_result = second_note.destroyable_by(user) }).to eq(0)
+      expect(second_result).to be(true)
+    end
+
     context 'with a legacy user' do
       let(:user) { create(:user) }
 
