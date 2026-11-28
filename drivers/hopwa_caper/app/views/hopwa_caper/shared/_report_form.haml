@@ -21,6 +21,6 @@
       = render 'hud_reports/project_filter', f: f, api_projects_parameters: { project_types: @filter.default_project_type_codes}
 
   - content_for :filter_actions do
-    = f.button :submit, value: 'Queue Report', data: { 'filter-projects-target' => 'submitButton' }
+    = render 'hud_reports/queue_report_button', f: f
 
   = render 'warehouse_reports/filters', f: f

@@ -209,6 +209,7 @@ module OpenPath
     config.census = {}
     config.monthly_reports = {}
     config.hud_reports = {}
+    config.hud_report_definition_aliases = {}
     config.hmis_exporters = []
     config.synthetic_event_types = []
     config.synthetic_assessment_types = []

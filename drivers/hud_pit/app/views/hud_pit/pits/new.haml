@@ -8,6 +8,6 @@
     = render 'form', f: f, default_coc_code: default_coc_code, report_versions: active_report_versions
 
   - content_for :filter_actions do
-    = f.button :submit, value: 'Queue Report', data: { 'filter-projects-target' => 'submitButton' }
+    = render 'hud_reports/queue_report_button', f: f
 
   = render 'warehouse_reports/filters', f: f

@@ -17,6 +17,7 @@ module HudReports
       GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: possible_generator_classes.values.first.report_definition_url)
     end
     before_action :set_view_filter, only: [:history, :show, :running]
+    before_action :require_runnable_report_version, only: :create
 
     def index
       @tab_content_reports = Report.active.order(weight: :asc, type: :desc).map(&:report_group_name).uniq
@@ -137,6 +138,22 @@ module HudReports
       end.freeze
     end
     helper_method :available_report_versions
+
+    # Only a version marked active can be queued; compares generators because some controllers remap slugs.
+    def runnable_report_version?
+      return false if generator.blank?
+
+      available_report_versions.values.any? do |version|
+        version[:active] && possible_generator_classes[version[:slug]] == generator
+      end
+    end
+    helper_method :runnable_report_version?
+
+    private def require_runnable_report_version
+      return if runnable_report_version?
+
+      redirect_to path_for_history, alert: 'This report version can no longer be run.'
+    end
 
     # Determines the default report version based on environment and date.
     # - In production: Uses FY 2024 until October 1, 2025, then switches to FY 2026

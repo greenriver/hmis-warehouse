@@ -9,13 +9,5 @@
 module HudApr
   class BaseController < ::HudReports::BaseController
     before_action :filter
-
-    def active_report_versions
-      {
-        fy2026: 'FY 2026',
-
-      }.invert.freeze
-    end
-    helper_method :active_report_versions
   end
 end

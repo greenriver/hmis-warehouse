@@ -38,10 +38,17 @@ module HudReports
       "#{generic_title} - #{fiscal_year}"
     end
 
-    # The report definition url (e.g. 'hud_reports/aprs') this generator is served under.
-    def self.report_definition_url
-      helper = Rails.application.config.hud_reports.fetch(name).fetch(:helper)
+    # The report definition url (e.g. 'hud_reports/aprs') for a route helper name.
+    def self.definition_url_for_helper(helper)
       Rails.application.routes.url_helpers.public_send(helper).delete_prefix('/')
+    end
+
+    # The report definition url (e.g. 'hud_reports/aprs') this generator is served under.
+    # Retired generators resolve through the aliases so their pages keep a definition; running still reads config.hud_reports only.
+    def self.report_definition_url
+      config = Rails.application.config
+      options = config.hud_reports.fetch(name) { config.hud_report_definition_aliases.fetch(name) }
+      definition_url_for_helper(options.fetch(:helper))
     end
 
     def self.report_year_slug

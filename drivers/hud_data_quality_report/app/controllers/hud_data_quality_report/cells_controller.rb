@@ -8,23 +8,7 @@
 
 module HudDataQualityReport
   class CellsController < HudDataQualityReport::QuestionsController
-    before_action :set_report
-    before_action :set_question
-
-    def show
-      @cell = generator.valid_cell_name(params[:id])
-      @table = generator.valid_table_name(params[:table])
-      @clients = HudDataQualityReport::Fy2020::DqClient.
-        joins(hud_reports_universe_members: { report_cell: :report_instance }).
-        merge(::HudReports::ReportCell.for_table(@table).for_cell(@cell)).
-        merge(::HudReports::ReportInstance.where(id: @report.id))
-      @name = "#{report_short_name} #{@question} #{@cell}"
-      respond_to do |format|
-        format.html {}
-        format.xlsx do
-          headers['Content-Disposition'] = "attachment; filename=#{@name}.xlsx"
-        end
-      end
-    end
+    # Retired DQ years have no cell drilldowns. The route stays so path_for_cell resolves.
+    prepend_before_action :not_authorized!
   end
 end

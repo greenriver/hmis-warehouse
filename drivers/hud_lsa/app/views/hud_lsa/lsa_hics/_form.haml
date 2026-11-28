@@ -25,7 +25,7 @@
       = render 'hud_reports/project_filter', f: f, api_projects_parameters: { project_types: @filter.default_project_type_codes }
 
   - content_for :filter_actions do
-    = f.button :submit, value: 'Queue Report', data: { 'filter-projects-target' => 'submitButton' }
+    = render 'hud_reports/queue_report_button', f: f
     = button_tag type: :submit, formaction: data_missing_hud_reports_lsa_hics_path, formtarget: :_blank, class: ['btn', 'btn-warning', 'ml-auto'], data: { 'filter-projects-target' => 'missingItems' } do
       %i.icon-warning
       Missing Data

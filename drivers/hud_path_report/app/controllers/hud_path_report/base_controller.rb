@@ -66,13 +66,6 @@ module HudPathReport
       @filter.update(filter_params) if filter_params.present?
     end
 
-    def active_report_versions
-      {
-        fy2026: 'FY 2026',
-      }.invert.freeze
-    end
-    helper_method :active_report_versions
-
     def available_report_versions
       super.except('FY 2023')
     end

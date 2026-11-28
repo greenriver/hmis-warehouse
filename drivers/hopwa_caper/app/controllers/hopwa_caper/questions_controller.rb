@@ -34,9 +34,11 @@ module HopwaCaper
     private def hiv_drilldowns_allowed?
       return false unless @report
 
-      return @hiv_drilldowns_allowed if defined?(@hiv_drilldowns_allowed)
+      hopwa_report_policy.can_view_drilldowns?
+    end
 
-      @hiv_drilldowns_allowed = HopwaCaper::HivDrilldownAccess.for_report(user: current_user, report: @report).allowed?
+    private def hopwa_report_policy
+      current_user.policy_for(@report, policy_class: GrdaWarehouse::AuthPolicies::HopwaCaperReportPolicy)
     end
 
     private def set_question
