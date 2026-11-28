@@ -118,7 +118,6 @@ When a context falls back to one-at-a-time lookups for more than a handful of di
 
 - `can_view?` matches the defaults of `Cohort.viewable_by`: any viewable or editable permission on the cohort.
 - `can_configure?` is `can_configure_cohorts` on the cohort. It does not imply `can_view?`.
-- `can_list?` is true for a view, participate, manage-data or configure permission.
 - Every other predicate (`can_add_clients?`, `can_download?`, `can_edit_columns?` and so on) requires `can_view?` as well as the permission. `can_update_data?` and `can_edit_clients?` combine manage-data, participate and manage-inactive as the controllers need.
 
 `can_create_cohorts` is not per cohort and is read from the user. See [Cohorts](./cohorts.md#permissions--access).
