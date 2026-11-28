@@ -697,20 +697,31 @@ module PerformanceMetrics
 
     private def run_rrh
       rrh_filter = WarehouseReport::Outcomes::OutcomesFilter.new(user_id: filter.user_id)
-      options = filter.to_h
-      options.delete(:comparison_pattern)
-      rrh_filter.update(options)
+      rrh_filter.update(outcomes_filter_options)
       rrh_filter.project_type_numbers = [13]
       WarehouseReport::Outcomes::RrhReport.new(rrh_filter)
     end
 
     private def run_psh
       psh_filter = WarehouseReport::Outcomes::OutcomesFilter.new(user_id: filter.user_id)
-      options = filter.to_h
-      options.delete(:comparison_pattern)
-      psh_filter.update(options)
+      psh_filter.update(outcomes_filter_options)
       psh_filter.project_type_numbers = [3, 9, 10]
       WarehouseReport::Outcomes::PshReport.new(psh_filter)
+    end
+
+    # The outcomes reports only filter on their own sub-population keys and treat any
+    # other key as all clients, so translate the one registered key with an equivalent.
+    # The remaining registered sub-populations have no outcomes counterpart.
+    OUTCOMES_SUB_POPULATIONS = {
+      veterans: :veteran,
+    }.freeze
+
+    private def outcomes_filter_options
+      options = filter.to_h
+      options.delete(:comparison_pattern)
+      sub_population = options[:sub_population]&.to_sym
+      options[:sub_population] = OUTCOMES_SUB_POPULATIONS.fetch(sub_population, sub_population)
+      options
     end
 
     private def run_outflow

@@ -44,4 +44,18 @@ RSpec.describe PerformanceMetrics::Report, type: :model do
 
     expect(report.send(:run_rrh).all_projects).to be true
   end
+
+  # The outcomes reports call this sub-population :veteran and treat :veterans as all clients.
+  it 'limits the RRH and PSH sections to veterans when the veterans sub-population is chosen' do
+    report.filter = Filters::FilterBase.new(user_id: user.id, sub_population: :veterans)
+
+    expect(report.send(:run_rrh).subpopulation).to eq(:veteran)
+    expect(report.send(:run_psh).subpopulation).to eq(:veteran)
+  end
+
+  it 'passes other sub-populations through unchanged' do
+    report.filter = Filters::FilterBase.new(user_id: user.id, sub_population: :clients)
+
+    expect(report.send(:run_rrh).filter.sub_population).to eq(:clients)
+  end
 end
