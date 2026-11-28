@@ -90,7 +90,8 @@ RSpec.describe GrdaWarehouse::Tasks::BackfillCohortManagers do
     expect(manager_user_ids(cohort)).to be_empty
   end
 
-  it 'skips a participant whose account has expired' do
+  # Under AUTH_METHOD=jwt the identity provider owns account expiry, so User.active ignores expired_at.
+  it 'skips a participant whose account has expired', :devise_only do
     participant.update!(expired_at: 1.day.ago)
 
     described_class.new.run!
