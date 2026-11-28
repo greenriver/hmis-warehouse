@@ -533,4 +533,23 @@ RSpec.describe GrdaWarehouse::Cohort, type: :model do
       expect(described_class.listable_by(nil)).to be_empty
     end
   end
+
+  describe 'default_sort_direction validation' do
+    it 'accepts each defined sort direction' do
+      GrdaWarehouse::Cohort.sort_directions.each_key do |direction|
+        expect(build(:cohort, default_sort_direction: direction)).to be_valid
+      end
+    end
+
+    it 'accepts a blank sort direction' do
+      expect(build(:cohort, default_sort_direction: '')).to be_valid
+    end
+
+    it 'rejects a value that is not a defined sort direction' do
+      record = build(:cohort, default_sort_direction: 'sideways')
+
+      expect(record).not_to be_valid
+      expect(record.errors[:default_sort_direction]).to eq(['is not included in the list'])
+    end
+  end
 end

@@ -216,6 +216,16 @@ module GrdaWarehouse
       cohort_tabs.find_by(name: 'Active Clients')
     end
 
+    # Cohort clients in any tab the user can see; deleted-client tabs count only when asked for
+    def visible_cohort_clients(user, include_deleted_tabs: false)
+      tabs = cohort_tabs.select { |tab| tab.show_for?(user) }
+      tabs = tabs.reject { |tab| tab.base_scope.to_s == 'only_deleted' } unless include_deleted_tabs
+      conditions = tabs.map { |tab| cohort_clients.where(id: clients_for_tab(user, tab.name, tab).select(:id)) }
+      return cohort_clients.none if conditions.empty?
+
+      conditions.reduce(:or)
+    end
+
     def clients_for_tab(user, population, tab = nil)
       active_tab = tab || active_tab(user, population)
       cohort_clients.joins(:client).
@@ -394,6 +404,8 @@ module GrdaWarehouse
 
       attr_accessor accessor_name
     end
+
+    validates :default_sort_direction, inclusion: { in: ->(record) { record.class.sort_directions.keys } }, allow_blank: true
 
     def self.sort_directions
       {
