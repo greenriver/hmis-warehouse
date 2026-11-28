@@ -8,7 +8,7 @@
 
 require 'json/ext'
 module Cohorts
-  class ClientsController < ApplicationController
+  class ClientsController < ApplicationControllerV2
     include AjaxModalRails::Controller
     include ArelHelper
     include Chronic
@@ -17,20 +17,23 @@ module Cohorts
     include ActionView::Helpers::TextHelper
     include Search
 
-    before_action :require_can_access_cohort!
-    before_action :require_can_add_cohort_clients!, only: [
-      :new,
-      :create,
-      :search,
-      :pre_destroy,
-      :destroy,
-      :pre_bulk_destroy,
-      :bulk_destroy,
-      :bulk_restore,
-    ]
-    before_action :require_can_update_some_cohort_data!, only: [:re_rank, :edit, :update]
-    before_action :set_cohort
-    before_action :set_client, only: [:destroy, :update, :show, :pre_destroy, :field]
+    before_action :load_cohort
+    authorize_with { cohort_policy.can_view? }
+    authorize_with(
+      only: [
+        :new,
+        :create,
+        :search,
+        :pre_destroy,
+        :destroy,
+        :pre_bulk_destroy,
+        :bulk_destroy,
+        :bulk_restore,
+      ],
+    ) { cohort_policy.can_add_clients? }
+    authorize_with(only: [:re_rank, :edit, :update]) { cohort_policy.can_update_data? }
+    before_action :set_visible_client, only: [:show, :update, :destroy, :pre_destroy]
+    before_action :set_visible_cohort_client, only: [:edit, :field]
     before_action :load_cohort_names, only: [:index, :edit, :field, :update]
     skip_after_action :log_activity, only: [:index, :show]
 
@@ -53,11 +56,6 @@ module Cohorts
             render json: @cohort.cohort_clients.pluck(:id, :updated_at).map { |k, v| [k, v.to_i] }.to_h
           end
         end
-        format.html do
-          set_cohort_clients
-          current_user.policy_context.preload_client_restrictions(@cohort_clients.map(&:client_id))
-          render layout: false
-        end
       end
     end
 
@@ -71,7 +69,7 @@ module Cohorts
       else
         CohortColumns::Delete.new
       end
-      @visible_columns << delete_column if current_user.can_add_cohort_clients?
+      @visible_columns << delete_column if cohort_policy.can_add_clients?
 
       current_user.policy_context.preload_client_restrictions(@cohort_clients.map(&:client_id))
       @cohort_clients.each do |cohort_client|
@@ -103,7 +101,6 @@ module Cohorts
     end
 
     def edit
-      @cohort_client = @cohort.cohort_clients.find(params[:id].to_i)
     end
 
     # Return the entire row of html layout false
@@ -495,7 +492,7 @@ module Cohorts
     def bulk_destroy
       unless @cohort.system_cohort || @cohort.auto_maintained?
         @cohort_client_ids = params.require(:cc).permit(:cohort_client_ids)[:cohort_client_ids].split(',').map(&:to_i)
-        @cohort_clients = @cohort.cohort_clients.where(id: @cohort_client_ids)
+        @cohort_clients = @cohort.cohort_clients.where(id: visible_cohort_client_ids(@cohort_client_ids))
         removed = 0
         @cohort_clients.each do |client|
           log_removal(client.cohort_id, client.id, params.dig(:cc, :reason))
@@ -509,7 +506,7 @@ module Cohorts
     def bulk_restore
       unless @cohort.system_cohort || @cohort.auto_maintained?
         @cohort_client_ids = params.require(:cc).permit(:cohort_client_ids)[:cohort_client_ids].split(',').map(&:to_i)
-        @cohort_clients = @cohort.cohort_clients.only_deleted.where(id: @cohort_client_ids)
+        @cohort_clients = @cohort.cohort_clients.only_deleted.where(id: visible_cohort_client_ids(@cohort_client_ids))
         @cohort_clients.each(&:restore)
       end
 
@@ -520,7 +517,8 @@ module Cohorts
 
     def re_rank
       new_order = params.require(:rank_order)&.split(',')&.map(&:to_i)
-      new_order.each_with_index do |cohort_client_id, index|
+      visible_ids = visible_cohort_client_ids(new_order)
+      new_order.select { |id| visible_ids.include?(id) }.each_with_index do |cohort_client_id, index|
         rank = index + 1
         @cohort.cohort_clients.find(cohort_client_id).update(rank: rank)
       end
@@ -530,7 +528,6 @@ module Cohorts
     def field
       column = GrdaWarehouse::Cohort.available_columns.map(&:class).map(&:name).select { |m| m == params.require(:field) }&.first
       if column.present?
-        @cohort_client = @cohort.cohort_clients.find(params[:id].to_i)
         @column = column.constantize.new
         @column.cohort = @cohort
         @column.cohort_names = @cohort_names
@@ -612,8 +609,8 @@ module Cohorts
     end
 
     def cohort_update_params
-      editable_columns = cohort_source.available_columns.
-        select { |column| column.display_as_editable?(current_user, @client, on_cohort: @cohort) }.
+      editable_columns = @cohort.active_columns.
+        select { |column| column.display_as_editable?(current_user, @client, on_cohort: @cohort) && column.column_editable? }.
         map(&:column)
       params.require(:cohort_client).permit(*editable_columns)
     end
@@ -684,8 +681,12 @@ module Cohorts
       GrdaWarehouse::Hud::Client
     end
 
-    def set_client
-      @client = @cohort.cohort_clients.with_deleted.find(params[:id].to_i)
+    def set_visible_client
+      @client = find_visible_cohort_client(params[:id], with_deleted: true)
+    end
+
+    def set_visible_cohort_client
+      @cohort_client = find_visible_cohort_client(params[:id])
     end
 
     def cohort_client_source

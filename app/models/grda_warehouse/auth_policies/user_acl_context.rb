@@ -18,6 +18,7 @@ class GrdaWarehouse::AuthPolicies::UserAclContext < GrdaWarehouse::AuthPolicies:
     @collection_ids_by_project = {}
     @collection_ids_by_client = {}
     @enrolled_project_ids_by_client = {}
+    @cohort_permissions_by_cohort = {}
   end
 
   memoize def project_role_permissions(project_id)
@@ -38,6 +39,40 @@ class GrdaWarehouse::AuthPolicies::UserAclContext < GrdaWarehouse::AuthPolicies:
   memoize def direct_client_role_permissions(client_id)
     collection_ids = direct_client_collection_ids(client_id)
     permissions_for_collection_ids(collection_ids)
+  end
+
+  # Permissions granted through collections that directly contain the cohort. The All Data
+  # Sources system collection is deliberately not added; it never contains cohorts.
+  def cohort_role_permissions(cohort_id)
+    preload_cohort_dependencies([cohort_id]) unless @cohort_permissions_by_cohort.key?(cohort_id)
+    @cohort_permissions_by_cohort[cohort_id]
+  end
+
+  # Fixed number of queries regardless of how many cohorts are given
+  def preload_cohort_dependencies(cohort_ids)
+    cohort_ids = cohort_ids.uniq
+    collection_ids_by_cohort = GrdaWarehouse::GroupViewableEntity.
+      where(entity_type: GrdaWarehouse::Cohort.sti_name, entity_id: cohort_ids).
+      using_acls.
+      pluck(:entity_id, :collection_id).
+      group_by(&:first).
+      transform_values { |rows| rows.map(&:last) & active_collection_ids.to_a }
+
+    all_collection_ids = collection_ids_by_cohort.values.flatten.uniq
+    permissions_by_collection = {}
+    if all_collection_ids.any?
+      # joins(:role) skips soft-deleted roles, as Cohort.viewable_by does
+      user.access_controls.where(collection_id: all_collection_ids).joins(:role).preload(:role).each do |access_control|
+        (permissions_by_collection[access_control.collection_id] ||= Set.new).merge(access_control.role.granted_permissions)
+      end
+    end
+
+    cohort_ids.each do |cohort_id|
+      collection_ids = collection_ids_by_cohort[cohort_id] || []
+      @cohort_permissions_by_cohort[cohort_id] = collection_ids.
+        flat_map { |id| (permissions_by_collection[id] || EMPTY_SET).to_a }.
+        to_set.freeze
+    end
   end
 
   # Returns the project ids this client is enrolled in. Called by

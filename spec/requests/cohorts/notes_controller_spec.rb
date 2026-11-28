@@ -24,6 +24,7 @@ RSpec.describe Cohorts::NotesController, type: :request do
 
   before do
     Collection.maintain_system_groups
+    GrdaWarehouse::CohortTab.default_rules.each { |rule| cohort.cohort_tabs.create!(**rule) }
     setup_access_control(user, cohort_role, all_cohorts_collection)
     GrdaWarehouse::WarehouseClient.create!(destination_id: restricted_destination_client.id, source_id: restricted_source_client.id, data_source_id: hmis_ds.id, id_in_source: restricted_source_client.id.to_s)
     restricted_source_client.mark_as_restricted!(user: hmis_user)

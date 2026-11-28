@@ -68,6 +68,7 @@ FactoryBot.define do
   factory :cohort_manager, class: 'Role' do
     name { 'cohort manager' }
     can_configure_cohorts { true }
+    can_create_cohorts { true }
     can_manage_cohort_data { true }
     can_view_cohorts { true }
   end

@@ -10,22 +10,19 @@ module CohortAuthorization
   extend ActiveSupport::Concern
 
   included do
-    def some_cohort_access!
-      return true if cohort_source.has_some_cohort_access current_user
+    helper_method :cohort_policy, :cohort_policy_for
 
-      not_authorized!
+    # Loads unscoped so authorize_with decides; a nonexistent id raises RecordNotFound
+    def load_cohort
+      @cohort = cohort_source.find(cohort_id)
     end
 
-    def require_can_access_cohort!
-      return true if cohort_scope.where(id: cohort_id).any?
-
-      not_authorized!
+    def cohort_policy
+      cohort_policy_for(@cohort)
     end
 
-    def require_more_than_read_only_access_to_cohort!
-      return true if cohort_source.has_some_cohort_access(current_user) && current_user.can_edit_some_cohorts
-
-      not_authorized!
+    def cohort_policy_for(cohort)
+      current_user.policy_for(cohort)
     end
 
     def cohort_scope
@@ -40,10 +37,6 @@ module CohortAuthorization
       cohort_scope.inactive
     end
 
-    def set_cohort
-      @cohort = cohort_scope.find(cohort_id)
-    end
-
     # TODO: START_ACL remove when ACL transition complete
     def set_groups
       @groups = @cohort.access_groups
@@ -55,6 +48,27 @@ module CohortAuthorization
       @users = User.active.not_system
       @participant_ids = @cohort.editable_access_control.user_ids
       @viewer_ids = @cohort.viewable_access_control.user_ids
+      @manager_ids = @cohort.manager_user_ids
+    end
+
+    # Finds a cohort client only if it is in a tab the user can see on this cohort
+    def find_visible_cohort_client(id, with_deleted: false)
+      id = id.to_i
+      raise ActiveRecord::RecordNotFound unless visible_cohort_client_ids([id]).include?(id)
+
+      scope = @cohort.cohort_clients
+      scope = scope.with_deleted if with_deleted
+      scope.find(id)
+    end
+
+    # The subset of cohort client ids that are in a tab the user can see on this cohort
+    def visible_cohort_client_ids(ids)
+      ids = Array(ids).map(&:to_i)
+      return Set.new if ids.empty?
+
+      @cohort.cohort_tabs.select { |tab| tab.show_for?(current_user) }.flat_map do |tab|
+        @cohort.clients_for_tab(current_user, tab.name, tab).where(id: ids).pluck(:id)
+      end.to_set
     end
 
     def cohort_source

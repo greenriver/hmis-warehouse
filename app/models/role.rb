@@ -628,7 +628,13 @@ class Role < ApplicationRecord
         sub_category: 'General Client Access',
       },
       can_configure_cohorts: {
-        description: 'Ability to create, configure, and remove cohorts',
+        description: 'Ability to configure and remove assigned cohorts',
+        administrative: false,
+        category: 'Cohorts',
+        sub_category: 'Cohort Administration',
+      },
+      can_create_cohorts: {
+        description: 'Ability to create cohorts and edit cohort-wide column names and options. Applies to all cohorts, including under Access Controls.',
         administrative: false,
         category: 'Cohorts',
         sub_category: 'Cohort Administration',

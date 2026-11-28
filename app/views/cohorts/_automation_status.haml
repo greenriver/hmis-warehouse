@@ -13,7 +13,7 @@
     - else
       No automated refresh recorded yet, check back soon.
 
-- if can_configure_cohorts?
+- if cohort_policy.can_configure?
   .mb-2
     = button_to maintain_cohort_path(@cohort), method: :post, class: 'btn btn-secondary btn-sm' do
       Queue Refresh Now

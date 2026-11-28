@@ -40,6 +40,36 @@ RSpec.describe Clients::NotesController, type: :request do
     end
   end
 
+  describe 'DELETE #destroy of a cohort note' do
+    let!(:cohort) { create(:cohort) }
+    let!(:cohort_note) { GrdaWarehouse::ClientNotes::CohortNote.create!(client: client, user: admin, note: 'Cohort note') }
+    let!(:cohort_client) { GrdaWarehouse::CohortClient.create!(cohort: cohort, client: client) }
+
+    def grant_cohort_update(user, cohort)
+      collection = create(:collection)
+      collection.set_viewables({ cohorts: [cohort.id] })
+      setup_access_control(user, create(:role, can_view_cohorts: true, can_participate_in_cohorts: true), collection)
+    end
+
+    it 'keeps the note when the user can not update data on any cohort the client is on' do
+      expect { delete client_note_path(client, cohort_note) }.not_to change(GrdaWarehouse::ClientNotes::CohortNote, :count)
+      expect(flash[:error]).to eq('You do not have permission to delete this note.')
+    end
+
+    it 'deletes the note when the user can update data on a cohort the client is on' do
+      grant_cohort_update(admin, cohort)
+
+      expect { delete client_note_path(client, cohort_note) }.to change(GrdaWarehouse::ClientNotes::CohortNote, :count).by(-1)
+    end
+
+    it 'deletes the note when the client was removed from the cohort the user can update' do
+      grant_cohort_update(admin, cohort)
+      cohort_client.destroy
+
+      expect { delete client_note_path(client, cohort_note) }.to change(GrdaWarehouse::ClientNotes::CohortNote, :count).by(-1)
+    end
+  end
+
   describe 'POST #create_note' do
     context 'with valid attributes' do
       before do

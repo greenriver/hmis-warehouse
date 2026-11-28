@@ -95,4 +95,99 @@ RSpec.describe Cohorts::ReportsController, type: :request do
 
     expect(response).to have_http_status(:success)
   end
+
+  describe 'per-cohort authorization' do
+    let!(:cohort_b) { create(:cohort, name: 'Cohort B') }
+    let!(:client_b) { create(:grda_warehouse_hud_client, FirstName: 'Beta', LastName: 'Bison') }
+    let!(:cohort_client_b) { GrdaWarehouse::CohortClient.create!(cohort: cohort_b, client: client_b) }
+
+    before do
+      GrdaWarehouse::CohortClientChange.create!(cohort_client: cohort_client_b, cohort: cohort_b, user: user, change: 'add', changed_at: Time.current)
+    end
+
+    def refused?
+      response.redirect? && !response.location.include?('/cohorts/')
+    end
+
+    def role_with(*permissions)
+      create(:role, **permissions.index_with { true })
+    end
+
+    shared_examples 'a per-cohort changes report' do
+      it 'refuses HTML and xlsx on a cohort with view only and exposes no client names' do
+        grant(other_user, [:can_view_cohorts, :can_view_clients, :can_view_cohort_client_changes_report], cohort)
+        grant_view_only(other_user, cohort_b)
+        sign_in other_user
+
+        get cohort_report_path(cohort_b)
+        expect(refused?).to be(true)
+        expect(response.body).not_to include(client_b.FirstName)
+
+        get cohort_report_path(cohort_b, format: :xlsx)
+        expect(refused?).to be(true)
+        expect(response.body).not_to include(client_b.FirstName)
+      end
+
+      it 'refuses a manager-only user' do
+        grant(other_user, [:can_configure_cohorts], cohort_b)
+        sign_in other_user
+
+        get cohort_report_path(cohort_b)
+
+        expect(refused?).to be(true)
+        expect(response.body).not_to include(client_b.FirstName)
+      end
+
+      it 'renders where the report permission was granted' do
+        grant(other_user, [:can_view_cohorts, :can_view_clients, :can_view_cohort_client_changes_report], cohort)
+        sign_in other_user
+
+        get cohort_report_path(cohort)
+
+        expect(response).to have_http_status(:ok)
+        expect(response.body).to include("#{open_destination_client.FirstName} #{open_destination_client.LastName}")
+        expect(response.body).not_to include(client_b.LastName)
+      end
+
+      it 'returns not found for a cohort that does not exist' do
+        grant(other_user, [:can_view_cohorts, :can_view_cohort_client_changes_report], cohort)
+        sign_in other_user
+
+        get cohort_report_path(GrdaWarehouse::Cohort.maximum(:id) + 1)
+
+        expect(response).to have_http_status(:not_found)
+      end
+    end
+
+    context 'with an ACL user' do
+      let(:other_user) { create(:acl_user) }
+
+      def grant(user, permissions, *records)
+        collection = create(:collection)
+        collection.set_viewables({ cohorts: records.map(&:id) })
+        setup_access_control(user, role_with(*permissions), collection)
+      end
+
+      def grant_view_only(user, record) = grant(user, [:can_view_cohorts, :can_view_clients], record)
+
+      include_examples 'a per-cohort changes report'
+    end
+
+    context 'with a legacy user' do
+      let(:other_user) { create(:user) }
+
+      def grant(user, permissions, *records)
+        access_group = create(:access_group)
+        role_with(*permissions).add(user)
+        access_group.add(user)
+        records.each { |record| access_group.add_viewable(record) }
+      end
+
+      # Legacy roles are user-global, so the second cohort stays outside the user's access group
+      def grant_view_only(_user, _record)
+      end
+
+      include_examples 'a per-cohort changes report'
+    end
+  end
 end

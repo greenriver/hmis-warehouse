@@ -1,0 +1,621 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+# frozen_string_literal: true
+
+require 'rails_helper'
+
+RSpec.describe 'Cohort client, note and search query authorization', type: :request do
+  let(:user) { create(:acl_user) }
+  let!(:cohort_a) { create(:cohort, name: 'Cohort A') }
+  let!(:cohort_b) { create(:cohort, name: 'Cohort B') }
+  let!(:client_a) { create(:grda_warehouse_hud_client, FirstName: 'Alpha', LastName: 'Aardvark') }
+  let!(:client_b) { create(:grda_warehouse_hud_client, FirstName: 'Beta', LastName: 'Bison') }
+  let!(:cohort_client_a) { GrdaWarehouse::CohortClient.create!(cohort: cohort_a, client: client_a) }
+  let!(:cohort_client_b) { GrdaWarehouse::CohortClient.create!(cohort: cohort_b, client: client_b) }
+
+  before do
+    Collection.maintain_system_groups
+    [cohort_a, cohort_b].each do |cohort|
+      GrdaWarehouse::CohortTab.default_rules.each { |rule| cohort.cohort_tabs.create!(**rule) }
+      cohort.update!(column_state: GrdaWarehouse::Cohort.available_columns)
+    end
+  end
+
+  def role_with(*permissions)
+    create(:role, **permissions.index_with { true })
+  end
+
+  def grant_acl(user, permissions, *records)
+    collection = create(:collection)
+    collection.set_viewables({ cohorts: records.map(&:id) })
+    setup_access_control(user, role_with(*permissions), collection)
+  end
+
+  def grant_legacy(user, permissions, *records)
+    access_group = create(:access_group)
+    role_with(*permissions).add(user)
+    access_group.add(user)
+    records.each { |record| access_group.add_viewable(record) }
+  end
+
+  def refused?
+    response.redirect? && !response.location.include?('/cohorts/')
+  end
+
+  def row_ids(cohort, population:)
+    get cohort_cohort_clients_path(cohort, format: :json), params: { content: true, population: population, page: 1, per: 50 }
+    expect(response).to have_http_status(:ok)
+    JSON.parse(response.body).map { |row| row['meta']['cohort_client_id'] }
+  end
+
+  shared_examples 'per-cohort client authorization' do
+    before { sign_in user }
+
+    it 'refuses a manager-only user on every read action and shows no client data' do
+      grant(user, [:can_configure_cohorts], cohort_a)
+      cohort_client_a.destroy
+
+      [
+        cohort_cohort_clients_path(cohort_a, format: :json),
+        cohort_cohort_client_path(cohort_a, cohort_client_a, format: :json),
+        field_cohort_cohort_client_path(cohort_a, cohort_client_a, field: 'CohortColumns::Rank'),
+        cohort_cohort_client_cohort_client_notes_path(cohort_a, cohort_client_a),
+        cohort_cohort_client_client_notes_path(cohort_a, cohort_client_a),
+      ].each do |path|
+        get path
+
+        expect(refused?).to be(true), "expected #{path} to be refused"
+        expect(response.body).not_to include(client_a.FirstName)
+      end
+    end
+
+    it 'refuses a viewer of another cohort on every read action and shows no client data' do
+      grant(user, [:can_view_cohorts, :can_view_clients], cohort_a)
+
+      [
+        cohort_cohort_clients_path(cohort_b, format: :json),
+        cohort_cohort_clients_path(cohort_b, format: :json, content: true, page: 1, per: 50),
+        cohort_cohort_client_path(cohort_b, cohort_client_b, format: :json),
+        field_cohort_cohort_client_path(cohort_b, cohort_client_b, field: 'CohortColumns::Rank'),
+        cohort_cohort_client_cohort_client_notes_path(cohort_b, cohort_client_b),
+        cohort_cohort_client_client_notes_path(cohort_b, cohort_client_b),
+      ].each do |path|
+        get path
+
+        expect(refused?).to be(true), "expected #{path} to be refused"
+        expect(response.body).not_to include(client_b.FirstName)
+        expect(response.body).not_to include(client_b.LastName)
+      end
+    end
+
+    it 'refuses a manager-only user the search query create' do
+      grant(user, [:can_configure_cohorts], cohort_a)
+
+      expect do
+        post cohort_client_search_queries_path(cohort_a), params: { q: 'Alpha' }
+      end.not_to change(GrdaWarehouse::ClientSearchQuery, :count)
+      expect(refused?).to be(true)
+    end
+
+    it 'refuses every write on a cohort the user has no access to, and allows it where access was granted' do
+      full = [:can_view_cohorts, :can_participate_in_cohorts, :can_add_cohort_clients, :can_view_clients]
+      grant(user, full, cohort_a)
+      extra_client = create(:grda_warehouse_hud_client)
+
+      post cohort_client_search_queries_path(cohort_b), params: { q: 'Alpha' }
+      expect(refused?).to be(true)
+      get new_cohort_cohort_client_path(cohort_b)
+      expect(refused?).to be(true)
+      expect do
+        post cohort_cohort_clients_path(cohort_b), params: { grda_warehouse_cohort: { client_ids: extra_client.id.to_s } }
+      end.not_to change(cohort_b.cohort_clients, :count)
+      delete cohort_cohort_client_path(cohort_b, cohort_client_b)
+      expect(GrdaWarehouse::CohortClient.exists?(cohort_client_b.id)).to be(true)
+      patch cohort_cohort_client_path(cohort_b, cohort_client_b, format: :json), params: { cohort_client: { rank: 7 } }
+      expect(cohort_client_b.reload.rank).not_to eq(7)
+      expect do
+        post cohort_cohort_client_cohort_client_notes_path(cohort_b, cohort_client_b),
+             params: { grda_warehouse_cohort_client_note: { note: 'Denied note' } }
+      end.not_to change(GrdaWarehouse::CohortClientNote, :count)
+
+      expect do
+        post cohort_client_search_queries_path(cohort_a), params: { q: 'Alpha' }
+      end.to change(GrdaWarehouse::ClientSearchQuery, :count).by(1)
+      get new_cohort_cohort_client_path(cohort_a)
+      expect(response).to have_http_status(:ok)
+      patch cohort_cohort_client_path(cohort_a, cohort_client_a, format: :json), params: { cohort_client: { rank: 7 } }
+      expect(cohort_client_a.reload.rank).to eq(7)
+      expect do
+        post cohort_cohort_client_cohort_client_notes_path(cohort_a, cohort_client_a),
+             params: { grda_warehouse_cohort_client_note: { note: 'Allowed note' } }
+      end.to change(GrdaWarehouse::CohortClientNote, :count).by(1)
+      delete cohort_cohort_client_path(cohort_a, cohort_client_a)
+      expect(GrdaWarehouse::CohortClient.exists?(cohort_client_a.id)).to be(false)
+    end
+
+    it 'does not resolve a cohort client from another cohort through the cohort client notes path' do
+      grant(user, [:can_view_cohorts, :can_participate_in_cohorts], cohort_a)
+
+      get cohort_cohort_client_cohort_client_notes_path(cohort_a, cohort_client_b)
+
+      expect(response).to have_http_status(:not_found)
+    end
+
+    it 'does not resolve a cohort client from another cohort through the client notes path' do
+      grant(user, [:can_view_cohorts, :can_participate_in_cohorts], cohort_a)
+
+      get cohort_cohort_client_client_notes_path(cohort_a, cohort_client_b)
+
+      expect(response).to have_http_status(:not_found)
+    end
+
+    describe 'inactive rows' do
+      read_actions = [:show, :edit, :field, :notes, :client_notes]
+
+      def read_path(action, cohort, row)
+        case action
+        when :show then cohort_cohort_client_path(cohort, row, format: :json)
+        when :edit then edit_cohort_cohort_client_path(cohort, row)
+        when :field then field_cohort_cohort_client_path(cohort, row, field: 'CohortColumns::Rank')
+        when :notes then cohort_cohort_client_cohort_client_notes_path(cohort, row)
+        when :client_notes then cohort_cohort_client_client_notes_path(cohort, row)
+        end
+      end
+
+      before do
+        cohort_a.update!(column_state: [CohortColumns::FirstName.new, CohortColumns::Rank.new, CohortColumns::Notes.new])
+        cohort_client_a.update!(active: false)
+        sign_in user
+      end
+
+      read_actions.each do |action|
+        it "#{action} is not found without view-inactive" do
+          grant(user, [:can_view_cohorts, :can_participate_in_cohorts], cohort_a)
+
+          get read_path(action, cohort_a, cohort_client_a)
+
+          expect(response).to have_http_status(:not_found)
+        end
+
+        it "#{action} is served with view-inactive" do
+          grant(user, [:can_view_cohorts, :can_participate_in_cohorts, :can_view_inactive_cohort_clients], cohort_a)
+
+          get read_path(action, cohort_a, cohort_client_a)
+
+          expect(response).to have_http_status(:ok)
+        end
+
+        it "#{action} is served for an active row without view-inactive" do
+          cohort_client_a.update!(active: true)
+          grant(user, [:can_view_cohorts, :can_participate_in_cohorts], cohort_a)
+
+          get read_path(action, cohort_a, cohort_client_a)
+
+          expect(response).to have_http_status(:ok)
+        end
+      end
+
+      def patch_row(cohort, row, attributes)
+        patch cohort_cohort_client_path(cohort, row, format: :json), params: { cohort_client: attributes }
+      end
+
+      # The grid sends edits as .js, so that format is exercised separately from .json.
+      def patch_row_js(cohort, row, attributes)
+        patch cohort_cohort_client_path(cohort, row, format: :js), params: { cohort_client: attributes }
+      end
+
+      it 'update over .js is not found without view-inactive and leaves the row unchanged' do
+        grant(user, [:can_view_cohorts, :can_participate_in_cohorts], cohort_a)
+
+        patch_row_js(cohort_a, cohort_client_a, rank: 7)
+
+        expect(response).to have_http_status(:not_found)
+        expect(cohort_client_a.reload.rank).not_to eq(7)
+      end
+
+      it 'update over .js changes an active row for a participant without view-inactive' do
+        cohort_client_a.update!(active: true)
+        grant(user, [:can_view_cohorts, :can_participate_in_cohorts], cohort_a)
+
+        patch_row_js(cohort_a, cohort_client_a, rank: 7)
+
+        expect(response).to have_http_status(:ok)
+        expect(JSON.parse(response.body)['cohort_client_id']).to eq(cohort_client_a.id)
+        expect(cohort_client_a.reload.rank).to eq(7)
+      end
+
+      it 'update is refused for view-inactive without participate, manage-data or manage-inactive' do
+        grant(user, [:can_view_cohorts, :can_view_inactive_cohort_clients], cohort_a)
+
+        patch_row(cohort_a, cohort_client_a, rank: 7)
+
+        expect(refused?).to be(true)
+        expect(cohort_client_a.reload.rank).not_to eq(7)
+      end
+
+      it 'update changes an inactive row for view-inactive with participate' do
+        grant(user, [:can_view_cohorts, :can_view_inactive_cohort_clients, :can_participate_in_cohorts], cohort_a)
+
+        patch_row(cohort_a, cohort_client_a, rank: 7)
+
+        expect(response).to have_http_status(:ok)
+        expect(cohort_client_a.reload.rank).to eq(7)
+      end
+
+      it 'update is not found without view-inactive and leaves the row unchanged' do
+        grant(user, [:can_view_cohorts, :can_participate_in_cohorts], cohort_a)
+
+        patch_row(cohort_a, cohort_client_a, rank: 7)
+
+        expect(response).to have_http_status(:not_found)
+        expect(cohort_client_a.reload.rank).not_to eq(7)
+      end
+
+      it 'update is not found without view-inactive for a manage-data user' do
+        grant(user, [:can_view_cohorts, :can_manage_cohort_data], cohort_a)
+
+        patch_row(cohort_a, cohort_client_a, rank: 7)
+
+        expect(response).to have_http_status(:not_found)
+        expect(cohort_client_a.reload.rank).not_to eq(7)
+      end
+
+      it 'update changes an inactive row with manage-inactive, including turning Active back on' do
+        cohort_a.update!(column_state: [CohortColumns::FirstName.new, CohortColumns::Rank.new, CohortColumns::Active.new])
+        grant(user, [:can_view_cohorts, :can_participate_in_cohorts, :can_manage_inactive_cohort_clients], cohort_a)
+
+        patch_row(cohort_a, cohort_client_a, rank: 7)
+        expect(response).to have_http_status(:ok)
+        expect(cohort_client_a.reload.rank).to eq(7)
+
+        patch_row(cohort_a, cohort_client_a, active: true)
+        expect(response).to have_http_status(:ok)
+        expect(cohort_client_a.reload.active).to be(true)
+      end
+
+      it 'update changes an active row for a participant without view-inactive' do
+        cohort_client_a.update!(active: true)
+        grant(user, [:can_view_cohorts, :can_participate_in_cohorts], cohort_a)
+
+        patch_row(cohort_a, cohort_client_a, rank: 7)
+
+        expect(response).to have_http_status(:ok)
+        expect(cohort_client_a.reload.rank).to eq(7)
+      end
+
+      it 'update is not found for a removed row without view-deleted' do
+        cohort_client_a.update!(active: true)
+        cohort_client_a.destroy
+        grant(user, [:can_view_cohorts, :can_participate_in_cohorts], cohort_a)
+
+        patch_row(cohort_a, cohort_client_a, rank: 7)
+
+        expect(response).to have_http_status(:not_found)
+        expect(GrdaWarehouse::CohortClient.with_deleted.find(cohort_client_a.id).rank).not_to eq(7)
+      end
+
+      it 'update changes a removed row for a participant with view-deleted' do
+        cohort_client_a.update!(active: true)
+        cohort_client_a.destroy
+        grant(user, [:can_view_cohorts, :can_participate_in_cohorts, :can_view_deleted_cohort_clients], cohort_a)
+
+        patch_row(cohort_a, cohort_client_a, rank: 7)
+
+        expect(response).to have_http_status(:ok)
+        expect(GrdaWarehouse::CohortClient.with_deleted.find(cohort_client_a.id).rank).to eq(7)
+      end
+
+      describe 'removing and ranking rows' do
+        let!(:active_row) { GrdaWarehouse::CohortClient.create!(cohort: cohort_a, client: create(:grda_warehouse_hud_client), rank: 5) }
+        let(:remover_permissions) { [:can_view_cohorts, :can_participate_in_cohorts, :can_add_cohort_clients] }
+
+        it 'pre_destroy is not found for an inactive row without view-inactive' do
+          grant(user, remover_permissions, cohort_a)
+
+          get pre_destroy_cohort_cohort_client_path(cohort_a, cohort_client_a)
+
+          expect(response).to have_http_status(:not_found)
+        end
+
+        it 'destroy is not found for an inactive row without view-inactive and leaves it in place' do
+          grant(user, remover_permissions, cohort_a)
+
+          delete cohort_cohort_client_path(cohort_a, cohort_client_a)
+
+          expect(response).to have_http_status(:not_found)
+          expect(GrdaWarehouse::CohortClient.exists?(cohort_client_a.id)).to be(true)
+        end
+
+        it 'destroy removes an inactive row with view-inactive' do
+          grant(user, remover_permissions + [:can_view_inactive_cohort_clients], cohort_a)
+
+          delete cohort_cohort_client_path(cohort_a, cohort_client_a)
+
+          expect(response).to redirect_to(cohort_path(cohort_a))
+          expect(GrdaWarehouse::CohortClient.exists?(cohort_client_a.id)).to be(false)
+        end
+
+        it 'bulk_destroy removes only the rows in tabs the user can see' do
+          grant(user, remover_permissions, cohort_a)
+
+          delete bulk_destroy_cohort_cohort_clients_path(cohort_a), params: { cc: { cohort_client_ids: [cohort_client_a.id, active_row.id].join(',') } }
+
+          expect(GrdaWarehouse::CohortClient.exists?(active_row.id)).to be(false)
+          expect(GrdaWarehouse::CohortClient.exists?(cohort_client_a.id)).to be(true)
+        end
+
+        it 'bulk_restore leaves a removed row in place when the Removed Clients tab is hidden from the user' do
+          cohort_a.cohort_tabs.find_by!(name: 'Removed Clients').update!(permissions: [:can_view_deleted_cohort_clients])
+          grant(user, remover_permissions, cohort_a)
+          cohort_client_a.destroy
+
+          post bulk_restore_cohort_cohort_clients_path(cohort_a), params: { cc: { cohort_client_ids: cohort_client_a.id.to_s } }
+
+          expect(GrdaWarehouse::CohortClient.only_deleted.exists?(cohort_client_a.id)).to be(true)
+        end
+
+        it 're_rank ranks the visible rows and leaves a row in a hidden tab unchanged' do
+          cohort_client_a.update!(rank: 9)
+          grant(user, [:can_view_cohorts, :can_participate_in_cohorts], cohort_a)
+
+          patch re_rank_cohort_cohort_clients_path(cohort_a), params: { rank_order: [cohort_client_a.id, active_row.id].join(',') }
+
+          expect(active_row.reload.rank).to eq(1)
+          expect(cohort_client_a.reload.rank).to eq(9)
+        end
+      end
+    end
+
+    describe 'column editability on update' do
+      before do
+        cohort_a.update!(
+          column_state: [
+            CohortColumns::FirstName.new,
+            CohortColumns::Rank.new(editable: false),
+            CohortColumns::HousingSearchAgency.new,
+          ],
+        )
+        sign_in user
+      end
+
+      def patch_row(attributes)
+        patch cohort_cohort_client_path(cohort_a, cohort_client_a, format: :json), params: { cohort_client: attributes }
+      end
+
+      it 'saves only the visible columns this cohort marks editable for a participant' do
+        grant(user, [:can_view_cohorts, :can_participate_in_cohorts], cohort_a)
+
+        patch_row(housing_search_agency: 'Agency A', rank: 7, location: 'Hidden column')
+
+        expect(response).to have_http_status(:ok)
+        cohort_client_a.reload
+        expect(cohort_client_a.housing_search_agency).to eq('Agency A')
+        expect(cohort_client_a.rank).not_to eq(7)
+        expect(cohort_client_a.location).not_to eq('Hidden column')
+      end
+
+      it 'saves a visible column marked non-editable for a manage-data user, but not a hidden column' do
+        grant(user, [:can_view_cohorts, :can_manage_cohort_data], cohort_a)
+
+        patch_row(rank: 7, location: 'Hidden column')
+
+        expect(response).to have_http_status(:ok)
+        cohort_client_a.reload
+        expect(cohort_client_a.rank).to eq(7)
+        expect(cohort_client_a.location).not_to eq('Hidden column')
+      end
+    end
+
+    it 'returns not found for a cohort that does not exist' do
+      grant(user, [:can_view_cohorts], cohort_a)
+
+      get cohort_cohort_clients_path(GrdaWarehouse::Cohort.maximum(:id) + 1, format: :json)
+
+      expect(response).to have_http_status(:not_found)
+    end
+  end
+
+  context 'with an ACL user' do
+    def grant(...) = grant_acl(...)
+
+    include_examples 'per-cohort client authorization'
+
+    describe 'permissions that differ between cohorts' do
+      before { sign_in user }
+
+      it 'allows the search query create for add-clients on this cohort only' do
+        grant(user, [:can_view_cohorts, :can_add_cohort_clients], cohort_a)
+        grant(user, [:can_view_cohorts], cohort_b)
+
+        expect do
+          post cohort_client_search_queries_path(cohort_b), params: { q: 'Alpha' }
+        end.not_to change(GrdaWarehouse::ClientSearchQuery, :count)
+        expect(refused?).to be(true)
+
+        expect do
+          post cohort_client_search_queries_path(cohort_a), params: { q: 'Alpha' }
+        end.to change(GrdaWarehouse::ClientSearchQuery, :count).by(1)
+      end
+
+      it 'limits new, create and destroy to cohorts where add-clients was granted' do
+        grant(user, [:can_view_cohorts, :can_add_cohort_clients, :can_view_clients], cohort_a)
+        grant(user, [:can_view_cohorts], cohort_b)
+        extra_client = create(:grda_warehouse_hud_client)
+
+        get new_cohort_cohort_client_path(cohort_b)
+        expect(refused?).to be(true)
+
+        expect do
+          post cohort_cohort_clients_path(cohort_b), params: { grda_warehouse_cohort: { client_ids: extra_client.id.to_s } }
+        end.not_to change(cohort_b.cohort_clients, :count)
+        expect(refused?).to be(true)
+
+        delete cohort_cohort_client_path(cohort_b, cohort_client_b)
+        expect(refused?).to be(true)
+        expect(GrdaWarehouse::CohortClient.exists?(cohort_client_b.id)).to be(true)
+
+        get new_cohort_cohort_client_path(cohort_a)
+        expect(response).to have_http_status(:ok)
+
+        delete cohort_cohort_client_path(cohort_a, cohort_client_a)
+        expect(GrdaWarehouse::CohortClient.exists?(cohort_client_a.id)).to be(false)
+      end
+
+      it 'limits update to cohorts where participate was granted' do
+        grant(user, [:can_view_cohorts, :can_participate_in_cohorts], cohort_a)
+        grant(user, [:can_view_cohorts], cohort_b)
+
+        patch cohort_cohort_client_path(cohort_b, cohort_client_b, format: :json), params: { cohort_client: { rank: 7 } }
+        expect(refused?).to be(true)
+        expect(cohort_client_b.reload.rank).not_to eq(7)
+
+        patch cohort_cohort_client_path(cohort_a, cohort_client_a, format: :json), params: { cohort_client: { rank: 7 } }
+        expect(response).to have_http_status(:ok)
+        expect(cohort_client_a.reload.rank).to eq(7)
+      end
+
+      it 'does not offer the remove link on a cohort where add-clients was not granted' do
+        grant(user, [:can_view_cohorts, :can_add_cohort_clients], cohort_a)
+        grant(user, [:can_view_cohorts, :can_participate_in_cohorts], cohort_b)
+        cohort_b.update!(column_state: [CohortColumns::FirstName.new, CohortColumns::Rank.new])
+
+        get edit_cohort_cohort_client_path(cohort_b, cohort_client_b)
+
+        expect(response).to have_http_status(:ok)
+        expect(response.body).not_to include(pre_destroy_cohort_cohort_client_path(cohort_b, cohort_client_b))
+      end
+
+      it 'adds the delete column to the grid only where add-clients was granted' do
+        grant(user, [:can_view_cohorts, :can_add_cohort_clients], cohort_a)
+        grant(user, [:can_view_cohorts], cohort_b)
+
+        get cohort_cohort_clients_path(cohort_a, format: :json), params: { content: true, page: 1, per: 50 }
+        expect(JSON.parse(response.body).first.keys).to include('delete')
+
+        get cohort_cohort_clients_path(cohort_b, format: :json), params: { content: true, page: 1, per: 50 }
+        expect(JSON.parse(response.body).first.keys).not_to include('delete')
+      end
+
+      it 'shows a removed client only on cohorts where view-deleted was granted' do
+        cohort_client_a.destroy
+        cohort_client_b.destroy
+        grant(user, [:can_view_cohorts, :can_view_deleted_cohort_clients], cohort_a)
+        grant(user, [:can_view_cohorts], cohort_b)
+
+        expect(row_ids(cohort_a, population: 'Removed Clients')).to contain_exactly(cohort_client_a.id)
+        expect(row_ids(cohort_b, population: 'Removed Clients')).to be_empty
+      end
+
+      it 'shows an inactive client only on cohorts where view-inactive was granted' do
+        cohort_client_a.update!(active: false)
+        cohort_client_b.update!(active: false)
+        grant(user, [:can_view_cohorts, :can_view_inactive_cohort_clients], cohort_a)
+        grant(user, [:can_view_cohorts], cohort_b)
+
+        expect(row_ids(cohort_a, population: 'Inactive')).to contain_exactly(cohort_client_a.id)
+        expect(row_ids(cohort_b, population: 'Inactive')).to be_empty
+      end
+
+      it 'returns an inactive row from show only where view-inactive was granted' do
+        cohort_client_a.update!(active: false)
+        cohort_client_b.update!(active: false)
+        grant(user, [:can_view_cohorts, :can_view_inactive_cohort_clients], cohort_a)
+        grant(user, [:can_view_cohorts], cohort_b)
+
+        get cohort_cohort_client_path(cohort_a, cohort_client_a, format: :json)
+        expect(response).to have_http_status(:ok)
+        expect(JSON.parse(response.body)['id']).to eq(cohort_client_a.id)
+
+        get cohort_cohort_client_path(cohort_b, cohort_client_b, format: :json)
+        expect(response).to have_http_status(:not_found)
+      end
+
+      it 'returns a removed row from show only where view-deleted was granted' do
+        cohort_client_a.destroy
+        cohort_client_b.destroy
+        grant(user, [:can_view_cohorts, :can_view_deleted_cohort_clients], cohort_a)
+        grant(user, [:can_view_cohorts], cohort_b)
+
+        get cohort_cohort_client_path(cohort_a, cohort_client_a, format: :json)
+        expect(response).to have_http_status(:ok)
+        expect(JSON.parse(response.body)['id']).to eq(cohort_client_a.id)
+
+        get cohort_cohort_client_path(cohort_b, cohort_client_b, format: :json)
+        expect(response).to have_http_status(:not_found)
+      end
+
+      it 'returns a live row from show for a viewer' do
+        grant(user, [:can_view_cohorts], cohort_b)
+
+        get cohort_cohort_client_path(cohort_b, cohort_client_b, format: :json)
+
+        expect(response).to have_http_status(:ok)
+        expect(JSON.parse(response.body)['id']).to eq(cohort_client_b.id)
+      end
+
+      it 'refuses search, pre_destroy, pre_bulk_destroy, bulk_destroy, bulk_restore and re_rank on a cohort without the matching grant' do
+        grant(user, [:can_view_cohorts, :can_participate_in_cohorts, :can_add_cohort_clients, :can_view_clients], cohort_a)
+        grant(user, [:can_view_cohorts], cohort_b)
+        second_b = GrdaWarehouse::CohortClient.create!(cohort: cohort_b, client: create(:grda_warehouse_hud_client))
+        removed_b = GrdaWarehouse::CohortClient.create!(cohort: cohort_b, client: create(:grda_warehouse_hud_client), rank: 3)
+        removed_b.destroy
+        query = create(:grda_warehouse_client_search_query, created_by: user, params: { q: 'Alpha' })
+        ids = [cohort_client_b.id, second_b.id]
+        original_ranks = ids.map { |id| GrdaWarehouse::CohortClient.find(id).rank }
+
+        get cohort_cohort_client_search_query_path(cohort_id: cohort_b.id, id: query.id)
+        expect(refused?).to be(true)
+
+        get pre_destroy_cohort_cohort_client_path(cohort_b, cohort_client_b)
+        expect(refused?).to be(true)
+
+        get pre_destroy_cohort_cohort_client_path(cohort_b, removed_b)
+        expect(refused?).to be(true)
+        expect(GrdaWarehouse::CohortClient.only_deleted.exists?(removed_b.id)).to be(true)
+
+        post pre_bulk_destroy_cohort_cohort_clients_path(cohort_b), params: { cc: { cohort_client_ids: ids.join(',') } }
+        expect(refused?).to be(true)
+
+        delete bulk_destroy_cohort_cohort_clients_path(cohort_b), params: { cc: { cohort_client_ids: ids.join(',') } }
+        expect(refused?).to be(true)
+        expect(cohort_b.cohort_clients.where(id: ids).count).to eq(2)
+
+        post bulk_restore_cohort_cohort_clients_path(cohort_b), params: { cc: { cohort_client_ids: removed_b.id.to_s } }
+        expect(refused?).to be(true)
+        expect(GrdaWarehouse::CohortClient.only_deleted.exists?(removed_b.id)).to be(true)
+
+        patch re_rank_cohort_cohort_clients_path(cohort_b), params: { rank_order: ids.reverse.join(',') }
+        expect(refused?).to be(true)
+        expect(ids.map { |id| GrdaWarehouse::CohortClient.find(id).rank }).to eq(original_ranks)
+      end
+
+      it 'limits note creation to cohorts where participate was granted' do
+        grant(user, [:can_view_cohorts, :can_participate_in_cohorts], cohort_a)
+        grant(user, [:can_view_cohorts], cohort_b)
+
+        expect do
+          post cohort_cohort_client_cohort_client_notes_path(cohort_b, cohort_client_b),
+               params: { grda_warehouse_cohort_client_note: { note: 'Denied note' } }
+        end.not_to change(GrdaWarehouse::CohortClientNote, :count)
+        expect(refused?).to be(true)
+
+        expect do
+          post cohort_cohort_client_cohort_client_notes_path(cohort_a, cohort_client_a),
+               params: { grda_warehouse_cohort_client_note: { note: 'Allowed note' } }
+        end.to change(GrdaWarehouse::CohortClientNote, :count).by(1)
+      end
+    end
+  end
+
+  context 'with a legacy user' do
+    let(:user) { create(:user) }
+
+    def grant(...) = grant_legacy(...)
+
+    include_examples 'per-cohort client authorization'
+  end
+end

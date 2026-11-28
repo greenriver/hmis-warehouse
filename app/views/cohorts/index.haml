@@ -2,7 +2,7 @@
 - content_for :title, title
 .d-flex
   %h1= content_for :title
-  - if can_configure_cohorts?
+  - if current_user.can_create_cohorts?
     .ml-auto
       = link_to cohort_column_options_path, class: 'btn btn-primary pull-right mb-2' do
         %span.icon-pencil
@@ -12,7 +12,7 @@
 %ul.nav.nav-tabs{role: :tablist}
   %li.nav-item{role: :presentation}
     %a{href: '#active-cohorts', aria: {controls: 'active-cohorts'}, data: { 'bs-toggle' => :tab}, role: :tab, class: 'nav-link active'} Cohorts
-  - if can_configure_cohorts?
+  - if @inactive_cohorts.any?
     %li.nav-item{role: :presentation}
       %a{href: '#inactive-cohorts', aria: {controls: 'inactive-cohorts'}, data: { 'bs-toggle' => :tab}, role: :tab, class: 'nav-link'} Inactive Cohorts
   - if system_cohorts_enabled
@@ -25,7 +25,7 @@
         = render 'search'
         = render 'filter_actives'
         = render 'sort'
-        - if current_user.can_configure_cohorts?
+        - if current_user.can_create_cohorts?
           .ml-auto
             = link_to new_cohort_path, class: 'btn btn-primary' do
               %i.icon-plus
@@ -46,13 +46,13 @@
               %tbody
                 - @cohorts.each do |cohort|
                   %tr
-                    %td= link_to cohort.name, cohort_path(cohort)
+                    %td= link_to cohort.name, (cohort_policy_for(cohort).can_view? ? cohort_path(cohort) : edit_cohort_path(cohort))
                     %td= cohort.effective_date
                     %td= cohort.owner_name(include_unassigned: false)
                     %td= checkmark cohort.show_on_client_dashboard?
                     %td= checkmark cohort.visible_in_cas?
                     %td= cohort.cas_tag_name
-                    %td.text-center= cohort.cohort_clients.joins(:client).count
+                    %td.text-center= cohort.cohort_clients.joins(:client).count if cohort_policy_for(cohort).can_view?
       - else
         %p.none-found No Cohorts Found
   #inactive-cohorts.tab-pane{role: :tabpanel}
@@ -71,11 +71,11 @@
         %tbody
           - @inactive_cohorts.each do |cohort|
             %tr
-              %td= link_to cohort.name, cohort_path(cohort)
+              %td= link_to cohort.name, (cohort_policy_for(cohort).can_view? ? cohort_path(cohort) : edit_cohort_path(cohort))
               %td= cohort.effective_date
               %td= cohort.owner_name(include_unassigned: false)
               %td.text-center
-                = cohort.cohort_clients.count
+                = cohort.cohort_clients.count if cohort_policy_for(cohort).can_view?
   - if system_cohorts_enabled
     #system-cohorts.tab-pane{role: :tabpanel}
       .o-page
@@ -91,6 +91,6 @@
           %tbody
             - @system_cohorts.each do |cohort|
               %tr
-                %td= link_to cohort.name, cohort_path(cohort)
-                %td.text-center= cohort.cohort_clients.count
+                %td= link_to cohort.name, (cohort_policy_for(cohort).can_view? ? cohort_path(cohort) : edit_cohort_path(cohort))
+                %td.text-center= cohort.cohort_clients.count if cohort_policy_for(cohort).can_view?
 = render 'common/bootstrap_tab_memory'

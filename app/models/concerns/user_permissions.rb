@@ -186,7 +186,7 @@ module UserPermissions
     end
 
     def can_edit_some_cohorts
-      can_configure_cohorts? || can_add_cohort_clients? || can_manage_cohort_data? ||
+      can_configure_cohorts? || can_create_cohorts? || can_add_cohort_clients? || can_manage_cohort_data? ||
         can_participate_in_cohorts? || can_manage_inactive_cohort_clients?
     end
 

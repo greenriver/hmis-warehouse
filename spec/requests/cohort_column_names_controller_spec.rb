@@ -39,4 +39,22 @@ RSpec.describe CohortColumnNamesController, type: :request do
       expect(CohortColumns::Active.new.description).to eq('Clients currently enrolled')
     end
   end
+
+  describe 'GET /cohort_column_names/new' do
+    it 'refuses a role that only configures cohorts' do
+      configure_only_user = create(:acl_user)
+      setup_access_control(configure_only_user, create(:role, can_configure_cohorts: true), all_cohorts_collection)
+      sign_in configure_only_user
+
+      get new_cohort_column_name_path
+
+      expect(response).to redirect_to(root_path)
+    end
+
+    it 'allows a role that can create cohorts' do
+      get new_cohort_column_name_path
+
+      expect(response).to have_http_status(:ok)
+    end
+  end
 end

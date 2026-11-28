@@ -1,6 +1,10 @@
 ---
 sources:
   - app/models/grda_warehouse/cohort.rb
+  - app/models/grda_warehouse/auth_policies/cohort_policy.rb
+  - app/models/grda_warehouse/tasks/backfill_cohort_managers.rb
+  - app/controllers/concerns/cohort_authorization.rb
+  - app/controllers/cohorts_controller.rb
   - app/models/grda_warehouse/cohort_client_change.rb
   - app/models/grda_warehouse/cohort_copier.rb
   - app/models/grda_warehouse/system_cohorts/base.rb
@@ -24,7 +28,52 @@ The Cohorts feature is a tool for grouping, tracking, and visualizing client dat
 
 ## Permissions & Access
 
-Access to cohorts is controlled by permissions. For details, see the `cohort_*` roles defined in `app/models/role.rb`. Users without the necessary permissions will not see cohorts listed, even if the cohort itself is active.
+Cohort permissions are the `can_*cohort*` permissions on `Role`. For users on Access Controls, every cohort permission except `can_create_cohorts` is checked per cohort through `GrdaWarehouse::AuthPolicies::CohortPolicy`, so it counts only where the user's roles reach that cohort. See [Cohort policy](./warehouse-auth-policies.md#cohort-policy) for the checks, and [Warehouse Permissions](./warehouse-permissions.md) for how roles, collections and user groups combine.
+
+### Create vs. configure
+
+- `can_create_cohorts` creates cohorts and edits the cohort-wide column names and options (`CohortColumnNamesController`, `CohortColumnOptionsController`). It is global: it applies to every cohort, even under Access Controls, because a new cohort has no collection to scope it to.
+- `can_configure_cohorts` edits, removes and refreshes (`maintain`) one cohort. Under Access Controls it applies only to cohorts the user can configure through a collection or as a Manager.
+- Creating a cohort grants an Access Controls creator no access to it. A creator still on legacy access groups gets the cohort added to their access group. The Participants, Viewers and Managers submitted with the create form are applied. A project group chosen on create or update is kept only if the user can view it (`GrdaWarehouse::ProjectGroup.viewable_by`); otherwise the cohort is saved without it. On update, the cohort's current project group is kept.
+
+### Managers
+
+Each cohort has three user lists on its Edit form: Participants, Viewers and Managers. Managers are a third per-cohort access control, a system user group bound to the system role "System Role - Can Configure Cohorts". It grants `can_configure_cohorts` on that cohort only. Set it with `cohort.replace_access(users, scope: :manager)`.
+
+- A Manager who is not also a Participant or Viewer can configure the cohort but not view it.
+- Managers can change the Participants and Viewers, including adding themselves to either list.
+- The Participants, Viewers and Managers pickers list only active, non-system users. Saving the Edit form rewrites each submitted list from the picker, so an inactive user in a list is removed from it. A list absent from the submission is left alone.
+
+### What a configure-only user sees
+
+A user who can configure a cohort but not view it sees the Edit page and nothing else for that cohort. The Edit page also offers the access audit when the user has `can_audit_users`, and the refresh action on auto-maintained cohorts. `CohortPolicy#can_configure?` does not imply `can_view?`.
+
+### Listing
+
+The index lists cohorts through `User#can_access_some_cohorts` and `GrdaWarehouse::Cohort.listable_by`. It includes a cohort when the user has a view, participate, manage-data or configure permission on it. A cohort the user can configure but not view links to Edit instead of the cohort page; the index decides this per cohort with `can_view?` and `can_configure?`. The set of cohorts behind the index is cached per user for five minutes, while the per-request checks are live, so a change to a user's access can take up to five minutes to show in the list.
+
+### Per-cohort checks
+
+The cohort controllers load the cohort without a user scope and then authorize with `authorize_with` and `cohort_policy` (`CohortAuthorization`). A refused request redirects; an id that doesn't exist returns 404. Every other cohort permission (add clients, manage data, participate, manage inactive, view deleted, download, edit columns, changes report) is true only when the user can also view the cohort and holds the permission through it. `can_edit_cohort_columns` gates the columns page per cohort; `can_create_cohorts` gates the column names and options pages.
+
+Reading, changing or removing one cohort client row (`Cohorts::ClientsController` show, edit, field, update, pre_destroy and destroy, and the notes indexes in `Cohorts::ClientNotesController` and `Cohorts::NotesController`) goes through `find_visible_cohort_client`. The row must be in a tab the user can see on that cohort, or the request returns 404. Bulk remove, bulk restore and re-rank act only on the submitted rows that are in a visible tab (`visible_cohort_client_ids`) and skip the rest. `Cohorts::ClientsController#index` answers JSON only; an HTML request returns 406.
+
+An update saves only the columns shown on that cohort's grid (`Cohort#active_columns`) that are editable for the user: every editable column for manage-data, and columns the cohort marks editable for participate. Columns hidden on the cohort are not saved.
+
+Deleting a cohort note (`GrdaWarehouse::ClientNotes::CohortNote#destroyable_by`) checks every cohort the client is on or was removed from, and requires `can_edit_clients?` on at least one.
+
+### Backfill and release notes
+
+`GrdaWarehouse::Tasks::BackfillCohortManagers` runs once from the `BackfillCohortManagers` data migration, so it finishes before the new code serves requests. For each cohort that is not a system cohort and has no manager group, it makes every active Access Controls user who is a Participant and holds `can_configure_cohorts` through a non-system role a Manager. Cohorts with a manager group, even an empty one, are skipped, so a Manager an admin removed is not re-added. The grants are recorded as the system user. The migration runs in one transaction, so a failure stops the deploy with nothing granted, and rerunning the migration retries. Run outside a migration, the task grants each cohort in its own transaction.
+
+Release notes:
+
+- ACL users who could configure any visible cohort now configure only the cohorts where they are Managers or hold configure through a collection. The backfill covers existing Participants who held a non-system configure role. Others need to be added as Managers.
+- ACL users now hold every other cohort permission only through a role on a collection that contains the cohort: add clients, manage data, manage inactive clients, view inactive clients, view deleted clients, download, edit columns and the changes report. A role on a data source, project or other collection no longer grants them on any cohort. The Participant and Viewer lists grant only participate and view, so admins must add each affected cohort to a collection and grant a role carrying these permissions to the users who need them. The backfill does not grant them.
+- Roles that gave `can_configure_cohorts` now also need `can_create_cohorts` to create cohorts. The `AddCanCreateCohortsPermission` migration sets it on non-system roles that held configure.
+- Legacy (role-based) users: a per-cohort permission other than configure now also needs a view, participate or manage-data permission on the cohort. Roles with only add-clients, download, changes-report, edit-columns or manage-inactive lose access to the cohort.
+- Managers can add themselves as Participant or Viewer.
+- Refused requests redirect. A cohort id that doesn't exist returns 404.
 
 ## Configurable Views & Automation Filters
 - **Automation Filters:** When a project group is chosen, editors can optionally limit membership further via Heads of Household or configured sub-populations. These filters are intentionally gated behind the project-group requirement so the resulting cohorts remain bounded to the relevant projects; without that guard, user-created automation could balloon to every client in the warehouse and exceed the ~1,000 client scale that the cohorts UI supports comfortably.
@@ -98,7 +147,7 @@ For a detailed explanation of how the Service History is generated and how it im
 - Scope cohorts to a user with `GrdaWarehouse::Cohort.viewable_by(user)` (or `editable_by`), never with a new visibility scope or by writing collection, group, role, or access control rows by hand. Use `cohort.replace_access`.
 - A user who can edit a cohort can see it, so `viewable_by` includes the editing permissions by default. `editable_by` does not also require a view permission.
 - Cohort PII follows the viewing user. Browsing shows PII to anyone who can see the cohort, downloads also require the `include_pii_in_detail_downloads` config, and a client who is restricted in HMIS or the warehouse, or retention-marked is always redacted.
-- `Cohorts::ColumnsController` loads the cohort with a plain `find`, so only `can_edit_cohort_columns` gates it, not per-cohort access. New cohort controllers should include `CohortAuthorization` and load through `cohort_scope.find`.
+- New cohort controllers include `CohortAuthorization`, load with `load_cohort`, and authorize with `cohort_policy` rather than scoping the load.
 
 ### Membership history
 - Every membership change writes a `CohortClientChange` (create, destroy, activate, deactivate), and the change report and `associated_exit` pair entries with exits from those rows. Use `add_clients` / `remove_clients` for automated paths. Do not change membership without a change row.

@@ -227,38 +227,6 @@ RSpec.describe GrdaWarehouse::Cohort, type: :model do
     end
   end
 
-  describe '#user_can_edit_cohort_clients for an ACL user' do
-    let!(:acl_user) { create :acl_user }
-    let!(:view_only_cohort) { create :cohort }
-    let!(:editable_cohort) { create :cohort }
-    let!(:view_collection) { create :collection, collection_type: 'Cohorts' }
-    let!(:edit_collection) { create :collection, collection_type: 'Cohorts' }
-
-    before do
-      view_collection.set_viewables({ cohorts: [view_only_cohort.id] })
-      setup_access_control(acl_user, create(:cohort_client_viewer), view_collection)
-      edit_collection.set_viewables({ cohorts: [editable_cohort.id] })
-      setup_access_control(acl_user, create(:cohort_client_editor), edit_collection)
-    end
-
-    it 'allows editing the cohort reached through the editing collection' do
-      expect(editable_cohort.user_can_edit_cohort_clients(acl_user)).to be true
-    end
-
-    it 'denies editing the cohort reached only through the viewing collection' do
-      expect(view_only_cohort.user_can_edit_cohort_clients(acl_user)).to be false
-    end
-
-    it 'denies editing when the granting role has only a feature permission such as can_add_cohort_clients' do
-      feature_only_cohort = create :cohort
-      feature_collection = create :collection, collection_type: 'Cohorts'
-      feature_collection.set_viewables({ cohorts: [feature_only_cohort.id] })
-      setup_access_control(acl_user, create(:cohort_client_viewer, can_add_cohort_clients: true), feature_collection)
-
-      expect(feature_only_cohort.user_can_edit_cohort_clients(acl_user)).to be false
-    end
-  end
-
   describe '.editable_by for an ACL user' do
     let!(:acl_user) { create :acl_user }
     let!(:target_cohort) { create :cohort }
@@ -412,6 +380,157 @@ RSpec.describe GrdaWarehouse::Cohort, type: :model do
       )
 
       expect { cohort.reload.column_state }.to raise_error(Psych::DisallowedClass)
+    end
+  end
+
+  describe 'manager access' do
+    let!(:manager_user) { create :acl_user }
+    let!(:other_user) { create :acl_user }
+
+    def fresh(user)
+      User.clear_cached_permissions
+      User.find(user.id)
+    end
+
+    it 'gives managers can_configure? on this cohort only' do
+      cohort.replace_access([manager_user], scope: :manager)
+
+      expect(fresh(manager_user).policy_for(cohort).can_configure?).to be true
+      expect(fresh(manager_user).policy_for(cohort_2).can_configure?).to be false
+      expect(fresh(other_user).policy_for(cohort).can_configure?).to be false
+    end
+
+    it 'removes managers who are no longer listed' do
+      cohort.replace_access([manager_user, other_user], scope: :manager)
+      cohort.replace_access([other_user], scope: :manager)
+
+      expect(fresh(manager_user).policy_for(cohort).can_configure?).to be false
+      expect(fresh(other_user).policy_for(cohort).can_configure?).to be true
+
+      cohort.replace_access([], scope: :manager)
+
+      expect(fresh(other_user).policy_for(cohort).can_configure?).to be false
+    end
+
+    it 'does not drop managers when the editors are replaced' do
+      cohort.replace_access([manager_user], scope: :manager)
+      cohort.replace_access([other_user], scope: :editor)
+
+      expect(fresh(manager_user).policy_for(cohort).can_configure?).to be true
+    end
+
+    it 'uses a manager role that configures but does not create cohorts' do
+      role = cohort.manager_role
+
+      expect(role.can_configure_cohorts).to be true
+      expect(role.can_create_cohorts).to be false
+    end
+
+    describe '#manager_user_ids' do
+      it 'is empty when no manager group exists, without creating one' do
+        expect { expect(cohort.manager_user_ids).to eq([]) }.not_to change(UserGroup, :count)
+      end
+
+      it 'returns the ids of this cohort\'s managers only' do
+        cohort.replace_access([manager_user], scope: :manager)
+        cohort_2.replace_access([other_user], scope: :manager)
+
+        expect(cohort.manager_user_ids).to eq([manager_user.id])
+      end
+    end
+
+    describe '#rename_manager_group' do
+      it 'renames the existing manager group' do
+        cohort.replace_access([manager_user], scope: :manager)
+        cohort.update!(name: 'Renamed cohort')
+
+        cohort.rename_manager_group
+
+        expect(UserGroup.system.find_by(source: cohort, context: :manager).name).to eq('Renamed cohort [manager]')
+      end
+
+      it 'does nothing when there is no manager group' do
+        cohort.update!(name: 'Renamed cohort')
+
+        expect { cohort.rename_manager_group }.to not_change(UserGroup, :count).and not_change(AccessControl, :count)
+      end
+    end
+
+    it 'leaves no user groups for a destroyed cohort' do
+      cohort.replace_access([manager_user], scope: :manager)
+      cohort.replace_access([other_user], scope: :editor)
+      expect(UserGroup.where(source: cohort).count).to eq(2)
+
+      cohort.destroy
+      cohort.remove_system_collections!
+
+      expect(UserGroup.where(source: cohort)).to be_empty
+    end
+  end
+
+  describe '.listable_by' do
+    let!(:view_only) { create :cohort }
+    let!(:participate_only) { create :cohort }
+    let!(:manager_only) { create :cohort }
+    let!(:add_clients_only) { create :cohort }
+    let!(:unrelated) { create :cohort }
+
+    context 'with ACLs' do
+      let!(:lister) { create :acl_user }
+
+      before do
+        {
+          view_only => create(:role, can_view_cohorts: true),
+          participate_only => create(:role, can_participate_in_cohorts: true),
+          add_clients_only => create(:role, can_add_cohort_clients: true),
+        }.each do |c, role|
+          collection = create(:collection, collection_type: 'Cohorts')
+          collection.set_viewables({ cohorts: [c.id] })
+          setup_access_control(lister, role, collection)
+        end
+        manager_only.replace_access([lister], scope: :manager)
+      end
+
+      it 'includes view, participate and manager cohorts and excludes the rest' do
+        ids = described_class.listable_by(User.find(lister.id)).pluck(:id)
+
+        expect(ids).to contain_exactly(view_only.id, participate_only.id, manager_only.id)
+      end
+    end
+
+    context 'with legacy permissions' do
+      let!(:legacy_user) { create :user }
+
+      def grant(user, role, *cohorts)
+        user.legacy_roles << role
+        access_group = create(:access_group)
+        access_group.add(user)
+        cohorts.each { |c| access_group.add_viewable(c) }
+      end
+
+      it 'lists the access-group cohorts when a role has a view flag' do
+        grant(legacy_user, create(:role, can_view_cohorts: true), view_only, participate_only)
+
+        ids = described_class.listable_by(User.find(legacy_user.id)).pluck(:id)
+
+        expect(ids).to contain_exactly(view_only.id, participate_only.id)
+      end
+
+      it 'lists the access-group cohorts when a role only configures cohorts' do
+        grant(legacy_user, create(:role, can_configure_cohorts: true), manager_only)
+
+        expect(described_class.listable_by(User.find(legacy_user.id)).pluck(:id)).to eq([manager_only.id])
+      end
+
+      it 'lists nothing when the roles carry only add-clients' do
+        grant(legacy_user, create(:role, can_add_cohort_clients: true), add_clients_only)
+
+        expect(described_class.listable_by(User.find(legacy_user.id)).pluck(:id)).to be_empty
+      end
+    end
+
+    it 'is empty without a user' do
+      expect(described_class.listable_by(nil)).to be_empty
     end
   end
 end

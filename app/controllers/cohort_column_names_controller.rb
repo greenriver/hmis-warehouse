@@ -7,7 +7,7 @@
 # frozen_string_literal: true
 
 class CohortColumnNamesController < ApplicationController
-  before_action :require_can_configure_cohorts!
+  before_action :require_can_create_cohorts!
   before_action :set_columns
 
   def new

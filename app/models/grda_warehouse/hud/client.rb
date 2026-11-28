@@ -213,7 +213,7 @@ module GrdaWarehouse::Hud
     has_many :chronic_justifications, class_name: 'GrdaWarehouse::ClientNotes::ChronicJustification'
     has_many :window_notes, class_name: 'GrdaWarehouse::ClientNotes::WindowNote'
     has_many :anomaly_notes, class_name: 'GrdaWarehouse::ClientNotes::AnomalyNote'
-    has_many :cohort_notes, class_name: 'GrdaWarehouse::ClientNotes::CohortNote'
+    has_many :cohort_notes, class_name: 'GrdaWarehouse::ClientNotes::CohortNote', inverse_of: :client
     has_many :alert_notes, -> { active }, class_name: 'GrdaWarehouse::ClientNotes::Alert'
 
     has_many :anomalies, class_name: 'GrdaWarehouse::Anomaly'
@@ -226,6 +226,7 @@ module GrdaWarehouse::Hud
     has_many :non_confidential_users, through: :non_confidential_user_clients
 
     has_many :cohort_clients, dependent: :destroy
+    has_many :cohort_clients_with_deleted, -> { with_deleted }, class_name: 'GrdaWarehouse::CohortClient'
     has_many :cohorts, through: :cohort_clients, class_name: 'GrdaWarehouse::Cohort'
 
     has_many :enrollment_change_histories

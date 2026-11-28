@@ -33,7 +33,7 @@ module CohortColumns
     end
 
     def display_for(user)
-      if user.can_add_cohort_clients?
+      if user.policy_for(cohort).can_add_clients?
         display_read_only(user)
       else
         ''

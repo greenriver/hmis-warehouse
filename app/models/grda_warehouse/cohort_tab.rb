@@ -21,9 +21,8 @@ module GrdaWarehouse
     def show_for?(user)
       return true if permissions.empty?
 
-      permissions.map do |perm|
-        user.send("#{perm}?")
-      end.any?
+      policy = user.policy_for(cohort)
+      permissions.any? { |perm| policy.permission?(perm.to_sym) }
     end
 
     def cohort_client_filter

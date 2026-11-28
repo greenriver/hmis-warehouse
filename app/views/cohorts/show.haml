@@ -40,7 +40,7 @@
 
 = render 'nav', system_cohort: @cohort.system_cohort, active_tab: 'cohort'
 = render 'cohort_client_tabs', current: cohort_path(@cohort, population: @population)
-- if @cohort.auto_maintained? && can_configure_cohorts?
+- if @cohort.auto_maintained? && cohort_policy.can_configure?
   .well= render 'automation_status'
 = render 'text_size_options'
 = render 'thresholds'
@@ -53,7 +53,7 @@
       .percent-loaded
 
 
-- if @cohort_clients.blank? && (! @cohort.system_cohort && ! @cohort.auto_maintained? && current_user.can_add_cohort_clients?)
+- if @cohort_clients.blank? && (! @cohort.system_cohort && ! @cohort.auto_maintained? && cohort_policy.can_add_clients?)
   %p.text-center.mt-2
     = link_to new_cohort_cohort_client_path(@cohort), class: 'btn btn-primary' do
       %i.icon-plus

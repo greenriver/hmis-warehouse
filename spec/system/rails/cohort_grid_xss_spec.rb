@@ -63,7 +63,7 @@ RSpec.feature 'Cohort grid XSS resistance', type: :rails_system do
   describe 'html-rendered cohort columns', js: true do
     it 'never executes a <script> payload stored in health_prioritized or rrh_assessment_contact_info' do
       # cohort_cohort_clients_path (Cohorts::ClientsController#index) only ever returns the JSON
-      # row data or a layout-less HTML fragment — the AG Grid itself, and the JS that
+      # row data — the AG Grid itself, and the JS that
       # initializes it, are only rendered by CohortsController#show (see
       # app/views/cohorts/show.haml, which renders both _cohorts_js and _client_table).
       visit cohort_path(cohort)

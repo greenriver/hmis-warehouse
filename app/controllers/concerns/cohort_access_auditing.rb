@@ -8,17 +8,15 @@
 
 # Shared behavior for the cohort access audit pages. Each including controller supplies its own
 # audit_service_class (the Legacy or Acl reconstruction service). Access requires BOTH the cohort
-# edit permission and the user-auditing permission, and the cohort must already be viewable by the
-# current user (set_cohort scopes through viewable_by).
+# configure permission on this cohort and the user-auditing permission.
 module CohortAccessAuditing
   extend ActiveSupport::Concern
 
   included do
     include CohortAuthorization
 
-    before_action :require_can_configure_cohorts!
-    before_action :require_can_audit_users!
-    before_action :set_cohort
+    before_action :load_cohort
+    authorize_with { cohort_policy.can_configure? && current_user.can_audit_users? }
   end
 
   def show
