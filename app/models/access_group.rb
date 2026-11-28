@@ -164,7 +164,7 @@ class AccessGroup < ApplicationRecord
 
       all_hud_reports = system_group(:hud_reports)
       all_hud_reports.update(system: ['Entities'], must_exist: true)
-      all_hud_reports.set_viewables({ reports: hud_ids })
+      all_hud_reports.set_viewables({ reports: all_reports.system_granted_hud.pluck(:id) })
     end
 
     if group.blank? || group == :cohorts

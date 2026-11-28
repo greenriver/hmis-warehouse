@@ -43,6 +43,7 @@ module HopwaCaper
     scope :custom_services, -> { where(service_source: CUSTOM_SERVICE_SOURCE) }
 
     delegate :first_name, :last_name, :personal_id, :hmis_enrollment_id, :project_id, to: :enrollment
+    delegate :hud_enrollment, to: :enrollment, allow_nil: true
 
     def self.as_report_members
       current_scope.map do |record|

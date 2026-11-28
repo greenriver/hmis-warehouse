@@ -86,14 +86,40 @@ RSpec.describe 'HUD report access plumbing' do
     end
 
     let(:hud_ids) { definitions.hud.pluck(:id) }
+    let(:granted_ids) { definitions.system_granted_hud.pluck(:id) }
+    let(:hopwa_id) { definitions.find_by!(url: definitions.hud_url(:hopwa_capers)).id }
 
-    it 'fills the All HUD Reports collection with exactly the HUD report definitions' do
-      expect(hud_ids).not_to be_empty
-      expect(Collection.system_collection(:hud_reports).report_ids).to match_array(hud_ids)
+    it 'fills the All HUD Reports collection with every HUD definition except opt-in ones' do
+      expect(granted_ids).not_to be_empty
+      expect(Collection.system_collection(:hud_reports).report_ids).to match_array(granted_ids)
+      expect(Collection.system_collection(:hud_reports).report_ids).to include(definitions.find_by!(url: definitions.hud_url(:aprs)).id)
     end
 
-    it 'fills the All HUD Reports access group with exactly the HUD report definitions' do
-      expect(AccessGroup.system_group(:hud_reports).report_ids).to match_array(hud_ids)
+    it 'fills the All HUD Reports access group with every HUD definition except opt-in ones' do
+      expect(AccessGroup.system_group(:hud_reports).report_ids).to match_array(granted_ids)
+    end
+
+    it 'keeps HOPWA CAPER out of the All HUD Reports collection and access group' do
+      expect(Collection.system_collection(:hud_reports).report_ids).not_to include(hopwa_id)
+      expect(AccessGroup.system_group(:hud_reports).report_ids).not_to include(hopwa_id)
+    end
+
+    it 'keeps HOPWA CAPER out of the All HMIS Reports collection and access group' do
+      expect(Collection.system_collection(:hmis_reports).report_ids).not_to include(hopwa_id)
+      expect(AccessGroup.system_group(:hmis_reports).report_ids).not_to include(hopwa_id)
+    end
+
+    it 'removes HOPWA CAPER from an existing All HUD Reports collection and access group' do
+      Collection.system_collection(:hud_reports).set_viewables({ reports: hud_ids })
+      AccessGroup.system_group(:hud_reports).set_viewables({ reports: hud_ids })
+      expect(Collection.system_collection(:hud_reports).report_ids).to include(hopwa_id)
+      expect(AccessGroup.system_group(:hud_reports).report_ids).to include(hopwa_id)
+
+      Collection.maintain_system_groups(group: :reports)
+      AccessGroup.maintain_system_groups(group: :reports)
+
+      expect(Collection.system_collection(:hud_reports).report_ids).to match_array(granted_ids)
+      expect(AccessGroup.system_group(:hud_reports).report_ids).to match_array(granted_ids)
     end
 
     it 'keeps HUD definitions out of All HMIS Reports so that grant does not carry HUD access' do

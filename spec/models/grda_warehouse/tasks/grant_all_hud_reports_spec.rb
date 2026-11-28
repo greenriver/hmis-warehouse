@@ -37,7 +37,7 @@ RSpec.describe GrdaWarehouse::Tasks::GrantAllHudReports do
   it 'lets ACL users with a HUD flag see every HUD definition and grants nothing to others' do
     urls = definitions.viewable_by(acl_hud_user.reload).pluck(:url)
 
-    expect(urls).to match_array(definitions.hud.pluck(:url))
+    expect(urls).to match_array(definitions.system_granted_hud.pluck(:url))
     expect(definitions.viewable_by(acl_plain_user.reload)).to be_empty
   end
 
@@ -54,7 +54,7 @@ RSpec.describe GrdaWarehouse::Tasks::GrantAllHudReports do
   end
 
   it 'lets a legacy HUD user see every HUD definition' do
-    expect(definitions.viewable_by(legacy_hud_user.reload).pluck(:url)).to match_array(definitions.hud.pluck(:url))
+    expect(definitions.viewable_by(legacy_hud_user.reload).pluck(:url)).to match_array(definitions.system_granted_hud.pluck(:url))
   end
 
   it 'is idempotent' do

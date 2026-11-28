@@ -4,11 +4,12 @@
 - content_for :title do
   = "#{report_short_name} #{@question} #{@cell}"
 
-.d-flex.mb-4
-  .ml-auto
-    = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary'}) do
-      %i.icon.icon-download2
-      Download Excel
+- if current_user.reporting_pii_allowed_in_mode?(:download)
+  .d-flex.mb-4
+    .ml-auto
+      = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary'}) do
+        %i.icon.icon-download2
+        Download Excel
 
 - if @enrollments.any?
   %h3 Enrollments
