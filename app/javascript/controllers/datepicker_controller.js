@@ -74,6 +74,13 @@ export default class extends Controller {
       },
     };
 
+    // Only the calendar button opens the popup. Tempus Dominus defaults the toggle to the whole
+    // wrapper and moves focus into the calendar grid on open, so clicking the text box to type a
+    // date sent the keystrokes to the grid instead.
+    if (this.element.tagName !== 'INPUT' && !this.element.dataset.tdTargetToggle && this.element.querySelector('button')) {
+      this.element.dataset.tdTargetToggle = 'button';
+    }
+
     this.datepicker = new TempusDominus(this.element, finalOptions);
 
     // Override the parseInput function to handle multiple date formats using DateTime.fromString
@@ -110,101 +117,90 @@ export default class extends Controller {
   }
 
   parseFlexibleDateInput(value, originalParseInput) {
+    const input = this.element.tagName === 'INPUT' ? this.element : this.element.querySelector('input');
+
     // If value is null, undefined, or empty, use original parsing
     if (!value || value.toString().trim() === '') {
+      this.markInputValidity(input, true);
       return originalParseInput(value);
     }
 
     const rawValue = value.toString().trim();
-
-    // Preserve any localization details supplied via data attributes so the picker
-    // respects backend configuration (locale, formatting, etc.) during parsing.
-    let optionsData = {};
-    try {
-      optionsData = this.element.dataset.dateOptions ? JSON.parse(this.element.dataset.dateOptions) : {};
-    } catch (_) {
-      optionsData = {};
-    }
-
-    const locale = optionsData.localization?.locale || 'en-US';
+    const localization = this.datepicker.optionsStore?.options?.localization || {};
+    const locale = localization.locale || 'en-US';
     const normalizedValue = this.normalizeMonthAliases(rawValue, locale);
-    const localizationForFormat = (format) => {
-      if (optionsData.localization) {
-        return { ...optionsData.localization, locale, format };
-      }
 
-      return { locale, format };
-    };
-
-    // Try the original parsing first (handles the expected format). Validity is the static
-    // DateTime.isValid; instances carry no isValid property, and a falsy check here would send
-    // every good parse through the date-only fallbacks below, which drop the time.
-    const tryOriginalParse = (candidate) => {
+    // Tempus Dominus parses leniently: it skips text it cannot match and lets Date roll overflow
+    // forward, so "Mar 15 2024" read against "MMM d, yyyy" came back as Mar 20, 2025 and "2/30/2024"
+    // as Mar 1. Accept a parse only when formatting the result with the same pattern gives back
+    // what was typed.
+    const parseStrict = (candidate, format) => {
       try {
-        const result = originalParseInput(candidate);
-        if (result && DateTime.isValid(result)) {
-          return result;
-        }
+        const dt = DateTime.fromString(candidate, { ...localization, locale, format });
+        if (dt && DateTime.isValid(dt) && this.sameDateText(dt.format(format), candidate)) return dt;
       } catch (_) {
-        // Continue to flexible parsing if original fails
+        // fromString throws on some unparseable input; try the next format
       }
-
       return undefined;
     };
 
-    let parsed = tryOriginalParse(rawValue);
-    if (parsed) return parsed;
-
-    if (normalizedValue !== rawValue) {
-      parsed = tryOriginalParse(normalizedValue);
-      if (parsed) return parsed;
-    }
-
-    // Use Tempus Dominus DateTime to parse common date formats
-    // Allow both abbreviated and fully spelled-out months along with several
-    // common numeric permutations so we accept the majority of user input cases.
+    // The configured format comes first so a datetime input keeps its time. The fallbacks are
+    // date-only and drop the time.
     const formats = [
+      localization.format,
       'MMM d, yyyy',
+      'MMM d yyyy',
       'MMMM d, yyyy',
-      'MM/dd/yyyy',
+      'MMMM d yyyy',
+      'd MMM yyyy',
+      'd MMMM yyyy',
       'M/d/yyyy',
-      'MM-dd-yyyy',
       'M-d-yyyy',
-      'yyyy-MM-dd',
-      'yyyy/MM/dd',
-      'MM/dd/yy',
+      'yyyy-M-d',
+      'yyyy/M/d',
       'M/d/yy',
-      'MM-dd-yy',
       'M-d-yy',
-    ];
+    ].filter(Boolean);
 
-    const parseCandidates = normalizedValue === rawValue ? [normalizedValue] : [normalizedValue, rawValue];
-    for (const candidate of parseCandidates) {
-      for (const fmt of formats) {
-        try {
-          const dt = DateTime.fromString(candidate, localizationForFormat(fmt));
-          if (dt && DateTime.isValid(dt)) {
-            return dt;
-          }
-        } catch (_) { }
+    const candidates = normalizedValue === rawValue ? [rawValue] : [normalizedValue, rawValue];
+    for (const candidate of candidates) {
+      for (const format of formats) {
+        const parsed = parseStrict(candidate, format);
+        if (parsed) {
+          this.markInputValidity(input, true);
+          return parsed;
+        }
       }
     }
 
-    // Fallback to the browser's parser for inputs Tempus Dominus cannot handle
-    // (e.g., informal month names like "Sept" that sit between MMM and MMMM).
-    for (const candidate of parseCandidates) {
-      const nativeDate = new Date(candidate);
-      if (!Number.isNaN(nativeDate.getTime())) {
-        try {
-          const localization = optionsData.localization ? { ...optionsData.localization, locale } : { locale };
-          return DateTime.convert(nativeDate, locale, localization);
-        } catch (_) { }
-      }
-    }
+    // Leave the typed text in place and flag it, rather than guessing at a date. Returning
+    // undefined tells Tempus Dominus not to change the selected date.
+    this.markInputValidity(input, false);
+    return undefined;
+  }
 
-    // If flexible parsing fails, return the original parsing result
-    // This will let TempusDominus handle the error appropriately
-    return originalParseInput(value);
+  // Compare formatted and typed dates ignoring case, commas, extra spaces, and leading zeros, so
+  // "03/05/2024" matches the M/d/yyyy pattern and "sep 3 2023" matches "Sep 3, 2023".
+  sameDateText(formatted, typed) {
+    const normalize = (text) => text.toLowerCase().replace(/[\s,]+/g, ' ').replace(/\b0+(?=\d)/g, '').trim();
+    return normalize(formatted) === normalize(typed);
+  }
+
+  markInputValidity(input, valid) {
+    if (!input) return;
+
+    input.classList.toggle('is-invalid', !valid);
+    input.setCustomValidity(valid ? '' : 'Enter a date like Jan 31, 2025 or 1/31/2025');
+
+    let feedback = this.element.querySelector('.datepicker-invalid-feedback');
+    if (valid) {
+      feedback?.remove();
+    } else if (!feedback) {
+      feedback = document.createElement('div');
+      feedback.className = 'invalid-feedback datepicker-invalid-feedback';
+      feedback.textContent = input.validationMessage;
+      this.element.appendChild(feedback);
+    }
   }
 
   normalizeMonthAliases(value, locale) {
@@ -213,13 +209,12 @@ export default class extends Controller {
       return value;
     }
 
-    return value.replace(/\bsept\.?\b/gi, (match) => this.applyMatchCase(match.replace(/\./g, ''), 'Sep'));
-  }
-
-  applyMatchCase(source, target) {
-    if (source === source.toUpperCase()) return target.toUpperCase();
-    if (source === source.toLowerCase()) return target.toLowerCase();
-    return target[0].toUpperCase() + target.slice(1);
+    // Tempus Dominus matches month names case-sensitively, so "mar 15 2024" and "SEPT. 3" need
+    // "Mar 15 2024" and "Sep 3"
+    return value
+      .replace(/\b([a-z]{3,})\./gi, '$1')
+      .replace(/\bsept\b/gi, 'Sep')
+      .replace(/\b[a-z]+\b/gi, (word) => word[0].toUpperCase() + word.slice(1).toLowerCase());
   }
 
   addButtonLabels() {
