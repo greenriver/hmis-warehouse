@@ -348,6 +348,16 @@ RSpec.describe 'Cohort client, note and search query authorization', type: :requ
           expect(GrdaWarehouse::CohortClient.exists?(cohort_client_a.id)).to be(true)
         end
 
+        it 'bulk_restore leaves a removed row in place when the Removed Clients tab is hidden from the user' do
+          cohort_a.cohort_tabs.find_by!(name: 'Removed Clients').update!(permissions: [:can_view_deleted_cohort_clients])
+          grant(user, remover_permissions, cohort_a)
+          cohort_client_a.destroy
+
+          post bulk_restore_cohort_cohort_clients_path(cohort_a), params: { cc: { cohort_client_ids: cohort_client_a.id.to_s } }
+
+          expect(GrdaWarehouse::CohortClient.only_deleted.exists?(cohort_client_a.id)).to be(true)
+        end
+
         it 're_rank ranks the visible rows and leaves a row in a hidden tab unchanged' do
           cohort_client_a.update!(rank: 9)
           grant(user, [:can_view_cohorts, :can_participate_in_cohorts], cohort_a)
