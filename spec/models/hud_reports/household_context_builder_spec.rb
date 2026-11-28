@@ -788,7 +788,6 @@ RSpec.describe HudReports::HouseholdContextBuilder, type: :model do
       end
 
       it 'keeps a household context for an enrollment rebuilt after the universe snapshot' do
-        pending('9014 item 1: universe is matched by service history id, which a rebuild replaces')
         entry_id_before_rebuild = enrollment_child.id
         rebuild_child_after_universe_snapshot
 
@@ -807,6 +806,80 @@ RSpec.describe HudReports::HouseholdContextBuilder, type: :model do
 
         expect(child_contexts.count).to eq(1)
         expect(report.household_contexts.count).to eq(2)
+      end
+
+      context 'when the rebuild moves the enrollment into a household processed later' do
+        let(:client_other_hoh) { create_client_with_warehouse_link(dob: 35.years.ago) }
+        let!(:hud_enrollment_other_hoh) do
+          create(:hud_enrollment,
+                 PersonalID: client_other_hoh.PersonalID,
+                 ProjectID: project.ProjectID,
+                 HouseholdID: 'HH999',
+                 RelationshipToHoH: 1,
+                 EntryDate: '2020-01-01',
+                 data_source_id: data_source.id)
+        end
+
+        before do
+          GrdaWarehouse::Tasks::ServiceHistory::Enrollment.find(hud_enrollment_other_hoh.id).rebuild_service_history!
+        end
+
+        # Seam: one household per batch, and the child moves to HH999 right after HH123 is built,
+        # so the rebuilt row is loaded again with HH999.
+        def move_child_after_first_household
+          allow(builder).to receive(:batch_size).and_return(1)
+          households_built = 0
+          allow(builder).to receive(:build_contexts_for_household).and_wrap_original do |original, **kwargs|
+            contexts = original.call(**kwargs)
+            households_built += 1
+            if households_built == 1
+              hud_enrollment_child.update!(HouseholdID: 'HH999')
+              rebuild_child_service_history
+            end
+            contexts
+          end
+        end
+
+        it 'keeps one household context for the enrollment' do
+          move_child_after_first_household
+
+          builder.call
+
+          rebuilt_child_household = GrdaWarehouse::ServiceHistoryEnrollment.entry.
+            find_by(enrollment_group_id: hud_enrollment_child.EnrollmentID).
+            household_id
+          # Guard: the scenario really moved the child into the later household
+          expect(rebuilt_child_household).to eq('HH999')
+          expect(builder).to have_received(:build_contexts_for_household).twice
+          expect(child_contexts.count).to eq(1)
+          expect(child_contexts.first.household_id).to eq('HH123')
+        end
+      end
+
+      context 'when a stale entry row from a client merge is left behind' do
+        let(:previous_destination_client) { create(:hud_client, data_source: data_source) }
+
+        # The rebuild only deletes rows under the enrollment's current destination client, so a row
+        # filed under the pre-merge client survives next to the newly inserted one.
+        def leave_stale_child_row
+          enrollment_child.update!(client_id: previous_destination_client.id)
+          rebuild_child_service_history
+        end
+
+        it 'builds the context from the newest entry row' do
+          stale_row_id = enrollment_child.id
+          leave_stale_child_row
+
+          builder.call
+
+          child_entry_row_ids = GrdaWarehouse::ServiceHistoryEnrollment.entry.
+            where(enrollment_group_id: hud_enrollment_child.EnrollmentID).
+            pluck(:id)
+          # Guard: both the stale row and the rebuilt row exist
+          expect(child_entry_row_ids.size).to eq(2)
+          expect(child_contexts.count).to eq(1)
+          expect(child_contexts.first.service_history_enrollment_id).to eq((child_entry_row_ids - [stale_row_id]).first)
+        end
       end
     end
   end
