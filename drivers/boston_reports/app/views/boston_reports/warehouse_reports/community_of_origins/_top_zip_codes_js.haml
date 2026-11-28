@@ -57,9 +57,6 @@
             mutations.forEach((mutation) => {
               if (mutation.addedNodes && mutation.addedNodes.length > 0) {
                 let loaded = [].some.call(mutation.addedNodes, (el) => {
-                  if(!el.id == map_id)
-                    return
-
                   return $(el).find('#' + map_id).length > 0
                 });
                 if (loaded) {
