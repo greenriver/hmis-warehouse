@@ -6,7 +6,8 @@ import { TempusDominus, DateTime } from '@eonasdan/tempus-dominus';
 // text reaches Rails, which reads "2/30/2024" as nil and "13/01/2024" as Jan 13. This listens in
 // the capture phase on document so it runs before the jquery_ujs, AjaxModal, and Turbo submit
 // handlers; stopping propagation keeps jquery_ujs from disabling the submit button. Submits that
-// fire no submit event (form.submit(), jQuery .trigger('submit')) aren't covered.
+// fire no submit event (form.submit(), jQuery .trigger('submit')) aren't covered; the forms
+// controller's submit-on-change checks for flagged dates itself.
 const blockSubmitWithInvalidDate = (event) => {
   if (event.submitter?.formNoValidate) return;
 
