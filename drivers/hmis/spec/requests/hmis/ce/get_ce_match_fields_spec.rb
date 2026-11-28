@@ -83,6 +83,26 @@ RSpec.describe 'ceMatchFields query', type: :request do
         'pickListReference' => nil,
         'pickListOptions' => nil,
       },
+      {
+        'key' => 'disabling_condition',
+        'label' => 'HUD Disabling Condition',
+        'description' => Hmis::Ce::Match::Expression::PsdeFieldRegistry::DISABLING_CONDITION.description,
+        'itemType' => 'BOOLEAN',
+        'multiple' => false,
+        'expressionField' => 'psde.disabling_condition',
+        'pickListReference' => nil,
+        'pickListOptions' => nil,
+      },
+      {
+        'key' => 'any_reported_disability',
+        'label' => 'Any Reported Disability',
+        'description' => Hmis::Ce::Match::Expression::PsdeFieldRegistry::ANY_REPORTED_DISABILITY.description,
+        'itemType' => 'BOOLEAN',
+        'multiple' => false,
+        'expressionField' => 'psde.any_reported_disability',
+        'pickListReference' => nil,
+        'pickListOptions' => nil,
+      },
     )
   end
 

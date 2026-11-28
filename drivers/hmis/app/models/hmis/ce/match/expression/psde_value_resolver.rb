@@ -69,6 +69,10 @@ module Hmis::Ce::Match::Expression
         resolve_latest_boolean_response(clients, **boolean_field_source(PsdeFieldRegistry::DOMESTIC_VIOLENCE_SURVIVOR.key))
       when PsdeFieldRegistry::DOMESTIC_VIOLENCE_SURVIVOR_VALUES_IN_WINDOW.key
         resolve_boolean_values_in_window(clients, **boolean_field_source(PsdeFieldRegistry::DOMESTIC_VIOLENCE_SURVIVOR.key))
+      when PsdeFieldRegistry::DISABLING_CONDITION.key
+        disabling_condition_inference(:hud).call(extract_client_ids(clients))
+      when PsdeFieldRegistry::ANY_REPORTED_DISABILITY.key
+        disabling_condition_inference(:any_reported).call(extract_client_ids(clients))
       else
         raise ArgumentError, "Unknown PSDE field \"#{field.key}\""
       end
@@ -177,13 +181,20 @@ module Hmis::Ce::Match::Expression
     end
 
     # Scoped, ordered relation for a HUD table restricted to eligible enrollments.
-    # Ordered so the first row is the most recent.
+    # Ordered newest first; undated rows sort last, so they only win when no dated row qualifies.
     # Callers pluck the specific columns they need.
     def scoped_rows(client_ids, scope)
+      table = scope.arel_table
+      ordering = [
+        table[:InformationDate].desc.nulls_last,
+        table[:DateUpdated].desc.nulls_last,
+        table[:id].desc,
+      ]
+
       scope.
         joins(:enrollment).
         merge(eligibility_scope.call(client_ids)).
-        order(information_date: :desc, date_updated: :desc, id: :desc)
+        order(*ordering)
     end
 
     # HUD NoYes code -> boolean.
@@ -198,6 +209,10 @@ module Hmis::Ce::Match::Expression
 
     def disability_scope(disability_type)
       Hmis::Hud::Disability.where(d_t[:DisabilityType].eq(disability_type))
+    end
+
+    def disabling_condition_inference(definition)
+      DisablingConditionInference.new(eligibility_scope: eligibility_scope, definition: definition)
     end
 
     def eligibility_scope

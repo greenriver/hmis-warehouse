@@ -55,6 +55,15 @@ RSpec.describe Hmis::Ce::Match::Expression::PsdeFieldMap, type: :model do
         to eq({ destination_client.id => true })
     end
 
+    ['disabling_condition', 'any_reported_disability'].each do |key|
+      it "resolves #{key}" do
+        enrollment.update!(DisablingCondition: 1)
+
+        expect(field_map.client_query(clients, key)).
+          to eq({ destination_client.id => true })
+      end
+    end
+
     it 'raises for unknown fields' do
       expect { field_map.client_query(clients, 'unknown_field') }.
         to raise_error(ArgumentError, /Unknown PSDE field/)
@@ -77,6 +86,10 @@ RSpec.describe Hmis::Ce::Match::Expression::PsdeFieldMap, type: :model do
         'domestic_violence_survivor',
       )
     end
+
+    it 'includes both disabling condition fields' do
+      expect(field_map.fields.map(&:key)).to include('disabling_condition', 'any_reported_disability')
+    end
   end
 
   describe '#label_for' do
@@ -87,12 +100,25 @@ RSpec.describe Hmis::Ce::Match::Expression::PsdeFieldMap, type: :model do
     it 'returns the registry label for a disability field' do
       expect(field_map.label_for('mental_health_disorder')).to eq('Mental Health Disorder (most recent)')
     end
+
+    it 'returns the registry labels for the disabling condition fields' do
+      expect(field_map.label_for('disabling_condition')).to eq('HUD Disabling Condition')
+      expect(field_map.label_for('any_reported_disability')).to eq('Any Reported Disability')
+    end
   end
 
   describe '#format_for_display' do
     it 'formats logical fields as Yes/No' do
       expect(field_map.format_for_display('mental_health_disorder', true)).to eq('Yes')
       expect(field_map.format_for_display('mental_health_disorder', false)).to eq('No')
+    end
+
+    ['disabling_condition', 'any_reported_disability'].each do |key|
+      it "formats #{key} as Yes/No" do
+        expect(field_map.format_for_display(key, true)).to eq('Yes')
+        expect(field_map.format_for_display(key, false)).to eq('No')
+        expect(field_map.format_for_display(key, nil)).to be_nil
+      end
     end
 
     it 'formats all-enrollment logical fields as Yes/No arrays' do
@@ -171,6 +197,13 @@ RSpec.describe Hmis::Ce::Match::Expression::PsdeFieldMap, type: :model do
     it 'returns nil for SQL prefiltering' do
       expect(field_map.arel_field(field_key)).to be_nil
       expect(field_map.joins(field_key)).to be_nil
+    end
+
+    ['disabling_condition', 'any_reported_disability'].each do |key|
+      it "returns nil for #{key}" do
+        expect(field_map.arel_field(key)).to be_nil
+        expect(field_map.joins(key)).to be_nil
+      end
     end
   end
 end

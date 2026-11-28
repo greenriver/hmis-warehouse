@@ -35,7 +35,8 @@ Match on the subject matter of the code in front of you — whether you're writi
 - **HAML, the warehouse frontend, or GraphQL** → read `docs/code_patterns_and_conventions.md`
 - **Database queries** — Arel vs. raw SQL, HUD case-sensitive columns, date/time comparisons → read `docs/active-record-arel-and-queries.md`
 - **Writing feature docs** → read `docs/features/writing-feature-docs.md`.
-- **Doc sources:** Feature docs may list the code they describe in `sources:` frontmatter. CI comments on a PR that changes a listed file; re-read those docs and update them if needed.
+- **Don't edit docs unless asked** by the user or an invoked skill, even if they go stale. Instead, list stale docs in your final summary.
+- **Doc sources:** Feature docs may list the code they describe in `sources:` frontmatter, and CI flags PRs that change those files. That flag is for the developer, not a prompt to edit.
 - **Architecture docs are read-only:** `docs/architecture/` strictly follows the [arc42](https://arc42.org/) template. Don't modify it unless explicitly asked to, and only with a thorough understanding of arc42 and the section being edited.
 
 ## Conventions

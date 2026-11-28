@@ -6,6 +6,10 @@ sources:
   - drivers/hmis/app/models/hmis/ce/match/internal/client_pool_evaluator.rb
   - drivers/hmis/app/models/hmis/ce/match/expression/sql_expression_translator.rb
   - drivers/hmis/app/models/hmis/ce/match/expression/household_selector.rb
+  - drivers/hmis/app/models/hmis/ce/match/expression/psde_value_resolver.rb
+  - drivers/hmis/app/models/hmis/ce/match/expression/psde_field_registry.rb
+  - drivers/hmis/app/models/hmis/ce/match/expression/enrollment_eligibility_scope.rb
+  - drivers/hmis/app/models/hmis/ce/match/expression/disabling_condition_inference.rb
 ---
 
 # Coordinated Entry (CE) Match Engine
@@ -59,6 +63,25 @@ The classes within this module are organized into several subdirectories to grou
   - **HMIS record changes**: saving or deleting an Enrollment or Exit also marks the open members of the household(s) it affects, including the old household of a client who exited or moved.
   - **Destination client changes**: `ClientCleanup` and `IdentifyDuplicates` marks everyone who shares an open household with them, since a destination DOB feeds co-members' ages.
   - **Not immediately propagated**: The nightly full refresh picks up changes due to household member aging over time and changes due to client merges.
+
+## PSDE Fields (`psde.*`)
+
+PSDE fields read HUD data elements from the enrollments selected by `EnrollmentEligibilityScope` (the global eligibility lookback window and project group, with WIP enrollments included) and are evaluated in Ruby only (no SQL prefilter).
+
+### `psde.disabling_condition` and `psde.any_reported_disability`
+
+| Field | A disability row counts when |
+|---|---|
+| `psde.disabling_condition` | The response is Yes (1/2/3) **and** the type is Developmental or HIV/AIDS, or `IndefiniteAndImpairs` is Yes. This is the HUD Reporting Glossary definition. |
+| `psde.any_reported_disability` | The response is Yes (1/2/3), whether or not it is long-term or impairing. This is the value the default CAS calculator sends to CAS as "disabling condition" (`GrdaWarehouse::Hud::Client.disabled_client_scope`). |
+
+Accepted differences from the CAS value (`disabled_client_scope`):
+
+| Difference | CE | CAS value |
+|---|---|---|
+| Scope | Eligibility scope only, so an out-of-scope later No does not override an in-scope Yes | All of the client's data |
+| No answer collected | `nil` | `false` |
+| Yes with no `InformationDate`, then a later dated No of the same type | No (an undated row sorts before every dated row) | Yes (an undated Yes is never replaced) |
 
 ## Unit Group–Driven Maintenance
 
