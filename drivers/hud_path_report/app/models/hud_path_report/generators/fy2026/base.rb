@@ -173,6 +173,9 @@ module HudPathReport::Generators::Fy2026
 
     private def add_clients
       client_scope.find_in_batches(batch_size: 100) do |batch|
+        # Per-client reads are kept for one batch only, so nothing is held for the whole run
+        @path_enrollments_by_client_id = {}
+        @activity_by_enrollment_id = {}
         pending_associations = {}
         batch.each do |client|
           enrollment = last_active_enrollment(client)
@@ -190,6 +193,7 @@ module HudPathReport::Generators::Fy2026
           health_and_dv_latest = enrollment.health_and_dvs.detect { |d| d.InformationDate == max_health_and_dv_date }
 
           new_client = enrollment.EntryDate >= @report.start_date && no_earlier_active_enrollments?(client, enrollment)
+          income_at_report_end = last_income_in_period(enrollment.income_benefits)
 
           pending_associations[client] = report_client_universe.new(
             client_id: source_client.id,
@@ -206,7 +210,7 @@ module HudPathReport::Generators::Fy2026
             race_multi: source_client.race_multi.sort.join(','),
             veteran: source_client.VeteranStatus,
             substance_use_disorder: disabilities_latest.detect { |d| d.DisabilityType == 10 }&.DisabilityResponse,
-            soar: last_income_in_period(enrollment.income_benefits)&.ConnectionWithSOAR,
+            soar: income_at_report_end&.ConnectionWithSOAR,
             prior_living_situation: enrollment.LivingSituation,
             length_of_stay: enrollment.LengthOfStay,
             chronically_homeless: enrollment.chronically_homeless_at_start,
@@ -221,7 +225,7 @@ module HudPathReport::Generators::Fy2026
             project_id: enrollment.project.id,
             first_date_in_program: enrollment.EntryDate,
             last_date_in_program: enrollment.exit&.ExitDate,
-            contacts: path_contact_dates(client),
+            contacts: path_contact_dates(enrollment),
             services: path_services(enrollment),
             referrals: path_referrals(enrollment),
             cmh_service_provided: cmh_service_provided(enrollment),
@@ -230,14 +234,14 @@ module HudPathReport::Generators::Fy2026
             incomes_at_entry: income_sources(enrollment.income_benefits_at_entry),
             income_from_any_source_exit: enrollment.income_benefits_at_exit&.IncomeFromAnySource || 99,
             incomes_at_exit: income_sources(enrollment.income_benefits_at_exit),
-            income_from_any_source_report_end: last_income_in_period(enrollment.income_benefits)&.IncomeFromAnySource || 99,
-            incomes_at_report_end: income_sources(last_income_in_period(enrollment.income_benefits)),
+            income_from_any_source_report_end: income_at_report_end&.IncomeFromAnySource || 99,
+            incomes_at_report_end: income_sources(income_at_report_end),
             benefits_from_any_source_entry: enrollment.income_benefits_at_entry&.BenefitsFromAnySource || 99,
             benefits_from_any_source_exit: enrollment.income_benefits_at_exit&.BenefitsFromAnySource || 99,
-            benefits_from_any_source_report_end: last_income_in_period(enrollment.income_benefits)&.BenefitsFromAnySource || 99,
+            benefits_from_any_source_report_end: income_at_report_end&.BenefitsFromAnySource || 99,
             insurance_from_any_source_entry: enrollment.income_benefits_at_entry&.InsuranceFromAnySource || 99,
             insurance_from_any_source_exit: enrollment.income_benefits_at_exit&.InsuranceFromAnySource || 99,
-            insurance_from_any_source_report_end: last_income_in_period(enrollment.income_benefits)&.InsuranceFromAnySource || 99,
+            insurance_from_any_source_report_end: income_at_report_end&.InsuranceFromAnySource || 99,
             destination: enrollment.exit&.Destination,
           )
         end
@@ -281,9 +285,16 @@ module HudPathReport::Generators::Fy2026
     # Per HUD: Per discussions with SAMSHA and as discussed in the last vendor call, we're asking vendors to filter down to only the active enrollments first and then to keep only the most recent enrollment. This is intended to include clients in situations where, for instance, they were active for the first six months before being exited and then returned the day before the report end date and have no services yet.
     # So we will choose the most-recently started "active" enrollment
     private def last_active_enrollment(client)
-      enrollments(client).detect do |en|
+      path_enrollments_for(client).detect do |en|
         active_in_path(en)
       end
+    end
+
+    # The client's PATH enrollments, read once per client so every value on the client's row comes
+    # from the same read, even if an import changes the enrollments during the run
+    private def path_enrollments_for(client)
+      @path_enrollments_by_client_id ||= {}
+      @path_enrollments_by_client_id[client.id] ||= enrollments(client).preload(:exit).to_a
     end
 
     # Part of the definition of New & Active is:
@@ -292,11 +303,10 @@ module HudPathReport::Generators::Fy2026
     # so we'll find any enrollments that overlap the reporting range that started before the report start
     # that aren't the "last" enrollment, and we'll look to see if any are active
     private def no_earlier_active_enrollments?(client, enrollment)
-      enrollments(client).
-        where(e_t[:EntryDate].lt(@report.start_date)).
-        where.not(id: enrollment.id).
-        map { |e| active_in_path(e) }.
-        none?
+      earlier_enrollments = path_enrollments_for(client).select do |en|
+        en.EntryDate < @report.start_date && en.id != enrollment.id
+      end
+      earlier_enrollments.none? { |en| active_in_path(en) }
     end
 
     private def last_income_in_period(income_benefits)
@@ -307,12 +317,13 @@ module HudPathReport::Generators::Fy2026
     end
 
     private def active_in_path(enrollment)
-      return true if enrollment.current_living_situations.between(start_date: @report.start_date, end_date: @report.end_date).exists?
+      activity = enrollment_activity(enrollment)
+      return true if activity.cls_dates.any?
       # engagement date must fall within the report AND the enrollment to be valid
       return true if enrollment.DateOfEngagement&.between?([@report.start_date, enrollment.EntryDate].max, [@report.end_date, enrollment.exit&.ExitDate].compact.min)
       # path status date must fall within the report AND the enrollment to be valid
       return true if enrollment.ClientEnrolledInPATH == 1 && enrollment.DateOfPATHStatus&.between?([@report.start_date, enrollment.EntryDate].max, [@report.end_date, enrollment.exit&.ExitDate].compact.min)
-      return true if enrollment.services.path_service.between(start_date: @report.start_date, end_date: @report.end_date).exists?
+      return true if activity.path_services.any?
       return true if enrollment.real_exit_date&.between?(@report.start_date, @report.end_date)
 
       false
@@ -337,55 +348,62 @@ module HudPathReport::Generators::Fy2026
       enrollment.exit&.ExitDate.nil? || enrollment.DateOfPATHStatus <= enrollment.exit.ExitDate
     end
 
-    private def path_contact_dates(client)
-      # According to "Determining Which Clients to Include" instructions - Using use data from each client’s latest
-      # project stay (the stay with the latest 3.10 [project start date]) during the reporting date range.
-      enrollment = last_active_enrollment(client)
+    # According to "Determining Which Clients to Include" instructions - Using use data from each client’s latest
+    # project stay (the stay with the latest 3.10 [project start date]) during the reporting date range.
+    # The caller passes that enrollment (see last_active_enrollment).
+    private def path_contact_dates(enrollment)
       contacts = []
 
       min_date = [@report.start_date, enrollment.EntryDate].max
       max_date = [@report.end_date, enrollment.exit&.ExitDate].compact.min
 
-      contacts += enrollment.current_living_situations.between(start_date: min_date, end_date: max_date).pluck(:InformationDate)
+      activity = enrollment_activity(enrollment)
+      contact_range = min_date..max_date
+
+      contacts += activity.cls_dates_between(contact_range)
       contacts += [enrollment.DateOfEngagement] if enrollment.DateOfEngagement.present? && enrollment.DateOfEngagement.between?(min_date, max_date) && ! contacts.include?(enrollment.DateOfEngagement)
       contacts += [enrollment.DateOfPATHStatus] if enrollment.ClientEnrolledInPATH == 1 && enrollment.DateOfPATHStatus&.between?(min_date, max_date) && ! contacts.include?(enrollment.DateOfPATHStatus)
-      contacts += enrollment.services.path_service.between(start_date: min_date, end_date: max_date).pluck(:DateProvided).uniq.reject { |d| d.in?(contacts) }
+      contacts += activity.path_service_dates_between(contact_range).uniq.reject { |d| d.in?(contacts) }
       contacts
     end
 
-    private def path_services(enrollment)
-      services_in_range = enrollment.services.path_service.between(
-        start_date: @report.start_date,
-        end_date: @report.end_date,
+    # Reads the enrollment's PATH activity in the report range once per batch; every check and value
+    # below works from that one read
+    private def enrollment_activity(enrollment)
+      @activity_by_enrollment_id ||= {}
+      @activity_by_enrollment_id[enrollment.id] ||= EnrollmentActivity.load(
+        enrollment,
+        report_range: @report.start_date..@report.end_date,
       )
-      types_by_date = services_in_range.
-        group(:DateProvided).
-        pluck(:DateProvided, Arel.sql(array_agg(s_t[:TypeProvided]).to_sql))
+    end
+
+    # { '2025-12-01' => [TypeProvided, ...] }, one entry per service, duplicates included
+    private def path_services(enrollment)
+      services_by_date = enrollment_activity(enrollment).path_services.group_by(&:date_provided)
       # Explicit ISO keys: the jsonb encoder would otherwise use Date#to_s ("Jan 29, 2025")
-      types_by_date.to_h { |date, types| [date.iso8601, types] }
+      services_by_date.to_h do |date, services|
+        [date.iso8601, services.map(&:type_provided)]
+      end
     end
 
     private def cmh_service_provided(enrollment)
-      enrollment.services.path_service.between(start_date: @report.start_date, end_date: @report.end_date).
-        pluck(:TypeProvided).include?(4)
+      enrollment_activity(enrollment).path_services.any? { |service| service.type_provided == 4 }
     end
 
+    # { '2025-12-01' => [[TypeProvided, ReferralOutcome], ...] }, one entry per referral, duplicates included
     private def path_referrals(enrollment)
-      referrals_in_range = enrollment.services.path_referral.between(
-        start_date: @report.start_date,
-        end_date: @report.end_date,
-      )
-      type_and_outcome = sql_array(s_t[:TypeProvided], s_t[:ReferralOutcome])
-      referrals_by_date = referrals_in_range.
-        group(:DateProvided).
-        pluck(:DateProvided, Arel.sql(array_agg(type_and_outcome).to_sql))
+      referrals_by_date = enrollment_activity(enrollment).path_referrals.group_by(&:date_provided)
       # Explicit ISO keys: the jsonb encoder would otherwise use Date#to_s ("Jan 29, 2025")
-      referrals_by_date.to_h { |date, referrals| [date.iso8601, referrals] }
+      referrals_by_date.to_h do |date, referrals|
+        type_and_outcome = referrals.map { |referral| [referral.type_provided, referral.referral_outcome] }
+        [date.iso8601, type_and_outcome]
+      end
     end
 
     private def cmh_referral_provided_and_attained(enrollment)
-      enrollment.services.path_referral.between(start_date: @report.start_date, end_date: @report.end_date).
-        pluck(:TypeProvided, :ReferralOutcome).include?([1, 1])
+      enrollment_activity(enrollment).path_referrals.any? do |referral|
+        referral.type_provided == 1 && referral.referral_outcome == 1
+      end
     end
 
     private def report_client_universe
