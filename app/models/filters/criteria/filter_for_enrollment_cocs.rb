@@ -11,12 +11,16 @@ class Filters::Criteria::FilterForEnrollmentCocs < Filters::Criteria::Base
 
   def apply(scope)
     scope = super(scope)
-    scope.left_outer_joins(:enrollment).
-      # limit enrollment coc to the cocs chosen, and any random thing that's not a valid coc
-      merge(
-        GrdaWarehouse::Hud::Enrollment.where(EnrollmentCoC: input.coc_codes).
-        or(GrdaWarehouse::Hud::Enrollment.where(EnrollmentCoC: nil)).
-        or(GrdaWarehouse::Hud::Enrollment.where.not(EnrollmentCoC: HudHelper.util.cocs.keys)),
-      )
+    scope.left_outer_joins(:enrollment).merge(enrollment_scope)
+  end
+
+  # Enrollments whose Enrollment CoC is one of the chosen CoCs, blank, or not a valid CoC code.
+  # Public so a report that picks enrollments directly can apply the same rule.
+  def enrollment_scope
+    enrollments = GrdaWarehouse::Hud::Enrollment
+    chosen_coc = enrollments.where(EnrollmentCoC: input.coc_codes)
+    no_coc = enrollments.where(EnrollmentCoC: nil)
+    invalid_coc = enrollments.where.not(EnrollmentCoC: HudHelper.util.cocs.keys)
+    chosen_coc.or(no_coc).or(invalid_coc)
   end
 end

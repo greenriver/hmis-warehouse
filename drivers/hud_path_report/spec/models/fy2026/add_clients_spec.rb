@@ -45,13 +45,14 @@ RSpec.describe HudPathReport::Generators::Fy2026::QuestionEightToSixteen, type: 
 
   # An enrollment that is active in PATH through one contact (a Current Living Situation and a PATH
   # service on the same day). Its contact dates are the PATH status date and that contact date.
-  def create_path_enrollment(client:, entry_date:, contact_date:)
+  def create_path_enrollment(client:, entry_date:, contact_date:, **enrollment_options)
     enrollment = create_enrollment(
       client: client,
       project: path_project,
       entry_date: entry_date,
       ClientEnrolledInPATH: 1,
       DateOfPATHStatus: entry_date,
+      **enrollment_options,
     )
     create(
       :hud_current_living_situation,
@@ -126,15 +127,13 @@ RSpec.describe HudPathReport::Generators::Fy2026::QuestionEightToSixteen, type: 
       queries_to_add_clients
     end
 
-    # Measured today with this fixture: 25 queries per PATH client (income benefits 7, PATH services
-    # and referrals 5, enrollments 3, disabilities 2, exits 2, CLS exists? 2, and one each for
-    # health/DV, project, client and CLS contact dates). The budget is set clearly below that, not
-    # from a measurement of the fix. The fix session should measure the fixed count and tighten
-    # this budget to it, so the count can't grow back.
-    let(:queries_per_path_client_budget) { 15 }
+    # Measured with this fixture: 25 queries per PATH client before item 2, 12 after (income
+    # benefits 3, disabilities 2, and one each for enrollments, exits, PATH services and referrals,
+    # current living situations, health/DV, project and client). The budget is the measured count,
+    # so it can't grow back.
+    let(:queries_per_path_client_budget) { 12 }
 
     it 'adds each PATH client within a fixed query budget' do
-      pending('9014 item 2: each PATH client re-reads its enrollment, services and income several times')
       2.times { create_path_client }
       build_service_history
       queries_for_three_clients = queries_to_add_clients
@@ -148,7 +147,6 @@ RSpec.describe HudPathReport::Generators::Fy2026::QuestionEightToSixteen, type: 
     end
 
     it 'adds no queries for clients in the selected project types who are not in a PATH-funded project' do
-      pending('9014 item 2: the client list includes every client in the selected project types')
       queries_with_path_clients_only = queries_to_add_clients
 
       3.times { create_non_path_client }
@@ -166,6 +164,47 @@ RSpec.describe HudPathReport::Generators::Fy2026::QuestionEightToSixteen, type: 
       question_for(report).run_question!
 
       expect(path_clients(report).count).to eq(1)
+    end
+  end
+
+  # The report is filtered to MA-500. Per the FY2026 PATH spec, only PATH-funded stays count, and
+  # its one geographic filter is the PATH enrollment's own Enrollment CoC (3.16).
+  describe 'Enrollment CoC filter' do
+    let(:client) { create_client_with_warehouse_link }
+    let(:report) { new_report }
+
+    def client_row
+      path_clients(report).find_by(destination_client_id: client.destination_client.id)
+    end
+
+    it 'does not report a PATH enrollment in another CoC, even when the client has a later one' do
+      create_path_enrollment(client: client, entry_date: Date.new(2025, 11, 1), contact_date: Date.new(2025, 12, 1))
+      create_path_enrollment(
+        client: client,
+        entry_date: Date.new(2026, 3, 1),
+        contact_date: Date.new(2026, 3, 15),
+        enrollment_coc: 'MA-502',
+      )
+      build_service_history
+
+      question_for(report).run_question!
+
+      expect(client_row.first_date_in_program).to eq(Date.new(2025, 11, 1))
+    end
+
+    it 'does not report a client whose only PATH enrollment is in another CoC' do
+      create_enrollment(client: client, project: other_project, entry_date: Date.new(2025, 11, 1))
+      create_path_enrollment(
+        client: client,
+        entry_date: Date.new(2025, 11, 1),
+        contact_date: Date.new(2025, 12, 1),
+        enrollment_coc: 'MA-502',
+      )
+      build_service_history
+
+      question_for(report).run_question!
+
+      expect(client_row).to be_nil
     end
   end
 
@@ -204,7 +243,6 @@ RSpec.describe HudPathReport::Generators::Fy2026::QuestionEightToSixteen, type: 
     end
 
     it 'finishes without error when the enrollment it chose is deleted mid-run' do
-      pending('9014 item 2: the second enrollment lookup finds nothing and path_contact_dates reads EntryDate on nil')
       expected_contacts = expected_contacts_for(first_enrollment, contact_date: Date.new(2025, 12, 1))
       state = after_first_enrollment_lookup do
         # The importer soft-deletes rows missing from an export with update_all
@@ -214,15 +252,13 @@ RSpec.describe HudPathReport::Generators::Fy2026::QuestionEightToSixteen, type: 
       expect { question.run_question! }.not_to raise_error
 
       expect(state[:changed]).to be(true)
-      # If the client is reported, the row describes the one enrollment that was read
-      if client_row
-        expect(client_row.first_date_in_program).to eq(first_enrollment.EntryDate)
-        expect(client_row.contacts).to match_array(expected_contacts)
-      end
+      # The enrollment was read before the delete, so the row describes that one enrollment
+      expect(client_row).to be_present
+      expect(client_row.first_date_in_program).to eq(first_enrollment.EntryDate)
+      expect(client_row.contacts).to match_array(expected_contacts)
     end
 
     it 'describes one enrollment when a later enrollment appears mid-run' do
-      pending('9014 item 2: contact dates come from a second enrollment lookup that sees the new enrollment')
       later_contact_date = Date.new(2026, 3, 15)
       later_entry_date = Date.new(2026, 3, 1)
       expected_contacts_by_entry_date = {

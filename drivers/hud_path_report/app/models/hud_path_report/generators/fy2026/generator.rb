@@ -53,6 +53,19 @@ module HudPathReport::Generators::Fy2026
       ::HudPathReport::Filters::PathFilter
     end
 
+    # Only clients with an enrollment in a PATH-funded project can be reported (see
+    # Base#enrollments), so don't load anyone else. The funder join reuses the base scope's
+    # service_history_enrollments join, so the funded enrollment is the one open in the report range.
+    def client_scope(start_date: @report.start_date, end_date: @report.end_date)
+      path_funders = GrdaWarehouse::Hud::Funder.funding_source(
+        funder_code: HudPathReport::Generators::Fy2026::Base::PATH_FUNDER_CODE,
+      )
+      super.
+        joins(service_history_enrollments: { project: :funders }).
+        merge(path_funders)
+    end
+    memoize :client_scope
+
     def self.allowed_options(_)
       [
         :start,
