@@ -24,6 +24,28 @@ class WarehouseReport::Outcomes::OutcomesFilter < Filters::FilterBase
     self.veteran_status = veteran_statuses.first
   end
 
+  # The outcomes report forms offer their own sub-population keys (e.g. :veteran,
+  # :youth_at_search_start), which are not registered in AvailableSubPopulations.
+  # The strict sub_population= writer must accept both these and the registered
+  # keys, so extend the registered list rather than replace it, and never
+  # overwrite a registered entry whose label matches an outcomes label; the
+  # outcomes key gets a distinct label instead so both keys stay valid.
+  def available_sub_populations
+    report_classes = [
+      WarehouseReport::Outcomes::Base,
+      WarehouseReport::Outcomes::EsReport,
+      WarehouseReport::Outcomes::ThReport,
+    ]
+    outcomes_sub_populations = report_classes.flat_map { |klass| klass.available_subpopulations.to_a }
+
+    outcomes_sub_populations.each_with_object(super.dup) do |(key, label), sub_populations|
+      next if sub_populations.value?(key)
+
+      unique_label = sub_populations.key?(label) ? "#{label} (#{key})" : label
+      sub_populations[unique_label] = key
+    end
+  end
+
   def all_project_scope
     scope = GrdaWarehouse::Hud::Project.viewable_by(user, permission: :can_view_assigned_reports)
     scope = scope.with_project_type(project_type_numbers) if project_type_numbers.present?

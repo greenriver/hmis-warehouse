@@ -1,0 +1,58 @@
+###
+# Copyright Green River Data Group, Inc.
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+# frozen_string_literal: true
+
+require 'rails_helper'
+
+RSpec.describe WarehouseReport::Outcomes::OutcomesFilter, type: :model do
+  let(:user) { create(:user) }
+  let(:filter) { described_class.new(user_id: user.id) }
+
+  [:veteran, :youth, :youth_at_search_start, :youth_at_housed_date].each do |key|
+    it "accepts the outcomes report sub-population #{key}" do
+      filter.set_from_params({ sub_population: key.to_s })
+
+      expect(filter.sub_population).to eq(key)
+    end
+  end
+
+  it 'labels an outcomes report sub-population' do
+    filter.set_from_params({ sub_population: 'youth_at_search_start' })
+
+    expect(filter.chosen_sub_population).to eq('Youth (at search start)')
+  end
+
+  it 'defaults a blank sub-population to all clients' do
+    filter.set_from_params({ sub_population: '' })
+
+    expect(filter.sub_population).to eq(:clients)
+  end
+
+  # PerformanceMetrics::Report#run_rrh and #run_psh copy a FilterBase into this
+  # filter via update, carrying registered sub-population keys like :veterans.
+  it 'accepts a registered sub-population passed through update' do
+    filter.update(sub_population: :veterans)
+
+    expect(filter.sub_population).to eq(:veterans)
+  end
+
+  it 'keeps a registered sub-population whose label matches an outcomes label' do
+    registered_sub_populations = AvailableSubPopulations.available_sub_populations.merge('Veteran' => :registered_veteran)
+    allow(AvailableSubPopulations).to receive(:available_sub_populations).and_return(registered_sub_populations)
+
+    sub_populations = filter.available_sub_populations
+
+    expect(sub_populations['Veteran']).to eq(:registered_veteran)
+    expect(sub_populations['Veteran (veteran)']).to eq(:veteran)
+  end
+
+  it 'rejects an unknown sub-population' do
+    expect do
+      filter.set_from_params({ sub_population: 'not_a_population' })
+    end.to raise_error(AvailableSubPopulations::UnknownSubPopulation)
+  end
+end
