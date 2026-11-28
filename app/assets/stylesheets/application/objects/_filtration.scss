@@ -100,3 +100,10 @@ $filtrationn-container-offset: -16px;
   padding: $filtrationn-container-padding;
   border-top: 1px solid var(--gray-030);
 }
+
+// Line date fields and the "to" between them up by their text, so an error message under one
+// field doesn't push the other down (the row otherwise centers them vertically)
+.o-filtration__option-row > .input-group.date,
+.o-filtration__option-row > .input-group.date + .o-filtration__separator {
+  align-self: baseline;
+}

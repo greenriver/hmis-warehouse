@@ -19,3 +19,8 @@
 {
   max-width: 14rem;
 }
+// The invalid-date message (added by datepicker_controller) wraps to the field's width instead of
+// widening it; in a dropdown filter, a long message would otherwise stretch the whole menu.
+.datepicker-invalid-feedback {
+  contain: inline-size;
+}

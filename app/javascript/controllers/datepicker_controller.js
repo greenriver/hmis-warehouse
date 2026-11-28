@@ -266,10 +266,21 @@ export default class extends Controller {
     // input already had is kept.
     let feedback = this.element.querySelector('.datepicker-invalid-feedback');
     const describedBy = (input.getAttribute('aria-describedby') || '').split(' ').filter((id) => id && id !== feedback?.id);
+    // Bootstrap squares the corners of an input group's last control unless the group has
+    // has-validation, which tells it the trailing feedback message isn't a control
+    const group = this.element.classList.contains('input-group') ? this.element : null;
     if (valid) {
       feedback?.remove();
       input.removeAttribute('aria-invalid');
+      if (group?.hasAttribute('data-datepicker-added-validation')) {
+        group.classList.remove('has-validation');
+        group.removeAttribute('data-datepicker-added-validation');
+      }
     } else {
+      if (group && !group.classList.contains('has-validation')) {
+        group.classList.add('has-validation');
+        group.setAttribute('data-datepicker-added-validation', '');
+      }
       if (!feedback) {
         feedback = document.createElement('div');
         feedback.className = 'invalid-feedback datepicker-invalid-feedback';
